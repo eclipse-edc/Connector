@@ -4,7 +4,8 @@ plugins {
     `java-library`
 }
 
-dependencies {     
+dependencies {
     api(project(":spi"))
+    api("org.slf4j:slf4j-api:2.0.0-alpha1")
 }
 

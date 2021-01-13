@@ -22,8 +22,6 @@ import java.util.List;
 
 /**
  * Provides HTTP(S) support using Jetty.
- *
- * TODO Integrate monitor with SLF4J
  */
 public class JettyService {
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";

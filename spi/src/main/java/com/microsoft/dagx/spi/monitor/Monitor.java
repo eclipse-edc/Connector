@@ -28,4 +28,8 @@ public interface Monitor {
     default void debug(Supplier<String> supplier, Throwable... errors) {
     }
 
+    default void debug(String message, Throwable... errors) {
+        debug(() -> message, errors);
+    }
+
 }

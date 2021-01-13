@@ -1,6 +1,7 @@
 package com.microsoft.dagx.runtime;
 
 import com.microsoft.dagx.monitor.ConsoleMonitor;
+import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.SystemExtension;
@@ -19,6 +20,8 @@ public class DagxRuntime {
     public static void main(String... arg) {
         TypeManager typeManager = new TypeManager();
         ConsoleMonitor monitor = new ConsoleMonitor();
+
+        MonitorProvider.setInstance(monitor);
 
         List<ServiceExtension> serviceExtensions = loadExtensions(ServiceExtension.class);
 
