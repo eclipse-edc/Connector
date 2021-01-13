@@ -1,4 +1,4 @@
-val infoModelVersion: String by project
+val slf4jVersion: String by project
 
 plugins {
     `java-library`
@@ -6,6 +6,6 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api("org.slf4j:slf4j-api:2.0.0-alpha1")
+    api("org.slf4j:slf4j-api:${slf4jVersion}")
 }
 
