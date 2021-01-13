@@ -1,6 +1,7 @@
 package com.microsoft.dagx.runtime;
 
 import com.microsoft.dagx.monitor.ConsoleMonitor;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.SystemExtension;
 import com.microsoft.dagx.spi.types.TypeManager;
@@ -28,12 +29,12 @@ public class DagxRuntime {
         monitor.info("DA-GX ready");
     }
 
-    private static void shutdown(List<ServiceExtension> serviceExtensions, ConsoleMonitor monitor) {
+    private static void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
         serviceExtensions.forEach(ServiceExtension::shutdown);
         monitor.info("DA-GX shutdown complete");
     }
 
-    private static void bootServiceExtensions(List<ServiceExtension> serviceExtensions, TypeManager typeManager, ConsoleMonitor monitor) {
+    private static void bootServiceExtensions(List<ServiceExtension> serviceExtensions, TypeManager typeManager, Monitor monitor) {
         DefaultServiceExtensionContext context = new DefaultServiceExtensionContext(typeManager, monitor);
         serviceExtensions.forEach(extension -> extension.initialize(context));
         serviceExtensions.forEach(ServiceExtension::start);
