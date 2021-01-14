@@ -1,14 +1,16 @@
 # Project
 
-> This repo has been populated by an initial template to help get you started. Please
-> make sure to update the content to build a great experience for community-building.
+> The Data Appliance GX project is intended as a proving ground for GAIA-X and data transfer techologies.
 
-As the maintainer of this project, please make a few updates:
+# Getting Started
 
-- Improving this README.MD file to provide a great experience
-- Updating SUPPORT.MD with content about this project's support experience
-- Understanding the security reporting process in SECURITY.MD
-- Remove this section from the README
+The project requires JDK 11+. To get started:
+
+``` git clone https://github.com/microsoft/Data-Appliance-GX ```
+
+``` cd Data-Appliance-GX ```
+
+```./gradlew build```
 
 ## Contributing
 
