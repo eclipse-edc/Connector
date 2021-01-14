@@ -10,7 +10,10 @@ import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.ServiceLoader;
+
+import static java.util.Comparator.comparing;
 
 /**
  * Main entrypoint for the default runtime.
@@ -24,6 +27,7 @@ public class DagxRuntime {
         MonitorProvider.setInstance(monitor);
 
         List<ServiceExtension> serviceExtensions = loadExtensions(ServiceExtension.class);
+        serviceExtensions.sort(comparing(ServiceExtension::phase));
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions, monitor)));
 
@@ -33,7 +37,10 @@ public class DagxRuntime {
     }
 
     private static void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
-        serviceExtensions.forEach(ServiceExtension::shutdown);
+        ListIterator<ServiceExtension> iter = serviceExtensions.listIterator(serviceExtensions.size());
+        while (iter.hasPrevious()) {
+            iter.previous().shutdown();
+        }
         monitor.info("DA-GX shutdown complete");
     }
 

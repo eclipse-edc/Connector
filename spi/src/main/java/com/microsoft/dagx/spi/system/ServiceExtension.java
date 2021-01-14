@@ -6,6 +6,17 @@ package com.microsoft.dagx.spi.system;
  * Service extensions are started after system boostrap.
  */
 public interface ServiceExtension extends SystemExtension {
+    /**
+     * Defines the load sequence for extensions.
+     */
+    enum LoadPhase {PRIMORDIAL, DEFAULT;}
+
+    /**
+     * Returns the load sequence for the extension.
+     */
+    default LoadPhase phase() {
+        return LoadPhase.DEFAULT;
+    }
 
     /**
      * Initializes the extension.
