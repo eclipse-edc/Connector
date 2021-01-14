@@ -3,7 +3,7 @@ package com.microsoft.dagx.spi;
 /**
  * Base exception for the system.
  *
- * The system should use unchecked exception when appropriate (e.g., non-recoverable errors) and may extend this exception.
+ * The system should use unchecked exceptions when appropriate (e.g., non-recoverable errors) and may extend this exception.
  */
 public class DagxException extends RuntimeException {
 
