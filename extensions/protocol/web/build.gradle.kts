@@ -11,11 +11,10 @@ plugins {
 dependencies {
     api(project(":spi"))
 
-    implementation("javax.ws.rs:javax.ws.rs-api:${rsApi}");
-
     implementation("org.eclipse.jetty:jetty-webapp:${jettyVersion}") {
         exclude("jetty-xml")
     }
+
     implementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
     implementation("org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVersion}")
     implementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
