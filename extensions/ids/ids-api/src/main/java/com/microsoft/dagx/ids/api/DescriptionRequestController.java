@@ -1,4 +1,4 @@
-package com.microsoft.dagx.api.ids;
+package com.microsoft.dagx.ids.api;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;

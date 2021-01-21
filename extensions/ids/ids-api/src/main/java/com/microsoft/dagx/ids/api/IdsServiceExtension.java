@@ -1,4 +1,4 @@
-package com.microsoft.dagx.api.ids;
+package com.microsoft.dagx.ids.api;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
@@ -18,6 +18,8 @@ public class IdsServiceExtension implements ServiceExtension {
         monitor = context.getMonitor();
 
         registerTypes(context);
+
+        // CatalogService catalogService = context.loadSingletonExtension(CatalogService.class);
 
         registerControllers(context);
 
@@ -43,5 +45,6 @@ public class IdsServiceExtension implements ServiceExtension {
         WebService webService = context.getService(WebService.class);
         webService.registerController(new DescriptionRequestController());
     }
+
 
 }
