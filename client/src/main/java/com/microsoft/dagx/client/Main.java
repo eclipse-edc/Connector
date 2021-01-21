@@ -55,7 +55,6 @@ public class Main {
                 continue;
             }
 
-
             CommandExecutor executor = executors.get(cmd);
             if (executor == null) {
                 error("Unrecognized command: " + cmd, terminal);
