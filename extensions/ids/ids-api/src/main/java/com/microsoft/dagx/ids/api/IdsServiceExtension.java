@@ -1,5 +1,7 @@
 package com.microsoft.dagx.ids.api;
 
+import com.microsoft.dagx.ids.spi.catalog.CatalogService;
+import com.microsoft.dagx.ids.spi.catalog.CatalogServiceExtension;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -12,6 +14,7 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
  */
 public class IdsServiceExtension implements ServiceExtension {
     private Monitor monitor;
+    private CatalogServiceExtension catalogServiceExtension;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -19,7 +22,9 @@ public class IdsServiceExtension implements ServiceExtension {
 
         registerTypes(context);
 
-        // CatalogService catalogService = context.loadSingletonExtension(CatalogService.class);
+        // load the catalog extension
+        catalogServiceExtension = context.loadSingletonExtension(CatalogServiceExtension.class);
+        catalogServiceExtension.start();
 
         registerControllers(context);
 
@@ -33,6 +38,7 @@ public class IdsServiceExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
+        catalogServiceExtension.stop();
         monitor.info("Shutdown IDS API extension");
     }
 
@@ -43,7 +49,9 @@ public class IdsServiceExtension implements ServiceExtension {
 
     private void registerControllers(ServiceExtensionContext context) {
         WebService webService = context.getService(WebService.class);
-        webService.registerController(new DescriptionRequestController());
+        CatalogService catalogService = catalogServiceExtension.getCatalogService();
+
+        webService.registerController(new DescriptionRequestController(catalogService));
     }
 
 

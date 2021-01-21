@@ -1,5 +1,6 @@
 package com.microsoft.dagx.ids.api;
 
+import com.microsoft.dagx.ids.spi.catalog.CatalogService;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessageBuilder;
@@ -13,6 +14,11 @@ import jakarta.ws.rs.core.MediaType;
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/ids")
 public class DescriptionRequestController {
+    private CatalogService catalogService;
+
+    public DescriptionRequestController(CatalogService catalogService) {
+        this.catalogService = catalogService;
+    }
 
     @POST
     @Path("description")
