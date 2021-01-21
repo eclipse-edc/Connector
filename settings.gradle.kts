@@ -6,7 +6,7 @@ include(":core")
 include(":extensions:protocol:web")
 include(":extensions:control-http")
 
-include(":api:api-ids")
+include(":extensions:ids:ids-api")
 
 include(":runtime")
 include(":client")

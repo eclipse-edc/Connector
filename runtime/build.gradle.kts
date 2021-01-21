@@ -10,7 +10,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":extensions:protocol:web"))
     implementation(project(":extensions:control-http"))
-    implementation(project(":api:api-ids"))
+    implementation(project(":extensions:ids:ids-api"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
