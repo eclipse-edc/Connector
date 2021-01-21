@@ -51,8 +51,8 @@ public class JettyService {
         try {
             if (keyStore != null) {
                 server = new Server();
-                var storePassword = configuration.getSetting("keystore.password", "password"); // TODO change later
-                var managerPassword = configuration.getSetting("keymanager.password", "password"); // TODO change later
+                var storePassword = configuration.getSetting("keystore.password", "password");
+                var managerPassword = configuration.getSetting("keymanager.password", "password"); 
 
                 SslContextFactory.Server contextFactory = new SslContextFactory.Server();
                 contextFactory.setKeyStore(keyStore);
