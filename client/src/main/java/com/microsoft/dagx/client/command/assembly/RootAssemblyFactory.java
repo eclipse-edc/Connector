@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.microsoft.dagx.client.command.http.HttpOperations.executeGet;
+import static com.microsoft.dagx.client.command.ids.IdsAssemblyFactory.addIdsCommands;
 import static org.jline.builtins.Completers.TreeCompleter.node;
 
 /**
@@ -43,13 +44,9 @@ public class RootAssemblyFactory {
 
         addQuitCommands(nodes);
 
-        addGeneralCommands(executors, nodes);
+        addIdsCommands(executors, nodes);
 
         return new Assembly(executors, new TreeCompleter(nodes));
-    }
-
-    private static void addGeneralCommands(Map<String, CommandExecutor> executors, List<Node> nodes) {
-
     }
 
     private static void addQuitCommands(List<Node> nodes) {

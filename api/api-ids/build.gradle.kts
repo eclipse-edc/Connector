@@ -5,9 +5,12 @@ plugins {
     `java-library`
 }
 
+
 dependencies {
     api(project(":spi"))
 
+    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
+    
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
 }

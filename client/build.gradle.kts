@@ -15,6 +15,7 @@ dependencies {
     implementation("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
     implementation("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
     implementation("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
+    implementation("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 }
 
 // workaround for this issue: https://github.com/johnrengelman/shadow/issues/609

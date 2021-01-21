@@ -16,6 +16,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private Map<Class<?>, Object> services = new HashMap<>();
 
     public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor) {
+        this.typeManager = typeManager;
         this.monitor = monitor;
     }
 
