@@ -58,7 +58,7 @@ public class RootAssemblyFactory {
     }
 
     private static void addPing(Map<String, CommandExecutor> executors, List<Node> nodes) {
-        executors.put("ping", (context) -> executeGet("/control/test", context));
+        executors.put("ping", (context) -> executeGet("/api/ping", context));
         nodes.add(node("ping"));
     }
 
