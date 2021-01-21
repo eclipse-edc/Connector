@@ -1,3 +1,4 @@
+val infoModelVersion: String by project
 val rsApi: String by project
 
 plugins {

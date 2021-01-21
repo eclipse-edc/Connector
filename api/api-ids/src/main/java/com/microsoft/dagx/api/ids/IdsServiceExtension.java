@@ -1,14 +1,11 @@
-package com.microsoft.dagx.control.http;
+package com.microsoft.dagx.api.ids;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 
-/**
- * Provides a control plane over HTTP.
- */
-public class HttpControlServiceExtension implements ServiceExtension {
+public class IdsServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
@@ -17,19 +14,18 @@ public class HttpControlServiceExtension implements ServiceExtension {
 
         WebService webService = context.getService(WebService.class);
 
-        webService.registerController(new PingController());
+        // webService.registerController();
 
-        monitor.info("Initialized HTTP control extension");
+        monitor.info("Initialized IDS API extension");
     }
 
     @Override
     public void start() {
-        monitor.info("Started HTTP control extension");
+        monitor.info("Started IDS API extension");
     }
 
     @Override
     public void shutdown() {
-        monitor.info("Shutdown HTTP control extension");
+        monitor.info("Shutdown IDS API extension");
     }
-
 }
