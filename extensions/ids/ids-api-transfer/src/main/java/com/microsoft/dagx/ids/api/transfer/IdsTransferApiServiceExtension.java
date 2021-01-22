@@ -4,6 +4,9 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 
+/**
+ * Implements the IDS Controller REST API for data transfer services.
+ */
 public class IdsTransferApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
 

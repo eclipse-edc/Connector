@@ -19,17 +19,17 @@ public class HttpControlServiceExtension implements ServiceExtension {
 
         webService.registerController(new PingController());
 
-        monitor.info("Initialized HTTP control extension");
+        monitor.info("Initialized HTTP Control extension");
     }
 
     @Override
     public void start() {
-        monitor.info("Started HTTP control extension");
+        monitor.info("Started HTTP Control extension");
     }
 
     @Override
     public void shutdown() {
-        monitor.info("Shutdown HTTP control extension");
+        monitor.info("Shutdown HTTP Control extension");
     }
 
 }

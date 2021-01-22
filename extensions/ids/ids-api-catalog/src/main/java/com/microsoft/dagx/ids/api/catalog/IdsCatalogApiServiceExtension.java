@@ -2,6 +2,7 @@ package com.microsoft.dagx.ids.api.catalog;
 
 import com.microsoft.dagx.ids.spi.catalog.CatalogService;
 import com.microsoft.dagx.ids.spi.catalog.CatalogServiceExtension;
+import com.microsoft.dagx.ids.spi.descriptor.IdsDescriptorService;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -10,7 +11,7 @@ import de.fraunhofer.iais.eis.DescriptionRequestMessageImpl;
 import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 
 /**
- * Implements the IDS Controller REST API.
+ * Implements the IDS Controller REST API for catalog services.
  */
 public class IdsCatalogApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
@@ -49,9 +50,10 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
 
     private void registerControllers(ServiceExtensionContext context) {
         WebService webService = context.getService(WebService.class);
+        IdsDescriptorService descriptorService = context.getService(IdsDescriptorService.class);
         CatalogService catalogService = catalogServiceExtension.getCatalogService();
 
-        webService.registerController(new DescriptionRequestController(catalogService));
+        webService.registerController(new DescriptionRequestController(descriptorService, catalogService));
     }
 
 
