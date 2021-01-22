@@ -1,4 +1,4 @@
-package com.microsoft.dagx.ids.api;
+package com.microsoft.dagx.ids.api.catalog;
 
 import com.microsoft.dagx.ids.spi.catalog.CatalogService;
 import com.microsoft.dagx.ids.spi.catalog.CatalogServiceExtension;
@@ -12,7 +12,7 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 /**
  * Implements the IDS Controller REST API.
  */
-public class IdsServiceExtension implements ServiceExtension {
+public class IdsCatalogApiExtension implements ServiceExtension {
     private Monitor monitor;
     private CatalogServiceExtension catalogServiceExtension;
 
@@ -28,18 +28,18 @@ public class IdsServiceExtension implements ServiceExtension {
 
         registerControllers(context);
 
-        monitor.info("Initialized IDS API extension");
+        monitor.info("Initialized IDS Catalog API extension");
     }
 
     @Override
     public void start() {
-        monitor.info("Started IDS API extension");
+        monitor.info("Started IDS Catalog API extension");
     }
 
     @Override
     public void shutdown() {
         catalogServiceExtension.stop();
-        monitor.info("Shutdown IDS API extension");
+        monitor.info("Shutdown IDS Catalog API extension");
     }
 
     private void registerTypes(ServiceExtensionContext context) {

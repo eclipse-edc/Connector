@@ -8,7 +8,7 @@ include(":extensions:control-http")
 
 include(":extensions:ids:ids-spi")
 include(":extensions:ids:ids-catalog-memory")
-include(":extensions:ids:ids-api")
+include(":extensions:ids:ids-api-catalog")
 
 include(":runtime")
 include(":client")

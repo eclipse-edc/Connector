@@ -1,4 +1,4 @@
-package com.microsoft.dagx.ids.api;
+package com.microsoft.dagx.ids.api.catalog;
 
 import com.microsoft.dagx.ids.spi.catalog.CatalogService;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;

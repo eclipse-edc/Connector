@@ -11,8 +11,7 @@ dependencies {
     implementation(project(":extensions:protocol:web"))
     implementation(project(":extensions:control-http"))
     
-    implementation(project(":extensions:ids:ids-api"))
-    implementation(project(":extensions:ids:ids-api"))
+    implementation(project(":extensions:ids:ids-api-catalog"))
     implementation(project(":extensions:ids:ids-catalog-memory"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
