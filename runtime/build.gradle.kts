@@ -13,6 +13,7 @@ dependencies {
     
     implementation(project(":extensions:ids:ids-api-catalog"))
     implementation(project(":extensions:ids:ids-catalog-memory"))
+    implementation(project(":extensions:ids:ids-api-transfer"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")

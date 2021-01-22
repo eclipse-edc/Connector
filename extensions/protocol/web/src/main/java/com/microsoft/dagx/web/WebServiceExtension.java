@@ -33,14 +33,14 @@ public class WebServiceExtension implements ServiceExtension {
 
         context.registerService(WebService.class, jerseyRestService);
 
-        monitor.info("Initialized web extension");
+        monitor.info("Initialized Web extension");
     }
 
     @Override
     public void start() {
         jerseyRestService.start();
         jettyService.start();
-        monitor.info("Started web extension");
+        monitor.info("Started Web extension");
     }
 
     @Override
@@ -48,7 +48,7 @@ public class WebServiceExtension implements ServiceExtension {
         if (jettyService != null) {
             jettyService.shutdown();
         }
-        monitor.info("Shutdown web extension");
+        monitor.info("Shutdown Web extension");
     }
 
 

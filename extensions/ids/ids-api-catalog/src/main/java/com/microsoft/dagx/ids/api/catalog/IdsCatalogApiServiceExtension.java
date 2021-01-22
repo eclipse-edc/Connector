@@ -12,7 +12,7 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 /**
  * Implements the IDS Controller REST API.
  */
-public class IdsCatalogApiExtension implements ServiceExtension {
+public class IdsCatalogApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
     private CatalogServiceExtension catalogServiceExtension;
 
