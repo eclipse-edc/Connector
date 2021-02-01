@@ -4,6 +4,7 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
+import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.web.rest.JerseyRestService;
 import com.microsoft.dagx.web.transport.JettyService;
 
@@ -27,9 +28,10 @@ public class WebServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
+        TypeManager typeManager = context.getTypeManager();
 
         jettyService = new JettyService(context::getSetting, monitor);
-        jerseyRestService = new JerseyRestService(jettyService, monitor);
+        jerseyRestService = new JerseyRestService(jettyService, typeManager, monitor);
 
         context.registerService(WebService.class, jerseyRestService);
 
@@ -50,7 +52,6 @@ public class WebServiceExtension implements ServiceExtension {
         }
         monitor.info("Shutdown Web extension");
     }
-
 
 
 }

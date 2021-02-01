@@ -25,6 +25,8 @@ public class IdsAssemblyFactory {
         Map<String, CommandExecutor> executors = new HashMap<>();
 
         executors.put("description", new DescriptionRequestExecutor());
+        executors.put("request", new ArtifactRequestExecutor());
+
         return executors;
     }
 }

@@ -3,6 +3,7 @@ package com.microsoft.dagx.web.rest;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
+import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.web.transport.JettyService;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -18,12 +19,14 @@ public class JerseyRestService implements WebService {
     private static final String API_PATH = "/api/*";
 
     private JettyService jettyService;
+    private TypeManager typeManager;
     private Monitor monitor;
 
     private Set<Object> controllers = new HashSet<>();
 
-    public JerseyRestService(JettyService jettyService, Monitor monitor) {
+    public JerseyRestService(JettyService jettyService, TypeManager typeManager, Monitor monitor) {
         this.jettyService = jettyService;
+        this.typeManager = typeManager;
         this.monitor = monitor;
     }
 
@@ -44,6 +47,8 @@ public class JerseyRestService implements WebService {
             // In order to use instances with Jersey, the controller types must be registered along with an {@link AbstractBinder} that maps those types to the instances.
             resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
             resourceConfig.registerInstances(new Binder());
+
+            resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
 
             // Register the Jersey container with Jetty
             ServletContainer servletContainer = new ServletContainer(resourceConfig);
