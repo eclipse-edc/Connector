@@ -11,6 +11,8 @@ dependencies {
     implementation(project(":extensions:protocol:web"))
     implementation(project(":extensions:control-http"))
     
+    implementation(project(":extensions:transfer:transfer-core"))
+
     implementation(project(":extensions:ids:ids-core"))
     implementation(project(":extensions:ids:ids-api-catalog"))
     implementation(project(":extensions:ids:ids-catalog-memory"))

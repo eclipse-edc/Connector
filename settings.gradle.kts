@@ -6,6 +6,8 @@ include(":core")
 include(":extensions:protocol:web")
 include(":extensions:control-http")
 
+include(":extensions:transfer:transfer-core")
+
 include(":extensions:ids:ids-spi")
 include(":extensions:ids:ids-core")
 include(":extensions:ids:ids-catalog-memory")
