@@ -14,6 +14,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.net.URI;
+import java.util.UUID;
 
 /**
  * Receives incoming data transfer requests and processes them.
@@ -44,7 +45,7 @@ public class ArtifactRequestController {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        TransferResponse response = transferManager.initiateTransfer(DataRequest.Builder.newInstance().build());
+        TransferResponse response = transferManager.initiateTransfer(DataRequest.Builder.newInstance(UUID.randomUUID().toString()).build());
 
         monitor.info("Data transfer request initiated");
         

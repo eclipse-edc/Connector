@@ -12,22 +12,35 @@ import com.microsoft.dagx.spi.types.domain.Polymorphic;
 @JsonTypeName("dagx:datarequest")
 @JsonDeserialize(builder = DataRequest.Builder.class)
 public class DataRequest implements Polymorphic {
+    private String id;
+
+    /**
+     * The unique request id.
+     */
+    public String getId() {
+        return id;
+    }
+
+    private DataRequest(String id) {
+        this.id = id;
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;
 
         @JsonCreator
-        public static Builder newInstance() {
-            return new Builder();
+        public static Builder newInstance(String id) {
+            return new Builder(id);
         }
 
         public DataRequest build() {
             return request;
         }
 
-        private Builder() {
-            request = new DataRequest();
+        private Builder(String id) {
+            request = new DataRequest(id);
+
         }
     }
 }

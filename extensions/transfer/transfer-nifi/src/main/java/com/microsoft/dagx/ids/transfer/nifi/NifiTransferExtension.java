@@ -6,14 +6,15 @@ import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.TransferManagerRegistry;
 
 public class NifiTransferExtension implements ServiceExtension {
+    private static final String DEFAULT_NIFI_URL = "http://localhost:8080/nifi-api";
+
     private Monitor monitor;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        TransferManagerRegistry transferManagerRegistry = context.getService(TransferManagerRegistry.class);
-        transferManagerRegistry.register(new NifiTransferManager());
+        registerManager(context);
 
         monitor.info("Initialized Core Transfer extension");
     }
@@ -27,4 +28,13 @@ public class NifiTransferExtension implements ServiceExtension {
     public void shutdown() {
         monitor.info("Shutdown Nifi Transfer extension");
     }
+
+    private void registerManager(ServiceExtensionContext context) {
+        TransferManagerRegistry transferManagerRegistry = context.getService(TransferManagerRegistry.class);
+
+        NifiTransferManagerConfiguration configuration = NifiTransferManagerConfiguration.Builder.newInstance().url(DEFAULT_NIFI_URL).build();
+        NifiTransferManager manager = new NifiTransferManager(configuration, context.getTypeManager(), context.getMonitor());
+        transferManagerRegistry.register(manager);
+    }
+
 }

@@ -46,7 +46,7 @@ public class JettyService {
     }
 
     public void start() {
-        var port = configuration.getSetting("web.http.port", 8080);
+        var port = configuration.getSetting("web.http.port", 8181);
 
         try {
             if (keyStore != null) {

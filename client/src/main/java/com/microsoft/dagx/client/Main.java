@@ -20,7 +20,7 @@ import static com.microsoft.dagx.client.common.Commands.subCommands;
 import static com.microsoft.dagx.client.common.Output.error;
 
 public class Main {
-    private static final String DEFAULT_ENDPOINT = "http://localhost:8080";
+    private static final String DEFAULT_ENDPOINT = "http://localhost:8181";
 
     private static final AttributedStyle BLUE_STYLE = AttributedStyle.DEFAULT.foreground(AttributedStyle.BLUE);
 
