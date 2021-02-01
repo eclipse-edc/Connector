@@ -1,6 +1,7 @@
 package com.microsoft.dagx.web.transport;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
@@ -24,6 +25,9 @@ import java.util.List;
  * Provides HTTP(S) support using Jetty.
  */
 public class JettyService {
+    @DagxSetting
+    private static final String HTTP_PORT = "web.http.port";
+
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private final JettyConfiguration configuration;
     private KeyStore keyStore;
@@ -46,7 +50,7 @@ public class JettyService {
     }
 
     public void start() {
-        var port = configuration.getSetting("web.http.port", 8181);
+        var port = configuration.getSetting(HTTP_PORT, "8181");
 
         try {
             if (keyStore != null) {
@@ -62,13 +66,13 @@ public class JettyService {
                 HttpConfiguration https = new HttpConfiguration();
                 SslConnectionFactory connectionFactory = new SslConnectionFactory(contextFactory, "http/1.1");
                 ServerConnector sslConnector = new ServerConnector(server, connectionFactory, new HttpConnectionFactory(https));
-                sslConnector.setPort(port);
+                sslConnector.setPort(Integer.parseInt(port));
                 server.setConnectors(new Connector[]{sslConnector});
                 monitor.info("HTTPS listening on " + port);
             } else {
-                server = new Server(port);
+                server = new Server(Integer.parseInt(port));
                 ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()));
-                connector.setPort(port);
+                connector.setPort(Integer.parseInt(port));
                 server.setConnectors(new Connector[]{connector});
                 monitor.info("HTTP listening on " + port);
             }

@@ -2,6 +2,7 @@ package com.microsoft.dagx.system;
 
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.system.ConfigurationExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.types.TypeManager;
 
@@ -16,15 +17,23 @@ import static java.util.stream.Collectors.joining;
 
 /**
  * Base service extension context.
+ *
+ * Prior to using, {@link #initialize()} must be called.
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private Monitor monitor;
     private TypeManager typeManager;
     private Map<Class<?>, Object> services = new HashMap<>();
+    private List<ConfigurationExtension> configurationExtensions;
 
     public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor) {
         this.typeManager = typeManager;
         this.monitor = monitor;
+    }
+
+    public void initialize() {
+        configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
+        configurationExtensions.forEach(ConfigurationExtension::initialize);
     }
 
     @Override
@@ -38,8 +47,15 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    public <T> T getSetting(String setting, T defaultValue) {
-        return defaultValue;
+    public String getSetting(String key, String defaultValue) {
+        for (ConfigurationExtension extension : configurationExtensions) {
+            String value = extension.getSetting(key);
+            if (value != null) {
+                return value;
+            }
+        }
+        String value = System.getenv(key);
+        return value != null ? value : defaultValue;
     }
 
     @Override
@@ -55,10 +71,10 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
 
     @Override
-    public <T> List<T> loadExtensions(Class<T> type) {
+    public <T> List<T> loadExtensions(Class<T> type, boolean required) {
         List<T> extensions = new ArrayList<>();
         ServiceLoader.load(type).iterator().forEachRemaining(extensions::add);
-        if (extensions.isEmpty()) {
+        if (extensions.isEmpty() && required) {
             throw new DagxException("No extensions found of type:  " + type.getName());
         }
         return extensions;

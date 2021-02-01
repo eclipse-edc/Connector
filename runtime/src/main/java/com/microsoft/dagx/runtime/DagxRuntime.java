@@ -25,8 +25,9 @@ public class DagxRuntime {
         MonitorProvider.setInstance(monitor);
 
         DefaultServiceExtensionContext context = new DefaultServiceExtensionContext(typeManager, monitor);
+        context.initialize();
 
-        List<ServiceExtension> serviceExtensions = context.loadExtensions(ServiceExtension.class);
+        List<ServiceExtension> serviceExtensions = context.loadExtensions(ServiceExtension.class, true);
         serviceExtensions.sort(comparing(ServiceExtension::phase));
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions, monitor)));

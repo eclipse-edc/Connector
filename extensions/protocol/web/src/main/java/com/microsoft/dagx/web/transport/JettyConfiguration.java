@@ -6,5 +6,5 @@ package com.microsoft.dagx.web.transport;
 @FunctionalInterface
 public interface JettyConfiguration {
 
-    <T> T getSetting(String setting, T defaultValue);
+    String getSetting(String setting, String defaultValue);
 }

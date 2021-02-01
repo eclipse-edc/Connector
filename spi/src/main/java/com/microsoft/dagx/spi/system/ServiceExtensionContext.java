@@ -23,7 +23,7 @@ public interface ServiceExtensionContext {
     /**
      * Returns the configuration value, or the default value if not found.
      */
-    <T> T getSetting(String setting, T defaultValue);
+    String getSetting(String setting, String defaultValue);
 
     /**
      * Returns a system service.
@@ -39,7 +39,7 @@ public interface ServiceExtensionContext {
     /**
      * Loads multiple extensions, raising an exception if at least one is not found.
      */
-    <T> List<T> loadExtensions(Class<T> type);
+    <T> List<T> loadExtensions(Class<T> type, boolean required);
 
     /**
      * Loads a single extension, raising an exception if one is not found.
