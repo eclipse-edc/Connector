@@ -7,6 +7,7 @@ include(":extensions:protocol:web")
 include(":extensions:control-http")
 
 include(":extensions:transfer:transfer-core")
+include(":extensions:transfer:transfer-nifi")
 
 include(":extensions:ids:ids-spi")
 include(":extensions:ids:ids-core")

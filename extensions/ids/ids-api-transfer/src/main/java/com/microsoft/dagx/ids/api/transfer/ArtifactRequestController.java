@@ -3,6 +3,8 @@ package com.microsoft.dagx.ids.api.transfer;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.TransferManager;
 import com.microsoft.dagx.spi.transfer.TransferManagerRegistry;
+import com.microsoft.dagx.spi.transfer.TransferResponse;
+import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -34,9 +36,18 @@ public class ArtifactRequestController {
         URI dataUrn = message.getRequestedArtifact();
         monitor.debug(() -> "Received artifact request for: " + dataUrn);
 
-        // TODO validate URN scheme
-        TransferManager transferManager = transferManagerRegistry.getManager(dataUrn);
+        // TODO validate URN scheme and enforce policy
 
+        TransferManager transferManager = transferManagerRegistry.getManager(dataUrn);
+        if (transferManager == null) {
+            // TODO this needs to return the proper IDS message
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        TransferResponse response = transferManager.initiateTransfer(DataRequest.Builder.newInstance().build());
+
+        monitor.info("Data transfer request initiated");
+        
         return Response.ok().build();
     }
 
