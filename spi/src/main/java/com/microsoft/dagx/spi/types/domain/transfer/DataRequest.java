@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.spi.types.domain.Polymorphic;
+import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 
 /**
  * Polymorphic data request.
@@ -13,6 +14,7 @@ import com.microsoft.dagx.spi.types.domain.Polymorphic;
 @JsonDeserialize(builder = DataRequest.Builder.class)
 public class DataRequest implements Polymorphic {
     private String id;
+    private DataEntry<?> dataEntry;
 
     /**
      * The unique request id.
@@ -21,8 +23,11 @@ public class DataRequest implements Polymorphic {
         return id;
     }
 
-    private DataRequest(String id) {
-        this.id = id;
+    public DataEntry<?> getDataEntry() {
+        return dataEntry;
+    }
+
+    private DataRequest() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -30,17 +35,26 @@ public class DataRequest implements Polymorphic {
         private final DataRequest request;
 
         @JsonCreator
-        public static Builder newInstance(String id) {
-            return new Builder(id);
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public DataRequest build() {
             return request;
         }
 
-        private Builder(String id) {
-            request = new DataRequest(id);
+        public Builder id(String id) {
+            request.id = id;
+            return this;
+        }
 
+        public Builder dataEntry(DataEntry<?> entry) {
+            request.dataEntry = entry;
+            return this;
+        }
+
+        private Builder() {
+            request = new DataRequest();
         }
     }
 }

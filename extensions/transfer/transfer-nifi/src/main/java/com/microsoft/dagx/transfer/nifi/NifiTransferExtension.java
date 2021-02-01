@@ -1,4 +1,4 @@
-package com.microsoft.dagx.ids.transfer.nifi;
+package com.microsoft.dagx.transfer.nifi;
 
 import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;

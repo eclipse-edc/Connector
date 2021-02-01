@@ -1,8 +1,7 @@
 package com.microsoft.dagx.spi.transfer;
 
+import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.Nullable;
-
-import java.net.URI;
 
 /**
  * A registry of {@link TransferManager}.
@@ -18,8 +17,8 @@ public interface TransferManagerRegistry {
      * Returns the transfer manager if one is registered that can handle the data represented by the urn; otherwise null if no manager
      * is found.
      *
-     * @param dataUrn the data to transfer
+     * @param dataRequest the data to transfer
      */
     @Nullable
-    TransferManager getManager(URI dataUrn);
+    TransferManager getManager(DataRequest dataRequest);
 }

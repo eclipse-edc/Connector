@@ -1,5 +1,6 @@
 package com.microsoft.dagx.ids.api.transfer;
 
+import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -37,9 +38,11 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
         WebService webService = context.getService(WebService.class);
 
         TransferManagerRegistry transferManagerRegistry = context.getService(TransferManagerRegistry.class);
+        MetadataStore metadataStore = context.getService(MetadataStore.class);
+
         Monitor monitor = context.getMonitor();
 
-        webService.registerController(new ArtifactRequestController(transferManagerRegistry, monitor));
+        webService.registerController(new ArtifactRequestController(metadataStore, transferManagerRegistry, monitor));
     }
 
     private void registerTypes(ServiceExtensionContext context) {

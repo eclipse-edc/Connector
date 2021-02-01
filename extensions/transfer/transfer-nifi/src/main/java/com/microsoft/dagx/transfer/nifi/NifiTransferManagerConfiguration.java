@@ -1,4 +1,4 @@
-package com.microsoft.dagx.ids.transfer.nifi;
+package com.microsoft.dagx.transfer.nifi;
 
 /**
  * Configures a {@link NifiTransferManager} instance.

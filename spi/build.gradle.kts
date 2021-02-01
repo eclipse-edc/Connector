@@ -11,3 +11,4 @@ dependencies {
     api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
 
 }
+

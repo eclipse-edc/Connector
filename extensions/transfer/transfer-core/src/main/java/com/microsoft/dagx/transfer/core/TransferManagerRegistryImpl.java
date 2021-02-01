@@ -1,10 +1,10 @@
-package com.microsoft.dagx.ids.transfer.core;
+package com.microsoft.dagx.transfer.core;
 
 import com.microsoft.dagx.spi.transfer.TransferManager;
 import com.microsoft.dagx.spi.transfer.TransferManagerRegistry;
+import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,9 +20,9 @@ public class TransferManagerRegistryImpl implements TransferManagerRegistry {
     }
 
     @Override
-    public @Nullable TransferManager getManager(URI dataUrn) {
+    public @Nullable TransferManager getManager(DataRequest dataRequest) {
         for (TransferManager manager : managers) {
-            if (manager.canHandle(dataUrn)) {
+            if (manager.canHandle(dataRequest)) {
                 return manager;
             }
         }
