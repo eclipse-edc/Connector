@@ -4,7 +4,7 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Delegates to a metadata storage system. Data items have entries in
+ * Delegates to a metadata storage system for the persistence and management of data entries.
  */
 public interface MetadataStore {
 
