@@ -4,6 +4,8 @@ val jerseyVersion: String by project
 
 plugins {
     `java-library`
+    id("application")
+    id("com.github.johnrengelman.shadow") version "5.2.0"
 }
 
 dependencies {
@@ -26,4 +28,17 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
 
 }
+
+// workaround for this issue: https://github.com/johnrengelman/shadow/issues/609
+application {
+    @Suppress("DEPRECATION")
+    mainClassName = "com.microsoft.dagx.runtime.DagxRuntime"
+}
+
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+    exclude("**/pom.properties", "**/pom.xm")
+    mergeServiceFiles()
+    archiveFileName.set("dagx-runtime.jar")
+}
+
 
