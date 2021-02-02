@@ -8,6 +8,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.microsoft.dagx.client.command.http.HttpOperations.executePost;
 import static com.microsoft.dagx.client.command.ids.IdsConstants.ID_URI;
@@ -20,15 +21,18 @@ public class ArtifactRequestExecutor implements CommandExecutor {
 
     @Override
     public CommandResult execute(ExecutionContext context) {
-        ArtifactRequestMessageBuilder messageBuilder = new ArtifactRequestMessageBuilder();
 
+        List<String> params = context.getParams();
+        if (params.isEmpty()) {
+            return new CommandResult(true, "Please specify a message id: ids request <message id>.");
+        }
         // FIXME The IDS types require concrete classes. An issue needs to be filed with Fraunhofer to change them to interfaces
         ArrayList<URI> connectors = new ArrayList<>();
         connectors.add(ID_URI);
 
         // TODO add JWS ._securityToken_(jwsToken)
         // TODO parameterize artifact urn
-        URI artifactUrn = URI.create("dagx:microsoft:artifacts:test");
+        URI artifactUrn = URI.create(params.get(0));
 
         ArtifactRequestMessage message = new ArtifactRequestMessageBuilder()
                 // FIXME handle timezone issue ._issued_(gregorianNow())

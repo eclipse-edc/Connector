@@ -42,7 +42,7 @@ public class NifiDemoServiceExtension implements ServiceExtension {
 
     private void saveDataEntries() {
         GenericDataEntryExtensions extensions = GenericDataEntryExtensions.Builder.newInstance().property("processGroup", "ee3eb39c-3c08-422a-a5e0-797d33031070").build();
-        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().id("dagx:microsoft:artifacts:test").extensions(extensions).build();
+        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().id("test123").extensions(extensions).build();
         context.getService(MetadataStore.class).save(entry);
     }
 
