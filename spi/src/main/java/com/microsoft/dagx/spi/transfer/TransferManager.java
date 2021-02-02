@@ -15,6 +15,6 @@ public interface TransferManager {
     /**
      * Initiate the transfer.
      */
-    TransferResponse initiateTransfer(DataRequest request);
+    TransferResponse initiateTransfer(DataRequest dataRequest);
 
 }
