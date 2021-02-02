@@ -3,7 +3,7 @@ package com.microsoft.dagx.spi.system;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Contributes configuration to a runtime. Multlple configuration extensions may be loaded in a runtime.
+ * Contributes configuration to a runtime. Multiple configuration extensions may be loaded in a runtime.
  */
 public interface ConfigurationExtension extends BootExtension {
 

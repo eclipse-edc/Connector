@@ -4,6 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+/**
+ * Data that is managed and can be shared by the system.
+ *
+ * @param <T> domain-specific extension properties.
+ */
 @JsonDeserialize(builder = DataEntry.Builder.class)
 public class DataEntry<T extends DataEntryExtensions> {
     private String id;

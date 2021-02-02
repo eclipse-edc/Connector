@@ -8,6 +8,9 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Generic extension properties.
+ */
 @JsonTypeName("dagx:genericdataentryextensions")
 @JsonDeserialize(builder = GenericDataEntryExtensions.Builder.class)
 public class GenericDataEntryExtensions extends DataEntryExtensions {
@@ -16,7 +19,6 @@ public class GenericDataEntryExtensions extends DataEntryExtensions {
     public Map<String, String> getProperties() {
         return properties;
     }
-
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {

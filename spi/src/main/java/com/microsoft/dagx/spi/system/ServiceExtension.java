@@ -30,7 +30,7 @@ public interface ServiceExtension extends SystemExtension {
     }
 
     /**
-     * Returns the load sequence for the extension.
+     * Returns the load phase for the extension.
      */
     default LoadPhase phase() {
         return LoadPhase.DEFAULT;
