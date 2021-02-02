@@ -40,8 +40,6 @@ class TopologicalSortTest {
         list.add("bar");
         list.add("foo");
 
-        assertThrows(CyclicDependencyException.class, () -> {
-            sort.sort(list);
-        });
+        assertThrows(CyclicDependencyException.class, () -> sort.sort(list));
     }
 }
