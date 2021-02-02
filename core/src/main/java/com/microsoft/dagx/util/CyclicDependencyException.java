@@ -22,6 +22,9 @@ package com.microsoft.dagx.util;
 
 import com.microsoft.dagx.spi.DagxException;
 
+/**
+ * Denotes a cyclic dependency was encountered during runtime boot.
+ */
 public class CyclicDependencyException extends DagxException {
 
     CyclicDependencyException(Object item) {

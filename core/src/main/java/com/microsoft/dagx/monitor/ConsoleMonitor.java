@@ -8,7 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.function.Supplier;
 
 /**
- * Default monitor implementation.
+ * Default monitor implementation. Outputs messages to the console.
  */
 public class ConsoleMonitor implements Monitor {
     private Level level;

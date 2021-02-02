@@ -50,7 +50,7 @@ public class TopologicalSort<T> {
 
     /**
      * Sort the passed list according to dependencies previously set with
-     * {@link #addDependency(Object, Object)}.  Where possible, ordering will be
+     * {@link #addDependency(Object, Object)}. Where possible, ordering will be
      * preserved if no dependency
      *
      * @param list The list to be sorted.
@@ -107,7 +107,7 @@ public class TopologicalSort<T> {
 
 
     /**
-     * Sorts dependencies in the order they were in the original list.  This ensures that dependencies are visited in the original order and no needless reordering is performed.
+     * Sorts dependencies in the order they were in the original list. This ensures that dependencies are visited in the original order and no needless reordering is performed.
      */
     private static class InitialOrderComparator<T> implements Comparator<T> {
         private final Map<T, Integer> indexes = new HashMap<>();
