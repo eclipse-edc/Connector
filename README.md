@@ -10,7 +10,13 @@ The project requires JDK 11+. To get started:
 
 ``` cd Data-Appliance-GX ```
 
-```./gradlew build```
+```./gradlew clean shadowJar```
+
+To launch the runtime and client from the root build directory, respectively:
+
+```java -jar runtime/build/libs/dagx-runtime.jar```
+
+```java -jar client/build/libs/dagx-client.jar```
 
 ## Contributing
 
