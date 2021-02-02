@@ -51,15 +51,24 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         return typeManager;
     }
 
+    /**
+     * Attempts to resolve the setting by delegating to configuration extensions, VM properties, and then env variables, in that order; otherwise
+     * the default value is returned.
+     */
     @Override
     public String getSetting(String key, String defaultValue) {
+        String value;
         for (ConfigurationExtension extension : configurationExtensions) {
-            String value = extension.getSetting(key);
+            value = extension.getSetting(key);
             if (value != null) {
                 return value;
             }
         }
-        String value = System.getenv(key);
+        value = System.getProperty(key);
+        if (value != null) {
+            return value;
+        }
+        value = System.getenv(key);
         return value != null ? value : defaultValue;
     }
 
