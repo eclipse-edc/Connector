@@ -18,7 +18,6 @@ dependencies {
 
     implementation(project(":extensions:ids:ids-core"))
     implementation(project(":extensions:ids:ids-api-catalog"))
-    implementation(project(":extensions:ids:ids-catalog-memory"))
     implementation(project(":extensions:ids:ids-api-transfer"))
 
     implementation(project(":extensions:demo:demo-nifi"))

@@ -8,6 +8,9 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
 
+/**
+ * Loads data for the Nifi-based demo.
+ */
 public class NifiDemoServiceExtension implements ServiceExtension {
     private Monitor monitor;
     private ServiceExtensionContext context;

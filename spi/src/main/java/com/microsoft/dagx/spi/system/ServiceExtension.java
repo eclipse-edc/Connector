@@ -9,7 +9,7 @@ public interface ServiceExtension extends SystemExtension {
     /**
      * Defines the load sequence for extensions.
      */
-    enum LoadPhase {PRIMORDIAL, DEFAULT;}
+    enum LoadPhase {PRIMORDIAL, DEFAULT}
 
     /**
      * Returns the load sequence for the extension.

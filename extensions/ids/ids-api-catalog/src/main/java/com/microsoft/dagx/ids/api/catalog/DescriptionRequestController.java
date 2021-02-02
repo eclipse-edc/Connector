@@ -1,7 +1,7 @@
 package com.microsoft.dagx.ids.api.catalog;
 
-import com.microsoft.dagx.ids.spi.catalog.CatalogService;
 import com.microsoft.dagx.ids.spi.descriptor.IdsDescriptorService;
+import com.microsoft.dagx.spi.metadata.MetadataStore;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.DescriptionResponseMessageBuilder;
@@ -18,11 +18,11 @@ import java.util.Map;
 @Path("/ids")
 public class DescriptionRequestController {
     private IdsDescriptorService descriptorService;
-    private CatalogService catalogService;
+    private MetadataStore metadataStore;
 
-    public DescriptionRequestController(IdsDescriptorService descriptorService, CatalogService catalogService) {
+    public DescriptionRequestController(IdsDescriptorService descriptorService, MetadataStore metadataStore) {
         this.descriptorService = descriptorService;
-        this.catalogService = catalogService;
+        this.metadataStore = metadataStore;
     }
 
     @POST
