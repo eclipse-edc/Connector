@@ -16,11 +16,6 @@ public class NifiDemoServiceExtension implements ServiceExtension {
     private ServiceExtensionContext context;
 
     @Override
-    public LoadPhase phase() {
-        return LoadPhase.PRIMORDIAL;
-    }
-
-    @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
         this.context = context;
