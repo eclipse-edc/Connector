@@ -26,7 +26,6 @@ public class TransferManagerRegistryImpl implements TransferManagerRegistry {
                 return manager;
             }
         }
-        ;
         return null;
     }
 }

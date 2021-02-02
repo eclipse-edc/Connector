@@ -9,6 +9,8 @@ import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageImpl;
 import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 
+import java.util.Set;
+
 /**
  * Implements the IDS Controller REST API for catalog services.
  */
@@ -16,12 +18,15 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public Set<String> requires() {
+        return Set.of("ids.core");
+    }
+    
+    @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
         registerTypes(context);
-
-        // load the catalog extension
 
         registerControllers(context);
 

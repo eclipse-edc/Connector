@@ -37,6 +37,11 @@ public interface ServiceExtensionContext {
     }
 
     /**
+     * Loads and orders the service extensions.
+     */
+    List<ServiceExtension> loadServiceExtensions();
+
+    /**
      * Loads multiple extensions, raising an exception if at least one is not found.
      */
     <T> List<T> loadExtensions(Class<T> type, boolean required);

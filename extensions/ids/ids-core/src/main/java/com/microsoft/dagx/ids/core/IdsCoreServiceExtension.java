@@ -6,6 +6,8 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 
+import java.util.Set;
+
 /**
  * Implements the IDS Controller REST API.
  */
@@ -13,8 +15,8 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
-    public LoadPhase phase() {
-        return LoadPhase.PRIMORDIAL;
+    public Set<String> provides() {
+        return Set.of("ids.core");
     }
 
     @Override

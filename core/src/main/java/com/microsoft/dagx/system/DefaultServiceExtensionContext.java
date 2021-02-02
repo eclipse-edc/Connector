@@ -3,8 +3,10 @@ package com.microsoft.dagx.system;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ConfigurationExtension;
+import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.types.TypeManager;
+import com.microsoft.dagx.util.TopologicalSort;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -12,8 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
 
+import static com.microsoft.dagx.spi.system.ServiceExtension.LoadPhase.DEFAULT;
+import static com.microsoft.dagx.spi.system.ServiceExtension.LoadPhase.PRIMORDIAL;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * Base service extension context.
@@ -69,6 +74,19 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         services.put(type, service);
     }
 
+    @Override
+    public List<ServiceExtension> loadServiceExtensions() {
+        List<ServiceExtension> serviceExtensions = loadExtensions(ServiceExtension.class, true);
+        List<ServiceExtension> primordialExtensions = serviceExtensions.stream().filter(ext -> ext.phase() == PRIMORDIAL).collect(toCollection(ArrayList::new));
+        List<ServiceExtension> defaultExtensions = serviceExtensions.stream().filter(ext -> ext.phase() == DEFAULT).collect(toCollection(ArrayList::new));
+
+        sortExtensions(primordialExtensions);
+        sortExtensions(defaultExtensions);
+
+        List<ServiceExtension> totalOrdered = new ArrayList<>(primordialExtensions);
+        totalOrdered.addAll(defaultExtensions);
+        return totalOrdered;
+    }
 
     @Override
     public <T> List<T> loadExtensions(Class<T> type, boolean required) {
@@ -92,4 +110,22 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         }
         return extensions.get(0);
     }
+
+    private void sortExtensions(List<ServiceExtension> extensions) {
+        Map<String, List<ServiceExtension>> mappedExtensions = new HashMap<>();
+        extensions.forEach(ext -> ext.provides().forEach(feature -> mappedExtensions.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
+
+        TopologicalSort<ServiceExtension> sort = new TopologicalSort<>();
+        extensions.forEach(ext -> {
+            ext.requires().forEach(feature -> {
+                List<ServiceExtension> dependencies = mappedExtensions.get(feature);
+                if (dependencies == null) {
+                    throw new DagxException(format("Extension feature required by %s not found: %s", ext.getClass().getName(), feature));
+                }
+                dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
+            });
+        });
+        sort.sort(extensions);
+    }
+
 }

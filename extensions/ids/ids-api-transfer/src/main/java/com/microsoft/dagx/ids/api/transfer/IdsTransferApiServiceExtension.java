@@ -7,11 +7,18 @@ import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.TransferManagerRegistry;
 
+import java.util.Set;
+
 /**
  * Implements the IDS Controller REST API for data transfer services.
  */
 public class IdsTransferApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
+
+    @Override
+    public Set<String> requires() {
+        return Set.of("ids.core");
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
