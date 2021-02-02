@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class DataEntryTest {
 
     @Test
-    void verifyPlymorphicDeserialization() throws IOException {
+    void verifyPolymorphicDeserialization() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerSubtypes(TestExtension.class);
 
