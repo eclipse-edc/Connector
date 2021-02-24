@@ -2,6 +2,8 @@ package com.microsoft.dagx.spi.system;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.types.TypeManager;
+import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -49,6 +51,8 @@ public interface ServiceExtensionContext {
     /**
      * Loads a single extension, raising an exception if one is not found.
      */
-    <T> T loadSingletonExtension(Class<T> type);
+    @Nullable()
+    @Contract("_, true -> !null")
+    <T> T loadSingletonExtension(Class<T> type, boolean required);
 
 }

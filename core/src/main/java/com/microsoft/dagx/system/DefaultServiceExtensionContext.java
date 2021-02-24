@@ -28,6 +28,7 @@ import static java.util.stream.Collectors.toCollection;
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private Monitor monitor;
     private TypeManager typeManager;
+
     private Map<Class<?>, Object> services = new HashMap<>();
     private List<ConfigurationExtension> configurationExtensions;
 
@@ -75,7 +76,11 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> type) {
-        return (T) services.get(type);
+        T service = (T) services.get(type);
+        if (service == null) {
+            throw new DagxException("Service not found: " + type.getName());
+        }
+        return service;
     }
 
     @Override
@@ -108,16 +113,16 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    public <T> T loadSingletonExtension(Class<T> type) {
+    public <T> T loadSingletonExtension(Class<T> type, boolean required) {
         List<T> extensions = new ArrayList<>();
         ServiceLoader.load(type).iterator().forEachRemaining(extensions::add);
-        if (extensions.isEmpty()) {
+        if (extensions.isEmpty() && required) {
             throw new DagxException("No extensions found of type:  " + type.getName());
         } else if (extensions.size() > 1) {
             String types = extensions.stream().map(e -> e.getClass().getName()).collect(joining(","));
             throw new DagxException(format("Multiple extensions found of type: %s [%s]", type.getName(), types));
         }
-        return extensions.get(0);
+        return !extensions.isEmpty() ? extensions.get(0) : null;
     }
 
     private void sortExtensions(List<ServiceExtension> extensions) {
@@ -125,15 +130,13 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         extensions.forEach(ext -> ext.provides().forEach(feature -> mappedExtensions.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
 
         TopologicalSort<ServiceExtension> sort = new TopologicalSort<>();
-        extensions.forEach(ext -> {
-            ext.requires().forEach(feature -> {
-                List<ServiceExtension> dependencies = mappedExtensions.get(feature);
-                if (dependencies == null) {
-                    throw new DagxException(format("Extension feature required by %s not found: %s", ext.getClass().getName(), feature));
-                }
-                dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
-            });
-        });
+        extensions.forEach(ext -> ext.requires().forEach(feature -> {
+            List<ServiceExtension> dependencies = mappedExtensions.get(feature);
+            if (dependencies == null) {
+                throw new DagxException(format("Extension feature required by %s not found: %s", ext.getClass().getName(), feature));
+            }
+            dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
+        }));
         sort.sort(extensions);
     }
 

@@ -2,9 +2,13 @@ package com.microsoft.dagx.runtime;
 
 import com.microsoft.dagx.monitor.ConsoleMonitor;
 import com.microsoft.dagx.monitor.MonitorProvider;
+import com.microsoft.dagx.security.NullVaultExtension;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.security.PrivateKeyResolver;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
+import com.microsoft.dagx.spi.system.VaultExtension;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 
@@ -25,6 +29,8 @@ public class DagxRuntime {
         DefaultServiceExtensionContext context = new DefaultServiceExtensionContext(typeManager, monitor);
         context.initialize();
 
+        loadVault(context);
+
         List<ServiceExtension> serviceExtensions = context.loadServiceExtensions();
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions, monitor)));
@@ -33,7 +39,6 @@ public class DagxRuntime {
 
         monitor.info("DA-GX ready");
     }
-
 
     private static void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
         ListIterator<ServiceExtension> iter = serviceExtensions.listIterator(serviceExtensions.size());
@@ -48,4 +53,14 @@ public class DagxRuntime {
         serviceExtensions.forEach(ServiceExtension::start);
     }
 
+    private static void loadVault(DefaultServiceExtensionContext context) {
+        VaultExtension vaultExtension = context.loadSingletonExtension(VaultExtension.class, false);
+        if (vaultExtension == null) {
+            vaultExtension = new NullVaultExtension();
+            context.getMonitor().info("Secrets vault not configured. Defaulting to null vault.");
+        }
+        vaultExtension.initialize();
+        context.registerService(Vault.class, vaultExtension.getVault());
+        context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
+    }
 }
