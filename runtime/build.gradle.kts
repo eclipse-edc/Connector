@@ -2,6 +2,8 @@ val infoModelVersion: String by project
 val jacksonVersion: String by project
 val jerseyVersion: String by project
 
+val securityType: String by rootProject.extra
+
 plugins {
     `java-library`
     id("application")
@@ -14,7 +16,7 @@ dependencies {
     implementation(project(":extensions:control-http"))
 
     implementation(project(":extensions:iam:oauth2"))
-    
+
     implementation(project(":extensions:metadata:metadata-memory"))
 
     implementation(project(":extensions:transfer:transfer-core"))
@@ -28,6 +30,12 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
+
+    println("Using security type: ${securityType}")
+
+    if (securityType != "default") {
+        implementation(project(":extensions:security:security-${securityType}"))
+    }
 
 }
 

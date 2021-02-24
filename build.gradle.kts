@@ -9,6 +9,8 @@ repositories {
 val jetBrainsAnnotationsVersion: String by project
 val jacksonVersion: String by project
 
+val securityType by extra { System.getProperty("security.type", "default") }
+
 subprojects {
 
     repositories {
