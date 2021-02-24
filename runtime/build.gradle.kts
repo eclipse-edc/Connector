@@ -13,6 +13,8 @@ dependencies {
     implementation(project(":extensions:protocol:web"))
     implementation(project(":extensions:control-http"))
 
+    implementation(project(":extensions:iam:oauth2"))
+    
     implementation(project(":extensions:metadata:metadata-memory"))
 
     implementation(project(":extensions:transfer:transfer-core"))

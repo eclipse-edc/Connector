@@ -1,0 +1,39 @@
+package com.microsoft.dagx.security.azure;
+
+import com.microsoft.dagx.spi.security.Vault;
+import org.easymock.EasyMock;
+import org.easymock.EasyMockExtension;
+import org.easymock.Mock;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+
+import static com.microsoft.dagx.security.azure.PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER;
+import static com.microsoft.dagx.security.azure.PrivateTestKeys.ENCODED_PRIVATE_KEY_NOHEADER;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+@ExtendWith(EasyMockExtension.class)
+class AzurePrivateKeyResolverTest {
+
+    @Mock
+    Vault vault;
+
+    private AzurePrivateKeyResolver keyResolver;
+
+    @Test
+    void verifyResolution() {
+        EasyMock.expect(vault.resolveSecret("test_no_header")).andReturn(ENCODED_PRIVATE_KEY_NOHEADER);
+        EasyMock.expect(vault.resolveSecret("test_header")).andReturn(ENCODED_PRIVATE_KEY_HEADER);
+        EasyMock.replay(vault);
+
+        assertNotNull(keyResolver.resolvePrivateKey("test_no_header"));
+        assertNotNull(keyResolver.resolvePrivateKey("test_header"));
+
+        EasyMock.verify(vault);
+    }
+
+    @BeforeEach
+    void setUp() {
+        keyResolver = new AzurePrivateKeyResolver(vault);
+    }
+}
