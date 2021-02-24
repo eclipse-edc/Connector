@@ -11,6 +11,7 @@ val jacksonVersion: String by project
 
 val securityType by extra { System.getProperty("security.type", "default") }
 val iamType by extra { System.getProperty("iam.type", "disabled") }
+val configFs by extra { System.getProperty("configuration.fs", "disabled") }
 
 subprojects {
 

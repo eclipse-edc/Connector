@@ -11,6 +11,8 @@ include(":extensions:metadata:metadata-memory")
 include(":extensions:transfer:transfer-core")
 include(":extensions:transfer:transfer-nifi")
 
+include(":extensions:configuration:configuration-fs")
+
 include(":extensions:security:security-fs")
 include(":extensions:security:security-azure")
 include(":extensions:iam:oauth2")
