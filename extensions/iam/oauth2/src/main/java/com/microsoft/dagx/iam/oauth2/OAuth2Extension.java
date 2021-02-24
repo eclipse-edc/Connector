@@ -11,6 +11,9 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Set;
 import java.util.function.Function;
 
+/**
+ * Provides OAuth2 client credentials flow support.
+ */
 public class OAuth2Extension implements ServiceExtension {
 
     @DagxSetting
