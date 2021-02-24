@@ -59,7 +59,7 @@ public class DagxRuntime {
             vaultExtension = new NullVaultExtension();
             context.getMonitor().info("Secrets vault not configured. Defaulting to null vault.");
         }
-        vaultExtension.initialize();
+        vaultExtension.initialize(context.getMonitor());
         context.registerService(Vault.class, vaultExtension.getVault());
         context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
     }

@@ -1,6 +1,7 @@
 package com.microsoft.dagx.security.fs;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.VaultExtension;
@@ -24,9 +25,10 @@ public class FsVaultExtension implements VaultExtension {
     private PrivateKeyResolver privateKeyResolver;
 
     @Override
-    public void initialize() {
+    public void initialize(Monitor monitor) {
         vault = initializeVault();
         privateKeyResolver = initializeResolver();
+        monitor.info("Initialized FS Vault extension");
     }
 
     @Override
