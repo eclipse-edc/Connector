@@ -8,6 +8,7 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import com.microsoft.dagx.iam.oauth2.spi.OAuth2Service;
 import com.microsoft.dagx.iam.oauth2.spi.VerificationResult;
+import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -16,8 +17,8 @@ import java.util.function.Function;
 public class OAuth2ServiceImpl implements OAuth2Service {
     private JWTVerifier verifier;
 
-    public OAuth2ServiceImpl(Function<String, RSAPublicKey> publicProvider, Function<String, RSAPrivateKey> privateProvider) {
-       
+    public OAuth2ServiceImpl(String privateKeyId, PrivateKeyResolver privateKeyResolver, Function<String, RSAPublicKey> publicProvider) {
+
         verifier = JWT.require(Algorithm.RSA256(new RSAKeyProvider() {
             @Override
             public RSAPublicKey getPublicKeyById(String keyId) {
@@ -26,12 +27,12 @@ public class OAuth2ServiceImpl implements OAuth2Service {
 
             @Override
             public RSAPrivateKey getPrivateKey() {
-                return privateProvider.apply(null);
+                return privateKeyResolver.resolvePrivateKey(privateKeyId);
             }
 
             @Override
             public String getPrivateKeyId() {
-                return null;  // TODO
+                return privateKeyId;
             }
         })).build();
     }

@@ -3,6 +3,7 @@ val jacksonVersion: String by project
 val jerseyVersion: String by project
 
 val securityType: String by rootProject.extra
+val iamType: String by rootProject.extra
 
 plugins {
     `java-library`
@@ -35,6 +36,10 @@ dependencies {
 
     if (securityType != "default") {
         implementation(project(":extensions:security:security-${securityType}"))
+    }
+
+    if (iamType == "oauth2") {
+        implementation(project(":extensions:iam:oauth2"))
     }
 
 }

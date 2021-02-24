@@ -10,6 +10,7 @@ val jetBrainsAnnotationsVersion: String by project
 val jacksonVersion: String by project
 
 val securityType by extra { System.getProperty("security.type", "default") }
+val iamType by extra { System.getProperty("iam.type", "disabled") }
 
 subprojects {
 
