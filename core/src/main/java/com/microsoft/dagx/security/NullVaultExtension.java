@@ -1,6 +1,7 @@
 package com.microsoft.dagx.security;
 
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
+import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.VaultExtension;
 
@@ -15,6 +16,11 @@ public class NullVaultExtension implements VaultExtension {
 
     @Override
     public PrivateKeyResolver getPrivateKeyResolver() {
+        return (key) -> null;
+    }
+
+    @Override
+    public CertificateResolver getCertificateResolver() {
         return (key) -> null;
     }
 }

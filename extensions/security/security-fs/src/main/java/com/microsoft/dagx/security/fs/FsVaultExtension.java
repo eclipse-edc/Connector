@@ -3,6 +3,7 @@ package com.microsoft.dagx.security.fs;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
+import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.VaultExtension;
 
@@ -23,11 +24,16 @@ import static com.microsoft.dagx.security.fs.FsConfiguration.VAULT_LOCATION;
 public class FsVaultExtension implements VaultExtension {
     private Vault vault;
     private PrivateKeyResolver privateKeyResolver;
+    private CertificateResolver certificateResolver;
 
     @Override
     public void initialize(Monitor monitor) {
         vault = initializeVault();
-        privateKeyResolver = initializeResolver();
+
+        KeyStore keyStore = loadKeyStore();
+        privateKeyResolver = new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
+        certificateResolver = new FsCertificateResolver(keyStore);
+
         monitor.info("Initialized FS Vault extension");
     }
 
@@ -41,6 +47,11 @@ public class FsVaultExtension implements VaultExtension {
         return privateKeyResolver;
     }
 
+    @Override
+    public CertificateResolver getCertificateResolver() {
+        return certificateResolver;
+    }
+
     private Vault initializeVault() {
         var vaultPath = Paths.get(VAULT_LOCATION);
         if (!Files.exists(vaultPath)) {
@@ -49,7 +60,7 @@ public class FsVaultExtension implements VaultExtension {
         return new FsVault(vaultPath);
     }
 
-    private PrivateKeyResolver initializeResolver() {
+    private KeyStore loadKeyStore() {
         var keyStorePath = Paths.get(KEYSTORE_LOCATION);
         if (!Files.exists(keyStorePath)) {
             throw new DagxException("Key store does not exist: " + KEYSTORE_LOCATION);
@@ -58,7 +69,7 @@ public class FsVaultExtension implements VaultExtension {
         try (InputStream stream = Files.newInputStream(keyStorePath)) {
             KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
             keyStore.load(stream, KEYSTORE_PASSWORD.toCharArray());
-            return new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
+            return keyStore;
         } catch (IOException | GeneralSecurityException e) {
             throw new DagxException(e);
         }

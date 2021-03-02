@@ -5,6 +5,7 @@ import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.security.NullVaultExtension;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
+import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
@@ -62,5 +63,6 @@ public class DagxRuntime {
         vaultExtension.initialize(context.getMonitor());
         context.registerService(Vault.class, vaultExtension.getVault());
         context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
+        context.registerService(CertificateResolver.class, vaultExtension.getCertificateResolver());
     }
 }

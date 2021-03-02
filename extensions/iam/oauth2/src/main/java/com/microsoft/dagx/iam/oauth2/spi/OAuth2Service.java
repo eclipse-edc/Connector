@@ -8,7 +8,7 @@ public interface OAuth2Service {
     /**
      * Obtains an bearer token using OAuth2 client credentials flow.
      */
-    String obtainClientCredentials(String scope);
+    TokenResult obtainClientCredentials(String scope);
 
     /**
      * Verifies a JWT bearer token.
