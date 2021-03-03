@@ -11,8 +11,6 @@ import com.microsoft.dagx.iam.oauth2.spi.OAuth2Service;
 import com.microsoft.dagx.iam.oauth2.spi.TokenResult;
 import com.microsoft.dagx.iam.oauth2.spi.VerificationResult;
 import com.microsoft.dagx.spi.DagxException;
-import com.microsoft.dagx.spi.security.CertificateResolver;
-import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -22,10 +20,7 @@ import okhttp3.ResponseBody;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
-import java.security.PublicKey;
 import java.security.cert.X509Certificate;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.LinkedHashMap;
@@ -34,7 +29,6 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.dagx.iam.oauth2.impl.Fingerprint.sha1Base64Fingerprint;
-import static java.lang.String.format;
 
 public class OAuth2ServiceImpl implements OAuth2Service {
     private static final long EXPIRATION = 300; // 5 minutes
@@ -50,9 +44,10 @@ public class OAuth2ServiceImpl implements OAuth2Service {
 
     public OAuth2ServiceImpl(OAuth2Configuration configuration) {
         this.configuration = configuration;
-        credentialProvider = new KeyProvider(configuration.getPrivateKeyResolver(), configuration.getCertificateResolver(), configuration.getPrivateKeyAlias());
-        RSAKeyProvider verificationProvider = new KeyProvider(configuration.getIdentityProviderPublicKeyResolver());
-        verifier = JWT.require(Algorithm.RSA256(verificationProvider)).build();
+        credentialProvider = new PairedProviderWrapper(configuration.getPrivateKeyResolver(), configuration.getCertificateResolver(), configuration.getPrivateKeyAlias());
+
+        RSAKeyProvider verifierProvider = new PublicKeyProviderWrapper(configuration.getIdentityProviderKeyResolver());
+        verifier = JWT.require(Algorithm.RSA256(verifierProvider)).build();
     }
 
     @Override
@@ -129,46 +124,6 @@ public class OAuth2ServiceImpl implements OAuth2Service {
             return jwtBuilder.sign(Algorithm.RSA256(credentialProvider));
         } catch (GeneralSecurityException e) {
             throw new DagxException(e);
-        }
-    }
-
-    private static class KeyProvider implements RSAKeyProvider {
-        private PrivateKeyResolver privateKeyResolver;
-        private CertificateResolver certificateResolver;
-        private String privateKeyId;
-
-
-        public KeyProvider(PrivateKeyResolver privateKeyResolver, CertificateResolver certificateResolver, String privateKeyId) {
-            this.privateKeyResolver = privateKeyResolver;
-            this.certificateResolver = certificateResolver;
-            this.privateKeyId = privateKeyId;
-        }
-
-        public KeyProvider(CertificateResolver certificateResolver) {
-            this.certificateResolver = certificateResolver;
-        }
-
-        @Override
-        public RSAPublicKey getPublicKeyById(String keyId) {
-            X509Certificate certificate = certificateResolver.resolveCertificate(keyId);
-            if (certificate == null) {
-                return null;
-            }
-            PublicKey publicKey = certificate.getPublicKey();
-            if (publicKey instanceof RSAPublicKey) {
-                return (RSAPublicKey) publicKey;
-            }
-            throw new DagxException(format("Unsupported certificate type for id %s: %s", keyId, publicKey.getClass().getName()));
-        }
-
-        @Override
-        public RSAPrivateKey getPrivateKey() {
-            return privateKeyResolver != null ? privateKeyResolver.resolvePrivateKey(privateKeyId) : null;
-        }
-
-        @Override
-        public String getPrivateKeyId() {
-            return privateKeyId;
         }
     }
 }

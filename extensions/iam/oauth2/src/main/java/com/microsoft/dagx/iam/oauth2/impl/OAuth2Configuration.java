@@ -13,7 +13,7 @@ public class OAuth2Configuration {
 
     private PrivateKeyResolver privateKeyResolver;
     private CertificateResolver certificateResolver;
-    private CertificateResolver identityProviderCertificateResolver;
+    private PublicKeyResolver identityProviderKeyResolver;
 
     private ObjectMapper objectMapper;
 
@@ -45,8 +45,8 @@ public class OAuth2Configuration {
         return certificateResolver;
     }
 
-    public CertificateResolver getIdentityProviderPublicKeyResolver() {
-        return identityProviderCertificateResolver;
+    public PublicKeyResolver getIdentityProviderKeyResolver() {
+        return identityProviderKeyResolver;
     }
 
     public ObjectMapper getObjectMapper() {
@@ -94,8 +94,8 @@ public class OAuth2Configuration {
         /**
          * Resolves the certificate containing the identity provider's public key.
          */
-        public Builder identityProviderCertificateResolver(CertificateResolver resolver) {
-            this.configuration.identityProviderCertificateResolver = resolver;
+        public Builder identityProviderKeyResolver(PublicKeyResolver resolver) {
+            this.configuration.identityProviderKeyResolver = resolver;
             return this;
         }
 
