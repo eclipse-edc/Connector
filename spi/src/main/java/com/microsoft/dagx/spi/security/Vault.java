@@ -16,4 +16,11 @@ public interface Vault {
     @Nullable
     String resolveSecret(String key);
 
+    /**
+     * Saves a secret.
+     *
+     * @param key the secret key
+     * @param value the serialized secret value
+     */
+    VaultResponse storeSecret(String key, String value);
 }
