@@ -12,6 +12,7 @@ import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 
 import java.util.Set;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -42,6 +43,8 @@ public class OAuth2Extension implements ServiceExtension {
 
     private IdentityProviderKeyResolver providerKeyResolver;
     private long keyRefreshInterval;
+
+    private ScheduledExecutorService executorService;
 
     @Override
     public Set<String> provides() {
@@ -96,6 +99,14 @@ public class OAuth2Extension implements ServiceExtension {
     public void start() {
         // refresh the provider keys at start, then schedule a refresh on a periodic basis according to the configured interval
         providerKeyResolver.refreshKeys();
-        Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> providerKeyResolver.refreshKeys(), keyRefreshInterval, keyRefreshInterval, TimeUnit.MINUTES);
+        executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleWithFixedDelay(() -> providerKeyResolver.refreshKeys(), keyRefreshInterval, keyRefreshInterval, TimeUnit.MINUTES);
+    }
+
+    @Override
+    public void shutdown() {
+        if (executorService != null) {
+            executorService.shutdownNow();
+        }
     }
 }
