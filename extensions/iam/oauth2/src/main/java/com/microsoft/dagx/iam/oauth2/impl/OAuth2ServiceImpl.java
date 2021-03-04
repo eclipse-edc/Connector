@@ -17,11 +17,14 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -30,6 +33,9 @@ import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.dagx.iam.oauth2.impl.Fingerprint.sha1Base64Fingerprint;
 
+/**
+ * Implements the OAuth2 client credentials flow and bearer token validation.
+ */
 public class OAuth2ServiceImpl implements OAuth2Service {
     private static final long EXPIRATION = 300; // 5 minutes
 
@@ -89,13 +95,46 @@ public class OAuth2ServiceImpl implements OAuth2Service {
     }
 
     @Override
-    public VerificationResult verifyJwtToken(String token) {
+    public VerificationResult verifyJwtToken(String token, String audience) {
         try {
-            DecodedJWT jwt = verifier.verify(token);
-            return VerificationResult.VALID_TOKEN;
+            var jwt = verifier.verify(token);
+            return validateToken(jwt, audience);
         } catch (JWTVerificationException e) {
             return new VerificationResult(e.getMessage());
         }
+    }
+
+    /***
+     * Validates the JWT by checking the audience, nbf, and expriation. Accessible for testing.
+     */
+    @NotNull
+    VerificationResult validateToken(DecodedJWT jwt, String audience) {
+        if (jwt.getAudience() == null) {
+            return new VerificationResult("Token audience was empty");
+        }
+        if (jwt.getAudience().stream().noneMatch(audience::equals)) {
+            return new VerificationResult("Token audience did not match required audience: " + audience);
+        }
+
+        var nowUtc = Instant.now();
+
+        if (jwt.getNotBefore() == null) {
+            return new VerificationResult("Token not before value was empty");
+        }
+        var nbf = ZonedDateTime.ofInstant(jwt.getNotBefore().toInstant(), ZoneId.of("UTC")).toInstant();
+        if (nowUtc.isBefore(nbf)) {
+            return new VerificationResult("Token not before is after current UTC time");
+        }
+
+        if (jwt.getExpiresAt() == null) {
+            return new VerificationResult("Token expiration value was empty");
+        }
+        var expires = ZonedDateTime.ofInstant(jwt.getExpiresAt().toInstant(), ZoneId.of("UTC")).toInstant();
+        if (!nowUtc.isBefore(expires)) {
+            return new VerificationResult("Token has expired");
+        }
+
+        return VerificationResult.VALID_TOKEN;
     }
 
     private OkHttpClient createClient() {

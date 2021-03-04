@@ -14,7 +14,8 @@ public interface OAuth2Service {
      * Verifies a JWT bearer token.
      *
      * @param token the token to verify
+     * @param audience the audience the token must be for
      */
-    VerificationResult verifyJwtToken(String token);
+    VerificationResult verifyJwtToken(String token, String audience);
 
 }
