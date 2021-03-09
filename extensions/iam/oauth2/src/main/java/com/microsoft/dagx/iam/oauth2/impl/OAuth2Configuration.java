@@ -4,12 +4,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 
+/**
+ * Configuration values and dependencies for {@link OAuth2ServiceImpl}.
+ */
 public class OAuth2Configuration {
     private String tokenUrl;
     private String clientId;
-    private String audience;
     private String privateKeyAlias;
     private String publicCertificateAlias;
+    private String providerAudience;
 
     private PrivateKeyResolver privateKeyResolver;
     private CertificateResolver certificateResolver;
@@ -25,16 +28,16 @@ public class OAuth2Configuration {
         return clientId;
     }
 
-    public String getAudience() {
-        return audience;
-    }
-
     public String getPrivateKeyAlias() {
         return privateKeyAlias;
     }
 
     public String getPublicCertificateAlias() {
         return publicCertificateAlias;
+    }
+
+    public String getProviderAudience() {
+        return providerAudience;
     }
 
     public PrivateKeyResolver getPrivateKeyResolver() {
@@ -73,11 +76,6 @@ public class OAuth2Configuration {
             return this;
         }
 
-        public Builder audience(String audience) {
-            this.configuration.audience = audience;
-            return this;
-        }
-
         public Builder privateKeyResolver(PrivateKeyResolver resolver) {
             this.configuration.privateKeyResolver = resolver;
             return this;
@@ -106,6 +104,11 @@ public class OAuth2Configuration {
 
         public Builder publicCertificateAlias(String alias) {
             this.configuration.publicCertificateAlias = alias;
+            return this;
+        }
+
+        public Builder providerAudience(String audience) {
+            this.configuration.providerAudience = audience;
             return this;
         }
 

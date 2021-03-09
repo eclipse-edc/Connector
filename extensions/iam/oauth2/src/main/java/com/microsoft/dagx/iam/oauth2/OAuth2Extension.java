@@ -3,8 +3,8 @@ package com.microsoft.dagx.iam.oauth2;
 import com.microsoft.dagx.iam.oauth2.impl.IdentityProviderKeyResolver;
 import com.microsoft.dagx.iam.oauth2.impl.OAuth2Configuration;
 import com.microsoft.dagx.iam.oauth2.impl.OAuth2ServiceImpl;
-import com.microsoft.dagx.iam.oauth2.spi.OAuth2Service;
 import com.microsoft.dagx.spi.DagxSetting;
+import com.microsoft.dagx.spi.iam.IdentityService;
 import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -21,13 +21,16 @@ import java.util.concurrent.TimeUnit;
 public class OAuth2Extension implements ServiceExtension {
 
     @DagxSetting
+    private static final String PROVIDER_JWKS_URL = "dagx.oauth.provider.jwks.url";
+
+    @DagxSetting
+    private static final String PROVIDER_AUDIENCE = "dagx.oauth.provider.audience";
+
+    @DagxSetting
     private static final String PUBLIC_KEY_ALIAS = "dagx.oauth.public.key.alias";
 
     @DagxSetting
     private static final String PRIVATE_KEY_ALIAS = "dagx.oauth.private.key.alias";
-
-    @DagxSetting
-    private static final String PROVIDER_JWKS_URL = "dagx.oauth.provider.jwks.url";
 
     @DagxSetting
     private static final String PROVIDER_JWKS_REFRESH = "dagx.oauth.provider.jwks.refresh"; // in minutes
@@ -38,17 +41,15 @@ public class OAuth2Extension implements ServiceExtension {
     @DagxSetting
     private static final String CLIENT_ID = "dagx.oauth.client.id";
 
-    @DagxSetting
-    private static final String SCOPE = "dagx.oauth.scope";
-
     private IdentityProviderKeyResolver providerKeyResolver;
+
     private long keyRefreshInterval;
 
     private ScheduledExecutorService executorService;
 
     @Override
     public Set<String> provides() {
-        return Set.of("oauth2");
+        return Set.of("iam", "oauth2");
     }
 
     @Override
@@ -63,20 +64,20 @@ public class OAuth2Extension implements ServiceExtension {
 
         configBuilder.identityProviderKeyResolver(providerKeyResolver);
 
+        String tokenUrl = context.getSetting(TOKEN_URL, "tokenUrl");
+        configBuilder.tokenUrl(tokenUrl);
+
+        String providerAudience = context.getSetting(PROVIDER_AUDIENCE, "providerAudience");
+        configBuilder.providerAudience(providerAudience);
+
         String publicKeyAlias = context.getSetting(PUBLIC_KEY_ALIAS, "publicKeyAlias");
         configBuilder.publicCertificateAlias(publicKeyAlias);
 
         String privateKeyAlias = context.getSetting(PRIVATE_KEY_ALIAS, "privateKeyAlias");
-        configBuilder.publicCertificateAlias(privateKeyAlias);
-
-        String tokenUrl = context.getSetting(TOKEN_URL, "tokenUrl");
-        configBuilder.tokenUrl(tokenUrl);
+        configBuilder.privateKeyAlias(privateKeyAlias);
 
         String clientId = context.getSetting(CLIENT_ID, "clientId");
-        configBuilder.tokenUrl(clientId);
-
-        String scope = context.getSetting(SCOPE, "scope");
-        configBuilder.tokenUrl(scope);
+        configBuilder.clientId(clientId);
 
         PrivateKeyResolver privateKeyResolver = context.getService(PrivateKeyResolver.class);
         configBuilder.privateKeyResolver(privateKeyResolver);
@@ -88,9 +89,9 @@ public class OAuth2Extension implements ServiceExtension {
 
         OAuth2Configuration configuration = configBuilder.build();
 
-        OAuth2Service oAuth2Service = new OAuth2ServiceImpl(configuration);
+        IdentityService oAuth2Service = new OAuth2ServiceImpl(configuration);
 
-        context.registerService(OAuth2Service.class, oAuth2Service);
+        context.registerService(IdentityService.class, oAuth2Service);
 
         context.getMonitor().info("Initialized OAuth2 extension");
     }

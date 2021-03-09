@@ -2,6 +2,7 @@ package com.microsoft.dagx.client.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.dagx.client.runtime.DagxClientRuntime;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 import org.jline.terminal.Terminal;
@@ -14,21 +15,21 @@ import static com.microsoft.dagx.client.common.Commands.subCommands;
  * A context for executing client commands.
  */
 public class ExecutionContext {
-    private ObjectMapper objectMapper;
+    private DagxClientRuntime runtime;
     private List<String> params;
     private Terminal terminal;
     private String endpointUrl;
 
     public RequestBody write(Object value) {
         try {
-            return RequestBody.create(objectMapper.writeValueAsString(value), MediaType.get("application/json"));
+            return RequestBody.create(runtime.getTypeManager().getMapper().writeValueAsString(value), MediaType.get("application/json"));
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }
     }
 
     public ObjectMapper getMapper() {
-        return objectMapper;
+        return runtime.getTypeManager().getMapper();
     }
 
     public List<String> getParams() {
@@ -44,22 +45,29 @@ public class ExecutionContext {
     }
 
     public ExecutionContext createSubContext() {
-        ExecutionContext context = new ExecutionContext(objectMapper);
+        ExecutionContext context = new ExecutionContext();
+        context.runtime = runtime;
         context.terminal = terminal;
         context.endpointUrl = endpointUrl;
         context.params = subCommands(params);
         return context;
     }
 
-    private ExecutionContext(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
+    /**
+     * Returns a runtime service.
+     */
+    public <T> T getService(Class<T> type) {
+        return runtime.getService(type);
+    }
+
+    private ExecutionContext() {
     }
 
     public static class Builder {
         private ExecutionContext context;
 
-        public static Builder newInstance(ObjectMapper objectMapper) {
-            return new Builder(objectMapper);
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder params(List<String> params) {
@@ -77,12 +85,17 @@ public class ExecutionContext {
             return this;
         }
 
+        public Builder runtime(DagxClientRuntime runtime) {
+            context.runtime = runtime;
+            return this;
+        }
+
         public ExecutionContext build() {
             return context;
         }
 
-        private Builder(ObjectMapper objectMapper) {
-            context = new ExecutionContext(objectMapper);
+        private Builder() {
+            context = new ExecutionContext();
         }
     }
 }

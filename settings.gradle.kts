@@ -25,4 +25,5 @@ include(":extensions:ids:ids-api-transfer")
 include(":extensions:demo:demo-nifi")
 
 include(":runtime")
+include(":client-runtime")
 include(":client")

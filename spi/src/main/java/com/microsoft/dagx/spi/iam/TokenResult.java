@@ -1,7 +1,7 @@
-package com.microsoft.dagx.iam.oauth2.spi;
+package com.microsoft.dagx.spi.iam;
 
 /**
- * The result of an OAuth2 client credentials flow.
+ * The result of an obtain token operation.
  */
 public class TokenResult {
     private boolean success = true;

@@ -1,12 +1,14 @@
-package com.microsoft.dagx.iam.oauth2.spi;
+package com.microsoft.dagx.spi.iam;
 
 /**
- * Implements the OAuth 2 client credentials flow and token verification.
+ * Obtains client security tokens from an identity provider.
+ *
+ * Providers may implement different authorization protocols such as OAuth2.
  */
-public interface OAuth2Service {
+public interface IdentityService {
 
     /**
-     * Obtains an bearer token using OAuth2 client credentials flow.
+     * Obtains a client token encoded as a JWT.
      */
     TokenResult obtainClientCredentials(String scope);
 

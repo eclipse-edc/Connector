@@ -7,9 +7,9 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
-import com.microsoft.dagx.iam.oauth2.spi.OAuth2Service;
-import com.microsoft.dagx.iam.oauth2.spi.TokenResult;
-import com.microsoft.dagx.iam.oauth2.spi.VerificationResult;
+import com.microsoft.dagx.spi.iam.IdentityService;
+import com.microsoft.dagx.spi.iam.TokenResult;
+import com.microsoft.dagx.spi.iam.VerificationResult;
 import com.microsoft.dagx.spi.DagxException;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -36,7 +36,7 @@ import static com.microsoft.dagx.iam.oauth2.impl.Fingerprint.sha1Base64Fingerpri
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
  */
-public class OAuth2ServiceImpl implements OAuth2Service {
+public class OAuth2ServiceImpl implements IdentityService {
     private static final long EXPIRATION = 300; // 5 minutes
 
     private static final String GRANT_TYPE = "client_credentials";
@@ -58,8 +58,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
 
     @Override
     public TokenResult obtainClientCredentials(String scope) {
-
-        String assertion = buildJwt();
+        String assertion = buildJwt(configuration.getProviderAudience());
 
         RequestBody requestBody = new FormBody.Builder()
                 .add("client_assertion_type", ASSERTION_TYPE)
@@ -105,7 +104,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
     }
 
     /***
-     * Validates the JWT by checking the audience, nbf, and expriation. Accessible for testing.
+     * Validates the JWT by checking the audience, nbf, and expiration. Accessible for testing.
      */
     @NotNull
     VerificationResult validateToken(DecodedJWT jwt, String audience) {
@@ -137,11 +136,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
         return VerificationResult.VALID_TOKEN;
     }
 
-    private OkHttpClient createClient() {
-        return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
-    }
-
-    private String buildJwt() {
+    private String buildJwt(String providerAudience) {
         try {
             X509Certificate certificate = configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias());
             if (certificate == null) {
@@ -152,7 +147,7 @@ public class OAuth2ServiceImpl implements OAuth2Service {
 
             jwtBuilder.withHeader(Map.of("x5t", sha1Base64Fingerprint(certificate.getEncoded())));
 
-            jwtBuilder.withAudience(configuration.getAudience());
+            jwtBuilder.withAudience(providerAudience);
 
             jwtBuilder.withIssuer(configuration.getClientId());
             jwtBuilder.withSubject(configuration.getClientId());
@@ -165,4 +160,9 @@ public class OAuth2ServiceImpl implements OAuth2Service {
             throw new DagxException(e);
         }
     }
+
+    private OkHttpClient createClient() {
+        return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
+    }
+
 }

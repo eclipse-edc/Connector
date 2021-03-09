@@ -1,10 +1,10 @@
 package com.microsoft.dagx.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.client.command.CommandExecutor;
 import com.microsoft.dagx.client.command.CommandResult;
 import com.microsoft.dagx.client.command.ExecutionContext;
 import com.microsoft.dagx.client.command.assembly.RootAssemblyFactory;
+import com.microsoft.dagx.client.runtime.DagxClientRuntime;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.ParsedLine;
@@ -27,6 +27,9 @@ public class Main {
     public static void main(String... args) throws Exception {
         System.setProperty("java.awt.headless", "true");
 
+        DagxClientRuntime runtime = DagxClientRuntime.Builder.newInstance().build();
+        runtime.start();
+
         TerminalBuilder terminalBuilder = TerminalBuilder.builder().dumb(true);
         LineReaderBuilder readerBuilder = LineReaderBuilder.builder();
 
@@ -37,6 +40,12 @@ public class Main {
 
         LineReader reader = readerBuilder.terminal(terminal).completer(assembly.getCompleter()).build();
 
+        inputLoop(terminal, reader, executors, runtime);
+
+        runtime.shutdown();
+    }
+
+    private static void inputLoop(Terminal terminal, LineReader reader, Map<String, CommandExecutor> executors, DagxClientRuntime runtime) {
         AttributedStringBuilder prompt = new AttributedStringBuilder().style(BLUE_STYLE).append("dagx> ");
 
         while (true) {
@@ -62,7 +71,7 @@ public class Main {
             }
 
             List<String> subCmds = subCommands(cmds);
-            ExecutionContext.Builder contextBuilder = ExecutionContext.Builder.newInstance(new ObjectMapper()).endpointUrl(DEFAULT_ENDPOINT);
+            ExecutionContext.Builder contextBuilder = ExecutionContext.Builder.newInstance().runtime(runtime).endpointUrl(DEFAULT_ENDPOINT);
             ExecutionContext context = contextBuilder.terminal(terminal).params(subCmds).build();
 
             try {

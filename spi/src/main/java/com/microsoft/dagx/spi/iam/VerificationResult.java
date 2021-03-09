@@ -1,4 +1,4 @@
-package com.microsoft.dagx.iam.oauth2.spi;
+package com.microsoft.dagx.spi.iam;
 
 /**
  * The result of a token verification.

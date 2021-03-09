@@ -10,6 +10,11 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":client-runtime"))
+
+    implementation(project(":extensions:iam:oauth2"))  // required for now
+    implementation(project(":extensions:security:security-fs"))  // required for now
+
     implementation("org.jline:jline:${jlineVersion}")
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
