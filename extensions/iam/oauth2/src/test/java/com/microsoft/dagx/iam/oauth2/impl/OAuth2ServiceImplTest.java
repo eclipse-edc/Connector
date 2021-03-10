@@ -5,6 +5,7 @@ import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
@@ -64,6 +65,7 @@ class OAuth2ServiceImplTest {
         EasyMock.expect(jwt.getAudience()).andReturn(List.of("test.audience")).atLeastOnce();
         EasyMock.expect(jwt.getExpiresAt()).andReturn(new Date(System.currentTimeMillis() + 10000000)).atLeastOnce();
         EasyMock.expect(jwt.getNotBefore()).andReturn(new Date(System.currentTimeMillis() - 10000000)).atLeastOnce();
+        EasyMock.expect(jwt.getClaims()).andReturn(Collections.emptyMap()).atLeastOnce();
         EasyMock.replay(jwt);
         var result = authService.validateToken(jwt, "test.audience");
         assertTrue(result.valid());

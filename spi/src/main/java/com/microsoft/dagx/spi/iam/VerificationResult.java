@@ -4,17 +4,22 @@ package com.microsoft.dagx.spi.iam;
  * The result of a token verification.
  */
 public class VerificationResult {
-    public static final VerificationResult VALID_TOKEN = new VerificationResult();
-
     private boolean valid;
+    private ClaimToken token;
     private String error;
 
+    public VerificationResult(ClaimToken token) {
+        valid = true;
+        this.token = token;
+    }
+
     public VerificationResult(String error) {
+        valid = false;
         this.error = error;
     }
 
-    VerificationResult() {
-        valid = true;
+    public ClaimToken token() {
+        return token;
     }
 
     public boolean valid() {

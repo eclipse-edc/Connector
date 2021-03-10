@@ -1,6 +1,8 @@
 package com.microsoft.dagx.ids.spi.daps;
 
-import com.microsoft.dagx.ids.spi.domain.iam.DynamicAttributeToken;
+import com.microsoft.dagx.spi.iam.ClaimToken;
+import com.microsoft.dagx.spi.iam.VerificationResult;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * A Dynamic Attribute Provisioning Services as defined by IDS.
@@ -8,8 +10,8 @@ import com.microsoft.dagx.ids.spi.domain.iam.DynamicAttributeToken;
 public interface DapsService {
 
     /**
-     * Obtains a dynamic attribute token for the current runtime.
+     * Verifies the token and returns a contained {@link ClaimToken} if valid.
      */
-    DynamicAttributeToken obtainToken();
+    VerificationResult verifyAndConvertToken(@Nullable String token);
 
 }

@@ -7,10 +7,11 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
+import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.iam.ClaimToken;
 import com.microsoft.dagx.spi.iam.IdentityService;
 import com.microsoft.dagx.spi.iam.TokenResult;
 import com.microsoft.dagx.spi.iam.VerificationResult;
-import com.microsoft.dagx.spi.DagxException;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -133,7 +134,16 @@ public class OAuth2ServiceImpl implements IdentityService {
             return new VerificationResult("Token has expired");
         }
 
-        return VerificationResult.VALID_TOKEN;
+        var tokenBuilder = ClaimToken.Builder.newInstance();
+        jwt.getClaims().forEach((k, v) -> {
+            var claimValue = v.asString();
+            if (claimValue == null) {
+                // only support strings
+                return;
+            }
+            tokenBuilder.claim(k, claimValue);
+        });
+        return new VerificationResult(tokenBuilder.build());
     }
 
     private String buildJwt(String providerAudience) {
