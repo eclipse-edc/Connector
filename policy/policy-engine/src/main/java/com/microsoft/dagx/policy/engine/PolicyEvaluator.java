@@ -28,7 +28,7 @@ import java.util.Objects;
  * {@link Builder#prohibitionFunction(String, AtomicConstraintFunction)}, and  {@link Builder#dutyFunction(String, AtomicConstraintFunction)}.
  */
 public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Boolean>, Constraint.Visitor<Boolean>, Expression.Visitor<Object> {
-    private Rule ruleContext; // the current rule being evluated or null
+    private Rule ruleContext; // the current rule being evaluated or null
 
     private List<RuleProblem> ruleProblems = new ArrayList<>();
 
