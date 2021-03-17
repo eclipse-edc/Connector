@@ -1,7 +1,7 @@
 package com.microsoft.dagx.policy.engine.model;
 
 /**
- * A unqiuely identifiable type.
+ * A uniquely identifiable type.
  */
 public abstract class Identifiable {
     protected String uid;
