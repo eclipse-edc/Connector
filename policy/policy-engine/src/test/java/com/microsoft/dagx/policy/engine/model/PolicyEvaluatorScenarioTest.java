@@ -22,7 +22,7 @@ class PolicyEvaluatorScenarioTest {
         Permission permission = Permission.Builder.newInstance().constraint(constraint).build();
         Policy policy = Policy.Builder.newInstance().permission(permission).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().permissionFunction("spatial", (operator, value) -> "EU".equals(value)).build();
+        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().permissionFunction("spatial", (operator, value, p) -> "EU".equals(value)).build();
         assertTrue(evaluator.evaluate(policy).valid());
     }
 
@@ -40,7 +40,7 @@ class PolicyEvaluatorScenarioTest {
 
         Policy policy = Policy.Builder.newInstance().permission(permission).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().permissionFunction("spatial", (operator, value) -> "EU".equals(value)).build();
+        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().permissionFunction("spatial", (operator, value, p) -> "EU".equals(value)).build();
         assertFalse(evaluator.evaluate(policy).valid());
     }
 
@@ -54,7 +54,7 @@ class PolicyEvaluatorScenarioTest {
         Prohibition prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
         Policy policy = Policy.Builder.newInstance().prohibition(prohibition).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().prohibitionFunction("spatial", (operator, value) -> "EU".equals(value)).build();
+        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().prohibitionFunction("spatial", (operator, value, pr) -> "EU".equals(value)).build();
         assertFalse(evaluator.evaluate(policy).valid());
     }
 

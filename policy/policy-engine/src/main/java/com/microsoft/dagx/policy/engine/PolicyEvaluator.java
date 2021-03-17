@@ -32,9 +32,9 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
     private List<RuleProblem> ruleProblems = new ArrayList<>();
 
-    private Map<String, AtomicConstraintFunction<Object, Boolean>> permissionFunctions = new HashMap<>();
-    private Map<String, AtomicConstraintFunction<Object, Boolean>> dutyFunctions = new HashMap<>();
-    private Map<String, AtomicConstraintFunction<Object, Boolean>> prohibitionFunctions = new HashMap<>();
+    private Map<String, AtomicConstraintFunction<Object, Boolean, ? extends Rule>> permissionFunctions = new HashMap<>();
+    private Map<String, AtomicConstraintFunction<Object, Boolean, ? extends Rule>> dutyFunctions = new HashMap<>();
+    private Map<String, AtomicConstraintFunction<Object, Boolean, ? extends Rule>> prohibitionFunctions = new HashMap<>();
 
     public PolicyEvaluationResult evaluate(Policy policy) {
         return policy.accept(this) ? new PolicyEvaluationResult() : new PolicyEvaluationResult(ruleProblems);
@@ -107,9 +107,19 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         var rightValue = constraint.getRightExpression().accept(this);
         Object leftRawValue = constraint.getLeftExpression().accept(this);
         if (leftRawValue instanceof String) {
-            var function = functionCollection().get(leftRawValue);
+            AtomicConstraintFunction<Object, Boolean, Rule> function;
+            if (ruleContext instanceof Permission) {
+                //noinspection unchecked
+                function = (AtomicConstraintFunction<Object, Boolean, Rule>) permissionFunctions.get(leftRawValue);
+            } else if (ruleContext instanceof Prohibition) {
+                //noinspection unchecked
+                function = (AtomicConstraintFunction<Object, Boolean, Rule>) prohibitionFunctions.get(leftRawValue);
+            } else {
+                //noinspection unchecked
+                function = (AtomicConstraintFunction<Object, Boolean, Rule>) dutyFunctions.get(leftRawValue);
+            }
             if (function != null) {
-                return function.evaluate(constraint.getOperator(), rightValue);
+                return function.evaluate(constraint.getOperator(), rightValue, ruleContext);
             }
         }
 
@@ -156,16 +166,6 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         return valid;
     }
 
-    private Map<String, AtomicConstraintFunction<Object, Boolean>> functionCollection() {
-        if (ruleContext instanceof Permission) {
-            return permissionFunctions;
-        } else if (ruleContext instanceof Prohibition) {
-            return prohibitionFunctions;
-        } else {
-            return dutyFunctions;
-        }
-    }
-
     private PolicyEvaluator() {
     }
 
@@ -176,17 +176,17 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
             return new Builder();
         }
 
-        public Builder permissionFunction(String key, AtomicConstraintFunction<Object, Boolean> function) {
+        public Builder permissionFunction(String key, AtomicConstraintFunction<Object, Boolean, Permission> function) {
             evaluator.permissionFunctions.put(key, function);
             return this;
         }
 
-        public Builder dutyFunction(String key, AtomicConstraintFunction<Object, Boolean> function) {
+        public Builder dutyFunction(String key, AtomicConstraintFunction<Object, Boolean, Duty> function) {
             evaluator.dutyFunctions.put(key, function);
             return this;
         }
 
-        public Builder prohibitionFunction(String key, AtomicConstraintFunction<Object, Boolean> function) {
+        public Builder prohibitionFunction(String key, AtomicConstraintFunction<Object, Boolean, Prohibition> function) {
             evaluator.prohibitionFunctions.put(key, function);
             return this;
         }

@@ -52,7 +52,7 @@ class PolicyEvaluatorTest {
         Permission permission = Permission.Builder.newInstance().constraint(constraint).build();
         Policy policy = Policy.Builder.newInstance().permission(permission).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().permissionFunction("toResolve", (operator, value) -> "foo".equals(value)).build();
+        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().permissionFunction("toResolve", (operator, value, p) -> "foo".equals(value)).build();
         assertTrue(evaluator.evaluate(policy).valid());
     }
 
@@ -63,7 +63,7 @@ class PolicyEvaluatorTest {
         Duty duty = Duty.Builder.newInstance().constraint(constraint).build();
         Policy policy = Policy.Builder.newInstance().duty(duty).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().dutyFunction("toResolve", (operator, value) -> "foo".equals(value)).build();
+        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().dutyFunction("toResolve", (operator, value, d) -> "foo".equals(value)).build();
         assertTrue(evaluator.evaluate(policy).valid());
     }
 
@@ -74,7 +74,7 @@ class PolicyEvaluatorTest {
         Prohibition prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
         Policy policy = Policy.Builder.newInstance().prohibition(prohibition).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().prohibitionFunction("toResolve", (operator, value) -> !"foo".equals(value)).build();
+        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().prohibitionFunction("toResolve", (operator, value, pr) -> !"foo".equals(value)).build();
         assertTrue(evaluator.evaluate(policy).valid());
     }
 }
