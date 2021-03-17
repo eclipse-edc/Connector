@@ -22,6 +22,8 @@ include(":extensions:ids:ids-core")
 include(":extensions:ids:ids-api-catalog")
 include(":extensions:ids:ids-api-transfer")
 
+include(":policy:policy-engine")
+
 include(":extensions:demo:demo-nifi")
 
 include(":runtime")
