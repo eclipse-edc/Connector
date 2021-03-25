@@ -1,16 +1,19 @@
 package com.microsoft.dagx.spi.types.domain.transfer;
 
+
 /**
  * A data transfer process.
  */
 public class TransferProcess {
     private String id;
-    private DataRequest dataRequest;
     private int version;
 
     private int state;
     private int stateCount;
     private long stateTimestamp;
+
+    private DataRequest dataRequest;
+    private Object policy;
 
     public String getId() {
         return id;
