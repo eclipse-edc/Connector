@@ -1,9 +1,9 @@
 package com.microsoft.dagx.transfer.nifi;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
+import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.monitor.Monitor;
-import com.microsoft.dagx.spi.transfer.TransferManager;
-import com.microsoft.dagx.spi.transfer.TransferResponse;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
@@ -20,10 +20,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.dagx.spi.transfer.TransferResponse.Status.OK;
+import static com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse.Status.ERROR_RETRY;
+import static com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse.Status.FATAL_ERROR;
 import static java.lang.String.format;
 
-public class NifiTransferManager implements TransferManager {
+public class NifiDataFlowController implements DataFlowController {
     private static final String PROCESS_GROUPS = "/process-groups/";
     private static final String FLOW = "/flow/process-groups/";
     private static final MediaType JSON = MediaType.get("application/json");
@@ -33,7 +34,7 @@ public class NifiTransferManager implements TransferManager {
     private TypeManager typeManager;
     private Monitor monitor;
 
-    public NifiTransferManager(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor) {
+    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor) {
         baseUrl = configuration.getUrl();
         this.typeManager = typeManager;
         this.monitor = monitor;
@@ -46,7 +47,7 @@ public class NifiTransferManager implements TransferManager {
     }
 
     @Override
-    public TransferResponse initiateTransfer(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
         if (!(dataRequest.getDataEntry().getExtensions() instanceof GenericDataEntryExtensions)) {
             throw new DagxException("Invalid extensions type, expected:" + GenericDataEntryExtensions.class.getName());
         }
@@ -59,7 +60,7 @@ public class NifiTransferManager implements TransferManager {
             int code = response.code();
             if (code != 200) {
                 monitor.severe(format("Error initiating transfer request with Nifi. Code was: %d. Request id was: %s", code, dataRequest.getId()));
-                return new TransferResponse(TransferResponse.Status.ERROR);
+                return new DataFlowInitiateResponse(FATAL_ERROR, "Error initiating transfer");
             }
             ResponseBody responseBody = response.body();
             if (responseBody == null) {
@@ -72,10 +73,10 @@ public class NifiTransferManager implements TransferManager {
 
             @SuppressWarnings("unchecked") Map<String, Object> values = typeManager.readValue(message, Map.class);
 
-            return new TransferResponse(OK);
+            return DataFlowInitiateResponse.OK;
         } catch (IOException e) {
             monitor.severe("Error initiating data transfer request: " + dataRequest.getId(), e);
-            return new TransferResponse(TransferResponse.Status.ERROR);
+            return new DataFlowInitiateResponse(ERROR_RETRY, "Error initiating transfer");
         }
     }
 
@@ -92,9 +93,9 @@ public class NifiTransferManager implements TransferManager {
     }
 
     @NotNull
-    private TransferResponse emptyBodyError(DataRequest dataRequest) {
+    private DataFlowInitiateResponse emptyBodyError(DataRequest dataRequest) {
         monitor.severe(format("Error initiating transfer request with Nifi. Empty message body returned. Request id was: %s", dataRequest.getId()));
-        return new TransferResponse(TransferResponse.Status.ERROR);
+        return new DataFlowInitiateResponse(FATAL_ERROR, "Error initiating transfer");
     }
 
     private OkHttpClient createClient() {

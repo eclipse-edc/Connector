@@ -3,7 +3,7 @@ package com.microsoft.dagx.transfer.core;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
-import com.microsoft.dagx.spi.transfer.TransferManagerRegistry;
+import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 
@@ -24,7 +24,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
         registerTypes(context.getTypeManager());
 
-        context.registerService(TransferManagerRegistry.class, new TransferManagerRegistryImpl());
+        context.registerService(DataFlowManager.class, new DataFlowManagerImpl());
 
         monitor.info("Initialized Core Transfer extension");
     }

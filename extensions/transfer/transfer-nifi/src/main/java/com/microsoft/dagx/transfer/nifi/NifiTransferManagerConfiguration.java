@@ -1,7 +1,7 @@
 package com.microsoft.dagx.transfer.nifi;
 
 /**
- * Configures a {@link NifiTransferManager} instance.
+ * Configures a {@link NifiDataFlowController} instance.
  */
 public class NifiTransferManagerConfiguration {
     private String url;

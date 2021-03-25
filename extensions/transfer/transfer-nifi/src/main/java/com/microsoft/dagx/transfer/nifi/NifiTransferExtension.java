@@ -4,7 +4,7 @@ import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
-import com.microsoft.dagx.spi.transfer.TransferManagerRegistry;
+import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 
 public class NifiTransferExtension implements ServiceExtension {
     @DagxSetting
@@ -34,13 +34,13 @@ public class NifiTransferExtension implements ServiceExtension {
     }
 
     private void registerManager(ServiceExtensionContext context) {
-        TransferManagerRegistry transferManagerRegistry = context.getService(TransferManagerRegistry.class);
+        DataFlowManager dataFlowManager = context.getService(DataFlowManager.class);
 
         String url = context.getSetting(URL_SETTING, DEFAULT_NIFI_URL);
 
         NifiTransferManagerConfiguration configuration = NifiTransferManagerConfiguration.Builder.newInstance().url(url).build();
-        NifiTransferManager manager = new NifiTransferManager(configuration, context.getTypeManager(), context.getMonitor());
-        transferManagerRegistry.register(manager);
+        NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor());
+        dataFlowManager.register(manager);
     }
 
 }
