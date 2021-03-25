@@ -5,7 +5,7 @@ import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 /**
  * Manages resource provisioning for a {@link TransferProcess}
  */
-public interface ProvisioningManager {
+public interface ProvisionManager {
 
     /**
      * Registers the provisioner.

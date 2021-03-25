@@ -4,7 +4,7 @@ package com.microsoft.dagx.policy.model;
  * An extension point that evaluates an {@link AtomicConstraint}.
  */
 @FunctionalInterface
-public interface AtomicConstraintFunction<RIGHT_VALUE, RESULT, RULE_TYPE extends Rule> {
+public interface AtomicConstraintFunction<RIGHT_VALUE, RULE_TYPE extends Rule, RESULT> {
 
     /**
      * Performs the evaluation.
