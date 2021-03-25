@@ -1,4 +1,4 @@
-package com.microsoft.dagx.policy.engine.model;
+package com.microsoft.dagx.policy.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.Nullable;

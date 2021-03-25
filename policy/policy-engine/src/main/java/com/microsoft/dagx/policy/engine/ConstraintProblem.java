@@ -1,6 +1,6 @@
 package com.microsoft.dagx.policy.engine;
 
-import com.microsoft.dagx.policy.engine.model.Constraint;
+import com.microsoft.dagx.policy.model.Constraint;
 
 /**
  * A problem encountered during evaluation or processing of a constraint such as an unsatisfied constraint.

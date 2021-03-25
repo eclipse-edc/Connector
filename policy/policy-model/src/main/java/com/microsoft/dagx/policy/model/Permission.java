@@ -1,4 +1,4 @@
-package com.microsoft.dagx.policy.engine.model;
+package com.microsoft.dagx.policy.model;
 
 import org.jetbrains.annotations.Nullable;
 

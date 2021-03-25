@@ -1,4 +1,4 @@
-package com.microsoft.dagx.policy.engine.model;
+package com.microsoft.dagx.policy.model;
 
 /**
  * A uniquely identifiable type.

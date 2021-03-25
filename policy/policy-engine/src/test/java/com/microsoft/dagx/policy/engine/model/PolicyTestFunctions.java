@@ -1,5 +1,9 @@
 package com.microsoft.dagx.policy.engine.model;
 
+import com.microsoft.dagx.policy.model.AtomicConstraint;
+import com.microsoft.dagx.policy.model.LiteralExpression;
+import com.microsoft.dagx.policy.model.Operator;
+
 /**
  * Functions used for testing.
  */

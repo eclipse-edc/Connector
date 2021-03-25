@@ -3,7 +3,7 @@ package com.microsoft.dagx.policy.engine;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.microsoft.dagx.policy.engine.model.Rule;
+import com.microsoft.dagx.policy.model.Rule;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;

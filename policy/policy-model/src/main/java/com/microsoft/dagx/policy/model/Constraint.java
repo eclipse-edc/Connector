@@ -1,4 +1,4 @@
-package com.microsoft.dagx.policy.engine.model;
+package com.microsoft.dagx.policy.model;
 
 /**
  * An expression or set of expressions that refines a permission, prohibitions, or duty.

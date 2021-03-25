@@ -1,4 +1,4 @@
-package com.microsoft.dagx.policy.engine.model;
+package com.microsoft.dagx.policy.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

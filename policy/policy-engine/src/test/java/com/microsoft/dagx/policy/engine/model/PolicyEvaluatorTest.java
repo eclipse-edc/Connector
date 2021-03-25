@@ -1,6 +1,11 @@
 package com.microsoft.dagx.policy.engine.model;
 
 import com.microsoft.dagx.policy.engine.PolicyEvaluator;
+import com.microsoft.dagx.policy.model.AtomicConstraint;
+import com.microsoft.dagx.policy.model.Duty;
+import com.microsoft.dagx.policy.model.Permission;
+import com.microsoft.dagx.policy.model.Policy;
+import com.microsoft.dagx.policy.model.Prohibition;
 import org.junit.jupiter.api.Test;
 
 import static com.microsoft.dagx.policy.engine.model.PolicyTestFunctions.createLiteralAtomicConstraint;

@@ -1,4 +1,4 @@
-package com.microsoft.dagx.policy.engine.model;
+package com.microsoft.dagx.policy.model;
 
 /**
  * A leaf constraint containing a left expression, right expression, and operator triple that can be evaluated.

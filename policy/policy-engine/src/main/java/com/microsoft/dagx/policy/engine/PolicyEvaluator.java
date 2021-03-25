@@ -1,18 +1,18 @@
 package com.microsoft.dagx.policy.engine;
 
-import com.microsoft.dagx.policy.engine.model.AndConstraint;
-import com.microsoft.dagx.policy.engine.model.AtomicConstraint;
-import com.microsoft.dagx.policy.engine.model.AtomicConstraintFunction;
-import com.microsoft.dagx.policy.engine.model.Constraint;
-import com.microsoft.dagx.policy.engine.model.Duty;
-import com.microsoft.dagx.policy.engine.model.Expression;
-import com.microsoft.dagx.policy.engine.model.LiteralExpression;
-import com.microsoft.dagx.policy.engine.model.OrConstraint;
-import com.microsoft.dagx.policy.engine.model.Permission;
-import com.microsoft.dagx.policy.engine.model.Policy;
-import com.microsoft.dagx.policy.engine.model.Prohibition;
-import com.microsoft.dagx.policy.engine.model.Rule;
-import com.microsoft.dagx.policy.engine.model.XoneConstraint;
+import com.microsoft.dagx.policy.model.AndConstraint;
+import com.microsoft.dagx.policy.model.AtomicConstraint;
+import com.microsoft.dagx.policy.model.AtomicConstraintFunction;
+import com.microsoft.dagx.policy.model.Constraint;
+import com.microsoft.dagx.policy.model.Duty;
+import com.microsoft.dagx.policy.model.Expression;
+import com.microsoft.dagx.policy.model.LiteralExpression;
+import com.microsoft.dagx.policy.model.OrConstraint;
+import com.microsoft.dagx.policy.model.Permission;
+import com.microsoft.dagx.policy.model.Policy;
+import com.microsoft.dagx.policy.model.Prohibition;
+import com.microsoft.dagx.policy.model.Rule;
+import com.microsoft.dagx.policy.model.XoneConstraint;
 
 import java.util.ArrayList;
 import java.util.HashMap;

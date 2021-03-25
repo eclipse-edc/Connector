@@ -1,4 +1,4 @@
-package com.microsoft.dagx.policy.engine.model;
+package com.microsoft.dagx.policy.model;
 
 /**
  * An extension point that evaluates an {@link AtomicConstraint}.
