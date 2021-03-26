@@ -1,5 +1,7 @@
 package com.microsoft.dagx.spi.transfer.provision;
 
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResourceSet;
+import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 
 /**
@@ -15,10 +17,10 @@ public interface ProvisionManager {
     /**
      * Provisions resources required to perform the data transfer. This operation is idempotent.
      */
-    void provision(TransferProcess process);
+    void provision(ResourceManifest manifest);
 
     /**
      * Removes ephemeral resources associated with the data transfer. this operation is idempotent.
      */
-    void deProvision(TransferProcess process);
+    void deprovision(ProvisionedResourceSet set);
 }
