@@ -2,10 +2,9 @@ package com.microsoft.dagx.spi.transfer.provision;
 
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResourceSet;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 
 /**
- * Manages resource provisioning for a {@link TransferProcess}
+ * Manages resource provisioning for a data transfer.
  */
 public interface ProvisionManager {
 
