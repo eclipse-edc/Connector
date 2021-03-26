@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse.Status.FATAL_ERROR;
+import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * The default data flow manager.

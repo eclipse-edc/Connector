@@ -1,13 +1,13 @@
 package com.microsoft.dagx.spi.transfer;
 
+import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
+
 /**
  *
  */
 public class TransferInitiateResponse {
-    public enum Status {OK, ERROR, RETRY}
-
     private String id;
-    private Status status;
+    private ResponseStatus status;
 
     /**
      * The unique process id, which can be used for correlation.
@@ -16,7 +16,7 @@ public class TransferInitiateResponse {
         return id;
     }
 
-    public Status getStatus() {
+    public ResponseStatus getStatus() {
         return status;
     }
 }

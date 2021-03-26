@@ -1,21 +1,21 @@
 package com.microsoft.dagx.spi.transfer.flow;
 
+import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
+
 /**
  * The result of a data flow request.
  */
 public class DataFlowInitiateResponse {
     public static DataFlowInitiateResponse OK = new DataFlowInitiateResponse();
 
-    private Status status;
+    private ResponseStatus status;
     private String error;
 
-    public enum Status {OK, ERROR_RETRY, FATAL_ERROR}
-
     private DataFlowInitiateResponse() {
-        this.status = Status.OK;
+        this.status = ResponseStatus.OK;
     }
 
-    public DataFlowInitiateResponse(Status status, String error) {
+    public DataFlowInitiateResponse(ResponseStatus status, String error) {
         this.status = status;
         this.error = error;
     }
@@ -24,7 +24,7 @@ public class DataFlowInitiateResponse {
         return error;
     }
 
-    public Status getStatus() {
+    public ResponseStatus getStatus() {
         return status;
     }
 }

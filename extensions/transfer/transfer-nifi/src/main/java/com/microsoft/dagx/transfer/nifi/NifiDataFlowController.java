@@ -20,8 +20,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse.Status.ERROR_RETRY;
-import static com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse.Status.FATAL_ERROR;
+import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.ERROR_RETRY;
+import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.FATAL_ERROR;
 import static java.lang.String.format;
 
 public class NifiDataFlowController implements DataFlowController {
