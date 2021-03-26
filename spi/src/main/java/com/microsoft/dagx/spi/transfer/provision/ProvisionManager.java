@@ -16,7 +16,7 @@ public interface ProvisionManager {
     /**
      * Provisions resources required to perform the data transfer. This operation is idempotent.
      */
-    void provision(ResourceManifest manifest);
+    ProvisionedResourceSet provision(ResourceManifest manifest);
 
     /**
      * Removes ephemeral resources associated with the data transfer. this operation is idempotent.
