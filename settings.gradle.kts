@@ -15,6 +15,7 @@ include(":extensions:transfer:transfer-core")
 include(":extensions:transfer:transfer-nifi")
 include(":extensions:transfer:transfer-provision-azure")
 include(":extensions:transfer:transfer-provision-aws")
+include(":extensions:transfer:transfer-store-memory")
 
 include(":extensions:configuration:configuration-fs")
 
