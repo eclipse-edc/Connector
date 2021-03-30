@@ -8,7 +8,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Consumer;
 
 /**
- * Provisioned context backed by {@link TransferProcessStore}.
+ * Provision context backed by a {@link TransferProcessStore}.
  */
 public class ProvisionContextImpl implements ProvisionContext {
     private TransferProcessStore processStore;

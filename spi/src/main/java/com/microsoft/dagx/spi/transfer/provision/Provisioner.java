@@ -10,7 +10,7 @@ import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 public interface Provisioner<RD extends ResourceDefinition, PR extends ProvisionedResource> {
 
     /**
-     * Initializes the provisioner with a threadsafe excution context.
+     * Initializes the provisioner with a threadsafe execution context.
      *
      * This context is used to persist recovery data and return results when {@link #provision(ResourceDefinition)} completes.
      *
