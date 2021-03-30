@@ -1,4 +1,4 @@
-package com.microsoft.dagx.transfer.azure;
+package com.microsoft.dagx.transfer.provision.azure;
 
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;

@@ -1,13 +1,13 @@
-package com.microsoft.dagx.transfer.azure;
+package com.microsoft.dagx.transfer.provision.azure;
 
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 
 /**
- * Provides data transfer implementations backed by Azure services.
+ * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by Azure services.
  */
-public class AzureTransferExtension implements ServiceExtension {
+public class AzureProvisionExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
