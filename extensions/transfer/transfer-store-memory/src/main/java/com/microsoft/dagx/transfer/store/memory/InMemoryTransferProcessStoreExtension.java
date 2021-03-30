@@ -1,9 +1,5 @@
 package com.microsoft.dagx.transfer.store.memory;
 
-/**
- *
- */
-
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
