@@ -1,4 +1,4 @@
-package com.microsoft.dagx.transfer.core;
+package com.microsoft.dagx.transfer.core.flow;
 
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
