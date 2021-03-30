@@ -9,8 +9,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Set;
 
 import static java.lang.String.format;
+import static java.util.stream.Collectors.toSet;
 
 /**
  * Represents a data transfer process.
@@ -25,6 +27,10 @@ public class TransferProcess {
     private int stateCount = TransferProcessStates.UNSAVED.code();
 
     private long stateTimestamp;
+
+    private ResourceManifest resourceManifest;
+
+    private ProvisionedResourceSet provisionedResourceSet;
 
     public String getId() {
         return id;
@@ -48,6 +54,16 @@ public class TransferProcess {
 
     public void transitionProvisioning() {
         transition(TransferProcessStates.PROVISIONING, TransferProcessStates.INITIAL, TransferProcessStates.PROVISIONING);
+    }
+
+    public boolean provisioningComplete() {
+        if (resourceManifest == null || provisionedResourceSet == null || resourceManifest.empty() || provisionedResourceSet.empty()) {
+            return false;
+        }
+
+        Set<String> definitions = resourceManifest.getDefinitions().stream().map(ResourceDefinition::getId).collect(toSet());
+        Set<String> resources = provisionedResourceSet.getResources().stream().map(ProvisionedResource::getResourceDefinitionId).collect(toSet());
+        return definitions.equals(resources);
     }
 
     public void transitionProvisioned() {
@@ -77,7 +93,12 @@ public class TransferProcess {
     }
 
     public TransferProcess copy() {
-        return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).build();
+        return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest)
+                .provisionedResourceSet(provisionedResourceSet).build();
+    }
+
+    public Builder toBuilder() {
+        return new Builder(this.copy());
     }
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
@@ -112,15 +133,7 @@ public class TransferProcess {
 
         @JsonCreator
         public static Builder newInstance() {
-            return new Builder();
-        }
-
-        public TransferProcess build() {
-            Objects.requireNonNull(process.id, "id");
-            if (process.state == TransferProcessStates.UNSAVED.code() && process.stateTimestamp == 0) {
-                process.stateTimestamp = Instant.now().toEpochMilli();
-            }
-            return process;
+            return new Builder(new TransferProcess());
         }
 
         public Builder id(String id) {
@@ -143,8 +156,34 @@ public class TransferProcess {
             return this;
         }
 
-        private Builder() {
-            process = new TransferProcess();
+        public Builder resourceManifest(ResourceManifest manifest) {
+            process.resourceManifest = manifest;
+            return this;
+        }
+
+        public Builder provisionedResourceSet(ProvisionedResourceSet set) {
+            process.provisionedResourceSet = set;
+            return this;
+        }
+
+        public TransferProcess build() {
+            Objects.requireNonNull(process.id, "id");
+            if (process.state == TransferProcessStates.UNSAVED.code() && process.stateTimestamp == 0) {
+                process.stateTimestamp = Instant.now().toEpochMilli();
+            }
+            if (process.resourceManifest != null) {
+                process.resourceManifest.setTransferProcessId(process.id);
+            }
+
+            if (process.provisionedResourceSet != null) {
+                process.provisionedResourceSet.setTransferProcessId(process.id);
+            }
+
+            return process;
+        }
+
+        private Builder(TransferProcess process) {
+            this.process = process;
         }
 
     }

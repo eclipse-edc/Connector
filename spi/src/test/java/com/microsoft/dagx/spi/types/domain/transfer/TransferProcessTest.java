@@ -8,7 +8,9 @@ import java.io.StringWriter;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  *
@@ -71,5 +73,28 @@ class TransferProcessTest {
 
         assertEquals(TransferProcessStates.INITIAL.code(), process.getState());
         assertEquals(1, process.getStateCount());
+    }
+
+    @Test
+    void verifyProvisioningComplete() {
+        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+
+        ResourceManifest manifest = ResourceManifest.Builder.newInstance().build();
+        manifest.addDefinition(TestResourceDefinition.Builder.newInstance().id("r1").build());
+
+        TransferProcess process = builder.resourceManifest(manifest).build();
+
+        assertFalse(process.provisioningComplete());
+
+        ProvisionedResourceSet resourceSet = ProvisionedResourceSet.Builder.newInstance().build();
+
+        process =  process.toBuilder().provisionedResourceSet(resourceSet).build();
+
+        assertFalse(process.provisioningComplete());
+
+        resourceSet.addResource(TestProvisionedResource.Builder.newInstance().id("p1").resourceDefinitionId("r1").build());
+
+        assertTrue(process.provisioningComplete());
+
     }
 }

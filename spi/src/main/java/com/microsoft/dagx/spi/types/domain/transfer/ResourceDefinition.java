@@ -14,4 +14,26 @@ public abstract class ResourceDefinition {
     public String getTransferProcessId() {
         return transferProcessId;
     }
+
+    void setTransferProcessId(String transferProcessId) {
+        this.transferProcessId = transferProcessId;
+    }
+
+    @SuppressWarnings("unchecked")
+    public static class Builder<RD extends ResourceDefinition, B extends Builder<RD, B>> {
+        protected final ResourceDefinition resourceDefinition;
+
+        public B id(String id) {
+            resourceDefinition.id = id;
+            return (B) this;
+        }
+
+        public RD build() {
+            return (RD) resourceDefinition;
+        }
+
+        protected Builder(ResourceDefinition definition) {
+            this.resourceDefinition = definition;
+        }
+    }
 }
