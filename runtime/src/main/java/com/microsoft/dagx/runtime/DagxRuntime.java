@@ -1,17 +1,17 @@
 package com.microsoft.dagx.runtime;
 
-import com.microsoft.dagx.monitor.ConsoleMonitor;
 import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.system.MonitorExtension;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.ServiceLoader;
 
-import static com.microsoft.dagx.system.ExtensionLoader.bootServiceExtensions;
-import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
+import static com.microsoft.dagx.system.ExtensionLoader.*;
 
 /**
  * Main entrypoint for the default runtime.
@@ -20,7 +20,8 @@ public class DagxRuntime {
 
     public static void main(String... arg) {
         TypeManager typeManager = new TypeManager();
-        ConsoleMonitor monitor = new ConsoleMonitor();
+
+        var monitor= loadMonitor();
 
         MonitorProvider.setInstance(monitor);
 
@@ -36,6 +37,7 @@ public class DagxRuntime {
         bootServiceExtensions(serviceExtensions, context);
 
         monitor.info("DA-GX ready");
+
     }
 
     private static void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {

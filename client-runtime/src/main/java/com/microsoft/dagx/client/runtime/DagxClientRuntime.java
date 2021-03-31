@@ -1,6 +1,5 @@
 package com.microsoft.dagx.client.runtime;
 
-import com.microsoft.dagx.monitor.ConsoleMonitor;
 import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -10,8 +9,7 @@ import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 import java.util.List;
 import java.util.ListIterator;
 
-import static com.microsoft.dagx.system.ExtensionLoader.bootServiceExtensions;
-import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
+import static com.microsoft.dagx.system.ExtensionLoader.*;
 
 public class DagxClientRuntime {
     private Monitor monitor;
@@ -82,7 +80,7 @@ public class DagxClientRuntime {
             immutable = true;
 
             if (runtime.monitor == null) {
-                runtime.monitor = new ConsoleMonitor();
+                runtime.monitor = loadMonitor();
             }
             if (runtime.typeManager == null) {
                 runtime.typeManager = new TypeManager();
