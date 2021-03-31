@@ -1,21 +1,39 @@
 package com.microsoft.dagx.transfer.provision.aws;
 
+import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
+import org.jetbrains.annotations.NotNull;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 
 /**
  * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by Azure services.
  */
 public class AwsProvisionExtension implements ServiceExtension {
+    @DagxSetting
+    private static final String AWS_ACCESS_KEY = "dagx.aws.access.key";
+
+    @DagxSetting
+    private static final String AWS_SECRET_KEY = "dagx.aws.access.key";
+
     private Monitor monitor;
+    private S3ClientProvider clientProvider;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        monitor = context.getMonitor();
+
         var provisionManager = context.getService(ProvisionManager.class);
 
-        monitor = context.getMonitor();
+        // create a S3 client provider that is shared across provisioners
+        clientProvider = S3ClientProvider.Builder.newInstance().credentialsProvider(() -> createCredentialsProvider(context)).build();
+
+        S3BucketProvisioner s3BucketProvisioner = new S3BucketProvisioner(clientProvider, monitor);
+        provisionManager.register(s3BucketProvisioner);
+
         monitor.info("Initialized AWS Provision extension");
     }
 
@@ -26,8 +44,30 @@ public class AwsProvisionExtension implements ServiceExtension {
 
     @Override
     public void shutdown() {
+        try {
+            clientProvider.shutdown();
+        } catch (Exception e) {
+            monitor.info("Error closing S3 client provider", e);
+        }
         monitor.info("Shutdown AWS Provision extension");
     }
+
+    @NotNull
+    private AwsBasicCredentials createCredentialsProvider(ServiceExtensionContext context) {
+        var vault = context.getService(Vault.class);
+        var accessKey = vault.resolveSecret(AWS_ACCESS_KEY);
+        if (accessKey == null) {
+            monitor.severe("AWS access key was not found in the vault");
+            accessKey = "empty_access_key";
+        }
+        var secretKey = vault.resolveSecret(AWS_SECRET_KEY);
+        if (secretKey == null) {
+            monitor.severe("AWS secret key was not found in the vault");
+            secretKey = "empty_secret_key";
+        }
+        return AwsBasicCredentials.create(accessKey, secretKey);
+    }
+
 
 }
 

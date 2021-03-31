@@ -4,7 +4,6 @@ import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -34,7 +33,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     @Override
-    public @Nullable TransferProcess find(String id) {
+    public TransferProcess find(String id) {
         return readLock(() -> processesById.get(id));
     }
 

@@ -18,15 +18,21 @@ public interface ProvisionContext {
      *
      * This is intended as a facility to use for recovery. For example, infrastructure request ids can be persisted and recovered to continue processing after runtime restart.
      */
-    void create(String processId, String resourceDefinitionId, Object data);
+    default void create(String processId, String resourceDefinitionId, Object data) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Updates data related to a provision request.
      */
-    void update(String processId, String resourceDefinitionId, Object data);
+    default void update(String processId, String resourceDefinitionId, Object data) {
+        throw new UnsupportedOperationException();
+    }
 
     /**
      * Returns data related to a provision request.
      */
-    @Nullable <T> T find(Class<T> type, String processId, String resourceDefinitionId);
+    default @Nullable <T> T find(Class<T> type, String processId, String resourceDefinitionId) {
+        throw new UnsupportedOperationException();
+    }
 }

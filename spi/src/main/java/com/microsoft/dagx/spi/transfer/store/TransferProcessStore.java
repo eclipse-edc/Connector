@@ -2,7 +2,6 @@ package com.microsoft.dagx.spi.transfer.store;
 
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -12,7 +11,6 @@ import java.util.Set;
  */
 public interface TransferProcessStore {
 
-    @Nullable
     TransferProcess find(String id);
 
     @NotNull

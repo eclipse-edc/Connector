@@ -8,11 +8,11 @@ import java.util.Objects;
  * A provisioned resource that supports a data transfer request.
  */
 public abstract class ProvisionedResource {
-    private String id;
-    private String transferProcessId;
-    private String resourceDefinitionId;
-    private boolean error;
-    private String errorMessage;
+    protected String id;
+    protected String transferProcessId;
+    protected String resourceDefinitionId;
+    protected boolean error;
+    protected String errorMessage;
 
     @NotNull
     public String getId() {
@@ -42,7 +42,7 @@ public abstract class ProvisionedResource {
 
     @SuppressWarnings("unchecked")
     public static class Builder<PR extends ProvisionedResource, B extends Builder<PR, B>> {
-        protected final ProvisionedResource provisionedResource;
+        protected PR provisionedResource;
 
         public B id(String id) {
             provisionedResource.id = id;
@@ -72,10 +72,14 @@ public abstract class ProvisionedResource {
         public PR build() {
             Objects.requireNonNull(provisionedResource.id, "id");
             Objects.requireNonNull(provisionedResource.resourceDefinitionId, "resourceDefinitionId");
-            return (PR) provisionedResource;
+            verify();
+            return provisionedResource;
         }
 
-        protected Builder(ProvisionedResource resource) {
+        protected void verify() {
+        }
+
+        protected Builder(PR resource) {
             this.provisionedResource = resource;
         }
     }

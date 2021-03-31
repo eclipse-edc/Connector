@@ -4,8 +4,8 @@ package com.microsoft.dagx.spi.types.domain.transfer;
  * A resource to be provisioned to support a data transfer.
  */
 public abstract class ResourceDefinition {
-    private String id;
-    private String transferProcessId;
+    protected String id;
+    protected String transferProcessId;
 
     public String getId() {
         return id;
@@ -21,7 +21,7 @@ public abstract class ResourceDefinition {
 
     @SuppressWarnings("unchecked")
     public static class Builder<RD extends ResourceDefinition, B extends Builder<RD, B>> {
-        protected final ResourceDefinition resourceDefinition;
+        protected final RD resourceDefinition;
 
         public B id(String id) {
             resourceDefinition.id = id;
@@ -29,10 +29,14 @@ public abstract class ResourceDefinition {
         }
 
         public RD build() {
-            return (RD) resourceDefinition;
+            verify();
+            return resourceDefinition;
         }
 
-        protected Builder(ResourceDefinition definition) {
+        protected void verify() {
+        }
+
+        protected Builder(RD definition) {
             this.resourceDefinition = definition;
         }
     }

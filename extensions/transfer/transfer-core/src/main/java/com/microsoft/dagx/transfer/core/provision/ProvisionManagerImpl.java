@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Default provision manager.
+ * Default provision manager. Invoke {@link #start(TransferProcessStore)} to initialize an instance.
  */
 public class ProvisionManagerImpl implements ProvisionManager {
     private List<Provisioner<?, ?>> provisioners = new ArrayList<>();
@@ -50,8 +50,11 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     void onResource(ProvisionedResource provisionedResource) {
         TransferProcess transferProcess = processStore.find(provisionedResource.getTransferProcessId());
+        if (transferProcess.provisioningComplete()) {
+            // TODO If all resources provisioned, delete scratch data and advance the state
+
+        }
         // TODO update
-        // TODO If all resources provisioned, delete scratch data
     }
 
     @NotNull
