@@ -20,7 +20,7 @@ public class AwsProvisionExtension implements ServiceExtension {
     private static final String AWS_SECRET_KEY = "dagx.aws.access.key";
 
     private Monitor monitor;
-    private S3ClientProvider clientProvider;
+    private SdkClientProvider clientProvider;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -29,7 +29,7 @@ public class AwsProvisionExtension implements ServiceExtension {
         var provisionManager = context.getService(ProvisionManager.class);
 
         // create a S3 client provider that is shared across provisioners
-        clientProvider = S3ClientProvider.Builder.newInstance().credentialsProvider(() -> createCredentialsProvider(context)).build();
+        clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(() -> createCredentialsProvider(context)).build();
 
         S3BucketProvisioner s3BucketProvisioner = new S3BucketProvisioner(clientProvider, monitor);
         provisionManager.register(s3BucketProvisioner);

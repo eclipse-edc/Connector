@@ -3,6 +3,7 @@ package com.microsoft.dagx.transfer.provision.aws;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.Test;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -27,7 +28,14 @@ class S3BucketProvisionerTest {
 
         EasyMock.replay(mock);
 
-        S3BucketProvisioner provisioner = new S3BucketProvisioner(key -> mock, new Monitor() {
+        ClientProvider clientProvider = new ClientProvider() {
+            @Override
+            public <T extends SdkClient> T clientFor(Class<T> type, String key) {
+                return type.cast(mock);
+            }
+        };
+        
+        S3BucketProvisioner provisioner = new S3BucketProvisioner(clientProvider, new Monitor() {
         });
 
         AtomicBoolean passed = new AtomicBoolean();
@@ -42,7 +50,7 @@ class S3BucketProvisionerTest {
         future.complete(CreateBucketResponse.builder().build());
 
         EasyMock.verify(mock);
-        
+
         assertTrue(passed.get());
     }
 }

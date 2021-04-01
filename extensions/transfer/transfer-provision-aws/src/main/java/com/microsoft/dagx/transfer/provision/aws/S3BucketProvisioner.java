@@ -7,6 +7,7 @@ import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import org.jetbrains.annotations.NotNull;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
@@ -49,7 +50,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
         CreateBucketRequest request = CreateBucketRequest.builder().bucket(bucketName).createBucketConfiguration(CreateBucketConfiguration.builder().build()).build();
 
         String region = resourceDefinition.getRegionId();
-        clientProvider.clientFor(region).createBucket(request).whenComplete(handleResponse(resourceDefinition));
+        clientProvider.clientFor(S3AsyncClient.class, region).createBucket(request).whenComplete(handleResponse(resourceDefinition));
 
         monitor.debug("Bucket request submitted: " + bucketName);
         return ResponseStatus.OK;

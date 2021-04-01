@@ -2,12 +2,14 @@ plugins {
     `java-library`
 }
 
-val s3Version: String by project
+val awsVersion: String by project
 
 dependencies {
     api(project(":spi"))
 
-    implementation("software.amazon.awssdk:s3:${s3Version}")
+    implementation("software.amazon.awssdk:s3:${awsVersion}")
+    implementation("software.amazon.awssdk:sts:${awsVersion}")
+    implementation("software.amazon.awssdk:iam:${awsVersion}")
 
 }
 
