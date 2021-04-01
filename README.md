@@ -33,26 +33,33 @@ The runtime can then be started from the root clone directory using:
 Note the secrets directory referenced above is configured to be ignored. A test key store and vault must be added (or the launch command modified to point to different locations).
 Also, set the keystore password accordingly.
 
+
+# A word on distributions
+
+The code base is organized in many different modules, some of which are grouped together using so-called "feature bundles". For example, accessing IDS requires a total of 4 modules, which are
+grouped together in the `ids` feature bundle. So developers wanting to use that feature only need to reference `ids` instead all of the 4 modules individually. This allows for a flexible and 
+easy composition of the runtime. We'll call those compositions "distributions".
+
+A distribution basically is a Gradle module that - in its simplest form - consists only of a `build.gradle.kts` file which declares its dependencies and how the distribution is assembled, e.g. in a `*.jar` file, as a native binary,
+as docker image etc. It may also contain further assets like configuration files. An example of this is shown in the `distributions/demo` folder.
+
+
 # Building and running with Docker
-Build the docker image with the following command
-```shell
-docker build -t microsoft/dagx .
-```
-Run the container:
-```shell
-docker run --rm --name dagx --mount type=bind,source="$(pwd)"/secrets,target=/etc/dagx/secrets \ 
--e DAGX_KEYSTORE_PASSWORD=test123 -e DAGX_KEYSTORE=/etc/dagx/secrets/dagx-test-keystore.jks \ 
--e DAGX_VAULT=/etc/dagx/secrets/dagx-vault.properties -p 8181:8181 microsoft/dagx
-```
-Note that since we're using the `fs` security profile, the `--mount` argument is **not** optional as the runtime expects the vault file and the keystore file to be present. 
-Also, the following environment variables are **mandatory**. If they're omitted, the runtime won't start:  
-1. `DAGX_VAULT`: the file that contains the filesystem-based vault
-1. `DAGX_KEYSTORE`: a Java keystore file
-1. `DAGX_KEYSTORE_PASSWORD`: the password for the Java keystore
+We suggest that all docker interaction be done with a Gradle plugin, because it makes it very easy to encapsulate complex docker commands. An example of its usage can be seen in `distributions/demo/build.gradle.kts`
 
-Basically the contents of the host machine's `secrets` directory are mapped into the container at run-time. 
-Consequently, those two files must exist on the host machine at `<pwd>/secrets` or whatever `source` directory that was specified in the `run` command of the container. 
+The docker image is built with
+```shell
+./gradlew clean buildDemo
+```
+which will assemble a JAR file that contains all required modules for the "Demo" configuration (i.e. file-based config and vaults). It will also generate a `Dockerfile` in `build/docker` and build 
+an image based upon it.
 
+The container can then be built and started with
+```shell
+./gradlew startDemo
+```
+
+which will launch a docker container based on the previously built image.
 
 
 ## Contributing

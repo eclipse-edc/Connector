@@ -3,6 +3,8 @@ rootProject.name = "dagx"
 include(":spi")
 include(":core")
 
+include(":distributions:demo")
+
 include(":extensions:protocol:web")
 include(":extensions:control-http")
 
@@ -17,6 +19,7 @@ include(":extensions:security:security-fs")
 include(":extensions:security:security-azure")
 include(":extensions:iam:oauth2")
 
+include(":extensions:ids")
 include(":extensions:ids:ids-spi")
 include(":extensions:ids:ids-core")
 include(":extensions:ids:ids-api-catalog")

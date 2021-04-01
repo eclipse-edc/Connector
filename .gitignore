@@ -31,3 +31,5 @@ build
 .idea
 
 /secrets
+
+distributions/demo/github.properties
