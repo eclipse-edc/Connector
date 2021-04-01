@@ -1,10 +1,12 @@
 package com.microsoft.dagx.transfer.provision.aws;
 
+import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.utils.SdkAutoCloseable;
 import software.amazon.awssdk.utils.ThreadFactoryBuilder;
 
@@ -20,7 +22,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static software.amazon.awssdk.core.client.config.SdkAdvancedAsyncClientOption.FUTURE_COMPLETION_EXECUTOR;
+import static com.microsoft.dagx.transfer.provision.aws.SdkClientBuilders.buildIamClient;
+import static com.microsoft.dagx.transfer.provision.aws.SdkClientBuilders.buildS3Client;
+import static com.microsoft.dagx.transfer.provision.aws.SdkClientBuilders.buildStsClient;
 
 /**
  * Provides reusable SDK clients that are configured to connect to specific regions and endpoints. Clients share a common thread pool.
@@ -31,6 +35,8 @@ public class SdkClientProvider implements ClientProvider {
     private static final Set<String> DEFAULT_REGIONS = Set.of(Region.US_EAST_1.id(), Region.EU_CENTRAL_1.id());
 
     private Map<String, S3AsyncClient> s3Cache;
+    private Map<String, IamAsyncClient> iamCache;
+    private Map<String, StsAsyncClient> stsCache;
 
     private ThreadPoolExecutor executor;
 
@@ -39,10 +45,13 @@ public class SdkClientProvider implements ClientProvider {
     public <T extends SdkClient> T clientFor(Class<T> type, String key) {
         if (type.isAssignableFrom(S3AsyncClient.class)) {
             S3AsyncClient client = s3Cache.get(key);
-            if (client == null) {
-                throw new IllegalArgumentException("The key is not configured as a supported region or endpoint: " + key);
-            }
-            return type.cast(client);
+            return checkAndReturn(type, key, client);
+        } else if (type.isAssignableFrom(IamAsyncClient.class)) {
+            IamAsyncClient client = iamCache.get(key);
+            return checkAndReturn(type, key, client);
+        } else if (type.isAssignableFrom(StsAsyncClient.class)) {
+            StsAsyncClient client = stsCache.get(key);
+            return checkAndReturn(type, key, client);
         }
         throw new IllegalArgumentException("Unsupported SDK type: " + type.getName());
     }
@@ -53,8 +62,18 @@ public class SdkClientProvider implements ClientProvider {
     public void shutdown() {
         if (executor != null) {
             s3Cache.values().forEach(SdkAutoCloseable::close);
+            iamCache.values().forEach(SdkAutoCloseable::close);
+            stsCache.values().forEach(SdkAutoCloseable::close);
             executor.shutdown();
         }
+    }
+
+    @NotNull
+    private <T extends SdkClient> T checkAndReturn(Class<T> type, String key, SdkClient client) {
+        if (client == null) {
+            throw new IllegalArgumentException("The key is not configured as a supported region or endpoint: " + key);
+        }
+        return type.cast(client);
     }
 
     private SdkClientProvider() {
@@ -77,17 +96,17 @@ public class SdkClientProvider implements ClientProvider {
         }
 
         public Builder regions(Set<String> regions) {
-            regions = new HashSet<>(regions);
+            this.regions = new HashSet<>(regions);
             return this;
         }
 
         public Builder endpoints(Set<String> endpoints) {
-            endpoints = new HashSet<>(endpoints);
+            this.endpoints = new HashSet<>(endpoints);
             return this;
         }
 
         public Builder threadPoolSize(int size) {
-            threadPoolSize = size;
+            this.threadPoolSize = size;
             return this;
         }
 
@@ -102,25 +121,32 @@ public class SdkClientProvider implements ClientProvider {
             provider.executor = new ThreadPoolExecutor(threadPoolSize, threadPoolSize, 10, TimeUnit.SECONDS, queue, threadFactory);
             provider.executor.allowCoreThreadTimeOut(true);
 
-            var cache = new HashMap<String, S3AsyncClient>();
-            regions.forEach(region -> createRegionClient(region, provider.executor, provider.credentialsProvider, cache));
-            endpoints.forEach(endpoint -> createEndpointClient(endpoint, provider.executor, provider.credentialsProvider, cache));
-            provider.s3Cache = Collections.unmodifiableMap(cache);
+            initS3Cache();
+            initIamCache();
+            initStsCache();
+
             return provider;
         }
 
-        private void createRegionClient(String regionId, ThreadPoolExecutor executor, AwsCredentialsProvider credentialsProvider, Map<String, S3AsyncClient> cache) {
-            S3AsyncClientBuilder builder = S3AsyncClient.builder();
-            builder.asyncConfiguration(b -> b.advancedOption(FUTURE_COMPLETION_EXECUTOR, executor));
-            S3AsyncClient client = builder.region(Region.of(regionId)).credentialsProvider(credentialsProvider).build();
-            cache.put(regionId, client);
+        private void initS3Cache() {
+            var cache = new HashMap<String, S3AsyncClient>();
+            regions.forEach(region -> cache.put(region, buildS3Client(b -> b.region(Region.of(region)), provider.executor, provider.credentialsProvider)));
+            endpoints.forEach(endpoint -> cache.put(endpoint, buildS3Client(b -> b.endpointOverride(URI.create(endpoint)), provider.executor, provider.credentialsProvider)));
+            provider.s3Cache = Collections.unmodifiableMap(cache);
         }
 
-        private void createEndpointClient(String endpoint, ThreadPoolExecutor executor, AwsCredentialsProvider credentialsProvider, Map<String, S3AsyncClient> cache) {
-            S3AsyncClientBuilder builder = S3AsyncClient.builder();
-            builder.asyncConfiguration(b -> b.advancedOption(FUTURE_COMPLETION_EXECUTOR, executor));
-            S3AsyncClient client = builder.endpointOverride(URI.create(endpoint)).credentialsProvider(credentialsProvider).build();
-            cache.put(endpoint, client);
+        private void initIamCache() {
+            var cache = new HashMap<String, IamAsyncClient>();
+            regions.forEach(region -> cache.put(region, buildIamClient(b -> b.region(Region.of(region)), provider.executor, provider.credentialsProvider)));
+            endpoints.forEach(endpoint -> cache.put(endpoint, buildIamClient(b -> b.endpointOverride(URI.create(endpoint)), provider.executor, provider.credentialsProvider)));
+            provider.iamCache = Collections.unmodifiableMap(cache);
+        }
+
+        private void initStsCache() {
+            var cache = new HashMap<String, StsAsyncClient>();
+            regions.forEach(region -> cache.put(region, buildStsClient(b -> b.region(Region.of(region)), provider.executor, provider.credentialsProvider)));
+            endpoints.forEach(endpoint -> cache.put(endpoint, buildStsClient(b -> b.endpointOverride(URI.create(endpoint)), provider.executor, provider.credentialsProvider)));
+            provider.stsCache = Collections.unmodifiableMap(cache);
         }
 
         private Builder() {
