@@ -1,0 +1,60 @@
+{
+  "entityTypeName" : "GaiaXSampleDataset",
+  "entities" : [
+    {
+      "name" : "ds1",
+      "qualifiedName" : "dataset1",
+      "description" : "This is dataset 1",
+      "providerName" : "AzureStorage",
+      "account" : "TestAccount",
+      "container" : "TestContainer",
+      "blobName" : "File1",
+      "credentialSas" : "some credential",
+      "classifications": ["Policy_A", "Duty_A", "Permission_A"]
+    },
+    {
+      "name" : "ds2",
+      "qualifiedName" : "dataset2",
+      "description" : "This is dataset 2",
+      "providerName" : "AzureStorage",
+      "account" : "TestAccount",
+      "container" : "TestContainer",
+      "blobName" : "File2",
+      "credentialSas" : "some credential",
+      "classifications": ["Policy_B", "Duty_B", "Permission_B"]
+    },
+    {
+      "name" : "ds3",
+      "qualifiedName" : "dataset3",
+      "description" : "This is dataset 3",
+      "providerName" : "AzureStorage",
+      "account" : "TestAccount",
+      "container" : "TestContainer",
+      "blobName" : "File3",
+      "credentialSas" : "some credential",
+      "classifications": ["Policy_C", "Duty_C", "Permission_C"]
+    },
+    {
+      "name" : "ds4",
+      "qualifiedName" : "dataset4",
+      "description" : "This is dataset 4",
+      "providerName" : "AzureStorage",
+      "account" : "TestAccount",
+      "container" : "TestContainer",
+      "blobName" : "File4",
+      "credentialSas" : "some credential",
+      "classifications": ["Policy_A", "Permission_C"]
+    },
+    {
+      "name" : "ds5",
+      "qualifiedName" : "dataset5",
+      "description" : "This is dataset 5",
+      "providerName" : "AzureStorage",
+      "account" : "TestAccount",
+      "container" : "TestContainer",
+      "blobName" : "File5",
+      "credentialSas" : "some credential",
+      "classifications": ["Policy_C", "Duty_B", "Permission_A"]
+    }
+ ]
+}

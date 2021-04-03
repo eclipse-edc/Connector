@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration debug="true" xmlns:log4j='http://jakarta.apache.org/log4j/'>
+
+    <appender name="stderr" class="org.apache.log4j.ConsoleAppender">
+        <param name="threshold" value="warn" />
+        <param name="target" value="System.err"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%p: %d{yyyy-MM-dd HH:mm:ss} %l] %m%n" />
+        </layout>
+
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMax" value="error"/>
+            <param name="LevelMin" value="warn"/>
+        </filter>
+    </appender>
+    <appender name="stdout" class="org.apache.log4j.ConsoleAppender">
+        <param name="threshold" value="debug" />
+        <param name="target" value="System.out"/>
+        <layout class="org.apache.log4j.PatternLayout">
+            <param name="ConversionPattern" value="[%p: %d{yyyy-MM-dd HH:mm:ss} %l] %m%n" />
+        </layout>
+        <filter class="org.apache.log4j.varia.LevelRangeFilter">
+            <param name="LevelMin" value="trace" />
+            <param name="LevelMax" value="info" />
+        </filter>
+    </appender>
+
+    <logger name="com.datastax.oss.driver">
+        <level value="INFO"/>
+    </logger>
+    <logger name="com.datastax.driver.core.QueryLogger.SLOW">
+        <level value="DEBUG"/>
+    </logger>
+    <logger name="com.datastax.driver.core.QueryLogger.ERROR">
+        <level value="TRACE"/>
+    </logger>
+    <logger name="com.datastax.driver.core.QueryLogger.NORMAL">
+        <level value="INFO"/>
+    </logger>
+    <root>
+        <priority value="debug"></priority>
+        <appender-ref ref="stderr" />
+        <appender-ref ref="stdout" />
+    </root>
+
+
+
+</log4j:configuration>

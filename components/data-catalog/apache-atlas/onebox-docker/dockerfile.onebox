@@ -1,0 +1,42 @@
+FROM python:latest AS build
+
+RUN apt-get update
+RUN apt-get install -y maven
+
+RUN mkdir /jdk
+WORKDIR /jdk
+RUN curl -O https://download.java.net/openjdk/jdk8u41/ri/openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+RUN tar -xvf openjdk-8u41-b04-linux-x64-14_jan_2020.tar.gz
+RUN export JAVA_HOME=/jdk/java-se-8u41-ri
+
+RUN mkdir /atlas-src
+WORKDIR /atlas-src
+RUN curl -O https://mirrors.sonic.net/apache/atlas/2.1.0/apache-atlas-2.1.0-sources.tar.gz
+RUN tar -xvf apache-atlas-2.1.0-sources.tar.gz
+
+WORKDIR /atlas-src/apache-atlas-sources-2.1.0
+RUN export MAVEN_OPTS="-Xms2g -Xmx2g"
+RUN mvn clean -DskipTests package -Pdist,embedded-hbase-solr
+
+RUN mkdir /atlas
+WORKDIR /atlas-src/apache-atlas-sources-2.1.0/distro/target/apache-atlas-2.1.0-server/apache-atlas-2.1.0
+RUN cp -r * /atlas
+
+# Add the -force flag to solr invocations to allow it to execute using root perms
+COPY ./atlas_config.py /atlas/bin
+
+FROM python:2.7.7 AS release
+
+COPY --from=build /jdk /jdk
+COPY --from=build /atlas /atlas
+
+ENV JAVA_HOME=/jdk/java-se-8u41-ri
+
+WORKDIR /atlas
+
+EXPOSE 21000
+
+ENV PATH=$PATH:/atlas/bin
+
+CMD ["/bin/bash", "-c", "/atlas/bin/atlas_start.py; tail -fF /atlas/logs/application.log"]
+

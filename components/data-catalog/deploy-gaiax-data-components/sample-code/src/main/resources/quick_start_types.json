@@ -1,0 +1,38 @@
+[
+  {
+    "typeName" : "GaiaXSampleDataset",
+    "superTypeNames" : ["DataSet"],
+    "attributes" : [
+      {
+        "name" : "type",
+        "type" : "string",
+        "required" : false
+      },
+      {
+        "name" : "account",
+        "type" : "string",
+        "required" : false
+      },
+      {
+        "name" : "container",
+        "type" : "string",
+        "required" : false
+      },
+      {
+        "name" : "credentialSas",
+        "type" : "string",
+        "required" : false
+      },
+      {
+        "name" : "blobName",
+        "type" : "string",
+        "required" : false
+      },
+      {
+        "name" : "providerName",
+        "type" : "string",
+        "required" : false
+      }
+    ]
+  }
+]
