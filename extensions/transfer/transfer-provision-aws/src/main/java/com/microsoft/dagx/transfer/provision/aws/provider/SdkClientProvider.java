@@ -1,4 +1,4 @@
-package com.microsoft.dagx.transfer.provision.aws;
+package com.microsoft.dagx.transfer.provision.aws.provider;
 
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -22,9 +22,9 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static com.microsoft.dagx.transfer.provision.aws.SdkClientBuilders.buildIamClient;
-import static com.microsoft.dagx.transfer.provision.aws.SdkClientBuilders.buildS3Client;
-import static com.microsoft.dagx.transfer.provision.aws.SdkClientBuilders.buildStsClient;
+import static com.microsoft.dagx.transfer.provision.aws.provider.SdkClientBuilders.buildIamClient;
+import static com.microsoft.dagx.transfer.provision.aws.provider.SdkClientBuilders.buildS3Client;
+import static com.microsoft.dagx.transfer.provision.aws.provider.SdkClientBuilders.buildStsClient;
 
 /**
  * Provides reusable SDK clients that are configured to connect to specific regions and endpoints. Clients share a common thread pool.
@@ -35,8 +35,8 @@ public class SdkClientProvider implements ClientProvider {
     private static final Set<String> DEFAULT_REGIONS = Set.of(Region.US_EAST_1.id(), Region.EU_CENTRAL_1.id());
 
     private Map<String, S3AsyncClient> s3Cache;
-    private Map<String, IamAsyncClient> iamCache;
     private Map<String, StsAsyncClient> stsCache;
+    private IamAsyncClient iamClient;
 
     private ThreadPoolExecutor executor;
 
@@ -47,11 +47,10 @@ public class SdkClientProvider implements ClientProvider {
             S3AsyncClient client = s3Cache.get(key);
             return checkAndReturn(type, key, client);
         } else if (type.isAssignableFrom(IamAsyncClient.class)) {
-            IamAsyncClient client = iamCache.get(key);
-            return checkAndReturn(type, key, client);
+            return checkAndReturn(type, key, iamClient);
         } else if (type.isAssignableFrom(StsAsyncClient.class)) {
             StsAsyncClient client = stsCache.get(key);
-            return checkAndReturn(type, key, client);
+            return type.cast(client);
         }
         throw new IllegalArgumentException("Unsupported SDK type: " + type.getName());
     }
@@ -62,7 +61,7 @@ public class SdkClientProvider implements ClientProvider {
     public void shutdown() {
         if (executor != null) {
             s3Cache.values().forEach(SdkAutoCloseable::close);
-            iamCache.values().forEach(SdkAutoCloseable::close);
+            iamClient.close();
             stsCache.values().forEach(SdkAutoCloseable::close);
             executor.shutdown();
         }
@@ -122,7 +121,7 @@ public class SdkClientProvider implements ClientProvider {
             provider.executor.allowCoreThreadTimeOut(true);
 
             initS3Cache();
-            initIamCache();
+            initIamClient();
             initStsCache();
 
             return provider;
@@ -135,11 +134,8 @@ public class SdkClientProvider implements ClientProvider {
             provider.s3Cache = Collections.unmodifiableMap(cache);
         }
 
-        private void initIamCache() {
-            var cache = new HashMap<String, IamAsyncClient>();
-            regions.forEach(region -> cache.put(region, buildIamClient(b -> b.region(Region.of(region)), provider.executor, provider.credentialsProvider)));
-            endpoints.forEach(endpoint -> cache.put(endpoint, buildIamClient(b -> b.endpointOverride(URI.create(endpoint)), provider.executor, provider.credentialsProvider)));
-            provider.iamCache = Collections.unmodifiableMap(cache);
+        private void initIamClient() {
+            provider.iamClient = buildIamClient(b -> b.region(Region.AWS_GLOBAL), provider.executor, provider.credentialsProvider);
         }
 
         private void initStsCache() {

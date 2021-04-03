@@ -28,6 +28,11 @@ public abstract class ResourceDefinition {
             return (B) this;
         }
 
+        public B transferProcessId(String id) {
+            resourceDefinition.transferProcessId = id;
+            return (B) this;
+        }
+
         public RD build() {
             verify();
             return resourceDefinition;

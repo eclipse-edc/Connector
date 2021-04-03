@@ -1,4 +1,4 @@
-package com.microsoft.dagx.transfer.provision.aws;
+package com.microsoft.dagx.transfer.provision.aws.provider;
 
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import software.amazon.awssdk.services.iam.IamAsyncClient;

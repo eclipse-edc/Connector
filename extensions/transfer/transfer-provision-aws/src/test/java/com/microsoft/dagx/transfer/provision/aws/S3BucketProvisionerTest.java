@@ -1,6 +1,9 @@
 package com.microsoft.dagx.transfer.provision.aws;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
+import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisioner;
+import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketResourceDefinition;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkClient;
@@ -34,12 +37,12 @@ class S3BucketProvisionerTest {
                 return type.cast(mock);
             }
         };
-        
-        S3BucketProvisioner provisioner = new S3BucketProvisioner(clientProvider, new Monitor() {
+
+        S3BucketProvisioner provisioner = new S3BucketProvisioner(clientProvider, 3600, new Monitor() {
         });
 
         AtomicBoolean passed = new AtomicBoolean();
-        provisioner.initialize(resource -> {
+        provisioner.initialize((resource, secretToken) -> {
             if (resource.isError()) {
                 throw new AssertionError("Resource creation errored");
             }

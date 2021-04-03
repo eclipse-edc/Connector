@@ -29,7 +29,7 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
 
     @Override
     public ResponseStatus provision(ObjectStorageResourceDefinition resourceDefinition) {
-        context.callback(new ObjectContainerProvisionedResource());
+        context.callback(new ObjectContainerProvisionedResource(), null);
         return ResponseStatus.OK;
     }
 

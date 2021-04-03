@@ -112,9 +112,11 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
             if (!lock.readLock().tryLock(TIMEOUT, TimeUnit.MILLISECONDS)) {
                 throw new DagxException("Timeout acquiring read lock");
             }
-            T value = work.get();
-            lock.readLock().unlock();
-            return value;
+            try {
+                return work.get();
+            } finally {
+                lock.readLock().unlock();
+            }
         } catch (InterruptedException e) {
             Thread.interrupted();
             throw new DagxException(e);
@@ -126,9 +128,11 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
             if (!lock.writeLock().tryLock(TIMEOUT, TimeUnit.MILLISECONDS)) {
                 throw new DagxException("Timeout acquiring write lock");
             }
-            T value = work.get();
-            lock.writeLock().unlock();
-            return value;
+            try {
+                return work.get();
+            } finally {
+                lock.writeLock().unlock();
+            }
         } catch (InterruptedException e) {
             Thread.interrupted();
             throw new DagxException(e);

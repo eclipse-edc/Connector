@@ -4,6 +4,7 @@ import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
+import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResourceSet;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
@@ -48,12 +49,12 @@ public class ProvisionManagerImpl implements ProvisionManager {
         }
     }
 
-    void onResource(ProvisionedResource provisionedResource) {
+    void onResource(ProvisionedResource provisionedResource, DestinationSecretToken secretToken) {
         TransferProcess transferProcess = processStore.find(provisionedResource.getTransferProcessId());
         if (transferProcess.provisioningComplete()) {
             // TODO If all resources provisioned, delete scratch data and advance the state
-
         }
+
         // TODO update
     }
 
@@ -72,7 +73,6 @@ public class ProvisionManagerImpl implements ProvisionManager {
         }
         return provisioner;
     }
-
 
     @NotNull
     private Provisioner<?, ProvisionedResource> getProvisioner(ProvisionedResource provisionedResource) {
