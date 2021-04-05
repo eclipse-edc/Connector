@@ -1,0 +1,77 @@
+// REST calls for uploading and instantiating a template. This process has 3 steps:
+// 1. Get a process group (we use the root group).
+// 2. Upload the NIFI template xml file. 
+// 3. Get the id of the template.
+// 4. Instantiate the template.
+// 5. Copy blobs.
+
+// Variables
+@proccess_group = {{root_process_group.response.body.id}}
+@template_id = {{get_templates.response.body.templates[0].id}}  
+
+@http_map_controller_id = {{get_controllers.response.body.controllerServices[0].id}}
+
+// @name root_process_group
+GET {{$dotenv nifi_FQDN}}/nifi-api/process-groups/root/
+###
+
+// Upload new template from file.
+// Use this request to upload the template for the first time. Skip if the template already uploaded.
+// @name upload_template
+POST {{$dotenv nifi_FQDN}}/nifi-api/process-groups/{{proccess_group}}/templates/upload
+Content-Type: multipart/form-data; boundary=TemplateBoundary
+
+--TemplateBoundary
+Content-Disposition: form-data; name="template"; filename="TwoClouds.xml"
+Content-Type: text/xml
+
+< ./apache-nifi/templates/bld/TwoClouds.xml
+--TemplateBoundary--
+###
+
+// Get template id
+// @name get_templates
+GET {{$dotenv nifi_FQDN}}/nifi-api/flow/templates
+###
+
+// Instantiate the template referenced by @template_id
+// @name instantiate_template
+POST {{$dotenv nifi_FQDN}}/nifi-api/process-groups/{{proccess_group}}/template-instance
+Content-Type: application/json
+
+{"originX": 3.0,"originY": 4.0, "templateId": "{{template_id}}"}
+###
+
+// @name get_controllers
+GET {{$dotenv nifi_FQDN}}/nifi-api/flow/process-groups/{{proccess_group}}/controller-services
+###
+
+// @name enable-contex-map
+PUT {{$dotenv nifi_FQDN}}/nifi-api/controller-services/{{http_map_controller_id}}/run-status
+Content-Type: application/json
+
+{"revision":{"version":0},"disconnectedNodeAcknowledged":false,"state":"ENABLED"}
+###
+
+// @name start_process_group
+PUT {{$dotenv nifi_FQDN}}/nifi-api/flow/process-groups/{{proccess_group}}
+Content-Type: application/json
+
+{"id":"{{proccess_group}}","state":"RUNNING"}
+###
+
+// @name start_copy1
+PUT {{$dotenv nifi_FQDN}}/contentListener
+Content-Type: application/json
+Authorization: Basic {{$dotenv username}}:{{$dotenv password}}
+
+< ./apache-nifi/templates/bld/AzSToAdls.json
+###
+
+// @name start_copy2
+PUT {{$dotenv nifi_FQDN}}/contentListener
+Content-Type: application/json
+Authorization: Basic {{$dotenv username}}:{{$dotenv password}}
+
+< ./apache-nifi/templates/bld/AdlsToAzS.json
+###
