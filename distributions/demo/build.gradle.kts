@@ -83,6 +83,7 @@ val createDockerfile by tasks.creating(Dockerfile::class) {
     environmentVariable("DAGX_VAULT", "/app/dagx-vault.properties")
     environmentVariable("DAGX_KEYSTORE", "/app/dagx-test-keystore.jks")
     environmentVariable("DAGX_KEYSTORE_PASSWORD", "test123")
+    exposePort(8181)
 
     entryPoint("java", "-Djava.security.egd=file:/dev/./urandom", "-jar", "/app/dagx-demo.jar")
 }

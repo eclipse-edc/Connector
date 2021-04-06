@@ -56,4 +56,19 @@ public class FsVault implements Vault {
         secrets.set(newSecrets);
         return VaultResponse.OK;
     }
+
+    @Override
+    public VaultResponse deleteSecret(String key) {
+        var newSecrets = new HashMap<>(secrets.get());
+        newSecrets.remove(key);
+        var properties = new Properties();
+        properties.putAll(newSecrets);
+        try (Writer writer = Files.newBufferedWriter(vaultFile)) {
+            properties.store(writer, null);
+        } catch (IOException e) {
+            return new VaultResponse(e.getMessage());
+        }
+        secrets.set(newSecrets);
+        return VaultResponse.OK;
+    }
 }

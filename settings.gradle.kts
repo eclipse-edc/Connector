@@ -4,6 +4,7 @@ include(":spi")
 include(":core")
 
 include(":distributions:demo")
+include(":distributions:azure")
 
 include(":extensions:protocol:web")
 include(":extensions:control-http")

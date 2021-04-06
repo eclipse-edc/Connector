@@ -23,6 +23,11 @@ public class NullVaultExtension implements VaultExtension {
             public VaultResponse storeSecret(String key, String value) {
                 throw new UnsupportedOperationException();
             }
+
+            @Override
+            public VaultResponse deleteSecret(String key) {
+                throw new UnsupportedOperationException();
+            }
         };
     }
 

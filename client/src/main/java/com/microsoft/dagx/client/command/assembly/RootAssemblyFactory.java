@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.microsoft.dagx.client.command.azure.vault.AzureVaultAssemlbyFactory.addAzureVaultCommand;
 import static com.microsoft.dagx.client.command.http.HttpOperations.executeGet;
 import static com.microsoft.dagx.client.command.ids.IdsAssemblyFactory.addIdsCommands;
 import static org.jline.builtins.Completers.TreeCompleter.node;
@@ -45,6 +46,8 @@ public class RootAssemblyFactory {
         addQuitCommands(nodes);
 
         addIdsCommands(executors, nodes);
+
+        addAzureVaultCommand(executors, nodes);
 
         return new Assembly(executors, new TreeCompleter(nodes));
     }
