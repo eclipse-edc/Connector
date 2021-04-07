@@ -6,12 +6,10 @@ The template requires credentials to the certificate (apiStorePasswd, apiKeyPass
 `InsertCredentials.xslt` can be used to insert the credentials into the template with any xslt tool, e.g. `xsltproc`.
 
 ``` bash
-apiStorePasswd=<API store password>
-apiKeyPasswd=<Api key password>
 apiUsername=<Api user name>
 apiPassword=<Api password>
 
-xsltproc --stringparam apiUsername $apiUsername --stringparam apiPassword $apiPassword --stringparam apiStorePasswd $apiStorePasswd --stringparam apiKeyPasswd $apiKeyPasswd -o bld/TwoClouds.xml InsertCredentials.xslt TwoClouds.xml
+xsltproc --stringparam apiUsername $apiUsername --stringparam apiPassword $apiPassword -o bld/TwoClouds.xml InsertCredentials.xslt TwoClouds.xml
 ```
 
 `bld/TwoClouds.xml` will have resulting template with the credentials ready to be deployed to NiFi.
@@ -27,8 +25,8 @@ xsltproc --stringparam apiUsername $apiUsername --stringparam apiPassword $apiPa
 
 When a template is instantiated controller services must be enabled and the flow started.
 
-- Doubleclick `HandleHttpRequest` processor and click an arrow aginst any service. It will open a new window with the services.
-- Enable each service.
+- Doubleclick `HandleHttpRequest` processor and click an arrow next to StandardHttpContextMap. It will open a new window with the services.
+- Enable the service, there must be exactly one.
 - Close the window.
 - Make sure that no processors are selected and click triangle start button. It should start all processors.
 
@@ -43,5 +41,5 @@ adlsSas="<destination storage account SAS>"
 jq '.source += {"sas":"'$adlsSas'"}' AdlsToAzS.json | jq '.destination += {"sas":"'$azStorageSas'"}' -c > bld/AdlsToAzS.json
 jq '.source += {"sas":"'$azStorageSas'"}' AzSToAdls.json | jq '.destination += {"sas":"'$adlsSas'"}' -c > bld/AzSToAdls.json
 
-curl -k -u ${apiUsername}:${apiPassword} -H "Content-Type: application/json" -d @bld/AdlsToAzS.json -X POST <NiFi Url>/contentListener -w "\n%{http_code}\n"
+curl -u ${apiUsername}:${apiPassword} -H "Content-Type: application/json" -d @bld/AdlsToAzS.json -X POST <NiFi Url>/contentListener -w "\n%{http_code}\n"
 ```
