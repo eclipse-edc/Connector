@@ -44,19 +44,7 @@ Edit `nifi/templates/ingress.yaml` Add:
 metadata.annotations.kubernetes.io/ingress.class: addon-http-application-routing
 ```
 
-### Configure admin users
-
-Edit `nifi/values.yaml` Set:
-
-``` yaml
-initUsers.enabled: true
-admins:
-    - <your AAD login e-mail>
-uiUsers:
-    - <your AAD login e-mail>
-```
-
-## Configure NiFi SSL access to flows
+## Configure NiFi access to flows
 
 To expose a port where NiFi flow can accept http requests edit `nifi/templates/service.yaml` and add the following to the 2nd template (the service with the name: `name: {{ template "nifi.fullname" . }}`) `spec.ports` section.
 Make sure you add it after the `{{- end }}` statement related to the SSL if, `{{- if .Values.nifi.properties.secured }}`, so that the port is always exposed:
@@ -77,6 +65,43 @@ Edit `nifi/templates/ingress.yaml` and add the following to the `spec.http.paths
 ```
 
 Replace all three 8888 entries with a port number that must be exposed.
+
+## Deployment
+
+Now you can run
+
+``` bash
+make deploy-nifi
+```
+
+When `make` finishes the output will say to update `hosts` file but it is not necessary because Public Azure IP is associated with the proper DNS name.
+The output will also show a command for getting the IP address of the NiFi UI, similar to:
+
+``` bash
+kubectl get ingress <ingress name> -n <namespace> -o jsonpath='{.status.loadBalancer.ingress[*].ip}' | xargs echo
+```
+
+Run it and verify that the IP matches public IP for the AKS that you configured in the beginning.
+
+NiFi web ui should be available at `http://<NiFi FQDN>/nifi/`
+
+## Secure NiFi setup
+
+If you want to install NiFi secured with AAD authentication there are some additional steps.
+If you follow these steps NiFi UI will be available but how to authenticate with NiFi Admin REST API
+is an open question.
+
+### Configure admin users
+
+Edit `nifi/values.yaml` Set:
+
+``` yaml
+initUsers.enabled: true
+admins:
+    - <your AAD login e-mail>
+uiUsers:
+    - <your AAD login e-mail>
+```
 
 ## Configure NiFi SSL Context Service
 
