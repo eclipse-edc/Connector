@@ -24,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 import static java.lang.String.format;
 
 /**
- * Asynchronously provisions an S3 bucket to serve as a data destination and a temporaray token with write permissions to the bucket.
+ * Asynchronously provisions an S3 bucket to serve as a data destination and a temporary token with write permissions to the bucket.
  */
 class S3ProvisionPipeline {
     private static final int PROPAGATION_TIMEOUT = 10_000; // time in milliseconds to wait for AWS policies to propagate after creation
