@@ -6,8 +6,11 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
+import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.transfer.provision.aws.provider.SdkClientProvider;
+import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisionedResource;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisioner;
+import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketResourceDefinition;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 
@@ -35,6 +38,8 @@ public class AwsProvisionExtension implements ServiceExtension {
 
         S3BucketProvisioner s3BucketProvisioner = new S3BucketProvisioner(clientProvider, 3600, monitor);
         provisionManager.register(s3BucketProvisioner);
+
+        registerTypes(context.getTypeManager());
 
         monitor.info("Initialized AWS Provision extension");
     }
@@ -68,6 +73,10 @@ public class AwsProvisionExtension implements ServiceExtension {
             secretKey = "empty_secret_key";
         }
         return AwsBasicCredentials.create(accessKey, secretKey);
+    }
+
+    private void registerTypes(TypeManager typeManager) {
+        typeManager.registerTypes(S3BucketProvisionedResource.class, S3BucketResourceDefinition.class);
     }
 
 
