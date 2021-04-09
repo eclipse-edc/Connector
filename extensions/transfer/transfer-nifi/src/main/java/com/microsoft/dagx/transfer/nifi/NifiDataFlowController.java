@@ -60,9 +60,13 @@ public class NifiDataFlowController implements DataFlowController {
             throw new DagxException("Invalid extensions type, expected:" + GenericDataEntryExtensions.class.getName());
         }
 
+        if (dataRequest.getDataTarget() == null) {
+            throw new DagxException("DataTarget is not defined (i.e. null)", new IllegalArgumentException("dataRequest.getDataTarget() cannot be null"));
+        }
+
         String basicAuthCreds = vault.resolveSecret(NIFI_CREDENTIALS);
-        if(basicAuthCreds == null){
-            return new DataFlowInitiateResponse(FATAL_ERROR, "No NiFi credentials found in Vault!");
+        if (basicAuthCreds == null) {
+            throw new DagxException("No NiFi credentials found in Vault!");
         }
 
         Request request = createTransferRequest(dataRequest, basicAuthCreds);

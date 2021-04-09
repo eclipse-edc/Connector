@@ -1,8 +1,8 @@
 package com.microsoft.dagx.transfer.nifi;
 
+import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
-import com.microsoft.dagx.spi.security.VaultResponse;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.TypeManager;
@@ -10,18 +10,21 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
+import static org.easymock.EasyMock.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class NifiDataFlowControllerTest {
 
     private NifiDataFlowController controller;
+    private Vault vault;
+
 
     @BeforeEach
     void setUp() {
@@ -31,24 +34,10 @@ class NifiDataFlowControllerTest {
                 .build();
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(DataRequest.class);
-        Vault vault = new Vault() {
-            @Override
-            public @Nullable String resolveSecret(String key) {
-                if (key.equals(NifiDataFlowController.NIFI_CREDENTIALS))
-                    return "Basic cGF1bC5sYXR6ZWxzcGVyZ2VyQGJlYXJkeWluYy5jb206Q2JnR1RrdDh5LUY5NEJxMzhXb2g=";
-                return null;
-            }
 
-            @Override
-            public VaultResponse storeSecret(String key, String value) {
-                return null;
-            }
-
-            @Override
-            public VaultResponse deleteSecret(String key) {
-                return null;
-            }
-        };
+        vault= createMock(Vault.class);
+        expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn("Basic cGF1bC5sYXR6ZWxzcGVyZ2VyQGJlYXJkeWluYy5jb206Q2JnR1RrdDh5LUY5NEJxMzhXb2g=");
+        replay(vault);
         controller = new NifiDataFlowController(config, typeManager, monitor, vault);
     }
 
@@ -81,5 +70,37 @@ class NifiDataFlowControllerTest {
 
         //assert
         assertEquals(ResponseStatus.OK, response.getStatus());
+    }
+
+    @Test
+    void initiateFlow_noTargetDefined(){
+        String id = UUID.randomUUID().toString();
+        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().extensions(GenericDataEntryExtensions.Builder.newInstance().build()).build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataEntry(entry)
+                .build();
+
+       var e= assertThrows(DagxException.class, ()-> controller.initiateFlow(dataRequest));
+       assertEquals(IllegalArgumentException.class, e.getCause().getClass());
+    }
+
+    @Test
+    void initiateFlow_noCredsFoundInVault(){
+        String id = UUID.randomUUID().toString();
+        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().extensions(GenericDataEntryExtensions.Builder.newInstance().build()).build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataTarget(() -> "TestType")
+                .dataEntry(entry)
+                .build();
+
+        reset(vault);
+        expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn(null);
+        replay(vault);
+
+        assertThrows(DagxException.class, () -> controller.initiateFlow(dataRequest), "No NiFi credentials found in Vault!");
     }
 }

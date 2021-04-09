@@ -45,9 +45,6 @@ public class DataRequest implements Polymorphic {
         }
 
         public DataRequest build() {
-            if(request.dataTarget == null){
-                throw new IllegalStateException("DataTarget is not defined (i.e. null)");
-            }
             return request;
         }
 
