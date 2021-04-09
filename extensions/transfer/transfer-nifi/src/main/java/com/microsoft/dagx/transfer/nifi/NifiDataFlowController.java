@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.nifi;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.monitor.Monitor;
@@ -32,16 +33,19 @@ import static java.lang.String.format;
 public class NifiDataFlowController implements DataFlowController {
     private static final String CONTENTLISTENER = "/contentListener";
     private static final MediaType JSON = MediaType.get("application/json");
+    public static final String NIFI_CREDENTIALS = "nifi.credentials";
 
 
     private String baseUrl;
     private TypeManager typeManager;
     private Monitor monitor;
+    private final Vault vault;
 
-    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor) {
+    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault) {
         baseUrl = configuration.getUrl();
         this.typeManager = typeManager;
         this.monitor = monitor;
+        this.vault = vault;
     }
 
     @Override
@@ -56,7 +60,12 @@ public class NifiDataFlowController implements DataFlowController {
             throw new DagxException("Invalid extensions type, expected:" + GenericDataEntryExtensions.class.getName());
         }
 
-        Request request = createTransferRequest(dataRequest);
+        String basicAuthCreds = vault.resolveSecret(NIFI_CREDENTIALS);
+        if(basicAuthCreds == null){
+            return new DataFlowInitiateResponse(FATAL_ERROR, "No NiFi credentials found in Vault!");
+        }
+
+        Request request = createTransferRequest(dataRequest, basicAuthCreds);
 
         OkHttpClient client = createClient();
 
@@ -85,7 +94,7 @@ public class NifiDataFlowController implements DataFlowController {
     }
 
     @NotNull
-    private Request createTransferRequest(DataRequest dataRequest) {
+    private Request createTransferRequest(DataRequest dataRequest, String basicAuthCredentials) {
         GenericDataEntryExtensions extensions = (GenericDataEntryExtensions) dataRequest.getDataEntry().getExtensions();
 
 
@@ -96,7 +105,7 @@ public class NifiDataFlowController implements DataFlowController {
         return new Request.Builder()
                 .url(url)
                 .post(RequestBody.create(typeManager.writeValueAsString(payload), JSON))
-                .addHeader("Authorization", "Basic cGF1bC5sYXR6ZWxzcGVyZ2VyQGJlYXJkeWluYy5jb206Q2JnR1RrdDh5LUY5NEJxMzhXb2g=")
+                .addHeader("Authorization", basicAuthCredentials)
                 .build();
     }
 

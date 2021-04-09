@@ -1,6 +1,8 @@
 package com.microsoft.dagx.transfer.nifi;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.security.Vault;
+import com.microsoft.dagx.spi.security.VaultResponse;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.TypeManager;
@@ -8,6 +10,7 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,20 +21,34 @@ import static org.junit.jupiter.api.Assertions.*;
 class NifiDataFlowControllerTest {
 
     private NifiDataFlowController controller;
-    private Monitor monitor;
-    private NifiTransferManagerConfiguration config;
-    private TypeManager typeManager;
-
 
     @BeforeEach
     void setUp() {
-        monitor = new Monitor() {
+        Monitor monitor = new Monitor() {
         };
-        config = NifiTransferManagerConfiguration.Builder.newInstance().url("https://gaiax-nifi.westeurope.cloudapp.azure.com")
+        NifiTransferManagerConfiguration config = NifiTransferManagerConfiguration.Builder.newInstance().url("https://gaiax-nifi.westeurope.cloudapp.azure.com")
                 .build();
-        typeManager = new TypeManager();
+        TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(DataRequest.class);
-        controller = new NifiDataFlowController(config, typeManager, monitor);
+        Vault vault = new Vault() {
+            @Override
+            public @Nullable String resolveSecret(String key) {
+                if (key.equals(NifiDataFlowController.NIFI_CREDENTIALS))
+                    return "Basic cGF1bC5sYXR6ZWxzcGVyZ2VyQGJlYXJkeWluYy5jb206Q2JnR1RrdDh5LUY5NEJxMzhXb2g=";
+                return null;
+            }
+
+            @Override
+            public VaultResponse storeSecret(String key, String value) {
+                return null;
+            }
+
+            @Override
+            public VaultResponse deleteSecret(String key) {
+                return null;
+            }
+        };
+        controller = new NifiDataFlowController(config, typeManager, monitor, vault);
     }
 
     @Test
@@ -58,7 +75,6 @@ class NifiDataFlowControllerTest {
                 .build();
 
         //act
-
         DataFlowInitiateResponse response = controller.initiateFlow(dataRequest);
 
         //assert
