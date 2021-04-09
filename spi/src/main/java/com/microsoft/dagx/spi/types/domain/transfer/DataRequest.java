@@ -15,6 +15,7 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 public class DataRequest implements Polymorphic {
     private String id;
     private DataEntry<?> dataEntry;
+    private DataTarget dataTarget;
 
     /**
      * The unique request id.
@@ -30,6 +31,10 @@ public class DataRequest implements Polymorphic {
     private DataRequest() {
     }
 
+    public DataTarget getDataTarget() {
+        return dataTarget;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;
@@ -40,6 +45,9 @@ public class DataRequest implements Polymorphic {
         }
 
         public DataRequest build() {
+            if(request.dataTarget == null){
+                throw new IllegalStateException("DataTarget is not defined (i.e. null)");
+            }
             return request;
         }
 
@@ -50,6 +58,11 @@ public class DataRequest implements Polymorphic {
 
         public Builder dataEntry(DataEntry<?> entry) {
             request.dataEntry = entry;
+            return this;
+        }
+
+        public Builder dataTarget(DataTarget target){
+            request.dataTarget= target;
             return this;
         }
 
