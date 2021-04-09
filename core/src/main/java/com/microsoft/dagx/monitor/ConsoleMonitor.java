@@ -32,21 +32,21 @@ public class ConsoleMonitor implements Monitor {
     }
 
     public void severe(Supplier<String> supplier, Throwable... errors) {
-        output("SEVERE", supplier);
+        output("SEVERE", supplier, errors);
     }
 
     public void info(Supplier<String> supplier, Throwable... errors) {
         if (Level.INFO.value < level.value) {
             return;
         }
-        output("INFO", supplier);
+        output("INFO", supplier, errors);
     }
 
     public void debug(Supplier<String> supplier, Throwable... errors) {
         if (Level.DEBUG.value < level.value) {
             return;
         }
-        output("DEBUG", supplier);
+        output("DEBUG", supplier, errors);
     }
 
     private void output(String level, Supplier<String> supplier, Throwable... errors) {

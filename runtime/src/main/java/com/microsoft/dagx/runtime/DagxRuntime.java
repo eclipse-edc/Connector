@@ -2,16 +2,16 @@ package com.microsoft.dagx.runtime;
 
 import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.spi.monitor.Monitor;
-import com.microsoft.dagx.spi.system.MonitorExtension;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 
 import java.util.List;
 import java.util.ListIterator;
-import java.util.ServiceLoader;
 
-import static com.microsoft.dagx.system.ExtensionLoader.*;
+import static com.microsoft.dagx.system.ExtensionLoader.bootServiceExtensions;
+import static com.microsoft.dagx.system.ExtensionLoader.loadMonitor;
+import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
 
 /**
  * Main entrypoint for the default runtime.
@@ -21,21 +21,25 @@ public class DagxRuntime {
     public static void main(String... arg) {
         TypeManager typeManager = new TypeManager();
 
-        var monitor= loadMonitor();
+        var monitor = loadMonitor();
 
         MonitorProvider.setInstance(monitor);
 
         DefaultServiceExtensionContext context = new DefaultServiceExtensionContext(typeManager, monitor);
         context.initialize();
 
-        loadVault(context);
+        try {
+            loadVault(context);
 
-        List<ServiceExtension> serviceExtensions = context.loadServiceExtensions();
+            List<ServiceExtension> serviceExtensions = context.loadServiceExtensions();
 
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions, monitor)));
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions, monitor)));
 
-        bootServiceExtensions(serviceExtensions, context);
-
+            bootServiceExtensions(serviceExtensions, context);
+        } catch (Exception e) {
+            monitor.severe("Error booting runtime", e);
+            System.exit(-1);  // stop the process
+        }
         monitor.info("DA-GX ready");
 
     }

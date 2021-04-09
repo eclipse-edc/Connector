@@ -9,7 +9,9 @@ import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 import java.util.List;
 import java.util.ListIterator;
 
-import static com.microsoft.dagx.system.ExtensionLoader.*;
+import static com.microsoft.dagx.system.ExtensionLoader.bootServiceExtensions;
+import static com.microsoft.dagx.system.ExtensionLoader.loadMonitor;
+import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
 
 public class DagxClientRuntime {
     private Monitor monitor;
@@ -23,13 +25,16 @@ public class DagxClientRuntime {
         context = new DefaultServiceExtensionContext(typeManager, monitor);
         context.initialize();
 
-        loadVault(context);
+        try {
+            loadVault(context);
 
-        serviceExtensions = context.loadServiceExtensions();
+            serviceExtensions = context.loadServiceExtensions();
 
-        bootServiceExtensions(serviceExtensions, context);
-
-        monitor.debug("Client runtime started");
+            bootServiceExtensions(serviceExtensions, context);
+            monitor.debug("Client runtime started");
+        } catch (Exception e) {
+            monitor.severe("Error booting runtime", e);   // do not stop the process as the client may be embedded
+        }
     }
 
     public void shutdown() {
