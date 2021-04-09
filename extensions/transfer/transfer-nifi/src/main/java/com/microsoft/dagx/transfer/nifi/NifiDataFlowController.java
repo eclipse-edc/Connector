@@ -116,6 +116,7 @@ public class NifiDataFlowController implements DataFlowController {
     }
 
     private OkHttpClient createClient() {
+        //TODO: the following two calls are necessary because NiFi uses a self-signed cert that is likely not found in your local cert store
 
         try {
             // Create a trust manager that does not validate certificate chains
@@ -146,7 +147,6 @@ public class NifiDataFlowController implements DataFlowController {
             return new OkHttpClient.Builder()
                     .connectTimeout(30, TimeUnit.SECONDS)
                     .readTimeout(30, TimeUnit.SECONDS)
-                    //TODO: the following two calls are necessary because NiFi uses a self-signed cert that is likely not found in your local cert store
                     .sslSocketFactory(sslSocketFactory, x509TrustManager)
                     .hostnameVerifier((hostname, session) -> true)
                     .build();
