@@ -12,11 +12,12 @@ import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class NifiDataFlowControllerTest {
 
@@ -52,6 +53,7 @@ class NifiDataFlowControllerTest {
     }
 
     @Test
+    @Disabled("disabled until https://github.com/microsoft/Data-Appliance-GX/issues/30 is done")
     void initiateFlow() {
         var ext = GenericDataEntryExtensions.Builder.newInstance().property("type", "AzureStorage")
                 .property("account", "gxfilestore")
