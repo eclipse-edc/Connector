@@ -18,7 +18,7 @@ import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
 import static java.lang.String.format;
 
 /**
- * Soruces configuration values from a properties file.
+ * Sources configuration values from a properties file.
  */
 public class FsConfigurationExtension implements ConfigurationExtension {
     private static final String CONFIG_LOCATION = propOrEnv("dagx.fs.config", "dagx-configuration.properties");
