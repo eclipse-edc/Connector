@@ -13,6 +13,7 @@ import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisioner;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketResourceDefinition;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
 /**
  * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by Azure services.
@@ -34,7 +35,7 @@ public class AwsProvisionExtension implements ServiceExtension {
         var provisionManager = context.getService(ProvisionManager.class);
 
         // create a S3 client provider that is shared across provisioners
-        clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(() -> createCredentialsProvider(context)).build();
+        clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(createCredentialsProvider(context)).build();
 
         S3BucketProvisioner s3BucketProvisioner = new S3BucketProvisioner(clientProvider, 3600, monitor);
         provisionManager.register(s3BucketProvisioner);
@@ -60,7 +61,7 @@ public class AwsProvisionExtension implements ServiceExtension {
     }
 
     @NotNull
-    private AwsBasicCredentials createCredentialsProvider(ServiceExtensionContext context) {
+    private AwsCredentialsProvider createCredentialsProvider(ServiceExtensionContext context) {
         var vault = context.getService(Vault.class);
         var accessKey = vault.resolveSecret(AWS_ACCESS_KEY);
         if (accessKey == null) {
@@ -72,7 +73,9 @@ public class AwsProvisionExtension implements ServiceExtension {
             monitor.severe("AWS secret key was not found in the vault");
             secretKey = "empty_secret_key";
         }
-        return AwsBasicCredentials.create(accessKey, secretKey);
+        var credentials = AwsBasicCredentials.create(accessKey, secretKey);
+
+        return () -> credentials;
     }
 
     private void registerTypes(TypeManager typeManager) {
