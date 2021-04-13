@@ -20,11 +20,14 @@ jobs:
         with:
           java-version: '11'
 
-      - name: Gradle compile
-        run: ./gradlew compileJava
-
       - name: Gradle Test
         env:
           AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
         run: ./gradlew test
+
+      - name: Publish Unit Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v1
+        if: always()
+        with:
+          files: ./**/test-results/**/*.xml

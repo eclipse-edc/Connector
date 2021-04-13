@@ -12,34 +12,38 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 
 import static com.microsoft.dagx.spi.system.ServiceExtension.LoadPhase.DEFAULT;
 import static com.microsoft.dagx.spi.system.ServiceExtension.LoadPhase.PRIMORDIAL;
 import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toCollection;
 
 /**
  * Base service extension context.
- *
+ * <p>
  * Prior to using, {@link #initialize()} must be called.
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
-    private Monitor monitor;
-    private TypeManager typeManager;
+    private final Monitor monitor;
+    private final TypeManager typeManager;
 
-    private Map<Class<?>, Object> services = new HashMap<>();
+    private final Map<Class<?>, Object> services = new HashMap<>();
+    private final ServiceLocator serviceLocator;
     private List<ConfigurationExtension> configurationExtensions;
 
     public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor) {
+        this(typeManager, monitor, new ServiceLocatorImpl());
+    }
+
+    public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor, ServiceLocator serviceLocator) {
         this.typeManager = typeManager;
         this.monitor = monitor;
+        this.serviceLocator = serviceLocator;
     }
 
     public void initialize() {
         configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
-        configurationExtensions.forEach(ext-> ext.initialize(monitor));
+        configurationExtensions.forEach(ext -> ext.initialize(monitor));
     }
 
     @Override
@@ -94,8 +98,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         List<ServiceExtension> primordialExtensions = serviceExtensions.stream().filter(ext -> ext.phase() == PRIMORDIAL).collect(toCollection(ArrayList::new));
         List<ServiceExtension> defaultExtensions = serviceExtensions.stream().filter(ext -> ext.phase() == DEFAULT).collect(toCollection(ArrayList::new));
 
+        //the first sort is only to verify that there are no "upward" dependencies from PRIMORDIAL -> DEFAULT
         sortExtensions(primordialExtensions);
-        sortExtensions(defaultExtensions);
+        sortExtensions(serviceExtensions);
 
         List<ServiceExtension> totalOrdered = new ArrayList<>(primordialExtensions);
         totalOrdered.addAll(defaultExtensions);
@@ -104,25 +109,12 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     @Override
     public <T> List<T> loadExtensions(Class<T> type, boolean required) {
-        List<T> extensions = new ArrayList<>();
-        ServiceLoader.load(type).iterator().forEachRemaining(extensions::add);
-        if (extensions.isEmpty() && required) {
-            throw new DagxException("No extensions found of type:  " + type.getName());
-        }
-        return extensions;
+        return serviceLocator.loadImplementors(type, required);
     }
 
     @Override
     public <T> T loadSingletonExtension(Class<T> type, boolean required) {
-        List<T> extensions = new ArrayList<>();
-        ServiceLoader.load(type).iterator().forEachRemaining(extensions::add);
-        if (extensions.isEmpty() && required) {
-            throw new DagxException("No extensions found of type:  " + type.getName());
-        } else if (extensions.size() > 1) {
-            String types = extensions.stream().map(e -> e.getClass().getName()).collect(joining(","));
-            throw new DagxException(format("Multiple extensions found of type: %s [%s]", type.getName(), types));
-        }
-        return !extensions.isEmpty() ? extensions.get(0) : null;
+        return serviceLocator.loadSingletonImplementor(type, required);
     }
 
     private void sortExtensions(List<ServiceExtension> extensions) {
