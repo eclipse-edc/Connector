@@ -14,6 +14,7 @@ import java.util.Properties;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@Disabled("until we have a dedicated test vault in place")
 public class AzureVaultIntegrationTest {
 
     private static TestResourceManager resourceManager;
