@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 import static java.lang.String.format;
 
@@ -20,12 +19,14 @@ public class NifiApiClient {
     private final URL url;
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
     private final TypeManager typeManager;
+    private final OkHttpClient httpClient;
 
 
-    public NifiApiClient(String host, TypeManager typeManager) throws MalformedURLException {
+    public NifiApiClient(String host, TypeManager typeManager, OkHttpClient httpClient) throws MalformedURLException {
 
         this.url = new URL(host);
         this.typeManager = typeManager;
+        this.httpClient = httpClient;
     }
 
     public String uploadTemplate(String processGroup, File template) {
@@ -145,7 +146,7 @@ public class NifiApiClient {
     }
 
     private String makeCall(Request rq) {
-        try (Response response = createClient().newCall(rq).execute()) {
+        try (Response response = httpClient.newCall(rq).execute()) {
             int code = response.code();
             if (code < 200 || code >= 300) {
                 throw new DagxException("Error in rest request: " + code + ", " + response.message());
@@ -156,10 +157,5 @@ public class NifiApiClient {
             throw new DagxException(e);
         }
     }
-
-    private OkHttpClient createClient() {
-        return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
-    }
-
 
 }

@@ -6,6 +6,7 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
+import okhttp3.OkHttpClient;
 
 public class NifiTransferExtension implements ServiceExtension {
     @DagxSetting
@@ -39,8 +40,11 @@ public class NifiTransferExtension implements ServiceExtension {
 
         String url = context.getSetting(URL_SETTING, DEFAULT_NIFI_URL);
 
+        var httpClient = context.getService(OkHttpClient.class);
+
         NifiTransferManagerConfiguration configuration = NifiTransferManagerConfiguration.Builder.newInstance().url(url).build();
-        NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor(), context.getService(Vault.class));
+
+        NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor(), context.getService(Vault.class), httpClient);
         dataFlowManager.register(manager);
     }
 

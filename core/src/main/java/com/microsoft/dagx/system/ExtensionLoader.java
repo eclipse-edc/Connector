@@ -11,10 +11,19 @@ import com.microsoft.dagx.spi.system.MonitorExtension;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.system.VaultExtension;
+import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.ServiceLoader;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class ExtensionLoader {
@@ -42,15 +51,24 @@ public class ExtensionLoader {
         context.registerService(CertificateResolver.class, vaultExtension.getCertificateResolver());
     }
 
-    public static @NotNull Monitor loadMonitor(){
-        var loader= ServiceLoader.load(MonitorExtension.class);
+    public static @NotNull Monitor loadMonitor() {
+        var loader = ServiceLoader.load(MonitorExtension.class);
         return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()));
+    }
+
+    public static void addHttpClient(DefaultServiceExtensionContext context) {
+        var client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+        context.registerService(OkHttpClient.class, client);
     }
 
     static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors) {
 
 
-        if(availableMonitors.isEmpty())
+        if (availableMonitors.isEmpty())
             return new ConsoleMonitor();
 
         if (availableMonitors.size() > 1) {

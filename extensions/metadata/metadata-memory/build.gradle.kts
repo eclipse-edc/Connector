@@ -1,5 +1,3 @@
-val okHttpVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -8,5 +6,3 @@ plugins {
 dependencies {
     api(project(":spi"))
 }
-
-

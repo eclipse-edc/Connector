@@ -16,12 +16,12 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.*;
 
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.time.Duration;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -36,6 +36,7 @@ class NifiDataFlowControllerTest {
     private static String storageAccountKey = null;
 
     private static String blobName;
+    private static OkHttpClient httpClient;
 
     private NifiDataFlowController controller;
     private Vault vault;
@@ -51,9 +52,11 @@ class NifiDataFlowControllerTest {
         typeManager = new TypeManager();
         typeManager.getMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
+        httpClient = new OkHttpClient.Builder().build();
+
         var f = Thread.currentThread().getContextClassLoader().getResource("TwoClouds.xml");
         var file = new File(Objects.requireNonNull(f).toURI());
-        client = new NifiApiClient(nifiHost, typeManager);
+        client = new NifiApiClient(nifiHost, typeManager, httpClient);
         String processGroup = "root";
         try {
             var templateId = client.uploadTemplate(processGroup, file);
@@ -100,13 +103,13 @@ class NifiDataFlowControllerTest {
         typeManager.registerTypes(DataRequest.class);
 
         vault = createMock(Vault.class);
-        var nifiAuth= propOrEnv("NIFI_API_AUTH", null);
-        if(nifiAuth == null){
+        var nifiAuth = propOrEnv("NIFI_API_AUTH", null);
+        if (nifiAuth == null) {
             throw new RuntimeException("No environment variable found NIFI_API_AUTH!");
         }
         expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn(nifiAuth);
         replay(vault);
-        controller = new NifiDataFlowController(config, typeManager, monitor, vault);
+        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient);
     }
 
     @Test

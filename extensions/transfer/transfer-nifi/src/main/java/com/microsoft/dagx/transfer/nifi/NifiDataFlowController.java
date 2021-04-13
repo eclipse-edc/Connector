@@ -1,30 +1,26 @@
 package com.microsoft.dagx.transfer.nifi;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
-import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
-import javax.net.ssl.*;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.FATAL_ERROR;
@@ -36,16 +32,18 @@ public class NifiDataFlowController implements DataFlowController {
     public static final String NIFI_CREDENTIALS = "nifi.credentials";
 
 
-    private String baseUrl;
-    private TypeManager typeManager;
-    private Monitor monitor;
+    private final String baseUrl;
+    private final TypeManager typeManager;
+    private final Monitor monitor;
     private final Vault vault;
+    private final OkHttpClient httpClient;
 
-    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault) {
+    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault, OkHttpClient httpClient) {
         baseUrl = configuration.getUrl();
         this.typeManager = typeManager;
         this.monitor = monitor;
         this.vault = vault;
+        this.httpClient = createUnsecureClient(httpClient);
     }
 
     @Override
@@ -71,9 +69,8 @@ public class NifiDataFlowController implements DataFlowController {
 
         Request request = createTransferRequest(dataRequest, basicAuthCreds);
 
-        OkHttpClient client = createClient();
 
-        try (Response response = client.newCall(request).execute()) {
+        try (Response response = httpClient.newCall(request).execute()) {
             int code = response.code();
             if (code != 200) {
                 monitor.severe(format("Error initiating transfer request with Nifi. Code was: %d. Request id was: %s", code, dataRequest.getId()));
@@ -101,7 +98,6 @@ public class NifiDataFlowController implements DataFlowController {
     private Request createTransferRequest(DataRequest dataRequest, String basicAuthCredentials) {
         GenericDataEntryExtensions extensions = (GenericDataEntryExtensions) dataRequest.getDataEntry().getExtensions();
 
-
         String url = baseUrl + CONTENTLISTENER;
         Map<String, Object> payload = new HashMap<>();
         payload.put("source", extensions.getProperties());
@@ -119,9 +115,7 @@ public class NifiDataFlowController implements DataFlowController {
         return new DataFlowInitiateResponse(FATAL_ERROR, "Error initiating transfer");
     }
 
-    private OkHttpClient createClient() {
-        //TODO: the following two calls are necessary because NiFi uses a self-signed cert that is likely not found in your local cert store
-
+    private OkHttpClient createUnsecureClient(OkHttpClient httpClient) {
         try {
             // Create a trust manager that does not validate certificate chains
             X509TrustManager x509TrustManager = new X509TrustManager() {
@@ -148,15 +142,15 @@ public class NifiDataFlowController implements DataFlowController {
             // Create an ssl socket factory with our all-trusting manager
             final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
-            return new OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(30, TimeUnit.SECONDS)
+
+            return httpClient.newBuilder()
                     .sslSocketFactory(sslSocketFactory, x509TrustManager)
                     .hostnameVerifier((hostname, session) -> true)
                     .build();
 
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
-            throw new RuntimeException(e);
+            throw new DagxException("Error making the http client unsecure!", e);
         }
+
     }
 }

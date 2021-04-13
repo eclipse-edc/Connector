@@ -16,7 +16,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -25,20 +24,23 @@ import java.util.concurrent.atomic.AtomicReference;
  * This implementation supports key rotation and refresh by calling {@link #refreshKeys()} on a periodic basis.
  */
 public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable {
-    private String jwksUrl;
-    private Monitor monitor;
+    private final String jwksUrl;
+    private final Monitor monitor;
 
-    private ObjectMapper mapper;
-    private AtomicReference<Map<String, RSAPublicKey>> cache = new AtomicReference<>(); // the current key cache, atomic for thread-safety
+    private final ObjectMapper mapper;
+    private final AtomicReference<Map<String, RSAPublicKey>> cache = new AtomicReference<>(); // the current key cache, atomic for thread-safety
+    private final OkHttpClient httpClient;
 
     /**
      * Ctor.
      *
      * @param jwksUrl the URL specified by 'jwks_uri' in the document returned by the identity provider's metadata endpoint.
+     * @param httpClient
      */
-    public IdentityProviderKeyResolver(String jwksUrl, Monitor monitor) {
+    public IdentityProviderKeyResolver(String jwksUrl, Monitor monitor, OkHttpClient httpClient) {
         this.jwksUrl = jwksUrl;
         this.monitor = monitor;
+        this.httpClient = httpClient;
         mapper = new ObjectMapper();
     }
 
@@ -54,10 +56,9 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable 
 
     public void refreshKeys() {
         try {
-            OkHttpClient client = createClient();
             Request request = new Request.Builder().url(jwksUrl).get().build();
 
-            Response response = client.newCall(request).execute();
+            Response response = httpClient.newCall(request).execute();
             if (response.code() != 200) {
                 monitor.severe("Unable to refresh identity provider keys. Response code was: " + response.code());
                 return;
@@ -116,7 +117,4 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable 
         return new BigInteger(1, Base64.getUrlDecoder().decode(value));
     }
 
-    private OkHttpClient createClient() {
-        return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
-    }
 }

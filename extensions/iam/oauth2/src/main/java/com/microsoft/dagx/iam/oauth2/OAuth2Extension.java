@@ -9,6 +9,7 @@ import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
+import okhttp3.OkHttpClient;
 
 import java.util.Set;
 import java.util.concurrent.Executors;
@@ -54,9 +55,11 @@ public class OAuth2Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var httpClient= context.getService(OkHttpClient.class);
+
         // setup the provider key resolver, which will be scheduled for refresh at runtime start
         String jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
-        providerKeyResolver = new IdentityProviderKeyResolver(jwksUrl, context.getMonitor());
+        providerKeyResolver = new IdentityProviderKeyResolver(jwksUrl, context.getMonitor(), httpClient);
         keyRefreshInterval = Integer.parseInt(context.getSetting(PROVIDER_JWKS_REFRESH, "5"));
 
         // setup the OAuth2 service
