@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.nifi;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.monitor.Monitor;
@@ -15,7 +16,12 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 
+import javax.net.ssl.*;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -25,19 +31,21 @@ import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.FATAL_ERRO
 import static java.lang.String.format;
 
 public class NifiDataFlowController implements DataFlowController {
-    private static final String PROCESS_GROUPS = "/process-groups/";
-    private static final String FLOW = "/flow/process-groups/";
+    private static final String CONTENTLISTENER = "/contentListener";
     private static final MediaType JSON = MediaType.get("application/json");
-    private static final String PROCESS_GROUP_KEY = "processGroup";
+    public static final String NIFI_CREDENTIALS = "nifi.credentials";
+
 
     private String baseUrl;
     private TypeManager typeManager;
     private Monitor monitor;
+    private final Vault vault;
 
-    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor) {
+    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault) {
         baseUrl = configuration.getUrl();
         this.typeManager = typeManager;
         this.monitor = monitor;
+        this.vault = vault;
     }
 
     @Override
@@ -52,7 +60,16 @@ public class NifiDataFlowController implements DataFlowController {
             throw new DagxException("Invalid extensions type, expected:" + GenericDataEntryExtensions.class.getName());
         }
 
-        Request request = createTransferRequest(dataRequest);
+        if (dataRequest.getDataTarget() == null) {
+            throw new DagxException("DataTarget is not defined (i.e. null)", new IllegalArgumentException("dataRequest.getDataTarget() cannot be null"));
+        }
+
+        String basicAuthCreds = vault.resolveSecret(NIFI_CREDENTIALS);
+        if (basicAuthCreds == null) {
+            throw new DagxException("No NiFi credentials found in Vault!");
+        }
+
+        Request request = createTransferRequest(dataRequest, basicAuthCreds);
 
         OkHttpClient client = createClient();
 
@@ -81,15 +98,19 @@ public class NifiDataFlowController implements DataFlowController {
     }
 
     @NotNull
-    private Request createTransferRequest(DataRequest dataRequest) {
+    private Request createTransferRequest(DataRequest dataRequest, String basicAuthCredentials) {
         GenericDataEntryExtensions extensions = (GenericDataEntryExtensions) dataRequest.getDataEntry().getExtensions();
-        String processId = extensions.getProperties().get(PROCESS_GROUP_KEY);
 
-        String url = baseUrl + FLOW + processId;
-        Map<String, String> payload = new HashMap<>();
-        payload.put("id", processId);
-        payload.put("state", "RUNNING");
-        return new Request.Builder().url(url).put(RequestBody.create(typeManager.writeValueAsString(payload), JSON)).build();
+
+        String url = baseUrl + CONTENTLISTENER;
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("source", extensions.getProperties());
+        payload.put("destination", dataRequest.getDataTarget());
+        return new Request.Builder()
+                .url(url)
+                .post(RequestBody.create(typeManager.writeValueAsString(payload), JSON))
+                .addHeader("Authorization", basicAuthCredentials)
+                .build();
     }
 
     @NotNull
@@ -99,7 +120,43 @@ public class NifiDataFlowController implements DataFlowController {
     }
 
     private OkHttpClient createClient() {
-        return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
+        //TODO: the following two calls are necessary because NiFi uses a self-signed cert that is likely not found in your local cert store
 
+        try {
+            // Create a trust manager that does not validate certificate chains
+            X509TrustManager x509TrustManager = new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[]{};
+                }
+            };
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                    x509TrustManager
+            };
+
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            return new OkHttpClient.Builder()
+                    .connectTimeout(30, TimeUnit.SECONDS)
+                    .readTimeout(30, TimeUnit.SECONDS)
+                    .sslSocketFactory(sslSocketFactory, x509TrustManager)
+                    .hostnameVerifier((hostname, session) -> true)
+                    .build();
+
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new RuntimeException(e);
+        }
     }
 }

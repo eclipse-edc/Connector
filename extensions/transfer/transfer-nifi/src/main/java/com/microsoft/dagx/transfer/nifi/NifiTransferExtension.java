@@ -2,6 +2,7 @@ package com.microsoft.dagx.transfer.nifi;
 
 import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
@@ -39,7 +40,7 @@ public class NifiTransferExtension implements ServiceExtension {
         String url = context.getSetting(URL_SETTING, DEFAULT_NIFI_URL);
 
         NifiTransferManagerConfiguration configuration = NifiTransferManagerConfiguration.Builder.newInstance().url(url).build();
-        NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor());
+        NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor(), context.getService(Vault.class));
         dataFlowManager.register(manager);
     }
 
