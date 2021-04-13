@@ -28,6 +28,8 @@ public class TransferProcess {
 
     private long stateTimestamp;
 
+    private DataRequest dataRequest;
+
     private ResourceManifest resourceManifest;
 
     private ProvisionedResourceSet provisionedResourceSet;
@@ -48,12 +50,32 @@ public class TransferProcess {
         return stateTimestamp;
     }
 
+    public DataRequest getDataRequest() {
+        return dataRequest;
+    }
+
+    public ResourceManifest getResourceManifest() {
+        return resourceManifest;
+    }
+
+    public ProvisionedResourceSet getProvisionedResourceSet() {
+        return provisionedResourceSet;
+    }
+
     public void transitionInitial() {
         transition(TransferProcessStates.INITIAL, TransferProcessStates.UNSAVED);
     }
 
-    public void transitionProvisioning() {
+    public void transitionProvisioning(ResourceManifest manifest) {
         transition(TransferProcessStates.PROVISIONING, TransferProcessStates.INITIAL, TransferProcessStates.PROVISIONING);
+        resourceManifest = manifest;
+        resourceManifest.setTransferProcessId(this.id);
+    }
+
+    public void addProvisionedResource(ProvisionedResource resource) {
+        if (provisionedResourceSet == null) {
+            provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().transferProcessId(this.id).build();
+        }
     }
 
     public boolean provisioningComplete() {
@@ -93,7 +115,7 @@ public class TransferProcess {
     }
 
     public TransferProcess copy() {
-        return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest)
+        return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest).dataRequest(dataRequest)
                 .provisionedResourceSet(provisionedResourceSet).build();
     }
 
@@ -153,6 +175,11 @@ public class TransferProcess {
 
         public Builder stateTimestamp(long value) {
             process.stateTimestamp = value;
+            return this;
+        }
+
+        public Builder dataRequest(DataRequest request) {
+            process.dataRequest = request;
             return this;
         }
 

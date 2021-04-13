@@ -1,5 +1,6 @@
 package com.microsoft.dagx.transfer.store.memory;
 
+import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
 import org.junit.jupiter.api.Assertions;
@@ -34,7 +35,7 @@ class InMemoryTransferProcessStoreTest {
 
         assertEquals(TransferProcessStates.INITIAL.code(), found.getState());
 
-        transferProcess.transitionProvisioning();
+        transferProcess.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
 
         store.update(transferProcess);
 
@@ -56,10 +57,10 @@ class InMemoryTransferProcessStoreTest {
         store.create(transferProcess1);
         store.create(transferProcess2);
 
-        transferProcess2.transitionProvisioning();
+        transferProcess2.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(transferProcess2);
         Thread.sleep(1);
-        transferProcess1.transitionProvisioning();
+        transferProcess1.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(transferProcess1);
 
         assertTrue(store.nextForState(TransferProcessStates.INITIAL.code(), 1).isEmpty());

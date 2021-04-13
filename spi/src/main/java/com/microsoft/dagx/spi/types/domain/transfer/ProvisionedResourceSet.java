@@ -6,7 +6,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * A collection of provisioned resources that support a data transfer.
@@ -38,7 +37,6 @@ public class ProvisionedResourceSet {
     }
 
     void setTransferProcessId(String transferProcessId) {
-        Objects.requireNonNull(transferProcessId, "transferProcessId");
         this.transferProcessId = transferProcessId;
         resources.forEach(r -> r.setTransferProcessId(transferProcessId));
     }
@@ -56,6 +54,11 @@ public class ProvisionedResourceSet {
             return this;
         }
 
+        public Builder transferProcessId(String id) {
+            resourceSet.setTransferProcessId(id);
+            return this;
+        }
+
         public ProvisionedResourceSet build() {
             return resourceSet;
         }
@@ -63,5 +66,6 @@ public class ProvisionedResourceSet {
         private Builder() {
             resourceSet = new ProvisionedResourceSet();
         }
+
     }
 }

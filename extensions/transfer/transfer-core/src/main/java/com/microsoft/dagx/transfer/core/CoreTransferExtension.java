@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.core;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
@@ -30,7 +31,7 @@ public class CoreTransferExtension implements ServiceExtension {
         this.context = context;
         registerTypes(context.getTypeManager());
 
-        provisionManager = new ProvisionManagerImpl();
+        provisionManager = new ProvisionManagerImpl(context.getService(Vault.class));
         context.registerService(ProvisionManager.class, provisionManager);
         context.registerService(DataFlowManager.class, new DataFlowManagerImpl());
 

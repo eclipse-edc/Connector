@@ -46,12 +46,12 @@ class TransferProcessTest {
     void verifyTransitions() {
         TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
 
-        assertThrows(IllegalStateException.class, process::transitionProvisioning);
+        assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));
         process.transitionInitial();
 
         assertThrows(IllegalStateException.class, process::transitionProvisioned);
 
-        process.transitionProvisioning();
+        process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         process.transitionProvisioned();
 
         process.transitionRequested();
@@ -67,7 +67,7 @@ class TransferProcessTest {
     void verifyTransitionRollback() {
         TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         process.transitionInitial();
-        process.transitionProvisioning();
+        process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
 
         process.rollbackState(TransferProcessStates.INITIAL);
 

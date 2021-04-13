@@ -1,14 +1,13 @@
 package com.microsoft.dagx.transfer.core.provision;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
-import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResourceSet;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
-import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,8 +18,13 @@ import java.util.List;
  * Default provision manager. Invoke {@link #start(TransferProcessStore)} to initialize an instance.
  */
 public class ProvisionManagerImpl implements ProvisionManager {
-    private List<Provisioner<?, ?>> provisioners = new ArrayList<>();
+    private Vault vault;
     private TransferProcessStore processStore;
+    private List<Provisioner<?, ?>> provisioners = new ArrayList<>();
+
+    public ProvisionManagerImpl(Vault vault) {
+        this.vault = vault;
+    }
 
     public void start(TransferProcessStore processStore) {
         this.processStore = processStore;
@@ -34,16 +38,16 @@ public class ProvisionManagerImpl implements ProvisionManager {
     }
 
     @Override
-    public void provision(ResourceManifest manifest) {
-        for (ResourceDefinition definition : manifest.getDefinitions()) {
+    public void provision(TransferProcess process) {
+        for (ResourceDefinition definition : process.getResourceManifest().getDefinitions()) {
             Provisioner<ResourceDefinition, ?> chosenProvisioner = getProvisioner(definition);
             var status = chosenProvisioner.provision(definition);
         }
     }
 
     @Override
-    public void deprovision(ProvisionedResourceSet set) {
-        for (ProvisionedResource definition : set.getResources()) {
+    public void deprovision(TransferProcess process) {
+        for (ProvisionedResource definition : process.getProvisionedResourceSet().getResources()) {
             Provisioner<?, ProvisionedResource> chosenProvisioner = getProvisioner(definition);
             chosenProvisioner.deprovision(definition);
         }
@@ -51,11 +55,18 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     void onResource(ProvisionedResource provisionedResource, DestinationSecretToken secretToken) {
         TransferProcess transferProcess = processStore.find(provisionedResource.getTransferProcessId());
-        if (transferProcess.provisioningComplete()) {
-            // TODO If all resources provisioned, delete scratch data and advance the state
+        transferProcess.addProvisionedResource(provisionedResource);
+
+        if (secretToken != null) {
+            // TODO we should probably create a hierarchy for keys
+            vault.storeSecret(provisionedResource.getId(), secretToken.getToken());
         }
 
-        // TODO update
+        if (transferProcess.provisioningComplete()) {
+            // TODO If all resources provisioned, delete scratch data
+            transferProcess.transitionDeprovisioned();
+        }
+        processStore.update(transferProcess);
     }
 
     @NotNull
