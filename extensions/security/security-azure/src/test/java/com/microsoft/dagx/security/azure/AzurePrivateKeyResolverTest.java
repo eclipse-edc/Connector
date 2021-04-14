@@ -21,13 +21,21 @@ class AzurePrivateKeyResolverTest {
     private AzurePrivateKeyResolver keyResolver;
 
     @Test
-    void verifyResolution() {
-        EasyMock.expect(vault.resolveSecret("test_no_header")).andReturn(ENCODED_PRIVATE_KEY_NOHEADER);
+    void verifyResolution_withHeader() {
         EasyMock.expect(vault.resolveSecret("test_header")).andReturn(ENCODED_PRIVATE_KEY_HEADER);
         EasyMock.replay(vault);
 
-        assertNotNull(keyResolver.resolvePrivateKey("test_no_header"));
         assertNotNull(keyResolver.resolvePrivateKey("test_header"));
+
+        EasyMock.verify(vault);
+    }
+
+    @Test
+    void verifyResolution_withoutHeader() {
+        EasyMock.expect(vault.resolveSecret("test_no_header")).andReturn(ENCODED_PRIVATE_KEY_NOHEADER);
+        EasyMock.replay(vault);
+
+        assertNotNull(keyResolver.resolvePrivateKey("test_no_header"));
 
         EasyMock.verify(vault);
     }

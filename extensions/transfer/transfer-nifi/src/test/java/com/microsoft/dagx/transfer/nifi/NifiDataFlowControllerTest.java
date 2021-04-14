@@ -4,6 +4,7 @@ import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
+import com.azure.storage.blob.models.BlobStorageException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
@@ -37,13 +38,12 @@ class NifiDataFlowControllerTest {
 
     private static String blobName;
     private static OkHttpClient httpClient;
-
-    private NifiDataFlowController controller;
-    private Vault vault;
     private static TypeManager typeManager;
     private static String containerName;
     private static NifiApiClient client;
     private static BlobContainerClient blobContainerClient;
+    private NifiDataFlowController controller;
+    private Vault vault;
 
     @BeforeAll
     public static void prepare() throws Exception {
@@ -78,18 +78,25 @@ class NifiDataFlowControllerTest {
             throw new RuntimeException("No environment variable found AZ_STORAGE_KEY!");
         }
 
-        var bsc = new BlobServiceClientBuilder().connectionString("DefaultEndpointsProtocol=https;AccountName=nififlowtest;AccountKey=" + storageAccountKey + ";EndpointSuffix=core.windows.net")
-                .buildClient();
-        blobContainerClient = bsc.createBlobContainer(containerName);
-
+        try {
+            var bsc = new BlobServiceClientBuilder().connectionString("DefaultEndpointsProtocol=https;AccountName=nififlowtest;AccountKey=" + storageAccountKey + ";EndpointSuffix=core.windows.net")
+                    .buildClient();
+            blobContainerClient = bsc.createBlobContainer(containerName);
+        } catch (BlobStorageException ex) {
+            fail("Error initializing the Azure Blob Storage: ", ex);
+        }
         // upload blob to storage
-
         blobName = "testimage.jpg";
         var blobClient = blobContainerClient.getBlobClient(blobName);
         URL testImageStream = Thread.currentThread().getContextClassLoader().getResource(blobName);
         String absolutePath = Objects.requireNonNull(Paths.get(testImageStream.toURI())).toString();
         blobClient.uploadFromFile(absolutePath, true);
 
+    }
+
+    @AfterAll
+    public static void winddown() {
+        blobContainerClient.delete();
     }
 
     @BeforeEach
@@ -220,11 +227,6 @@ class NifiDataFlowControllerTest {
         replay(vault);
 
         assertThrows(DagxException.class, () -> controller.initiateFlow(dataRequest), "No NiFi credentials found in Vault!");
-    }
-
-    @AfterAll
-    public static void winddown() {
-        blobContainerClient.delete();
     }
 
     private PagedIterable<BlobItem> listBlobs() {
