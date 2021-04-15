@@ -19,6 +19,7 @@ import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.File;
 import java.net.URL;
@@ -30,10 +31,11 @@ import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
 import static org.easymock.EasyMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
+@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 class NifiDataFlowControllerTest {
 
     private final static String nifiHost = "http://localhost:8080";
-    private final static String storageAccount = "nififlowtest";
+    private final static String storageAccount = "dagxblobstoreitest";
     private static String storageAccountKey = null;
 
     private static String blobName;
@@ -47,6 +49,12 @@ class NifiDataFlowControllerTest {
 
     @BeforeAll
     public static void prepare() throws Exception {
+
+        // this is necessary because the @EnabledIf... annotation does not prevent @BeforeAll to be called
+        var isCi = propOrEnv("CI", "false");
+        if (!Boolean.parseBoolean(isCi)) {
+            return;
+        }
 
         //todo: spin up dockerized nifi
         typeManager = new TypeManager();
@@ -73,13 +81,13 @@ class NifiDataFlowControllerTest {
         // create azure storage container
         containerName = "nifi-itest-" + UUID.randomUUID();
 
-        storageAccountKey = propOrEnv("AZ_STORAGE_KEY", null);
+        storageAccountKey = propOrEnv("AZ_STORAGE_KEY", "rbwNOzhwD3XY8rCnZ9k7rPDiiFGhvO0E0Q/47KDzP9Vq5FlDXrsj686IBmetp+EDJblZAR27c3HEmgOawjh+lA==");
         if (storageAccountKey == null) {
             throw new RuntimeException("No environment variable found AZ_STORAGE_KEY!");
         }
 
         try {
-            var bsc = new BlobServiceClientBuilder().connectionString("DefaultEndpointsProtocol=https;AccountName=nififlowtest;AccountKey=" + storageAccountKey + ";EndpointSuffix=core.windows.net")
+            var bsc = new BlobServiceClientBuilder().connectionString("DefaultEndpointsProtocol=https;AccountName=" + storageAccount + ";AccountKey=" + storageAccountKey + ";EndpointSuffix=core.windows.net")
                     .buildClient();
             blobContainerClient = bsc.createBlobContainer(containerName);
         } catch (BlobStorageException ex) {
@@ -110,7 +118,7 @@ class NifiDataFlowControllerTest {
         typeManager.registerTypes(DataRequest.class);
 
         vault = createMock(Vault.class);
-        var nifiAuth = propOrEnv("NIFI_API_AUTH", null);
+        var nifiAuth = propOrEnv("NIFI_API_AUTH", "Basic dGVzdHVzZXJAZ2FpYXguY29tOmdYcHdkIzIwMiE=");
         if (nifiAuth == null) {
             throw new RuntimeException("No environment variable found NIFI_API_AUTH!");
         }
@@ -230,7 +238,7 @@ class NifiDataFlowControllerTest {
     }
 
     private PagedIterable<BlobItem> listBlobs() {
-        var bsc = new BlobServiceClientBuilder().connectionString("DefaultEndpointsProtocol=https;AccountName=nififlowtest;AccountKey=" + storageAccountKey + ";EndpointSuffix=core.windows.net")
+        var bsc = new BlobServiceClientBuilder().connectionString("DefaultEndpointsProtocol=https;AccountName=" + storageAccount + ";AccountKey=" + storageAccountKey + ";EndpointSuffix=core.windows.net")
                 .buildClient();
         var bcc = bsc.getBlobContainerClient(containerName);
         return bcc.listBlobs();

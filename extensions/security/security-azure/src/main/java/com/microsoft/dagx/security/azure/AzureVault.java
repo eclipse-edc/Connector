@@ -87,10 +87,11 @@ public class AzureVault implements Vault {
             poller = secretClient.beginDeleteSecret(key);
             monitor.debug("Begin deleting secret");
             poller.waitForCompletion(Duration.ofMinutes(1));
+
             monitor.debug("deletion complete");
             return VaultResponse.OK;
         } catch (ResourceNotFoundException ex) {
-            monitor.severe("Error storing secret - does not exist!");
+            monitor.severe("Error deleting secret - does not exist!");
             return new VaultResponse(ex.getMessage());
         } catch (RuntimeException re) {
             monitor.severe("Error deleting secret", re);
@@ -106,6 +107,10 @@ public class AzureVault implements Vault {
                 }
             }
             return new VaultResponse(re.getMessage());
+        }finally{
+            try {
+                secretClient.purgeDeletedSecret(key);
+            }catch(Exception ignored){}
         }
     }
 }
