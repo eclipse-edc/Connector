@@ -16,11 +16,51 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * Represents a data transfer process.
+ *
+ * A data transfer process exists on both the client and provider connector; it is a representation of the data sharing transaction from the perspective of each endpoint. The data
+ * transfer process is modeled as a "loosely" coordinated state machine on each connector. The state transitions are symmetric on the client and provider with the exception that
+ * the client process has two additional states for request/request ack.
+ *
+ * The client transitions are:
+ *
+ * </pre>
+ * {@link TransferProcessStates#INITIAL} ->
+ * {@link TransferProcessStates#PROVISIONING} ->
+ * {@link TransferProcessStates#PROVISIONED} ->
+ * {@link TransferProcessStates#REQUESTED} ->
+ * {@link TransferProcessStates#REQUESTED_ACK} ->
+ * {@link TransferProcessStates#IN_PROGRESS} | {@link TransferProcessStates#STREAMING} ->
+ * {@link TransferProcessStates#COMPLETED} ->
+ * {@link TransferProcessStates#DEPROVISIONING} ->
+ * {@link TransferProcessStates#DEPROVISIONED} ->
+ * {@link TransferProcessStates#ENDED} ->
+ * </pre>
+ *
+ *
+ * The provider transitions are:
+ *
+ * </pre>
+ * {@link TransferProcessStates#INITIAL} ->
+ * {@link TransferProcessStates#PROVISIONING} ->
+ * {@link TransferProcessStates#PROVISIONED} ->
+ * {@link TransferProcessStates#IN_PROGRESS} | {@link TransferProcessStates#STREAMING} ->
+ * {@link TransferProcessStates#COMPLETED} ->
+ * {@link TransferProcessStates#DEPROVISIONING} ->
+ * {@link TransferProcessStates#DEPROVISIONED} ->
+ * {@link TransferProcessStates#ENDED} ->
+ * </pre>
  */
 @JsonTypeName("dagx:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
 public class TransferProcess {
+
+    public enum Type {
+        CLIENT, PROVIDER
+    }
+
     private String id;
+
+    private Type type = Type.CLIENT;
 
     private int state;
 
@@ -36,6 +76,10 @@ public class TransferProcess {
 
     public String getId() {
         return id;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public int getState() {
@@ -93,11 +137,35 @@ public class TransferProcess {
     }
 
     public void transitionRequested() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no REQUESTED state");
+        }
         transition(TransferProcessStates.REQUESTED, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
     }
 
+    public void transitionRequestAck() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no REQUESTED state");
+        }
+        transition(TransferProcessStates.REQUESTED_ACK, TransferProcessStates.REQUESTED);
+    }
+
+    public void transitionInProgress() {
+        if (type == Type.CLIENT) {
+            // the client must first transition to the request/ack states before in progress
+            transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK);
+        } else {
+            // the provider transitions from provisioned to in progress directly
+            transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.PROVISIONED);
+        }
+    }
+
+    public void transitionCompleted() {
+        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS);
+    }
+
     public void transitionDeprovisioning() {
-        transition(TransferProcessStates.DEPROVISIONING, TransferProcessStates.REQUESTED, TransferProcessStates.DEPROVISIONING);
+        transition(TransferProcessStates.DEPROVISIONING, TransferProcessStates.COMPLETED, TransferProcessStates.DEPROVISIONING);
     }
 
     public void transitionDeprovisioned() {
@@ -116,7 +184,7 @@ public class TransferProcess {
 
     public TransferProcess copy() {
         return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest).dataRequest(dataRequest)
-                .provisionedResourceSet(provisionedResourceSet).build();
+                .provisionedResourceSet(provisionedResourceSet).type(type).build();
     }
 
     public Builder toBuilder() {
@@ -160,6 +228,11 @@ public class TransferProcess {
 
         public Builder id(String id) {
             process.id = id;
+            return this;
+        }
+
+        public Builder type(Type type) {
+            process.type = type;
             return this;
         }
 

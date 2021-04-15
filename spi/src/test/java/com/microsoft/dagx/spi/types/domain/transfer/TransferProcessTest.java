@@ -32,10 +32,11 @@ class TransferProcessTest {
 
     @Test
     void verifyCopy() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(TransferProcessStates.COMPLETED.code()).stateCount(1).stateTimestamp(1).build();
+        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).state(TransferProcessStates.COMPLETED.code()).stateCount(1).stateTimestamp(1).build();
         TransferProcess copy = process.copy();
 
         assertEquals(process.getState(), copy.getState());
+        assertEquals(process.getType(), copy.getType());
         assertEquals(process.getStateCount(), copy.getStateCount());
         assertEquals(process.getStateTimestamp(), copy.getStateTimestamp());
 
@@ -43,12 +44,14 @@ class TransferProcessTest {
     }
 
     @Test
-    void verifyTransitions() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+    void verifyClientTransitions() {
+        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CLIENT).build();
 
+        // test illegal transition
         assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));
         process.transitionInitial();
 
+        // test illegal transition
         assertThrows(IllegalStateException.class, process::transitionProvisioned);
 
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
@@ -56,7 +59,30 @@ class TransferProcessTest {
 
         process.transitionRequested();
 
+        // test illegal transition
         assertThrows(IllegalStateException.class, process::transitionEnded);
+
+        process.transitionRequestAck();
+        process.transitionInProgress();
+        process.transitionCompleted();
+
+        process.transitionDeprovisioning();
+        process.transitionDeprovisioned();
+        process.transitionEnded();
+    }
+
+    @Test
+    void verifyProviderTransitions() {
+        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).build();
+
+        process.transitionInitial();
+
+        process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
+        process.transitionProvisioned();
+
+        // no request or ack on provider
+        process.transitionInProgress();
+        process.transitionCompleted();
 
         process.transitionDeprovisioning();
         process.transitionDeprovisioned();

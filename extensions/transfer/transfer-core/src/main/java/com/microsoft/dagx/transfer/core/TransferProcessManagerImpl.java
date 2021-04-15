@@ -4,6 +4,7 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.TransferInitiateResponse;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.transfer.TransferWaitStrategy;
+import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
@@ -31,6 +32,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private TransferProcessStore transferProcessStore;
+    private DataFlowManager dataFlowManager;
+
     private Monitor monitor;
 
     private ExecutorService executor;
@@ -61,11 +64,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private void run() {
         try {
             while (active.get()) {
-                int provisioned = provisionInitial();
+                int provisioned = provisionInitialProcesses();
 
                 // TODO check processes in provisioning state and timestamps for failed processes
 
-                int sent = sendRequests();
+                int sent = sendOrProcessRequests();
 
                 if (provisioned == 0 && sent == 0) {
                     //noinspection BusyWait
@@ -79,10 +82,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
-    private int provisionInitial() {
+    private int provisionInitialProcesses() {
         List<TransferProcess> processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
         for (TransferProcess process : processes) {
-            ResourceManifest manifest = manifestGenerator.generate(process.getDataRequest());
+            DataRequest dataRequest = process.getDataRequest();
+            ResourceManifest manifest = process.getType() == TransferProcess.Type.CLIENT ? manifestGenerator.generateClientManifest(dataRequest) : manifestGenerator.generateProviderManifest(dataRequest);
             process.transitionProvisioning(manifest);
             transferProcessStore.update(process);
             provisionManager.provision(process);
@@ -90,10 +94,16 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return processes.size();
     }
 
-    private int sendRequests() {
+    private int sendOrProcessRequests() {
         List<TransferProcess> processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
         for (TransferProcess process : processes) {
-            // TODO add request sender
+            if (TransferProcess.Type.CLIENT == process.getType()) {
+                // TODO add request sender
+                process.transitionRequested();
+            } else {
+                dataFlowManager.initiate(process.getDataRequest());
+                //process.transition
+            }
             transferProcessStore.update(process);
         }
         return processes.size();
@@ -126,6 +136,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         public Builder provisionManager(ProvisionManager provisionManager) {
             manager.provisionManager = provisionManager;
+            return this;
+        }
+
+        public Builder dataFlowManager(DataFlowManager dataFlowManager) {
+            manager.dataFlowManager = dataFlowManager;
             return this;
         }
 

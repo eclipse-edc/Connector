@@ -23,8 +23,13 @@ public interface ResourceManifestGenerator {
     void registerObligationFunctions(Map<String, AtomicConstraintFunction<String, Duty, Boolean>> functions);
 
     /**
-     * Generates a resource manifest for a data request. Operations should be idempotent.
+     * Generates a resource manifest for a data request on a client connector. Operations should be idempotent.
      */
-    ResourceManifest generate(DataRequest dataRequest);
+    ResourceManifest generateClientManifest(DataRequest dataRequest);
+
+    /**
+     * Generates a resource manifest for a data request on a provider connector. Operations should be idempotent.
+     */
+    ResourceManifest generateProviderManifest(DataRequest dataRequest);
 
 }

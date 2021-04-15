@@ -1,7 +1,7 @@
 package com.microsoft.dagx.spi.types.domain.transfer;
 
 /**
- * Defines the states a transfer process can be in.
+ * Defines the states a client and provider transfer process can be in.
  */
 public enum TransferProcessStates {
     UNSAVED(0),
@@ -10,7 +10,7 @@ public enum TransferProcessStates {
     PROVISIONED(300),
     REQUESTED(400),
     REQUESTED_ACK(500),
-    RECEIVED(600),
+    IN_PROGRESS(600),
     STREAMING(700),
     COMPLETED(800),
     DEPROVISIONING(900),
