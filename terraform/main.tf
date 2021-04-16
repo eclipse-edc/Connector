@@ -40,7 +40,7 @@ resource "azuread_application_certificate" "dagx-terraform-app-cert" {
   type                  = "AsymmetricX509Cert"
   application_object_id = azuread_application.dagx-terraform-app.id
   value                 = file("cert.pem")
-  end_date_relative = "2400h"
+  end_date_relative     = "2400h"
 }
 
 resource "azuread_service_principal" "dagx-terraform-app-sp" {
@@ -60,7 +60,7 @@ resource "azurerm_key_vault" "dagx-terraform-vault" {
   soft_delete_retention_days  = 7
   purge_protection_enabled    = false
 
-  sku_name = "standard"
+  sku_name                  = "standard"
   enable_rbac_authorization = true
 }
 
@@ -76,11 +76,11 @@ resource "azurerm_storage_account" "dagxblobstore" {
   location                 = azurerm_resource_group.rg.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
-  account_kind = "BlobStorage"
+  account_kind             = "BlobStorage"
 }
 
 data "azurerm_storage_account" "dagxblobstore" {
-  name = azurerm_storage_account.dagxblobstore.name
+  name                = azurerm_storage_account.dagxblobstore.name
   resource_group_name = azurerm_storage_account.dagxblobstore.resource_group_name
 }
 
@@ -97,15 +97,35 @@ resource "azurerm_kubernetes_cluster" "example" {
   dns_prefix          = "dagx-tf-aks"
 
   default_node_pool {
-    name       = "default"
-    node_count = 1
+    name       = "agentpool"
+    node_count = 3
     vm_size    = "Standard_D2_v2"
+    os_disk_size_gb = 1
+    availability_zones = [ "1","2","3" ]
+    max_pods = 110
+    type = "VirtualMachineScaleSets"
+    os_disk_type = "Managed"
   }
+
+
 
   identity {
     type = "SystemAssigned"
   }
 
+  network_profile {
+    load_balancer_sku = "standard"
+    network_plugin    = "kubenet"
+  }
+
+  addon_profile {
+    http_application_routing {
+      enabled = true
+    }
+    azure_policy {
+      enabled = false
+    }
+  }
 
   tags = {
     Environment = "Production"
@@ -117,6 +137,6 @@ output "client_certificate" {
 }
 
 output "kube_config" {
-  value = azurerm_kubernetes_cluster.example.kube_config_raw
+  value     = azurerm_kubernetes_cluster.example.kube_config_raw
   sensitive = true
 }
