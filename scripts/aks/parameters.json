@@ -1,0 +1,36 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceName": {
+            "value": "dagx-cluster"
+        },
+        "location": {
+            "value": "westeurope"
+        },
+        "dnsPrefix": {
+            "value": "dagx-cluster-dns"
+        },
+        "kubernetesVersion": {
+            "value": "1.18.14"
+        },
+        "networkPlugin": {
+            "value": "kubenet"
+        },
+        "enableRBAC": {
+            "value": true
+        },
+        "enablePrivateCluster": {
+            "value": false
+        },
+        "enableHttpApplicationRouting": {
+            "value": true
+        },
+        "enableAzurePolicy": {
+            "value": false
+        },
+        "vmssNodePool": {
+            "value": true
+        }
+    }
+}

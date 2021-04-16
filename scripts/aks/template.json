@@ -1,0 +1,149 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "resourceName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the Managed Cluster resource."
+            }
+        },
+        "location": {
+            "type": "string",
+            "metadata": {
+                "description": "The location of AKS resource."
+            }
+        },
+        "dnsPrefix": {
+            "type": "string",
+            "metadata": {
+                "description": "Optional DNS prefix to use with hosted Kubernetes API server FQDN."
+            }
+        },
+        "osDiskSizeGB": {
+            "type": "int",
+            "defaultValue": 0,
+            "metadata": {
+                "description": "Disk size (in GiB) to provision for each of the agent pool nodes. This value ranges from 0 to 1023. Specifying 0 will apply the default disk size for that agentVMSize."
+            },
+            "minValue": 0,
+            "maxValue": 1023
+        },
+        "kubernetesVersion": {
+            "type": "string",
+            "defaultValue": "1.7.7",
+            "metadata": {
+                "description": "The version of Kubernetes."
+            }
+        },
+        "networkPlugin": {
+            "type": "string",
+            "allowedValues": [
+                "azure",
+                "kubenet"
+            ],
+            "metadata": {
+                "description": "Network plugin used for building Kubernetes network."
+            }
+        },
+        "enableRBAC": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Boolean flag to turn on and off of RBAC."
+            }
+        },
+        "vmssNodePool": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Boolean flag to turn on and off of virtual machine scale sets"
+            }
+        },
+        "windowsProfile": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Boolean flag to turn on and off of virtual machine scale sets"
+            }
+        },
+        "enablePrivateCluster": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Enable private network access to the Kubernetes cluster."
+            }
+        },
+        "enableHttpApplicationRouting": {
+            "type": "bool",
+            "defaultValue": true,
+            "metadata": {
+                "description": "Boolean flag to turn on and off http application routing."
+            }
+        },
+        "enableAzurePolicy": {
+            "type": "bool",
+            "defaultValue": false,
+            "metadata": {
+                "description": "Boolean flag to turn on and off Azure Policy addon."
+            }
+        }
+    },
+    "resources": [
+        {
+            "apiVersion": "2020-09-01",
+            "dependsOn": [],
+            "type": "Microsoft.ContainerService/managedClusters",
+            "location": "[parameters('location')]",
+            "name": "[parameters('resourceName')]",
+            "properties": {
+                "kubernetesVersion": "[parameters('kubernetesVersion')]",
+                "enableRBAC": "[parameters('enableRBAC')]",
+                "dnsPrefix": "[parameters('dnsPrefix')]",
+                "agentPoolProfiles": [
+                    {
+                        "name": "agentpool",
+                        "osDiskSizeGB": "[parameters('osDiskSizeGB')]",
+                        "count": 3,
+                        "vmSize": "Standard_DS2_v2",
+                        "osType": "Linux",
+                        "storageProfile": "ManagedDisks",
+                        "type": "VirtualMachineScaleSets",
+                        "mode": "System",
+                        "maxPods": 110,
+                        "availabilityZones": [
+                            "1",
+                            "2",
+                            "3"
+                        ]
+                    }
+                ],
+                "networkProfile": {
+                    "loadBalancerSku": "standard",
+                    "networkPlugin": "[parameters('networkPlugin')]"
+                },
+                "apiServerAccessProfile": {
+                    "enablePrivateCluster": "[parameters('enablePrivateCluster')]"
+                },
+                "addonProfiles": {
+                    "httpApplicationRouting": {
+                        "enabled": "[parameters('enableHttpApplicationRouting')]"
+                    },
+                    "azurepolicy": {
+                        "enabled": "[parameters('enableAzurePolicy')]"
+                    }
+                }
+            },
+            "tags": {},
+            "identity": {
+                "type": "SystemAssigned"
+            }
+        }
+    ],
+    "outputs": {
+        "controlPlaneFQDN": {
+            "type": "string",
+            "value": "[reference(concat('Microsoft.ContainerService/managedClusters/', parameters('resourceName'))).fqdn]"
+        }
+    }
+}

@@ -29,6 +29,8 @@ hs_err_pid*
 build
 
 .idea
+.vs
+.vscode
 
 /secrets
 
