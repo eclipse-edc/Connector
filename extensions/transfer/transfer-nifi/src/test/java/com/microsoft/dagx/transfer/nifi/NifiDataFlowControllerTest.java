@@ -32,6 +32,7 @@ import static org.easymock.EasyMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@Disabled
 class NifiDataFlowControllerTest {
 
     private final static String nifiHost = "http://localhost:8080";
