@@ -62,7 +62,7 @@ public class ArtifactRequestController {
 
         var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).protocol(IDS_REST).build();
 
-        var response = processManager.initiateClientRequest(dataRequest);
+        var response = processManager.initiateProviderRequest(dataRequest);
 
         switch (response.getStatus()) {
             case OK:

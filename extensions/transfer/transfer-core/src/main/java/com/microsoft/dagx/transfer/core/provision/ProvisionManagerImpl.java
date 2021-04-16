@@ -39,6 +39,11 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     @Override
     public void provision(TransferProcess process) {
+        if ( process.getResourceManifest().getDefinitions().isEmpty()) {
+            // no resources to provision, advance state
+            process.transitionProvisioned();
+            processStore.update(process);
+        }
         for (ResourceDefinition definition : process.getResourceManifest().getDefinitions()) {
             Provisioner<ResourceDefinition, ?> chosenProvisioner = getProvisioner(definition);
             var status = chosenProvisioner.provision(definition);

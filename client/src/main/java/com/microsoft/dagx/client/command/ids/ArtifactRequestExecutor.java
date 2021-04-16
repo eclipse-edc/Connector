@@ -47,6 +47,7 @@ public class ArtifactRequestExecutor implements CommandExecutor {
         }
 
         DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getToken()).build();
+//        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT).build();
         // TODO parameterize artifact urn
 
         ArtifactRequestMessage message = new ArtifactRequestMessageBuilder()

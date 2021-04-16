@@ -1,4 +1,4 @@
-package com.microsoft.dagx.transfer.core;
+package com.microsoft.dagx.transfer.core.transfer;
 
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.monitor.Monitor;
@@ -24,6 +24,7 @@ import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
+import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 
 /**
@@ -75,9 +76,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return TransferInitiateResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.OK).build();
     }
 
+    @SuppressWarnings("BusyWait")
     private void run() {
-        try {
-            while (active.get()) {
+        while (active.get()) {
+            try {
                 int provisioned = provisionInitialProcesses();
 
                 // TODO check processes in provisioning state and timestamps for failed processes
@@ -85,14 +87,25 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 int sent = sendOrProcessProvisionedRequests();
 
                 if (provisioned == 0 && sent == 0) {
-                    //noinspection BusyWait
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
+                waitStrategy.success();
+            } catch (Error e) {
+                throw e; // let the thread die and don't reschedule as the error is unrecoverable
+            } catch (InterruptedException e) {
+                Thread.interrupted();
+                active.set(false);
+                break;
+            } catch (Throwable e) {
+                monitor.severe("Error caught in transfer process manager", e);
+                try {
+                    Thread.sleep(waitStrategy.retryInMillis());
+                } catch (InterruptedException e2) {
+                    Thread.interrupted();
+                    active.set(false);
+                    break;
+                }
             }
-        } catch (Error e) {
-            throw e; // let the thread die and don't reschedule as the error is unrecoverable
-        } catch (Throwable e) {
-            monitor.severe("Error caught in transfer process manager", e);
         }
     }
 
@@ -135,8 +148,16 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 });
                 process.transitionRequested();
             } else {
-                dataFlowManager.initiate(dataRequest);
-                process.transitionInProgress();
+                var response = dataFlowManager.initiate(dataRequest);
+                if (ResponseStatus.ERROR_RETRY == response.getStatus()) {
+                    monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
+                    process.transitionProvisioned();
+                } else if (ResponseStatus.FATAL_ERROR == response.getStatus()) {
+                    monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), response.getError()));
+                    process.transitionError(response.getError());
+                } else {
+                    process.transitionInProgress();
+                }
             }
             transferProcessStore.update(process);
         }
@@ -189,11 +210,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
 
         public TransferProcessManagerImpl build() {
-            Objects.requireNonNull(manager.manifestGenerator,"manifestGenerator");
-            Objects.requireNonNull(manager.provisionManager,"provisionManager");
-            Objects.requireNonNull(manager.dataFlowManager,"dataFlowManager");
-            Objects.requireNonNull(manager.dispatcherRegistry,"dispatcherRegistry");
-            Objects.requireNonNull(manager.monitor,"monitor");
+            Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
+            Objects.requireNonNull(manager.provisionManager, "provisionManager");
+            Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");
+            Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
+            Objects.requireNonNull(manager.monitor, "monitor");
             return manager;
         }
 

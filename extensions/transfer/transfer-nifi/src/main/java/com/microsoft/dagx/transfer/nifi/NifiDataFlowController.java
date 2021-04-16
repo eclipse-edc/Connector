@@ -8,7 +8,12 @@ import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import okhttp3.*;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.SSLContext;
@@ -59,12 +64,12 @@ public class NifiDataFlowController implements DataFlowController {
         }
 
         if (dataRequest.getDataTarget() == null) {
-            throw new DagxException("DataTarget is not defined (i.e. null)", new IllegalArgumentException("dataRequest.getDataTarget() cannot be null"));
+            return new DataFlowInitiateResponse(FATAL_ERROR, "Data target is null");
         }
 
         String basicAuthCreds = vault.resolveSecret(NIFI_CREDENTIALS);
         if (basicAuthCreds == null) {
-            throw new DagxException("No NiFi credentials found in Vault!");
+            return new DataFlowInitiateResponse(FATAL_ERROR, "NiFi vault credentials were not found");
         }
 
         Request request = createTransferRequest(dataRequest, basicAuthCreds);
@@ -74,7 +79,7 @@ public class NifiDataFlowController implements DataFlowController {
             int code = response.code();
             if (code != 200) {
                 monitor.severe(format("Error initiating transfer request with Nifi. Code was: %d. Request id was: %s", code, dataRequest.getId()));
-                return new DataFlowInitiateResponse(FATAL_ERROR, "Error initiating transfer");
+                return new DataFlowInitiateResponse(FATAL_ERROR, "Error initiating NiFi transfer");
             }
             ResponseBody responseBody = response.body();
             if (responseBody == null) {

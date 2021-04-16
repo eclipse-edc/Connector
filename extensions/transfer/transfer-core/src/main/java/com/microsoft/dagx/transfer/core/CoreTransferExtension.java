@@ -16,11 +16,15 @@ import com.microsoft.dagx.transfer.core.flow.DataFlowManagerImpl;
 import com.microsoft.dagx.transfer.core.protocol.provider.RemoteMessageDispatcherRegistryImpl;
 import com.microsoft.dagx.transfer.core.provision.ProvisionManagerImpl;
 import com.microsoft.dagx.transfer.core.provision.ResourceManifestGeneratorImpl;
+import com.microsoft.dagx.transfer.core.transfer.ExponentialWaitStrategy;
+import com.microsoft.dagx.transfer.core.transfer.TransferProcessManagerImpl;
 
 /**
  * Provides core data transfer services to the system.
  */
 public class CoreTransferExtension implements ServiceExtension {
+    private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
+
     private Monitor monitor;
     private ServiceExtensionContext context;
 
@@ -52,6 +56,7 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(ProvisionManager.class, provisionManager);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()
+                .waitStrategy(new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT))  // TODO make configurable
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)
                 .provisionManager(provisionManager)

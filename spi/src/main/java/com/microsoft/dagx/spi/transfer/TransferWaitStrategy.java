@@ -9,8 +9,21 @@ package com.microsoft.dagx.spi.transfer;
 public interface TransferWaitStrategy {
 
     /**
-     * Provides the number of milliseconds to pause for the current iteration.
+     * Returns the number of milliseconds to pause for the current iteration.
      */
     long waitForMillis();
+
+    /**
+     * Marks the iteration as successful.
+     */
+    default void success() {
+    }
+
+    /**
+     * Returns the number of milliseconds to wait before retrying.
+     */
+    default long retryInMillis() {
+        return waitForMillis();
+    }
 
 }
