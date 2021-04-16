@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.spi.types.domain.Polymorphic;
+import com.microsoft.dagx.spi.types.domain.message.RemoteMessage;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 
 /**
@@ -12,9 +13,17 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
  */
 @JsonTypeName("dagx:datarequest")
 @JsonDeserialize(builder = DataRequest.Builder.class)
-public class DataRequest implements Polymorphic {
+public class DataRequest implements RemoteMessage, Polymorphic {
     private String id;
+
+    private String connectorAddress;
+
+    private String protocol;
+
+    private String connectorId;
+
     private DataEntry<?> dataEntry;
+
     private DataTarget dataTarget;
 
     /**
@@ -22,6 +31,18 @@ public class DataRequest implements Polymorphic {
      */
     public String getId() {
         return id;
+    }
+
+    public String getConnectorAddress() {
+        return connectorAddress;
+    }
+
+    public String getProtocol() {
+        return protocol;
+    }
+
+    public String getConnectorId() {
+        return connectorId;
     }
 
     public DataEntry<?> getDataEntry() {
@@ -50,6 +71,21 @@ public class DataRequest implements Polymorphic {
 
         public Builder id(String id) {
             request.id = id;
+            return this;
+        }
+
+        public Builder connectorAddress(String address) {
+            request.connectorAddress = address;
+            return this;
+        }
+
+        public Builder protocol(String protocol) {
+            request.protocol = protocol;
+            return this;
+        }
+
+        public Builder connectorId(String connectorId) {
+            request.connectorId = connectorId;
             return this;
         }
 

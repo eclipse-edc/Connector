@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Arrays;
@@ -68,6 +69,8 @@ public class TransferProcess {
 
     private long stateTimestamp;
 
+    private String errorDetail;
+
     private DataRequest dataRequest;
 
     private ResourceManifest resourceManifest;
@@ -104,6 +107,10 @@ public class TransferProcess {
 
     public ProvisionedResourceSet getProvisionedResourceSet() {
         return provisionedResourceSet;
+    }
+
+    public String getErrorDetail() {
+        return errorDetail;
     }
 
     public void transitionInitial() {
@@ -176,6 +183,14 @@ public class TransferProcess {
         transition(TransferProcessStates.ENDED, TransferProcessStates.DEPROVISIONED);
     }
 
+    public void transitionError(@Nullable String errorDetail) {
+        this.state = TransferProcessStates.ERROR.code();
+        this.errorDetail = errorDetail;
+        this.stateCount = 1;
+        this.stateTimestamp = Instant.now().toEpochMilli();
+    }
+
+
     public void rollbackState(TransferProcessStates state) {
         this.state = state.code();
         stateCount = 1;
@@ -184,7 +199,7 @@ public class TransferProcess {
 
     public TransferProcess copy() {
         return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest).dataRequest(dataRequest)
-                .provisionedResourceSet(provisionedResourceSet).type(type).build();
+                .provisionedResourceSet(provisionedResourceSet).type(type).errorDetail(errorDetail).build();
     }
 
     public Builder toBuilder() {
@@ -263,6 +278,11 @@ public class TransferProcess {
 
         public Builder provisionedResourceSet(ProvisionedResourceSet set) {
             process.provisionedResourceSet = set;
+            return this;
+        }
+
+        public Builder errorDetail(String errorDetail) {
+            process.errorDetail = errorDetail;
             return this;
         }
 

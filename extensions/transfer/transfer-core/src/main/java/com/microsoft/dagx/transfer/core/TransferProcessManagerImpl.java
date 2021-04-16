@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.core;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.transfer.TransferInitiateResponse;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.transfer.TransferWaitStrategy;
@@ -14,13 +15,13 @@ import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 
 import java.util.List;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
+import static java.util.UUID.randomUUID;
 
 /**
  *
@@ -32,6 +33,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private TransferProcessStore transferProcessStore;
+    private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
 
     private Monitor monitor;
@@ -56,7 +58,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     @Override
     public TransferInitiateResponse initiate(DataRequest dataRequest) {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).dataRequest(dataRequest).build();
+        TransferProcess process = TransferProcess.Builder.newInstance().id(randomUUID().toString()).dataRequest(dataRequest).build();
         transferProcessStore.create(process);
         return TransferInitiateResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.OK).build();
     }
@@ -68,7 +70,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
                 // TODO check processes in provisioning state and timestamps for failed processes
 
-                int sent = sendOrProcessRequests();
+                int sent = sendOrProcessProvisionedRequests();
 
                 if (provisioned == 0 && sent == 0) {
                     //noinspection BusyWait
@@ -82,6 +84,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
+    /**
+     * Performs client-side or provider side provisioning for a service.
+     *
+     * On a client, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
+     * map involve preprocessing data or other operations.
+     */
     private int provisionInitialProcesses() {
         List<TransferProcess> processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
         for (TransferProcess process : processes) {
@@ -94,15 +102,29 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return processes.size();
     }
 
-    private int sendOrProcessRequests() {
+    /**
+     * On a client, sends provisioned requests to the provider connector. On the provider, sends provisioned requests to the data flow manager.
+     *
+     * @return the number of requests processed
+     */
+    private int sendOrProcessProvisionedRequests() {
         List<TransferProcess> processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
         for (TransferProcess process : processes) {
+            DataRequest dataRequest = process.getDataRequest();
             if (TransferProcess.Type.CLIENT == process.getType()) {
-                // TODO add request sender
+                dispatcherRegistry.send(Void.class, dataRequest).whenComplete((response, exception) -> {
+                    if (exception != null) {
+                        monitor.severe("Error sending request process id: " + process.getId(), exception);
+                        process.transitionError(exception.getMessage());
+                    } else {
+                        process.transitionRequestAck();
+                    }
+                    transferProcessStore.update(process);
+                });
                 process.transitionRequested();
             } else {
-                dataFlowManager.initiate(process.getDataRequest());
-                //process.transition
+                dataFlowManager.initiate(dataRequest);
+                process.transitionInProgress();
             }
             transferProcessStore.update(process);
         }
@@ -141,6 +163,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         public Builder dataFlowManager(DataFlowManager dataFlowManager) {
             manager.dataFlowManager = dataFlowManager;
+            return this;
+        }
+
+        public Builder providerDispatcherRegistry(RemoteMessageDispatcherRegistry registry) {
+            manager.dispatcherRegistry = registry;
             return this;
         }
 

@@ -2,12 +2,16 @@ package com.microsoft.dagx.ids.core;
 
 import com.microsoft.dagx.ids.core.daps.DapsServiceImpl;
 import com.microsoft.dagx.ids.core.descriptor.IdsDescriptorServiceImpl;
+import com.microsoft.dagx.ids.core.message.DataRequestMessageSender;
+import com.microsoft.dagx.ids.core.message.IdsRemoteMessageDispatcher;
 import com.microsoft.dagx.ids.spi.daps.DapsService;
 import com.microsoft.dagx.ids.spi.descriptor.IdsDescriptorService;
 import com.microsoft.dagx.spi.iam.IdentityService;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
+import okhttp3.OkHttpClient;
 
 import java.util.Set;
 
@@ -33,13 +37,15 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        IdsDescriptorServiceImpl descriptorService = new IdsDescriptorServiceImpl();
+        var descriptorService = new IdsDescriptorServiceImpl();
         context.registerService(IdsDescriptorService.class, descriptorService);
 
-        IdentityService identityService = context.getService(IdentityService.class);
+        var identityService = context.getService(IdentityService.class);
         var connectorName = context.getSetting(CONNECTOR_NAME, "connectorName");
         var dapsService = new DapsServiceImpl(connectorName, identityService);
         context.registerService(DapsService.class, dapsService);
+
+        assembleIdsDispatcher(context, identityService);
 
         monitor.info("Initialized IDS Core extension");
     }
@@ -54,5 +60,18 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         monitor.info("Shutdown IDS Core extension");
     }
 
+    /**
+     * Assembles the IDS remote message dispatcher and its senders.
+     */
+    private void assembleIdsDispatcher(ServiceExtensionContext context, IdentityService identityService) {
+        var httpClient = context.getService(OkHttpClient.class);
+
+        var dispatcher = new IdsRemoteMessageDispatcher();
+
+        dispatcher.register(new DataRequestMessageSender(identityService, httpClient));
+
+        var registry = context.getService(RemoteMessageDispatcherRegistry.class);
+        registry.register(dispatcher);
+    }
 
 }

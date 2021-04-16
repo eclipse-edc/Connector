@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.core;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
@@ -10,6 +11,7 @@ import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.core.flow.DataFlowManagerImpl;
+import com.microsoft.dagx.transfer.core.protocol.provider.RemoteMessageDispatcherRegistryImpl;
 import com.microsoft.dagx.transfer.core.provision.ProvisionManagerImpl;
 
 /**
@@ -34,6 +36,7 @@ public class CoreTransferExtension implements ServiceExtension {
         provisionManager = new ProvisionManagerImpl(context.getService(Vault.class));
         context.registerService(ProvisionManager.class, provisionManager);
         context.registerService(DataFlowManager.class, new DataFlowManagerImpl());
+        context.registerService(RemoteMessageDispatcherRegistry.class, new RemoteMessageDispatcherRegistryImpl());
 
         monitor.info("Initialized Core Transfer extension");
     }
