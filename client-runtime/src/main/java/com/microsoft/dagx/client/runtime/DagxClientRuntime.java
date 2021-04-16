@@ -9,6 +9,7 @@ import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 import java.util.List;
 import java.util.ListIterator;
 
+import static com.microsoft.dagx.system.ExtensionLoader.addHttpClient;
 import static com.microsoft.dagx.system.ExtensionLoader.bootServiceExtensions;
 import static com.microsoft.dagx.system.ExtensionLoader.loadMonitor;
 import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
@@ -26,6 +27,8 @@ public class DagxClientRuntime {
         context.initialize();
 
         try {
+            addHttpClient(context);
+
             loadVault(context);
 
             serviceExtensions = context.loadServiceExtensions();
