@@ -3,7 +3,7 @@ package com.microsoft.dagx.spi.transfer;
 /**
  * Implements a wait strategy for the {@link TransferProcessManager}.
  *
- * Implementations may choose to to enforce an incremental backoff period when no processing occurs over a successive number of iterations.
+ * Implementations may choose to to enforce an incremental backoff period when successive errors are encountered.
  */
 @FunctionalInterface
 public interface TransferWaitStrategy {
