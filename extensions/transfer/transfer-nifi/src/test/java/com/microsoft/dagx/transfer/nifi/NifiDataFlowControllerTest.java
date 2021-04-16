@@ -28,11 +28,11 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.easymock.EasyMock.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
-@Disabled
 class NifiDataFlowControllerTest {
 
     private final static String nifiHost = "http://localhost:8080";
@@ -82,7 +82,7 @@ class NifiDataFlowControllerTest {
         // create azure storage container
         containerName = "nifi-itest-" + UUID.randomUUID();
 
-        storageAccountKey = propOrEnv("AZ_STORAGE_KEY", "rbwNOzhwD3XY8rCnZ9k7rPDiiFGhvO0E0Q/47KDzP9Vq5FlDXrsj686IBmetp+EDJblZAR27c3HEmgOawjh+lA==");
+        storageAccountKey = propOrEnv("AZ_STORAGE_KEY", null);
         if (storageAccountKey == null) {
             throw new RuntimeException("No environment variable found AZ_STORAGE_KEY!");
         }
@@ -119,7 +119,7 @@ class NifiDataFlowControllerTest {
         typeManager.registerTypes(DataRequest.class);
 
         vault = createMock(Vault.class);
-        var nifiAuth = propOrEnv("NIFI_API_AUTH", "Basic dGVzdHVzZXJAZ2FpYXguY29tOmdYcHdkIzIwMiE=");
+        var nifiAuth = propOrEnv("NIFI_API_AUTH", null);
         if (nifiAuth == null) {
             throw new RuntimeException("No environment variable found NIFI_API_AUTH!");
         }
@@ -216,8 +216,10 @@ class NifiDataFlowControllerTest {
                 .dataEntry(entry)
                 .build();
 
-        var e = assertThrows(DagxException.class, () -> controller.initiateFlow(dataRequest));
-        assertEquals(IllegalArgumentException.class, e.getCause().getClass());
+     var response= controller.initiateFlow(dataRequest);
+        assertThat(response.getStatus()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        assertThat(response.getError()).isEqualTo("Data target is null");
+
     }
 
     @Test
@@ -235,7 +237,9 @@ class NifiDataFlowControllerTest {
         expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn(null);
         replay(vault);
 
-        assertThrows(DagxException.class, () -> controller.initiateFlow(dataRequest), "No NiFi credentials found in Vault!");
+        var response= controller.initiateFlow(dataRequest);
+        assertThat(response.getStatus()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        assertThat(response.getError()).isEqualTo("NiFi vault credentials were not found");
     }
 
     private PagedIterable<BlobItem> listBlobs() {
