@@ -1,7 +1,7 @@
 package com.microsoft.dagx.transfer.core;
 
-import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.TransferInitiateResponse;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.transfer.TransferWaitStrategy;
@@ -15,10 +15,13 @@ import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.CLIENT;
+import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 import static java.util.UUID.randomUUID;
@@ -57,8 +60,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     @Override
-    public TransferInitiateResponse initiate(DataRequest dataRequest) {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(randomUUID().toString()).dataRequest(dataRequest).build();
+    public TransferInitiateResponse initiateClientRequest(DataRequest dataRequest) {
+        return initiateRequest(dataRequest, CLIENT);
+    }
+
+    @Override
+    public TransferInitiateResponse initiateProviderRequest(DataRequest dataRequest) {
+        return initiateRequest(dataRequest, PROVIDER);
+    }
+
+    private TransferInitiateResponse initiateRequest(DataRequest dataRequest, TransferProcess.Type type) {
+        TransferProcess process = TransferProcess.Builder.newInstance().id(randomUUID().toString()).dataRequest(dataRequest).type(type).build();
         transferProcessStore.create(process);
         return TransferInitiateResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.OK).build();
     }
@@ -94,7 +106,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         List<TransferProcess> processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
-            ResourceManifest manifest = process.getType() == TransferProcess.Type.CLIENT ? manifestGenerator.generateClientManifest(dataRequest) : manifestGenerator.generateProviderManifest(dataRequest);
+            ResourceManifest manifest = process.getType() == CLIENT ? manifestGenerator.generateClientManifest(dataRequest) : manifestGenerator.generateProviderManifest(dataRequest);
             process.transitionProvisioning(manifest);
             transferProcessStore.update(process);
             provisionManager.provision(process);
@@ -111,7 +123,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         List<TransferProcess> processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
-            if (TransferProcess.Type.CLIENT == process.getType()) {
+            if (CLIENT == process.getType()) {
                 dispatcherRegistry.send(Void.class, dataRequest).whenComplete((response, exception) -> {
                     if (exception != null) {
                         monitor.severe("Error sending request process id: " + process.getId(), exception);
@@ -166,7 +178,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder providerDispatcherRegistry(RemoteMessageDispatcherRegistry registry) {
+        public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry registry) {
             manager.dispatcherRegistry = registry;
             return this;
         }
@@ -177,6 +189,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
 
         public TransferProcessManagerImpl build() {
+            Objects.requireNonNull(manager.manifestGenerator,"manifestGenerator");
+            Objects.requireNonNull(manager.provisionManager,"provisionManager");
+            Objects.requireNonNull(manager.dataFlowManager,"dataFlowManager");
+            Objects.requireNonNull(manager.dispatcherRegistry,"dispatcherRegistry");
+            Objects.requireNonNull(manager.monitor,"monitor");
             return manager;
         }
 

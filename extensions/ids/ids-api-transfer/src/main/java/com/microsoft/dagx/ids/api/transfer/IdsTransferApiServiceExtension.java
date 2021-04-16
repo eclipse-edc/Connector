@@ -6,7 +6,7 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
-import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
+import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 
 import java.util.Set;
 
@@ -46,13 +46,13 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
 
         var dapService = context.getService(DapsService.class);
 
-        var transferManagerRegistry = context.getService(DataFlowManager.class);
+        var transferManager = context.getService(TransferProcessManager.class);
 
         var metadataStore = context.getService(MetadataStore.class);
 
         var monitor = context.getMonitor();
 
-        webService.registerController(new ArtifactRequestController(dapService, metadataStore, transferManagerRegistry, monitor));
+        webService.registerController(new ArtifactRequestController(dapService, metadataStore, transferManager, monitor));
     }
 
 

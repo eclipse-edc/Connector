@@ -19,8 +19,13 @@ import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 public interface TransferProcessManager {
 
     /**
-     * Initiates a data transfer process.
+     * Initiates a data transfer process on the client.
      */
-    TransferInitiateResponse initiate(DataRequest dataRequest);
+    TransferInitiateResponse initiateClientRequest(DataRequest dataRequest);
+
+    /**
+     * Initiates a data transfer process on the provider.
+     */
+    TransferInitiateResponse initiateProviderRequest(DataRequest dataRequest);
 
 }

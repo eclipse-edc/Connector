@@ -9,6 +9,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static com.microsoft.dagx.ids.spi.Protocols.IDS_REST;
+
 /**
  * Binds and sends remote messages using the IDS REST protocol by dispatching to {@link IdsMessageSender}s.
  */
@@ -21,7 +23,7 @@ public class IdsRemoteMessageDispatcher implements RemoteMessageDispatcher {
 
     @Override
     public String protocol() {
-        return "ids-rest";
+        return IDS_REST;
     }
 
     @Override
