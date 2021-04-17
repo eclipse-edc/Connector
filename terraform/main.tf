@@ -100,7 +100,7 @@ resource "azurerm_kubernetes_cluster" "example" {
     name       = "agentpool"
     node_count = 3
     vm_size    = "Standard_D2_v2"
-    os_disk_size_gb = 1
+    os_disk_size_gb = 30
     availability_zones = [ "1","2","3" ]
     max_pods = 110
     type = "VirtualMachineScaleSets"
@@ -115,6 +115,9 @@ resource "azurerm_kubernetes_cluster" "example" {
 
   network_profile {
     load_balancer_sku = "standard"
+    load_balancer_profile {
+      
+    }
     network_plugin    = "kubenet"
   }
 
