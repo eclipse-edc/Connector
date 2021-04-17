@@ -90,7 +90,7 @@ data "azurerm_storage_account" "dagxblobstore" {
 #     key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
 # }
 
-resource "azurerm_kubernetes_cluster" "example" {
+resource "azurerm_kubernetes_cluster" "dagx" {
   name                = "dagx-tf-aks1"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
@@ -136,10 +136,10 @@ resource "azurerm_kubernetes_cluster" "example" {
 }
 
 output "client_certificate" {
-  value = azurerm_kubernetes_cluster.example.kube_config.0.client_certificate
+  value = azurerm_kubernetes_cluster.dagx.kube_config.0.client_certificate
 }
 
 output "kube_config" {
-  value     = azurerm_kubernetes_cluster.example.kube_config_raw
+  value     = azurerm_kubernetes_cluster.dagx.kube_config_raw
   sensitive = true
 }
