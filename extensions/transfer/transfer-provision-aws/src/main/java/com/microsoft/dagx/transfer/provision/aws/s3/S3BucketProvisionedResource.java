@@ -1,19 +1,59 @@
 package com.microsoft.dagx.transfer.provision.aws.s3;
 
-import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
+import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
+import com.microsoft.dagx.transfer.types.aws.S3Destination;
 
 /**
  * A provisioned S3 bucket and credentials associated with a transfer process.
  */
-public class S3BucketProvisionedResource extends ProvisionedResource {
+@JsonDeserialize(builder = S3BucketProvisionedResource.Builder.class)
+@JsonTypeName("dagx:s3bucketprovisionedresource")
+public class S3BucketProvisionedResource extends ProvisionedDataDestinationResource {
+    @JsonProperty
+    private String region;
+
+    @JsonProperty
+    private String bucketName;
+
+    public String getRegion() {
+        return region;
+    }
+
+    public String getBucketName() {
+        return bucketName;
+    }
+
+    @Override
+    public DataDestination createDataDestination(DestinationSecretToken token) {
+        return S3Destination.Builder.newInstance().region(region).bucketName(bucketName).secretToken(token).build();
+    }
 
     private S3BucketProvisionedResource() {
     }
 
-    public static class Builder extends ProvisionedResource.Builder<S3BucketProvisionedResource, Builder> {
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends ProvisionedDataDestinationResource.Builder<S3BucketProvisionedResource, Builder> {
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder region(String region) {
+            provisionedResource.region = region;
+            return this;
+        }
+
+        public Builder bucketName(String bucketName) {
+            provisionedResource.bucketName = bucketName;
+            return this;
         }
 
         private Builder() {
