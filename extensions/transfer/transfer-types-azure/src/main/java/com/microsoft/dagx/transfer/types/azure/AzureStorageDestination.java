@@ -1,4 +1,4 @@
-package com.microsoft.dagx.transfer.nifi;
+package com.microsoft.dagx.transfer.types.azure;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;

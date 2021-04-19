@@ -19,6 +19,7 @@ import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
+import com.microsoft.dagx.transfer.types.azure.AzureStorageDestination;
 import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

@@ -1,4 +1,4 @@
-package com.microsoft.dagx.transfer.nifi;
+package com.microsoft.dagx.transfer.types.azure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
