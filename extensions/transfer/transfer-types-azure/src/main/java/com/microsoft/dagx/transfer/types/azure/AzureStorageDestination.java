@@ -1,7 +1,6 @@
 package com.microsoft.dagx.transfer.types.azure;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -12,7 +11,6 @@ import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 
 @JsonDeserialize(builder = AzureStorageDestination.Builder.class)
 @JsonTypeName("dagx:azurestoragedestination")
-@JsonIgnoreProperties("type")
 public class AzureStorageDestination implements DataDestination {
 
     private String account;
