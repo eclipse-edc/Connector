@@ -15,10 +15,16 @@ import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
+import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
+import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
 import okhttp3.OkHttpClient;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Timeout;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.File;
@@ -29,8 +35,12 @@ import java.util.UUID;
 
 import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.easymock.EasyMock.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.easymock.EasyMock.createMock;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 class NifiDataFlowControllerTest {
@@ -147,7 +157,7 @@ class NifiDataFlowControllerTest {
                 .dataDestination(AzureStorageDestination.Builder.newInstance()
                         .account(storageAccount)
                         .container(containerName)
-                        .blobName("bike_very_new.jpg")
+                        .blobname("bike_very_new.jpg")
                         .key(storageAccountKey)
                         .build())
                 .build();
@@ -187,7 +197,7 @@ class NifiDataFlowControllerTest {
                 .dataDestination(AzureStorageDestination.Builder.newInstance()
                         .account(storageAccount)
                         .container(containerName)
-                        .blobName("will_not_succeed.jpg")
+                        .blobname("will_not_succeed.jpg")
                         .key(storageAccountKey)
                         .build())
                 .build();
@@ -216,7 +226,7 @@ class NifiDataFlowControllerTest {
                 .dataEntry(entry)
                 .build();
 
-     var response= controller.initiateFlow(dataRequest);
+        var response = controller.initiateFlow(dataRequest);
         assertThat(response.getStatus()).isEqualTo(ResponseStatus.FATAL_ERROR);
         assertThat(response.getError()).isEqualTo("Data target is null");
 
@@ -229,7 +239,17 @@ class NifiDataFlowControllerTest {
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
-                .dataDestination(() -> "TestType")
+                .dataDestination(new DataDestination() {
+                    @Override
+                    public String getType() {
+                        return "TestType";
+                    }
+
+                    @Override
+                    public DestinationSecretToken getSecretToken() {
+                        return null;
+                    }
+                })
                 .dataEntry(entry)
                 .build();
 
@@ -237,7 +257,7 @@ class NifiDataFlowControllerTest {
         expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn(null);
         replay(vault);
 
-        var response= controller.initiateFlow(dataRequest);
+        var response = controller.initiateFlow(dataRequest);
         assertThat(response.getStatus()).isEqualTo(ResponseStatus.FATAL_ERROR);
         assertThat(response.getError()).isEqualTo("NiFi vault credentials were not found");
     }

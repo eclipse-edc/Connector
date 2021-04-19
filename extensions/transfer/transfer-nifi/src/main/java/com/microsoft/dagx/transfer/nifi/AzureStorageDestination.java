@@ -1,24 +1,38 @@
 package com.microsoft.dagx.transfer.nifi;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
 import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
+import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 
 @JsonDeserialize(builder = AzureStorageDestination.Builder.class)
+@JsonTypeName("dagx:azurestoragedestination")
+@JsonIgnoreProperties("type")
 public class AzureStorageDestination implements DataDestination {
 
     private String account;
     private String blobname;
-    private String sas;
+    private DestinationSecretToken secretToken;
     private String container;
     private String key;
 
-    private AzureStorageDestination(){}
+    private AzureStorageDestination() {
+    }
 
+    @Override
+    @JsonProperty
     public String getType() {
         return "AzureStorage";
+    }
+
+    @Override
+    public DestinationSecretToken getSecretToken() {
+        return secretToken;
     }
 
     public String getAccount() {
@@ -27,10 +41,6 @@ public class AzureStorageDestination implements DataDestination {
 
     public String getBlobname() {
         return blobname;
-    }
-
-    public String getSas() {
-        return sas;
     }
 
     public String getContainer() {
@@ -57,13 +67,13 @@ public class AzureStorageDestination implements DataDestination {
             return this;
         }
 
-        public Builder blobName(String blobName) {
+        public Builder blobname(String blobName) {
             target.blobname = blobName;
             return this;
         }
 
-        public Builder token(String token) {
-            target.sas = token;
+        public Builder secretToken(DestinationSecretToken token) {
+            target.secretToken = token;
             return this;
         }
 
@@ -71,7 +81,7 @@ public class AzureStorageDestination implements DataDestination {
             target = new AzureStorageDestination();
         }
 
-        public DataDestination build() {
+        public AzureStorageDestination build() {
             return target;
         }
 
