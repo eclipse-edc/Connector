@@ -4,10 +4,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
-import com.microsoft.dagx.spi.types.domain.transfer.DataTarget;
+import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
 
-@JsonDeserialize(builder = AzureStorageTarget.Builder.class)
-public class AzureStorageTarget implements DataTarget {
+@JsonDeserialize(builder = AzureStorageDestination.Builder.class)
+public class AzureStorageDestination implements DataDestination {
 
     private String account;
     private String blobname;
@@ -15,7 +15,7 @@ public class AzureStorageTarget implements DataTarget {
     private String container;
     private String key;
 
-    private AzureStorageTarget(){}
+    private AzureStorageDestination(){}
 
     public String getType() {
         return "AzureStorage";
@@ -44,10 +44,10 @@ public class AzureStorageTarget implements DataTarget {
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
-        private final AzureStorageTarget target;
+        private final AzureStorageDestination target;
 
         @JsonCreator
-        public static <K extends DataEntryExtensions> AzureStorageTarget.Builder newInstance() {
+        public static <K extends DataEntryExtensions> AzureStorageDestination.Builder newInstance() {
             return new Builder();
         }
 
@@ -68,10 +68,10 @@ public class AzureStorageTarget implements DataTarget {
         }
 
         private Builder() {
-            target = new AzureStorageTarget();
+            target = new AzureStorageDestination();
         }
 
-        public DataTarget build() {
+        public DataDestination build() {
             return target;
         }
 

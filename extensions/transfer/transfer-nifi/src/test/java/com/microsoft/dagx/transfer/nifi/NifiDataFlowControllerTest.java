@@ -144,7 +144,7 @@ class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataEntry(entry)
-                .dataTarget(AzureStorageTarget.Builder.newInstance()
+                .dataDestination(AzureStorageDestination.Builder.newInstance()
                         .account(storageAccount)
                         .container(containerName)
                         .blobName("bike_very_new.jpg")
@@ -184,7 +184,7 @@ class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataEntry(entry)
-                .dataTarget(AzureStorageTarget.Builder.newInstance()
+                .dataDestination(AzureStorageDestination.Builder.newInstance()
                         .account(storageAccount)
                         .container(containerName)
                         .blobName("will_not_succeed.jpg")
@@ -229,7 +229,7 @@ class NifiDataFlowControllerTest {
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
-                .dataTarget(() -> "TestType")
+                .dataDestination(() -> "TestType")
                 .dataEntry(entry)
                 .build();
 

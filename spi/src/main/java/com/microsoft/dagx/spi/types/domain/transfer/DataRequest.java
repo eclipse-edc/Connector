@@ -24,7 +24,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private DataEntry<?> dataEntry;
 
-    private DataTarget dataTarget;
+    private DataDestination dataDestination;
 
     /**
      * The unique request id.
@@ -33,14 +33,23 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return id;
     }
 
+    /**
+     * The protocol-specific address of the provider connector.
+     */
     public String getConnectorAddress() {
         return connectorAddress;
     }
 
+    /**
+     * The protocol over which the data request is sent to the provider connector.
+     */
     public String getProtocol() {
         return protocol;
     }
 
+    /**
+     * The provider connector id.
+     */
     public String getConnectorId() {
         return connectorId;
     }
@@ -49,11 +58,14 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return dataEntry;
     }
 
-    private DataRequest() {
+    /**
+     * The target address the data is to be sent to. Set by the request originator, e.g., the client connector.
+     */
+    public DataDestination getDataDestination() {
+        return dataDestination;
     }
 
-    public DataTarget getDataTarget() {
-        return dataTarget;
+    private DataRequest() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -94,8 +106,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder dataTarget(DataTarget target){
-            request.dataTarget= target;
+        public Builder dataDestination(DataDestination destination) {
+            request.dataDestination = destination;
             return this;
         }
 

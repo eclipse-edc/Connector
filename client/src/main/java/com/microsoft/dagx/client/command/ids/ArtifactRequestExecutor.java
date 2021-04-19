@@ -40,14 +40,14 @@ public class ArtifactRequestExecutor implements CommandExecutor {
 
         IdentityService identityService = context.getService(IdentityService.class);
 
-        TokenResult tokenResult = identityService.obtainClientCredentials(connectorId);
+//        TokenResult tokenResult = identityService.obtainClientCredentials(connectorId);
+        TokenResult tokenResult = TokenResult.Builder.newInstance().build();
 
         if (!tokenResult.success()) {
             return new CommandResult(true, tokenResult.error());
         }
 
         DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getToken()).build();
-//        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT).build();
         // TODO parameterize artifact urn
 
         ArtifactRequestMessage message = new ArtifactRequestMessageBuilder()

@@ -63,7 +63,7 @@ public class NifiDataFlowController implements DataFlowController {
             throw new DagxException("Invalid extensions type, expected:" + GenericDataEntryExtensions.class.getName());
         }
 
-        if (dataRequest.getDataTarget() == null) {
+        if (dataRequest.getDataDestination() == null) {
             return new DataFlowInitiateResponse(FATAL_ERROR, "Data target is null");
         }
 
@@ -106,7 +106,7 @@ public class NifiDataFlowController implements DataFlowController {
         String url = baseUrl + CONTENTLISTENER;
         Map<String, Object> payload = new HashMap<>();
         payload.put("source", extensions.getProperties());
-        payload.put("destination", dataRequest.getDataTarget());
+        payload.put("destination", dataRequest.getDataDestination());
         return new Request.Builder()
                 .url(url)
                 .post(RequestBody.create(typeManager.writeValueAsString(payload), JSON))
