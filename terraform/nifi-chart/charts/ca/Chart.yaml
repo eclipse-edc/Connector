@@ -1,0 +1,12 @@
+apiVersion: v2
+name: ca
+version: 0.1.0
+# We are using the NiFi version as appVersion
+appVersion: 1.12.1
+description: A Helm chart to deploy ca server to generate self-signed certificates using nifi-toolkit.
+keywords:
+  - nifi-toolkit
+  - ca
+  - self-signed certs
+home: https://nifi.apache.org/
+icon: https://svn.apache.org/repos/asf/nifi/site/trunk/images/niFi-logo-horizontal-scaled.png

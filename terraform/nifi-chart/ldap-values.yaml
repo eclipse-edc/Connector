@@ -1,0 +1,35 @@
+nifi:
+  properties:
+    secured: true
+  authentication:
+    ldap:
+      enabled: true
+      authenticationStrategy: "SIMPLE"
+      referralStrategy: "FOLLOW"
+      identityStrategy: "USE_USERNAME"
+      url: ""
+      managerDn: ""
+      managerPassword: ""
+      connectTimeout: "10 secs"
+      readTimeout: "10 secs"
+      userSearchBase: ""
+      userSearchFilter: ""
+      expirationPeriod: "12 hours"
+  authorization:
+    ldap:
+      enforceCaseSensitivity: "false"
+      syncInterval: "1 mins"
+      pageSize: ""
+      userObjectClass: ""
+      userSearchFilter: ""
+      userSearchScope: "ONE_LEVEL"
+      userIdentityAttribute: "cn"
+      userGroupNameAttribute: ""
+      userReferencedGroupAttribute: ""
+      groupSearchBase: ""
+      groupObjectClass: ""
+      groupSearchScope: "ONE_LEVEL"
+      groupSearchFilter: ""
+      groupNameAttribute: "cn"
+      groupMemberAttribute: ""
+      groupReferencedUserAttribute: ""

@@ -1,0 +1,87 @@
+{{- if and .Values.nifi.tls.certificateSource.nifiToolkit .Values.nifi.tls.certificateSource.userProvided }}
+{{ fail "\n\nOnly one certificateSource can be provided either nifiToolkit or userProvided" }}
+{{- end }}
+
+{{- if .Values.nifi.properties.secured }}
+{{- if and (ne .Values.nifi.tls.certificateSource.nifiToolkit true) (ne .Values.nifi.tls.certificateSource.userProvided true) }}
+{{ fail "\n\nAt least one certificateSource is needed either nifiToolkit or userProvided" }}
+{{- end }}
+{{- end }}
+
+The release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  helm -n {{ .Release.Namespace }} status {{ .Release.Name }}
+  helm -n {{ .Release.Namespace }} get all {{ .Release.Name }}
+
+{{- if or .Values.minikube (and (ne .Values.service.type "LoadBalancer") (ne .Values.ingress.enabled true)) }}
+
+Use port-forward to access the service, you can skip sudo if using service port >1024
+{{- if .Values.nifi.properties.secured }}
+  sudo kubectl -n {{ .Release.Namespace }} port-forward svc/{{ template "nifi.fullname" . }} {{ .Values.service.port.https }}:{{ .Values.service.port.https }} --address 0.0.0.0
+{{- else }}
+  sudo kubectl -n {{ .Release.Namespace }} port-forward svc/{{ template "nifi.fullname" . }} {{ .Values.service.port.http }}:{{ .Values.service.port.http }} --address 0.0.0.0
+{{- end }}
+{{- end }}
+
+{{- if or .Values.minikube (and (ne .Values.ingress.enabled true) (ne .Values.service.type "LoadBalancer")) }}
+
+Add following entry to the /etc/hosts
+{{- if .Values.nifi.properties.webProxyHost }}
+127.0.0.1 {{ .Values.nifi.properties.webProxyHost }}
+{{- else }}
+127.0.0.1 {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc
+{{- end }}
+{{- else}}
+
+{{- if .Values.ingress.enabled }}
+
+Get IP using following command, after pods are in running status
+kubectl get ingress {{ template "nifi.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[*].ip}' | xargs echo
+{{- else if (eq .Values.service.type "LoadBalancer") }}
+
+Get IP using following command, after pods are in running status
+kubectl get svc {{ template "nifi.fullname" . }} -n {{ .Release.Namespace }} -o jsonpath='{.status.loadBalancer.ingress[*].ip}' | xargs echo
+{{- end }}
+
+Add following entry to the /etc/hosts using IP_ADDRESS found by above command
+{{- if .Values.nifi.properties.webProxyHost }}
+IP_ADDRESS {{ .Values.nifi.properties.webProxyHost }}
+{{- else }}
+IP_ADDRESS {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc
+{{- end }}
+{{- end }}
+
+Cluster is accessible at
+{{- if or .Values.nifi.properties.secured (and .Values.ingress.enabled .Values.ingress.tlsOnAnonymousNifi) }}
+{{- if .Values.nifi.properties.webProxyHost }}
+https://{{ .Values.nifi.properties.webProxyHost }}:{{ .Values.service.port.https }}/nifi
+{{- else }}
+https://{{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port.https }}/nifi
+{{- end }}
+{{- else }}
+{{- if .Values.nifi.properties.webProxyHost }}
+http://{{ .Values.nifi.properties.webProxyHost }}:{{ .Values.service.port.http }}/nifi
+{{- else }}
+http://{{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc:{{ .Values.service.port.http }}/nifi
+{{- end }}
+{{- end }}
+
+{{- if and .Values.nifi.properties.secured .Values.nifi.authorization.adminUser.enabled }}
+{{- if and .Values.nifi.tls.certificateSource.nifiToolkit .Values.nifi.authorization.adminUser.enabled }}
+
+{{- if ne .Values.ingress.enabled true }}
+
+Get the certificate and certificate-config from the pod as follows:
+  kubectl cp {{ .Release.Namespace }}/{{ template "nifi.fullname" . }}-0:/opt/nifi/nifi-current/config-data/certs/admin/keystore.pkcs12 keystore.pkcs12
+  kubectl cp {{ .Release.Namespace }}/{{ template "nifi.fullname" . }}-0:/opt/nifi/nifi-current/config-data/certs/admin/config.json config.json
+
+One can import this certificate obtained using the certificate password obtained as follows
+  jq -r .keyStorePassword config.json
+{{- end }}
+{{- else if .Values.nifi.tls.certificateSource.userProvided }}
+
+Install the client/ca certificate on your machine you have received from your certificate provider.
+{{- end }}
+{{- end }}

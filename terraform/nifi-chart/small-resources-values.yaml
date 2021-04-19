@@ -1,0 +1,29 @@
+---
+# pvc details
+persistence:
+  storageClass: default
+  accessModes:  [ReadWriteOnce]
+  configPartitionSize: 100Mi
+  dataPartition1Size: 5Gi
+  dataPartition2Size: 5Gi
+  dataPartition3Size: 5Gi
+  logPartitionSize: 500Mi
+  
+nifi:
+  # performance parameters
+  # Values for bootstrap.conf
+  bootstrapConf:
+    jvmMinMemory: 1g
+    jvmMaxMemory: 1g
+
+# Configure resource requests for nifi pods
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "0.2"
+
+# zookeeper details
+zookeeper:
+  replicaCount: 1
+  persistence:
+    size: 1Gi

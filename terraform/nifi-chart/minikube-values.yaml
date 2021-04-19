@@ -1,0 +1,42 @@
+---
+
+# Setting Minikube to true for notes
+minikube:  true
+
+# statefulset replica-count
+replicaCount: 3
+
+# headless service
+headless:
+  type: ClusterIP
+
+# ui service
+service:
+  type: ClusterIP
+
+nifi:
+  # performance parameters
+  # Values for bootstrap.conf
+  bootstrapConf:
+    jvmMinMemory: 1g
+    jvmMaxMemory: 1g
+
+# pvc details
+persistence:
+  storageClass: standard
+  dataPartition1Size: 2Gi
+  dataPartition2Size: 2Gi
+  dataPartition3Size: 2Gi
+  logPartitionSize: 200Mi
+
+# Configure resource requests for nifi pods
+resources:
+  requests:
+    memory: "2Gi"
+    cpu: "0.2"
+
+# zookeeper details
+zookeeper:
+  replicaCount: 1
+  persistence:
+    size: 1Gi

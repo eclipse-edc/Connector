@@ -1,0 +1,12 @@
+nifi:
+  properties:
+    secured: true
+  authentication:
+    openid:
+      enabled: true
+      discoveryUrl: "https://login.microsoftonline.com/<TENANTID>/v2.0/.well-known/openid-configuration"
+      clientId: ""
+      clientSecret: ""
+      additionalScopes: "profile"
+      preferredJwsAlgorithm: ""
+      claimIdentityingUser: ""

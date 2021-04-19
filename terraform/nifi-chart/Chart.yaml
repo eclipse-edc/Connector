@@ -1,0 +1,19 @@
+apiVersion: v2
+name: nifi
+version: 0.1.0
+# We are using the NiFi version as appVersion
+appVersion: 1.12.1
+description: A helm chart to deploy Apache NiFi.
+keywords:
+  - nifi
+  - data
+home: https://nifi.apache.org/
+icon: https://svn.apache.org/repos/asf/nifi/site/trunk/images/niFi-logo-horizontal-scaled.png
+dependencies:
+  - name: zookeeper
+    version: 2.1.4
+    repository: https://charts.helm.sh/incubator
+    condition: zookeeper.enabled
+  - name: ca
+    version: 0.1.0
+    condition: nifi.tls.certificateSource.nifiToolkit

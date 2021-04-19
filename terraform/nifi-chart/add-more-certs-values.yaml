@@ -1,0 +1,16 @@
+nifi:
+  properties:
+    secured: true
+  tls:
+    certificateSource:
+      userProvided: true
+    nodeCerts:
+      - node: 4
+        privateKey: node4.key
+        certificate: node4.crt
+      - node: 5
+        privateKey: node5.key
+        certificate: node5.crt
+    userCerts:
+      # - user: 3
+      #   certificate: user3.crt

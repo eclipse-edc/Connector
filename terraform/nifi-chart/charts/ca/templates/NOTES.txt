@@ -1,0 +1,6 @@
+The release is named {{ .Release.Name }}.
+
+To learn more about the release, try:
+
+  helm -n {{ .Release.Namespace }} status {{ .Release.Name }}
+  helm -n {{ .Release.Namespace }} get all {{ .Release.Name }}

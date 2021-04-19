@@ -1,0 +1,13 @@
+---
+# Create configmaps using the files in configs directory
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "nifi.fullname" . }}
+  labels:
+    app: {{ include "nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+data:
+{{ (tpl (.Files.Glob "configs/*").AsConfig . ) | indent 2 }}

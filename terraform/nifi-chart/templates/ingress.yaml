@@ -1,0 +1,69 @@
+{{ if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  name: {{ template "nifi.fullname" . }}
+  labels:
+    app: {{ include "nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+  annotations:
+    nginx.ingress.kubernetes.io/affinity: {{ .Values.ingress.affinity }}
+    nginx.ingress.kubernetes.io/affinity-mode: {{ .Values.ingress.affinityMode }}
+{{- if .Values.nifi.properties.secured }}
+    # Specify backend protocol to be HTTPS
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    # Specify proxy_ssl_server_name=on
+    nginx.ingress.kubernetes.io/proxy-ssl-server-name: "on"
+{{- if and (ne .Values.nifi.authentication.ldap.enabled true) (ne .Values.nifi.authentication.openid.enabled true) }}
+    # Specify the auth certificate secret
+    nginx.ingress.kubernetes.io/proxy-ssl-secret: "{{ .Release.Namespace }}/{{ template "nifi.fullname" . }}-proxy-authentication-tls-secret"
+    # Set X-ProxiedEntitiesChain
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      proxy_set_header X-ProxiedEntitiesChain <$ssl_client_s_dn>;
+{{- end }}
+{{- end }}
+{{- if or .Values.nifi.properties.secured (and .Values.ingress.enabled (and .Values.ingress.tlsOnAnonymousNifi .Values.ingress.authenticateIngressOnAnonymousNifi)) }}
+{{- if and (ne .Values.nifi.authentication.ldap.enabled true) (ne .Values.nifi.authentication.openid.enabled true) }}
+    # Enable client certificate authentication
+    nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+    # Create the secret containing the trusted ca certificates
+    nginx.ingress.kubernetes.io/auth-tls-secret: "{{ .Release.Namespace }}/{{ template "nifi.fullname" . }}-ingress-ca-cert"
+    # Specify the verification depth in the client certificates chain
+    nginx.ingress.kubernetes.io/auth-tls-verify-depth: {{ .Values.ingress.tlsVerifyDepth | quote }}
+{{- end }}
+{{- end }}
+    kubernetes.io/ingress.class: addon-http-application-routing
+spec:
+  rules:
+{{- if .Values.nifi.properties.webProxyHost }}
+  - host: {{ .Values.nifi.properties.webProxyHost }}
+{{- else }}
+  - host: {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc
+{{- end }}
+    http:
+      paths:
+      - backend:
+          serviceName: {{ template "nifi.fullname" . }}
+{{- if .Values.nifi.properties.secured }}
+          servicePort: {{ .Values.service.port.https }}
+{{- else }}
+          servicePort: {{ .Values.service.port.http }}
+{{- end }}
+        path: /
+      - backend:
+          serviceName: {{ template "nifi.fullname" . }}
+          servicePort: 8888
+        path: /contentListener
+{{- if or .Values.nifi.properties.secured .Values.ingress.tlsOnAnonymousNifi }}
+  tls:
+  - hosts:
+{{- if .Values.nifi.properties.webProxyHost }}
+    - {{ .Values.nifi.properties.webProxyHost }}
+{{- else }}
+    - {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc
+{{- end }}
+    secretName: {{ template "nifi.fullname" . }}-ingress-tls
+{{- end }}
+{{ end }}

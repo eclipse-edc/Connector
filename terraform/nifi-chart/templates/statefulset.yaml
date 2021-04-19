@@ -1,0 +1,811 @@
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ template "nifi.fullname" . }}
+  labels:
+    app: {{ include "nifi.name" . | quote }}
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  podManagementPolicy: Parallel
+  serviceName: {{ template "nifi.fullname" . }}-headless
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "nifi.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      annotations:
+        security.alpha.kubernetes.io/sysctls: net.ipv4.ip_local_port_range=10000 65000
+      labels:
+        app: {{ include "nifi.name" . | quote }}
+        chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+        release: {{ .Release.Name | quote }}
+        heritage: {{ .Release.Service | quote }}
+{{- if .Values.managedIdentity.enabled }}
+        aadpodidbinding: {{ .Values.managedIdentity.AzureIdentityBinding.selectorLabel }}
+{{- end }}
+    spec:
+      serviceAccountName: {{ template "nifi.fullname" . }}
+      terminationGracePeriodSeconds: 300
+{{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+{{- end }}
+{{- if .Values.securityContext }}
+      securityContext:
+{{ toYaml .Values.securityContext | indent 8 }}
+{{- end }}
+      initContainers:
+      - name: zookeeper
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        image: busybox
+        command:
+        - sh
+        - -c
+        - |
+          # Checking if zookeeper service is up
+          echo Trying to contact {{ template "zookeeper.server" . }} {{ .Values.zookeeper.port }}
+          until nc -vzw 1 {{ template "zookeeper.server" . }} {{ .Values.zookeeper.port }}; do
+            echo "waiting for zookeeper..."
+            sleep 2
+          done
+{{- if .Values.nifi.tls.certificateSource.nifiToolkit }}
+      - name: cert
+        imagePullPolicy: {{ .Values.ca.image.pullPolicy | quote }}
+        image: "{{ .Values.ca.image.repository }}:{{ .Values.ca.image.tag }}"
+        command:
+        - bash
+        - -c
+        - |
+          CA_ADDRESS="{{ template "ca.server" . }}:{{ .Values.ca.port }}"
+          until echo "" | timeout -t 2 openssl s_client -connect "${CA_ADDRESS}"; do
+            # Checking if ca server using nifi-toolkit is up
+            echo "Waiting for CA to be avaiable at ${CA_ADDRESS}"
+            sleep 2
+          done;
+          cd /data/config-data
+          rm -rf certs
+          mkdir certs
+          cd certs
+          # Generate certificate for server with webProxyHost or service name as alternate names to access nifi web ui
+          set -e
+          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
+            -c "{{ template "ca.server" . }}" \
+            -t {{ .Values.ca.token }} \
+{{- if .Values.nifi.properties.webProxyHost }}
+            --subjectAlternativeNames {{ .Values.nifi.properties.webProxyHost }} \
+{{- else }}
+            --subjectAlternativeNames {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
+{{- end }}
+            -D "CN=$(hostname -f), OU=NIFI" \
+            -p {{ .Values.ca.port }}
+
+{{- if .Values.nifi.authorization.adminUser.enabled }}
+          # Generate client certificate for browser with webProxyHost or service name as alternate names to access nifi web ui
+          mkdir -p /data/config-data/certs/admin
+          cd /data/config-data/certs/admin
+
+          ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
+            -c "{{ template "ca.server" . }}" \
+            -t {{ .Values.ca.token }} \
+{{- if .Values.nifi.properties.webProxyHost }}
+            --subjectAlternativeNames {{ .Values.nifi.properties.webProxyHost }} \
+{{- else }}
+            --subjectAlternativeNames {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
+{{- end }}
+            -p {{ .Values.ca.port }} \
+            -D "{{ .Values.nifi.authorization.adminUser.name }}, OU=NIFI" \
+            -T PKCS12
+
+          export PASS=$(jq -r .keyStorePassword config.json)
+
+          openssl pkcs12 -in "keystore.pkcs12" -out "key.pem" -nocerts -nodes -password "env:PASS"
+          openssl pkcs12 -in "keystore.pkcs12" -out "crt.pem" -clcerts -nokeys -password "env:PASS"
+{{- end }}
+{{- if .Values.ingress.enabled }}
+          # Create certificate for ingres.user.name so that ingress can use it for backend authentication
+          base_host=$(echo `hostname | rev  | cut -d "-" -f 2- | rev`-0)
+          if [[ `hostname` == "$base_host" ]]; then
+            # Generate client certificate for browser with webProxyHost or service name as alternate names to access nifi web ui
+            mkdir -p /data/config-data/certs/proxy
+            cd /data/config-data/certs/proxy
+
+            ${NIFI_TOOLKIT_HOME}/bin/tls-toolkit.sh client \
+              -c "{{ template "ca.server" . }}" \
+              -t {{ .Values.ca.token }} \
+{{- if .Values.nifi.properties.webProxyHost }}
+              --subjectAlternativeNames {{ .Values.nifi.properties.webProxyHost }} \
+{{- else }}
+              --subjectAlternativeNames {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc \
+{{- end }}
+              -p {{ .Values.ca.port }} \
+              -D {{ .Values.ingress.user.name | quote }} \
+              -T PKCS12
+
+            export PASS=$(jq -r .keyStorePassword config.json)
+            openssl pkcs12 -in "keystore.pkcs12" -out "key.pem" -nocerts -nodes -password "env:PASS"
+            openssl pkcs12 -in "keystore.pkcs12" -out "crt.pem" -clcerts -nokeys -password "env:PASS"
+            openssl pkcs12 -in "keystore.pkcs12" -out "ca-crt.pem" -cacerts -nokeys -chain -password "env:PASS"
+          fi
+{{- end }}
+        volumeMounts:
+          - name: "config-data"
+            mountPath: /data/config-data
+{{- else if .Values.nifi.properties.secured }}
+      - name: cert
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        # We do not use nifi-toolkit for anything, but the dependency softwares.
+        # Dependent softwares we need are openssl, keytool and jq.
+        image: apache/nifi-toolkit
+        command:
+        - bash
+        - -c
+        - |
+          cd /data/config-data
+          rm -rf certs
+          mkdir certs
+          cd certs
+          set -e
+          export node_number_from_hostname=$(hostname | rev | awk -F "-" '{print $1}' | rev)
+          export node_number=$((node_number_from_hostname+1))
+          export store_password=$(openssl rand -base64 32)
+          jq -n \
+            --arg password "$store_password" \
+            '{keyStorePassword: $password, keyPassword: $password, trustStorePassword: $password, trustStoreType:"JKS", keyStoreType:"JKS"}' \
+            > config.json
+          if [ -f /opt/certs/caCertificate ]; then
+            keytool -import \
+              -file /opt/certs/caCertificate \
+              -keystore truststore.jks \
+              -storepass $store_password \
+              -noprompt
+          else
+            # Build truststore from node's certificates.
+            export truststore_loop_node=$(ls -ltr /opt/certs/node*certificate | wc -l)
+            for ((i=1; i<=$truststore_loop_node; i++)); do
+              echo "Adding node_$1 certificate to truststore"
+              keytool -import -file /opt/certs/node_"$i"_certificate \
+                -alias node_key_"$i" \
+                -keystore truststore.jks \
+                -storepass $store_password \
+                -noprompt
+            done
+
+            # Add user's certificates to truststore.
+            export truststore_loop_user=$(ls -ltr /opt/certs/user*certificate | wc -l)
+            echo "Adding user_$1 certificate to truststore"
+            for ((i=1; i<=$truststore_loop_user; i++)); do
+              keytool -import -file /opt/certs/user_"$i"_certificate \
+                -alias user_key_"$i" \
+                -keystore truststore.jks \
+                -storepass $store_password \
+                -noprompt
+            done
+
+{{- if .Values.nifi.authorization.adminUser.enabled }}
+            # Add admin certificate to the truststore
+            echo "Adding admin certificate to truststore"
+            keytool -import -file /opt/certs/admin_certificate \
+              -alias user_key_admin \
+              -keystore truststore.jks \
+              -storepass $store_password \
+              -noprompt
+{{- end }}
+          fi
+          openssl pkcs12 -export \
+            -in /opt/certs/node_${node_number}_certificate \
+            -inkey /opt/certs/node_${node_number}_private_key \
+            -out node_${node_number}.p12 \
+            -password pass:$store_password
+          keytool -importkeystore \
+            -srckeystore node_${node_number}.p12 \
+            -srcstoretype PKCS12 \
+            -destkeystore keystore.jks \
+            -deststoretype JKS \
+            -storepass $store_password \
+            -srcstorepass $store_password \
+            -noprompt
+{{- if .Values.nifi.authorization.adminUser.enabled }}
+          mkdir -p /data/config-data/certs/admin
+          cd /data/config-data/certs/admin
+          jq -n \
+            --arg password "$store_password" \
+            '{keyStorePassword: $password, keyPassword: $password, trustStorePassword: $password, trustStoreType:"JKS", keyStoreType:"PKCS12"}' \
+            > config.json
+          cp /data/config-data/certs/truststore.jks ./truststore.jks
+          cp /opt/certs/admin_certificate ./crt.pem
+          cp /opt/certs/admin_private_key ./key.pem
+          openssl pkcs12 -export \
+            -in /opt/certs/admin_certificate \
+            -inkey /opt/certs/admin_private_key \
+            -out keystore.pkcs12 \
+            -password pass:$store_password
+{{- end }}
+        volumeMounts:
+          - name: "config-data"
+            mountPath: /data/config-data
+          - name: "certificates"
+            mountPath: /opt/certs
+{{- end }}
+{{- if .Values.image.imagePullSecret }}
+      imagePullSecrets:
+      - name: {{ .Values.image.imagePullSecret }}
+{{- end }}
+      containers:
+      - name: server
+        imagePullPolicy: {{ .Values.image.pullPolicy | quote }}
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+{{- if .Values.nifi.authentication.ldap.managerPassword }}
+        envFrom:
+        - secretRef:
+            name: {{ template "nifi.fullname" . }}
+{{- end }}
+        command:
+        - bash
+        - -ce
+        - |
+          set -ex
+          # Download kubectl, this can be later backed into the docker image
+          curl -Lo ${NIFI_HOME}/bin/kubectl https://storage.googleapis.com/kubernetes-release/release/`curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt`/bin/linux/amd64/kubectl
+          chmod +x ${NIFI_HOME}/bin/kubectl
+          # Creating a script to call nifi-toolkit
+          cat > call_nifi_toolkit.sh << EOF
+          #!/usr/bin/env bash
+          set -e
+
+          toolKitCli="${NIFI_TOOLKIT_HOME}/bin/cli.sh"
+{{- if .Values.nifi.properties.secured }}
+          webProtocol=https
+          webPort={{ .Values.nifi.properties.port.https }}
+          trustStore="${NIFI_HOME}/config-data/certs/admin/truststore.jks"
+          trustStorePassword=$(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/admin/config.json)
+          trustStoreType=$(jq -r .trustStoreType ${NIFI_HOME}/config-data/certs/admin/config.json)
+          keyStore="${NIFI_HOME}/config-data/certs/admin/keystore.pkcs12"
+          keyStorePassword=$(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/admin/config.json)
+          keyStoreType=$(jq -r .keyStoreType ${NIFI_HOME}/config-data/certs/admin/config.json)
+          secureOptions="-ts \$trustStore -tsp \$trustStorePassword -tst \$trustStoreType -ks \$keyStore -ksp \$keyStorePassword -kst \$keyStoreType"
+{{- else }}
+          webProtocol=http
+          webPort={{ .Values.nifi.properties.port.http }}
+          secureOptions=""
+{{- end }}
+          base_url_host=\${base_url_host:-$(echo `hostname | rev  | cut -d "-" -f 2- | rev`-0.`hostname -f | cut -d "." -f 2-`)}
+          \$toolKitCli "\$@" -u \$webProtocol://\$base_url_host:\$webPort -ot json \$secureOptions
+          EOF
+          chmod 700 call_nifi_toolkit.sh
+          update_property () {
+            target_file=${NIFI_HOME}/conf/${3:-nifi.properties}
+            echo "updating ${1} in ${target_file}"
+            if egrep "^${1}=" ${target_file} &> /dev/null; then
+              sed -i -e "s|^$1=.*$|$1=$2|"  ${target_file}
+            else
+              echo ${1}=${2} >> ${target_file}
+            fi
+          }
+
+          create_nifi_admin_user () {
+            admin_user_id=$(./call_nifi_toolkit.sh nifi list-users | jq -r ".users[].component | select((.identity==\"$1\")) |.id")
+            if [[ -z $admin_user_id ]]; then
+              ./call_nifi_toolkit.sh nifi create-user -un "$1"
+              admin_user_id=$(./call_nifi_toolkit.sh nifi list-users | jq -r ".users[].component | select((.identity==\"$1\")) |.id")
+            fi
+            ./call_nifi_toolkit.sh nifi update-policy -por "/flow" -poa read -uil "$admin_user_id"
+            ./call_nifi_toolkit.sh nifi update-policy -por "/tenants" -poa read -uil "$admin_user_id"
+            ./call_nifi_toolkit.sh nifi update-policy -por "/tenants" -poa write -uil "$admin_user_id"
+            ./call_nifi_toolkit.sh nifi update-policy -por "/policies" -poa read -uil "$admin_user_id"
+            ./call_nifi_toolkit.sh nifi update-policy -por "/policies" -poa write -uil "$admin_user_id"
+            ./call_nifi_toolkit.sh nifi update-policy -por "/controller" -poa read -uil "$admin_user_id"
+            ./call_nifi_toolkit.sh nifi update-policy -por "/controller" -poa write -uil "$admin_user_id"
+            ./call_nifi_toolkit.sh nifi update-policy -por "/restricted-components" -poa write -uil "$admin_user_id"
+          }
+
+          create_nifi_ui_user () {
+            ui_user_id=$(./call_nifi_toolkit.sh nifi list-users | jq -r ".users[].component | select((.identity==\"$1\")) |.id")
+            if [[ -z $ui_user_id ]]; then
+              ./call_nifi_toolkit.sh nifi create-user -un "$1"
+              ui_user_id=$(./call_nifi_toolkit.sh nifi list-users | jq -r ".users[].component | select((.identity==\"$1\")) |.id")
+            fi
+            ./call_nifi_toolkit.sh nifi update-policy -por "/flow" -poa read -uil "$ui_user_id"
+          }
+
+          create_nifi_proxy () {
+            proxy_user_id=$(./call_nifi_toolkit.sh nifi list-users | jq -r ".users[].component | select((.identity==\"$1\")) |.id")
+            if [[ ! -z $proxy_user_id ]]; then
+              echo "user $1 already exits!!!"
+              return
+            fi
+            ./call_nifi_toolkit.sh nifi create-user -un "$1"
+            proxy_user_id=$(./call_nifi_toolkit.sh nifi list-users | jq -r ".users[].component | select((.identity==\"$1\")) |.id")
+            ./call_nifi_toolkit.sh nifi update-policy -por "/proxy" -poa write -uil "$proxy_user_id"
+          }
+
+          # Setup NIFI_RESTART if authorizations.xml exists, because this file will not exist first time.
+          if [ -f "${NIFI_HOME}/config-data/conf/authorizations.xml" ]; then
+            export NIFI_RESTART=1
+          else
+            export NIFI_RESTART=0
+          fi
+
+          mkdir -p ${NIFI_HOME}/config-data/conf
+          NIFI_HOST=$(hostname -f)
+          # Create authorizers.xml
+          cat "${NIFI_HOME}/conf/authorizers.temp" > "${NIFI_HOME}/conf/authorizers.xml"
+          # Create login-identity-providers.xml
+          cat "${NIFI_HOME}/conf/login-identity-providers.temp" > "${NIFI_HOME}/conf/login-identity-providers.xml"
+{{- if .Values.nifi.authentication.ldap.managerPassword }}
+          # Add manager DN Password for ldap access
+          sed -i "s@SECRET_MANAGER_PASSWORD@$ldap_manager_password@g" "${NIFI_HOME}/conf/authorizers.xml"
+          sed -i "s@SECRET_MANAGER_PASSWORD@$ldap_manager_password@g" "${NIFI_HOME}/conf/login-identity-providers.xml"
+{{- end }}
+{{- if .Values.nifi.authentication.ldap.tls.enabled }}
+          export store_password=$(openssl rand -base64 32)
+          # Create a truststore with the ca-cert
+          keytool -import \
+            -file /opt/ldap-certs/ca_certificate \
+            -keystore ${NIFI_HOME}/conf/ldap-truststore.jks \
+            -storepass $store_password \
+            -noprompt
+
+          # Create a keystore with the certificate and private-key
+          openssl pkcs12 -export \
+            -in /opt/ldap-certs/certificate \
+            -inkey /opt/ldap-certs/private_key \
+            -out ${NIFI_HOME}/conf/ldap.p12 \
+            -password pass:$store_password
+          keytool -importkeystore \
+            -srckeystore ${NIFI_HOME}/conf/ldap.p12 \
+            -srcstoretype PKCS12 \
+            -destkeystore ${NIFI_HOME}/conf/ldap-keystore.jks \
+            -deststoretype JKS \
+            -storepass $store_password \
+            -srcstorepass $store_password \
+            -noprompt
+
+          # Configure ldap keystore and truststore in authorizers.xml
+          sed -i "s@LDAP_TLS_KEYSTORE_FILE@${NIFI_HOME}/conf/ldap-keystore.jks@g" "${NIFI_HOME}/conf/authorizers.xml"
+          sed -i "s@LDAP_TLS_KEYSTORE_PASSWORD@$store_password@g" "${NIFI_HOME}/conf/authorizers.xml"
+          sed -i "s@LDAP_TLS_KEYSTORE_TYPE@JKS@g" "${NIFI_HOME}/conf/authorizers.xml"
+          sed -i "s@LDAP_TLS_TRUSTSTORE_FILE@$${NIFI_HOME}/conf/ldap-truststore.jks@g" "${NIFI_HOME}/conf/authorizers.xml"
+          sed -i "s@LDAP_TLS_TRUSTSTORE_PASSWORD@$store_password@g" "${NIFI_HOME}/conf/authorizers.xml"
+          sed -i "s@LDAP_TLS_TRUSTSTORE_TYPE@JKS@g" "${NIFI_HOME}/conf/authorizers.xml"
+
+          # Configure ldap keystore and truststore in login-identity-providers.xml
+          sed -i "s@LDAP_TLS_KEYSTORE_FILE@${NIFI_HOME}/conf/ldap-keystore.jks@g" "${NIFI_HOME}/conf/login-identity-providers.xml"
+          sed -i "s@LDAP_TLS_KEYSTORE_PASSWORD@$store_password@g" "${NIFI_HOME}/conf/login-identity-providers.xml"
+          sed -i "s@LDAP_TLS_KEYSTORE_TYPE@JKS@g" "${NIFI_HOME}/conf/login-identity-providers.xml"
+          sed -i "s@LDAP_TLS_TRUSTSTORE_FILE@$${NIFI_HOME}/conf/ldap-truststore.jks@g" "${NIFI_HOME}/conf/login-identity-providers.xml"
+          sed -i "s@LDAP_TLS_TRUSTSTORE_PASSWORD@$store_password@g" "${NIFI_HOME}/conf/login-identity-providers.xml"
+          sed -i "s@LDAP_TLS_TRUSTSTORE_TYPE@JKS@g" "${NIFI_HOME}/conf/login-identity-providers.xml"
+{{- end }}
+          # Create and update nifi.properties
+          cat "${NIFI_HOME}/conf/nifi.temp" > "${NIFI_HOME}/conf/nifi.properties"
+          update_property nifi.remote.input.host ${NIFI_HOST}
+          update_property nifi.cluster.node.address ${NIFI_HOST}
+          update_property nifi.cluster.flow.election.max.candidates {{ .Values.replicaCount }}
+{{- if .Values.nifi.properties.secured }}
+          # Update nifi.properties for security properties
+          update_property nifi.web.https.host ${NIFI_HOST}
+          update_property nifi.security.keystore   ${NIFI_HOME}/config-data/certs/keystore.jks
+          update_property nifi.security.keystoreType JKS
+          update_property nifi.security.keystorePasswd     $(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
+          update_property nifi.security.keyPasswd          $(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
+          update_property nifi.security.truststore   ${NIFI_HOME}/config-data/certs/truststore.jks
+          update_property nifi.security.truststoreType JKS
+          update_property nifi.security.truststorePasswd   $(jq -r .trustStorePassword ${NIFI_HOME}/config-data/certs/config.json)
+          
+          # create copy for api webserver
+          keyStore=${NIFI_HOME}/config-data/certs/keystore.jks
+          apiKeyStore=${NIFI_HOME}/config-data/certs/apikeystore.jks
+          cp $keyStore $apiKeyStore
+          keystorePasswd=$(jq -r .keyStorePassword ${NIFI_HOME}/config-data/certs/config.json)
+          keyPasswd=$(jq -r .keyPassword ${NIFI_HOME}/config-data/certs/config.json)
+
+          apiStorePasswd="8efJeTacYu9VkUYp9gju"
+          apiKeyPasswd="8efJeTacYu9VkUYp9gju"
+
+          keytool -storepasswd -storepass $keystorePasswd -new $apiStorePasswd -keystore $apiKeyStore -storetype JKS
+          keytool -keypasswd -alias "nifi-key" -storepass $apiStorePasswd -keypass $keyPasswd -new "$apiKeyPasswd" -keystore $apiKeyStore -storetype JKS
+
+{{- if .Values.nifi.properties.networkInterface.default }}
+          update_property nifi.web.https.network.interface.default {{ .Values.nifi.properties.networkInterface.default }}
+{{- end }}
+          # Adding new node from scale-up operation to "/proxy" policy
+          # If current pod number is greater than what it was in initial cluster, then add grant it access to /proxy.
+          # This is needed for this NiFi node to proxy user requests.
+          current_node=$(hostname | rev | awk -F "-" '{print $1}' | rev)
+          if [ "$current_node" -ge {{ .Values.replicaCount | quote }} ]; then
+            cluster_info=$(./call_nifi_toolkit.sh nifi get-nodes)
+            node_status=$(echo $cluster_info | jq -r  ".cluster.nodes[] | select((.address==\"$(hostname -f)\")) | .status")
+            if [[ "$node_status" == "DISCONNECTED" ]]; then
+              # Need to cleanup the node, the deleted node is added back to cluster as disconnected node
+              # https://issues.apache.org/jira/browse/NIFI-7003
+              # The bug is fixed in NiFi version >= 1.12.0
+              node_id=$(echo $cluster_info | jq -r  ".cluster.nodes[] | select((.address==\"$(hostname -f)\")) | .nodeId")
+              ./call_nifi_toolkit.sh nifi delete-node --nifiNodeId $node_id
+            fi
+{{- if .Values.nifi.tls.certificateSource.nifiToolkit }}
+            create_nifi_proxy "CN=$(hostname -f), OU=NIFI"
+{{- else if .Values.nifi.tls.certificateSource.userProvided }}
+            create_nifi_proxy "CN=$(hostname -f)"
+{{- end }}
+          fi
+          base_host=$(echo `hostname | rev  | cut -d "-" -f 2- | rev`-0)
+          if [[ `hostname` != "$base_host" ]]; then
+            # Download authorizations.xml from pod-0, it helps to get authorizations.xml required for adding up new nodes
+            ${NIFI_HOME}/bin/kubectl cp {{ .Release.Namespace }}/${base_host}:${NIFI_HOME}/config-data/conf/authorizations.xml ${NIFI_HOME}/config-data/conf/authorizations.xml
+            ${NIFI_HOME}/bin/kubectl cp {{ .Release.Namespace }}/${base_host}:${NIFI_HOME}/config-data/conf/users.xml ${NIFI_HOME}/config-data/conf/users.xml
+          fi
+{{- if .Values.nifi.properties.webProxyHost }}
+          # Update nifi.properties for web ui proxy hostname
+          update_property nifi.web.proxy.host {{ .Values.nifi.properties.webProxyHost }}
+{{- else }}
+          update_property nifi.web.proxy.host {{ template "nifi.fullname" . }}.{{ .Release.Namespace }}.svc
+{{- end }}
+
+{{- if and .Values.ingress.enabled .Values.nifi.tls.certificateSource.nifiToolkit }}
+          # Create secret using the ingress.user.name certificate, so that ingress can use it for backend authentication
+          if [[ `hostname` == "$base_host" ]]; then
+            ${NIFI_HOME}/bin/kubectl -n {{ .Release.Namespace }} get secret \
+              {{ template "nifi.fullname" . }}-proxy-authentication-tls-secret || \
+            ${NIFI_HOME}/bin/kubectl -n {{ .Release.Namespace }} create secret generic \
+              {{ template "nifi.fullname" . }}-proxy-authentication-tls-secret \
+              --from-file=tls.crt=${NIFI_HOME}/config-data/certs/proxy/crt.pem \
+              --from-file=tls.key=${NIFI_HOME}/config-data/certs/proxy/key.pem \
+              --from-file=ca.crt=${NIFI_HOME}/config-data/certs/proxy/ca-crt.pem
+          fi
+{{- end }}
+
+{{- else }}
+          update_property nifi.web.http.host ${NIFI_HOST}
+{{- if .Values.nifi.properties.networkInterface.default }}
+          update_property nifi.web.http.network.interface.default {{ .Values.nifi.properties.networkInterface.default }}
+{{- end }}
+{{- end }}
+          bin/nifi.sh start
+          NODE_STATUS="NOT CONNECTED"
+          # Lets check whether node has been connected
+          while [[ "$NODE_STATUS" != "CONNECTED" ]]; do
+            sleep 15
+            NODE_STATUS=$(base_url_host=`hostname -f` ./call_nifi_toolkit.sh nifi get-nodes | jq -r  ".cluster.nodes[] | select((.address==\"$(hostname -f)\")) | .status" || echo "NOT CONNECTED")
+          done
+
+{{- if .Values.nifi.properties.secured }}
+          if [[ `hostname` == "$base_host" ]] && [[ $NIFI_RESTART == 0 ]]; then
+            # This should only be done on the first boot and not reboots or any other maintenance.
+            echo "Performing post start activities on base host!!!"
+{{- if .Values.ingress.enabled }}
+            # Grant the /proxy access to the ingress controller
+            create_nifi_proxy "{{ .Values.ingress.user.name }}"
+{{- if .Values.nifi.authorization.adminUser.enabled }}
+            # Create admin user accessible over ingress as nifi.authorization.adminUser.name
+            create_nifi_admin_user "{{ .Values.nifi.authorization.adminUser.name }}"
+{{- end }}
+{{- end }}
+{{- if .Values.nifi.initUsers.enabled }}
+            # Create the initial NiFi users as requested
+            echo "Creating the init users."
+{{- range $adminUser := .Values.nifi.initUsers.admins }}
+            create_nifi_admin_user "{{ $adminUser }}"
+{{- end }}
+{{- range $uiUser := .Values.nifi.initUsers.uiUsers }}
+            create_nifi_ui_user "{{ $uiUser }}"
+{{- end }}
+{{- end }}
+          else
+            echo "Pod was restarted, skipping post-start activity."
+          fi
+{{- end }}
+
+          # Keep a check on node status that it remains connected
+          while [[ "$NODE_STATUS" == "CONNECTED" ]]; do
+            sleep {{ .Values.nifi.waitTimeToCheckNodeStatus }}
+            NODE_STATUS=$(base_url_host=`hostname -f` ./call_nifi_toolkit.sh nifi get-nodes | jq -r  ".cluster.nodes[] | select((.address==\"$(hostname -f)\")) | .status" || echo "NOT CONNECTED")
+          done
+        resources:
+{{ toYaml .Values.resources | indent 10 }}
+        ports:
+{{- if .Values.nifi.properties.secured }}
+        # Setup https port as container port when cluster is secured
+        - containerPort: {{ .Values.nifi.properties.port.https }}
+          name: https
+          protocol: TCP
+{{- else }}
+        # Setup http port as container port when cluster is unsecured
+        - containerPort: {{ .Values.nifi.properties.port.http }}
+          name: http
+          protocol: TCP
+{{- end }}
+        - containerPort: {{ .Values.nifi.properties.port.cluster }}
+          name: cluster
+          protocol: TCP
+        env:
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - bash
+              - -c
+              - |
+                set -ex
+{{- if and .Values.nifi.properties.secured (ne .Values.nifi.authorization.adminUser.enabled true) }}
+                # Since user has disabled the adminUser, so we cannot run toolkit commands.
+                # when .Values.nifi.authorization.adminUser.enabled is false we will not perform disconnect/offload operations
+                $NIFI_HOME/bin/nifi.sh stop
+{{- else }}
+                # Setup preStop actions for cleaning up the pods when descaling
+                base_url_host=$(echo `hostname | rev  | cut -d "-" -f 2- | rev`-0.`hostname -f | cut -d "." -f 2-`)
+                cluster_info=$(./call_nifi_toolkit.sh nifi get-nodes)
+                if [[ "$base_url_host" != `hostname -f` ]]; then
+                  node_id=$(echo $cluster_info | jq -r  ".cluster.nodes[] | select((.address==\"$(hostname -f)\")) | .nodeId")
+                  echo $base_url_host
+                  echo $node_id
+                  echo "Disconnecting the node...."
+                  # Disconnect the node from cluster
+                  ./call_nifi_toolkit.sh nifi disconnect-node --nifiNodeId $node_id
+                  echo
+                  sleep 2
+                  echo "Offloading the node...."
+                  # Offload the disconnected node
+                  ./call_nifi_toolkit.sh nifi offload-node --nifiNodeId $node_id
+                  echo
+                  time_to_sleep=5
+                  number_of_checks=50
+                  checked=0
+                  node_status=$(./call_nifi_toolkit.sh nifi get-node --nifiNodeId $node_id -ot json | jq -r '.node.status')
+                  # Lets check whether node has been offloaded or not
+                  while [[ "$node_status" != "OFFLOADED" ]]; do
+                    (( checked++ ))
+                    sleep $time_to_sleep
+                    node_status=$(./call_nifi_toolkit.sh nifi get-node --nifiNodeId $node_id -ot json | jq -r '.node.status')
+                    if [[ $checked > $number_of_checks ]]; then
+                      break
+                    fi
+                  done
+                  if [[ "$node_status" == "OFFLOADING" ]]; then
+                    echo "Disconnecting because offloading did not finish in stipulated time...."
+                    # Disconnect the node if still offloading
+                    ./call_nifi_toolkit.sh nifi disconnect-node --nifiNodeId $node_id
+                    echo
+                    sleep 2
+                  fi
+                  echo "Deleting...."
+                  # Delete the disconnected node
+                  ./call_nifi_toolkit.sh nifi delete-node --nifiNodeId $node_id
+                  echo
+                  sleep 10
+                fi
+{{- if .Values.nifi.properties.secured }}
+                # Removing scaled-up node from its access to "/proxy" policy
+                # If current pod number is greater than what it was in initial cluster
+                # then remove its access to /proxy by deleting the node identity as user.
+                current_node=$(hostname | rev | awk -F "-" '{print $1}' | rev)
+                if [ "$current_node" -ge {{ .Values.replicaCount | quote }} ]; then
+{{- if .Values.nifi.tls.certificateSource.nifiToolkit }}
+                  user_id=$(./call_nifi_toolkit.sh nifi list-users | jq -r ".users[].component | select((.identity==\"CN=$(hostname -f), OU=NIFI\")) |.id")
+{{- else if .Values.nifi.tls.certificateSource.userProvided }}
+                  user_id=$(./call_nifi_toolkit.sh nifi list-users | jq -r ".users[].component | select((.identity==\"CN=$(hostname -f)\")) |.id")
+{{- end }}
+                  curl -k -X DELETE \
+                  --cert ${NIFI_HOME}/config-data/certs/admin/crt.pem --cert-type PEM \
+                  --key ${NIFI_HOME}/config-data/certs/admin/key.pem --key-type PEM \
+                  https://$base_url_host:{{ .Values.nifi.properties.port.https }}/nifi-api/tenants/users/$user_id?version=0
+                fi
+{{- end }}
+                $NIFI_HOME/bin/nifi.sh stop
+{{- end }}
+{{- if .Values.postStart }}
+          postStart:
+            exec:
+              command: ["/bin/sh", "-c", {{ .Values.postStart | quote }}]
+{{- end }}
+        readinessProbe:
+          initialDelaySeconds: 60
+          periodSeconds: 20
+{{- if and .Values.nifi.properties.secured (ne .Values.nifi.authorization.adminUser.enabled true) }}
+          tcpSocket:
+            port: {{ .Values.nifi.properties.port.https }}
+{{- else }}
+          exec:
+            command:
+            - bash
+            - -c
+            - |
+              # Setting up the readiness probe
+{{- if .Values.nifi.properties.secured }}
+              base_url_host=$(echo `hostname | rev  | cut -d "-" -f 2- | rev`-0.`hostname -f | cut -d "." -f 2-`)
+              curl -k \
+                --cert ${NIFI_HOME}/config-data/certs/admin/crt.pem --cert-type PEM \
+                --key ${NIFI_HOME}/config-data/certs/admin/key.pem --key-type PEM \
+                https://$base_url_host:{{ .Values.nifi.properties.port.https }}/nifi-api/controller/cluster > /tmp/cluster.state
+{{- else }}
+              curl -k \
+                http://$(hostname -f):{{ .Values.nifi.properties.port.http }}/nifi-api/controller/cluster > /tmp/cluster.state
+{{- end }}
+              # Get the cluster status
+              STATUS=$(jq -r ".cluster.nodes[] | select((.address==\"$(hostname -f)\") or .address==\"localhost\") | .status" /tmp/cluster.state)
+
+              if [[ $STATUS != "CONNECTED" ]]; then
+                echo "Node not found with CONNECTED state. Full cluster state:"
+                jq . /tmp/cluster.state
+                exit 1
+              fi
+{{- end }}
+        livenessProbe:
+          initialDelaySeconds: 90
+          periodSeconds: 60
+          tcpSocket:
+{{- if .Values.nifi.properties.secured }}
+            port: {{ .Values.nifi.properties.port.https }}
+{{- else }}
+            port: {{ .Values.nifi.properties.port.http }}
+{{- end }}
+        volumeMounts:
+{{- if and .Values.nifi.properties.secured ( and .Values.nifi.authentication.ldap.enabled .Values.nifi.authentication.ldap.tls.enabled) }}
+          - name: "ldap-certs"
+            mountPath: /opt/ldap-certs
+{{- end }}
+{{- if .Values.nifi.properties.secured }}
+          - name: "config-data"
+            mountPath: /opt/nifi/nifi-current/config-data
+{{- end }}
+          - name: "data1"
+            mountPath: /data/partition1
+          - name: "data2"
+            mountPath: /data/partition2
+          - name: "data3"
+            mountPath: /data/partition3
+          - name: "logs"
+            mountPath: /opt/nifi/nifi-current/logs
+          - name: "bootstrap-conf"
+            mountPath: /opt/nifi/nifi-current/conf/bootstrap.conf
+            subPath: "bootstrap.conf"
+          - name: "nifi-properties"
+            mountPath: /opt/nifi/nifi-current/conf/nifi.temp
+            subPath: "nifi.temp"
+          - name: "authorizers-temp"
+            mountPath: /opt/nifi/nifi-current/conf/authorizers.temp
+            subPath: "authorizers.temp"
+          - name: "logback-xml"
+            mountPath: /opt/nifi/nifi-current/conf/logback.xml
+            subPath: "logback.xml"
+          - name: "state-management-xml"
+            mountPath: /opt/nifi/nifi-current/conf/state-management.xml
+            subPath: "state-management.xml"
+          - name: "login-identity-providers-xml"
+            mountPath: /opt/nifi/nifi-current/conf/login-identity-providers.temp
+            subPath: "login-identity-providers.temp"
+{{- if .Values.logContainers.enabled }}
+      - name: app-log
+        imagePullPolicy: {{ .Values.logContainers.image.pullPolicy | quote }}
+        image: "{{ .Values.logContainers.image.repository }}:{{ .Values.logContainers.image.tag }}"
+        args: [tail, -n+1, -F, /var/log/nifi-app.log]
+        resources:
+{{ toYaml .Values.logContainers.resources | indent 10 }}
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log
+      - name: bootstrap-log
+        imagePullPolicy: {{ .Values.logContainers.image.pullPolicy | quote }}
+        image: "{{ .Values.logContainers.image.repository }}:{{ .Values.logContainers.image.tag }}"
+        args: [tail, -n+1, -F, /var/log/nifi-bootstrap.log]
+        resources:
+{{ toYaml .Values.logContainers.resources | indent 10 }}
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log
+      - name: user-log
+        imagePullPolicy: {{ .Values.logContainers.image.pullPolicy | quote }}
+        image: "{{ .Values.logContainers.image.repository }}:{{ .Values.logContainers.image.tag }}"
+        args: [tail, -n+1, -F, /var/log/nifi-user.log]
+        resources:
+{{ toYaml .Values.logContainers.resources | indent 10 }}
+        volumeMounts:
+        - name: logs
+          mountPath: /var/log
+{{- end }}
+      volumes:
+{{- if and .Values.nifi.properties.secured ( and .Values.nifi.authentication.ldap.enabled .Values.nifi.authentication.ldap.tls.enabled) }}
+      - name : "ldap-certs"
+        secret:
+          secretName: {{ template "nifi.fullname" . }}-ldap-certs
+{{- end }}
+{{- if and .Values.nifi.properties.secured ( ne .Values.nifi.tls.certificateSource.nifiToolkit true) }}
+      - name : "certificates"
+        secret:
+          secretName: {{ template "nifi.fullname" . }}-certs
+{{- end }}
+      - name: "bootstrap-conf"
+        configMap:
+          name: {{ template "nifi.fullname" . }}
+          items:
+            - key: "bootstrap.conf"
+              path: "bootstrap.conf"
+      - name: "nifi-properties"
+        configMap:
+          name: {{ template "nifi.fullname" . }}
+          items:
+            - key: "nifi.properties"
+              path: "nifi.temp"
+      - name: "authorizers-temp"
+        configMap:
+          name: {{ template "nifi.fullname" . }}
+          items:
+            - key: "authorizers.xml"
+              path: "authorizers.temp"
+      - name: "logback-xml"
+        configMap:
+          name: {{ template "nifi.fullname" . }}
+          items:
+            - key: "logback.xml"
+              path: "logback.xml"
+      - name: "state-management-xml"
+        configMap:
+          name: {{ template "nifi.fullname" . }}
+          items:
+            - key: "state-management.xml"
+              path: "state-management.xml"
+      - name: "login-identity-providers-xml"
+        configMap:
+          name: {{ template "nifi.fullname" . }}
+          items:
+            - key: "login-identity-providers.xml"
+              path: "login-identity-providers.temp"
+  volumeClaimTemplates:
+{{- if .Values.nifi.properties.secured }}
+    - metadata:
+        name: "config-data"
+      spec:
+        accessModes: ["ReadWriteOnce"]
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.configPartitionSize }}
+{{- end }}
+    - metadata:
+        name: data1
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.dataPartition1Size }}
+    - metadata:
+        name: data2
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.dataPartition2Size }}
+    - metadata:
+        name: data3
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.dataPartition3Size }}
+    - metadata:
+        name: logs
+      spec:
+        accessModes:
+        {{- range .Values.persistence.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        storageClassName: {{ .Values.persistence.storageClass | quote }}
+        resources:
+          requests:
+            storage: {{ .Values.persistence.logPartitionSize }}

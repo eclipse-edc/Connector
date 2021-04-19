@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.util.Properties;
+import java.util.UUID;
 
 import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.*;
@@ -19,10 +20,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 public class AzureVaultIntegrationTest {
 
-    private static final String secretKey1 = "testkey1";
-    private static final String secretKey2 = "testkey2";
-    private static final String secretKey3 = "testkey3";
-    private static final String secretKey4 = "testkey4";
+    private static final String id = UUID.randomUUID().toString();
+    private static final String secretKey1 = "testkey1" + id;
+    private static final String secretKey2 = "testkey2" + id;
+    private static final String secretKey3 = "testkey3" + id;
+    private static final String secretKey4 = "testkey4" + id;
     private static AzureVault azureVault;
 
     @BeforeAll

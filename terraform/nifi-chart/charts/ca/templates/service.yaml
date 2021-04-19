@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "ca.fullname" . }}
+  labels:
+    app: {{ template "ca.name" . }}-ca
+    chart: "{{ .Chart.Name }}-{{ .Chart.Version }}"
+    release: {{ .Release.Name | quote }}
+    heritage: {{ .Release.Service | quote }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.app_port }}
+      name: ca-server
+  selector:
+    app: {{ template "ca.name" . }}-ca
+    release: {{ .Release.Name }}
