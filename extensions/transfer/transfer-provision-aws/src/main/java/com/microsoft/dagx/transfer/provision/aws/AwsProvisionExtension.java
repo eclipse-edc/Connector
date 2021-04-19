@@ -11,6 +11,7 @@ import com.microsoft.dagx.transfer.provision.aws.provider.SdkClientProvider;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisionedResource;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisioner;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketResourceDefinition;
+import com.microsoft.dagx.transfer.types.aws.S3Destination;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
@@ -79,7 +80,7 @@ public class AwsProvisionExtension implements ServiceExtension {
     }
 
     private void registerTypes(TypeManager typeManager) {
-        typeManager.registerTypes(S3BucketProvisionedResource.class, S3BucketResourceDefinition.class);
+        typeManager.registerTypes(S3BucketProvisionedResource.class, S3BucketResourceDefinition.class, S3Destination.class);
     }
 
 

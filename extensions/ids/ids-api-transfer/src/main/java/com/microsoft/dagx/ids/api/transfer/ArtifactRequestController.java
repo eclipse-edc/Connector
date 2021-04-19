@@ -6,6 +6,7 @@ import com.microsoft.dagx.spi.iam.VerificationResult;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
+import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.ArtifactResponseMessageBuilder;
@@ -63,7 +64,10 @@ public class ArtifactRequestController {
             return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_FOUND).build()).build();
         }
 
-        var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).protocol(IDS_REST).build();
+        // TODO this needs to be deserialized from the artifact request message
+        DataDestination dataDestination = null;
+
+        var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).dataDestination(dataDestination).protocol(IDS_REST).build();
 
         var response = processManager.initiateProviderRequest(dataRequest);
 
