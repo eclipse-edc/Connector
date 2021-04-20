@@ -5,8 +5,8 @@ import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.system.DefaultServiceExtensionContext;
-import org.junit.jupiter.api.extension.AfterAllCallback;
-import org.junit.jupiter.api.extension.BeforeAllCallback;
+import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
+import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
@@ -22,14 +22,14 @@ import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
 /**
  * A JUnit extension for running an embedded DA-GX runtime as part of a test fixture.
  *
- * This extension attaches a DA-GX runtime to the {@link BeforeAllCallback} and {@link AfterAllCallback} lifecycle hooks. Parameter injection of runtime services is supported.
+ * This extension attaches a DA-GX runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
-public class DagxExtension implements BeforeAllCallback, AfterAllCallback, ParameterResolver {
+public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private List<ServiceExtension> serviceExtensions;
     private DefaultServiceExtensionContext context;
 
     @Override
-    public void beforeAll(ExtensionContext extensionContext) {
+    public void beforeTestExecution(ExtensionContext extensionContext) {
         var typeManager = new TypeManager();
 
         var monitor = loadMonitor();
@@ -53,7 +53,7 @@ public class DagxExtension implements BeforeAllCallback, AfterAllCallback, Param
     }
 
     @Override
-    public void afterAll(ExtensionContext context) {
+    public void afterTestExecution(ExtensionContext context) {
         if (serviceExtensions != null) {
             var iter = serviceExtensions.listIterator(serviceExtensions.size());
             while (iter.hasPrevious()) {
