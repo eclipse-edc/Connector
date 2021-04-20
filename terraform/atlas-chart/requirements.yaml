@@ -1,0 +1,10 @@
+dependencies:
+- name: zookeeper
+  version: "1.2.3"
+  repository: "file://../zookeeper"
+- name: cassandra
+  version: "1.2.3"
+  repository: "file://../cassandra"
+- name: solr
+  version: "1.2.3"
+  repository: "file://../solr"

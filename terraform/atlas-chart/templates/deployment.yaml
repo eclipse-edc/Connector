@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ template "fullname" . }}
+  labels:
+    app: {{ template "name" . }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+      matchLabels:
+          app: {{ template "name" . }}
+          release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      initContainers:
+        - name: {{ .Chart.Name }}-init
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: [
+                    "/bin/bash",
+                    "-c",
+                    "apk update;
+                     apk add curl zip;
+                     zip config.zip /apache-atlas-2.1.0-SNAPSHOT/conf/solr/*;
+                     curl -X POST --header 'Content-Type:text/xml' -d @config.zip 'http://{{ .Release.Name }}-solr-headless:8983/solr/admin/configs?action=CREATE&name=vertex_index';
+                     curl -X POST --header 'Content-Type:text/xml' -d @config.zip 'http://{{ .Release.Name }}-solr-headless:8983/solr/admin/configs?action=CREATE&name=edge_index';
+                     curl -X POST --header 'Content-Type:text/xml' -d @config.zip 'http://{{ .Release.Name }}-solr-headless:8983/solr/admin/configs?action=CREATE&name=fulltext_index';"
+                    ]
+          env:
+            - name: ZK_CLIENT_TIMEOUT
+              value: "{{ .Values.zkClientTimeout }}"
+      containers:
+        - name: {{ .Chart.Name }}
+          command: [
+                    "/bin/bash",
+                    "-c",
+                    "/apache-atlas-2.1.0-SNAPSHOT/bin/atlas_start.py;
+                      tail -f /apache-atlas-2.1.0-SNAPSHOT/logs/*.log;"
+                    ]
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.internalPort }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+    {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+    {{- end }}
+          volumeMounts:
+          - name: atlas-config
+            mountPath: /apache-atlas-2.1.0-SNAPSHOT/conf/atlas-application.properties
+            subPath: atlas-application.properties            
+      volumes:
+      - name: atlas-config
+        configMap:
+          name: atlas-config               
+
