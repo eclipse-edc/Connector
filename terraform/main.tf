@@ -12,10 +12,16 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
       version = ">=2.0.3"
+      configuration_aliases = [
+        kubernetes.nifi,
+        kubernetes.atlas]
     }
     helm = {
       source = "hashicorp/helm"
       version = ">= 2.1.0"
+      configuration_aliases = [
+        helm.nifi,
+        helm.atlas]
     }
   }
 }
@@ -35,18 +41,38 @@ provider "azuread" {
 }
 
 provider "kubernetes" {
+  alias = "nifi"
   host = data.azurerm_kubernetes_cluster.nifi.kube_config.0.host
   client_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_certificate)
   client_key = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_key)
   cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.cluster_ca_certificate)
 }
 
+provider "kubernetes" {
+  alias = "atlas"
+  host = data.azurerm_kubernetes_cluster.atlas.kube_config.0.host
+  client_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.client_certificate)
+  client_key = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.cluster_ca_certificate)
+}
+
 provider "helm" {
+  alias = "nifi"
   kubernetes {
     host = data.azurerm_kubernetes_cluster.nifi.kube_config.0.host
     client_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_certificate)
     client_key = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_key)
     cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.cluster_ca_certificate)
+  }
+}
+
+provider "helm" {
+  alias = "atlas"
+  kubernetes {
+    host = data.azurerm_kubernetes_cluster.atlas.kube_config.0.host
+    client_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.client_certificate)
+    client_key = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.client_key)
+    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.cluster_ca_certificate)
   }
 }
 
@@ -153,6 +179,10 @@ module "nifi-deployment" {
   kubeconfig = data.azurerm_kubernetes_cluster.nifi.kube_config_raw
   resourcesuffix = var.resourcesuffix
   tenant_id = data.azurerm_client_config.current.tenant_id
+  providers = {
+    kubernetes = kubernetes.nifi
+    helm = helm.nifi
+  }
 }
 
 //module "atlas-deployment" {
