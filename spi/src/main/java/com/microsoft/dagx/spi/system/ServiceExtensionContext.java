@@ -28,6 +28,11 @@ public interface ServiceExtensionContext {
     String getSetting(String setting, String defaultValue);
 
     /**
+     * Returns true if the service type is registered.
+     */
+    <T> boolean hasService(Class<T> type);
+
+    /**
      * Returns a system service.
      */
     <T> T getService(Class<T> type);

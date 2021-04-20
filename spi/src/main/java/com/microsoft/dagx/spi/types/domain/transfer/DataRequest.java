@@ -26,6 +26,11 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private DataDestination dataDestination;
 
+    private String destinationType;
+
+    private boolean managedResources = true;
+
+
     /**
      * The unique request id.
      */
@@ -58,12 +63,21 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return dataEntry;
     }
 
+    public String getDestinationType() {
+        return destinationType;
+    }
+
     /**
      * The target address the data is to be sent to. Set by the request originator, e.g., the client connector.
      */
     public DataDestination getDataDestination() {
         return dataDestination;
     }
+
+    public boolean isManagedResources() {
+        return managedResources;
+    }
+
 
     private DataRequest() {
     }
@@ -106,8 +120,18 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
+        public Builder destinationType(String type) {
+            request.destinationType = type;
+            return this;
+        }
+
         public Builder dataDestination(DataDestination destination) {
             request.dataDestination = destination;
+            return this;
+        }
+
+        public Builder managedResources(boolean value) {
+            request.managedResources = value;
             return this;
         }
 

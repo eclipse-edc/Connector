@@ -78,6 +78,11 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
+    public <T> boolean hasService(Class<T> type) {
+        return services.containsKey(type);
+    }
+
+    @Override
     @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> type) {
         T service = (T) services.get(type);

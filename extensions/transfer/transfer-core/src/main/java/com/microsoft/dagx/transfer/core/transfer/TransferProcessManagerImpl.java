@@ -62,16 +62,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     @Override
     public TransferInitiateResponse initiateClientRequest(DataRequest dataRequest) {
-        return initiateRequest(dataRequest, CLIENT);
+        return initiateRequest(CLIENT, dataRequest);
     }
 
     @Override
     public TransferInitiateResponse initiateProviderRequest(DataRequest dataRequest) {
-        return initiateRequest(dataRequest, PROVIDER);
+        return initiateRequest(PROVIDER, dataRequest);
     }
 
-    private TransferInitiateResponse initiateRequest(DataRequest dataRequest, TransferProcess.Type type) {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(randomUUID().toString()).dataRequest(dataRequest).type(type).build();
+    private TransferInitiateResponse initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
+        String id = randomUUID().toString();
+        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
         transferProcessStore.create(process);
         return TransferInitiateResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.OK).build();
     }
@@ -119,7 +120,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         List<TransferProcess> processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
-            ResourceManifest manifest = process.getType() == CLIENT ? manifestGenerator.generateClientManifest(dataRequest) : manifestGenerator.generateProviderManifest(dataRequest);
+            ResourceManifest manifest;
+            if (process.getType() == CLIENT) {
+                // if resources are managed by this connector, generate the manifest; otherwise create an empty one
+                manifest = dataRequest.isManagedResources() ? manifestGenerator.generateClientManifest(dataRequest) : ResourceManifest.Builder.newInstance().build();
+            } else {
+                manifest = manifestGenerator.generateProviderManifest(dataRequest);
+            }
             process.transitionProvisioning(manifest);
             transferProcessStore.update(process);
             provisionManager.provision(process);

@@ -5,6 +5,7 @@ include(":core")
 
 include(":distributions:demo")
 include(":distributions:azure")
+include(":distributions:junit")
 
 include(":extensions:protocol:web")
 include(":extensions:control-http")
@@ -35,6 +36,8 @@ include(":policy:policy-model")
 include(":policy:policy-engine")
 
 include(":extensions:demo:demo-nifi")
+
+include(":integration:integration-core")
 
 include(":runtime")
 include(":client-runtime")
