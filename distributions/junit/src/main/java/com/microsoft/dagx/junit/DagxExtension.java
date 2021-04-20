@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static com.microsoft.dagx.system.ExtensionLoader.addHttpClient;
@@ -27,6 +28,17 @@ import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
 public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private List<ServiceExtension> serviceExtensions;
     private DefaultServiceExtensionContext context;
+
+    private List<Object> serviceMocks = new ArrayList<>();
+
+    /**
+     * Registers a mock service with the runtime.
+     *
+     * @param mock the service mock
+     */
+    public void registerServiceMock(Object mock) {
+        serviceMocks.add(mock);
+    }
 
     @Override
     public void beforeTestExecution(ExtensionContext extensionContext) {
@@ -65,7 +77,9 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
     @Override
     public boolean supportsParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getParameterizedType();
-        if (Class.class.isAssignableFrom(type.getClass())) {
+        if (type.equals(DagxExtension.class)) {
+            return true;
+        } else if (type instanceof Class) {
             //noinspection unchecked,rawtypes,rawtypes
             return context.hasService((Class) type);
         }
@@ -75,7 +89,9 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) throws ParameterResolutionException {
         var type = parameterContext.getParameter().getParameterizedType();
-        if (Class.class.isAssignableFrom(type.getClass())) {
+        if (type.equals(DagxExtension.class)) {
+            return this;
+        } else if (type instanceof Class) {
             //noinspection unchecked,rawtypes,rawtypes
             return context.getService((Class) type);
         }
