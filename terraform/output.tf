@@ -21,7 +21,7 @@ output "kubeconfig_path" {
 }
 
 output "nifi_cluster_name" {
-  value = local.cluster_name
+  value = local.cluster_name_nifi
 }
 
 output "client_id" {
