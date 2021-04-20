@@ -20,6 +20,14 @@ output "kubeconfig_path" {
   value = abspath("${path.root}/kubeconfig")
 }
 
-output "cluster_name" {
+output "nifi_cluster_name" {
   value = local.cluster_name
+}
+
+output "client_id" {
+  value = azuread_application.dagx-terraform-app.application_id
+}
+
+output "certfile" {
+  value = abspath("${path.root}/cert.pfx")
 }
