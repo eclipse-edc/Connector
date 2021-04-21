@@ -144,6 +144,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
             if (CLIENT == process.getType()) {
+                process.transitionRequested();
                 dispatcherRegistry.send(Void.class, dataRequest).whenComplete((response, exception) -> {
                     if (exception != null) {
                         monitor.severe("Error sending request process id: " + process.getId(), exception);
@@ -153,7 +154,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                     }
                     transferProcessStore.update(process);
                 });
-                process.transitionRequested();
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
                 if (ResponseStatus.ERROR_RETRY == response.getStatus()) {

@@ -20,7 +20,14 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
     @Override
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message) {
         Objects.requireNonNull(message, "Message was null");
-        return getDispatcher(message.getProtocol()).send(responseType, message);
+        String protocol = message.getProtocol();
+        RemoteMessageDispatcher dispatcher = getDispatcher(protocol);
+        if (dispatcher == null) {
+            var future = new CompletableFuture<T>();
+            future.completeExceptionally(new DagxException("No provider dispatcher registered for protocol: " + protocol));
+            return future;
+        }
+        return dispatcher.send(responseType, message);
     }
 
     @Override
@@ -28,17 +35,14 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
         dispatchers.put(dispatcher.protocol(), dispatcher);
     }
 
+    @Nullable
     private RemoteMessageDispatcher getDispatcher(@Nullable String protocol) {
         if (protocol == null) {
             if (dispatchers.isEmpty()) {
-                throw new DagxException("No provider dispatchers are registered");
+                return null;
             }
             return dispatchers.values().iterator().next();
         }
-        RemoteMessageDispatcher dispatcher = dispatchers.get(protocol);
-        if (dispatcher == null) {
-            throw new DagxException("No provider dispatcher registered for protocol: " + protocol);
-        }
-        return dispatcher;
+        return dispatchers.get(protocol);
     }
 }

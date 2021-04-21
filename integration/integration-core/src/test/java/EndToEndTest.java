@@ -1,6 +1,7 @@
 import com.microsoft.dagx.junit.DagxExtension;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
+import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
@@ -10,6 +11,9 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+
 /**
  *
  */
@@ -18,8 +22,16 @@ public class EndToEndTest {
 
     @Test
     @Disabled
-    void processRequest(TransferProcessManager processManager, DataFlowManager dataFlowManager) {
+    void processRequest(TransferProcessManager processManager, DataFlowManager dataFlowManager) throws InterruptedException {
         DataFlowController dataFlowMock = EasyMock.createMock(DataFlowController.class);
+
+        CountDownLatch latch = new CountDownLatch(1);
+
+        EasyMock.expect(dataFlowMock.canHandle(EasyMock.isA(DataRequest.class))).andReturn(true);
+        EasyMock.expect(dataFlowMock.initiateFlow(EasyMock.isA(DataRequest.class))).andAnswer(() -> {
+            latch.countDown();
+            return DataFlowInitiateResponse.OK;
+        });
         EasyMock.replay(dataFlowMock);
 
         dataFlowManager.register(dataFlowMock);
@@ -32,9 +44,9 @@ public class EndToEndTest {
 
         processManager.initiateClientRequest(request);
 
+        latch.await(4000, TimeUnit.DAYS);
+
         EasyMock.verify(dataFlowMock);
-        // TODO wait on a latch for async processing
-        // Thread.sleep(10000);
     }
 
     @BeforeEach
