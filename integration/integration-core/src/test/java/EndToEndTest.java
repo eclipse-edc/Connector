@@ -1,6 +1,7 @@
 import com.microsoft.dagx.junit.DagxExtension;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
+import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import org.easymock.EasyMock;
@@ -15,12 +16,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 @ExtendWith(DagxExtension.class)
 public class EndToEndTest {
 
-    private DataFlowController dataFlowMock;
-
     @Test
     @Disabled
-    void processRequest(TransferProcessManager processManager) {
+    void processRequest(TransferProcessManager processManager, DataFlowManager dataFlowManager) {
+        DataFlowController dataFlowMock = EasyMock.createMock(DataFlowController.class);
         EasyMock.replay(dataFlowMock);
+
+        dataFlowManager.register(dataFlowMock);
 
         var artifactId = "test123";
         var connectorId = "https://test";
@@ -37,7 +39,6 @@ public class EndToEndTest {
 
     @BeforeEach
     void before(DagxExtension extension) {
-        dataFlowMock = EasyMock.createMock(DataFlowController.class);
-        extension.registerServiceMock(dataFlowMock);
+        // register mocks needed for boot here
     }
 }

@@ -12,9 +12,10 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
+import static com.microsoft.dagx.spi.util.Cast.cast;
 import static com.microsoft.dagx.system.ExtensionLoader.addHttpClient;
 import static com.microsoft.dagx.system.ExtensionLoader.bootServiceExtensions;
 import static com.microsoft.dagx.system.ExtensionLoader.loadMonitor;
@@ -29,15 +30,15 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
     private List<ServiceExtension> serviceExtensions;
     private DefaultServiceExtensionContext context;
 
-    private List<Object> serviceMocks = new ArrayList<>();
+    private LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
 
     /**
      * Registers a mock service with the runtime.
      *
      * @param mock the service mock
      */
-    public void registerServiceMock(Object mock) {
-        serviceMocks.add(mock);
+    public <T> void registerServiceMock(Class<T> type, T mock) {
+        serviceMocks.put(type, mock);
     }
 
     @Override
@@ -50,6 +51,8 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
 
         context = new DefaultServiceExtensionContext(typeManager, monitor);
         context.initialize();
+
+        serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
 
         try {
             addHttpClient(context);
@@ -97,4 +100,5 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
         }
         return null;
     }
+
 }
