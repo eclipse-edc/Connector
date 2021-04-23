@@ -4,7 +4,8 @@ variable "location" {
   type        = string
 }
 locals {
-  cluster_name = "dagx-${var.resourcesuffix}-cluster"
+  cluster_name_nifi  = "${var.resourcesuffix}-nifi-cluster"
+  cluster_name_atlas = "${var.resourcesuffix}-atlas-cluster"
 }
 
 variable "resourcesuffix" {

@@ -17,6 +17,16 @@ resource "azurerm_resource_group" "clusterrg" {
   location = var.location
 }
 
+
+resource "azurerm_public_ip" "aks-cluster-public-ip" {
+  resource_group_name = azurerm_kubernetes_cluster.default.node_resource_group
+  location            = azurerm_resource_group.clusterrg.location
+  domain_name_label   = var.dns
+  allocation_method   = "Static"
+  name                = "dagxPublicIp"
+  sku                 = "Standard"
+}
+
 resource "azurerm_kubernetes_cluster" "default" {
   name                = var.cluster_name
   location            = var.location
@@ -25,7 +35,7 @@ resource "azurerm_kubernetes_cluster" "default" {
 
   default_node_pool {
     name               = "agentpool"
-    node_count         = 3
+    node_count         = 2
     vm_size            = "Standard_D2_v2"
     os_disk_size_gb    = 30
     availability_zones = ["1", "2", "3"]
@@ -44,9 +54,6 @@ resource "azurerm_kubernetes_cluster" "default" {
   }
 
   addon_profile {
-    http_application_routing {
-      enabled = true
-    }
     azure_policy {
       enabled = false
     }
@@ -57,3 +64,6 @@ resource "azurerm_kubernetes_cluster" "default" {
   }
 }
 
+output "public-ip"{
+  value= azurerm_public_ip.aks-cluster-public-ip
+}

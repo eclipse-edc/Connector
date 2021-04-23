@@ -34,7 +34,7 @@ metadata:
     nginx.ingress.kubernetes.io/auth-tls-verify-depth: {{ .Values.ingress.tlsVerifyDepth | quote }}
 {{- end }}
 {{- end }}
-    kubernetes.io/ingress.class: addon-http-application-routing
+{{/*    kubernetes.io/ingress.class: addon-http-application-routing*/}}
 spec:
   rules:
 {{- if .Values.nifi.properties.webProxyHost }}

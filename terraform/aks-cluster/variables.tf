@@ -1,6 +1,6 @@
 
 variable "kubernetes_version" {
-  default = "1.18"
+  default = "1.19"
 }
 
 variable "cluster_name" {
@@ -9,4 +9,8 @@ variable "cluster_name" {
 
 variable "location" {
   type = string
+}
+
+variable "dns" {
+  type=string
 }

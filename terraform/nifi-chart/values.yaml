@@ -15,7 +15,7 @@ securityContext:
   fsGroup: 1000
 
 # statefulset replica-count
-replicaCount: 3
+replicaCount: 2
 
 # Azure managed identity details
 managedIdentity:
@@ -40,7 +40,7 @@ service:
   sessionAffinityTimeoutInSeconds: 60
 
 ingress:
-  enabled: true
+  enabled: false
   affinity: "cookie"
   affinityMode: "affinityMode"
   tlsVerifyDepth: 1
@@ -199,7 +199,7 @@ persistence:
 resources:
   requests:
     memory: "1Gi"
-    cpu: "0.9"
+    cpu: "0.5"
 
 # Parameters for logging containers running in statefulset
 logContainers:

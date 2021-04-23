@@ -1,0 +1,154 @@
+---
+
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "solr.fullname" . }}
+  labels:
+{{ include "solr.common.labels" . | indent 4 }}
+    app.kubernetes.io/component: server
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: "{{ include "solr.name" . }}"
+      app.kubernetes.io/instance: "{{ .Release.Name }}"
+      app.kubernetes.io/component: "server"
+  serviceName: {{ include "solr.headless-service-name" . }}
+  replicas: {{ .Values.replicaCount }}
+  updateStrategy:
+    {{ toYaml .Values.updateStrategy | indent 4}}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: "{{ include "solr.name" . }}"
+        app.kubernetes.io/instance: "{{ .Release.Name }}"
+        app.kubernetes.io/component: "server"
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+    spec:
+{{- include "solr.imagePullSecrets" . | indent 6 }}
+      {{- if .Values.schedulerName }}
+      schedulerName: "{{ .Values.schedulerName }}"
+      {{- end }}
+      securityContext:
+        fsGroup: 8983
+        runAsUser: 8983
+      affinity:
+{{ tpl (toYaml .Values.affinity) .  | indent 8 }}
+      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds }}
+      volumes:
+{{- if .Values.tls.enabled }}
+        - name: keystore-volume
+          emptyDir: {}
+        - name: "tls-secret"
+          secret:
+            secretName: {{ .Values.tls.certSecret.name }}
+{{- if not (eq .Values.tls.caSecret.name  "") }}
+        - name: "tls-ca"
+          secret:
+            secretName: {{ .Values.tls.caSecret.name }}
+{{- end }}
+{{- end }}
+        - name: solr-xml
+          configMap:
+            name: {{ include "solr.configmap-name" . }}
+            items:
+              - key: solr.xml
+                path: solr.xml
+      initContainers:
+        - name: check-zk
+          image: busybox:latest
+          command:
+            - 'sh'
+            - '-c'
+            - |
+              COUNTER=0;
+              while [  $COUNTER -lt 60 ]; do
+                addr=$(nslookup -type=a {{ include "solr.zookeeper-service-name" . }} | grep "Address:" | awk 'NR>1 {print $2}')
+                if [ ! -z "$addr" ]; then
+                  while read -r line; do
+                    echo $line;
+                    mode=$(echo srvr | nc $line 2181 | grep "Mode");
+                    echo $mode;
+                    if [ "$mode" = "Mode: leader" ] || [ "$mode" = "Mode: standalone" ]; then
+                      echo "Found a leader!";
+                      exit 0;
+                    fi;
+                  done <<EOF
+              $addr
+              EOF
+                fi;
+                let COUNTER=COUNTER+1;
+                sleep 2;
+              done;
+              echo "Did NOT see a ZK leader after 240 secs!";
+              exit 1;
+        - name: "cp-solr-xml"
+          image: busybox:latest
+          command: ['sh', '-c', 'cp /tmp/solr.xml /tmp-config/solr.xml']
+          volumeMounts:
+            - name: "solr-xml"
+              mountPath: "/tmp"
+            - name: "{{ include "solr.pvc-name" . }}"
+              mountPath: "/tmp-config"
+
+      containers:
+        - name: solr
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          ports:
+            - containerPort: {{ .Values.port }}
+              name: solr-client
+          env:
+            - name: "SOLR_JAVA_MEM"
+              value: "{{ .Values.javaMem }}"
+            - name: "SOLR_HOME"
+              value: "/opt/solr/server/home"
+            - name: "SOLR_PORT"
+              value: "{{ .Values.port }}"
+            - name: "POD_HOSTNAME"
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: "SOLR_HOST"
+              value: "$(POD_HOSTNAME).{{ include "solr.headless-service-name" . }}.{{ .Release.Namespace }}"
+            - name: "ZK_HOST"
+              value: "{{ include "solr.zookeeper-service-name" . }}:2181"
+            - name: "SOLR_LOG_LEVEL"
+              value: "{{ .Values.logLevel }}"
+{{- if .Values.extraEnvVars }}
+{{ toYaml .Values.extraEnvVars | indent 12 }}
+{{- end }}
+          livenessProbe:
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+            httpGet:
+              scheme: "{{ .Values.tls.enabled | ternary "HTTPS" "HTTP" }}"
+              path: /solr/admin/info/system
+              port: {{ .Values.port }}
+          readinessProbe:
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+            httpGet:
+              scheme: "{{ .Values.tls.enabled | ternary "HTTPS" "HTTP" }}"
+              path: /solr/admin/info/system
+              port: {{ .Values.port }}
+          volumeMounts:
+            - name: {{ include "solr.pvc-name" . }}
+              mountPath: /opt/solr/server/home
+  volumeClaimTemplates:
+    - metadata:
+        name: {{ include "solr.pvc-name" . }}
+        annotations:
+          pv.beta.kubernetes.io/gid: "8983"
+      spec:
+        accessModes:
+{{ toYaml .Values.volumeClaimTemplates.accessModes | indent 10 }}
+{{- if not ( eq .Values.volumeClaimTemplates.storageClassName  "" ) }}
+        storageClassName: "{{ .Values.volumeClaimTemplates.storageClassName }}"
+{{- end }}
+        resources:
+          requests:
+            storage: {{ .Values.volumeClaimTemplates.storageSize }}
