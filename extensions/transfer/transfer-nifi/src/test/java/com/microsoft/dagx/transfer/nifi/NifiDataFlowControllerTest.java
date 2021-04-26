@@ -68,7 +68,6 @@ class NifiDataFlowControllerTest {
             return;
         }
 
-        //todo: spin up dockerized nifi
         typeManager = new TypeManager();
         typeManager.getMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 

@@ -59,6 +59,7 @@ public class NifiDataFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+         //todo: replace with abstract class
         if (!(dataRequest.getDataEntry().getExtensions() instanceof GenericDataEntryExtensions)) {
             throw new DagxException("Invalid extensions type, expected:" + GenericDataEntryExtensions.class.getName());
         }
@@ -101,6 +102,7 @@ public class NifiDataFlowController implements DataFlowController {
 
     @NotNull
     private Request createTransferRequest(DataRequest dataRequest, String basicAuthCredentials) {
+        //todo replace with generic code
         GenericDataEntryExtensions extensions = (GenericDataEntryExtensions) dataRequest.getDataEntry().getExtensions();
 
         String url = baseUrl + CONTENTLISTENER;
