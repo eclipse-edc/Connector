@@ -27,7 +27,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
     public @NotNull DataFlowInitiateResponse initiate(DataRequest dataRequest) {
         DataFlowController executor = getExecutor(dataRequest);
         if (executor == null) {
-            return new DataFlowInitiateResponse(FATAL_ERROR,"Unable to process data request: " + dataRequest.getId());
+            return new DataFlowInitiateResponse(FATAL_ERROR,"Unable to process data request. No data flow controller found: " + dataRequest.getId());
         }
         return executor.initiateFlow(dataRequest);
     }
