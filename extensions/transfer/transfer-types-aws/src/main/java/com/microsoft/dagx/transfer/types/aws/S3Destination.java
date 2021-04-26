@@ -15,6 +15,8 @@ import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 @JsonDeserialize(builder = S3Destination.Builder.class)
 @JsonTypeName("dagx:s3destination")
 public class S3Destination implements DataDestination {
+    public static final String TYPE = "S3";
+
     private String region;
     private String bucketName;
     private DestinationSecretToken secretToken;
@@ -22,7 +24,7 @@ public class S3Destination implements DataDestination {
     @Override
     @JsonProperty
     public String getType() {
-        return "S3";
+        return TYPE;
     }
 
     @Override

@@ -91,10 +91,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return new Builder();
         }
 
-        public DataRequest build() {
-            return request;
-        }
-
         public Builder id(String id) {
             request.id = id;
             return this;
@@ -138,5 +134,13 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         private Builder() {
             request = new DataRequest();
         }
+
+        public DataRequest build() {
+            if (request.dataDestination == null && request.destinationType == null) {
+                throw new IllegalArgumentException("A data destination or type must be specified");
+            }
+            return request;
+        }
+
     }
 }

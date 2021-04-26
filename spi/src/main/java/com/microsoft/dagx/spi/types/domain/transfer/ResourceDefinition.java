@@ -1,5 +1,7 @@
 package com.microsoft.dagx.spi.types.domain.transfer;
 
+import java.util.Objects;
+
 /**
  * A resource to be provisioned to support a data transfer.
  */
@@ -39,6 +41,7 @@ public abstract class ResourceDefinition {
         }
 
         protected void verify() {
+            Objects.requireNonNull(resourceDefinition.id, "id");
         }
 
         protected Builder(RD definition) {

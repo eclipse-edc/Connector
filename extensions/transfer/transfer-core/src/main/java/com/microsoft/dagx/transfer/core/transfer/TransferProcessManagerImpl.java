@@ -123,9 +123,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             ResourceManifest manifest;
             if (process.getType() == CLIENT) {
                 // if resources are managed by this connector, generate the manifest; otherwise create an empty one
-                manifest = dataRequest.isManagedResources() ? manifestGenerator.generateClientManifest(dataRequest) : ResourceManifest.Builder.newInstance().build();
+                manifest = dataRequest.isManagedResources() ? manifestGenerator.generateClientManifest(process) : ResourceManifest.Builder.newInstance().build();
             } else {
-                manifest = manifestGenerator.generateProviderManifest(dataRequest);
+                manifest = manifestGenerator.generateProviderManifest(process);
             }
             process.transitionProvisioning(manifest);
             transferProcessStore.update(process);

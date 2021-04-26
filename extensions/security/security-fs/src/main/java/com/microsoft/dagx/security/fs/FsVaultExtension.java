@@ -2,8 +2,8 @@ package com.microsoft.dagx.security.fs;
 
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
-import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.security.CertificateResolver;
+import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.VaultExtension;
 
@@ -16,6 +16,7 @@ import java.security.KeyStore;
 
 import static com.microsoft.dagx.security.fs.FsConfiguration.KEYSTORE_LOCATION;
 import static com.microsoft.dagx.security.fs.FsConfiguration.KEYSTORE_PASSWORD;
+import static com.microsoft.dagx.security.fs.FsConfiguration.PERSISTENT_VAULT;
 import static com.microsoft.dagx.security.fs.FsConfiguration.VAULT_LOCATION;
 
 /**
@@ -57,7 +58,7 @@ public class FsVaultExtension implements VaultExtension {
         if (!Files.exists(vaultPath)) {
             throw new DagxException("Vault file does not exist: " + VAULT_LOCATION);
         }
-        return new FsVault(vaultPath);
+        return new FsVault(vaultPath, PERSISTENT_VAULT);
     }
 
     private KeyStore loadKeyStore() {

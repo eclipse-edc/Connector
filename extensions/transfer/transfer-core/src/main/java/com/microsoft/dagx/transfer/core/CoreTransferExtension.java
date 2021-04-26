@@ -52,7 +52,8 @@ public class CoreTransferExtension implements ServiceExtension {
         var manifestGenerator = new ResourceManifestGeneratorImpl();
         context.registerService(ResourceManifestGenerator.class, manifestGenerator);
 
-        provisionManager = new ProvisionManagerImpl(context.getService(Vault.class));
+        var vault = context.getService(Vault.class);
+        provisionManager = new ProvisionManagerImpl(vault, monitor);
         context.registerService(ProvisionManager.class, provisionManager);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()

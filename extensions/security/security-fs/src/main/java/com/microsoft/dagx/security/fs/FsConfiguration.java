@@ -15,6 +15,9 @@ public final class FsConfiguration {
     @DagxSetting
     final static String KEYSTORE_PASSWORD = propOrEnv("dagx.keystore.password", "test123");
 
+    @DagxSetting
+    final static boolean PERSISTENT_VAULT = Boolean.parseBoolean(propOrEnv("dagx.vault.persistent", "true"));
+
 
     private FsConfiguration() {
     }

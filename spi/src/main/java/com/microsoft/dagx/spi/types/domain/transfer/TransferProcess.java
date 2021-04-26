@@ -127,6 +127,7 @@ public class TransferProcess {
         if (provisionedResourceSet == null) {
             provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().transferProcessId(this.id).build();
         }
+        provisionedResourceSet.addResource(resource);
     }
 
     public boolean provisioningComplete() {

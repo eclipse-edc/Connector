@@ -6,11 +6,13 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
+import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.transfer.provision.aws.provider.SdkClientProvider;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisionedResource;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisioner;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketResourceDefinition;
+import com.microsoft.dagx.transfer.provision.aws.s3.S3ResourceDefinitionClientGenerator;
 import com.microsoft.dagx.transfer.types.aws.S3Destination;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -24,7 +26,7 @@ public class AwsProvisionExtension implements ServiceExtension {
     private static final String AWS_ACCESS_KEY = "dagx.aws.access.key";
 
     @DagxSetting
-    private static final String AWS_SECRET_KEY = "dagx.aws.access.key";
+    private static final String AWS_SECRET_KEY = "dagx.aws.secret.access.key";
 
     private Monitor monitor;
     private SdkClientProvider clientProvider;
@@ -35,11 +37,15 @@ public class AwsProvisionExtension implements ServiceExtension {
 
         var provisionManager = context.getService(ProvisionManager.class);
 
-        // create a S3 client provider that is shared across provisioners
+        // create an S3 client provider that is shared across provisioners
         clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(createCredentialsProvider(context)).build();
 
         S3BucketProvisioner s3BucketProvisioner = new S3BucketProvisioner(clientProvider, 3600, monitor);
         provisionManager.register(s3BucketProvisioner);
+
+        // register the generator
+        var manifestGenerator = context.getService(ResourceManifestGenerator.class);
+        manifestGenerator.registerClientGenerator(new S3ResourceDefinitionClientGenerator());
 
         registerTypes(context.getTypeManager());
 

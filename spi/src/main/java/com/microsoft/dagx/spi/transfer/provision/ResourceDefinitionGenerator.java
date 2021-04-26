@@ -1,7 +1,8 @@
 package com.microsoft.dagx.spi.transfer.provision;
 
-import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
+import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Generates a resource definition for a data transfer request.
@@ -9,8 +10,9 @@ import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 public interface ResourceDefinitionGenerator {
 
     /**
-     * Generates the resource definition.
+     * Generates a resource definition. If no resource definition is generated, return null.
      */
-    ResourceDefinition generate(DataRequest request);
+    @Nullable
+    ResourceDefinition generate(TransferProcess process);
 
 }

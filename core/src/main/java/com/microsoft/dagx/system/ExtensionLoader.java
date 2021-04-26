@@ -1,9 +1,9 @@
 package com.microsoft.dagx.system;
 
 import com.microsoft.dagx.monitor.ConsoleMonitor;
-import com.microsoft.dagx.spi.monitor.MultiplexingMonitor;
 import com.microsoft.dagx.security.NullVaultExtension;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.monitor.MultiplexingMonitor;
 import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.security.Vault;
@@ -11,16 +11,10 @@ import com.microsoft.dagx.spi.system.MonitorExtension;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.system.VaultExtension;
+import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.ServiceLoader;
 import java.util.concurrent.TimeUnit;
@@ -56,11 +50,14 @@ public class ExtensionLoader {
         return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()));
     }
 
-    public static void addHttpClient(DefaultServiceExtensionContext context) {
-        var client = new OkHttpClient.Builder()
-                .connectTimeout(30, TimeUnit.SECONDS)
-                .readTimeout(30, TimeUnit.SECONDS)
-                .build();
+    public static void addHttpClient(DefaultServiceExtensionContext context, Interceptor...interceptors) {
+        OkHttpClient.Builder builder = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS);
+        if (interceptors != null) {
+            for (Interceptor interceptor : interceptors) {
+                builder.addInterceptor(interceptor);
+            }
+        }
+        var client = builder.build();
 
         context.registerService(OkHttpClient.class, client);
     }

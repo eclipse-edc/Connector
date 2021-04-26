@@ -22,6 +22,6 @@ class FsVaultTest {
     @BeforeEach
     void setUp() throws URISyntaxException {
         @SuppressWarnings("ConstantConditions") var uri = getClass().getClassLoader().getResource(TEST_VAULT).toURI();
-        vault = new FsVault(Paths.get(uri));
+        vault = new FsVault(Paths.get(uri), false);
     }
 }

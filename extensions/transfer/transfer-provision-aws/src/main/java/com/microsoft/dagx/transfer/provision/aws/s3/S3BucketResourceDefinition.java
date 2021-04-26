@@ -40,6 +40,7 @@ public class S3BucketResourceDefinition extends ResourceDefinition {
 
         @Override
         protected void verify() {
+            super.verify();
             Objects.requireNonNull(resourceDefinition.regionId, "regionId");
             Objects.requireNonNull(resourceDefinition.bucketName, "bucketName");
         }

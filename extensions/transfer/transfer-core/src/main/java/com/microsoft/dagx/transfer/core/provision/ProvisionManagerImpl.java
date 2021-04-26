@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.core.provision;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;
@@ -9,21 +10,26 @@ import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
+import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.lang.String.format;
 
 /**
  * Default provision manager. Invoke {@link #start(TransferProcessStore)} to initialize an instance.
  */
 public class ProvisionManagerImpl implements ProvisionManager {
     private Vault vault;
+    private Monitor monitor;
     private TransferProcessStore processStore;
     private List<Provisioner<?, ?>> provisioners = new ArrayList<>();
 
-    public ProvisionManagerImpl(Vault vault) {
+    public ProvisionManagerImpl(Vault vault, Monitor monitor) {
         this.vault = vault;
+        this.monitor = monitor;
     }
 
     public void start(TransferProcessStore processStore) {
@@ -59,7 +65,13 @@ public class ProvisionManagerImpl implements ProvisionManager {
     }
 
     void onResource(ProvisionedResource provisionedResource, DestinationSecretToken secretToken) {
-        TransferProcess transferProcess = processStore.find(provisionedResource.getTransferProcessId());
+        var processId = provisionedResource.getTransferProcessId();
+        var transferProcess = processStore.find(processId);
+        if (transferProcess == null) {
+            var resourceId = provisionedResource.getResourceDefinitionId();
+            monitor.severe(format("Error received when provisioning resource %s Process id not found for: %s", resourceId, processId));
+            return;
+        }
         transferProcess.addProvisionedResource(provisionedResource);
 
         if (secretToken != null) {
@@ -67,9 +79,16 @@ public class ProvisionManagerImpl implements ProvisionManager {
             vault.storeSecret(provisionedResource.getId(), secretToken.getToken());
         }
 
-        if (transferProcess.provisioningComplete()) {
+        if (provisionedResource.isError()) {
+            var resourceId = provisionedResource.getResourceDefinitionId();
+            monitor.severe(format("Error provisioning resource %s for process %s: %s", resourceId, processId, provisionedResource.getErrorMessage()));
+            processStore.update(transferProcess);
+            return;
+        }
+
+        if (TransferProcessStates.ERROR.code() != transferProcess.getState() && transferProcess.provisioningComplete()) {
             // TODO If all resources provisioned, delete scratch data
-            transferProcess.transitionDeprovisioned();
+            transferProcess.transitionProvisioned();
         }
         processStore.update(transferProcess);
     }

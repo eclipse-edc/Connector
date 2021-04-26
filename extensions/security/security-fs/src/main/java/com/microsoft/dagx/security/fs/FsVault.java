@@ -21,8 +21,10 @@ import java.util.concurrent.atomic.AtomicReference;
 public class FsVault implements Vault {
     private AtomicReference<Map<String, String>> secrets;
     private Path vaultFile;
+    private boolean persistent;
 
-    public FsVault(Path vaultFile) {
+    public FsVault(Path vaultFile, boolean persistent) {
+        this.persistent = persistent;
         secrets = new AtomicReference<>(new HashMap<>());
 
         this.vaultFile = vaultFile;
@@ -48,10 +50,12 @@ public class FsVault implements Vault {
         newSecrets.put(key, value);
         var properties = new Properties();
         properties.putAll(newSecrets);
-        try (Writer writer = Files.newBufferedWriter(vaultFile)) {
-            properties.store(writer, null);
-        } catch (IOException e) {
-            return new VaultResponse(e.getMessage());
+        if (persistent) {
+            try (Writer writer = Files.newBufferedWriter(vaultFile)) {
+                properties.store(writer, null);
+            } catch (IOException e) {
+                return new VaultResponse(e.getMessage());
+            }
         }
         secrets.set(newSecrets);
         return VaultResponse.OK;
@@ -63,10 +67,12 @@ public class FsVault implements Vault {
         newSecrets.remove(key);
         var properties = new Properties();
         properties.putAll(newSecrets);
-        try (Writer writer = Files.newBufferedWriter(vaultFile)) {
-            properties.store(writer, null);
-        } catch (IOException e) {
-            return new VaultResponse(e.getMessage());
+        if (persistent) {
+            try (Writer writer = Files.newBufferedWriter(vaultFile)) {
+                properties.store(writer, null);
+            } catch (IOException e) {
+                return new VaultResponse(e.getMessage());
+            }
         }
         secrets.set(newSecrets);
         return VaultResponse.OK;

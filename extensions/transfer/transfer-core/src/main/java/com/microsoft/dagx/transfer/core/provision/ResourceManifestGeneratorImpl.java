@@ -6,19 +6,28 @@ import com.microsoft.dagx.policy.model.Permission;
 import com.microsoft.dagx.policy.model.Prohibition;
 import com.microsoft.dagx.spi.transfer.provision.ResourceDefinitionGenerator;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
-import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
+import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /**
- *
+ * Default implemnentation.
  */
 public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator {
+    private List<ResourceDefinitionGenerator> clientGenerators = new ArrayList<>();
+    private List<ResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
 
     @Override
-    public void registerBuilder(ResourceDefinitionGenerator builder) {
-        throw new UnsupportedOperationException();
+    public void registerClientGenerator(ResourceDefinitionGenerator generator) {
+        clientGenerators.add(generator);
+    }
+
+    @Override
+    public void registerProviderGenerator(ResourceDefinitionGenerator generator) {
+        providerGenerators.add(generator);
     }
 
     @Override
@@ -37,12 +46,27 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
     }
 
     @Override
-    public ResourceManifest generateClientManifest(DataRequest dataRequest) {
-        return new ResourceManifest();
+    public ResourceManifest generateClientManifest(TransferProcess process) {
+        var manifest = new ResourceManifest();
+        clientGenerators.forEach(g -> {
+            var definition = g.generate(process);
+            if (definition != null) {
+                manifest.addDefinition(definition);
+            }
+        });
+        return manifest;
     }
 
     @Override
-    public ResourceManifest generateProviderManifest(DataRequest dataRequest) {
-        return new ResourceManifest();
+    public ResourceManifest generateProviderManifest(TransferProcess process) {
+        var manifest = new ResourceManifest();
+        providerGenerators.forEach(g -> {
+            var definition = g.generate(process);
+            if (definition != null) {
+                manifest.addDefinition(definition);
+            }
+        });
+        return manifest;
+
     }
 }

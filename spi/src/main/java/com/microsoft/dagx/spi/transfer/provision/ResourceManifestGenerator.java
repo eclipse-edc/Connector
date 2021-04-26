@@ -4,8 +4,8 @@ import com.microsoft.dagx.policy.model.AtomicConstraintFunction;
 import com.microsoft.dagx.policy.model.Duty;
 import com.microsoft.dagx.policy.model.Permission;
 import com.microsoft.dagx.policy.model.Prohibition;
-import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
+import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 
 import java.util.Map;
 
@@ -14,7 +14,9 @@ import java.util.Map;
  */
 public interface ResourceManifestGenerator {
 
-    void registerBuilder(ResourceDefinitionGenerator builder);
+    void registerClientGenerator(ResourceDefinitionGenerator generator);
+
+    void registerProviderGenerator(ResourceDefinitionGenerator generator);
 
     void registerPermissionFunctions(Map<String, AtomicConstraintFunction<String, Permission, Boolean>> functions);
 
@@ -25,11 +27,11 @@ public interface ResourceManifestGenerator {
     /**
      * Generates a resource manifest for a data request on a client connector. Operations should be idempotent.
      */
-    ResourceManifest generateClientManifest(DataRequest dataRequest);
+    ResourceManifest generateClientManifest(TransferProcess process);
 
     /**
      * Generates a resource manifest for a data request on a provider connector. Operations should be idempotent.
      */
-    ResourceManifest generateProviderManifest(DataRequest dataRequest);
+    ResourceManifest generateProviderManifest(TransferProcess process);
 
 }

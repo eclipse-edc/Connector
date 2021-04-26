@@ -2,9 +2,11 @@ package com.microsoft.dagx.junit;
 
 import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.system.DefaultServiceExtensionContext;
+import okhttp3.Interceptor;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -41,6 +43,10 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
         serviceMocks.put(type, mock);
     }
 
+    public void registerInterceptor(Interceptor interceptor) {
+        
+    }
+
     @Override
     public void beforeTestExecution(ExtensionContext extensionContext) {
         var typeManager = new TypeManager();
@@ -57,7 +63,9 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
         try {
             addHttpClient(context);
 
-            loadVault(context);
+            if (!serviceMocks.containsKey(Vault.class)) {
+                loadVault(context);
+            }
 
             serviceExtensions = context.loadServiceExtensions();
 

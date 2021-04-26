@@ -17,7 +17,6 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
-import software.amazon.awssdk.services.sts.model.Credentials;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -92,9 +91,18 @@ class S3ProvisionPipeline {
     private void createAndSendToken(S3BucketResourceDefinition resourceDefinition, AssumeRoleResponse response, Throwable exception) {
         String bucketName = resourceDefinition.getBucketName();
         if (response != null) {
-            Credentials credentials = response.credentials();
-            S3BucketProvisionedResource resource = S3BucketProvisionedResource.Builder.newInstance().id(bucketName).resourceDefinitionId(resourceDefinition.getId()).build();
-            DestinationSecretToken secretToken = new DestinationSecretToken(credentials.sessionToken(), credentials.expiration().toEpochMilli());
+            var credentials = response.credentials();
+
+            var transferProcessId = resourceDefinition.getTransferProcessId();
+
+            var resource = S3BucketProvisionedResource.Builder.newInstance().id(bucketName)
+                    .resourceDefinitionId(resourceDefinition.getId())
+                    .region(resourceDefinition.getRegionId())
+                    .bucketName(resourceDefinition.getBucketName())
+                    .transferProcessId(transferProcessId).build();
+
+            var secretToken = new DestinationSecretToken(credentials.sessionToken(), credentials.expiration().toEpochMilli());
+
             context.callback(resource, secretToken);
         } else if (exception != null) {
             sendErroredResource(resourceDefinition, bucketName, exception);
@@ -105,7 +113,7 @@ class S3ProvisionPipeline {
         var exceptionToLog = exception.getCause() != null ? exception.getCause() : exception;
         String resourceId = resourceDefinition.getId();
         String errorMessage = exceptionToLog.getMessage();
-        S3BucketProvisionedResource erroredResource = S3BucketProvisionedResource.Builder.newInstance().id(bucketName).resourceDefinitionId(resourceId).error(true).errorMessage(errorMessage).build();
+        S3BucketProvisionedResource erroredResource = S3BucketProvisionedResource.Builder.newInstance().id(bucketName).transferProcessId(resourceDefinition.getTransferProcessId()).resourceDefinitionId(resourceId).error(true).errorMessage(errorMessage).build();
         context.callback(erroredResource, null);
     }
 

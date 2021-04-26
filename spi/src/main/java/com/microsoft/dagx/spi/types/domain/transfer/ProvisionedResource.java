@@ -71,8 +71,8 @@ public abstract class ProvisionedResource {
 
         public PR build() {
             Objects.requireNonNull(provisionedResource.id, "id");
+            Objects.requireNonNull(provisionedResource.transferProcessId, "transferProcessId");
             Objects.requireNonNull(provisionedResource.resourceDefinitionId, "resourceDefinitionId");
-            verify();
             return provisionedResource;
         }
 
