@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.types.aws;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -19,6 +20,7 @@ public class S3Destination implements DataDestination {
     private DestinationSecretToken secretToken;
 
     @Override
+    @JsonProperty
     public String getType() {
         return "S3";
     }

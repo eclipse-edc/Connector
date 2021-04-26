@@ -1,5 +1,6 @@
 package com.microsoft.dagx.transfer.types.azure;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import org.junit.jupiter.api.Test;
@@ -18,6 +19,10 @@ class AzureStorageDestinationTest {
     @Test
     void verifyDeserialization() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
+        // this is actually necessary, because otherwise the serialize-only "type" field would
+        // raise an UnrecognizedPropertyException
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
 
         DestinationSecretToken token = new DestinationSecretToken("token", 1L);
         AzureStorageDestination process = AzureStorageDestination.Builder.newInstance().secretToken(token).account("account").blobname("blob").container("container").key("key").build();

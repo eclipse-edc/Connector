@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 /**
  * A destination where data is sent.
  */
-@JsonIgnoreProperties("type")
+@JsonIgnoreProperties(value = "type", allowGetters = true)
 public interface DataDestination {
 
     String getType();
