@@ -54,7 +54,7 @@ public class EndToEndTest {
 
         processManager.initiateClientRequest(request);
 
-        latch.await(4000, TimeUnit.DAYS);
+        latch.await(1, TimeUnit.MINUTES);
 
         EasyMock.verify(dispatcher);
     }
@@ -85,7 +85,7 @@ public class EndToEndTest {
 
         processManager.initiateProviderRequest(request);
 
-        latch.await(4000, TimeUnit.DAYS);
+        latch.await(1, TimeUnit.MINUTES);
 
         EasyMock.verify(controllerMock);
     }
