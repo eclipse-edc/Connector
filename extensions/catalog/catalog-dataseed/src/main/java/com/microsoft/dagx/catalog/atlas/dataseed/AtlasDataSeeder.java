@@ -2,19 +2,13 @@ package com.microsoft.dagx.catalog.atlas.dataseed;
 
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.spi.DagxException;
-import com.microsoft.dagx.spi.monitor.Monitor;
-import org.apache.atlas.AtlasServiceException;
-import org.apache.atlas.model.instance.AtlasClassification;
-import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class AtlasDataSeeder {
     private final AtlasApi atlasApi;
@@ -24,12 +18,13 @@ public class AtlasDataSeeder {
         this.atlasApi = atlasApi;
     }
 
-    public AtlasTypesDef createClassifications() {
+    public String[] createClassifications() {
         var mapper = new ObjectMapper();
         try {
             Map<String, List<String>> classifications = mapper.readValue(this.getClass().getClassLoader().getResourceAsStream("classifications.json"), Map.class);
-            var c = classifications.keySet().stream().flatMap(key -> classifications.get(key).stream()).toArray(String[]::new);
-            return atlasApi.createClassifications(c);
+            String[] classificationNames = classifications.keySet().stream().flatMap(key -> classifications.get(key).stream()).toArray(String[]::new);
+            atlasApi.createClassifications(classificationNames);
+            return classificationNames;
 
         } catch (IOException e) {
             throw new DagxException(e);
@@ -46,7 +41,7 @@ public class AtlasDataSeeder {
 
             List<AtlasTypesDef> entityTypes = new ArrayList<>();
             for (var typeDef : typeDefs) {
-                entityTypes.add(atlasApi.createTypesDef(typeDef.getTypeKeyName(), typeDef.getSuperTypeNames(), typeDef.getAttributes()));
+                entityTypes.add(atlasApi.createCustomTypes(typeDef.getTypeKeyName(), typeDef.getSuperTypeNames(), typeDef.getAttributes()));
             }
             return entityTypes;
         } catch (IOException e) {
@@ -63,7 +58,7 @@ public class AtlasDataSeeder {
 
             ArrayList<String> entityGuids = new ArrayList<>();
             for (Map<String, Object> entity : entityList) {
-                entityGuids.add(createEntityOfType(entityTypeName, entity));
+                entityGuids.add(atlasApi.createEntity(entityTypeName, entity));
             }
             return entityGuids;
 
@@ -77,10 +72,9 @@ public class AtlasDataSeeder {
             atlasApi.deleteEntities(guids);
     }
 
-    public void deleteClassificationTypes(AtlasTypesDef classificationTypes) {
-
-        if (classificationTypes != null) {
-            atlasApi.deleteType(Collections.singletonList(classificationTypes));
+    public void deleteClassifications(String... classificationNames) {
+        if (classificationNames != null) {
+            atlasApi.deleteClassification(classificationNames);
         }
     }
 
@@ -90,40 +84,4 @@ public class AtlasDataSeeder {
     }
 
 
-    private String createEntityOfType(String typeName, Map<String, Object> entity) throws Exception {
-        AtlasEntity atlasEntity = new AtlasEntity(typeName);
-
-        for (String key : entity.keySet()) {
-            if (key.equals("classifications")) {
-                continue;
-            }
-            atlasEntity.setAttribute(key, (String) entity.get(key));
-        }
-
-
-        List<String> classificationNames = (List<String>) entity.get("classifications");
-
-        atlasEntity.setClassifications(toAtlasClassifications(classificationNames));
-
-        var response = atlasApi.createEntity(new AtlasEntity.AtlasEntityWithExtInfo(atlasEntity));
-
-        var guidMap = response.getGuidAssignments();
-
-        if (guidMap.size() != 1) {
-            throw new Exception("Try to create one entity but received multiple guid back.");
-        } else {
-            for (Map.Entry<String, String> entry : guidMap.entrySet()) {
-                return entry.getValue();
-            }
-        }
-
-        return null;
-    }
-
-    private List<AtlasClassification> toAtlasClassifications(List<String> classificationNames) {
-        if (classificationNames != null) {
-            return classificationNames.stream().map(AtlasClassification::new).collect(Collectors.toList());
-        }
-        return Collections.emptyList();
-    }
 }

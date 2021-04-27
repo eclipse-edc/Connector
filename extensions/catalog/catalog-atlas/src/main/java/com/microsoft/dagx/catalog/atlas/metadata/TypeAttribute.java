@@ -10,6 +10,14 @@ public class TypeAttribute {
     @JsonProperty
     private boolean required;
 
+    public TypeAttribute(String name, String type, boolean required) {
+        this.name = name;
+        this.type = type;
+        this.required = required;
+    }
+
+    public TypeAttribute(){}
+
     public String getName() {
         return name;
     }

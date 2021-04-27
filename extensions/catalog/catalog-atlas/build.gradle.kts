@@ -6,4 +6,6 @@ plugins {
 dependencies {
     api(project(":spi"))
     implementation("org.apache.atlas:atlas-client-v2:2.1.0")
+
+    testImplementation(project(":distributions:junit"))
 }

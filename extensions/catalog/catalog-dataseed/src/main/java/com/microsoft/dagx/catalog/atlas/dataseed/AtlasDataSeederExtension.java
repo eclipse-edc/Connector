@@ -15,7 +15,7 @@ public class AtlasDataSeederExtension implements ServiceExtension {
 
     private final boolean shouldCleanup;
     private Monitor monitor;
-    private AtlasTypesDef classificationTypes;
+    private String[] classificationNames;
     List<AtlasTypesDef> entityTypes = new ArrayList<>();
     private List<String> entityGuids;
     private AtlasDataSeeder dataSeeder;
@@ -55,7 +55,7 @@ public class AtlasDataSeederExtension implements ServiceExtension {
         monitor.info("Starting to seed data to Atlas");
         try {
             monitor.debug("Create Classifications");
-            classificationTypes = dataSeeder.createClassifications();
+            classificationNames = dataSeeder.createClassifications();
         } catch (DagxException e) {
             monitor.severe("Error creating classifications", e);
         }
@@ -84,7 +84,7 @@ public class AtlasDataSeederExtension implements ServiceExtension {
             monitor.info("Cleaning up Entities");
             dataSeeder.deleteEntities(entityGuids);
             monitor.info("Cleaning up Classifications");
-            dataSeeder.deleteClassificationTypes(classificationTypes);
+            dataSeeder.deleteClassifications(classificationNames);
             monitor.info("Cleaning up Entity Types");
             dataSeeder.deleteEntityTypes(entityTypes);
         }

@@ -1,0 +1,25 @@
+[
+  {
+    "typeName": "TestEntity",
+    "superTypeNames": [
+      "DataSet"
+    ],
+    "attributes": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "account",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "someNumber",
+        "type": "int",
+        "required": true
+      }
+    ]
+  }
+]
