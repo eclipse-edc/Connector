@@ -3,9 +3,10 @@
   "entities" : [
     {
 
-      "name" : "Sample Blob",
-      "qualifiedName" : "dataset5",
-      "description" : "This is dataset 5",
+      "name" : "SampleBlob",
+      "displayName" : "Sample Blob",
+      "qualifiedName": "AzureStorage/TestAccount/TestContainer/testblob.jpg",
+      "description" : "This is a Sample Blob stored in Azure Blob Store",
       "providerName" : "AzureStorage",
       "account" : "TestAccount",
       "container" : "TestContainer",

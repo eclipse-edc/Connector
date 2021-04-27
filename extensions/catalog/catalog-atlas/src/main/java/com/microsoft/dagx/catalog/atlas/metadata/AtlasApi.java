@@ -5,6 +5,7 @@ import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 public interface AtlasApi {
@@ -17,4 +18,6 @@ public interface AtlasApi {
     EntityMutationResponse createEntity(AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo);
 
     void deleteEntities(List<String> entityGuids);
+
+    Optional<AtlasEntity> getEntityById(String id);
 }

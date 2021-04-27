@@ -1,8 +1,9 @@
 package com.microsoft.dagx.catalog.atlas.metadata;
 
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
-import org.apache.commons.lang.NotImplementedException;
+import org.apache.atlas.model.instance.AtlasStruct;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class AtlasDataEntryPropertyLookup extends DataEntryPropertyLookup {
@@ -15,6 +16,8 @@ public class AtlasDataEntryPropertyLookup extends DataEntryPropertyLookup {
 
     @Override
     public Map<String, Object> getPropertiesForEntity(String id) {
-        throw new NotImplementedException();
+        var entityOptional= atlasApi.getEntityById(id);
+
+        return entityOptional.map(AtlasStruct::getAttributes).orElse(new HashMap<>());
     }
 }

@@ -3,15 +3,13 @@ package com.microsoft.dagx.catalog.atlas.metadata;
 import com.microsoft.dagx.spi.DagxException;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
+import org.apache.atlas.model.SearchFilter;
 import org.apache.atlas.model.instance.AtlasEntity;
 import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.atlas.type.AtlasTypeUtil.*;
@@ -40,17 +38,6 @@ public class AtlasApiImpl implements AtlasApi {
             throw new DagxException(e);
         }
 
-    }
-
-    @Override
-    public void deleteType(List<AtlasTypesDef> classificationTypes) {
-        try {
-            for (AtlasTypesDef type : classificationTypes) {
-                atlasClient.deleteAtlasTypeDefs(type);
-            }
-        } catch (AtlasServiceException e) {
-            throw new DagxException(e);
-        }
     }
 
     @Override
@@ -89,4 +76,25 @@ public class AtlasApiImpl implements AtlasApi {
             throw new DagxException(e);
         }
     }
+
+    @Override
+    public void deleteType(List<AtlasTypesDef> classificationTypes) {
+        try {
+            for (AtlasTypesDef type : classificationTypes) {
+                atlasClient.deleteAtlasTypeDefs(type);
+            }
+        } catch (AtlasServiceException e) {
+            throw new DagxException(e);
+        }
+    }
+
+    @Override
+    public Optional<AtlasEntity> getEntityById(String id) {
+        try {
+            return Optional.of(atlasClient.getEntityByGuid(id).getEntity());
+        } catch (AtlasServiceException e) {
+            return Optional.empty();
+        }
+    }
+
 }
