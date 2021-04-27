@@ -218,22 +218,6 @@ class NifiDataFlowControllerTest {
     }
 
     @Test
-    void initiateFlow_noDestinationDefined() {
-        String id = UUID.randomUUID().toString();
-        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().extensions(GenericDataEntryExtensions.Builder.newInstance().build()).build();
-
-        DataRequest dataRequest = DataRequest.Builder.newInstance()
-                .id(id)
-                .dataEntry(entry)
-                .build();
-
-        var response = controller.initiateFlow(dataRequest);
-        assertThat(response.getStatus()).isEqualTo(ResponseStatus.FATAL_ERROR);
-        assertThat(response.getError()).isEqualTo("Data target is null");
-
-    }
-
-    @Test
     void initiateFlow_noCredsFoundInVault() {
         String id = UUID.randomUUID().toString();
         DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().extensions(GenericDataEntryExtensions.Builder.newInstance().build()).build();
