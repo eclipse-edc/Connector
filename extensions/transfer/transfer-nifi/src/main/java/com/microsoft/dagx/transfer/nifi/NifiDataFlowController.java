@@ -6,7 +6,8 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.types.TypeManager;
-import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
+import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
+import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLookup;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -59,10 +60,6 @@ public class NifiDataFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
-         //todo: replace with abstract class
-        if (!(dataRequest.getDataEntry().getExtensions() instanceof GenericDataEntryExtensions)) {
-            throw new DagxException("Invalid extensions type, expected:" + GenericDataEntryExtensions.class.getName());
-        }
 
         if (dataRequest.getDataDestination() == null) {
             return new DataFlowInitiateResponse(FATAL_ERROR, "Data target is null");
@@ -102,12 +99,14 @@ public class NifiDataFlowController implements DataFlowController {
 
     @NotNull
     private Request createTransferRequest(DataRequest dataRequest, String basicAuthCredentials) {
-        //todo replace with generic code
-        GenericDataEntryExtensions extensions = (GenericDataEntryExtensions) dataRequest.getDataEntry().getExtensions();
+        DataEntry<?> dataEntry = dataRequest.getDataEntry();
+        var lookup = dataEntry.getLookup();
+
+        var sourceprops = lookup.getPropertiesForEntity(dataEntry.getId());
 
         String url = baseUrl + CONTENTLISTENER;
         Map<String, Object> payload = new HashMap<>();
-        payload.put("source", extensions.getProperties());
+        payload.put("source", sourceprops);
         payload.put("destination", dataRequest.getDataDestination());
         return new Request.Builder()
                 .url(url)

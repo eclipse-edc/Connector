@@ -1,0 +1,18 @@
+{
+  "entityTypeName" : "BlobFile",
+  "entities" : [
+    {
+
+      "name" : "Sample Blob",
+      "qualifiedName" : "dataset5",
+      "description" : "This is dataset 5",
+      "providerName" : "AzureStorage",
+      "account" : "TestAccount",
+      "container" : "TestContainer",
+      "id" : "testblob.jpg",
+      "blobName" : "testblob.jpg",
+      "vaultName" :  "DagxKeyVault-itest",
+      "classifications": ["Policy_C", "Duty_B", "Permission_A"]
+    }
+  ]
+}

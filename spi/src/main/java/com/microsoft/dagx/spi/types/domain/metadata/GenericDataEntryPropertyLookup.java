@@ -12,17 +12,22 @@ import java.util.Map;
  * Generic extension properties.
  */
 @JsonTypeName("dagx:genericdataentryextensions")
-@JsonDeserialize(builder = GenericDataEntryExtensions.Builder.class)
-public class GenericDataEntryExtensions extends DataEntryExtensions {
+@JsonDeserialize(builder = GenericDataEntryPropertyLookup.Builder.class)
+public class GenericDataEntryPropertyLookup extends DataEntryPropertyLookup {
     private Map<String, String> properties = new HashMap<>();
 
     public Map<String, String> getProperties() {
         return properties;
     }
 
+    @Override
+    public Map<String, Object> getPropertiesForEntity(String id) {
+        return null;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private GenericDataEntryExtensions extensions;
+        private GenericDataEntryPropertyLookup extensions;
 
         @JsonCreator
         public static Builder newInstance() {
@@ -34,12 +39,12 @@ public class GenericDataEntryExtensions extends DataEntryExtensions {
             return this;
         }
 
-        public GenericDataEntryExtensions build() {
+        public GenericDataEntryPropertyLookup build() {
             return extensions;
         }
 
         private Builder() {
-            extensions = new GenericDataEntryExtensions();
+            extensions = new GenericDataEntryPropertyLookup();
         }
     }
 

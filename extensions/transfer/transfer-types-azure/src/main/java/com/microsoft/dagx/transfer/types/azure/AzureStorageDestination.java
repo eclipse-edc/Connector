@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
+import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
 import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 
@@ -55,7 +55,7 @@ public class AzureStorageDestination implements DataDestination {
         private final AzureStorageDestination target;
 
         @JsonCreator
-        public static <K extends DataEntryExtensions> AzureStorageDestination.Builder newInstance() {
+        public static <K extends DataEntryPropertyLookup> AzureStorageDestination.Builder newInstance() {
             return new Builder();
         }
 

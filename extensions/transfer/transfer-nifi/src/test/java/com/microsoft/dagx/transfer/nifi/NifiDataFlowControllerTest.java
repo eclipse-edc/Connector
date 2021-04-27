@@ -13,8 +13,8 @@ import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
-import com.microsoft.dagx.spi.types.domain.metadata.DataEntryExtensions;
-import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryExtensions;
+import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
+import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLookup;
 import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
@@ -141,7 +141,7 @@ class NifiDataFlowControllerTest {
     @Test
     @Timeout(value = 10)
     void initiateFlow() throws InterruptedException {
-        var ext = GenericDataEntryExtensions.Builder.newInstance().property("type", "AzureStorage")
+        var ext = GenericDataEntryPropertyLookup.Builder.newInstance().property("type", "AzureStorage")
                 .property("account", storageAccount)
                 .property("container", containerName)
                 .property("blobname", blobName)
@@ -149,7 +149,7 @@ class NifiDataFlowControllerTest {
                 .build();
 
         String id = UUID.randomUUID().toString();
-        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().id(id).extensions(ext).build();
+        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().id(id).lookup(ext).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -181,7 +181,7 @@ class NifiDataFlowControllerTest {
     void initiateFlow_sourceNotFound() throws InterruptedException {
         var bulletinSize = client.getBulletinBoard().bulletins.size();
 
-        var ext = GenericDataEntryExtensions.Builder.newInstance().property("type", "AzureStorage")
+        var ext = GenericDataEntryPropertyLookup.Builder.newInstance().property("type", "AzureStorage")
                 .property("account", storageAccount)
                 .property("container", containerName)
                 .property("blobname", "notexist.png")
@@ -189,7 +189,7 @@ class NifiDataFlowControllerTest {
                 .build();
 
         String id = UUID.randomUUID().toString();
-        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().id(id).extensions(ext).build();
+        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().id(id).lookup(ext).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -219,7 +219,7 @@ class NifiDataFlowControllerTest {
     @Test
     void initiateFlow_noDestinationDefined() {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().extensions(GenericDataEntryExtensions.Builder.newInstance().build()).build();
+        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().lookup(GenericDataEntryPropertyLookup.Builder.newInstance().build()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -235,7 +235,7 @@ class NifiDataFlowControllerTest {
     @Test
     void initiateFlow_noCredsFoundInVault() {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataEntryExtensions> entry = DataEntry.Builder.newInstance().extensions(GenericDataEntryExtensions.Builder.newInstance().build()).build();
+        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().lookup(GenericDataEntryPropertyLookup.Builder.newInstance().build()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)

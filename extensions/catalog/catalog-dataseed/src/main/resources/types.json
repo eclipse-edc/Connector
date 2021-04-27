@@ -1,27 +1,34 @@
 [
   {
-    "typeName" : "BlobFile",
-    "superTypeNames" : ["DataSet"],
-    "attributes" : [
+    "typeName": "BlobFile",
+    "superTypeNames": [
+      "DataSet"
+    ],
+    "attributes": [
       {
-        "name" : "type",
-        "type" : "string",
-        "required" : true
+        "name": "providerName",
+        "type": "string",
+        "required": true
       },
       {
-        "name" : "account",
-        "type" : "string",
-        "required" : true
+        "name": "account",
+        "type": "string",
+        "required": true
       },
       {
-        "name" : "container",
-        "type" : "string",
-        "required" : true
+        "name": "container",
+        "type": "string",
+        "required": true
       },
       {
-        "name" : "blobName",
-        "type" : "string",
-        "required" : true
+        "name": "blobName",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "id",
+        "type": "string",
+        "required": true
       }
     ]
   }

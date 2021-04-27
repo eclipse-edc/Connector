@@ -10,32 +10,32 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
  * @param <T> domain-specific extension properties.
  */
 @JsonDeserialize(builder = DataEntry.Builder.class)
-public class DataEntry<T extends DataEntryExtensions> {
+public class DataEntry<T extends DataEntryPropertyLookup> {
     private String id;
-    private T extensions;
+    private T lookup;
 
     public String getId() {
         return id;
     }
 
-    public T getExtensions() {
-        return extensions;
+    public T getLookup() {
+        return lookup;
     }
 
     private DataEntry() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder<K extends DataEntryExtensions> {
+    public static class Builder<K extends DataEntryPropertyLookup> {
         private final DataEntry<K> dataEntry;
 
         @JsonCreator
-        public static <K extends DataEntryExtensions> Builder<K> newInstance() {
+        public static <K extends DataEntryPropertyLookup> Builder<K> newInstance() {
             return new Builder<K>();
         }
 
-        public Builder<K> extensions(K extensions) {
-            dataEntry.extensions = extensions;
+        public Builder<K> lookup(K extensions) {
+            dataEntry.lookup = extensions;
             return this;
         }
 

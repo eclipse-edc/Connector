@@ -3,6 +3,8 @@ package com.microsoft.dagx.catalog.atlas.metadata;
 import com.microsoft.dagx.spi.DagxException;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
+import org.apache.atlas.model.instance.AtlasEntity;
+import org.apache.atlas.model.instance.EntityMutationResponse;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 
@@ -65,6 +67,24 @@ public class AtlasApiImpl implements AtlasApi {
 
         try {
             return atlasClient.createAtlasTypeDefs(typesDef);
+        } catch (AtlasServiceException e) {
+            throw new DagxException(e);
+        }
+    }
+
+    @Override
+    public EntityMutationResponse createEntity(AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo) {
+        try {
+            return atlasClient.createEntity(atlasEntityWithExtInfo);
+        } catch (AtlasServiceException e) {
+            throw new DagxException(e);
+        }
+    }
+
+    @Override
+    public void deleteEntities(List<String> entityGuids) {
+        try {
+            atlasClient.deleteEntitiesByGuids(entityGuids);
         } catch (AtlasServiceException e) {
             throw new DagxException(e);
         }
