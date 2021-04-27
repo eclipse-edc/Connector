@@ -77,7 +77,7 @@ class S3BucketProvisionerTest {
             passed.set(true);
         });
 
-        provisioner.provision(S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").build());
+        provisioner.provision(S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").transferProcessId("test").build());
 
         userFuture.complete(GetUserResponse.builder().user(User.builder().arn("testarn").build()).build());
         roleFuture.complete(CreateRoleResponse.builder().role(Role.builder().arn("testarn").build()).build());
