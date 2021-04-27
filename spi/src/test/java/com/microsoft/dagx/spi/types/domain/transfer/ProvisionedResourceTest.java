@@ -18,7 +18,7 @@ class ProvisionedResourceTest {
     void verifyDeserialization() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
 
-        TestProvisionedResource process = TestProvisionedResource.Builder.newInstance().id(UUID.randomUUID().toString()).resourceDefinitionId("1").build();
+        TestProvisionedResource process = TestProvisionedResource.Builder.newInstance().id(UUID.randomUUID().toString()).transferProcessId("123").resourceDefinitionId("1").build();
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, process);
 

@@ -118,7 +118,7 @@ class TransferProcessTest {
 
         assertFalse(process.provisioningComplete());
 
-        resourceSet.addResource(TestProvisionedResource.Builder.newInstance().id("p1").resourceDefinitionId("r1").build());
+        resourceSet.addResource(TestProvisionedResource.Builder.newInstance().id("p1").resourceDefinitionId("r1").transferProcessId("123").build());
 
         assertTrue(process.provisioningComplete());
 
