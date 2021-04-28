@@ -105,7 +105,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
         //the first sort is only to verify that there are no "upward" dependencies from PRIMORDIAL -> DEFAULT
         sortExtensions(primordialExtensions);
-        sortExtensions(serviceExtensions);
+        sortExtensions(defaultExtensions);
 
         List<ServiceExtension> totalOrdered = new ArrayList<>(primordialExtensions);
         totalOrdered.addAll(defaultExtensions);

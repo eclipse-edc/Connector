@@ -16,7 +16,11 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyBoolean;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.niceMock;
+import static org.easymock.EasyMock.replay;
 
 class DefaultServiceExtensionContextTest {
 
@@ -189,6 +193,29 @@ class DefaultServiceExtensionContextTest {
         assertThatThrownBy(() -> context.loadServiceExtensions())
                 .isInstanceOf(DagxException.class)
                 .hasMessageContaining("not found: no-one-provides-this");
+    }
+
+    @Test
+    @DisplayName("Services extensions are sorted by dependency order")
+    void loadServiceExtensions_dependenciesAreSorted() {
+        var depending = new DependingService() {
+            @Override
+            public Set<String> requires() {
+                return Set.of("the-other");
+            }
+        };
+        var coreService = new CoreService() {
+            @Override
+            public Set<String> provides() {
+                return Set.of("the-other");
+            }
+        };
+
+        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(depending, coreService));
+        replay(serviceLocatorMock);
+
+        var services = context.loadServiceExtensions();
+        assertThat(services).containsExactly(coreService, depending);
     }
 
     private <T> List<T> mutableListOf(T... elements) {
