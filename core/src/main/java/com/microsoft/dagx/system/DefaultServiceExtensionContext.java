@@ -9,9 +9,12 @@ import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.util.TopologicalSort;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.microsoft.dagx.spi.system.ServiceExtension.LoadPhase.DEFAULT;
 import static com.microsoft.dagx.spi.system.ServiceExtension.LoadPhase.PRIMORDIAL;
@@ -104,8 +107,8 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         List<ServiceExtension> defaultExtensions = serviceExtensions.stream().filter(ext -> ext.phase() == DEFAULT).collect(toCollection(ArrayList::new));
 
         //the first sort is only to verify that there are no "upward" dependencies from PRIMORDIAL -> DEFAULT
-        sortExtensions(primordialExtensions);
-        sortExtensions(defaultExtensions);
+        sortExtensions(primordialExtensions, Collections.emptySet());
+        sortExtensions(defaultExtensions, primordialExtensions.stream().flatMap(e -> e.provides().stream()).collect(Collectors.toSet()));
 
         List<ServiceExtension> totalOrdered = new ArrayList<>(primordialExtensions);
         totalOrdered.addAll(defaultExtensions);
@@ -122,17 +125,18 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         return serviceLocator.loadSingletonImplementor(type, required);
     }
 
-    private void sortExtensions(List<ServiceExtension> extensions) {
+    private void sortExtensions(List<ServiceExtension> extensions, Set<String> loadedExtensions) {
         Map<String, List<ServiceExtension>> mappedExtensions = new HashMap<>();
         extensions.forEach(ext -> ext.provides().forEach(feature -> mappedExtensions.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
 
         TopologicalSort<ServiceExtension> sort = new TopologicalSort<>();
         extensions.forEach(ext -> ext.requires().forEach(feature -> {
             List<ServiceExtension> dependencies = mappedExtensions.get(feature);
-            if (dependencies == null) {
+            if (dependencies == null && !loadedExtensions.contains(feature)) {
                 throw new DagxException(format("Extension feature required by %s not found: %s", ext.getClass().getName(), feature));
+            } else if (dependencies != null) {
+                dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
             }
-            dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
         }));
         sort.sort(extensions);
     }
