@@ -4,8 +4,11 @@ import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
+import com.microsoft.dagx.spi.system.SystemExtension;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.system.DefaultServiceExtensionContext;
+import com.microsoft.dagx.system.ServiceLocator;
+import com.microsoft.dagx.system.ServiceLocatorImpl;
 import okhttp3.Interceptor;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
@@ -14,6 +17,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolutionException;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
@@ -29,10 +33,11 @@ import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
  * This extension attaches a DA-GX runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
 public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
-    private List<ServiceExtension> serviceExtensions;
+    private List<ServiceExtension> runningServiceExtensions;
     private DefaultServiceExtensionContext context;
 
     private LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
+    private LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
 
     /**
      * Registers a mock service with the runtime.
@@ -43,8 +48,15 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
         serviceMocks.put(type, mock);
     }
 
+    /**
+     * Registers a service extension with the runtime.
+     */
+    public <T extends SystemExtension> void registerSystemExtension(Class<T> type, SystemExtension extension) {
+        systemExtensions.computeIfAbsent(type, k -> new ArrayList<>()).add(extension);
+    }
+
     public void registerInterceptor(Interceptor interceptor) {
-        
+
     }
 
     @Override
@@ -55,7 +67,7 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
 
         MonitorProvider.setInstance(monitor);
 
-        context = new DefaultServiceExtensionContext(typeManager, monitor);
+        context = new DefaultServiceExtensionContext(typeManager, monitor, new MultiSourceServiceLocator());
         context.initialize();
 
         serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
@@ -67,9 +79,9 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
                 loadVault(context);
             }
 
-            serviceExtensions = context.loadServiceExtensions();
+            runningServiceExtensions = context.loadServiceExtensions();
 
-            bootServiceExtensions(serviceExtensions, context);
+            bootServiceExtensions(runningServiceExtensions, context);
         } catch (Exception e) {
             throw new DagxException(e);
         }
@@ -77,8 +89,8 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
 
     @Override
     public void afterTestExecution(ExtensionContext context) {
-        if (serviceExtensions != null) {
-            var iter = serviceExtensions.listIterator(serviceExtensions.size());
+        if (runningServiceExtensions != null) {
+            var iter = runningServiceExtensions.listIterator(runningServiceExtensions.size());
             while (iter.hasPrevious()) {
                 iter.previous().shutdown();
             }
@@ -107,6 +119,35 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
             return context.getService((Class) type);
         }
         return null;
+    }
+
+    /**
+     * A service locator that allows additional extensions to be manually loaded by a test fixture. This locator return the union of registered extensions and extensions loaded
+     * by the delegate.
+     */
+    private class MultiSourceServiceLocator implements ServiceLocator {
+        private ServiceLocator delegate = new ServiceLocatorImpl();
+
+        @Override
+        public <T> List<T> loadImplementors(Class<T> type, boolean required) {
+            List<T> extensions = cast(systemExtensions.getOrDefault(type, new ArrayList<>()));
+            extensions.addAll(delegate.loadImplementors(type, required));
+            return extensions;
+        }
+
+        /**
+         * This implementation will override singleton implementions found by the delegate.
+         */
+        @Override
+        public <T> T loadSingletonImplementor(Class<T> type, boolean required) {
+            List<SystemExtension> extensions = systemExtensions.get(type);
+            if (extensions == null || extensions.isEmpty()) {
+                return delegate.loadSingletonImplementor(type, required);
+            } else if (extensions.size() > 1) {
+                throw new DagxException("Multiple extensions were registered for type: " + type.getName());
+            }
+            return type.cast(extensions.get(0));
+        }
     }
 
 }
