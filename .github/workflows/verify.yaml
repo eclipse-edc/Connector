@@ -16,7 +16,7 @@ jobs:
         image: sburn/apache-atlas
         ports:
           - 21000:21000
-        options: -- entrypoint /opt/apache-atlas-2.1.0/bin/atlas_start.py
+        options: --entrypoint /opt/apache-atlas-2.1.0/bin/atlas_start.py
 
 
     steps:
