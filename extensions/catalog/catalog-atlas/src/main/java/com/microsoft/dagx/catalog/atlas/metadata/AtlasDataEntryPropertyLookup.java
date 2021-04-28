@@ -16,8 +16,12 @@ public class AtlasDataEntryPropertyLookup extends DataEntryPropertyLookup {
 
     @Override
     public Map<String, Object> getPropertiesForEntity(String id) {
-        var entityOptional= atlasApi.getEntityById(id);
+        var entity= atlasApi.getEntityById(id);
 
-        return entityOptional.map(AtlasStruct::getAttributes).orElse(new HashMap<>());
+        if(entity != null){
+            return entity.getAttributes();
+        }
+
+        return new HashMap<>();
     }
 }

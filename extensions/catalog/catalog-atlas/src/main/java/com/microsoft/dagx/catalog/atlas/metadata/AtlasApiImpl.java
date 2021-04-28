@@ -1,6 +1,7 @@
 package com.microsoft.dagx.catalog.atlas.metadata;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
@@ -119,11 +120,13 @@ public class AtlasApiImpl implements AtlasApi {
     }
 
     @Override
-    public Optional<AtlasEntity> getEntityById(String id) {
+    public AtlasEntity getEntityById(String id) {
         try {
-            return Optional.of(atlasClient.getEntityByGuid(id).getEntity());
+            return atlasClient.getEntityByGuid(id).getEntity();
         } catch (AtlasServiceException e) {
-            return Optional.empty();
+            if(e.getStatus() == ClientResponse.Status.NOT_FOUND)
+                return null;
+            throw new DagxException(e);
         }
     }
 

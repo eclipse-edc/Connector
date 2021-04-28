@@ -5,7 +5,6 @@ import org.apache.atlas.model.typedef.AtlasTypesDef;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Set;
 
 public interface AtlasApi {
@@ -16,7 +15,7 @@ public interface AtlasApi {
     void deleteCustomType(String typeName);
     void deleteType(List<AtlasTypesDef> type);
 
-    Optional<AtlasEntity> getEntityById(String id);
+    AtlasEntity getEntityById(String id);
     String createEntity(String entityTypeName, Map<String, Object> properties);
     void deleteEntities(List<String> entityGuids);
 

@@ -1,6 +1,7 @@
 package com.microsoft.dagx.catalog.atlas.metadata;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.sun.jersey.api.client.ClientResponse;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.model.SearchFilter;
@@ -13,6 +14,7 @@ import org.assertj.core.api.ThrowableAssert;
 import org.codehaus.jackson.map.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.IOException;
 import java.util.*;
@@ -23,7 +25,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
 import static org.assertj.core.api.InstanceOfAssertFactories.type;
 import static org.junit.jupiter.api.Assertions.fail;
 
-//@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 public class AtlasApiTest {
 
     private AtlasApi atlasApi;
@@ -107,6 +109,76 @@ public class AtlasApiTest {
         assertThat(guid).isEqualTo(guid2);
         AtlasEntity.AtlasEntityWithExtInfo entityWithExtInfo = atlasClient.getEntityByGuid(guid);
         assertThat(entityWithExtInfo.getEntity().getAttribute("someNumber")).isEqualTo(69);
+    }
+
+    @Test
+    void deleteEntity() throws AtlasServiceException {
+        var ts = System.currentTimeMillis();
+        var guid = atlasApi.createEntity("TestEntity", new HashMap<>() {{
+            put("name", "ToDelete" + ts);
+            put("displayName", "ToDelete Test Entity");
+            put("qualifiedName", "somequalifiedname");
+            put("account", "TestAccount");
+            put("someNumber", 42);
+        }});
+        assertThat(atlasClient.getEntityByGuid(guid).getEntity()).isNotNull();
+
+        atlasApi.deleteEntities(Collections.singletonList(guid));
+
+        assertThat(atlasClient.getEntityByGuid(guid)).isNotNull();
+        assertThat(atlasClient.getEntityByGuid(guid).getEntity().getStatus()).isEqualTo(AtlasEntity.Status.DELETED);
+    }
+
+    @Test
+    void deleteEntity_notExist() {
+        //does not throw
+        atlasApi.deleteEntities(Collections.singletonList(UUID.randomUUID().toString()));
+    }
+
+    @Test
+    void deleteEntity_alreadyDeleted() throws AtlasServiceException {
+        var ts = System.currentTimeMillis();
+
+        var guid = atlasApi.createEntity("TestEntity", new HashMap<>() {{
+            put("name", "ToDelete" + ts);
+            put("displayName", "ToDelete Test Entity");
+            put("qualifiedName", "somequalifiedname");
+            put("account", "TestAccount");
+            put("someNumber", 42);
+        }});
+        atlasApi.deleteEntities(Collections.singletonList(guid));
+        assertThat(atlasClient.getEntityByGuid(guid).getEntity().getStatus()).isEqualTo(AtlasEntity.Status.DELETED);
+
+        atlasApi.deleteEntities(Collections.singletonList(guid));
+    }
+
+    @Test
+    void findEntityById() throws AtlasServiceException {
+        var guid = atlasApi.createEntity("TestEntity", new HashMap<>() {{
+            put("name", "TestEntity");
+            put("displayName", "Sample Test Entity");
+            put("qualifiedName", "somequalifiedname");
+            put("account", "TestAccount");
+            put("someNumber", 42);
+        }});
+        assertThat(atlasClient.getEntityByGuid(guid).getEntity()).isNotNull();
+
+        AtlasEntity entityById = atlasApi.getEntityById(guid);
+        assertThat(entityById).isNotNull();
+        assertThat(entityById.getAttribute("qualifiedName")).isEqualTo("somequalifiedname");
+        assertThat(entityById.getAttribute("someNumber")).isEqualTo(42);
+    }
+
+    @Test
+    void findEntity_notExist() {
+        AtlasEntity entityById = atlasApi.getEntityById(UUID.randomUUID().toString());
+        assertThat(entityById).isNull();
+    }
+
+    @Test
+    void findEntity_notAGuid() {
+        AtlasEntity entityById = atlasApi.getEntityById("not a valid id");
+        assertThat(entityById).isNull();
     }
 
     @Test
@@ -240,14 +312,31 @@ public class AtlasApiTest {
     }
 
     @Test
-    void createCustomType_notExist() {
+    void deleteCustomType_notExist() {
         assertThatThrownBy(() -> atlasApi.deleteCustomType("I_DONT_EXIST")).isInstanceOf(DagxException.class)
                 .hasMessage("No Custom TypeDef types exist for the given names: I_DONT_EXIST");
     }
 
     @Test
-    void createCustomType_hasAssociatedEntity() {
-//        fail("not implemented!");
+    void deleteCustomType_hasAssociatedEntity() {
+        var ts = System.currentTimeMillis();
+        String typeName = "MyCustomType" + ts;
+        var typeDef = atlasApi.createCustomTypes(typeName, Collections.singleton("DataSet"), new ArrayList<>() {{
+            add(new TypeAttribute("name", "string", true));
+        }});
+
+        var guid = atlasApi.createEntity(typeName, new HashMap<>() {{
+            put("name", "CustomTypeZombie");
+            put("displayName", "Sample Test Entity");
+            put("qualifiedName", "This is just a Test Blob Entity");
+            put("account", "TestAccount");
+            put("someNumber", 42);
+        }});
+        assertThat(guid).isNotNull();
+        assertThat(typeDef.getEntityDefs()).hasSize(1);
+
+        assertThatThrownBy(() -> atlasApi.deleteCustomType(typeName)).isInstanceOf(DagxException.class)
+                .hasMessageContaining("Given type " + typeName + " has references");
     }
 
     @SuppressWarnings({"rawtypes", "unchecked"})
