@@ -301,6 +301,9 @@ public class TransferProcess {
                 process.provisionedResourceSet.setTransferProcessId(process.id);
             }
 
+            if (process.dataRequest != null) {
+                process.dataRequest.setProcessId(process.id);
+            }
             return process;
         }
 

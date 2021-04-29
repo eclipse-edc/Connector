@@ -16,6 +16,8 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 public class DataRequest implements RemoteMessage, Polymorphic {
     private String id;
 
+    private String processId;
+
     private String connectorAddress;
 
     private String protocol;
@@ -32,10 +34,17 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
 
     /**
-     * The unique request id.
+     * The unique request id. Request ids are provided by the originating client and must be unique.
      */
     public String getId() {
         return id;
+    }
+
+    /**
+     * Returns the process id this request is associated with.
+     */
+    public String getProcessId() {
+        return processId;
     }
 
     /**
@@ -78,6 +87,9 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return managedResources;
     }
 
+    void setProcessId(String processId) {
+        this.processId = processId;
+    }
 
     private DataRequest() {
     }
@@ -97,6 +109,11 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
         public Builder id(String id) {
             request.id = id;
+            return this;
+        }
+
+        public Builder processId(String id) {
+            request.processId = id;
             return this;
         }
 
