@@ -48,8 +48,9 @@ import static org.junit.jupiter.api.Assertions.fail;
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 class NifiDataFlowControllerTest {
 
-    private static final String NIFI_HOST = "http://localhost";
-    private final static String NIFI_API_HOST = NIFI_HOST + ":8080";
+    private static final String ATLAS_API_HOST = "http://localhost:21000";
+    private static final String NIFI_CONTENTLISTENER_HOST = "http://localhost:8888";
+    private final static String NIFI_API_HOST = "http://localhost:8080";
     private final static String storageAccount = "dagxblobstoreitest";
     private static String storageAccountKey = null;
 
@@ -61,10 +62,9 @@ class NifiDataFlowControllerTest {
     private static BlobContainerClient blobContainerClient;
     private final static String atlasUsername = "admin";
     private final static String atlasPassword = "admin";
-    private static final String ATLAS_API_HOST = "http://localhost:21000";
     private NifiDataFlowController controller;
     private Vault vault;
-    private static final String NIFI_CONTENTLISTENER_HOST = NIFI_HOST+":8888";
+
 
 
     @BeforeAll
