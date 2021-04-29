@@ -12,9 +12,9 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -35,7 +35,7 @@ class InMemoryTransferProcessStoreTest {
         assertNotNull(found);
         assertNotSame(found, transferProcess); // enforce by-value
 
-        assertTrue(store.externalIdReceived("clientid"));
+        assertNotNull(store.processIdForTransferId("clientid"));
 
         assertEquals(TransferProcessStates.INITIAL.code(), found.getState());
 
@@ -49,7 +49,7 @@ class InMemoryTransferProcessStoreTest {
 
         store.delete(id);
         Assertions.assertNull(store.find(id));
-        assertFalse(store.externalIdReceived("clientid"));
+        assertNull(store.processIdForTransferId("clientid"));
 
     }
 
