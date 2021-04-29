@@ -12,7 +12,7 @@ public class NifiTransferExtension implements ServiceExtension {
     @DagxSetting
     private static final String URL_SETTING = "nifi.url";
 
-    private static final String DEFAULT_NIFI_URL = "http://localhost:8080/nifi-api";
+    private static final String DEFAULT_NIFI_URL = "http://localhost:8080";
 
     private Monitor monitor;
 

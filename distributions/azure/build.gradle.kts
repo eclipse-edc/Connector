@@ -29,6 +29,10 @@ dependencies {
     implementation(project(":extensions:iam:oauth2"))
     implementation(project(":extensions:configuration:configuration-fs"))
 
+    implementation(project(":extensions:catalog:catalog-atlas"))
+    implementation(project(":extensions:catalog:catalog-dataseed"))
+    implementation(project(":extensions:transfer:transfer-store-memory"))
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
 

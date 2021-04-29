@@ -32,6 +32,10 @@ include(":extensions:ids:ids-core")
 include(":extensions:ids:ids-api-catalog")
 include(":extensions:ids:ids-api-transfer")
 
+include(":extensions:catalog:catalog-atlas")
+include(":extensions:catalog:catalog-dataseed")
+
+
 include(":policy:policy-model")
 include(":policy:policy-engine")
 
