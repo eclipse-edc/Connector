@@ -71,6 +71,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     private TransferInitiateResponse initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
+        // make the request idempotent: if the process exists, return
+        var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
+        if (processId != null) {
+            return TransferInitiateResponse.Builder.newInstance().id(processId).status(ResponseStatus.OK).build();
+        }
         String id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
         transferProcessStore.create(process);

@@ -1,5 +1,6 @@
 package com.microsoft.dagx.transfer.store.memory;
 
+import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -24,7 +26,7 @@ class InMemoryTransferProcessStoreTest {
     @Test
     void verifyCreateUpdateDelete() {
         String id = UUID.randomUUID().toString();
-        TransferProcess transferProcess = TransferProcess.Builder.newInstance().id(id).build();
+        TransferProcess transferProcess = TransferProcess.Builder.newInstance().id(id).dataRequest(DataRequest.Builder.newInstance().id("clientid").destinationType("test").build()).build();
 
         store.create(transferProcess);
 
@@ -32,6 +34,8 @@ class InMemoryTransferProcessStoreTest {
 
         assertNotNull(found);
         assertNotSame(found, transferProcess); // enforce by-value
+
+        assertTrue(store.externalIdReceived("clientid"));
 
         assertEquals(TransferProcessStates.INITIAL.code(), found.getState());
 
@@ -45,14 +49,16 @@ class InMemoryTransferProcessStoreTest {
 
         store.delete(id);
         Assertions.assertNull(store.find(id));
+        assertFalse(store.externalIdReceived("clientid"));
+
     }
 
     @Test
     void verifyNext() throws InterruptedException {
         String id1 = UUID.randomUUID().toString();
-        TransferProcess transferProcess1 = TransferProcess.Builder.newInstance().id(id1).build();
+        TransferProcess transferProcess1 = TransferProcess.Builder.newInstance().id(id1).dataRequest(DataRequest.Builder.newInstance().id("clientid").destinationType("test").build()).build();
         String id2 = UUID.randomUUID().toString();
-        TransferProcess transferProcess2 = TransferProcess.Builder.newInstance().id(id2).build();
+        TransferProcess transferProcess2 = TransferProcess.Builder.newInstance().id(id2).dataRequest(DataRequest.Builder.newInstance().id("clientid").destinationType("test").build()).build();
 
         store.create(transferProcess1);
         store.create(transferProcess2);
