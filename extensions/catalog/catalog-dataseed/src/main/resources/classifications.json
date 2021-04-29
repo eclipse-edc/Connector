@@ -1,0 +1,18 @@
+{
+  "policies" :
+  [
+    "Policy_A",
+    "Policy_B",
+    "Policy_C"
+  ],
+  "duties" : [
+    "Duty_A",
+    "Duty_B",
+    "Duty_C"
+  ],
+  "permissions" : [
+    "Permission_A",
+    "Permission_B",
+    "Permission_C"
+  ]
+}
