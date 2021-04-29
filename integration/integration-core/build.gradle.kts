@@ -1,4 +1,3 @@
-
 plugins {
     `java-library`
 }
@@ -9,7 +8,10 @@ dependencies {
     api(project(":extensions:transfer:transfer-store-memory"))
 
     api(project(":extensions:transfer:transfer-provision-aws"))
-    
+
+    api(project(":extensions:ids:ids-core"))
+//    testImplementation(project(":extensions:iam:oauth2"))
+
     testImplementation(project(":extensions:security:security-fs"))
     testImplementation(project(":distributions:junit"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")

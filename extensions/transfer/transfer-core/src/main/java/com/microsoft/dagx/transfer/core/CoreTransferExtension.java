@@ -41,7 +41,9 @@ public class CoreTransferExtension implements ServiceExtension {
         this.monitor = context.getMonitor();
         this.context = context;
 
-        registerTypes(context.getTypeManager());
+        var typeManager = context.getTypeManager();
+
+        registerTypes(typeManager);
 
         var dataFlowManager = new DataFlowManagerImpl();
         context.registerService(DataFlowManager.class, dataFlowManager);
@@ -53,7 +55,8 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(ResourceManifestGenerator.class, manifestGenerator);
 
         var vault = context.getService(Vault.class);
-        provisionManager = new ProvisionManagerImpl(vault, monitor);
+
+        provisionManager = new ProvisionManagerImpl(vault, typeManager, monitor);
         context.registerService(ProvisionManager.class, provisionManager);
 
         processManager = TransferProcessManagerImpl.Builder.newInstance()

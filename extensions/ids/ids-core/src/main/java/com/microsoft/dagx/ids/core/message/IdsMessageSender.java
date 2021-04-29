@@ -1,5 +1,6 @@
 package com.microsoft.dagx.ids.core.message;
 
+import com.microsoft.dagx.spi.message.MessageContext;
 import com.microsoft.dagx.spi.types.domain.message.RemoteMessage;
 
 import java.util.concurrent.CompletableFuture;
@@ -17,6 +18,6 @@ public interface IdsMessageSender<M extends RemoteMessage, R> {
     /**
      * Binds and sends the message, returning a future for retrieving the response.
      */
-    CompletableFuture<R> send(M message);
+    CompletableFuture<R> send(M message, MessageContext context);
 
 }

@@ -1,6 +1,7 @@
 package com.microsoft.dagx.spi.transfer.provision;
 
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +13,12 @@ public interface ProvisionContext {
     /**
      * Invoked when a provision request has completed.
      */
-    void callback(ProvisionedResource resource, @Nullable DestinationSecretToken secretToken);
+    void callback(ProvisionedResource resource);
+
+    /**
+     * Invoked when a provision request has completed.
+     */
+    void callback(ProvisionedDataDestinationResource resource, @Nullable DestinationSecretToken secretToken);
 
     /**
      * Persists data related to a provision request.  Data will be removed after all resources have been provisioned for a transfer process.

@@ -7,10 +7,12 @@ import com.microsoft.dagx.ids.core.message.IdsRemoteMessageDispatcher;
 import com.microsoft.dagx.ids.spi.daps.DapsService;
 import com.microsoft.dagx.ids.spi.descriptor.IdsDescriptorService;
 import com.microsoft.dagx.spi.iam.IdentityService;
-import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
+import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
+import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import okhttp3.OkHttpClient;
 
 import java.util.Set;
@@ -64,11 +66,15 @@ public class IdsCoreServiceExtension implements ServiceExtension {
      * Assembles the IDS remote message dispatcher and its senders.
      */
     private void assembleIdsDispatcher(ServiceExtensionContext context, IdentityService identityService) {
+        var processStore = context.getService(TransferProcessStore.class);
+        var vault = context.getService(Vault.class);
         var httpClient = context.getService(OkHttpClient.class);
+
+        var mapper = context.getTypeManager().getMapper();
 
         var dispatcher = new IdsRemoteMessageDispatcher();
 
-        dispatcher.register(new DataRequestMessageSender(identityService, httpClient));
+        dispatcher.register(new DataRequestMessageSender(identityService, processStore, vault, httpClient, mapper));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(dispatcher);

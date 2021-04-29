@@ -6,6 +6,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * A temporary token with write privileges to the data destination.
  */
 public class DestinationSecretToken {
+    public static final String KEY = "dagx-destination-token";
+
     private String token;
     private long expiration;
 

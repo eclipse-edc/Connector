@@ -21,9 +21,7 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLookup;
 import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
-import com.microsoft.dagx.transfer.types.azure.AzureStorageDestination;
 import okhttp3.OkHttpClient;
 import org.apache.atlas.AtlasClientV2;
 import org.easymock.MockType;
@@ -37,11 +35,18 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -176,11 +181,11 @@ class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataEntry(entry)
-                .dataDestination(AzureStorageDestination.Builder.newInstance()
-                        .account(storageAccount)
-                        .container(containerName)
-                        .blobname("bike_very_new.jpg")
-                        .key(storageAccountKey)
+                .dataDestination(DataDestination.Builder.newInstance()
+                        .property("account", storageAccount)
+                        .property("container", containerName)
+                        .property("blobname", "bike_very_new.jpg")
+                        .property("key", storageAccountKey)
                         .build())
                 .build();
 
@@ -210,11 +215,11 @@ class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataEntry(entry)
-                .dataDestination(AzureStorageDestination.Builder.newInstance()
-                        .account(storageAccount)
-                        .container(containerName)
-                        .blobname("bike_very_new.jpg")
-                        .key(storageAccountKey)
+                .dataDestination(DataDestination.Builder.newInstance()
+                        .property("account", storageAccount)
+                        .property("container", containerName)
+                        .property("blobname", "bike_very_new.jpg")
+                        .property("key", storageAccountKey)
                         .build())
                 .build();
 
@@ -242,11 +247,11 @@ class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataEntry(entry)
-                .dataDestination(AzureStorageDestination.Builder.newInstance()
-                        .account(storageAccount)
-                        .container(containerName)
-                        .blobname("will_not_succeed.jpg")
-                        .key(storageAccountKey)
+                .dataDestination(DataDestination.Builder.newInstance()
+                        .property("account", storageAccount)
+                        .property("container", containerName)
+                        .property("blobname", "will_not_succeed.jpg")
+                        .property("key", storageAccountKey)
                         .build())
                 .build();
 
@@ -266,17 +271,7 @@ class NifiDataFlowControllerTest {
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
-                .dataDestination(new DataDestination() {
-                    @Override
-                    public String getType() {
-                        return "TestType";
-                    }
-
-                    @Override
-                    public DestinationSecretToken getSecretToken() {
-                        return null;
-                    }
-                })
+                .dataDestination(DataDestination.Builder.newInstance().type("TestType").build())
                 .dataEntry(entry)
                 .build();
 

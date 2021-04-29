@@ -3,6 +3,7 @@ package com.microsoft.dagx.transfer.provision.azure;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
+import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 
@@ -29,7 +30,9 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
 
     @Override
     public ResponseStatus provision(ObjectStorageResourceDefinition resourceDefinition) {
-        context.callback(new ObjectContainerProvisionedResource(), null);
+        var secretToken = new DestinationSecretToken("", -1);
+        var resource = new ObjectContainerProvisionedResource();
+        context.callback(resource, secretToken);
         return ResponseStatus.OK;
     }
 

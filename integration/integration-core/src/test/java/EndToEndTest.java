@@ -1,4 +1,5 @@
 import com.microsoft.dagx.junit.DagxExtension;
+import com.microsoft.dagx.spi.message.MessageContext;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcher;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
@@ -35,7 +36,7 @@ public class EndToEndTest {
         dispatcher.protocol();
         EasyMock.expectLastCall().andReturn("ids-rest");
 
-        EasyMock.expect(dispatcher.send(EasyMock.notNull(), EasyMock.isA(RemoteMessage.class))).andAnswer(() -> {
+        EasyMock.expect(dispatcher.send(EasyMock.notNull(), EasyMock.isA(RemoteMessage.class), EasyMock.isA(MessageContext.class))).andAnswer(() -> {
             var future = new CompletableFuture<>();
             future.complete(null);
             latch.countDown();

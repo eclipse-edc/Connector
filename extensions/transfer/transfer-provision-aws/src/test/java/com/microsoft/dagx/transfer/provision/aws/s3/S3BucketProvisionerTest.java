@@ -1,8 +1,13 @@
 package com.microsoft.dagx.transfer.provision.aws.s3;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
+import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
 import org.easymock.EasyMock;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.regions.Region;
@@ -69,12 +74,16 @@ class S3BucketProvisionerTest {
         });
 
         AtomicBoolean passed = new AtomicBoolean();
-        provisioner.initialize((resource, secretToken) -> {
-            // verify processing completed normally
-            if (resource.isError()) {
+        provisioner.initialize(new ProvisionContext() {
+            @Override
+            public void callback(ProvisionedResource resource) {
                 throw new AssertionError("Resource creation errored");
             }
-            passed.set(true);
+
+            @Override
+            public void callback(ProvisionedDataDestinationResource resource, @Nullable DestinationSecretToken secretToken) {
+                passed.set(true);
+            }
         });
 
         provisioner.provision(S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").transferProcessId("test").build());

@@ -1,11 +1,18 @@
 package com.microsoft.dagx.transfer.provision.azure;
 
+import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 
 /**
  *
  */
-public class ObjectContainerProvisionedResource extends ProvisionedResource {
+public class ObjectContainerProvisionedResource extends ProvisionedDataDestinationResource {
+
+    @Override
+    public DataDestination createDataDestination() {
+        return null;
+    }
 
     public static class Builder extends ProvisionedResource.Builder<ObjectContainerProvisionedResource, Builder> {
 

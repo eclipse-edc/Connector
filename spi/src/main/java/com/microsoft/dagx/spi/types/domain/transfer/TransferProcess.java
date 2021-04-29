@@ -141,7 +141,8 @@ public class TransferProcess {
     }
 
     public void transitionProvisioned() {
-        transition(TransferProcessStates.PROVISIONED, TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED);
+        // requested is allowed to support retries
+        transition(TransferProcessStates.PROVISIONED, TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
     }
 
     public void transitionRequested() {

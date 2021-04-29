@@ -5,7 +5,6 @@ import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.types.TypeManager;
-import com.microsoft.dagx.transfer.types.azure.AzureStorageDestination;
 
 /**
  * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by Azure services.
@@ -34,7 +33,7 @@ public class AzureProvisionExtension implements ServiceExtension {
     }
 
     private void registerTypes(TypeManager typeManager) {
-        typeManager.registerTypes(ObjectContainerProvisionedResource.class, AzureStorageDestination.class);
+        typeManager.registerTypes(ObjectContainerProvisionedResource.class);
     }
 
 }

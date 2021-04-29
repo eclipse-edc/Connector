@@ -82,6 +82,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     private DataRequest() {
     }
 
+    public void updateDestination(DataDestination dataDestination) {
+        this.dataDestination = dataDestination;
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;

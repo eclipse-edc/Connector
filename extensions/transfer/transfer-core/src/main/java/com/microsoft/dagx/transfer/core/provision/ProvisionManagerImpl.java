@@ -6,7 +6,9 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
+import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
@@ -23,18 +25,20 @@ import static java.lang.String.format;
  */
 public class ProvisionManagerImpl implements ProvisionManager {
     private Vault vault;
+    private TypeManager typeManager;
     private Monitor monitor;
     private TransferProcessStore processStore;
     private List<Provisioner<?, ?>> provisioners = new ArrayList<>();
 
-    public ProvisionManagerImpl(Vault vault, Monitor monitor) {
+    public ProvisionManagerImpl(Vault vault, TypeManager typeManager, Monitor monitor) {
         this.vault = vault;
+        this.typeManager = typeManager;
         this.monitor = monitor;
     }
 
     public void start(TransferProcessStore processStore) {
         this.processStore = processStore;
-        var context = new ProvisionContextImpl(this.processStore, this::onResource);
+        var context = new ProvisionContextImpl(this.processStore, this::onResource, this::onDestinationResource);
         provisioners.forEach(provisioner -> provisioner.initialize(context));
     }
 
@@ -64,22 +68,39 @@ public class ProvisionManagerImpl implements ProvisionManager {
         }
     }
 
-    void onResource(ProvisionedResource provisionedResource, DestinationSecretToken secretToken) {
+    void onDestinationResource(ProvisionedDataDestinationResource destinationResource, DestinationSecretToken secretToken) {
+        var processId = destinationResource.getTransferProcessId();
+        var transferProcess = processStore.find(processId);
+        if (transferProcess == null) {
+            processNotFound(destinationResource);
+            return;
+        }
+
+        if (secretToken != null) {
+            vault.storeSecret(DestinationSecretToken.KEY + "-" + processId, typeManager.writeValueAsString(secretToken));
+        }
+
+        transferProcess.getDataRequest().updateDestination(destinationResource.createDataDestination());
+
+        updateProcessWithProvisionedResource(destinationResource, transferProcess);
+    }
+
+    void onResource(ProvisionedResource provisionedResource) {
         var processId = provisionedResource.getTransferProcessId();
         var transferProcess = processStore.find(processId);
         if (transferProcess == null) {
-            var resourceId = provisionedResource.getResourceDefinitionId();
-            monitor.severe(format("Error received when provisioning resource %s Process id not found for: %s", resourceId, processId));
+            processNotFound(provisionedResource);
             return;
         }
+
+        updateProcessWithProvisionedResource(provisionedResource, transferProcess);
+    }
+
+    private void updateProcessWithProvisionedResource(ProvisionedResource provisionedResource, TransferProcess transferProcess) {
         transferProcess.addProvisionedResource(provisionedResource);
 
-        if (secretToken != null) {
-            // TODO we should probably create a hierarchy for keys
-            vault.storeSecret(provisionedResource.getId(), secretToken.getToken());
-        }
-
         if (provisionedResource.isError()) {
+            var processId = transferProcess.getId();
             var resourceId = provisionedResource.getResourceDefinitionId();
             monitor.severe(format("Error provisioning resource %s for process %s: %s", resourceId, processId, provisionedResource.getErrorMessage()));
             processStore.update(transferProcess);
@@ -91,6 +112,12 @@ public class ProvisionManagerImpl implements ProvisionManager {
             transferProcess.transitionProvisioned();
         }
         processStore.update(transferProcess);
+    }
+
+    private void processNotFound(ProvisionedResource provisionedResource) {
+        var resourceId = provisionedResource.getResourceDefinitionId();
+        var processId = provisionedResource.getTransferProcessId();
+        monitor.severe(format("Error received when provisioning resource %s Process id not found for: %s", resourceId, processId));
     }
 
     @NotNull

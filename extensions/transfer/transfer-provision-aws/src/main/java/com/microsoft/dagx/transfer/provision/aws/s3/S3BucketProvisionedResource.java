@@ -6,9 +6,11 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
-import com.microsoft.dagx.transfer.types.aws.S3Destination;
+
+import static com.microsoft.dagx.transfer.provision.aws.s3.S3Destination.BUCKET_NAME;
+import static com.microsoft.dagx.transfer.provision.aws.s3.S3Destination.REGION;
+import static com.microsoft.dagx.transfer.provision.aws.s3.S3Destination.TYPE;
 
 /**
  * A provisioned S3 bucket and credentials associated with a transfer process.
@@ -31,8 +33,8 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
     }
 
     @Override
-    public DataDestination createDataDestination(DestinationSecretToken token) {
-        return S3Destination.Builder.newInstance().region(region).bucketName(bucketName).secretToken(token).build();
+    public DataDestination createDataDestination() {
+        return DataDestination.Builder.newInstance().property(REGION, region).type(TYPE).property(BUCKET_NAME, bucketName).build();
     }
 
     private S3BucketProvisionedResource() {

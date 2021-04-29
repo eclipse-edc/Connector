@@ -1,7 +1,6 @@
 package com.microsoft.dagx.transfer.provision.aws.s3;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -31,13 +30,6 @@ class S3BucketProvisionedResourceTest {
         assertNotNull(deserialized);
         assertEquals("region", deserialized.getRegion());
         assertEquals("bucket", deserialized.getBucketName());
-    }
-
-    @Test
-    void verifyDestinationCreate() {
-        DestinationSecretToken token = new DestinationSecretToken("token", 1L);
-        
-        assertNotNull(provisionedResource.createDataDestination(token));
     }
 
     @BeforeEach

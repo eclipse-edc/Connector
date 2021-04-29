@@ -1,6 +1,7 @@
 package com.microsoft.dagx.ids.core.message;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.message.MessageContext;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcher;
 import com.microsoft.dagx.spi.types.domain.message.RemoteMessage;
 
@@ -28,13 +29,13 @@ public class IdsRemoteMessageDispatcher implements RemoteMessageDispatcher {
 
     @Override
     @SuppressWarnings("unchecked")
-    public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message) {
+    public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
         Objects.requireNonNull(message, "Message was null");
         IdsMessageSender<RemoteMessage, ?> handler = (IdsMessageSender<RemoteMessage, ?>) senders.get(message.getClass());
         if (handler == null) {
             throw new DagxException("Message sender not found for message type: " + message.getClass().getName());
         }
-        return (CompletableFuture<T>) handler.send(message);
+        return (CompletableFuture<T>) handler.send(message, context);
     }
 
 }

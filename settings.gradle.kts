@@ -14,8 +14,6 @@ include(":extensions:metadata:metadata-memory")
 
 include(":extensions:transfer:transfer-core")
 include(":extensions:transfer:transfer-nifi")
-include(":extensions:transfer:transfer-types-azure")
-include(":extensions:transfer:transfer-types-aws")
 include(":extensions:transfer:transfer-provision-azure")
 include(":extensions:transfer:transfer-provision-aws")
 include(":extensions:transfer:transfer-store-memory")

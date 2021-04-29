@@ -145,15 +145,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             DataRequest dataRequest = process.getDataRequest();
             if (CLIENT == process.getType()) {
                 process.transitionRequested();
-                dispatcherRegistry.send(Void.class, dataRequest).whenComplete((response, exception) -> {
-                    if (exception != null) {
-                        monitor.severe("Error sending request process id: " + process.getId(), exception);
-                        process.transitionError(exception.getMessage());
-                    } else {
-                        process.transitionRequestAck();
-                    }
-                    transferProcessStore.update(process);
-                });
+                transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
+                dispatcherRegistry.send(Void.class, dataRequest, process::getId);
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
                 if (ResponseStatus.ERROR_RETRY == response.getStatus()) {

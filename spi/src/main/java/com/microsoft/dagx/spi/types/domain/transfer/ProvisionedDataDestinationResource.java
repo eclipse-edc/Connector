@@ -5,7 +5,7 @@ package com.microsoft.dagx.spi.types.domain.transfer;
  */
 public abstract class ProvisionedDataDestinationResource extends ProvisionedResource {
 
-    public abstract DataDestination createDataDestination(DestinationSecretToken token);
+    public abstract DataDestination createDataDestination();
 
     protected ProvisionedDataDestinationResource() {
         super();
@@ -16,5 +16,6 @@ public abstract class ProvisionedDataDestinationResource extends ProvisionedReso
         protected Builder(PR resource) {
             super(resource);
         }
+
     }
 }

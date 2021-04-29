@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.core.protocol.provider;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.message.MessageContext;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcher;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.types.domain.message.RemoteMessage;
@@ -18,7 +19,7 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
     private Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
 
     @Override
-    public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message) {
+    public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
         Objects.requireNonNull(message, "Message was null");
         String protocol = message.getProtocol();
         RemoteMessageDispatcher dispatcher = getDispatcher(protocol);
@@ -27,7 +28,7 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
             future.completeExceptionally(new DagxException("No provider dispatcher registered for protocol: " + protocol));
             return future;
         }
-        return dispatcher.send(responseType, message);
+        return dispatcher.send(responseType, message, context);
     }
 
     @Override
