@@ -43,5 +43,3 @@ distributions/**/github.properties
 
 distributions/azure/azure.properties
 .terraform*
-terraform.tfstate
-terraform.tfstate.backup
