@@ -1,7 +1,13 @@
 import com.microsoft.dagx.junit.DagxExtension;
+import com.microsoft.dagx.spi.iam.ClaimToken;
+import com.microsoft.dagx.spi.iam.IdentityService;
+import com.microsoft.dagx.spi.iam.TokenResult;
+import com.microsoft.dagx.spi.iam.VerificationResult;
 import com.microsoft.dagx.spi.message.MessageContext;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcher;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
+import com.microsoft.dagx.spi.system.ServiceExtension;
+import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
@@ -15,6 +21,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -93,6 +100,26 @@ public class EndToEndTest {
 
     @BeforeEach
     void before(DagxExtension extension) {
-        // register mocks needed for boot here
+        extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
+            @Override
+            public Set<String> provides() {
+                return Set.of("iam");
+            }
+
+            @Override
+            public void initialize(ServiceExtensionContext context) {
+                context.registerService(IdentityService.class, new IdentityService() {
+                    @Override
+                    public TokenResult obtainClientCredentials(String scope) {
+                        return TokenResult.Builder.newInstance().token("test").build();
+                    }
+
+                    @Override
+                    public VerificationResult verifyJwtToken(String token, String audience) {
+                        return new VerificationResult((ClaimToken) null);
+                    }
+                });
+            }
+        });
     }
 }
