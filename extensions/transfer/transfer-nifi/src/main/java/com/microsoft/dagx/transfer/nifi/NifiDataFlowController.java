@@ -5,12 +5,10 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
-import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
-import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLookup;
-import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -114,7 +112,7 @@ public class NifiDataFlowController implements DataFlowController {
     }
 
     @NotNull
-    private Request createTransferRequest(Map<String, Object> sourceFileProperties, DataDestination destination, String basicAuthCredentials) {
+    private Request createTransferRequest(Map<String, Object> sourceFileProperties, DataAddress destination, String basicAuthCredentials) {
 
 
         String url = baseUrl + CONTENTLISTENER;

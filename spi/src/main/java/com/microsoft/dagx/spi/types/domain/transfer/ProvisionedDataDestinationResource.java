@@ -5,7 +5,7 @@ package com.microsoft.dagx.spi.types.domain.transfer;
  */
 public abstract class ProvisionedDataDestinationResource extends ProvisionedResource {
 
-    public abstract DataDestination createDataDestination();
+    public abstract DataAddress createDataDestination();
 
     protected ProvisionedDataDestinationResource() {
         super();

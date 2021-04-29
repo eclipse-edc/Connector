@@ -1,7 +1,7 @@
 package com.microsoft.dagx.transfer.provision.aws.s3;
 
 import com.microsoft.dagx.spi.transfer.provision.ResourceDefinitionGenerator;
-import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import software.amazon.awssdk.regions.Region;
@@ -28,7 +28,7 @@ public class S3ResourceDefinitionClientGenerator implements ResourceDefinitionGe
         } else if (request.getDataDestination() == null || !(request.getDataDestination().getType().equals(S3Destination.TYPE))) {
             return null;
         }
-        DataDestination destination = request.getDataDestination();
+        DataAddress destination = request.getDataDestination();
         String id = randomUUID().toString();
         return S3BucketResourceDefinition.Builder.newInstance().id(id).bucketName(destination.getProperty(BUCKET_NAME)).regionId(destination.getProperty(REGION)).build();
     }

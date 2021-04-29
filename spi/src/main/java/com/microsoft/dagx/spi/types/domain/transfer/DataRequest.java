@@ -24,7 +24,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private DataEntry<?> dataEntry;
 
-    private DataDestination dataDestination;
+    private DataAddress dataAddress;
 
     private String destinationType;
 
@@ -70,8 +70,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     /**
      * The target address the data is to be sent to. Set by the request originator, e.g., the client connector.
      */
-    public DataDestination getDataDestination() {
-        return dataDestination;
+    public DataAddress getDataDestination() {
+        return dataAddress;
     }
 
     public boolean isManagedResources() {
@@ -82,8 +82,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     private DataRequest() {
     }
 
-    public void updateDestination(DataDestination dataDestination) {
-        this.dataDestination = dataDestination;
+    public void updateDestination(DataAddress dataAddress) {
+        this.dataAddress = dataAddress;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -125,8 +125,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder dataDestination(DataDestination destination) {
-            request.dataDestination = destination;
+        public Builder dataDestination(DataAddress destination) {
+            request.dataAddress = destination;
             return this;
         }
 
@@ -140,7 +140,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         }
 
         public DataRequest build() {
-            if (request.dataDestination == null && request.destinationType == null) {
+            if (request.dataAddress == null && request.destinationType == null) {
                 throw new IllegalArgumentException("A data destination or type must be specified");
             }
             return request;

@@ -8,7 +8,7 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.types.TypeManager;
-import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
@@ -79,7 +79,7 @@ public class ArtifactRequestController {
 
         // TODO this needs to be deserialized from the artifact request message
         @SuppressWarnings("unchecked") var destinationMap = (Map<String, String>) message.getProperties().get(DESTINATION_KEY);
-        var dataDestination = DataDestination.Builder.newInstance().type(destinationMap.get("type")).properties(cast(destinationMap.get("properties"))).build();
+        var dataDestination = DataAddress.Builder.newInstance().type(destinationMap.get("type")).properties(cast(destinationMap.get("properties"))).build();
 
         var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).dataDestination(dataDestination).protocol(IDS_REST).build();
 

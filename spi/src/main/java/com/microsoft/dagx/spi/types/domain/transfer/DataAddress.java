@@ -11,8 +11,8 @@ import java.util.Objects;
 /**
  * An address such as a data source or destination.
  */
-@JsonDeserialize(builder = DataDestination.Builder.class)
-public class DataDestination {
+@JsonDeserialize(builder = DataAddress.Builder.class)
+public class DataAddress {
     private String type;
     private Map<String, String> properties = new HashMap<>();
 
@@ -28,12 +28,12 @@ public class DataDestination {
         return properties;
     }
 
-    private DataDestination() {
+    private DataAddress() {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private DataDestination address;
+        private DataAddress address;
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -55,13 +55,13 @@ public class DataDestination {
             return this;
         }
 
-        public DataDestination build() {
+        public DataAddress build() {
             Objects.requireNonNull(address.type, "type");
             return address;
         }
 
         private Builder() {
-            address = new DataDestination();
+            address = new DataAddress();
         }
     }
 }

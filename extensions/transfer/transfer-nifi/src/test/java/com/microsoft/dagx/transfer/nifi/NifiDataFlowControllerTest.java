@@ -19,7 +19,7 @@ import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
 import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLookup;
-import com.microsoft.dagx.spi.types.domain.transfer.DataDestination;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
 import okhttp3.OkHttpClient;
@@ -181,7 +181,7 @@ class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataEntry(entry)
-                .dataDestination(DataDestination.Builder.newInstance()
+                .dataDestination(DataAddress.Builder.newInstance()
                         .type("AzureStorage")
                         .property("account", storageAccount)
                         .property("container", containerName)
@@ -216,7 +216,7 @@ class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataEntry(entry)
-                .dataDestination(DataDestination.Builder.newInstance()
+                .dataDestination(DataAddress.Builder.newInstance()
                         .type("AzureStorage")
                         .property("account", storageAccount)
                         .property("container", containerName)
@@ -249,7 +249,7 @@ class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataEntry(entry)
-                .dataDestination(DataDestination.Builder.newInstance()
+                .dataDestination(DataAddress.Builder.newInstance()
                         .type("AzureStorage")
                         .property("account", storageAccount)
                         .property("container", containerName)
@@ -274,7 +274,7 @@ class NifiDataFlowControllerTest {
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
-                .dataDestination(DataDestination.Builder.newInstance().type("TestType").build())
+                .dataDestination(DataAddress.Builder.newInstance().type("TestType").build())
                 .dataEntry(entry)
                 .build();
 

@@ -12,17 +12,17 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 /**
  *
  */
-class DataDestinationTest {
+class DataAddressTest {
 
     @Test
     void verifyDeserialization() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
 
-        DataDestination process = DataDestination.Builder.newInstance().type("test").property("foo", "bar").build();
+        DataAddress dataAddress = DataAddress.Builder.newInstance().type("test").property("foo", "bar").build();
         StringWriter writer = new StringWriter();
-        mapper.writeValue(writer, process);
+        mapper.writeValue(writer, dataAddress);
 
-        DataDestination deserialized = mapper.readValue(writer.toString(), DataDestination.class);
+        DataAddress deserialized = mapper.readValue(writer.toString(), DataAddress.class);
 
         assertNotNull(deserialized);
 
