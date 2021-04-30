@@ -8,8 +8,8 @@ import com.azure.storage.blob.models.BlobStorageException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApiImpl;
-import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataEntryPropertyLookup;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasCustomTypeAttribute;
+import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataEntryPropertyLookup;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
@@ -28,9 +28,9 @@ import org.easymock.MockType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
-import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.File;
 import java.net.URL;
@@ -50,7 +50,8 @@ import static org.easymock.EasyMock.reset;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@Disabled
+//@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 class NifiDataFlowControllerTest {
 
     private static final String ATLAS_API_HOST = "http://localhost:21000";
