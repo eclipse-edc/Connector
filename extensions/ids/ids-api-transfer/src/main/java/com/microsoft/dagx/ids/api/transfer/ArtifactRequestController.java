@@ -10,7 +10,6 @@ import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.ArtifactResponseMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
@@ -57,6 +56,7 @@ public class ArtifactRequestController {
         this.monitor = monitor;
     }
 
+
     @POST
     @Path("request")
     public Response request(ArtifactRequestMessage message) {
@@ -78,17 +78,20 @@ public class ArtifactRequestController {
         }
 
         // TODO this needs to be deserialized from the artifact request message
-        @SuppressWarnings("unchecked") var destinationMap = (Map<String, String>) message.getProperties().get(DESTINATION_KEY);
-        var dataDestination = DataAddress.Builder.newInstance().type(destinationMap.get("type")).properties(cast(destinationMap.get("properties"))).build();
+        @SuppressWarnings("unchecked") var destinationMap = (Map<String, Object>) message.getProperties().get(DESTINATION_KEY);
+        var type = (String) destinationMap.get("type");
+
+        @SuppressWarnings("unchecked") var properties = (Map<String, String>) destinationMap.get("properties");
+        var secretName = (String) destinationMap.get("secretName");
+
+        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(cast(properties)).secretName(secretName).build();
 
         var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).dataDestination(dataDestination).protocol(IDS_REST).build();
 
         var destinationToken = (String) message.getProperties().get(TOKEN_KEY);
 
         if (destinationToken != null) {
-            // On the provider, use request id to store the token instead of the process id since the latter is not available until the process has been persisted.
-            // The token cannot be saved after the process is persisted as that could introduce a race condition where the token is not yet stored when the process is initiated
-            vault.storeSecret(DestinationSecretToken.KEY + "-" + dataRequest.getId(), typeManager.writeValueAsString(destinationToken));
+            vault.storeSecret(secretName, destinationToken);
         }
 
         var response = processManager.initiateProviderRequest(dataRequest);

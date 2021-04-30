@@ -3,6 +3,8 @@ package com.microsoft.dagx.spi.types.domain.transfer;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -17,6 +19,7 @@ public class DataAddress {
     private static final String KEYNAME = "keyName";
     private final Map<String, String> properties = new HashMap<>();
 
+    @NotNull
     public String getType() {
         return properties.get(TYPE);
     }
@@ -69,7 +72,6 @@ public class DataAddress {
             Objects.requireNonNull(address.getKeyName(), "keyName");
             return address;
         }
-
 
         private Builder() {
             address = new DataAddress();
