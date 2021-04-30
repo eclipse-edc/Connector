@@ -83,6 +83,7 @@ public class NifiDataFlowController implements DataFlowController {
         if (sourceprops.isEmpty()) {
             return new DataFlowInitiateResponse(FATAL_ERROR, "No catalog entry was found for the source file (ID=" + dataEntry.getId() + ")!");
         }
+        sourceprops.remove(SOURCE_FILE_ACCESS_KEY_NAME);
         sourceprops.put("key", vault.resolveSecret(sourceKeyName.toString()));
 
         Request request = createTransferRequest(sourceprops, dataRequest.getDataDestination(), basicAuthCreds);
