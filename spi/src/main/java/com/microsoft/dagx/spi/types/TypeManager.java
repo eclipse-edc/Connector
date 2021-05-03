@@ -1,6 +1,7 @@
 package com.microsoft.dagx.spi.types;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.module.SimpleModule;
@@ -19,6 +20,7 @@ public class TypeManager {
         objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule()); // configure ISO 8601 time de/serialization
         objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false); // serialize dates in ISO 8601 format
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         SimpleModule module = new SimpleModule();
         objectMapper.registerModule(module);
     }

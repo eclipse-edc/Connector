@@ -14,6 +14,7 @@ import java.util.Objects;
 @JsonDeserialize(builder = DataAddress.Builder.class)
 public class DataAddress {
     private String type;
+    private String keyName;
     private Map<String, String> properties = new HashMap<>();
 
     public String getType() {
@@ -26,6 +27,10 @@ public class DataAddress {
 
     public Map<String, String> getProperties() {
         return properties;
+    }
+
+    public String getKeyName() {
+        return keyName;
     }
 
     private DataAddress() {
@@ -54,11 +59,17 @@ public class DataAddress {
             address.properties.putAll(properties);
             return this;
         }
+        public Builder keyName(String keyName){
+            address.keyName= Objects.requireNonNull(keyName);
+            return this;
+        }
 
         public DataAddress build() {
             Objects.requireNonNull(address.type, "type");
+            Objects.requireNonNull(address.keyName, "keyName");
             return address;
         }
+
 
         private Builder() {
             address = new DataAddress();

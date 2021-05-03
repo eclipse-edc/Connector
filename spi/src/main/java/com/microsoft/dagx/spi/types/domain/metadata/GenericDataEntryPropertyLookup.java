@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Generic extension properties.
@@ -21,8 +23,17 @@ public class GenericDataEntryPropertyLookup implements DataEntryPropertyLookup {
     }
 
     @Override
-    public Map<String, Object> getPropertiesForEntity(String id) {
-        return getProperties();
+    public DataAddress getPropertiesForEntity(String id) {
+        return DataAddress.Builder.newInstance()
+                //convert a Map of String-Object to String-String
+                .properties(getProperties().entrySet()
+                        .stream()
+                        .collect(Collectors.toMap(Map.Entry::getKey,
+                                e -> e.getValue().toString())))
+                .keyName(getProperties().get("keyName").toString())
+                .type(getProperties().get("type").toString())
+                .build();
+
     }
 
     @JsonPOJOBuilder(withPrefix = "")

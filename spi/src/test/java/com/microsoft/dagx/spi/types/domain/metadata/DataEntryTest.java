@@ -2,11 +2,11 @@ package com.microsoft.dagx.spi.types.domain.metadata;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -34,7 +34,7 @@ class DataEntryTest {
     public static class TestExtension implements DataEntryPropertyLookup {
 
         @Override
-        public Map<String, Object> getPropertiesForEntity(String id) {
+        public DataAddress getPropertiesForEntity(String id) {
             return null;
         }
     }

@@ -7,10 +7,7 @@ import org.apache.atlas.model.typedef.AtlasTypesDef;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class AtlasDataSeeder {
     private final AtlasApi atlasApi;
@@ -49,10 +46,20 @@ public class AtlasDataSeeder {
             String entityTypeName = (String) entities.getOrDefault("entityTypeName", null);
             List<Map<String, Object>> entityList = (List<Map<String, Object>>) entities.getOrDefault("entities", null);
 
+            // create entities that are stored in the json file
             ArrayList<String> entityGuids = new ArrayList<>();
             for (Map<String, Object> entity : entityList) {
                 entityGuids.add(atlasApi.createEntity(entityTypeName, entity));
             }
+
+            // create another entity from code
+            entityGuids.add(atlasApi.createEntity(AzureBlobFileEntityBuilder.ENTITY_TYPE_NAME, AzureBlobFileEntityBuilder.newInstance()
+                    .withAccount("dagxblobstoreitest")
+                    .withBlobname("testimage.jpg")
+                    .withContainer("testcontainer")
+                    .withKeyName("dagxblobstoreitest-key1")
+                    .withDescription("this is a second entity")
+                    .build()));
             return entityGuids;
 
         } catch (Exception e) {

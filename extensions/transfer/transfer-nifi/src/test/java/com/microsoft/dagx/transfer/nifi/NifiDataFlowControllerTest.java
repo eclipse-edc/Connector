@@ -22,37 +22,30 @@ import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLook
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
+import com.microsoft.dagx.transfer.nifi.azureblob.AzureEndpointConverter;
 import okhttp3.OkHttpClient;
 import org.apache.atlas.AtlasClientV2;
 import org.easymock.MockType;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.File;
 import java.net.URL;
 import java.nio.file.Paths;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.mock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.fail;
 
-@Disabled
-//@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
-class NifiDataFlowControllerTest {
+@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+public class NifiDataFlowControllerTest {
 
     private static final String ATLAS_API_HOST = "http://localhost:21000";
     private static final String NIFI_CONTENTLISTENER_HOST = "http://localhost:8888";
@@ -149,8 +142,9 @@ class NifiDataFlowControllerTest {
         }
         expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn(nifiAuth);
         expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(storageAccountKey);
+        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(storageAccountKey);
         replay(vault);
-        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient);
+        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new EndpointConverterRegistry().with("AzureStorage", new AzureEndpointConverter(vault)));
     }
 
     @Test
@@ -187,7 +181,7 @@ class NifiDataFlowControllerTest {
                         .property("account", storageAccount)
                         .property("container", containerName)
                         .property("blobname", "bike_very_new.jpg")
-                        .property("key", storageAccountKey)
+                        .keyName(storageAccount + "-key1")
                         .build())
                 .build();
 
@@ -208,7 +202,7 @@ class NifiDataFlowControllerTest {
     }
 
     @Test
-    @Timeout(value = 10)
+    @Timeout(value = 100000)
     void initiateFlow_withInMemCatalog() throws InterruptedException {
 
         String id = UUID.randomUUID().toString();
@@ -222,7 +216,7 @@ class NifiDataFlowControllerTest {
                         .property("account", storageAccount)
                         .property("container", containerName)
                         .property("blobname", "bike_very_new.jpg")
-                        .property("key", storageAccountKey)
+                        .keyName(storageAccount + "-key1")
                         .build())
                 .build();
 
@@ -241,7 +235,7 @@ class NifiDataFlowControllerTest {
     }
 
     @Test
-    void initiateFlow_sourceNotFound() throws InterruptedException {
+    void initiateFlow_sourceNotFound() {
         String id = UUID.randomUUID().toString();
         GenericDataEntryPropertyLookup lookup = createLookup();
         lookup.getProperties().replace("blobname", "notexist.png");
@@ -255,7 +249,7 @@ class NifiDataFlowControllerTest {
                         .property("account", storageAccount)
                         .property("container", containerName)
                         .property("blobname", "will_not_succeed.jpg")
-                        .property("key", storageAccountKey)
+                        .keyName(storageAccount + "-key1")
                         .build())
                 .build();
 
@@ -275,7 +269,8 @@ class NifiDataFlowControllerTest {
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
-                .dataDestination(DataAddress.Builder.newInstance().type("TestType").build())
+                .dataDestination(DataAddress.Builder.newInstance().type("TestType")
+                        .keyName(storageAccount+"-key1").build())
                 .dataEntry(entry)
                 .build();
 

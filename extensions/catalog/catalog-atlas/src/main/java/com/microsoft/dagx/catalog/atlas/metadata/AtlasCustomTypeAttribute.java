@@ -7,21 +7,30 @@ import java.util.List;
 
 public class AtlasCustomTypeAttribute {
     public static final String ATLAS_TYPE_STRING = "string";
-    public static final String ATLAS_TYPE_INT= "int";
+    public static final String ATLAS_TYPE_INT = "int";
+    public static final String AZURE_BLOB_ACCOUNT = "account";
+    public static final String AZURE_BLOB_BLOBNAME = "blobname";
+    public static final String AZURE_BLOB_CONTAINER = "container";
+    public static final String DAGX_STORAGE_TYPE = "type";
+    public static final String DAGX_STORAGE_KEYNAME = "keyName";
     /**
      * Pre-defined list of attributes that are required for a transfer that originates from Azure Blob Store
      */
     public static final List<AtlasCustomTypeAttribute> AZURE_BLOB_ATTRS = new ArrayList<>() {{
-        add(new AtlasCustomTypeAttribute("account", ATLAS_TYPE_STRING, true));
-        add(new AtlasCustomTypeAttribute("blobname", ATLAS_TYPE_STRING, true));
-        add(new AtlasCustomTypeAttribute("container", ATLAS_TYPE_STRING, true));
-        add(new AtlasCustomTypeAttribute("type", ATLAS_TYPE_STRING, true));
-        add(new AtlasCustomTypeAttribute("keyName", ATLAS_TYPE_STRING, true));
+
+        add(new AtlasCustomTypeAttribute(AZURE_BLOB_ACCOUNT, ATLAS_TYPE_STRING, true));
+        add(new AtlasCustomTypeAttribute(AZURE_BLOB_BLOBNAME, ATLAS_TYPE_STRING, true));
+        add(new AtlasCustomTypeAttribute(AZURE_BLOB_CONTAINER, ATLAS_TYPE_STRING, true));
+        add(new AtlasCustomTypeAttribute(DAGX_STORAGE_TYPE, ATLAS_TYPE_STRING, true));
+        add(new AtlasCustomTypeAttribute(DAGX_STORAGE_KEYNAME, ATLAS_TYPE_STRING, true));
     }};
+    private static final String S3BUCKET_REGION = "region";
+    private static final String S3BUCKET_NAME = "bucketName";
     public static final List<AtlasCustomTypeAttribute> AMAZON_S3_BUCKET_ATTRS = new ArrayList<>() {{
-        add(new AtlasCustomTypeAttribute("region", ATLAS_TYPE_STRING, true));
-        add(new AtlasCustomTypeAttribute("bucketName", ATLAS_TYPE_STRING, true));
-        add(new AtlasCustomTypeAttribute("keyName", ATLAS_TYPE_STRING, true));
+        add(new AtlasCustomTypeAttribute(S3BUCKET_REGION, ATLAS_TYPE_STRING, true));
+        add(new AtlasCustomTypeAttribute(S3BUCKET_NAME, ATLAS_TYPE_STRING, true));
+        add(new AtlasCustomTypeAttribute(DAGX_STORAGE_KEYNAME, ATLAS_TYPE_STRING, true));
+        add(new AtlasCustomTypeAttribute(DAGX_STORAGE_TYPE, ATLAS_TYPE_STRING, true));
 
     }};
     @JsonProperty
@@ -37,7 +46,8 @@ public class AtlasCustomTypeAttribute {
         this.required = required;
     }
 
-    public AtlasCustomTypeAttribute(){}
+    public AtlasCustomTypeAttribute() {
+    }
 
     public String getName() {
         return name;

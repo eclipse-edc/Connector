@@ -26,7 +26,6 @@ import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
-import java.util.HashMap;
 import java.util.Map;
 
 import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.ERROR_RETRY;
@@ -44,13 +43,15 @@ public class NifiDataFlowController implements DataFlowController {
     private final Monitor monitor;
     private final Vault vault;
     private final OkHttpClient httpClient;
+    private final EndpointConverterRegistry converterRegistry;
 
-    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault, OkHttpClient httpClient) {
+    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault, OkHttpClient httpClient, EndpointConverterRegistry converterRegistry) {
         baseUrl = configuration.getUrl();
         this.typeManager = typeManager;
         this.monitor = monitor;
         this.vault = vault;
         this.httpClient = createUnsecureClient(httpClient);
+        this.converterRegistry = converterRegistry;
     }
 
     @Override
@@ -62,7 +63,8 @@ public class NifiDataFlowController implements DataFlowController {
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
 
-        if (dataRequest.getDataDestination() == null) {
+        DataAddress destinationAddress = dataRequest.getDataDestination();
+        if (destinationAddress == null) {
             return new DataFlowInitiateResponse(FATAL_ERROR, "Data target is null");
         }
 
@@ -73,20 +75,26 @@ public class NifiDataFlowController implements DataFlowController {
 
         DataEntry<?> dataEntry = dataRequest.getDataEntry();
         DataEntryPropertyLookup lookup = dataEntry.getLookup();
-        var sourceprops = lookup.getPropertiesForEntity(dataEntry.getId());
+        var sourceAddress = lookup.getPropertiesForEntity(dataEntry.getId());
         // the "keyName" entry should always be there, regardless of the source storage system
-        var sourceKeyName = sourceprops.get(SOURCE_FILE_ACCESS_KEY_NAME);
+        var sourceKeyName = sourceAddress.getKeyName();
 
         if (sourceKeyName == null) {
             return new DataFlowInitiateResponse(FATAL_ERROR, "No 'keyName' property was found for the source file (ID=" + dataEntry.getId() + ")!");
         }
-        if (sourceprops.isEmpty()) {
-            return new DataFlowInitiateResponse(FATAL_ERROR, "No catalog entry was found for the source file (ID=" + dataEntry.getId() + ")!");
-        }
-        sourceprops.remove(SOURCE_FILE_ACCESS_KEY_NAME);
-        sourceprops.put("key", vault.resolveSecret(sourceKeyName.toString()));
 
-        Request request = createTransferRequest(sourceprops, dataRequest.getDataDestination(), basicAuthCreds);
+        if (destinationAddress.getKeyName() == null) {
+            return new DataFlowInitiateResponse(FATAL_ERROR, "No 'keyName' property was found for the destination file (ID=" + dataEntry.getId() + ")!");
+        }
+
+        var sourceType = sourceAddress.getType();
+        var destType = sourceAddress.getType();
+
+        var source = converterRegistry.get(sourceType).convert(sourceAddress);
+        var dest= converterRegistry.get(destType).convert(destinationAddress);
+
+
+        Request request = createTransferRequest(source, dest, basicAuthCreds);
 
         try (Response response = httpClient.newCall(request).execute()) {
             int code = response.code();
@@ -113,16 +121,14 @@ public class NifiDataFlowController implements DataFlowController {
     }
 
     @NotNull
-    private Request createTransferRequest(Map<String, Object> sourceFileProperties, DataAddress destination, String basicAuthCredentials) {
+    private Request createTransferRequest(NifiTransferEndpoint source, NifiTransferEndpoint destination, String basicAuthCredentials) {
 
 
         String url = baseUrl + CONTENTLISTENER;
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("source", sourceFileProperties);
-        payload.put("destination", destination);
+        var nifiPayload = new NifiPayload(source, destination);
         return new Request.Builder()
                 .url(url)
-                .post(RequestBody.create(typeManager.writeValueAsString(payload), JSON))
+                .post(RequestBody.create(typeManager.writeValueAsString(nifiPayload), JSON))
                 .addHeader("Authorization", basicAuthCredentials)
                 .build();
     }
