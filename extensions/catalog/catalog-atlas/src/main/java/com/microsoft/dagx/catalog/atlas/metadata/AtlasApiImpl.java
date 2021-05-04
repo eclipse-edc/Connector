@@ -77,15 +77,19 @@ public class AtlasApiImpl implements AtlasApi {
         typesDef.setEntityDefs(Collections.singletonList(atlasEntityDef));
 
         try {
-            return atlasClient.createAtlasTypeDefs(typesDef);
+            if (existsType(typeName)) {
+                return atlasClient.updateAtlasTypeDefs(typesDef);
+            } else
+                return atlasClient.createAtlasTypeDefs(typesDef);
         } catch (AtlasServiceException e) {
             throw new DagxException(e);
         }
     }
 
+
     @Override
     public void deleteCustomType(String typeName) {
-        var sf= new SearchFilter();
+        var sf = new SearchFilter();
         sf.setParam(SearchFilter.PARAM_NAME, typeName);
 
         try {
@@ -125,7 +129,7 @@ public class AtlasApiImpl implements AtlasApi {
         try {
             return atlasClient.getEntityByGuid(id).getEntity();
         } catch (AtlasServiceException e) {
-            if(e.getStatus() == ClientResponse.Status.NOT_FOUND)
+            if (e.getStatus() == ClientResponse.Status.NOT_FOUND)
                 return null;
             throw new DagxException(e);
         }
@@ -167,5 +171,16 @@ public class AtlasApiImpl implements AtlasApi {
 
     private EntityMutationResponse createEntity(AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo) throws AtlasServiceException {
         return atlasClient.createEntity(atlasEntityWithExtInfo);
+    }
+
+    private boolean existsType(String typeName) {
+        try {
+            var sf = new SearchFilter();
+            sf.setParam("name", typeName);
+            AtlasTypesDef allTypeDefs = atlasClient.getAllTypeDefs(sf);
+            return !allTypeDefs.getEntityDefs().isEmpty();
+        } catch (AtlasServiceException ex) {
+            throw new DagxException(ex);
+        }
     }
 }

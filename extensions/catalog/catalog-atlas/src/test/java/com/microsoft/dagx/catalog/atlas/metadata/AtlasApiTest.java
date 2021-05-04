@@ -1,5 +1,6 @@
 package com.microsoft.dagx.catalog.atlas.metadata;
 
+import com.microsoft.dagx.schema.SchemaAttribute;
 import com.microsoft.dagx.spi.DagxException;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
@@ -270,17 +271,33 @@ public class AtlasApiTest {
     }
 
     @Test
-    void createCustomType_alreadyExists() {
+    void createCustomType_alreadyExists_shouldUpdate() {
         var ts = System.currentTimeMillis();
         String typeName = "MyCustomType" + ts;
-        atlasApi.createCustomTypes(typeName, Collections.singleton("DataSet"), new ArrayList<>() {{
+        ArrayList<SchemaAttribute> attributes = new ArrayList<>() {{
             add(new AtlasCustomTypeAttribute("name", "float", true));
-        }});
+        }};
+        atlasApi.createCustomTypes(typeName, Collections.singleton("DataSet"), attributes);
 
-        assertThatThrownBy(() -> atlasApi.createCustomTypes(typeName, Collections.singleton("DataSet"), new ArrayList<>() {{
+        attributes.add(new SchemaAttribute("newAttribute", false));
+        var updatedDef = atlasApi.createCustomTypes(typeName, Collections.singleton("DataSet"), attributes);
+
+        assertThat(updatedDef.getEntityDefs().get(0).getAttribute("newAttribute")).isNotNull();
+    }
+
+    @Test
+    void createCustomType_alreadyExists_cannotUpdateRequiredField() {
+        var ts = System.currentTimeMillis();
+        String typeName = "MyCustomType" + ts;
+        ArrayList<SchemaAttribute> attributes = new ArrayList<>() {{
             add(new AtlasCustomTypeAttribute("name", "float", true));
-        }})).isInstanceOf(DagxException.class).hasMessageContaining("already exists");
+        }};
+        atlasApi.createCustomTypes(typeName, Collections.singleton("DataSet"), attributes);
 
+        attributes.add(new SchemaAttribute("newAttribute", true));
+        assertThatThrownBy(() -> atlasApi.createCustomTypes(typeName, Collections.singleton("DataSet"), attributes))
+                .isInstanceOf(DagxException.class)
+                .hasMessageContaining("can not add mandatory attribute");
     }
 
     @Test
