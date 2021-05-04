@@ -7,9 +7,7 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.model.SearchFilter;
-import org.apache.atlas.model.instance.AtlasClassification;
-import org.apache.atlas.model.instance.AtlasEntity;
-import org.apache.atlas.model.instance.EntityMutationResponse;
+import org.apache.atlas.model.instance.*;
 import org.apache.atlas.model.typedef.AtlasEntityDef;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 
@@ -17,7 +15,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.atlas.type.AtlasTypeUtil.*;
-import static org.apache.atlas.type.AtlasTypeUtil.createClassTypeDef;
 
 public class AtlasApiImpl implements AtlasApi {
     private final AtlasClientV2 atlasClient;
@@ -55,8 +52,9 @@ public class AtlasApiImpl implements AtlasApi {
 
         try {
             var typesDef = atlasClient.getAllTypeDefs(sf);
-            if (typesDef.getClassificationDefs().isEmpty())
+            if (typesDef.getClassificationDefs().isEmpty()) {
                 throw new DagxException("No Classification types exist for the given names: " + String.join(", ", classificationName));
+            }
 
             deleteType(Collections.singletonList(typesDef));
         } catch (AtlasServiceException e) {
@@ -79,8 +77,9 @@ public class AtlasApiImpl implements AtlasApi {
         try {
             if (existsType(typeName)) {
                 return atlasClient.updateAtlasTypeDefs(typesDef);
-            } else
+            } else {
                 return atlasClient.createAtlasTypeDefs(typesDef);
+            }
         } catch (AtlasServiceException e) {
             throw new DagxException(e);
         }
@@ -94,8 +93,9 @@ public class AtlasApiImpl implements AtlasApi {
 
         try {
             var typesDef = atlasClient.getAllTypeDefs(sf);
-            if (typesDef.getEntityDefs().isEmpty())
+            if (typesDef.getEntityDefs().isEmpty()) {
                 throw new DagxException("No Custom TypeDef types exist for the given names: " + typeName);
+            }
 
             deleteType(Collections.singletonList(typesDef));
         } catch (AtlasServiceException e) {
@@ -108,6 +108,16 @@ public class AtlasApiImpl implements AtlasApi {
     public void deleteEntities(List<String> entityGuids) {
         try {
             atlasClient.deleteEntitiesByGuids(entityGuids);
+        } catch (AtlasServiceException e) {
+            throw new DagxException(e);
+        }
+    }
+
+    @Override
+    public AtlasRelationship createRelation(String sourceEntityGuid, String targetEntityGuid, String name) {
+        AtlasRelationship relationship = new AtlasRelationship(name, new AtlasObjectId(sourceEntityGuid), new AtlasObjectId(targetEntityGuid));
+        try {
+            return atlasClient.createRelationship(relationship);
         } catch (AtlasServiceException e) {
             throw new DagxException(e);
         }
@@ -129,8 +139,9 @@ public class AtlasApiImpl implements AtlasApi {
         try {
             return atlasClient.getEntityByGuid(id).getEntity();
         } catch (AtlasServiceException e) {
-            if (e.getStatus() == ClientResponse.Status.NOT_FOUND)
+            if (e.getStatus() == ClientResponse.Status.NOT_FOUND) {
                 return null;
+            }
             throw new DagxException(e);
         }
     }

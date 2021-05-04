@@ -21,5 +21,23 @@
         "required": true
       }
     ]
+  },
+  {
+    "typeName": "Policy",
+    "superTypeNames": [
+      "DataSet"
+    ],
+    "attributes": [
+      {
+        "name": "name",
+        "type": "string",
+        "required": true
+      },
+      {
+        "name": "expression",
+        "type": "string",
+        "required": true
+      }
+    ]
   }
 ]
