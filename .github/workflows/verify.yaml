@@ -4,7 +4,7 @@ on: [ push ]
 
 jobs:
   verify:
-    runs-on: self-hosted
+    runs-on: ubuntu-latest
 
     services:
       nifi:
