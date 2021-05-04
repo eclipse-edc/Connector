@@ -1,5 +1,6 @@
 package com.microsoft.dagx.catalog.atlas.metadata;
 
+import com.microsoft.dagx.schema.SchemaAttribute;
 import com.microsoft.dagx.spi.DagxException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
@@ -64,7 +65,7 @@ public class AtlasApiImpl implements AtlasApi {
     }
 
     @Override
-    public AtlasTypesDef createCustomTypes(String typeName, Set<String> superTypeNames, List<AtlasCustomTypeAttribute> attributes) {
+    public AtlasTypesDef createCustomTypes(String typeName, Set<String> superTypeNames, List<? extends SchemaAttribute> attributes) {
         var attrs = attributes.stream().map(attr -> attr.isRequired()
                 ? createRequiredAttrDef(attr.getName(), attr.getType())
                 : createOptionalAttrDef(attr.getName(), attr.getType())).collect(Collectors.toList());

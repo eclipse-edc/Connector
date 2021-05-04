@@ -2,19 +2,24 @@ package com.microsoft.dagx.catalog.atlas.dataseed;
 
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasCustomTypeAttribute;
+import com.microsoft.dagx.schema.SchemaAttribute;
+import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.spi.DagxException;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class AtlasDataSeeder {
     private final AtlasApi atlasApi;
+    private SchemaRegistry schemaRegistry;
 
-    public AtlasDataSeeder(AtlasApi atlasApi) {
+    public AtlasDataSeeder(AtlasApi atlasApi, SchemaRegistry schemaRegistry) {
 
         this.atlasApi = atlasApi;
+        this.schemaRegistry = schemaRegistry;
     }
 
     public String[] createClassifications() {
@@ -33,9 +38,10 @@ public class AtlasDataSeeder {
 
     public List<AtlasTypesDef> createTypedefs() {
         List<AtlasTypesDef> entityTypes = new ArrayList<>();
-        entityTypes.add(atlasApi.createCustomTypes("AzureBlobFile", Set.of("DataSet"), AtlasCustomTypeAttribute.AZURE_BLOB_ATTRS));
-        entityTypes.add(atlasApi.createCustomTypes("S3Bucket", Set.of("DataSet"), AtlasCustomTypeAttribute.AMAZON_S3_BUCKET_ATTRS));
-        //todo: add more source file types, e.g. S3, etc.
+
+        for(var schema : schemaRegistry.getSchemas()) {
+            entityTypes.add(atlasApi.createCustomTypes(schema.getName(), Set.of("DataSet"), new ArrayList<>(schema.getAttributes())));
+        }
         return entityTypes;
     }
 

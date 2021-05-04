@@ -7,6 +7,8 @@ include(":distributions:demo")
 include(":distributions:azure")
 include(":distributions:junit")
 
+include(":extensions:schema")
+
 include(":extensions:protocol:web")
 include(":extensions:control-http")
 

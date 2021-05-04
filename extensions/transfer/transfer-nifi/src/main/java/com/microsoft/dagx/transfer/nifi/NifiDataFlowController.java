@@ -43,15 +43,15 @@ public class NifiDataFlowController implements DataFlowController {
     private final Monitor monitor;
     private final Vault vault;
     private final OkHttpClient httpClient;
-    private final EndpointConverterRegistry converterRegistry;
+    private final NifiTransferEndpointConverter converter;
 
-    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault, OkHttpClient httpClient, EndpointConverterRegistry converterRegistry) {
+    public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault, OkHttpClient httpClient, NifiTransferEndpointConverter converter) {
         baseUrl = configuration.getUrl();
         this.typeManager = typeManager;
         this.monitor = monitor;
         this.vault = vault;
         this.httpClient = createUnsecureClient(httpClient);
-        this.converterRegistry = converterRegistry;
+        this.converter = converter;
     }
 
     @Override
@@ -87,11 +87,8 @@ public class NifiDataFlowController implements DataFlowController {
             return new DataFlowInitiateResponse(FATAL_ERROR, "No 'keyName' property was found for the destination file (ID=" + dataEntry.getId() + ")!");
         }
 
-        var sourceType = sourceAddress.getType();
-        var destType = sourceAddress.getType();
-
-        var source = converterRegistry.get(sourceType).convert(sourceAddress);
-        var dest= converterRegistry.get(destType).convert(destinationAddress);
+        var source = converter.convert(sourceAddress);
+        var dest= converter.convert(destinationAddress);
 
 
         Request request = createTransferRequest(source, dest, basicAuthCreds);

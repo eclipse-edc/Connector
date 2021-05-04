@@ -1,13 +1,12 @@
 package com.microsoft.dagx.transfer.nifi;
 
+import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
-import com.microsoft.dagx.transfer.nifi.aws.S3BucketEndpointConverter;
-import com.microsoft.dagx.transfer.nifi.azureblob.AzureEndpointConverter;
 import okhttp3.OkHttpClient;
 
 import java.util.Set;
@@ -33,17 +32,20 @@ public class NifiTransferExtension implements ServiceExtension {
 
     private void registerConverters(ServiceExtensionContext context) {
         Vault vault = context.getService(Vault.class);
+        var sr = context.getService(SchemaRegistry.class);
 
-        EndpointConverterRegistry registry = new EndpointConverterRegistry();
-        registry.with(AzureEndpointConverter.TYPE, new AzureEndpointConverter(vault))
-                .with(S3BucketEndpointConverter.TYPE, new S3BucketEndpointConverter(vault));
-        context.registerService(EndpointConverterRegistry.class, registry);
-
+        var converter= new NifiTransferEndpointConverter(sr, vault);
+        context.registerService(NifiTransferEndpointConverter.class, converter);
     }
 
     @Override
     public Set<String> provides() {
         return Set.of(PROVIDES_NIFI);
+    }
+
+    @Override
+    public Set<String> requires() {
+        return Set.of(SchemaRegistry.FEATURE);
     }
 
     @Override
@@ -65,9 +67,9 @@ public class NifiTransferExtension implements ServiceExtension {
 
         NifiTransferManagerConfiguration configuration = NifiTransferManagerConfiguration.Builder.newInstance().url(url).build();
 
-        var converterRegistry= context.getService(EndpointConverterRegistry.class);
+        var converter= context.getService(NifiTransferEndpointConverter.class);
 
-        NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor(), context.getService(Vault.class), httpClient, converterRegistry);
+        NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor(), context.getService(Vault.class), httpClient, converter);
         dataFlowManager.register(manager);
     }
 

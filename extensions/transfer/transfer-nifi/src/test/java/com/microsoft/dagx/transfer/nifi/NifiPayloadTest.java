@@ -1,11 +1,9 @@
 package com.microsoft.dagx.transfer.nifi;
 
 import com.microsoft.dagx.spi.types.TypeManager;
-import com.microsoft.dagx.transfer.nifi.azureblob.AzureTransferEndpoint;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -16,16 +14,17 @@ class NifiPayloadTest {
     @BeforeEach
     void setup() {
         typeManager = new TypeManager();
-        typeManager.registerTypes(NifiTransferEndpoint.class, AzureTransferEndpoint.class);
+        typeManager.registerTypes(NifiTransferEndpoint.class, NifiPayload.class);
     }
 
     @Test
-    void serialize() throws IOException {
-        AzureTransferEndpoint endpoint = AzureTransferEndpoint.Builder.anAzureTransferEndpoint()
-                .withAccount("testaccount")
-                .withKey("mykey")
-                .withBlobName("testblob")
-                .withContainerName("testcontainer").build();
+    void serialize() {
+        NifiTransferEndpoint endpoint = NifiTransferEndpoint.NifiTransferEndpointBuilder.newInstance()
+                .property("account", "testaccount")
+                .key("mykey")
+                .type("AzureStorage")
+                .property("blobname", "testblob")
+                .property("container", "testcontainer").build();
         var nifipayload = new NifiPayload(endpoint, endpoint);
 
         var json = typeManager.writeValueAsString(nifipayload);
@@ -42,29 +41,34 @@ class NifiPayloadTest {
 
     @Test
     void deserialize() {
-        AzureTransferEndpoint endpoint = AzureTransferEndpoint.Builder.anAzureTransferEndpoint()
-                .withAccount("testaccount")
-                .withKey("mykey")
-                .withBlobName("testblob")
-                .withContainerName("testcontainer").build();
+        NifiTransferEndpoint endpoint = NifiTransferEndpoint.NifiTransferEndpointBuilder.newInstance()
+                .type("AzureStorage")
+                .key("mykey")
+                .property("account", "testaccount")
+                .property("blobname", "testblob")
+                .property("container", "testcontainer").build();
         var nifipayload = new NifiPayload(endpoint, endpoint);
 
         var json = typeManager.writeValueAsString(nifipayload);
 
         var deserialized = typeManager.readValue(json, NifiPayload.class);
-        assertThat(deserialized.getSource()).hasFieldOrPropertyWithValue("key", "mykey")
-                .hasFieldOrPropertyWithValue("blobName", "testblob")
-                .hasFieldOrPropertyWithValue("containerName", "testcontainer")
-                .hasFieldOrPropertyWithValue("account", "testaccount")
-                .hasFieldOrPropertyWithValue("type", "AzureStorage")
-                .hasNoNullFieldsOrProperties();
+        assertThat(deserialized.getSource().getKey()).isEqualTo("mykey");
+        assertThat(deserialized.getSource().getType()).isEqualTo("AzureStorage");
+        assertThat(deserialized.getSource().getProperties())
+                .hasSize(3)
+                .containsEntry("blobname", "testblob")
+                .containsEntry("container", "testcontainer")
+                .containsEntry("account", "testaccount")
+                .doesNotContainValue(null);
 
-        assertThat(deserialized.getDestination()).hasFieldOrPropertyWithValue("key", "mykey")
-                .hasFieldOrPropertyWithValue("blobName", "testblob")
-                .hasFieldOrPropertyWithValue("containerName", "testcontainer")
-                .hasFieldOrPropertyWithValue("account", "testaccount")
-                .hasFieldOrPropertyWithValue("type", "AzureStorage")
-                .hasNoNullFieldsOrProperties();
+        assertThat(deserialized.getDestination().getKey()).isEqualTo("mykey");
+        assertThat(deserialized.getDestination().getType()).isEqualTo("AzureStorage");
+        assertThat(deserialized.getDestination().getProperties())
+                .hasSize(3)
+                .containsEntry("blobname", "testblob")
+                .containsEntry("container", "testcontainer")
+                .containsEntry("account", "testaccount")
+                .doesNotContainValue(null);
 
     }
 

@@ -6,10 +6,13 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
 import com.azure.storage.blob.models.BlobStorageException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.microsoft.dagx.catalog.atlas.dataseed.AzureBlobFileEntityBuilder;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApiImpl;
-import com.microsoft.dagx.catalog.atlas.metadata.AtlasCustomTypeAttribute;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataEntryPropertyLookup;
+import com.microsoft.dagx.schema.SchemaRegistry;
+import com.microsoft.dagx.schema.SchemaRegistryImpl;
+import com.microsoft.dagx.schema.azure.AzureSchema;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
@@ -22,15 +25,10 @@ import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLook
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
-import com.microsoft.dagx.transfer.nifi.azureblob.AzureEndpointConverter;
 import okhttp3.OkHttpClient;
 import org.apache.atlas.AtlasClientV2;
 import org.easymock.MockType;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Timeout;
+import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.File;
@@ -65,15 +63,14 @@ public class NifiDataFlowControllerTest {
     private Vault vault;
 
 
-
     @BeforeAll
     public static void prepare() throws Exception {
 
 //         this is necessary because the @EnabledIf... annotation does not prevent @BeforeAll to be called
-        var isCi = propOrEnv("CI", "false");
-        if (!Boolean.parseBoolean(isCi)) {
-            return;
-        }
+//        var isCi = propOrEnv("CI", "false");
+//        if (!Boolean.parseBoolean(isCi)) {
+//            return;
+//        }
 
         typeManager = new TypeManager();
         typeManager.getMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -128,7 +125,6 @@ public class NifiDataFlowControllerTest {
     @BeforeEach
     void setUp() {
 
-
         Monitor monitor = new Monitor() {
         };
         NifiTransferManagerConfiguration config = NifiTransferManagerConfiguration.Builder.newInstance().url(NIFI_CONTENTLISTENER_HOST)
@@ -144,7 +140,9 @@ public class NifiDataFlowControllerTest {
         expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(storageAccountKey);
         expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(storageAccountKey);
         replay(vault);
-        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new EndpointConverterRegistry().with("AzureStorage", new AzureEndpointConverter(vault)));
+        SchemaRegistry registry = new SchemaRegistryImpl();
+        registry.register(new AzureSchema());
+        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new NifiTransferEndpointConverter(registry, vault));
     }
 
     @Test
@@ -153,20 +151,20 @@ public class NifiDataFlowControllerTest {
 
         // create custom atlas type and an instance
         String id;
+        var schema = new AzureSchema();
         AtlasApi atlasApi = new AtlasApiImpl(new AtlasClientV2(new String[]{ATLAS_API_HOST}, new String[]{atlasUsername, atlasPassword}));
         try {
-            atlasApi.createCustomTypes("NifiTestEntity", Set.of("DataSet"), AtlasCustomTypeAttribute.AZURE_BLOB_ATTRS);
+
+            atlasApi.createCustomTypes(schema.getName(), Set.of("DataSet"), new ArrayList<>(schema.getAttributes()));
         } catch (Exception ignored) {
         }
-        id = atlasApi.createEntity("NifiTestEntity", new HashMap<>() {{
-            put("name", blobName);
-            put("qualifiedName", blobName);
-            put("account", storageAccount);
-            put("blobname", blobName);
-            put("container", containerName);
-            put("type", "AzureStorage");
-            put("keyName", storageAccount + "-key1");
-        }});
+        id = atlasApi.createEntity(schema.getName(), AzureBlobFileEntityBuilder.newInstance()
+                .withDescription("This is a test description")
+                .withAccount(storageAccount)
+                .withContainer(containerName)
+                .withBlobname(blobName)
+                .withKeyName(storageAccount + "-key1")
+                .build());
 
         // perform the actual source file properties in Apache Atlas
         var lookup = new AtlasDataEntryPropertyLookup(atlasApi);
@@ -202,7 +200,7 @@ public class NifiDataFlowControllerTest {
     }
 
     @Test
-    @Timeout(value = 100000)
+    @Timeout(value = 10)
     void initiateFlow_withInMemCatalog() throws InterruptedException {
 
         String id = UUID.randomUUID().toString();
@@ -239,7 +237,10 @@ public class NifiDataFlowControllerTest {
         String id = UUID.randomUUID().toString();
         GenericDataEntryPropertyLookup lookup = createLookup();
         lookup.getProperties().replace("blobname", "notexist.png");
-        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().id(id).lookup(lookup).build();
+        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance()
+                .id(id)
+                .lookup(lookup)
+                .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -270,7 +271,7 @@ public class NifiDataFlowControllerTest {
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
                 .dataDestination(DataAddress.Builder.newInstance().type("TestType")
-                        .keyName(storageAccount+"-key1").build())
+                        .keyName(storageAccount + "-key1").build())
                 .dataEntry(entry)
                 .build();
 

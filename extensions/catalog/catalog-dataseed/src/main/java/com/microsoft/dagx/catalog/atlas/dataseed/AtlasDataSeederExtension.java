@@ -2,6 +2,7 @@ package com.microsoft.dagx.catalog.atlas.dataseed;
 
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasExtension;
+import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -31,7 +32,7 @@ public class AtlasDataSeederExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of(AtlasExtension.ATLAS_FEATURE);
+        return Set.of(AtlasExtension.ATLAS_FEATURE, SchemaRegistry.FEATURE);
     }
 
 
@@ -43,8 +44,7 @@ public class AtlasDataSeederExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
-        dataSeeder = new AtlasDataSeeder(context.getService(AtlasApi.class));
-
+        dataSeeder = new AtlasDataSeeder(context.getService(AtlasApi.class), context.getService(SchemaRegistry.class));
 
         monitor.info("Initialized Atlas Data Seeder");
     }

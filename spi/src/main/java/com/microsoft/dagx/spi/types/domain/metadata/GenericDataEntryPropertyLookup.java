@@ -30,8 +30,6 @@ public class GenericDataEntryPropertyLookup implements DataEntryPropertyLookup {
                         .stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
                                 e -> e.getValue().toString())))
-                .keyName(getProperties().get("keyName").toString())
-                .type(getProperties().get("type").toString())
                 .build();
 
     }
