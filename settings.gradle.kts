@@ -27,11 +27,14 @@ include(":extensions:security:security-azure")
 include(":extensions:iam:oauth2")
 include(":extensions:iam:iam-mock")
 
+include(":extensions:policy:policy-registry-memory")
+
 include(":extensions:ids")
 include(":extensions:ids:ids-spi")
 include(":extensions:ids:ids-core")
 include(":extensions:ids:ids-api-catalog")
 include(":extensions:ids:ids-api-transfer")
+include(":extensions:ids:ids-policy-mock")
 
 include(":extensions:catalog:catalog-atlas")
 include(":extensions:catalog:catalog-dataseed")

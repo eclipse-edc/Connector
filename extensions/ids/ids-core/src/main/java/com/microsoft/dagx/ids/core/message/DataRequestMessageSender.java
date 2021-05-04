@@ -3,6 +3,7 @@ package com.microsoft.dagx.ids.core.message;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.spi.iam.IdentityService;
 import com.microsoft.dagx.spi.message.MessageContext;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
@@ -29,18 +30,28 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
 
+    private URI connectorName;
     private IdentityService identityService;
     private TransferProcessStore transferProcessStore;
     private Vault vault;
     private OkHttpClient httpClient;
     private ObjectMapper mapper;
+    private final Monitor monitor;
 
-    public DataRequestMessageSender(IdentityService identityService, TransferProcessStore transferProcessStore, Vault vault, OkHttpClient httpClient, ObjectMapper mapper) {
+    public DataRequestMessageSender(String connectorName,
+                                    IdentityService identityService,
+                                    TransferProcessStore transferProcessStore,
+                                    Vault vault,
+                                    OkHttpClient httpClient,
+                                    ObjectMapper mapper,
+                                    Monitor monitor) {
+        this.connectorName = URI.create(connectorName);
         this.identityService = identityService;
         this.transferProcessStore = transferProcessStore;
         this.vault = vault;
         this.httpClient = httpClient;
         this.mapper = mapper;
+        this.monitor = monitor;
     }
 
     @Override
@@ -60,10 +71,8 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
                 // FIXME handle timezone issue ._issued_(gregorianNow())
                 ._modelVersion_(VERSION)
                 ._securityToken_(token)
-//                ._issuerConnector_(ID_URI)
-//                ._senderAgent_(ID_URI)
-                ._requestedArtifact_(URI.create("test123"))
-//                ._recipientConnector_(connectors)
+                ._issuerConnector_(connectorName)
+                ._requestedArtifact_(URI.create(dataRequest.getDataEntry().getId()))
                 .build();
         artifactMessage.setProperty("dagx-data-destination", dataRequest.getDataDestination());
 
@@ -92,10 +101,15 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
         httpClient.newCall(request).enqueue(new FutureCallback<>(future, r -> {
             TransferProcess transferProcess = transferProcessStore.find(processId);
             if (r.isSuccessful()) {
+                monitor.debug("Request approved and acknowledged for process: " + processId);
                 transferProcess.transitionRequestAck();
             } else if (r.code() == 500) {
                 transferProcess.transitionProvisioned();  // force retry
             } else {
+                if (r.code() == 403) {
+                    // forbidden
+                    monitor.severe("Received not authorized from connector for process: " + processId);
+                }
                 // Fatal error
                 transferProcess.transitionError("General error, HTTP response code: " + r.code());
             }

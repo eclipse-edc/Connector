@@ -12,10 +12,15 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 @JsonDeserialize(builder = DataEntry.Builder.class)
 public class DataEntry<T extends DataEntryPropertyLookup> {
     private String id;
+    private String policyId;
     private T lookup;
 
     public String getId() {
         return id;
+    }
+
+    public String getPolicyId() {
+        return policyId;
     }
 
     public T getLookup() {
@@ -41,6 +46,11 @@ public class DataEntry<T extends DataEntryPropertyLookup> {
 
         public Builder<K> id(String id) {
             dataEntry.id = id;
+            return this;
+        }
+
+        public Builder<K> policyId(String id) {
+            dataEntry.policyId = id;
             return this;
         }
 

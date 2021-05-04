@@ -1,6 +1,8 @@
-import com.bmuschko.gradle.docker.tasks.image.*
-import com.bmuschko.gradle.docker.tasks.container.*
-
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import java.io.FileInputStream
 import java.util.*
 
@@ -26,8 +28,10 @@ dependencies {
     implementation(project(":extensions:demo:demo-nifi"))
 
     implementation(project(":extensions:security:security-fs"))
-//    implementation(project(":extensions:iam:iam-mock"))
-    implementation(project(":extensions:iam:oauth2"))
+    implementation(project(":extensions:policy:policy-registry-memory"))
+    implementation(project(":extensions:iam:iam-mock"))
+    implementation(project(":extensions:ids:ids-policy-mock"))
+//    implementation(project(":extensions:iam:oauth2"))
     implementation(project(":extensions:configuration:configuration-fs"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")

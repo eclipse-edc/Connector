@@ -14,11 +14,19 @@ public class MockIdentityService implements IdentityService {
 
     @Override
     public TokenResult obtainClientCredentials(String scope) {
-        return TokenResult.Builder.newInstance().token("mock-token").expiresIn(Instant.now().plusSeconds(10_0000).toEpochMilli()).build();
+        return TokenResult.Builder.newInstance().token("mock-eu").expiresIn(Instant.now().plusSeconds(10_0000).toEpochMilli()).build();
     }
 
     @Override
     public VerificationResult verifyJwtToken(String token, String audience) {
-        return token.equals("mock-token") ? new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "eu").build()) : new VerificationResult("Unknown test token format");
+        switch (token) {
+            case "mock-eu":
+                return new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "eu").build());
+            case "mock-us":
+                return new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "us").build());
+            case "mock-an":
+                return new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "an").build());
+        }
+        return new VerificationResult("Unknown test token format");
     }
 }

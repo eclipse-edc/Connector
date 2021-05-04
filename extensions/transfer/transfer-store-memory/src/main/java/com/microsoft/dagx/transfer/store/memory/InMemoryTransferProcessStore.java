@@ -6,18 +6,16 @@ import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 
-import static java.util.Comparator.comparingInt;
-import static java.util.Comparator.comparingLong;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -30,7 +28,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
 
     private Map<String, TransferProcess> processesById = new HashMap<>();
     private Map<String, TransferProcess> processesByExternalId = new HashMap<>();
-    private Map<Integer, TreeSet<TransferProcess>> stateCache = new HashMap<>();
+    private Map<Integer, List<TransferProcess>> stateCache = new HashMap<>();
 
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
@@ -62,7 +60,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
             TransferProcess internalCopy = process.copy();
             processesById.put(process.getId(), internalCopy);
             processesByExternalId.put(process.getDataRequest().getId(), internalCopy);
-            stateCache.computeIfAbsent(process.getState(), k -> new TreeSet<>(comparingInt(TransferProcess::getState))).add(internalCopy);
+            stateCache.computeIfAbsent(process.getState(), k -> new ArrayList<>()).add(internalCopy);
             return null;
         });
     }
@@ -74,7 +72,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
             TransferProcess internalCopy = process.copy();
             processesByExternalId.put(process.getDataRequest().getId(), internalCopy);
             processesById.put(process.getId(), internalCopy);
-            stateCache.computeIfAbsent(process.getState(), k -> new TreeSet<>(comparingLong(TransferProcess::getStateTimestamp))).add(internalCopy);
+            stateCache.computeIfAbsent(process.getState(), k -> new ArrayList<>()).add(internalCopy);
             return null;
         });
     }
@@ -84,9 +82,9 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
         writeLock(() -> {
             TransferProcess process = processesById.remove(processId);
             if (process != null) {
-                TreeSet<TransferProcess> set = stateCache.get(process.getState());
-                if (set != null) {
-                    set.remove(process);
+                List<TransferProcess> list = stateCache.get(process.getState());
+                if (list != null) {
+                    list.remove(process);
                 }
                 processesByExternalId.remove(process.getDataRequest().getId());
             }

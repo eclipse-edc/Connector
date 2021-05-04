@@ -4,6 +4,7 @@ import com.microsoft.dagx.ids.spi.daps.DapsService;
 import com.microsoft.dagx.ids.spi.policy.IdsPolicyService;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.policy.PolicyRegistry;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
@@ -24,6 +25,7 @@ import static com.microsoft.dagx.ids.spi.Protocols.IDS_REST;
 import static com.microsoft.dagx.spi.util.Cast.cast;
 import static de.fraunhofer.iais.eis.RejectionReason.BAD_PARAMETERS;
 import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
+import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHORIZED;
 import static de.fraunhofer.iais.eis.RejectionReason.NOT_FOUND;
 import static de.fraunhofer.iais.eis.RejectionReason.TEMPORARILY_NOT_AVAILABLE;
 import static java.util.UUID.randomUUID;
@@ -42,18 +44,25 @@ public class ArtifactRequestController {
     private MetadataStore metadataStore;
     private TransferProcessManager processManager;
     private IdsPolicyService policyService;
+    private PolicyRegistry policyRegistry;
     private Vault vault;
     private Monitor monitor;
 
-    public ArtifactRequestController(DapsService dapsService, MetadataStore metadataStore, TransferProcessManager processManager, IdsPolicyService policyService, Vault vault, Monitor monitor) {
+    public ArtifactRequestController(DapsService dapsService,
+                                     MetadataStore metadataStore,
+                                     TransferProcessManager processManager,
+                                     IdsPolicyService policyService,
+                                     PolicyRegistry policyRegistry,
+                                     Vault vault,
+                                     Monitor monitor) {
         this.dapsService = dapsService;
         this.metadataStore = metadataStore;
         this.processManager = processManager;
         this.policyService = policyService;
+        this.policyRegistry = policyRegistry;
         this.vault = vault;
         this.monitor = monitor;
     }
-
 
     @POST
     @Path("request")
@@ -63,8 +72,6 @@ public class ArtifactRequestController {
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHENTICATED).build()).build();
         }
 
-        // TODO enforce policy
-
         var dataUrn = message.getRequestedArtifact().toString();
         monitor.debug(() -> "Received artifact request for: " + dataUrn);
 
@@ -73,6 +80,20 @@ public class ArtifactRequestController {
         if (entry == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_FOUND).build()).build();
         }
+
+        var policy = policyRegistry.resolvePolicy(entry.getPolicyId());
+        if (policy == null) {
+            monitor.severe("Policy not found for artifact: " + dataUrn);
+            return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new RejectionMessageBuilder()._rejectionReason_(TEMPORARILY_NOT_AVAILABLE).build()).build();
+        }
+
+        String clientConnectorId = message.getIssuerConnector().toString();
+        var policyResult = policyService.evaluateRequest(clientConnectorId, message.getId().toString(), verificationResult.token(), policy);
+
+        if (!policyResult.valid()) {
+            return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHORIZED).build()).build();
+        }
+
 
         // TODO this needs to be deserialized from the artifact request message
         @SuppressWarnings("unchecked") var destinationMap = (Map<String, Object>) message.getProperties().get(DESTINATION_KEY);

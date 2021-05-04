@@ -52,7 +52,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         var policyService = new IdsPolicyServiceImpl();
         context.registerService(IdsPolicyService.class, policyService);
 
-        assembleIdsDispatcher(context, identityService);
+        assembleIdsDispatcher(connectorName, context, identityService);
 
         monitor.info("Initialized IDS Core extension");
     }
@@ -70,16 +70,18 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     /**
      * Assembles the IDS remote message dispatcher and its senders.
      */
-    private void assembleIdsDispatcher(ServiceExtensionContext context, IdentityService identityService) {
+    private void assembleIdsDispatcher(String connectorName, ServiceExtensionContext context, IdentityService identityService) {
         var processStore = context.getService(TransferProcessStore.class);
         var vault = context.getService(Vault.class);
         var httpClient = context.getService(OkHttpClient.class);
 
         var mapper = context.getTypeManager().getMapper();
 
+        var monitor = context.getMonitor();
+
         var dispatcher = new IdsRemoteMessageDispatcher();
 
-        dispatcher.register(new DataRequestMessageSender(identityService, processStore, vault, httpClient, mapper));
+        dispatcher.register(new DataRequestMessageSender(connectorName, identityService, processStore, vault, httpClient, mapper, monitor));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(dispatcher);

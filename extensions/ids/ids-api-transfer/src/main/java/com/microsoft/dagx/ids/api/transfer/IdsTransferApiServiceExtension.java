@@ -4,6 +4,7 @@ import com.microsoft.dagx.ids.spi.daps.DapsService;
 import com.microsoft.dagx.ids.spi.policy.IdsPolicyService;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.policy.PolicyRegistry;
 import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -20,7 +21,7 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("ids.core");
+        return Set.of("ids.core", "policy-registry");
     }
 
     @Override
@@ -58,7 +59,9 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
 
         var vault = context.getService(Vault.class);
 
-        webService.registerController(new ArtifactRequestController(dapService, metadataStore, transferManager, policyService, vault, monitor));
+        var policyRegistry = context.getService(PolicyRegistry.class);
+
+        webService.registerController(new ArtifactRequestController(dapService, metadataStore, transferManager, policyService, policyRegistry, vault, monitor));
     }
 
 

@@ -81,6 +81,29 @@ class InMemoryTransferProcessStoreTest {
         assertEquals(transferProcess1, found.get(1));
     }
 
+    @Test
+    void verifyMutlipleRequets() {
+        String id1 = UUID.randomUUID().toString();
+        TransferProcess transferProcess1 = TransferProcess.Builder.newInstance().id(id1).dataRequest(DataRequest.Builder.newInstance().id("clientid1").destinationType("test").build()).build();
+        store.create(transferProcess1);
+
+        String id2 = UUID.randomUUID().toString();
+        TransferProcess transferProcess2 = TransferProcess.Builder.newInstance().id(id2).dataRequest(DataRequest.Builder.newInstance().id("clientid2").destinationType("test").build()).build();
+        store.create(transferProcess2);
+
+
+        TransferProcess found1 = store.find(id1);
+        assertNotNull(found1);
+
+        TransferProcess found2 = store.find(id2);
+        assertNotNull(found2);
+
+        var found = store.nextForState(TransferProcessStates.INITIAL.code(), 3);
+        assertEquals(2, found.size());
+
+    }
+
+
     @BeforeEach
     void setUp() {
         store = new InMemoryTransferProcessStore();

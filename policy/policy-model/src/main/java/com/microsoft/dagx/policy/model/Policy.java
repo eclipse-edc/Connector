@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 /**
  * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by {@link PolicyType}.
@@ -88,6 +89,12 @@ public class Policy extends Identifiable {
             return new Builder();
         }
 
+        public Builder id(String id) {
+            policy.uid = id;
+            return this;
+        }
+
+
         public Builder prohibition(Prohibition prohibition) {
             policy.prohibitions.add(prohibition);
             return this;
@@ -154,6 +161,9 @@ public class Policy extends Identifiable {
         }
 
         public Policy build() {
+            if (policy.uid == null) {
+                policy.uid = UUID.randomUUID().toString();
+            }
             return policy;
         }
 
