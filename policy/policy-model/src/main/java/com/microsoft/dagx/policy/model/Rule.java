@@ -46,34 +46,35 @@ public abstract class Rule extends Identifiable {
 
     public abstract <R> R accept(Visitor<R> visitor);
 
+    @SuppressWarnings("unchecked")
     protected abstract static class Builder<T extends Rule, B extends Builder<T, B>> {
         protected T rule;
 
-        @SuppressWarnings("unchecked")
         public B target(String target) {
             rule.target = target;
             return (B) this;
         }
 
-        @SuppressWarnings("unchecked")
         public B assigner(String assigner) {
             rule.assigner = assigner;
             return (B) this;
         }
 
-        @SuppressWarnings("unchecked")
         public B assignee(String assignee) {
             rule.assignee = assignee;
             return (B) this;
         }
 
-        @SuppressWarnings("unchecked")
+        public B action(Action action) {
+            rule.action = action;
+            return (B) this;
+        }
+
         public B constraint(Constraint constraint) {
             rule.constraints.add(constraint);
             return (B) this;
         }
 
-        @SuppressWarnings("unchecked")
         public B constraints(List<Constraint> constraints) {
             rule.constraints.addAll(constraints);
             return (B) this;

@@ -6,7 +6,7 @@ package com.microsoft.dagx.policy.model;
 public class AtomicConstraint extends Constraint {
     private Expression leftExpression;
     private Expression rightExpression;
-    private Operator operator;
+    private Operator operator = Operator.EQ;
 
     public Expression getLeftExpression() {
         return leftExpression;

@@ -51,6 +51,12 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
     @Override
     public Boolean visitPermission(Permission permission) {
         try {
+            if (permission.getDuty() != null) {
+                ruleContext = permission.getDuty();
+                if (!visitRule(permission.getDuty())) {
+                    return false;
+                }
+            }
             ruleContext = permission;
             return visitRule(permission);
         } finally {
@@ -126,6 +132,8 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         // TODO handle expression eval errors
         switch (constraint.getOperator()) {
             case EQ:
+                return Objects.equals(leftRawValue, rightValue);
+            case IN:
                 return Objects.equals(leftRawValue, rightValue);
             case NEQ:
                 return !Objects.equals(leftRawValue, rightValue);

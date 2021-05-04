@@ -11,6 +11,7 @@ dependencies {
 
     api(project(":extensions:ids:ids-core"))
 //    testImplementation(project(":extensions:iam:oauth2"))
+    testImplementation(project(":extensions:iam:iam-mock"))
 
     testImplementation(project(":extensions:security:security-fs"))
     testImplementation(project(":distributions:junit"))

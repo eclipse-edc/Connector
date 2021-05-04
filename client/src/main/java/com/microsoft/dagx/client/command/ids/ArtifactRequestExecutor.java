@@ -40,8 +40,7 @@ public class ArtifactRequestExecutor implements CommandExecutor {
 
         IdentityService identityService = context.getService(IdentityService.class);
 
-//        TokenResult tokenResult = identityService.obtainClientCredentials(connectorId);
-        TokenResult tokenResult = TokenResult.Builder.newInstance().build();
+        TokenResult tokenResult = identityService.obtainClientCredentials(connectorId);
 
         if (!tokenResult.success()) {
             return new CommandResult(true, tokenResult.error());

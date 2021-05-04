@@ -8,8 +8,12 @@ import static java.util.stream.Collectors.joining;
  * Allows an action if its constraints are satisfied.
  */
 public class Permission extends Rule {
-    @Nullable
     private Duty duty;
+
+    @Nullable
+    public Duty getDuty() {
+        return duty;
+    }
 
     @Override
     public <R> R accept(Visitor<R> visitor) {
@@ -25,6 +29,12 @@ public class Permission extends Rule {
 
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder duty(Duty duty) {
+            this.rule.duty = duty;
+            this.rule.duty.setParentPermission(this.rule);
+            return this;
         }
 
         public Permission build() {

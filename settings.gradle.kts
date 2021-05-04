@@ -25,6 +25,7 @@ include(":extensions:configuration:configuration-fs")
 include(":extensions:security:security-fs")
 include(":extensions:security:security-azure")
 include(":extensions:iam:oauth2")
+include(":extensions:iam:iam-mock")
 
 include(":extensions:ids")
 include(":extensions:ids:ids-spi")

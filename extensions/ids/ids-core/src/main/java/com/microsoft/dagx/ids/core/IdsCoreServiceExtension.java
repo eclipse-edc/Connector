@@ -4,8 +4,10 @@ import com.microsoft.dagx.ids.core.daps.DapsServiceImpl;
 import com.microsoft.dagx.ids.core.descriptor.IdsDescriptorServiceImpl;
 import com.microsoft.dagx.ids.core.message.DataRequestMessageSender;
 import com.microsoft.dagx.ids.core.message.IdsRemoteMessageDispatcher;
+import com.microsoft.dagx.ids.core.policy.IdsPolicyServiceImpl;
 import com.microsoft.dagx.ids.spi.daps.DapsService;
 import com.microsoft.dagx.ids.spi.descriptor.IdsDescriptorService;
+import com.microsoft.dagx.ids.spi.policy.IdsPolicyService;
 import com.microsoft.dagx.spi.iam.IdentityService;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.monitor.Monitor;
@@ -46,6 +48,9 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         var connectorName = context.getSetting(CONNECTOR_NAME, "connectorName");
         var dapsService = new DapsServiceImpl(connectorName, identityService);
         context.registerService(DapsService.class, dapsService);
+
+        var policyService = new IdsPolicyServiceImpl();
+        context.registerService(IdsPolicyService.class, policyService);
 
         assembleIdsDispatcher(context, identityService);
 

@@ -1,6 +1,7 @@
 package com.microsoft.dagx.ids.api.transfer;
 
 import com.microsoft.dagx.ids.spi.daps.DapsService;
+import com.microsoft.dagx.ids.spi.policy.IdsPolicyService;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.protocol.web.WebService;
@@ -51,13 +52,13 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
 
         var metadataStore = context.getService(MetadataStore.class);
 
-        var monitor = context.getMonitor();
+        var policyService = context.getService(IdsPolicyService.class);
 
-        var typeManager = context.getTypeManager();
+        var monitor = context.getMonitor();
 
         var vault = context.getService(Vault.class);
 
-        webService.registerController(new ArtifactRequestController(dapService, metadataStore, transferManager, vault, typeManager, monitor));
+        webService.registerController(new ArtifactRequestController(dapService, metadataStore, transferManager, policyService, vault, monitor));
     }
 
 

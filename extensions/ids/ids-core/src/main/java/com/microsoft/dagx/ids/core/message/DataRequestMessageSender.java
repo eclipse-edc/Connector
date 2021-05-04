@@ -9,6 +9,9 @@ import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
+import de.fraunhofer.iais.eis.DynamicAttributeToken;
+import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
+import de.fraunhofer.iais.eis.TokenFormat;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -47,11 +50,16 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
 
     @Override
     public CompletableFuture<Void> send(DataRequest dataRequest, MessageContext context) {
+        var connectorId = dataRequest.getConnectorId();
+
+        var tokenResult = identityService.obtainClientCredentials(connectorId);
+
+        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getToken()).build();
 
         var artifactMessage = new ArtifactRequestMessageBuilder()
                 // FIXME handle timezone issue ._issued_(gregorianNow())
                 ._modelVersion_(VERSION)
-//                ._securityToken_(token)
+                ._securityToken_(token)
 //                ._issuerConnector_(ID_URI)
 //                ._senderAgent_(ID_URI)
                 ._requestedArtifact_(URI.create("test123"))
@@ -68,9 +76,6 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
 
         var requestBody = writeJson(artifactMessage, mapper);
 
-        var connectorId = dataRequest.getConnectorId();
-
-        var credentials = identityService.obtainClientCredentials(connectorId);
 
         var connectorAddress = dataRequest.getConnectorAddress();
         HttpUrl baseUrl = HttpUrl.parse(connectorAddress);
@@ -80,7 +85,6 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
 
         HttpUrl connectorEndpoint = baseUrl.newBuilder().addPathSegment("api").addPathSegment("ids").addPathSegment("request").build();
 
-        // TODO add JWT credentials
         Request request = new Request.Builder().url(connectorEndpoint).addHeader("Content-Type", JSON).post(requestBody).build();
 
         CompletableFuture<Void> future = new CompletableFuture<>();

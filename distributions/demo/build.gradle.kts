@@ -16,7 +16,6 @@ dependencies {
     implementation(project(":runtime"))
     implementation(project(":extensions:protocol:web"))
     implementation(project(":extensions:control-http"))
-    implementation(project(":extensions:iam:oauth2"))
 
     implementation(project(":extensions:metadata:metadata-memory"))
     implementation(project(":extensions:transfer:transfer-core"))
@@ -27,7 +26,8 @@ dependencies {
     implementation(project(":extensions:demo:demo-nifi"))
 
     implementation(project(":extensions:security:security-fs"))
-    implementation(project(":extensions:iam:oauth2"))
+    implementation(project(":extensions:iam:iam-mock"))
+//    implementation(project(":extensions:iam:oauth2"))
     implementation(project(":extensions:configuration:configuration-fs"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
