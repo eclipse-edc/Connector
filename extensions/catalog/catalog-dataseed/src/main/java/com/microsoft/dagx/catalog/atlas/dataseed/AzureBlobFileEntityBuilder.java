@@ -1,6 +1,7 @@
 package com.microsoft.dagx.catalog.atlas.dataseed;
 
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasCustomTypeAttribute;
+import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -52,7 +53,7 @@ public final class AzureBlobFileEntityBuilder {
     public Map<String, Object> build() {
         Map<String, Object> azureBlobFileEntity = new HashMap<>();
         azureBlobFileEntity.put(AtlasCustomTypeAttribute.DAGX_STORAGE_KEYNAME, this.keyName);
-        azureBlobFileEntity.put(AtlasCustomTypeAttribute.DAGX_STORAGE_TYPE, "AzureStorage");
+        azureBlobFileEntity.put(AtlasCustomTypeAttribute.DAGX_STORAGE_TYPE, AzureBlobStoreSchema.TYPE);
         azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_CONTAINER, this.container);
         azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_ACCOUNT, this.account);
         azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_BLOBNAME, this.blobName);

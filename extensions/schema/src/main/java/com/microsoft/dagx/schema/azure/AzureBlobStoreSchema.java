@@ -3,8 +3,10 @@ package com.microsoft.dagx.schema.azure;
 import com.microsoft.dagx.schema.Schema;
 import com.microsoft.dagx.schema.SchemaAttribute;
 
-public class AzureSchema extends Schema {
+public class AzureBlobStoreSchema extends Schema {
 
+
+    public final static String TYPE = "AzureStorage";
 
     @Override
     protected void addAttributes() {
@@ -13,9 +15,10 @@ public class AzureSchema extends Schema {
         attributes.add(new SchemaAttribute("container", true));
     }
 
+
     @Override
     public String getName() {
-        return "AzureStorage";
+        return TYPE;
     }
 
 }

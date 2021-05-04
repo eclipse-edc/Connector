@@ -1,7 +1,7 @@
 package com.microsoft.dagx.schema;
 
 import com.microsoft.dagx.schema.aws.S3BucketSchema;
-import com.microsoft.dagx.schema.azure.AzureSchema;
+import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 
@@ -24,7 +24,7 @@ public class SchemaExtension implements ServiceExtension {
         var monitor= context.getMonitor();
 
         var sr= new SchemaRegistryImpl();
-        sr.register(new AzureSchema());
+        sr.register(new AzureBlobStoreSchema());
         sr.register(new S3BucketSchema());
 
         context.registerService(SchemaRegistry.class, sr);

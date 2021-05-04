@@ -1,13 +1,12 @@
 package com.microsoft.dagx.transfer.provision.aws.s3;
 
+import com.microsoft.dagx.schema.aws.S3BucketSchema;
 import com.microsoft.dagx.spi.transfer.provision.ResourceDefinitionGenerator;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import software.amazon.awssdk.regions.Region;
 
-import static com.microsoft.dagx.transfer.provision.aws.s3.S3Destination.BUCKET_NAME;
-import static com.microsoft.dagx.transfer.provision.aws.s3.S3Destination.REGION;
 import static java.util.UUID.randomUUID;
 
 /**
@@ -19,17 +18,17 @@ public class S3ResourceDefinitionClientGenerator implements ResourceDefinitionGe
     public ResourceDefinition generate(TransferProcess process) {
         var request = process.getDataRequest();
         if (request.getDestinationType() != null) {
-            if (!S3Destination.TYPE.equals(request.getDestinationType())) {
+            if (!S3BucketSchema.TYPE.equals(request.getDestinationType())) {
                 return null;
             }
             // FIXME generate region from policy engine
             return S3BucketResourceDefinition.Builder.newInstance().id(randomUUID().toString()).bucketName(process.getId()).regionId(Region.US_EAST_1.id()).build();
 
-        } else if (request.getDataDestination() == null || !(request.getDataDestination().getType().equals(S3Destination.TYPE))) {
+        } else if (request.getDataDestination() == null || !(request.getDataDestination().getType().equals(S3BucketSchema.TYPE))) {
             return null;
         }
         DataAddress destination = request.getDataDestination();
         String id = randomUUID().toString();
-        return S3BucketResourceDefinition.Builder.newInstance().id(id).bucketName(destination.getProperty(BUCKET_NAME)).regionId(destination.getProperty(REGION)).build();
+        return S3BucketResourceDefinition.Builder.newInstance().id(id).bucketName(destination.getProperty(S3BucketSchema.BUCKET_NAME)).regionId(destination.getProperty(S3BucketSchema.REGION)).build();
     }
 }

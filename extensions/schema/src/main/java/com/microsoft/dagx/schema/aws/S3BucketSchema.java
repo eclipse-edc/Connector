@@ -6,6 +6,10 @@ import com.microsoft.dagx.schema.SchemaAttribute;
 
 public class S3BucketSchema extends Schema {
 
+    public static final String TYPE = "dagx:s3";
+    public static String REGION = "region";
+    public static String BUCKET_NAME = "bucketName";
+
     @Override
     protected void addAttributes() {
         attributes.add(new SchemaAttribute("region", true));
@@ -14,6 +18,6 @@ public class S3BucketSchema extends Schema {
 
     @Override
     public String getName() {
-        return "S3Bucket";
+        return TYPE;
     }
 }

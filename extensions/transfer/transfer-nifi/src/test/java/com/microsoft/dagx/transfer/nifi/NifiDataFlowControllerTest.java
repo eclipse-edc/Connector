@@ -12,7 +12,7 @@ import com.microsoft.dagx.catalog.atlas.metadata.AtlasApiImpl;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataEntryPropertyLookup;
 import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.schema.SchemaRegistryImpl;
-import com.microsoft.dagx.schema.azure.AzureSchema;
+import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
@@ -141,7 +141,7 @@ public class NifiDataFlowControllerTest {
         expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(storageAccountKey);
         replay(vault);
         SchemaRegistry registry = new SchemaRegistryImpl();
-        registry.register(new AzureSchema());
+        registry.register(new AzureBlobStoreSchema());
         controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new NifiTransferEndpointConverter(registry, vault));
     }
 
@@ -151,7 +151,7 @@ public class NifiDataFlowControllerTest {
 
         // create custom atlas type and an instance
         String id;
-        var schema = new AzureSchema();
+        var schema = new AzureBlobStoreSchema();
         AtlasApi atlasApi = new AtlasApiImpl(new AtlasClientV2(new String[]{ATLAS_API_HOST}, new String[]{atlasUsername, atlasPassword}));
         try {
 

@@ -4,11 +4,11 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AzureSchemaTest {
+public class AzureBlobStoreSchemaTest {
 
     @Test
     void verifySchema(){
-        var azSchema= new AzureSchema();
+        var azSchema= new AzureBlobStoreSchema();
 
         assertThat(azSchema.getName()).isEqualTo("AzureStorage");
         assertThat(azSchema.getRequiredAttributes()).hasSize(5);
