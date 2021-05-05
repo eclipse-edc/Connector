@@ -4,6 +4,8 @@ import com.microsoft.dagx.policy.model.Policy;
 import com.microsoft.dagx.spi.policy.PolicyRegistry;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -18,6 +20,11 @@ public class InMemoryPolicyRegistry implements PolicyRegistry {
     @Override
     public @Nullable Policy resolvePolicy(String id) {
         return cache.get(id);
+    }
+
+    @Override
+    public Collection<Policy> allPolicies() {
+        return new ArrayList<>(cache.values());
     }
 
     @Override

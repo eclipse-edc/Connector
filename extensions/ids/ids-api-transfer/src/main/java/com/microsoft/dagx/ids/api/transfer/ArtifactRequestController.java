@@ -92,8 +92,9 @@ public class ArtifactRequestController {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new RejectionMessageBuilder()._rejectionReason_(TEMPORARILY_NOT_AVAILABLE).build()).build();
         }
 
-        String clientConnectorId = message.getIssuerConnector().toString();
-        var policyResult = policyService.evaluateRequest(clientConnectorId, message.getId().toString(), verificationResult.token(), policy);
+        var clientConnectorId = message.getIssuerConnector().toString();
+        var correlationId = message.getId().toString();
+        var policyResult = policyService.evaluateRequest(clientConnectorId, correlationId, verificationResult.token(), policy);
 
         if (!policyResult.valid()) {
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHORIZED).build()).build();

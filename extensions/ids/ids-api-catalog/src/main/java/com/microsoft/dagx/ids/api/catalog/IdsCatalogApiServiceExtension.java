@@ -5,9 +5,12 @@
 
 package com.microsoft.dagx.ids.api.catalog;
 
+import com.microsoft.dagx.ids.spi.daps.DapsService;
 import com.microsoft.dagx.ids.spi.descriptor.IdsDescriptorService;
+import com.microsoft.dagx.ids.spi.policy.IdsPolicyService;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.policy.PolicyRegistry;
 import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
@@ -26,7 +29,7 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
     public Set<String> requires() {
         return Set.of("ids.core");
     }
-    
+
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
@@ -54,11 +57,18 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
     }
 
     private void registerControllers(ServiceExtensionContext context) {
-        WebService webService = context.getService(WebService.class);
-        IdsDescriptorService descriptorService = context.getService(IdsDescriptorService.class);
-        MetadataStore metadataStore = context.getService(MetadataStore.class);
+        var webService = context.getService(WebService.class);
+        var descriptorService = context.getService(IdsDescriptorService.class);
+        var metadataStore = context.getService(MetadataStore.class);
+
+        var dapService = context.getService(DapsService.class);
+        var policyRegistry = context.getService(PolicyRegistry.class);
+        var policyService = context.getService(IdsPolicyService.class);
+        var queryEngine = new QueryEngineImpl(policyRegistry, policyService, metadataStore, monitor);
+
 
         webService.registerController(new DescriptionRequestController(descriptorService, metadataStore));
+        webService.registerController(new CatalogQueryController(queryEngine, dapService));
     }
 
 

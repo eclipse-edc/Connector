@@ -8,6 +8,8 @@ package com.microsoft.dagx.spi.policy;
 import com.microsoft.dagx.policy.model.Policy;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
+
 /**
  * A registry of known policies.
  */
@@ -21,6 +23,11 @@ public interface PolicyRegistry {
      */
     @Nullable
     Policy resolvePolicy(String id);
+
+    /**
+     * Returns all available policies.
+     */
+    Collection<Policy> allPolicies();
 
     /**
      * Registers the policy in the system.
