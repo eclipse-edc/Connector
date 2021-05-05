@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
 package com.microsoft.dagx.iam.oauth2.impl;
 
 import org.junit.jupiter.api.BeforeEach;

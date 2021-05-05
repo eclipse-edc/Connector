@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
 package com.microsoft.dagx.ids.spi;
 
 import com.microsoft.dagx.spi.DagxSetting;

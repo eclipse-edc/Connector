@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
 rootProject.name = "dagx"
 
 include(":spi")

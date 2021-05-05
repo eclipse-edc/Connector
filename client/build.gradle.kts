@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
 val infoModelVersion: String by project
 val jlineVersion: String by project
 val okHttpVersion: String by project

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
 package com.microsoft.dagx.spi.transfer.flow;
 
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;

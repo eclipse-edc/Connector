@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
 package com.microsoft.dagx.configuration.fs;
 
 import com.microsoft.dagx.spi.DagxException;

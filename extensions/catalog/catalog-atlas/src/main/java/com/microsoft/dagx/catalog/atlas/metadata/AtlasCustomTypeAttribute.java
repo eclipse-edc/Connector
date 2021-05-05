@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
 package com.microsoft.dagx.catalog.atlas.metadata;
 
 import com.microsoft.dagx.schema.SchemaAttribute;

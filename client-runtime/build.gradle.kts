@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
 
 val securityType: String by rootProject.extra
 val iamType: String by rootProject.extra
