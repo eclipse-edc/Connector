@@ -102,7 +102,7 @@ public class ArtifactRequestController {
         @SuppressWarnings("unchecked") var properties = (Map<String, String>) destinationMap.get("properties");
         var secretName = (String) destinationMap.get("secretName");
 
-        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(cast(properties)).secretName(secretName).build();
+        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(cast(properties)).keyName(secretName).build();
 
         var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).dataDestination(dataDestination).protocol(IDS_REST).build();
 

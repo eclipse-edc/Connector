@@ -1,4 +1,5 @@
 import com.microsoft.dagx.junit.DagxExtension;
+import com.microsoft.dagx.schema.aws.S3BucketSchema;
 import com.microsoft.dagx.spi.iam.IdentityService;
 import com.microsoft.dagx.spi.iam.TokenResult;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -37,11 +38,11 @@ public class ClientRunner {
 
         CountDownLatch latch = new CountDownLatch(1);
 
-        DataRequest usRequest = DataRequest.Builder.newInstance().id("us-request").protocol("ids-rest").dataEntry(EU_ARTIFACT).connectorId(PROVIDER_CONNECTOR).connectorAddress(PROVIDER_CONNECTOR).destinationType("S3").build();
+        DataRequest usRequest = DataRequest.Builder.newInstance().id("us-request").protocol("ids-rest").dataEntry(EU_ARTIFACT).connectorId(PROVIDER_CONNECTOR).connectorAddress(PROVIDER_CONNECTOR).destinationType(S3BucketSchema.TYPE).build();
 
         processManager.initiateClientRequest(usRequest);
 
-        DataRequest usOrEuRequest = DataRequest.Builder.newInstance().id("us-eu--request").protocol("ids-rest").dataEntry(US_OR_EU_ARTIFACT).connectorId(PROVIDER_CONNECTOR).connectorAddress(PROVIDER_CONNECTOR).destinationType("S3").build();
+        DataRequest usOrEuRequest = DataRequest.Builder.newInstance().id("us-eu--request").protocol("ids-rest").dataEntry(US_OR_EU_ARTIFACT).connectorId(PROVIDER_CONNECTOR).connectorAddress(PROVIDER_CONNECTOR).destinationType(S3BucketSchema.TYPE).build();
 
         processManager.initiateClientRequest(usOrEuRequest);
 
