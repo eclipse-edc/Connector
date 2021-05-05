@@ -50,6 +50,7 @@ include(":policy:policy-model")
 include(":policy:policy-engine")
 
 include(":extensions:demo:demo-nifi")
+include(":extensions:demo:demo-ui-api")
 
 include(":integration:integration-core")
 

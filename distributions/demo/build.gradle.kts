@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":extensions:transfer:transfer-demo-aws"))
     implementation(project(":extensions:ids"))
     implementation(project(":extensions:demo:demo-nifi"))
+    implementation(project(":extensions:demo:demo-ui-api"))
 
     implementation(project(":extensions:security:security-fs"))
     implementation(project(":extensions:policy:policy-registry-memory"))

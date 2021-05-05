@@ -11,10 +11,15 @@ import java.time.Instant;
  *
  */
 public class MockIdentityService implements IdentityService {
+    private final String region;
+
+    public MockIdentityService(String region) {
+        this.region = region;
+    }
 
     @Override
     public TokenResult obtainClientCredentials(String scope) {
-        return TokenResult.Builder.newInstance().token("mock-eu").expiresIn(Instant.now().plusSeconds(10_0000).toEpochMilli()).build();
+        return TokenResult.Builder.newInstance().token("mock-" + region).expiresIn(Instant.now().plusSeconds(10_0000).toEpochMilli()).build();
     }
 
     @Override

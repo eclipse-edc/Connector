@@ -20,6 +20,7 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -87,10 +88,13 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
         writeLock(() -> {
             TransferProcess process = processesById.remove(processId);
             if (process != null) {
-                List<TransferProcess> list = stateCache.get(process.getState());
-                if (list != null) {
-                    list.remove(process);
-                }
+                var tempCache = new HashMap<Integer, List<TransferProcess>>();
+                stateCache.forEach((key, value) -> {
+                    var list = value.stream().filter(p -> !p.getId().equals(processId)).collect(Collectors.toCollection(ArrayList::new));
+                    tempCache.put(key, list);
+                });
+                stateCache.clear();
+                stateCache.putAll(tempCache);
                 processesByExternalId.remove(process.getDataRequest().getId());
             }
             return null;

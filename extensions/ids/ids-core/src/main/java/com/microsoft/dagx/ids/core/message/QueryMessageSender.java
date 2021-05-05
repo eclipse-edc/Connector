@@ -88,28 +88,29 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
         Request request = new Request.Builder().url(connectorEndpoint).addHeader("Content-Type", JSON).post(requestBody).build();
 
 
-        httpClient.newCall(request).enqueue(new FutureCallback<List<String>>(future, r -> {
-            if (r.isSuccessful()) {
-                monitor.debug("Query response received");
-                try (var body = r.body()) {
-                    if (body == null) {
-                        future.completeExceptionally(new DagxException("Received an empty body response from connector"));
-                    } else {
-                        return cast(mapper.readValue(body.string(), List.class));
+        httpClient.newCall(request).enqueue(new FutureCallback<>(future, r -> {
+            try (r) {
+                if (r.isSuccessful()) {
+                    monitor.debug("Query response received");
+                    try (var body = r.body()) {
+                        if (body == null) {
+                            future.completeExceptionally(new DagxException("Received an empty body response from connector"));
+                        } else {
+                            return cast(mapper.readValue(body.string(), List.class));
+                        }
+                    } catch (IOException e) {
+                        future.completeExceptionally(e);
                     }
-                } catch (IOException e) {
-                    future.completeExceptionally(e);
-                }
-            } else {
-                if (r.code() == 403) {
-                    // forbidden
-                    future.completeExceptionally(new DagxException("Received not authorized from connector"));
                 } else {
-                    future.completeExceptionally(new DagxException("Received an error from connector:" + r.code()));
+                    if (r.code() == 403) {
+                        // forbidden
+                        future.completeExceptionally(new DagxException("Received not authorized from connector"));
+                    } else {
+                        future.completeExceptionally(new DagxException("Received an error from connector:" + r.code()));
+                    }
                 }
+                return null;
             }
-
-            return null;
         }));
         return future;
 

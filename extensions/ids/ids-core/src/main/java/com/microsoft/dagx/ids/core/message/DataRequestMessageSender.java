@@ -104,22 +104,24 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
         CompletableFuture<Void> future = new CompletableFuture<>();
 
         httpClient.newCall(request).enqueue(new FutureCallback<>(future, r -> {
-            TransferProcess transferProcess = transferProcessStore.find(processId);
-            if (r.isSuccessful()) {
-                monitor.debug("Request approved and acknowledged for process: " + processId);
-                transferProcess.transitionRequestAck();
-            } else if (r.code() == 500) {
-                transferProcess.transitionProvisioned();  // force retry
-            } else {
-                if (r.code() == 403) {
-                    // forbidden
-                    monitor.severe("Received not authorized from connector for process: " + processId);
+            try (r) {
+                TransferProcess transferProcess = transferProcessStore.find(processId);
+                if (r.isSuccessful()) {
+                    monitor.debug("Request approved and acknowledged for process: " + processId);
+                    transferProcess.transitionRequestAck();
+                } else if (r.code() == 500) {
+                    transferProcess.transitionProvisioned();  // force retry
+                } else {
+                    if (r.code() == 403) {
+                        // forbidden
+                        monitor.severe("Received not authorized from connector for process: " + processId);
+                    }
+                    // Fatal error
+                    transferProcess.transitionError("General error, HTTP response code: " + r.code());
                 }
-                // Fatal error
-                transferProcess.transitionError("General error, HTTP response code: " + r.code());
+                transferProcessStore.update(transferProcess);
+                return null;
             }
-            transferProcessStore.update(transferProcess);
-            return null;
         }));
         return future;
     }

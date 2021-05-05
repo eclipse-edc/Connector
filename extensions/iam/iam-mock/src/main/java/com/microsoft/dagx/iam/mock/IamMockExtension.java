@@ -18,7 +18,8 @@ public class IamMockExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        context.registerService(IdentityService.class, new MockIdentityService());
-        context.getMonitor().info("Initialized Mock IAM extension");
+        var region = context.getSetting("dagx.mock.region", "eu");
+        context.registerService(IdentityService.class, new MockIdentityService(region));
+        context.getMonitor().info("Initialized Mock IAM extension with region: " + region);
     }
 }
