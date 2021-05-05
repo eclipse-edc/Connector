@@ -438,7 +438,7 @@ public class AtlasApiTest {
             System.out.print("Error creating types, attempting update: " + e.getMessage());
             try {
                 AtlasTypesDef atlasTypesDef = atlasClient.updateAtlasTypeDefs(typesDef);
-                System.out.println("Update successful.");
+                System.out.println("Update successful!");
                 return atlasTypesDef;
             } catch (AtlasServiceException atlasServiceException) {
                 System.out.println("\nError updating types: " + e.getMessage());
