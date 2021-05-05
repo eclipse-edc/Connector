@@ -44,6 +44,7 @@ class S3ProvisionPipeline {
             "    \"Version\": \"2012-10-17\"," +
             "    \"Statement\": [" +
             "        {" +
+            "            \"Sid\": \"TemporaryAccess\", " +
             "            \"Effect\": \"Allow\"," +
             "            \"Action\": \"s3:PutObject\"," +
             "            \"Resource\": \"arn:aws:s3:::%s/*\"" +
@@ -94,24 +95,29 @@ class S3ProvisionPipeline {
     }
 
     private CompletableFuture<PutRolePolicyResponse> createRolePolicy(S3BucketResourceDefinition resourceDefinition, String bucketName, AsyncContext asyncContext, CreateRoleResponse response) {
+        wait(resourceDefinition);
         String processId = resourceDefinition.getTransferProcessId();
         asyncContext.roleArn = response.role().arn();
-        String policyDocument = format(BUCKET_POLICY, "arn:aws:s3:::" + bucketName + "/*");
-        PutRolePolicyRequest policyRequest = PutRolePolicyRequest.builder().policyName(processId).roleName(processId).roleName(response.role().roleName()).policyDocument(policyDocument).build();
+        String policyDocument = format(BUCKET_POLICY, bucketName);
+        PutRolePolicyRequest policyRequest = PutRolePolicyRequest.builder().policyName(processId).roleName(response.role().roleName()).policyDocument(policyDocument).build();
         return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).putRolePolicy(policyRequest);
     }
 
     private CompletableFuture<AssumeRoleResponse> assumeRole(S3BucketResourceDefinition resourceDefinition, AsyncContext asyncContext) {
+        wait(resourceDefinition);
+
+        AssumeRoleRequest.Builder roleBuilder = AssumeRoleRequest.builder();
+        roleBuilder.roleArn(asyncContext.roleArn).roleSessionName("transfer").externalId("123");
+        return clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId()).assumeRole(roleBuilder.build());
+    }
+
+    private void wait(S3BucketResourceDefinition resourceDefinition) {
         try {
             Thread.sleep(PROPAGATION_TIMEOUT);
         } catch (InterruptedException e) {
             Thread.interrupted();
             sendErroredResource(resourceDefinition, resourceDefinition.getBucketName(), e);
         }
-
-        AssumeRoleRequest.Builder roleBuilder = AssumeRoleRequest.builder();
-        roleBuilder.roleArn(asyncContext.roleArn).roleSessionName("transfer").externalId("123");
-        return clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId()).assumeRole(roleBuilder.build());
     }
 
     private void createAndSendToken(S3BucketResourceDefinition resourceDefinition, AssumeRoleResponse response, Throwable exception) {

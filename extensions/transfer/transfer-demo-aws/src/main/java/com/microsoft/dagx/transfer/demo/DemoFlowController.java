@@ -21,13 +21,40 @@ import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.iam.IamAsyncClient;
+import software.amazon.awssdk.services.iam.model.*;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 import software.amazon.awssdk.services.sts.StsAsyncClient;
-import software.amazon.awssdk.services.sts.model.GetSessionTokenRequest;
+import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
+
+import static java.lang.String.format;
 
 public class DemoFlowController implements DataFlowController {
+    private static final String ASSUME_ROLE_TRUST = "{" +
+            "  \"Version\": \"2012-10-17\"," +
+            "  \"Statement\": [" +
+            "    {" +
+            "      \"Effect\": \"Allow\"," +
+            "      \"Principal\": {" +
+            "        \"AWS\": \"%s\"" +
+            "      }," +
+            "      \"Action\": \"sts:AssumeRole\"" +
+            "    }" +
+            "  ]" +
+            "}";
+
+    private static final String BUCKET_POLICY = "{" +
+            "    \"Version\": \"2012-10-17\"," +
+            "    \"Statement\": [" +
+            "        {" +
+            "            \"Effect\": \"Allow\"," +
+            "            \"Action\": \"s3:PutObject\"," +
+            "            \"Resource\": \"arn:aws:s3:::%s/*\"" +
+            "        }" +
+            "    ]" +
+            "}";
     private final Vault vault;
     private final ClientProvider clientProvider;
 
@@ -53,35 +80,73 @@ public class DemoFlowController implements DataFlowController {
 
         var dt = convertSecret(awsSecret);
 
-        return copyToBucket(content, bucketName, region);
+        return copyToBucket(content, bucketName, region, dt);
 
     }
 
     @NotNull
-    private DataFlowInitiateResponse copyToBucket(String content, String bucketName, String region) {
+    private DataFlowInitiateResponse copyToBucket(String content, String bucketName, String region, DestinationSecretToken dt) {
 
         try (S3Client s3 = S3Client.builder()
-                .credentialsProvider(getCredentialsProvider(Region.of(region)))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsSessionCredentials.create(dt.getAccessKeyId(), dt.getSecretAccessKey(), dt.getToken())))
                 .region(Region.of(region))
                 .build()) {
-            var response = s3.putObject(createRequest(bucketName, "demo-content"), RequestBody.fromString(content));
-            return new DataFlowInitiateResponse(ResponseStatus.OK, response.eTag());
-        } catch (S3Exception ex) {
+            var wait = 2;//seconds
+            var count = 0;
+            var maxRetries = 3;
+            var success = false;
+            String etag = null;
+            while (!success && count <= maxRetries) {
+                try {
+                    var response = s3.putObject(createRequest(bucketName, "demo-content"), RequestBody.fromString(content));
+                    success = true;
+                    etag = response.eTag();
+                } catch (S3Exception tmpEx) {
+                    System.out.println("not successful, retrying after " + wait + " seconds...");
+                    count++;
+                    Thread.sleep(1000L * wait);
+                    wait *= wait;
+
+                }
+            }
+            return new DataFlowInitiateResponse(ResponseStatus.OK, etag);
+        } catch (S3Exception | InterruptedException ex) {
             return new DataFlowInitiateResponse(ResponseStatus.FATAL_ERROR, ex.getLocalizedMessage());
         }
     }
 
     @NotNull
-    private AwsCredentialsProvider getCredentialsProvider(Region region) {
+    private AwsCredentialsProvider getCredentialsProvider(Region region, String bucketName) {
 
         var stsClient = clientProvider.clientFor(StsAsyncClient.class, region.id());
 
-        var str = GetSessionTokenRequest.builder()
-                .durationSeconds(3600)
-                .build();
+        var iamClient = clientProvider.clientFor(IamAsyncClient.class, region.id());
+        User user = iamClient.getUser().join().user();
+        var arn = user.arn();
+        CreateRoleRequest.Builder roleBuilder = CreateRoleRequest.builder();
+        String processId = "foobar-process-id";
+        Tag tag = Tag.builder().key("dagx:process").value(processId).build();
+        String roleName = "Put-To-Bucket-Role-" + System.currentTimeMillis();
+        roleBuilder.roleName(roleName)
+                .description("DA-GX transfer process role")
+                .assumeRolePolicyDocument(format(ASSUME_ROLE_TRUST, arn))
+                .maxSessionDuration(3600).tags(tag);
 
-        var creds = stsClient.getSessionToken(str).join().credentials();
+        Role role = iamClient.createRole(roleBuilder.build()).join().role();
+        String policyDocument = format(BUCKET_POLICY, "arn:aws:s3::" + bucketName + "/*");
+        PutRolePolicyRequest policyRequest = PutRolePolicyRequest.builder().policyName(processId).roleName(processId).roleName(role.roleName()).policyDocument(policyDocument).build();
 
+        iamClient.putRolePolicy(policyRequest).join();
+
+        AssumeRoleRequest.Builder assumeRoleBuilder = AssumeRoleRequest.builder();
+        assumeRoleBuilder.roleArn(role.arn()).roleSessionName("foobar-role-session").externalId("yomama");
+
+        try {
+            Thread.sleep(10_000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        var creds = stsClient.assumeRole(assumeRoleBuilder.build()).join().credentials();
 
         return StaticCredentialsProvider.create(AwsSessionCredentials.create(creds.accessKeyId(), creds.secretAccessKey(), creds.sessionToken()));
 
