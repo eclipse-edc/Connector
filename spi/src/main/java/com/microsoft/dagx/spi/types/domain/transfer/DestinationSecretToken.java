@@ -13,12 +13,16 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class DestinationSecretToken {
     public static final String KEY = "dagx-destination-token";
 
-    private String token;
-    private long expiration;
+    private final String token;
+    private final long expiration;
+    private final String accessKeyId;
+    private final String secretAccessKey;
 
-    public DestinationSecretToken(@JsonProperty("token") String token, @JsonProperty("expiration") long expiration) {
+    public DestinationSecretToken(@JsonProperty("accessKeyId") String accessKeyId, @JsonProperty("secretAccessKey") String secretAccessKey, @JsonProperty("token") String token, @JsonProperty("expiration") long expiration) {
         this.token = token;
         this.expiration = expiration;
+        this.accessKeyId = accessKeyId;
+        this.secretAccessKey = secretAccessKey;
     }
 
     public String getToken() {
@@ -27,5 +31,13 @@ public class DestinationSecretToken {
 
     public long getExpiration() {
         return expiration;
+    }
+
+    public String getAccessKeyId() {
+        return accessKeyId;
+    }
+
+    public String getSecretAccessKey() {
+        return secretAccessKey;
     }
 }

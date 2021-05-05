@@ -10,12 +10,7 @@ import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
-import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
-import software.amazon.awssdk.services.iam.model.CreateRoleResponse;
-import software.amazon.awssdk.services.iam.model.GetUserResponse;
-import software.amazon.awssdk.services.iam.model.PutRolePolicyRequest;
-import software.amazon.awssdk.services.iam.model.PutRolePolicyResponse;
-import software.amazon.awssdk.services.iam.model.Tag;
+import software.amazon.awssdk.services.iam.model.*;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -31,13 +26,39 @@ import static java.lang.String.format;
  * Asynchronously provisions an S3 bucket to serve as a data destination and a temporary token with write permissions to the bucket.
  */
 class S3ProvisionPipeline {
+    // Do not modify this trust policy
+    private static final String ASSUME_ROLE_TRUST = "{" +
+            "  \"Version\": \"2012-10-17\"," +
+            "  \"Statement\": [" +
+            "    {" +
+            "      \"Effect\": \"Allow\"," +
+            "      \"Principal\": {" +
+            "        \"AWS\": \"%s\"" +
+            "      }," +
+            "      \"Action\": \"sts:AssumeRole\"" +
+            "    }" +
+            "  ]" +
+            "}";
+    // Do not modify this bucket policy
+    private static final String BUCKET_POLICY = "{" +
+            "    \"Version\": \"2012-10-17\"," +
+            "    \"Statement\": [" +
+            "        {" +
+            "            \"Effect\": \"Allow\"," +
+            "            \"Action\": \"s3:PutObject\"," +
+            "            \"Resource\": \"arn:aws:s3:::%s/*\"" +
+            "        }" +
+            "    ]" +
+            "}";
     static int PROPAGATION_TIMEOUT = 10_000; // time in milliseconds to wait for AWS policies to propagate after creation
-
     private ClientProvider clientProvider;
     private S3BucketResourceDefinition resourceDefinition;
     private ProvisionContext context;
     private int sessionDuration;
     private Monitor monitor;
+
+    private S3ProvisionPipeline() {
+    }
 
     /**
      * Performs a non-blocking provisioning operation.
@@ -106,7 +127,7 @@ class S3ProvisionPipeline {
                     .bucketName(resourceDefinition.getBucketName())
                     .transferProcessId(transferProcessId).build();
 
-            var secretToken = new DestinationSecretToken(credentials.sessionToken(), credentials.expiration().toEpochMilli());
+            var secretToken = new DestinationSecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());
 
             context.callback(resource, secretToken);
         } else if (exception != null) {
@@ -122,81 +143,50 @@ class S3ProvisionPipeline {
         context.callback(erroredResource, null);
     }
 
-    private S3ProvisionPipeline() {
-    }
-
     private static class AsyncContext {
         String roleArn;
     }
 
     static class Builder {
-        private S3ProvisionPipeline pipeline;
+        private final S3ProvisionPipeline pipeline;
+
+        private Builder() {
+            pipeline = new S3ProvisionPipeline();
+        }
 
         public static Builder newInstance() {
             return new Builder();
         }
 
-
         public Builder clientProvider(ClientProvider clientProvider) {
-            this.pipeline.clientProvider = clientProvider;
+            pipeline.clientProvider = clientProvider;
             return this;
         }
 
         public Builder resourceDefinition(S3BucketResourceDefinition resourceDefinition) {
-            this.pipeline.resourceDefinition = resourceDefinition;
+            pipeline.resourceDefinition = resourceDefinition;
             return this;
         }
 
         public Builder sessionDuration(int sessionDuration) {
-            this.pipeline.sessionDuration = sessionDuration;
+            pipeline.sessionDuration = sessionDuration;
             return this;
         }
 
         public Builder context(ProvisionContext context) {
-            this.pipeline.context = context;
+            pipeline.context = context;
             return this;
         }
 
         public Builder monitor(Monitor monitor) {
-            this.pipeline.monitor = monitor;
+            pipeline.monitor = monitor;
             return this;
         }
 
         public S3ProvisionPipeline build() {
             return pipeline;
         }
-
-        private Builder() {
-            pipeline = new S3ProvisionPipeline();
-        }
     }
-
-    // Do not modify this trust policy
-    private static final String ASSUME_ROLE_TRUST = "{" +
-            "  \"Version\": \"2012-10-17\"," +
-            "  \"Statement\": [" +
-            "    {" +
-            "      \"Effect\": \"Allow\"," +
-            "      \"Principal\": {" +
-            "        \"AWS\": \"%s\"" +
-            "      }," +
-            "      \"Action\": \"sts:AssumeRole\"" +
-            "    }" +
-            "  ]" +
-            "}";
-
-
-    // Do not modify this bucket policy
-    private static final String BUCKET_POLICY = "{" +
-            "    \"Version\": \"2012-10-17\"," +
-            "    \"Statement\": [" +
-            "        {" +
-            "            \"Effect\": \"Allow\"," +
-            "            \"Action\": \"s3:PutObject\"," +
-            "            \"Resource\": \"arn:aws:s3:::%s/*\"" +
-            "        }" +
-            "    ]" +
-            "}";
 
 
 }

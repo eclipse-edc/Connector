@@ -35,7 +35,7 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
 
     @Override
     public ResponseStatus provision(ObjectStorageResourceDefinition resourceDefinition) {
-        var secretToken = new DestinationSecretToken("", -1);
+        var secretToken = new DestinationSecretToken("", "", "", -1);
         var resource = new ObjectContainerProvisionedResource();
         context.callback(resource, secretToken);
         return ResponseStatus.OK;

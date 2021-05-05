@@ -13,6 +13,7 @@ import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.types.TypeManager;
+import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
 import com.microsoft.dagx.transfer.provision.aws.provider.SdkClientProvider;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisionedResource;
 import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisioner;
@@ -21,6 +22,8 @@ import com.microsoft.dagx.transfer.provision.aws.s3.S3ResourceDefinitionClientGe
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+
+import java.util.Set;
 
 /**
  * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by Azure services.
@@ -53,7 +56,15 @@ public class AwsProvisionExtension implements ServiceExtension {
 
         registerTypes(context.getTypeManager());
 
+        //todo: remove this!!!
+        context.registerService(ClientProvider.class, clientProvider);
+
         monitor.info("Initialized AWS Provision extension");
+    }
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("client-provider");
     }
 
     @Override
