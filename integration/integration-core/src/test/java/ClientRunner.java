@@ -38,10 +38,12 @@ public class ClientRunner {
 
         CountDownLatch latch = new CountDownLatch(1);
 
+        // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
         DataRequest usRequest = DataRequest.Builder.newInstance().id("us-request").protocol("ids-rest").dataEntry(EU_ARTIFACT).connectorId(PROVIDER_CONNECTOR).connectorAddress(PROVIDER_CONNECTOR).destinationType(S3BucketSchema.TYPE).build();
 
         processManager.initiateClientRequest(usRequest);
 
+        // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
         DataRequest usOrEuRequest = DataRequest.Builder.newInstance().id("us-eu--request").protocol("ids-rest").dataEntry(US_OR_EU_ARTIFACT).connectorId(PROVIDER_CONNECTOR).connectorAddress(PROVIDER_CONNECTOR).destinationType(S3BucketSchema.TYPE).build();
 
         processManager.initiateClientRequest(usOrEuRequest);
