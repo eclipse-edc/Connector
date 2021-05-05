@@ -100,7 +100,7 @@ public class ArtifactRequestController {
         var type = (String) destinationMap.get("type");
 
         @SuppressWarnings("unchecked") var properties = (Map<String, String>) destinationMap.get("properties");
-        var secretName = (String) destinationMap.get("secretName");
+        var secretName = (String) destinationMap.get("keyName");
 
         var dataDestination = DataAddress.Builder.newInstance().type(type).properties(cast(properties)).keyName(secretName).build();
 
