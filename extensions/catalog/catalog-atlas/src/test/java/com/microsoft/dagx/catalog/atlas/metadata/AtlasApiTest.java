@@ -435,13 +435,13 @@ public class AtlasApiTest {
         try {
             return atlasClient.createAtlasTypeDefs(typesDef);
         } catch (AtlasServiceException e) {
-            System.out.println("Error creating types, attempting update: " + e.getMessage());
+            System.out.print("Error creating types, attempting update: " + e.getMessage());
             try {
                 AtlasTypesDef atlasTypesDef = atlasClient.updateAtlasTypeDefs(typesDef);
                 System.out.println("Update successful.");
                 return atlasTypesDef;
             } catch (AtlasServiceException atlasServiceException) {
-                System.out.println("Error updating types: " + e.getMessage());
+                System.out.println("\nError updating types: " + e.getMessage());
                 return null;
             }
         }
