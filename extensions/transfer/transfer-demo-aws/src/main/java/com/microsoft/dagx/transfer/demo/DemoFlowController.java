@@ -71,27 +71,20 @@ public class DemoFlowController implements DataFlowController {
                 .region(Region.of(region))
                 .build()) {
 
-            var success = false;
             String etag = null;
             PutObjectRequest request = createRequest(bucketName, "demo-image");
 
-            while (!success && count <= maxRetries) {
-                try {
-                    monitor.debug("Data request: begin transfer...");
-                    var response = s3.putObject(request, RequestBody.fromBytes(createRandomContent()));
-                    monitor.debug("Data request done.");
-                    success = true;
-                    etag = response.eTag();
-                } catch (S3Exception tmpEx) {
-                    monitor.info("Data request: transfer not successful, retrying after " + wait + " seconds...");
-                    count++;
-                    Thread.sleep(1000L * wait);
-                    wait *= wait;
-
-                }
+            try {
+                monitor.debug("Data request: begin transfer...");
+                var response = s3.putObject(request, RequestBody.fromBytes(createRandomContent()));
+                monitor.debug("Data request done.");
+                etag = response.eTag();
+            } catch (S3Exception tmpEx) {
+                monitor.info("Data request: transfer not successful");
             }
+
             return new DataFlowInitiateResponse(ResponseStatus.OK, etag);
-        } catch (S3Exception | InterruptedException | DagxException ex) {
+        } catch (S3Exception | DagxException ex) {
             monitor.severe("Data request: transfer failed after " + count + " attempts");
             return new DataFlowInitiateResponse(ResponseStatus.FATAL_ERROR, ex.getLocalizedMessage());
         }
@@ -116,6 +109,8 @@ public class DemoFlowController implements DataFlowController {
     }
 
     private byte[] createRandomContent() {
+
+
         InputStream resourceAsStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("demo_image.jpg");
         try {
             return Objects.requireNonNull(resourceAsStream).readAllBytes();
