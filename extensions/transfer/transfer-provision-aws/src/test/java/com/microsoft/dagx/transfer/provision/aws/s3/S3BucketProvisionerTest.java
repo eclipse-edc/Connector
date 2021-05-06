@@ -17,13 +17,7 @@ import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
-import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
-import software.amazon.awssdk.services.iam.model.CreateRoleResponse;
-import software.amazon.awssdk.services.iam.model.GetUserResponse;
-import software.amazon.awssdk.services.iam.model.PutRolePolicyRequest;
-import software.amazon.awssdk.services.iam.model.PutRolePolicyResponse;
-import software.amazon.awssdk.services.iam.model.Role;
-import software.amazon.awssdk.services.iam.model.User;
+import software.amazon.awssdk.services.iam.model.*;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.s3.model.CreateBucketResponse;
@@ -34,7 +28,8 @@ import software.amazon.awssdk.services.sts.model.Credentials;
 
 import java.time.Instant;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -44,8 +39,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class S3BucketProvisionerTest {
 
     @Test
-    void verifyBasicProvision() {
-        S3ProvisionPipeline.PROPAGATION_TIMEOUT = 1;
+    void verifyBasicProvision() throws InterruptedException {
+
+        var latch = new CountDownLatch(1);
 
         // get user
         var userFuture = new CompletableFuture<GetUserResponse>();
@@ -78,7 +74,6 @@ class S3BucketProvisionerTest {
         S3BucketProvisioner provisioner = new S3BucketProvisioner(clientProvider, 3600, new Monitor() {
         });
 
-        AtomicBoolean passed = new AtomicBoolean();
         provisioner.initialize(new ProvisionContext() {
             @Override
             public void callback(ProvisionedResource resource) {
@@ -87,7 +82,7 @@ class S3BucketProvisionerTest {
 
             @Override
             public void callback(ProvisionedDataDestinationResource resource, @Nullable DestinationSecretToken secretToken) {
-                passed.set(true);
+                latch.countDown();
             }
         });
 
@@ -99,9 +94,9 @@ class S3BucketProvisionerTest {
         assumeRoleFuture.complete(AssumeRoleResponse.builder().credentials(Credentials.builder().expiration(Instant.now()).build()).build());
         s3Future.complete(CreateBucketResponse.builder().build());
 
+        assertTrue(latch.await(10, TimeUnit.SECONDS));
         EasyMock.verify(iamMock, stsMock, s3Mock);
 
-        assertTrue(passed.get());
     }
 
     private ClientProvider mockProvider(IamAsyncClient iamMock, StsAsyncClient stsMock, S3AsyncClient s3Mock) {

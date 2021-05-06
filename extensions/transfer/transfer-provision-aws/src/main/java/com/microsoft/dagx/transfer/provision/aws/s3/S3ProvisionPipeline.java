@@ -76,13 +76,12 @@ class S3ProvisionPipeline {
         String bucketName = resourceDefinition.getBucketName();
 
         S3AsyncClient s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, region);
-        CreateBucketRequest request = CreateBucketRequest.builder().bucket(bucketName).createBucketConfiguration(CreateBucketConfiguration.builder().build()).build();
 
         var retryPolicy = new RetryPolicy<>()
                 .withMaxRetries(10)
                 .handle(AwsServiceException.class)
                 .withBackoff(3, 15, ChronoUnit.SECONDS);
-
+        CreateBucketRequest request = CreateBucketRequest.builder().bucket(bucketName).createBucketConfiguration(CreateBucketConfiguration.builder().build()).build();
         s3AsyncClient.createBucket(request)
                 .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> getUser(resourceDefinition)))
                 .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> createRole(resourceDefinition, r)))
