@@ -9,9 +9,6 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
-import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
-
-import java.util.Set;
 
 public class AwsDemoExtension implements ServiceExtension {
 
@@ -23,13 +20,8 @@ public class AwsDemoExtension implements ServiceExtension {
 
         var dataFlowMgr = context.getService(DataFlowManager.class);
 
-        var flowController = new DemoFlowController(context.getService(Vault.class), context.getService(ClientProvider.class));
+        var flowController = new DemoFlowController(context.getService(Vault.class), monitor);
 
         dataFlowMgr.register(flowController);
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("client-provider");
     }
 }

@@ -23,8 +23,6 @@ import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
-import java.util.Set;
-
 /**
  * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by Azure services.
  */
@@ -60,11 +58,6 @@ public class AwsProvisionExtension implements ServiceExtension {
         context.registerService(ClientProvider.class, clientProvider);
 
         monitor.info("Initialized AWS Provision extension");
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("client-provider");
     }
 
     @Override
