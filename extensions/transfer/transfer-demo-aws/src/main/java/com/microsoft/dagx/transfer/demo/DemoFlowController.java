@@ -16,6 +16,8 @@ import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
@@ -27,16 +29,21 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
 
 public class DemoFlowController implements DataFlowController {
     private final Vault vault;
     private final Monitor monitor;
+    private final RetryPolicy<Object> retryPolicy;
 
     public DemoFlowController(Vault vault, Monitor monitor) {
         this.vault = vault;
         this.monitor = monitor;
+        retryPolicy = new RetryPolicy<>()
+                .withBackoff(500, 5000, ChronoUnit.MILLIS)
+                .withMaxRetries(3);
     }
 
     @Override
@@ -52,7 +59,6 @@ public class DemoFlowController implements DataFlowController {
         var bucketName = dataRequest.getDataDestination().getProperty(S3BucketSchema.BUCKET_NAME);
 
         var region = dataRequest.getDataDestination().getProperty(S3BucketSchema.REGION);
-
         var dt = convertSecret(awsSecret);
 
         return copyToBucket(bucketName, region, dt);
@@ -62,37 +68,27 @@ public class DemoFlowController implements DataFlowController {
     @NotNull
     private DataFlowInitiateResponse copyToBucket(String bucketName, String region, DestinationSecretToken dt) {
 
-        var wait = 2;//seconds
-        var count = 0;
-        var maxRetries = 3;
 
         try (S3Client s3 = S3Client.builder()
                 .credentialsProvider(StaticCredentialsProvider.create(AwsSessionCredentials.create(dt.getAccessKeyId(), dt.getSecretAccessKey(), dt.getToken())))
                 .region(Region.of(region))
                 .build()) {
 
-            var success = false;
             String etag = null;
             PutObjectRequest request = createRequest(bucketName, "demo-image");
 
-            while (!success && count <= maxRetries) {
-                try {
-                    monitor.debug("Data request: begin transfer...");
-                    var response = s3.putObject(request, RequestBody.fromBytes(createRandomContent()));
-                    monitor.debug("Data request done.");
-                    success = true;
-                    etag = response.eTag();
-                } catch (S3Exception tmpEx) {
-                    monitor.info("Data request: transfer not successful, retrying after " + wait + " seconds...");
-                    count++;
-                    Thread.sleep(1000L * wait);
-                    wait *= wait;
-
-                }
+            try {
+                monitor.debug("Data request: begin transfer...");
+                var response = Failsafe.with(retryPolicy).get(() -> s3.putObject(request, RequestBody.fromBytes(createRandomContent())));
+                monitor.debug("Data request done.");
+                etag = response.eTag();
+            } catch (S3Exception tmpEx) {
+                monitor.info("Data request: transfer not successful");
             }
+
             return new DataFlowInitiateResponse(ResponseStatus.OK, etag);
-        } catch (S3Exception | InterruptedException | DagxException ex) {
-            monitor.severe("Data request: transfer failed after " + count + " attempts");
+        } catch (S3Exception | DagxException ex) {
+            monitor.severe("Data request: transfer failed!");
             return new DataFlowInitiateResponse(ResponseStatus.FATAL_ERROR, ex.getLocalizedMessage());
         }
     }

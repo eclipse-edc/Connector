@@ -9,6 +9,9 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
 import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.*;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
@@ -18,6 +21,7 @@ import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
 
+import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
@@ -51,7 +55,6 @@ class S3ProvisionPipeline {
             "        }" +
             "    ]" +
             "}";
-    static int PROPAGATION_TIMEOUT = 10_000; // time in milliseconds to wait for AWS policies to propagate after creation
     private ClientProvider clientProvider;
     private S3BucketResourceDefinition resourceDefinition;
     private ProvisionContext context;
@@ -59,6 +62,7 @@ class S3ProvisionPipeline {
     private Monitor monitor;
 
     private S3ProvisionPipeline() {
+
     }
 
     /**
@@ -72,16 +76,22 @@ class S3ProvisionPipeline {
         String bucketName = resourceDefinition.getBucketName();
 
         S3AsyncClient s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, region);
+
+        var retryPolicy = new RetryPolicy<>()
+                .withMaxRetries(10)
+                .handle(AwsServiceException.class)
+                .withBackoff(3, 15, ChronoUnit.SECONDS);
         CreateBucketRequest request = CreateBucketRequest.builder().bucket(bucketName).createBucketConfiguration(CreateBucketConfiguration.builder().build()).build();
         s3AsyncClient.createBucket(request)
-                .thenCompose(r -> getUser(resourceDefinition))
-                .thenCompose(r -> createRole(resourceDefinition, r))
-                .thenCompose(r -> createRolePolicy(resourceDefinition, bucketName, asyncContext, r))
-                .thenCompose(r -> assumeRole(resourceDefinition, asyncContext))
+                .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> getUser(resourceDefinition)))
+                .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> createRole(resourceDefinition, r)))
+                .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> createRolePolicy(resourceDefinition, bucketName, asyncContext, r)))
+                .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> assumeRole(resourceDefinition, asyncContext)))
                 .whenComplete((r, e) -> createAndSendToken(resourceDefinition, r, e));
     }
 
     private CompletableFuture<GetUserResponse> getUser(S3BucketResourceDefinition resourceDefinition) {
+        monitor.debug("S3ProvisionPipeline: get user");
         return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).getUser();
     }
 
@@ -91,34 +101,27 @@ class S3ProvisionPipeline {
         Tag tag = Tag.builder().key("dagx:process").value(resourceDefinition.getTransferProcessId()).build();
         roleBuilder.roleName(resourceDefinition.getTransferProcessId()).description("DA-GX transfer process role")
                 .assumeRolePolicyDocument(format(ASSUME_ROLE_TRUST, userArn)).maxSessionDuration(sessionDuration).tags(tag);
+        monitor.debug("S3ProvisionPipeline: create role for user" + userArn);
         return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).createRole(roleBuilder.build());
     }
 
     private CompletableFuture<PutRolePolicyResponse> createRolePolicy(S3BucketResourceDefinition resourceDefinition, String bucketName, AsyncContext asyncContext, CreateRoleResponse response) {
-        wait(resourceDefinition);
         String processId = resourceDefinition.getTransferProcessId();
         asyncContext.roleArn = response.role().arn();
         String policyDocument = format(BUCKET_POLICY, bucketName);
         PutRolePolicyRequest policyRequest = PutRolePolicyRequest.builder().policyName(processId).roleName(response.role().roleName()).policyDocument(policyDocument).build();
+        monitor.debug("S3ProvisionPipeline: attach bucket policy to role " + asyncContext.roleArn);
         return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).putRolePolicy(policyRequest);
     }
 
     private CompletableFuture<AssumeRoleResponse> assumeRole(S3BucketResourceDefinition resourceDefinition, AsyncContext asyncContext) {
-        wait(resourceDefinition);
 
         AssumeRoleRequest.Builder roleBuilder = AssumeRoleRequest.builder();
         roleBuilder.roleArn(asyncContext.roleArn).roleSessionName("transfer").externalId("123");
+        monitor.debug("S3ProvisionPipeline: attempting to assume the role");
         return clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId()).assumeRole(roleBuilder.build());
     }
 
-    private void wait(S3BucketResourceDefinition resourceDefinition) {
-        try {
-            Thread.sleep(PROPAGATION_TIMEOUT);
-        } catch (InterruptedException e) {
-            Thread.interrupted();
-            sendErroredResource(resourceDefinition, resourceDefinition.getBucketName(), e);
-        }
-    }
 
     private void createAndSendToken(S3BucketResourceDefinition resourceDefinition, AssumeRoleResponse response, Throwable exception) {
         String bucketName = resourceDefinition.getBucketName();
@@ -127,6 +130,7 @@ class S3ProvisionPipeline {
 
             var transferProcessId = resourceDefinition.getTransferProcessId();
 
+            monitor.debug("S3ProvisionPipeline: STS credentials obtained, continuing...");
             var resource = S3BucketProvisionedResource.Builder.newInstance().id(bucketName)
                     .resourceDefinitionId(resourceDefinition.getId())
                     .region(resourceDefinition.getRegionId())
