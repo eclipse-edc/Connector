@@ -11,16 +11,11 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.types.TypeManager;
+import com.microsoft.dagx.spi.types.domain.metadata.DataCatalog;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
-import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.SSLContext;
@@ -38,9 +33,9 @@ import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.FATAL_ERRO
 import static java.lang.String.format;
 
 public class NifiDataFlowController implements DataFlowController {
+    public static final String NIFI_CREDENTIALS = "nifi.credentials";
     private static final String CONTENTLISTENER = "/contentListener";
     private static final MediaType JSON = MediaType.get("application/json");
-    public static final String NIFI_CREDENTIALS = "nifi.credentials";
     private static final String SOURCE_FILE_ACCESS_KEY_NAME = "keyName";
 
     private final String baseUrl;
@@ -79,8 +74,8 @@ public class NifiDataFlowController implements DataFlowController {
         }
 
         DataEntry<?> dataEntry = dataRequest.getDataEntry();
-        DataEntryPropertyLookup lookup = dataEntry.getLookup();
-        var sourceAddress = lookup.getPropertiesForEntity(dataEntry.getId());
+        DataCatalog catalog = dataEntry.getCatalog();
+        var sourceAddress = catalog.getPropertiesForEntity(dataEntry.getId());
         // the "keyName" entry should always be there, regardless of the source storage system
         var sourceKeyName = sourceAddress.getKeyName();
 
@@ -93,7 +88,7 @@ public class NifiDataFlowController implements DataFlowController {
         }
 
         var source = converter.convert(sourceAddress);
-        var dest= converter.convert(destinationAddress);
+        var dest = converter.convert(destinationAddress);
 
 
         Request request = createTransferRequest(source, dest, basicAuthCreds);

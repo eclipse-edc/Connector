@@ -5,19 +5,19 @@
 
 package com.microsoft.dagx.catalog.atlas.metadata;
 
-import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
+import com.microsoft.dagx.spi.types.domain.metadata.DataCatalog;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class AtlasDataEntryPropertyLookup implements DataEntryPropertyLookup {
+public class AtlasDataCatalog implements DataCatalog {
 
-    private final AtlasApi atlasApi;
     private static final String ATLAS_PROPERTY_KEYNAME = "keyName";
     private static final String ATLAS_PROPERTY_TYPE = "type";
+    private final AtlasApi atlasApi;
 
-    public AtlasDataEntryPropertyLookup(AtlasApi atlasApi) {
+    public AtlasDataCatalog(AtlasApi atlasApi) {
         this.atlasApi = atlasApi;
     }
 

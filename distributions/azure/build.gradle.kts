@@ -37,7 +37,7 @@ dependencies {
     implementation(project(":extensions:configuration:configuration-fs"))
 
     implementation(project(":extensions:catalog:catalog-atlas"))
-    implementation(project(":extensions:catalog:catalog-dataseed"))
+    implementation(project(":extensions:catalog:catalog-atlas-dataseed"))
     implementation(project(":extensions:transfer:transfer-store-memory"))
 
     implementation(project(":extensions:policy:policy-registry-memory"))

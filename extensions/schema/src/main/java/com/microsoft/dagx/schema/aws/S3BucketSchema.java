@@ -6,10 +6,10 @@
 package com.microsoft.dagx.schema.aws;
 
 
-import com.microsoft.dagx.schema.Schema;
+import com.microsoft.dagx.schema.DataSchema;
 import com.microsoft.dagx.schema.SchemaAttribute;
 
-public class S3BucketSchema extends Schema {
+public class S3BucketSchema extends DataSchema {
 
     public static final String TYPE = "dagx:s3";
     public static String REGION = "region";

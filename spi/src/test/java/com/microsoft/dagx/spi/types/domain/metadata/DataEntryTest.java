@@ -13,9 +13,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.StringWriter;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 class DataEntryTest {
 
@@ -24,19 +22,19 @@ class DataEntryTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerSubtypes(TestExtension.class);
 
-        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().id("id").lookup(new TestExtension()).build();
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id("id").catalog(new TestExtension()).build();
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, entry);
 
-        @SuppressWarnings("unchecked") DataEntry<DataEntryPropertyLookup> deserialized = mapper.readValue(writer.toString(), DataEntry.class);
+        @SuppressWarnings("unchecked") DataEntry<DataCatalog> deserialized = mapper.readValue(writer.toString(), DataEntry.class);
 
         assertNotNull(deserialized);
-        assertTrue(deserialized.getLookup() instanceof TestExtension);
+        assertTrue(deserialized.getCatalog() instanceof TestExtension);
         assertEquals("id", deserialized.getId());
     }
 
     @JsonTypeName("dagx:testextensions")
-    public static class TestExtension implements DataEntryPropertyLookup {
+    public static class TestExtension implements DataCatalog {
 
         @Override
         public DataAddress getPropertiesForEntity(String id) {

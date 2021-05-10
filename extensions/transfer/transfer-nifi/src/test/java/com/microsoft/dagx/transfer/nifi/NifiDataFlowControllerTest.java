@@ -14,7 +14,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.microsoft.dagx.catalog.atlas.dataseed.AzureBlobFileEntityBuilder;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApiImpl;
-import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataEntryPropertyLookup;
+import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataCatalog;
 import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.schema.SchemaRegistryImpl;
 import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
@@ -24,9 +24,9 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.TypeManager;
+import com.microsoft.dagx.spi.types.domain.metadata.DataCatalog;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
-import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
-import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLookup;
+import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalog;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
@@ -54,16 +54,15 @@ public class NifiDataFlowControllerTest {
     private static final String NIFI_CONTENTLISTENER_HOST = "http://localhost:8888";
     private final static String NIFI_API_HOST = "http://localhost:8080";
     private final static String storageAccount = "dagxblobstoreitest";
+    private final static String atlasUsername = "admin";
+    private final static String atlasPassword = "admin";
     private static String storageAccountKey = null;
-
     private static String blobName;
     private static OkHttpClient httpClient;
     private static TypeManager typeManager;
     private static String containerName;
     private static NifiApiClient client;
     private static BlobContainerClient blobContainerClient;
-    private final static String atlasUsername = "admin";
-    private final static String atlasPassword = "admin";
     private NifiDataFlowController controller;
     private Vault vault;
 
@@ -172,8 +171,8 @@ public class NifiDataFlowControllerTest {
                 .build());
 
         // perform the actual source file properties in Apache Atlas
-        var lookup = new AtlasDataEntryPropertyLookup(atlasApi);
-        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().id(id).lookup(lookup).build();
+        var lookup = new AtlasDataCatalog(atlasApi);
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(lookup).build();
 
         // connect the "source" (i.e. the lookup) and the "destination"
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -209,7 +208,7 @@ public class NifiDataFlowControllerTest {
     void initiateFlow_withInMemCatalog() throws InterruptedException {
 
         String id = UUID.randomUUID().toString();
-        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().id(id).lookup(createLookup()).build();
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createLookup()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -240,11 +239,11 @@ public class NifiDataFlowControllerTest {
     @Test
     void initiateFlow_sourceNotFound() {
         String id = UUID.randomUUID().toString();
-        GenericDataEntryPropertyLookup lookup = createLookup();
+        GenericDataCatalog lookup = createLookup();
         lookup.getProperties().replace("blobname", "notexist.png");
-        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance()
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .lookup(lookup)
+                .catalog(lookup)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -271,7 +270,7 @@ public class NifiDataFlowControllerTest {
     @Test
     void initiateFlow_noCredsFoundInVault() {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataEntryPropertyLookup> entry = DataEntry.Builder.newInstance().lookup(createLookup()).build();
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().catalog(createLookup()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -290,8 +289,8 @@ public class NifiDataFlowControllerTest {
     }
 
 
-    private GenericDataEntryPropertyLookup createLookup() {
-        return GenericDataEntryPropertyLookup.Builder.newInstance()
+    private GenericDataCatalog createLookup() {
+        return GenericDataCatalog.Builder.newInstance()
                 .property("type", "AzureStorage")
                 .property("account", storageAccount)
                 .property("container", containerName)

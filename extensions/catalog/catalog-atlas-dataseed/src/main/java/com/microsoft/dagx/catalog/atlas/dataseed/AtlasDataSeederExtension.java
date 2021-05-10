@@ -14,15 +14,17 @@ import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import org.apache.atlas.model.typedef.AtlasTypesDef;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 
 public class AtlasDataSeederExtension implements ServiceExtension {
 
     private final boolean shouldCleanup;
+    List<AtlasTypesDef> entityTypes = new ArrayList<>();
     private Monitor monitor;
     private String[] classificationNames;
-    List<AtlasTypesDef> entityTypes = new ArrayList<>();
     private List<String> entityGuids;
     private AtlasDataSeeder dataSeeder;
 
@@ -58,12 +60,12 @@ public class AtlasDataSeederExtension implements ServiceExtension {
     @Override
     public void start() {
         monitor.info("Starting to seed data to Atlas");
-        try {
-            monitor.debug("Create Classifications");
-            classificationNames = dataSeeder.createClassifications();
-        } catch (DagxException e) {
-            monitor.severe("Error creating classifications", e);
-        }
+//        try {
+//            monitor.debug("Create Classifications");
+//            classificationNames = dataSeeder.createClassifications();
+//        } catch (DagxException e) {
+//            monitor.severe("Error creating classifications", e);
+//        }
 
         try {
             monitor.debug("Create TypeDefs");

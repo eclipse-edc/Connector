@@ -11,6 +11,6 @@ import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 /**
  * Base extension point for data entries.
  */
-public interface DataEntryPropertyLookup extends Polymorphic {
+public interface DataCatalog extends Polymorphic {
     DataAddress getPropertiesForEntity(String id);
 }

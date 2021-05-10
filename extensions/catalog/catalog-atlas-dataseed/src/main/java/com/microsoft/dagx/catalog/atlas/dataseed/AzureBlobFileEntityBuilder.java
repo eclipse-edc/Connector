@@ -15,13 +15,12 @@ import static java.lang.String.format;
 
 
 public final class AzureBlobFileEntityBuilder {
+    public static final String ENTITY_TYPE_NAME = AzureBlobStoreSchema.TYPE;
     private String account;
     private String blobName;
     private String container;
     private String keyName;
     private String description;
-
-    public static final String ENTITY_TYPE_NAME = "AzureBlobFile";
 
     private AzureBlobFileEntityBuilder() {
     }
@@ -36,7 +35,7 @@ public final class AzureBlobFileEntityBuilder {
     }
 
     public AzureBlobFileEntityBuilder withBlobname(String blobname) {
-        this.blobName = blobname;
+        blobName = blobname;
         return this;
     }
 
@@ -50,21 +49,21 @@ public final class AzureBlobFileEntityBuilder {
         return this;
     }
 
-    public AzureBlobFileEntityBuilder withDescription(String description){
-        this.description= description;
+    public AzureBlobFileEntityBuilder withDescription(String description) {
+        this.description = description;
         return this;
     }
 
     public Map<String, Object> build() {
         Map<String, Object> azureBlobFileEntity = new HashMap<>();
-        azureBlobFileEntity.put(AtlasCustomTypeAttribute.DAGX_STORAGE_KEYNAME, this.keyName);
+        azureBlobFileEntity.put(AtlasCustomTypeAttribute.DAGX_STORAGE_KEYNAME, keyName);
         azureBlobFileEntity.put(AtlasCustomTypeAttribute.DAGX_STORAGE_TYPE, AzureBlobStoreSchema.TYPE);
-        azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_CONTAINER, this.container);
-        azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_ACCOUNT, this.account);
-        azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_BLOBNAME, this.blobName);
+        azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_CONTAINER, container);
+        azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_ACCOUNT, account);
+        azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_BLOBNAME, blobName);
 
         //the following properties are required by atlas
-        azureBlobFileEntity.put("qualifiedName", format("%s/%s/%s", this.account, container, blobName));
+        azureBlobFileEntity.put("qualifiedName", format("%s/%s/%s", account, container, blobName));
         azureBlobFileEntity.put("name", blobName);
         azureBlobFileEntity.put("description", description);
         return azureBlobFileEntity;

@@ -43,7 +43,7 @@ include(":extensions:ids:ids-api-transfer")
 include(":extensions:ids:ids-policy-mock")
 
 include(":extensions:catalog:catalog-atlas")
-include(":extensions:catalog:catalog-dataseed")
+include(":extensions:catalog:catalog-atlas-dataseed")
 
 
 include(":policy:policy-model")

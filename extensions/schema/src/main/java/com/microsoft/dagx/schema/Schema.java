@@ -16,7 +16,6 @@ public abstract class Schema {
     protected Schema() {
         attributes = new LinkedHashSet<>();
         attributes.add(new SchemaAttribute("type", true));
-        attributes.add(new SchemaAttribute("keyName", true));
         addAttributes();
     }
 

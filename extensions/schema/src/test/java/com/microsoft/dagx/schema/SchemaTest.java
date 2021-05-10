@@ -15,7 +15,7 @@ public class SchemaTest {
     @Test
     void getAttributes() {
         Schema schema = createSchema();
-        assertThat(schema.getAttributes()).hasSize(3);
+        assertThat(schema.getAttributes()).hasSize(2);
     }
 
     @Test
@@ -31,7 +31,7 @@ public class SchemaTest {
         schema.getAttributes().add(new SchemaAttribute("foo", true));
         schema.getAttributes().add(new SchemaAttribute("bar", false));
 
-        assertThat(schema.getRequiredAttributes()).hasSize(4)
+        assertThat(schema.getRequiredAttributes()).hasSize(3)
                 .anyMatch(sa -> sa.getName().equals("foo"))
                 .anyMatch(sa -> sa.getName().equals("test"));
     }

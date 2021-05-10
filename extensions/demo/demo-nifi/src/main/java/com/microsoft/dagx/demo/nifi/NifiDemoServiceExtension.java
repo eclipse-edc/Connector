@@ -5,20 +5,15 @@
 
 package com.microsoft.dagx.demo.nifi;
 
-import com.microsoft.dagx.policy.model.Action;
-import com.microsoft.dagx.policy.model.AtomicConstraint;
-import com.microsoft.dagx.policy.model.LiteralExpression;
-import com.microsoft.dagx.policy.model.OrConstraint;
-import com.microsoft.dagx.policy.model.Permission;
-import com.microsoft.dagx.policy.model.Policy;
+import com.microsoft.dagx.policy.model.*;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.policy.PolicyRegistry;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
+import com.microsoft.dagx.spi.types.domain.metadata.DataCatalog;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
-import com.microsoft.dagx.spi.types.domain.metadata.DataEntryPropertyLookup;
-import com.microsoft.dagx.spi.types.domain.metadata.GenericDataEntryPropertyLookup;
+import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalog;
 
 import java.util.List;
 
@@ -56,11 +51,11 @@ public class NifiDemoServiceExtension implements ServiceExtension {
     private void saveDataEntries() {
         MetadataStore metadataStore = context.getService(MetadataStore.class);
 
-        GenericDataEntryPropertyLookup extensions = GenericDataEntryPropertyLookup.Builder.newInstance().property("processGroup", "ee3eb39c-3c08-422a-a5e0-797d33031070").build();
-        DataEntry<DataEntryPropertyLookup> entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).lookup(extensions).build();
+        GenericDataCatalog extensions = GenericDataCatalog.Builder.newInstance().property("processGroup", "ee3eb39c-3c08-422a-a5e0-797d33031070").build();
+        DataEntry<DataCatalog> entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).catalog(extensions).build();
         metadataStore.save(entry1);
 
-        DataEntry<DataEntryPropertyLookup> entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).lookup(extensions).build();
+        DataEntry<DataCatalog> entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalog(extensions).build();
         metadataStore.save(entry2);
     }
 
@@ -73,8 +68,8 @@ public class NifiDemoServiceExtension implements ServiceExtension {
         var euPolicy = Policy.Builder.newInstance().id(USE_EU_POLICY).permission(euUsePermission).build();
         policyRegistry.registerPolicy(euPolicy);
 
-        var usConstraint = AtomicConstraint.Builder.newInstance().leftExpression(spatialExpression).operator(IN).rightExpression( new LiteralExpression("us")).build();
-        var usOrEuConstrain = OrConstraint.Builder.newInstance().constraints(List.of(euConstraint,usConstraint)).build();
+        var usConstraint = AtomicConstraint.Builder.newInstance().leftExpression(spatialExpression).operator(IN).rightExpression(new LiteralExpression("us")).build();
+        var usOrEuConstrain = OrConstraint.Builder.newInstance().constraints(List.of(euConstraint, usConstraint)).build();
         var usOrEuPermission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("idsc:USE").build()).constraint(usOrEuConstrain).build();
         var usOrEuPolicy = Policy.Builder.newInstance().id(USE_US_OR_EU_POLICY).permission(usOrEuPermission).build();
         policyRegistry.registerPolicy(usOrEuPolicy);

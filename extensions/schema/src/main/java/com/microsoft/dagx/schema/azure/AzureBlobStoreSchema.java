@@ -5,10 +5,10 @@
 
 package com.microsoft.dagx.schema.azure;
 
-import com.microsoft.dagx.schema.Schema;
+import com.microsoft.dagx.schema.DataSchema;
 import com.microsoft.dagx.schema.SchemaAttribute;
 
-public class AzureBlobStoreSchema extends Schema {
+public class AzureBlobStoreSchema extends DataSchema {
 
 
     public final static String TYPE = "AzureStorage";

@@ -15,10 +15,13 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
  * @param <T> domain-specific extension properties.
  */
 @JsonDeserialize(builder = DataEntry.Builder.class)
-public class DataEntry<T extends DataEntryPropertyLookup> {
+public class DataEntry<T extends DataCatalog> {
     private String id;
     private String policyId;
-    private T lookup;
+    private T catalog;
+
+    private DataEntry() {
+    }
 
     public String getId() {
         return id;
@@ -28,24 +31,26 @@ public class DataEntry<T extends DataEntryPropertyLookup> {
         return policyId;
     }
 
-    public T getLookup() {
-        return lookup;
-    }
-
-    private DataEntry() {
+    public T getCatalog() {
+        return catalog;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder<K extends DataEntryPropertyLookup> {
+    public static class Builder<K extends DataCatalog> {
         private final DataEntry<K> dataEntry;
 
-        @JsonCreator
-        public static <K extends DataEntryPropertyLookup> Builder<K> newInstance() {
-            return new Builder<K>();
+        private Builder() {
+            dataEntry = new DataEntry<>();
+
         }
 
-        public Builder<K> lookup(K extensions) {
-            dataEntry.lookup = extensions;
+        @JsonCreator
+        public static <K extends DataCatalog> Builder<K> newInstance() {
+            return new Builder<>();
+        }
+
+        public Builder<K> catalog(K extensions) {
+            dataEntry.catalog = extensions;
             return this;
         }
 
@@ -61,11 +66,6 @@ public class DataEntry<T extends DataEntryPropertyLookup> {
 
         public DataEntry<K> build() {
             return dataEntry;
-        }
-
-        private Builder() {
-            dataEntry = new DataEntry<K>();
-
         }
     }
 

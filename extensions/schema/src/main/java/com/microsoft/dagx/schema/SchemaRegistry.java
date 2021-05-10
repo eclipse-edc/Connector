@@ -8,7 +8,7 @@ package com.microsoft.dagx.schema;
 import java.util.Collection;
 
 public interface SchemaRegistry {
-    public static final String FEATURE = "schema-registry";
+    String FEATURE = "schema-registry";
 
     void register(Schema schema);
 

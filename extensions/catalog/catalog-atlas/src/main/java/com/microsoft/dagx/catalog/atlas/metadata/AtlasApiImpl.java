@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.catalog.atlas.metadata;
 
+import com.microsoft.dagx.schema.RelationshipSchema;
 import com.microsoft.dagx.schema.SchemaAttribute;
 import com.microsoft.dagx.spi.DagxException;
 import com.sun.jersey.api.client.ClientResponse;
@@ -12,17 +13,13 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 import org.apache.atlas.AtlasClientV2;
 import org.apache.atlas.AtlasServiceException;
 import org.apache.atlas.model.SearchFilter;
-import org.apache.atlas.model.instance.AtlasClassification;
-import org.apache.atlas.model.instance.AtlasEntity;
-import org.apache.atlas.model.instance.EntityMutationResponse;
-import org.apache.atlas.model.typedef.AtlasEntityDef;
-import org.apache.atlas.model.typedef.AtlasTypesDef;
+import org.apache.atlas.model.instance.*;
+import org.apache.atlas.model.typedef.*;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.apache.atlas.type.AtlasTypeUtil.*;
-import static org.apache.atlas.type.AtlasTypeUtil.createClassTypeDef;
 
 public class AtlasApiImpl implements AtlasApi {
     private final AtlasClientV2 atlasClient;
@@ -41,8 +38,7 @@ public class AtlasApiImpl implements AtlasApi {
         typedef.setClassificationDefs(defs);
 
         try {
-            atlasClient.createAtlasTypeDefs(typedef);
-            return typedef;
+            return atlasClient.createAtlasTypeDefs(typedef);
         } catch (AtlasServiceException e) {
             throw new DagxException(e);
         }
@@ -60,8 +56,9 @@ public class AtlasApiImpl implements AtlasApi {
 
         try {
             var typesDef = atlasClient.getAllTypeDefs(sf);
-            if (typesDef.getClassificationDefs().isEmpty())
+            if (typesDef.getClassificationDefs().isEmpty()) {
                 throw new DagxException("No Classification types exist for the given names: " + String.join(", ", classificationName));
+            }
 
             deleteType(Collections.singletonList(typesDef));
         } catch (AtlasServiceException e) {
@@ -71,6 +68,7 @@ public class AtlasApiImpl implements AtlasApi {
 
     @Override
     public AtlasTypesDef createCustomTypes(String typeName, Set<String> superTypeNames, List<? extends SchemaAttribute> attributes) {
+        typeName = sanitize(typeName);
         var attrs = attributes.stream().map(attr -> attr.isRequired()
                 ? createRequiredAttrDef(attr.getName(), attr.getType())
                 : createOptionalAttrDef(attr.getName(), attr.getType())).collect(Collectors.toList());
@@ -84,8 +82,9 @@ public class AtlasApiImpl implements AtlasApi {
         try {
             if (existsType(typeName)) {
                 return atlasClient.updateAtlasTypeDefs(typesDef);
-            } else
+            } else {
                 return atlasClient.createAtlasTypeDefs(typesDef);
+            }
         } catch (AtlasServiceException e) {
             throw new DagxException(e);
         }
@@ -99,8 +98,9 @@ public class AtlasApiImpl implements AtlasApi {
 
         try {
             var typesDef = atlasClient.getAllTypeDefs(sf);
-            if (typesDef.getEntityDefs().isEmpty())
+            if (typesDef.getEntityDefs().isEmpty()) {
                 throw new DagxException("No Custom TypeDef types exist for the given names: " + typeName);
+            }
 
             deleteType(Collections.singletonList(typesDef));
         } catch (AtlasServiceException e) {
@@ -113,6 +113,43 @@ public class AtlasApiImpl implements AtlasApi {
     public void deleteEntities(List<String> entityGuids) {
         try {
             atlasClient.deleteEntitiesByGuids(entityGuids);
+        } catch (AtlasServiceException e) {
+            throw new DagxException(e);
+        }
+    }
+
+    @Override
+    public AtlasTypesDef createRelationshipType(String name, String description, int relationshipCategory, RelationshipSchema.EndpointDefinition startDefinition, RelationshipSchema.EndpointDefinition endDefinition) {
+        name = sanitize(name);
+        var end1 = new AtlasRelationshipEndDef(sanitize(startDefinition.getTypeName()), sanitize(startDefinition.getName()), cardinalityFromInteger(startDefinition.getCardinality()));
+        var end2 = new AtlasRelationshipEndDef(sanitize(endDefinition.getTypeName()), sanitize(endDefinition.getName()), cardinalityFromInteger(endDefinition.getCardinality()));
+
+        var relationshipDef = createRelationshipTypeDef(name, description, "1.0", AtlasRelationshipDef.RelationshipCategory.ASSOCIATION, AtlasRelationshipDef.PropagateTags.NONE, end1, end2);
+
+        var typesDef = new AtlasTypesDef();
+        typesDef.setRelationshipDefs(Collections.singletonList(relationshipDef));
+
+        try {
+            if (existsType(name)) {
+                return atlasClient.updateAtlasTypeDefs(typesDef);
+            } else {
+                return atlasClient.createAtlasTypeDefs(typesDef);
+            }
+        } catch (AtlasServiceException e) {
+            throw new DagxException(e);
+        }
+    }
+
+    private AtlasStructDef.AtlasAttributeDef.Cardinality cardinalityFromInteger(int cardinality) {
+        return AtlasStructDef.AtlasAttributeDef.Cardinality.values()[cardinality];
+    }
+
+    @Override
+    public AtlasRelationship createRelation(String sourceEntityGuid, String targetEntityGuid, String name) {
+        name = sanitize(name);
+        AtlasRelationship relationship = new AtlasRelationship(name, new AtlasObjectId(sourceEntityGuid), new AtlasObjectId(targetEntityGuid));
+        try {
+            return atlasClient.createRelationship(relationship);
         } catch (AtlasServiceException e) {
             throw new DagxException(e);
         }
@@ -134,15 +171,16 @@ public class AtlasApiImpl implements AtlasApi {
         try {
             return atlasClient.getEntityByGuid(id).getEntity();
         } catch (AtlasServiceException e) {
-            if (e.getStatus() == ClientResponse.Status.NOT_FOUND)
+            if (e.getStatus() == ClientResponse.Status.NOT_FOUND) {
                 return null;
+            }
             throw new DagxException(e);
         }
     }
 
     @Override
     public String createEntity(String typeName, Map<String, Object> properties) {
-        AtlasEntity atlasEntity = new AtlasEntity(typeName);
+        AtlasEntity atlasEntity = new AtlasEntity(sanitize(typeName));
 
         for (String key : properties.keySet()) {
             if (key.equals("classifications")) {
@@ -187,5 +225,9 @@ public class AtlasApiImpl implements AtlasApi {
         } catch (AtlasServiceException ex) {
             throw new DagxException(ex);
         }
+    }
+
+    private String sanitize(String input) {
+        return input.replace(":", "_");
     }
 }
