@@ -16,16 +16,16 @@ import com.microsoft.dagx.spi.system.MonitorExtension;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.system.VaultExtension;
-import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.ServiceLoader;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class ExtensionLoader {
+
+    private ExtensionLoader() {
+    }
 
     /**
      * Convenience method for loading service extensions.
@@ -55,31 +55,17 @@ public class ExtensionLoader {
         return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()));
     }
 
-    public static void addHttpClient(DefaultServiceExtensionContext context, Interceptor...interceptors) {
-        OkHttpClient.Builder builder = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS);
-        if (interceptors != null) {
-            for (Interceptor interceptor : interceptors) {
-                builder.addInterceptor(interceptor);
-            }
-        }
-        var client = builder.build();
-
-        context.registerService(OkHttpClient.class, client);
-    }
-
     static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors) {
 
 
-        if (availableMonitors.isEmpty())
+        if (availableMonitors.isEmpty()) {
             return new ConsoleMonitor();
+        }
 
         if (availableMonitors.size() > 1) {
             return new MultiplexingMonitor(availableMonitors.stream().map(MonitorExtension::getMonitor).collect(Collectors.toList()));
         }
 
         return availableMonitors.get(0).getMonitor();
-    }
-
-    private ExtensionLoader() {
     }
 }

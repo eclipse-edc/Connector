@@ -12,28 +12,31 @@ import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
+import net.jodah.failsafe.RetryPolicy;
 
 /**
  * Asynchronously provisions S3 buckets.
  */
 public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefinition, S3BucketProvisionedResource> {
-    private ClientProvider clientProvider;
-    private int sessionDuration;
-    private Monitor monitor;
-
+    private final ClientProvider clientProvider;
+    private final int sessionDuration;
+    private final Monitor monitor;
+    private final RetryPolicy<Object> retryPolicy;
     private ProvisionContext context;
 
     /**
      * Ctor.
      *
-     * @param clientProvider the provider for SDK clients
+     * @param clientProvider  the provider for SDK clients
      * @param sessionDuration role duration in seconds
-     * @param monitor the monitor
+     * @param monitor         the monitor
+     * @param retryPolicy     the retry policy
      */
-    public S3BucketProvisioner(ClientProvider clientProvider, int sessionDuration, Monitor monitor) {
+    public S3BucketProvisioner(ClientProvider clientProvider, int sessionDuration, Monitor monitor, RetryPolicy<Object> retryPolicy) {
         this.clientProvider = clientProvider;
         this.sessionDuration = sessionDuration;
         this.monitor = monitor;
+        this.retryPolicy = retryPolicy;
     }
 
     @Override
@@ -53,7 +56,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
 
     @Override
     public ResponseStatus provision(S3BucketResourceDefinition resourceDefinition) {
-        S3ProvisionPipeline.Builder builder = S3ProvisionPipeline.Builder.newInstance();
+        S3ProvisionPipeline.Builder builder = S3ProvisionPipeline.Builder.newInstance(retryPolicy);
         S3ProvisionPipeline pipeline = builder.resourceDefinition(resourceDefinition).clientProvider(clientProvider).sessionDuration(sessionDuration).context(context).monitor(monitor).build();
 
         pipeline.provision();

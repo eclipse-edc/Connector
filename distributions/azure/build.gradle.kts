@@ -3,16 +3,18 @@
  * All rights reserved.
  */
 
-import com.bmuschko.gradle.docker.tasks.image.*
-import com.bmuschko.gradle.docker.tasks.container.*
-
+import com.bmuschko.gradle.docker.tasks.container.DockerCreateContainer
+import com.bmuschko.gradle.docker.tasks.container.DockerStartContainer
+import com.bmuschko.gradle.docker.tasks.image.DockerBuildImage
+import com.bmuschko.gradle.docker.tasks.image.DockerPushImage
+import com.bmuschko.gradle.docker.tasks.image.Dockerfile
 import java.io.FileInputStream
 import java.util.*
 
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
     id("com.bmuschko.docker-remote-api") version "6.7.0"
 }
 
@@ -37,6 +39,9 @@ dependencies {
     implementation(project(":extensions:catalog:catalog-atlas"))
     implementation(project(":extensions:catalog:catalog-dataseed"))
     implementation(project(":extensions:transfer:transfer-store-memory"))
+
+    implementation(project(":extensions:policy:policy-registry-memory"))
+
 
     implementation(project(":extensions:schema"))
 

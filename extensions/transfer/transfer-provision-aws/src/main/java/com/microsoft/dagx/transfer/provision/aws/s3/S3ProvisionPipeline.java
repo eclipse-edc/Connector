@@ -21,7 +21,6 @@ import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
 
-import java.time.temporal.ChronoUnit;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.String.format;
@@ -55,14 +54,17 @@ class S3ProvisionPipeline {
             "        }" +
             "    ]" +
             "}";
+    private final RetryPolicy<Object> retryPolicy;
     private ClientProvider clientProvider;
     private S3BucketResourceDefinition resourceDefinition;
     private ProvisionContext context;
     private int sessionDuration;
     private Monitor monitor;
 
-    private S3ProvisionPipeline() {
-
+    private S3ProvisionPipeline(RetryPolicy<Object> generalPolicy) {
+        retryPolicy = generalPolicy.copy()
+                .withMaxRetries(10)
+                .handle(AwsServiceException.class);
     }
 
     /**
@@ -77,10 +79,6 @@ class S3ProvisionPipeline {
 
         S3AsyncClient s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, region);
 
-        var retryPolicy = new RetryPolicy<>()
-                .withMaxRetries(10)
-                .handle(AwsServiceException.class)
-                .withBackoff(3, 15, ChronoUnit.SECONDS);
         CreateBucketRequest request = CreateBucketRequest.builder().bucket(bucketName).createBucketConfiguration(CreateBucketConfiguration.builder().build()).build();
         s3AsyncClient.createBucket(request)
                 .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> getUser(resourceDefinition)))
@@ -160,12 +158,12 @@ class S3ProvisionPipeline {
     static class Builder {
         private final S3ProvisionPipeline pipeline;
 
-        private Builder() {
-            pipeline = new S3ProvisionPipeline();
+        private Builder(RetryPolicy<Object> policy) {
+            pipeline = new S3ProvisionPipeline(policy);
         }
 
-        public static Builder newInstance() {
-            return new Builder();
+        public static Builder newInstance(RetryPolicy<Object> policy) {
+            return new Builder(policy);
         }
 
         public Builder clientProvider(ClientProvider clientProvider) {

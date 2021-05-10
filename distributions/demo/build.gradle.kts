@@ -14,7 +14,7 @@ import java.util.*
 plugins {
     `java-library`
     id("application")
-    id("com.github.johnrengelman.shadow") version "5.2.0"
+    id("com.github.johnrengelman.shadow") version "7.0.0"
     id("com.bmuschko.docker-remote-api") version "6.7.0"
 }
 

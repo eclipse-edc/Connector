@@ -15,34 +15,26 @@ import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 import com.microsoft.dagx.system.ServiceLocator;
 import com.microsoft.dagx.system.ServiceLocatorImpl;
 import okhttp3.Interceptor;
-import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
-import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
-import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 import static com.microsoft.dagx.spi.util.Cast.cast;
-import static com.microsoft.dagx.system.ExtensionLoader.addHttpClient;
-import static com.microsoft.dagx.system.ExtensionLoader.bootServiceExtensions;
-import static com.microsoft.dagx.system.ExtensionLoader.loadMonitor;
-import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
+import static com.microsoft.dagx.system.ExtensionLoader.*;
 
 /**
  * A JUnit extension for running an embedded DA-GX runtime as part of a test fixture.
- *
+ * <p>
  * This extension attaches a DA-GX runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
 public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private List<ServiceExtension> runningServiceExtensions;
     private DefaultServiceExtensionContext context;
 
-    private LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
-    private LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
+    private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
+    private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
 
     /**
      * Registers a mock service with the runtime.
@@ -78,8 +70,6 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
         serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
 
         try {
-            addHttpClient(context);
-
             if (!serviceMocks.containsKey(Vault.class)) {
                 loadVault(context);
             }
@@ -131,7 +121,7 @@ public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExec
      * by the delegate.
      */
     private class MultiSourceServiceLocator implements ServiceLocator {
-        private ServiceLocator delegate = new ServiceLocatorImpl();
+        private final ServiceLocator delegate = new ServiceLocatorImpl();
 
         @Override
         public <T> List<T> loadImplementors(Class<T> type, boolean required) {

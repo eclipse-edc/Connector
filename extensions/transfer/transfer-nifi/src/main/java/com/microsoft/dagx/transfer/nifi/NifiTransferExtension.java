@@ -39,7 +39,7 @@ public class NifiTransferExtension implements ServiceExtension {
         Vault vault = context.getService(Vault.class);
         var sr = context.getService(SchemaRegistry.class);
 
-        var converter= new NifiTransferEndpointConverter(sr, vault);
+        var converter = new NifiTransferEndpointConverter(sr, vault);
         context.registerService(NifiTransferEndpointConverter.class, converter);
     }
 
@@ -50,7 +50,7 @@ public class NifiTransferExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of(SchemaRegistry.FEATURE);
+        return Set.of(SchemaRegistry.FEATURE, "dagx:http-client");
     }
 
     @Override
@@ -72,7 +72,7 @@ public class NifiTransferExtension implements ServiceExtension {
 
         NifiTransferManagerConfiguration configuration = NifiTransferManagerConfiguration.Builder.newInstance().url(url).build();
 
-        var converter= context.getService(NifiTransferEndpointConverter.class);
+        var converter = context.getService(NifiTransferEndpointConverter.class);
 
         NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor(), context.getService(Vault.class), httpClient, converter);
         dataFlowManager.register(manager);

@@ -33,8 +33,6 @@ public class DagxRuntime {
 
         try {
 
-            addHttpClient(context);
-
             loadVault(context);
 
             List<ServiceExtension> serviceExtensions = context.loadServiceExtensions();

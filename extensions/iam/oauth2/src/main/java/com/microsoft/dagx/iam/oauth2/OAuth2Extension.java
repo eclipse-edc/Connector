@@ -59,8 +59,13 @@ public class OAuth2Extension implements ServiceExtension {
     }
 
     @Override
+    public Set<String> requires() {
+        return Set.of("dagx:http-client");
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
-        var httpClient= context.getService(OkHttpClient.class);
+        var httpClient = context.getService(OkHttpClient.class);
 
         // setup the provider key resolver, which will be scheduled for refresh at runtime start
         String jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");

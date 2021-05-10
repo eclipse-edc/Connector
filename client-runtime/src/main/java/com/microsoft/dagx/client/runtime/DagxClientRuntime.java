@@ -14,16 +14,16 @@ import com.microsoft.dagx.system.DefaultServiceExtensionContext;
 import java.util.List;
 import java.util.ListIterator;
 
-import static com.microsoft.dagx.system.ExtensionLoader.addHttpClient;
-import static com.microsoft.dagx.system.ExtensionLoader.bootServiceExtensions;
-import static com.microsoft.dagx.system.ExtensionLoader.loadMonitor;
-import static com.microsoft.dagx.system.ExtensionLoader.loadVault;
+import static com.microsoft.dagx.system.ExtensionLoader.*;
 
 public class DagxClientRuntime {
     private Monitor monitor;
     private TypeManager typeManager;
     private List<ServiceExtension> serviceExtensions;
     private DefaultServiceExtensionContext context;
+
+    private DagxClientRuntime() {
+    }
 
     public void start() {
         MonitorProvider.setInstance(monitor);
@@ -32,8 +32,6 @@ public class DagxClientRuntime {
         context.initialize();
 
         try {
-            addHttpClient(context);
-
             loadVault(context);
 
             serviceExtensions = context.loadServiceExtensions();
@@ -65,12 +63,13 @@ public class DagxClientRuntime {
         return context.getService(type);
     }
 
-    private DagxClientRuntime() {
-    }
-
     public static class Builder {
-        private DagxClientRuntime runtime;
+        private final DagxClientRuntime runtime;
         private boolean immutable;
+
+        private Builder() {
+            runtime = new DagxClientRuntime();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -100,10 +99,6 @@ public class DagxClientRuntime {
             }
 
             return runtime;
-        }
-
-        private Builder() {
-            runtime = new DagxClientRuntime();
         }
 
         private void checkImmutable() {

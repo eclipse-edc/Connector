@@ -11,6 +11,7 @@ import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
+import net.jodah.failsafe.RetryPolicy;
 import org.easymock.EasyMock;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Test;
@@ -72,7 +73,7 @@ class S3BucketProvisionerTest {
         ClientProvider clientProvider = mockProvider(iamMock, stsMock, s3Mock);
 
         S3BucketProvisioner provisioner = new S3BucketProvisioner(clientProvider, 3600, new Monitor() {
-        });
+        }, new RetryPolicy<>());
 
         provisioner.initialize(new ProvisionContext() {
             @Override
