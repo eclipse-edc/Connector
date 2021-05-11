@@ -9,6 +9,7 @@ import com.microsoft.dagx.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -30,7 +31,8 @@ class NifiPayloadTest {
                 .type("AzureStorage")
                 .property("blobname", "testblob")
                 .property("container", "testcontainer").build();
-        var nifipayload = new NifiPayload(endpoint, endpoint);
+        var id = UUID.randomUUID().toString();
+        var nifipayload = new NifiPayload(id, endpoint, endpoint);
 
         var json = typeManager.writeValueAsString(nifipayload);
 
@@ -41,7 +43,8 @@ class NifiPayloadTest {
                 .contains("testcontainer")
                 .contains("source")
                 .contains("destination")
-                .contains("AzureStorage");
+                .contains("AzureStorage")
+                .contains("\"requestId\":\"" + id + "\"");
     }
 
     @Test
@@ -52,7 +55,8 @@ class NifiPayloadTest {
                 .property("account", "testaccount")
                 .property("blobname", "testblob")
                 .property("container", "testcontainer").build();
-        var nifipayload = new NifiPayload(endpoint, endpoint);
+        var id = UUID.randomUUID().toString();
+        var nifipayload = new NifiPayload(id, endpoint, endpoint);
 
         var json = typeManager.writeValueAsString(nifipayload);
 

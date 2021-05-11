@@ -16,15 +16,14 @@ import java.util.Map;
 @JsonTypeName("dagx:nifitransferendpoint")
 @JsonDeserialize(builder = NifiTransferEndpoint.NifiTransferEndpointBuilder.class)
 public class NifiTransferEndpoint implements Polymorphic {
-    @JsonProperty("key")
-    private String key;
     private final String type;
-
+    @JsonProperty("sas")
+    private String key;
     private Map<String, String> properties;
 
     protected NifiTransferEndpoint(@JsonProperty("type") String type) {
         this.type = type;
-        this.properties = new HashMap<>();
+        properties = new HashMap<>();
     }
 
     public String getKey() {
@@ -40,16 +39,16 @@ public class NifiTransferEndpoint implements Polymorphic {
     }
 
     @JsonAnyGetter
-    public Map<String, String> getProperties(){
+    public Map<String, String> getProperties() {
         return properties;
     }
 
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class NifiTransferEndpointBuilder {
+        private final Map<String, String> properties;
         private String key;
         private String type;
-        private final Map<String, String> properties;
 
         private NifiTransferEndpointBuilder() {
             properties = new HashMap<>();
@@ -60,6 +59,7 @@ public class NifiTransferEndpoint implements Polymorphic {
             return new NifiTransferEndpointBuilder();
         }
 
+        @JsonProperty("sas")
         public NifiTransferEndpointBuilder key(String key) {
             this.key = key;
             return this;
@@ -72,20 +72,20 @@ public class NifiTransferEndpoint implements Polymorphic {
 
         @JsonAnySetter
         public NifiTransferEndpointBuilder properties(Map<String, String> additionalProperties) {
-            this.properties.putAll(additionalProperties);
+            properties.putAll(additionalProperties);
             return this;
         }
 
         @JsonAnySetter
         public NifiTransferEndpointBuilder property(String key, String value) {
-            this.properties.put(key, value);
+            properties.put(key, value);
             return this;
         }
 
         public NifiTransferEndpoint build() {
             NifiTransferEndpoint nifiTransferEndpoint = new NifiTransferEndpoint(type);
             nifiTransferEndpoint.setKey(key);
-            nifiTransferEndpoint.properties = this.properties;
+            nifiTransferEndpoint.properties = properties;
             return nifiTransferEndpoint;
         }
     }

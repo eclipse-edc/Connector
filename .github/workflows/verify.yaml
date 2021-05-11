@@ -28,6 +28,7 @@ jobs:
 
       - name: Gradle Test
         env:
+          AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
           AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
         run: ./gradlew test

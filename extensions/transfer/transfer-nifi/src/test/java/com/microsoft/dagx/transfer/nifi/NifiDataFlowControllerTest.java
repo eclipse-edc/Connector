@@ -56,12 +56,11 @@ public class NifiDataFlowControllerTest {
     private final static String storageAccount = "dagxblobstoreitest";
     private final static String atlasUsername = "admin";
     private final static String atlasPassword = "admin";
-    private static String storageAccountKey = null;
+    private static String sharedAccessSignature = null;
     private static String blobName;
     private static OkHttpClient httpClient;
     private static TypeManager typeManager;
     private static String containerName;
-    private static NifiApiClient client;
     private static BlobContainerClient blobContainerClient;
     private NifiDataFlowController controller;
     private Vault vault;
@@ -71,10 +70,10 @@ public class NifiDataFlowControllerTest {
     public static void prepare() throws Exception {
 
 //         this is necessary because the @EnabledIf... annotation does not prevent @BeforeAll to be called
-//        var isCi = propOrEnv("CI", "false");
-//        if (!Boolean.parseBoolean(isCi)) {
-//            return;
-//        }
+        var isCi = propOrEnv("CI", "false");
+        if (!Boolean.parseBoolean(isCi)) {
+            return;
+        }
 
         typeManager = new TypeManager();
         typeManager.getMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -83,7 +82,7 @@ public class NifiDataFlowControllerTest {
 
         var f = Thread.currentThread().getContextClassLoader().getResource("TwoClouds.xml");
         var file = new File(Objects.requireNonNull(f).toURI());
-        client = new NifiApiClient(NIFI_API_HOST, typeManager, httpClient);
+        NifiApiClient client = new NifiApiClient(NIFI_API_HOST, typeManager, httpClient);
         String processGroup = "root";
         try {
             var templateId = client.uploadTemplate(processGroup, file);
@@ -100,14 +99,16 @@ public class NifiDataFlowControllerTest {
         // create azure storage container
         containerName = "nifi-itest-" + UUID.randomUUID();
 
-        storageAccountKey = propOrEnv("AZ_STORAGE_KEY", null);
-        if (storageAccountKey == null) {
-            throw new RuntimeException("No environment variable found AZ_STORAGE_KEY!");
+        sharedAccessSignature = propOrEnv("AZ_STORAGE_SAS", null);
+        if (sharedAccessSignature == null) {
+            throw new RuntimeException("No environment variable found AZ_STORAGE_SAS!");
         }
 
         try {
-            var bsc = new BlobServiceClientBuilder().connectionString("DefaultEndpointsProtocol=https;AccountName=" + storageAccount + ";AccountKey=" + storageAccountKey + ";EndpointSuffix=core.windows.net")
+            var connectionString = "BlobEndpoint=https://" + storageAccount + ".blob.core.windows.net/;SharedAccessSignature=" + sharedAccessSignature;
+            var bsc = new BlobServiceClientBuilder().connectionString(connectionString)
                     .buildClient();
+
             blobContainerClient = bsc.createBlobContainer(containerName);
         } catch (BlobStorageException ex) {
             fail("Error initializing the Azure Blob Storage: ", ex);
@@ -141,8 +142,8 @@ public class NifiDataFlowControllerTest {
             throw new RuntimeException("No environment variable found NIFI_API_AUTH!");
         }
         expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn(nifiAuth);
-        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(storageAccountKey);
-        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(storageAccountKey);
+        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(sharedAccessSignature);
+        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(sharedAccessSignature);
         replay(vault);
         SchemaRegistry registry = new SchemaRegistryImpl();
         registry.register(new AzureBlobStoreSchema());
@@ -196,10 +197,10 @@ public class NifiDataFlowControllerTest {
         atlasApi.deleteEntities(Collections.singletonList(id));
 
         // will fail if new blob is not there after 60 seconds
-        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals("bike_very_new.jpg"))) {
-            //noinspection BusyWait
+        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
             Thread.sleep(500);
         }
+        assertThat(listBlobs().stream().anyMatch(bi -> bi.getName().equals("bike_very_new.jpg"))).isTrue();
 
     }
 
@@ -230,9 +231,10 @@ public class NifiDataFlowControllerTest {
 
 
         // will fail if new blob is not there after 10 seconds
-        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals("bike_very_new.jpg"))) {
+        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
             Thread.sleep(500);
         }
+        assertThat(listBlobs().stream().anyMatch(bi -> bi.getName().equals("bike_very_new.jpg"))).isTrue();
 
     }
 
@@ -301,7 +303,8 @@ public class NifiDataFlowControllerTest {
     }
 
     private PagedIterable<BlobItem> listBlobs() {
-        var bsc = new BlobServiceClientBuilder().connectionString("DefaultEndpointsProtocol=https;AccountName=" + storageAccount + ";AccountKey=" + storageAccountKey + ";EndpointSuffix=core.windows.net")
+        var connectionString = "BlobEndpoint=https://" + storageAccount + ".blob.core.windows.net/;SharedAccessSignature=" + sharedAccessSignature;
+        var bsc = new BlobServiceClientBuilder().connectionString(connectionString)
                 .buildClient();
         var bcc = bsc.getBlobContainerClient(containerName);
         return bcc.listBlobs();

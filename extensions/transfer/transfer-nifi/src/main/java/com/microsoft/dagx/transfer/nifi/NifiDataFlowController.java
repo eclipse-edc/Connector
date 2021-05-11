@@ -91,7 +91,7 @@ public class NifiDataFlowController implements DataFlowController {
         var dest = converter.convert(destinationAddress);
 
 
-        Request request = createTransferRequest(source, dest, basicAuthCreds);
+        Request request = createTransferRequest(dataRequest.getId(), source, dest, basicAuthCreds);
 
         try (Response response = httpClient.newCall(request).execute()) {
             int code = response.code();
@@ -118,11 +118,11 @@ public class NifiDataFlowController implements DataFlowController {
     }
 
     @NotNull
-    private Request createTransferRequest(NifiTransferEndpoint source, NifiTransferEndpoint destination, String basicAuthCredentials) {
+    private Request createTransferRequest(String requestId, NifiTransferEndpoint source, NifiTransferEndpoint destination, String basicAuthCredentials) {
 
 
         String url = baseUrl + CONTENTLISTENER;
-        var nifiPayload = new NifiPayload(source, destination);
+        var nifiPayload = new NifiPayload(requestId, source, destination);
         return new Request.Builder()
                 .url(url)
                 .post(RequestBody.create(typeManager.writeValueAsString(nifiPayload), JSON))

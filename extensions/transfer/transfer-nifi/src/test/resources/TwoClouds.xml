@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
-    <description>Sample template for copying blobs between two storages</description>
-    <groupId>48c4da91-0178-1000-1858-4f586ab4dfa1</groupId>
-    <name>TwoClouds</name>
+    <description></description>
+    <groupId>5a637d64-0179-1000-076e-99fe9e24b8f7</groupId>
+    <name>TwoClouds_withMarker</name>
     <snippet>
         <connections>
-            <id>08af1037-2a80-30e2-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>08399d39-1544-3939-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>49fce788-6bf8-3169-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>ef0f1d5e-8551-3155-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -19,22 +19,120 @@
             <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
             <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <name>Authorized</name>
             <selectedRelationships>matched</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>11e51b6d-e510-39c6-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>fb556591-16c7-339e-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>0b404a3b-6d56-32ed-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>19d1f9cf-1fe6-35c8-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>86f1e8fb-7f27-3c19-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>a2e5c3f3-76f9-339d-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <name>Authorized</name>
+            <selectedRelationships>matched</selectedRelationships>
+            <source>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>fb556591-16c7-339e-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>2bf2ab97-3407-3467-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>b56b7965-c9bb-3cfc-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <name></name>
+            <selectedRelationships>AdlsGen2</selectedRelationships>
+            <source>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>dd0bdc6f-4570-352b-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>506de858-0939-3c06-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>dd0bdc6f-4570-352b-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <name></name>
+            <selectedRelationships>success</selectedRelationships>
+            <source>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>4a9daf25-723d-3197-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>50c673df-43f8-30da-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>1bcd9371-4684-3f52-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <selectedRelationships>AdlsGen2</selectedRelationships>
+            <source>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>6c4d5526-4ff2-3d27-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>6e07b702-4096-3f99-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>2ee4d8ed-b697-3440-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -45,20 +143,45 @@
             <name>Unauthorized</name>
             <selectedRelationships>unmatched</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>1ca36655-8a81-3e54-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>fb556591-16c7-339e-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>0d99614e-1aca-3aca-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>704b4047-d774-33eb-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>633a6a70-bbb2-3b18-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>1fc31307-b35e-3f97-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <name></name>
+            <selectedRelationships>AzureStorage</selectedRelationships>
+            <source>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>dd0bdc6f-4570-352b-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>7875c519-add3-3cf3-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>a7f9f97b-762e-3e6d-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -68,43 +191,45 @@
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
             <selectedRelationships>AdlsGen2</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>07231730-200f-3f21-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>3870ec96-2392-3c01-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>1b67a051-dcbb-35b0-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>87a328ca-3b7c-3bf1-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>4df771e4-9789-30d0-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>4a9daf25-723d-3197-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
             <labelIndex>1</labelIndex>
             <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
             <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <name></name>
             <selectedRelationships>success</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>2e28da98-bcbb-3784-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>2de766dc-ad33-3593-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>2113276f-b3a2-394d-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>9995110a-376d-30ba-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>326dcde6-a8e6-3b89-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>7ba50abf-886b-379c-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -114,20 +239,43 @@
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
             <selectedRelationships>AzureStorage</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>49fce788-6bf8-3169-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>3870ec96-2392-3c01-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>2a2ad1cc-5f5a-3ea5-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>a80fb894-e9f2-3b31-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>1ca36655-8a81-3e54-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>3870ec96-2392-3c01-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <selectedRelationships>matched</selectedRelationships>
+            <source>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>a2e5c3f3-76f9-339d-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>d1b337bb-16c6-3d56-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>6c4d5526-4ff2-3d27-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -137,20 +285,20 @@
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
             <selectedRelationships>success</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>4df771e4-9789-30d0-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>7ba50abf-886b-379c-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>329c6f51-636b-3675-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>e4671e6f-f604-3b4d-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>07231730-200f-3f21-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>fb556591-16c7-339e-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -160,43 +308,20 @@
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
             <selectedRelationships>success</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>22fefd1a-dc69-33a7-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>80dc942b-4650-360d-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>744c9010-7748-32a3-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>e5267f7f-47ed-34cd-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>22fefd1a-dc69-33a7-0000-000000000000</id>
-                <type>PROCESSOR</type>
-            </destination>
-            <flowFileExpiration>0 sec</flowFileExpiration>
-            <labelIndex>1</labelIndex>
-            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
-            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
-            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
-            <selectedRelationships>AdlsGen2</selectedRelationships>
-            <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>49fce788-6bf8-3169-0000-000000000000</id>
-                <type>PROCESSOR</type>
-            </source>
-            <zIndex>0</zIndex>
-        </connections>
-        <connections>
-            <id>a45da708-cee7-36bf-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
-            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
-            <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>fe630ef9-8a2c-34aa-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>2de766dc-ad33-3593-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -206,68 +331,45 @@
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
             <selectedRelationships>AzureStorage</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>07231730-200f-3f21-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>6c4d5526-4ff2-3d27-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>d9f10a4b-949e-300b-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>ee2c1f40-b8f5-3462-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>11e51b6d-e510-39c6-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>4a9daf25-723d-3197-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
             <labelIndex>1</labelIndex>
             <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalancePartitionAttribute></loadBalancePartitionAttribute>
             <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
-            <name>Authorized</name>
-            <selectedRelationships>matched</selectedRelationships>
+            <name></name>
+            <selectedRelationships>success</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>1ca36655-8a81-3e54-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>1bcd9371-4684-3f52-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <connections>
-            <id>dd520284-ed31-3d74-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>f4f46313-7f6e-3a14-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
             <backPressureObjectThreshold>10000</backPressureObjectThreshold>
             <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>ffaf4714-a4f5-3807-0000-000000000000</id>
-                <type>PROCESSOR</type>
-            </destination>
-            <flowFileExpiration>0 sec</flowFileExpiration>
-            <labelIndex>1</labelIndex>
-            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
-            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
-            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
-            <name>Authorized</name>
-            <selectedRelationships>matched</selectedRelationships>
-            <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>1ca36655-8a81-3e54-0000-000000000000</id>
-                <type>PROCESSOR</type>
-            </source>
-            <zIndex>0</zIndex>
-        </connections>
-        <connections>
-            <id>f5f63eb2-3f24-3921-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
-            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
-            <destination>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>07231730-200f-3f21-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>6c4d5526-4ff2-3d27-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </destination>
             <flowFileExpiration>0 sec</flowFileExpiration>
@@ -277,19 +379,42 @@
             <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
             <selectedRelationships>success</selectedRelationships>
             <source>
-                <groupId>645405e5-23da-3774-0000-000000000000</groupId>
-                <id>326dcde6-a8e6-3b89-0000-000000000000</id>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>a7f9f97b-762e-3e6d-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </source>
+            <zIndex>0</zIndex>
+        </connections>
+        <connections>
+            <id>f8fc81f7-a65b-335e-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <backPressureDataSizeThreshold>1 GB</backPressureDataSizeThreshold>
+            <backPressureObjectThreshold>10000</backPressureObjectThreshold>
+            <destination>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>80dc942b-4650-360d-0000-000000000000</id>
+                <type>PROCESSOR</type>
+            </destination>
+            <flowFileExpiration>0 sec</flowFileExpiration>
+            <labelIndex>1</labelIndex>
+            <loadBalanceCompression>DO_NOT_COMPRESS</loadBalanceCompression>
+            <loadBalanceStatus>LOAD_BALANCE_NOT_CONFIGURED</loadBalanceStatus>
+            <loadBalanceStrategy>DO_NOT_LOAD_BALANCE</loadBalanceStrategy>
+            <selectedRelationships>success</selectedRelationships>
+            <source>
+                <groupId>e52c9fbd-59c5-3082-0000-000000000000</groupId>
+                <id>00e82da6-1390-341b-0000-000000000000</id>
                 <type>PROCESSOR</type>
             </source>
             <zIndex>0</zIndex>
         </connections>
         <controllerServices>
-            <id>46917e40-c384-3b98-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>b72f28b6-7f6b-385d-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <bundle>
                 <artifact>nifi-http-context-map-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.13.1</version>
+                <version>1.13.2</version>
             </bundle>
             <descriptors>
                 <entry>
@@ -321,16 +446,834 @@
             <type>org.apache.nifi.http.StandardHttpContextMap</type>
         </controllerServices>
         <processors>
-            <id>07231730-200f-3f21-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>00e82da6-1390-341b-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <position>
-                <x>232.0</x>
+                <x>328.0</x>
+                <y>0.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-standard-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>Listening Port</key>
+                        <value>
+                            <name>Listening Port</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Hostname</key>
+                        <value>
+                            <name>Hostname</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>SSL Context Service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.ssl.RestrictedSSLContextService</identifiesControllerService>
+                            <name>SSL Context Service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>HTTP Context Map</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
+                            <name>HTTP Context Map</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Allowed Paths</key>
+                        <value>
+                            <name>Allowed Paths</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Default URL Character Set</key>
+                        <value>
+                            <name>Default URL Character Set</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Allow GET</key>
+                        <value>
+                            <name>Allow GET</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Allow POST</key>
+                        <value>
+                            <name>Allow POST</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Allow PUT</key>
+                        <value>
+                            <name>Allow PUT</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Allow DELETE</key>
+                        <value>
+                            <name>Allow DELETE</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Allow HEAD</key>
+                        <value>
+                            <name>Allow HEAD</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Allow OPTIONS</key>
+                        <value>
+                            <name>Allow OPTIONS</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Additional HTTP Methods</key>
+                        <value>
+                            <name>Additional HTTP Methods</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Client Authentication</key>
+                        <value>
+                            <name>Client Authentication</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>container-queue-size</key>
+                        <value>
+                            <name>container-queue-size</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>multipart-request-max-size</key>
+                        <value>
+                            <name>multipart-request-max-size</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>multipart-read-buffer-size</key>
+                        <value>
+                            <name>multipart-read-buffer-size</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>parameters-to-attributes</key>
+                        <value>
+                            <name>parameters-to-attributes</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>Listening Port</key>
+                        <value>8888</value>
+                    </entry>
+                    <entry>
+                        <key>Hostname</key>
+                    </entry>
+                    <entry>
+                        <key>SSL Context Service</key>
+                    </entry>
+                    <entry>
+                        <key>HTTP Context Map</key>
+                        <value>b72f28b6-7f6b-385d-0000-000000000000</value>
+                    </entry>
+                    <entry>
+                        <key>Allowed Paths</key>
+                    </entry>
+                    <entry>
+                        <key>Default URL Character Set</key>
+                        <value>UTF-8</value>
+                    </entry>
+                    <entry>
+                        <key>Allow GET</key>
+                        <value>true</value>
+                    </entry>
+                    <entry>
+                        <key>Allow POST</key>
+                        <value>true</value>
+                    </entry>
+                    <entry>
+                        <key>Allow PUT</key>
+                        <value>true</value>
+                    </entry>
+                    <entry>
+                        <key>Allow DELETE</key>
+                        <value>true</value>
+                    </entry>
+                    <entry>
+                        <key>Allow HEAD</key>
+                        <value>false</value>
+                    </entry>
+                    <entry>
+                        <key>Allow OPTIONS</key>
+                        <value>false</value>
+                    </entry>
+                    <entry>
+                        <key>Additional HTTP Methods</key>
+                    </entry>
+                    <entry>
+                        <key>Client Authentication</key>
+                        <value>No Authentication</value>
+                    </entry>
+                    <entry>
+                        <key>container-queue-size</key>
+                        <value>50</value>
+                    </entry>
+                    <entry>
+                        <key>multipart-request-max-size</key>
+                        <value>1 MB</value>
+                    </entry>
+                    <entry>
+                        <key>multipart-read-buffer-size</key>
+                        <value>512 KB</value>
+                    </entry>
+                    <entry>
+                        <key>parameters-to-attributes</key>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>HandleHttpRequest</name>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.standard.HandleHttpRequest</type>
+        </processors>
+        <processors>
+            <id>1bcd9371-4684-3f52-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>584.0</x>
+                <y>1432.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-azure-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <comments></comments>
+                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>container-name</key>
+                        <value>
+                            <name>container-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <name>storage-credentials-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>
+                            <name>storage-account-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                        <value>
+                            <name>storage-account-key</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>
+                            <name>storage-sas-token</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                        <value>
+                            <name>storage-endpoint-suffix</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <name>proxy-configuration-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>
+                            <name>blob</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>azure-create-container</key>
+                        <value>
+                            <name>azure-create-container</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>container-name</key>
+                        <value>${HttpBody:jsonPath('$.destination.container')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>${HttpBody:jsonPath('$.source.account')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>${HttpBody:jsonPath('$.source.sas')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>${HttpBody:jsonPath('$.destination.blobname')}</value>
+                    </entry>
+                    <entry>
+                        <key>azure-create-container</key>
+                        <value>false</value>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>PutAdlsGen2</name>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>failure</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.azure.storage.PutAzureBlobStorage</type>
+        </processors>
+        <processors>
+            <id>1fc31307-b35e-3f97-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>0.0</x>
+                <y>2192.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-azure-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <comments></comments>
+                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>container-name</key>
+                        <value>
+                            <name>container-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <name>storage-credentials-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>
+                            <name>storage-account-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                        <value>
+                            <name>storage-account-key</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>
+                            <name>storage-sas-token</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                        <value>
+                            <name>storage-endpoint-suffix</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <name>proxy-configuration-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>
+                            <name>blob</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>azure-create-container</key>
+                        <value>
+                            <name>azure-create-container</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>container-name</key>
+                        <value>${HttpBody:jsonPath('$.destination.container')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>${HttpBody:jsonPath('$.source.account')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>${HttpBody:jsonPath('$.source.sas')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>${HttpBody:jsonPath('$.requestId')}.complete</value>
+                    </entry>
+                    <entry>
+                        <key>azure-create-container</key>
+                        <value>false</value>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>PutSuccessMarker</name>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>failure</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.azure.storage.PutAzureBlobStorage</type>
+        </processors>
+        <processors>
+            <id>2de766dc-ad33-3593-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>96.0</x>
+                <y>1432.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-azure-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <comments></comments>
+                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>container-name</key>
+                        <value>
+                            <name>container-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <name>storage-credentials-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>
+                            <name>storage-account-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                        <value>
+                            <name>storage-account-key</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>
+                            <name>storage-sas-token</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                        <value>
+                            <name>storage-endpoint-suffix</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <name>proxy-configuration-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>
+                            <name>blob</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>azure-create-container</key>
+                        <value>
+                            <name>azure-create-container</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>container-name</key>
+                        <value>${HttpBody:jsonPath('$.destination.container')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>${HttpBody:jsonPath('$.source.account')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>${HttpBody:jsonPath('$.source.sas')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>${HttpBody:jsonPath('$.destination.blobname')}</value>
+                    </entry>
+                    <entry>
+                        <key>azure-create-container</key>
+                        <value>false</value>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>PutAzureBlobStorage</name>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>failure</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.azure.storage.PutAzureBlobStorage</type>
+        </processors>
+        <processors>
+            <id>2ee4d8ed-b697-3440-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>973.7663017985903</x>
+                <y>357.3481148051828</y>
+            </position>
+            <bundle>
+                <artifact>nifi-standard-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>HTTP Status Code</key>
+                        <value>
+                            <name>HTTP Status Code</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>HTTP Context Map</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
+                            <name>HTTP Context Map</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Attributes to add to the HTTP Response (Regex)</key>
+                        <value>
+                            <name>Attributes to add to the HTTP Response (Regex)</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>HTTP Status Code</key>
+                        <value>401</value>
+                    </entry>
+                    <entry>
+                        <key>HTTP Context Map</key>
+                        <value>b72f28b6-7f6b-385d-0000-000000000000</value>
+                    </entry>
+                    <entry>
+                        <key>Attributes to add to the HTTP Response (Regex)</key>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>Unauthorized</name>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>failure</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.standard.HandleHttpResponse</type>
+        </processors>
+        <processors>
+            <id>3870ec96-2392-3c01-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>336.0</x>
+                <y>776.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-standard-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>Routing Strategy</key>
+                        <value>
+                            <name>Routing Strategy</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>AdlsGen2</key>
+                        <value>
+                            <name>AdlsGen2</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>AzureStorage</key>
+                        <value>
+                            <name>AzureStorage</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>Routing Strategy</key>
+                        <value>Route to Property name</value>
+                    </entry>
+                    <entry>
+                        <key>AdlsGen2</key>
+                        <value>${HttpBody:jsonPath('$.source.type'):equals('AdlsGen2')}</value>
+                    </entry>
+                    <entry>
+                        <key>AzureStorage</key>
+                        <value>${HttpBody:jsonPath('$.source.type'):equals('AzureStorage')}</value>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>RouteOnSourceType</name>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>AdlsGen2</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>AzureStorage</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>unmatched</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.standard.RouteOnAttribute</type>
+        </processors>
+        <processors>
+            <id>4a9daf25-723d-3197-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>304.0</x>
+                <y>1704.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-standard-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <comments></comments>
+                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>Start Offset</key>
+                        <value>
+                            <name>Start Offset</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>End Offset</key>
+                        <value>
+                            <name>End Offset</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Remove All Content</key>
+                        <value>
+                            <name>Remove All Content</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>Start Offset</key>
+                        <value>0 B</value>
+                    </entry>
+                    <entry>
+                        <key>End Offset</key>
+                        <value>0 B</value>
+                    </entry>
+                    <entry>
+                        <key>Remove All Content</key>
+                        <value>true</value>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>RemoveContent</name>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.standard.ModifyBytes</type>
+        </processors>
+        <processors>
+            <id>6c4d5526-4ff2-3d27-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>344.0</x>
                 <y>1200.0</y>
             </position>
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.13.1</version>
+                <version>1.13.2</version>
             </bundle>
             <config>
                 <bulletinLevel>WARN</bulletinLevel>
@@ -396,16 +1339,231 @@
             <type>org.apache.nifi.processors.standard.RouteOnAttribute</type>
         </processors>
         <processors>
-            <id>11e51b6d-e510-39c6-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>7ba50abf-886b-379c-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <position>
-                <x>221.76630179859035</x>
+                <x>112.0</x>
+                <y>984.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-azure-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <comments></comments>
+                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>container-name</key>
+                        <value>
+                            <name>container-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <name>storage-credentials-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>
+                            <name>storage-account-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                        <value>
+                            <name>storage-account-key</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>
+                            <name>storage-sas-token</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                        <value>
+                            <name>storage-endpoint-suffix</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>
+                            <name>blob</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <name>proxy-configuration-service</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>container-name</key>
+                        <value>${HttpBody:jsonPath('$.source.container')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>${HttpBody:jsonPath('$.source.account')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>${HttpBody:jsonPath('$.source.sas')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>${HttpBody:jsonPath('$.source.blobname')}</value>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>FetchAzureBlobStorage</name>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>failure</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.azure.storage.FetchAzureBlobStorage</type>
+        </processors>
+        <processors>
+            <id>80dc942b-4650-360d-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>336.0</x>
+                <y>192.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-update-attribute-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>Delete Attributes Expression</key>
+                        <value>
+                            <name>Delete Attributes Expression</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Store State</key>
+                        <value>
+                            <name>Store State</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Stateful Variables Initial Value</key>
+                        <value>
+                            <name>Stateful Variables Initial Value</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>canonical-value-lookup-cache-size</key>
+                        <value>
+                            <name>canonical-value-lookup-cache-size</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>password</key>
+                        <value>
+                            <name>password</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>username</key>
+                        <value>
+                            <name>username</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>Delete Attributes Expression</key>
+                    </entry>
+                    <entry>
+                        <key>Store State</key>
+                        <value>Do not store state</value>
+                    </entry>
+                    <entry>
+                        <key>Stateful Variables Initial Value</key>
+                    </entry>
+                    <entry>
+                        <key>canonical-value-lookup-cache-size</key>
+                        <value>100</value>
+                    </entry>
+                    <entry>
+                        <key>password</key>
+                        <value>gXpwd#202!</value>
+                    </entry>
+                    <entry>
+                        <key>username</key>
+                        <value>testuser@gaiax.com</value>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>SetAuthValues</name>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
+        </processors>
+        <processors>
+            <id>a2e5c3f3-76f9-339d-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>333.76630179859035</x>
                 <y>581.3481148051828</y>
             </position>
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.13.1</version>
+                <version>1.13.2</version>
             </bundle>
             <config>
                 <bulletinLevel>WARN</bulletinLevel>
@@ -587,16 +1745,412 @@
             <type>org.apache.nifi.processors.standard.ExtractText</type>
         </processors>
         <processors>
-            <id>1ca36655-8a81-3e54-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
+            <id>a7f9f97b-762e-3e6d-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
             <position>
-                <x>224.0</x>
+                <x>584.0</x>
+                <y>984.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-azure-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <comments></comments>
+                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>container-name</key>
+                        <value>
+                            <name>container-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <name>storage-credentials-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>
+                            <name>storage-account-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                        <value>
+                            <name>storage-account-key</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>
+                            <name>storage-sas-token</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                        <value>
+                            <name>storage-endpoint-suffix</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>
+                            <name>blob</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <name>proxy-configuration-service</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>container-name</key>
+                        <value>${HttpBody:jsonPath('$.source.container')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>${HttpBody:jsonPath('$.source.account')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>${HttpBody:jsonPath('$.source.sas')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>${HttpBody:jsonPath('$.source.blobname')}</value>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>FetchAdlsGen2</name>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>failure</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.azure.storage.FetchAzureBlobStorage</type>
+        </processors>
+        <processors>
+            <id>b56b7965-c9bb-3cfc-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>576.0</x>
+                <y>2192.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-azure-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <comments></comments>
+                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>container-name</key>
+                        <value>
+                            <name>container-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <name>storage-credentials-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>
+                            <name>storage-account-name</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                        <value>
+                            <name>storage-account-key</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>
+                            <name>storage-sas-token</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                        <value>
+                            <name>storage-endpoint-suffix</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <name>proxy-configuration-service</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>
+                            <name>blob</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>azure-create-container</key>
+                        <value>
+                            <name>azure-create-container</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>container-name</key>
+                        <value>${HttpBody:jsonPath('$.destination.container')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-credentials-service</key>
+                    </entry>
+                    <entry>
+                        <key>storage-account-name</key>
+                        <value>${HttpBody:jsonPath('$.source.account')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-account-key</key>
+                    </entry>
+                    <entry>
+                        <key>storage-sas-token</key>
+                        <value>${HttpBody:jsonPath('$.source.sas')}</value>
+                    </entry>
+                    <entry>
+                        <key>storage-endpoint-suffix</key>
+                    </entry>
+                    <entry>
+                        <key>proxy-configuration-service</key>
+                    </entry>
+                    <entry>
+                        <key>blob</key>
+                        <value>${HttpBody:jsonPath('$.destination.blobname')}</value>
+                    </entry>
+                    <entry>
+                        <key>azure-create-container</key>
+                        <value>false</value>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>PutAdlsGen2</name>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>failure</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.azure.storage.PutAzureBlobStorage</type>
+        </processors>
+        <processors>
+            <id>dd0bdc6f-4570-352b-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>304.0</x>
+                <y>1952.0</y>
+            </position>
+            <bundle>
+                <artifact>nifi-standard-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>Routing Strategy</key>
+                        <value>
+                            <name>Routing Strategy</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>AdlsGen2</key>
+                        <value>
+                            <name>AdlsGen2</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>AzureStorage</key>
+                        <value>
+                            <name>AzureStorage</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>Routing Strategy</key>
+                        <value>Route to Property name</value>
+                    </entry>
+                    <entry>
+                        <key>AdlsGen2</key>
+                        <value>${HttpBody:jsonPath('$.destination.type'):equals('AdlsGen2')}</value>
+                    </entry>
+                    <entry>
+                        <key>AzureStorage</key>
+                        <value>${HttpBody:jsonPath('$.destination.type'):equals('AzureStorage')}</value>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>RouteOnDestinationType</name>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>AdlsGen2</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>false</autoTerminate>
+                <name>AzureStorage</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>unmatched</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.standard.RouteOnAttribute</type>
+        </processors>
+        <processors>
+            <id>ef0f1d5e-8551-3155-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>973.7663017985903</x>
+                <y>533.3481148051828</y>
+            </position>
+            <bundle>
+                <artifact>nifi-standard-nar</artifact>
+                <group>org.apache.nifi</group>
+                <version>1.13.2</version>
+            </bundle>
+            <config>
+                <bulletinLevel>WARN</bulletinLevel>
+                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
+                <descriptors>
+                    <entry>
+                        <key>HTTP Status Code</key>
+                        <value>
+                            <name>HTTP Status Code</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>HTTP Context Map</key>
+                        <value>
+                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
+                            <name>HTTP Context Map</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Attributes to add to the HTTP Response (Regex)</key>
+                        <value>
+                            <name>Attributes to add to the HTTP Response (Regex)</name>
+                        </value>
+                    </entry>
+                </descriptors>
+                <executionNode>ALL</executionNode>
+                <lossTolerant>false</lossTolerant>
+                <penaltyDuration>30 sec</penaltyDuration>
+                <properties>
+                    <entry>
+                        <key>HTTP Status Code</key>
+                        <value>200</value>
+                    </entry>
+                    <entry>
+                        <key>HTTP Context Map</key>
+                        <value>b72f28b6-7f6b-385d-0000-000000000000</value>
+                    </entry>
+                    <entry>
+                        <key>Attributes to add to the HTTP Response (Regex)</key>
+                    </entry>
+                </properties>
+                <runDurationMillis>0</runDurationMillis>
+                <schedulingPeriod>0 sec</schedulingPeriod>
+                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
+                <yieldDuration>1 sec</yieldDuration>
+            </config>
+            <executionNodeRestricted>false</executionNodeRestricted>
+            <name>Authorized</name>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>failure</name>
+            </relationships>
+            <relationships>
+                <autoTerminate>true</autoTerminate>
+                <name>success</name>
+            </relationships>
+            <state>RUNNING</state>
+            <style/>
+            <type>org.apache.nifi.processors.standard.HandleHttpResponse</type>
+        </processors>
+        <processors>
+            <id>fb556591-16c7-339e-0000-000000000000</id>
+            <parentGroupId>e52c9fbd-59c5-3082-0000-000000000000</parentGroupId>
+            <position>
+                <x>336.0</x>
                 <y>376.0</y>
             </position>
             <bundle>
                 <artifact>nifi-standard-nar</artifact>
                 <group>org.apache.nifi</group>
-                <version>1.13.1</version>
+                <version>1.13.2</version>
             </bundle>
             <config>
                 <bulletinLevel>WARN</bulletinLevel>
@@ -647,1026 +2201,6 @@
             <style/>
             <type>org.apache.nifi.processors.standard.RouteOnAttribute</type>
         </processors>
-        <processors>
-            <id>22fefd1a-dc69-33a7-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>472.0</x>
-                <y>984.0</y>
-            </position>
-            <bundle>
-                <artifact>nifi-azure-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>container-name</key>
-                        <value>
-                            <name>container-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-credentials-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
-                            <name>storage-credentials-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
-                        <value>
-                            <name>storage-account-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>
-                            <name>storage-account-key</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-sas-token</key>
-                        <value>
-                            <name>storage-sas-token</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-endpoint-suffix</key>
-                        <value>
-                            <name>storage-endpoint-suffix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
-                        <value>
-                            <name>blob</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
-                            <name>proxy-configuration-service</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>container-name</key>
-                        <value>${HttpBody:jsonPath('$.source.container')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-credentials-service</key>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
-                        <value>${HttpBody:jsonPath('$.source.account')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>${HttpBody:jsonPath('$.source.key')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-sas-token</key>
-                    </entry>
-                    <entry>
-                        <key>storage-endpoint-suffix</key>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
-                        <value>${HttpBody:jsonPath('$.source.blobname')}</value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>FetchAdlsGen2</name>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>failure</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>false</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.azure.storage.FetchAzureBlobStorage</type>
-        </processors>
-        <processors>
-            <id>2e28da98-bcbb-3784-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>216.0</x>
-                <y>0.0</y>
-            </position>
-            <bundle>
-                <artifact>nifi-standard-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>Listening Port</key>
-                        <value>
-                            <name>Listening Port</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Hostname</key>
-                        <value>
-                            <name>Hostname</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>SSL Context Service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.ssl.RestrictedSSLContextService</identifiesControllerService>
-                            <name>SSL Context Service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>HTTP Context Map</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
-                            <name>HTTP Context Map</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Allowed Paths</key>
-                        <value>
-                            <name>Allowed Paths</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Default URL Character Set</key>
-                        <value>
-                            <name>Default URL Character Set</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Allow GET</key>
-                        <value>
-                            <name>Allow GET</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Allow POST</key>
-                        <value>
-                            <name>Allow POST</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Allow PUT</key>
-                        <value>
-                            <name>Allow PUT</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Allow DELETE</key>
-                        <value>
-                            <name>Allow DELETE</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Allow HEAD</key>
-                        <value>
-                            <name>Allow HEAD</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Allow OPTIONS</key>
-                        <value>
-                            <name>Allow OPTIONS</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Additional HTTP Methods</key>
-                        <value>
-                            <name>Additional HTTP Methods</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Client Authentication</key>
-                        <value>
-                            <name>Client Authentication</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>container-queue-size</key>
-                        <value>
-                            <name>container-queue-size</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>multipart-request-max-size</key>
-                        <value>
-                            <name>multipart-request-max-size</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>multipart-read-buffer-size</key>
-                        <value>
-                            <name>multipart-read-buffer-size</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>parameters-to-attributes</key>
-                        <value>
-                            <name>parameters-to-attributes</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>Listening Port</key>
-                        <value>8888</value>
-                    </entry>
-                    <entry>
-                        <key>Hostname</key>
-                    </entry>
-                    <entry>
-                        <key>SSL Context Service</key>
-                    </entry>
-                    <entry>
-                        <key>HTTP Context Map</key>
-                        <value>46917e40-c384-3b98-0000-000000000000</value>
-                    </entry>
-                    <entry>
-                        <key>Allowed Paths</key>
-                    </entry>
-                    <entry>
-                        <key>Default URL Character Set</key>
-                        <value>UTF-8</value>
-                    </entry>
-                    <entry>
-                        <key>Allow GET</key>
-                        <value>true</value>
-                    </entry>
-                    <entry>
-                        <key>Allow POST</key>
-                        <value>true</value>
-                    </entry>
-                    <entry>
-                        <key>Allow PUT</key>
-                        <value>true</value>
-                    </entry>
-                    <entry>
-                        <key>Allow DELETE</key>
-                        <value>true</value>
-                    </entry>
-                    <entry>
-                        <key>Allow HEAD</key>
-                        <value>false</value>
-                    </entry>
-                    <entry>
-                        <key>Allow OPTIONS</key>
-                        <value>false</value>
-                    </entry>
-                    <entry>
-                        <key>Additional HTTP Methods</key>
-                    </entry>
-                    <entry>
-                        <key>Client Authentication</key>
-                        <value>No Authentication</value>
-                    </entry>
-                    <entry>
-                        <key>container-queue-size</key>
-                        <value>50</value>
-                    </entry>
-                    <entry>
-                        <key>multipart-request-max-size</key>
-                        <value>1 MB</value>
-                    </entry>
-                    <entry>
-                        <key>multipart-read-buffer-size</key>
-                        <value>512 KB</value>
-                    </entry>
-                    <entry>
-                        <key>parameters-to-attributes</key>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>HandleHttpRequest</name>
-            <relationships>
-                <autoTerminate>false</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.standard.HandleHttpRequest</type>
-        </processors>
-        <processors>
-            <id>326dcde6-a8e6-3b89-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>0.0</x>
-                <y>984.0</y>
-            </position>
-            <bundle>
-                <artifact>nifi-azure-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>container-name</key>
-                        <value>
-                            <name>container-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-credentials-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
-                            <name>storage-credentials-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
-                        <value>
-                            <name>storage-account-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>
-                            <name>storage-account-key</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-sas-token</key>
-                        <value>
-                            <name>storage-sas-token</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-endpoint-suffix</key>
-                        <value>
-                            <name>storage-endpoint-suffix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
-                        <value>
-                            <name>blob</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
-                            <name>proxy-configuration-service</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>container-name</key>
-                        <value>${HttpBody:jsonPath('$.source.container')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-credentials-service</key>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
-                        <value>${HttpBody:jsonPath('$.source.account')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>${HttpBody:jsonPath('$.source.key')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-sas-token</key>
-                    </entry>
-                    <entry>
-                        <key>storage-endpoint-suffix</key>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
-                        <value>${HttpBody:jsonPath('$.source.blobname')}</value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>FetchAzureBlobStorage</name>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>failure</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>false</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.azure.storage.FetchAzureBlobStorage</type>
-        </processors>
-        <processors>
-            <id>49fce788-6bf8-3169-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>224.0</x>
-                <y>776.0</y>
-            </position>
-            <bundle>
-                <artifact>nifi-standard-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>Routing Strategy</key>
-                        <value>
-                            <name>Routing Strategy</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>AdlsGen2</key>
-                        <value>
-                            <name>AdlsGen2</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>AzureStorage</key>
-                        <value>
-                            <name>AzureStorage</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>Routing Strategy</key>
-                        <value>Route to Property name</value>
-                    </entry>
-                    <entry>
-                        <key>AdlsGen2</key>
-                        <value>${HttpBody:jsonPath('$.source.type'):equals('AdlsGen2')}</value>
-                    </entry>
-                    <entry>
-                        <key>AzureStorage</key>
-                        <value>${HttpBody:jsonPath('$.source.type'):equals('AzureStorage')}</value>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>RouteOnSourceType</name>
-            <relationships>
-                <autoTerminate>false</autoTerminate>
-                <name>AdlsGen2</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>false</autoTerminate>
-                <name>AzureStorage</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>unmatched</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.standard.RouteOnAttribute</type>
-        </processors>
-        <processors>
-            <id>4df771e4-9789-30d0-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>224.0</x>
-                <y>192.0</y>
-            </position>
-            <bundle>
-                <artifact>nifi-update-attribute-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>Delete Attributes Expression</key>
-                        <value>
-                            <name>Delete Attributes Expression</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Store State</key>
-                        <value>
-                            <name>Store State</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Stateful Variables Initial Value</key>
-                        <value>
-                            <name>Stateful Variables Initial Value</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>canonical-value-lookup-cache-size</key>
-                        <value>
-                            <name>canonical-value-lookup-cache-size</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>password</key>
-                        <value>
-                            <name>password</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>username</key>
-                        <value>
-                            <name>username</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>Delete Attributes Expression</key>
-                    </entry>
-                    <entry>
-                        <key>Store State</key>
-                        <value>Do not store state</value>
-                    </entry>
-                    <entry>
-                        <key>Stateful Variables Initial Value</key>
-                    </entry>
-                    <entry>
-                        <key>canonical-value-lookup-cache-size</key>
-                        <value>100</value>
-                    </entry>
-                    <entry>
-                        <key>password</key><value>gXpwd#202!</value>
-                    </entry>
-                    <entry>
-                        <key>username</key><value>testuser@gaiax.com</value>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>SetAuthValues</name>
-            <relationships>
-                <autoTerminate>false</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.attributes.UpdateAttribute</type>
-        </processors>
-        <processors>
-            <id>633a6a70-bbb2-3b18-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>472.0</x>
-                <y>1400.0</y>
-            </position>
-            <bundle>
-                <artifact>nifi-azure-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>container-name</key>
-                        <value>
-                            <name>container-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-credentials-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
-                            <name>storage-credentials-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
-                        <value>
-                            <name>storage-account-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>
-                            <name>storage-account-key</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-sas-token</key>
-                        <value>
-                            <name>storage-sas-token</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-endpoint-suffix</key>
-                        <value>
-                            <name>storage-endpoint-suffix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
-                            <name>proxy-configuration-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
-                        <value>
-                            <name>blob</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>azure-create-container</key>
-                        <value>
-                            <name>azure-create-container</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>container-name</key>
-                        <value>${HttpBody:jsonPath('$.destination.container')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-credentials-service</key>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
-                        <value>${HttpBody:jsonPath('$.destination.account')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>${HttpBody:jsonPath('$.destination.key')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-sas-token</key>
-                    </entry>
-                    <entry>
-                        <key>storage-endpoint-suffix</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
-                        <value>${HttpBody:jsonPath('$.destination.blobname')}</value>
-                    </entry>
-                    <entry>
-                        <key>azure-create-container</key>
-                        <value>false</value>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>PutAdlsGen2</name>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>failure</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.azure.storage.PutAzureBlobStorage</type>
-        </processors>
-        <processors>
-            <id>86f1e8fb-7f27-3c19-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>861.7663017985903</x>
-                <y>357.3481148051828</y>
-            </position>
-            <bundle>
-                <artifact>nifi-standard-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>HTTP Status Code</key>
-                        <value>
-                            <name>HTTP Status Code</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>HTTP Context Map</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
-                            <name>HTTP Context Map</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Attributes to add to the HTTP Response (Regex)</key>
-                        <value>
-                            <name>Attributes to add to the HTTP Response (Regex)</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>HTTP Status Code</key>
-                        <value>401</value>
-                    </entry>
-                    <entry>
-                        <key>HTTP Context Map</key>
-                        <value>46917e40-c384-3b98-0000-000000000000</value>
-                    </entry>
-                    <entry>
-                        <key>Attributes to add to the HTTP Response (Regex)</key>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>Unauthorized</name>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>failure</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.standard.HandleHttpResponse</type>
-        </processors>
-        <processors>
-            <id>fe630ef9-8a2c-34aa-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>0.0</x>
-                <y>1400.0</y>
-            </position>
-            <bundle>
-                <artifact>nifi-azure-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>2</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>container-name</key>
-                        <value>
-                            <name>container-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-credentials-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
-                            <name>storage-credentials-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
-                        <value>
-                            <name>storage-account-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>
-                            <name>storage-account-key</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-sas-token</key>
-                        <value>
-                            <name>storage-sas-token</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-endpoint-suffix</key>
-                        <value>
-                            <name>storage-endpoint-suffix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
-                            <name>proxy-configuration-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
-                        <value>
-                            <name>blob</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>azure-create-container</key>
-                        <value>
-                            <name>azure-create-container</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>container-name</key>
-                        <value>${HttpBody:jsonPath('$.destination.container')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-credentials-service</key>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
-                        <value>${HttpBody:jsonPath('$.destination.account')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>${HttpBody:jsonPath('$.destination.key')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-sas-token</key>
-                    </entry>
-                    <entry>
-                        <key>storage-endpoint-suffix</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
-                        <value>${HttpBody:jsonPath('$.destination.blobname')}</value>
-                    </entry>
-                    <entry>
-                        <key>azure-create-container</key>
-                        <value>false</value>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>PutAzureBlobStorage</name>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>failure</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.azure.storage.PutAzureBlobStorage</type>
-        </processors>
-        <processors>
-            <id>ffaf4714-a4f5-3807-0000-000000000000</id>
-            <parentGroupId>645405e5-23da-3774-0000-000000000000</parentGroupId>
-            <position>
-                <x>861.7663017985903</x>
-                <y>533.3481148051828</y>
-            </position>
-            <bundle>
-                <artifact>nifi-standard-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.1</version>
-            </bundle>
-            <config>
-                <bulletinLevel>WARN</bulletinLevel>
-                <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
-                <descriptors>
-                    <entry>
-                        <key>HTTP Status Code</key>
-                        <value>
-                            <name>HTTP Status Code</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>HTTP Context Map</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
-                            <name>HTTP Context Map</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Attributes to add to the HTTP Response (Regex)</key>
-                        <value>
-                            <name>Attributes to add to the HTTP Response (Regex)</name>
-                        </value>
-                    </entry>
-                </descriptors>
-                <executionNode>ALL</executionNode>
-                <lossTolerant>false</lossTolerant>
-                <penaltyDuration>30 sec</penaltyDuration>
-                <properties>
-                    <entry>
-                        <key>HTTP Status Code</key>
-                        <value>200</value>
-                    </entry>
-                    <entry>
-                        <key>HTTP Context Map</key>
-                        <value>46917e40-c384-3b98-0000-000000000000</value>
-                    </entry>
-                    <entry>
-                        <key>Attributes to add to the HTTP Response (Regex)</key>
-                    </entry>
-                </properties>
-                <runDurationMillis>0</runDurationMillis>
-                <schedulingPeriod>0 sec</schedulingPeriod>
-                <schedulingStrategy>TIMER_DRIVEN</schedulingStrategy>
-                <yieldDuration>1 sec</yieldDuration>
-            </config>
-            <executionNodeRestricted>false</executionNodeRestricted>
-            <name>Authorized</name>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>failure</name>
-            </relationships>
-            <relationships>
-                <autoTerminate>true</autoTerminate>
-                <name>success</name>
-            </relationships>
-            <state>RUNNING</state>
-            <style/>
-            <type>org.apache.nifi.processors.standard.HandleHttpResponse</type>
-        </processors>
     </snippet>
-    <timestamp>03/29/2021 20:57:13 UTC</timestamp>
+    <timestamp>05/11/2021 07:59:54 UTC</timestamp>
 </template>

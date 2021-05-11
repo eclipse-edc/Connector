@@ -12,16 +12,19 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 @JsonTypeName("dagx:nifipayload")
 public final class NifiPayload {
 
-    private  NifiTransferEndpoint source;
-    private  NifiTransferEndpoint destination;
+    private NifiTransferEndpoint source;
+    private NifiTransferEndpoint destination;
+    private String requestId;
 
     @JsonCreator
-    public NifiPayload(@JsonProperty("source") NifiTransferEndpoint source, @JsonProperty("destination") NifiTransferEndpoint destination) {
+    public NifiPayload(@JsonProperty("requestId") String requestId, @JsonProperty("source") NifiTransferEndpoint source, @JsonProperty("destination") NifiTransferEndpoint destination) {
+        this.requestId = requestId;
         this.source = source;
         this.destination = destination;
     }
 
-    private NifiPayload(){}
+    private NifiPayload() {
+    }
 
     public NifiTransferEndpoint getSource() {
         return source;
@@ -29,5 +32,9 @@ public final class NifiPayload {
 
     public NifiTransferEndpoint getDestination() {
         return destination;
+    }
+
+    public String getRequestId() {
+        return requestId;
     }
 }
