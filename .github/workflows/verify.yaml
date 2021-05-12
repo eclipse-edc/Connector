@@ -3,7 +3,7 @@ name: Build/Test
 on: [ push ]
 
 jobs:
-  verify:
+  gradle-test:
     runs-on: ubuntu-latest
 
     services:
@@ -26,12 +26,40 @@ jobs:
         with:
           java-version: '11'
 
-      - name: Gradle Test
+      - name: Gradle Test Nifi Integration
+        if: ${{ false }} # disabled due to current instability
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
-          AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
-        run: ./gradlew test
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+        run: ./gradlew extensions:transfer:transfer-nifi:check -i
+
+      - name: Gradle Test Core
+        env:
+          AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
+          NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+        run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check
+
+      - name: Gradle Test Atlas Integration
+        env:
+          AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
+          NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+        run: ./gradlew extensions:catalog:catalog-atlas:check
+
+      - name: Gradle Test Azure Vault Integration
+        env:
+          AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
+          NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
+          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
+          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+        run: ./gradlew extensions:security:security-azure:check
+
+
 
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1

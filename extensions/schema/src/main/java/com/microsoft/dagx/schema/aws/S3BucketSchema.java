@@ -11,7 +11,7 @@ import com.microsoft.dagx.schema.SchemaAttribute;
 
 public class S3BucketSchema extends DataSchema {
 
-    public static final String TYPE = "dagx:s3";
+    public static final String TYPE = "AmazonS3";
     public static String REGION = "region";
     public static String BUCKET_NAME = "bucketName";
 

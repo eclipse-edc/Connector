@@ -13,23 +13,25 @@ import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.*;
-
-import static java.lang.String.format;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class NifiApiClient {
 
 
     private final static String apiPath = "/nifi-api";
-    private final URL url;
     private static final MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+    private final URL url;
     private final TypeManager typeManager;
     private final OkHttpClient httpClient;
 
 
     public NifiApiClient(String host, TypeManager typeManager, OkHttpClient httpClient) throws MalformedURLException {
 
-        this.url = new URL(host);
+        url = new URL(host);
         this.typeManager = typeManager;
         this.httpClient = httpClient;
     }
@@ -125,15 +127,32 @@ public class NifiApiClient {
         }
     }
 
-    public BulletinBoard getBulletinBoard() {
+    public GetProcessGroupResponse getProcessGroup(String processGroupId) {
         try {
 
-            var u = new URL(url, apiPath + "/flow/bulletin-board");
+            var u = new URL(url, apiPath + "/process-groups/" + processGroupId);
             var rq = new Request.Builder().url(u)
-                    .get()
-                    .build();
+                    .get().build();
             var json = makeCall(rq);
-            return typeManager.readValue(json, GetBulletinResponse.class).bulletinBoard;
+
+            return typeManager.readValue(json, GetProcessGroupResponse.class);
+
+        } catch (MalformedURLException e) {
+            throw new DagxException(e);
+        }
+    }
+
+    public void updateVariableRegistry(String processGroup, Map<String, String> variables, Revision version) {
+        try {
+            var uploadUrl = new URL(url, apiPath + "/process-groups/" + processGroup + "/variable-registry");
+
+            var vars = variables.entrySet().stream().map(stringStringEntry -> new Variable(stringStringEntry.getKey(), stringStringEntry.getValue(), processGroup)).collect(Collectors.toList());
+
+            var rq = new UpdateVariableRegistryRequest(processGroup, vars, version);
+
+            String body = typeManager.writeValueAsString(rq);
+            makeCall(new Request.Builder().url(uploadUrl).put(RequestBody.create(body, JSON)).build());
+
         } catch (MalformedURLException e) {
             throw new DagxException(e);
         }
@@ -154,7 +173,7 @@ public class NifiApiClient {
         try (Response response = httpClient.newCall(rq).execute()) {
             int code = response.code();
             if (code < 200 || code >= 300) {
-                throw new DagxException("Error in rest request: " + code + ", " + response.message());
+                throw new DagxException("Error in rest request: " + code + ", " + response.body().string());
             }
             return Objects.requireNonNull(response.body()).string();
 
