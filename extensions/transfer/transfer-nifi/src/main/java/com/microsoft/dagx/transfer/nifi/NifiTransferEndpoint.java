@@ -17,8 +17,6 @@ import java.util.Map;
 @JsonDeserialize(builder = NifiTransferEndpoint.NifiTransferEndpointBuilder.class)
 public class NifiTransferEndpoint implements Polymorphic {
     private final String type;
-    @JsonProperty("sas")
-    private String key;
     private Map<String, String> properties;
 
     protected NifiTransferEndpoint(@JsonProperty("type") String type) {
@@ -26,13 +24,6 @@ public class NifiTransferEndpoint implements Polymorphic {
         properties = new HashMap<>();
     }
 
-    public String getKey() {
-        return key;
-    }
-
-    public void setKey(String key) {
-        this.key = key;
-    }
 
     public String getType() {
         return type;
@@ -47,7 +38,6 @@ public class NifiTransferEndpoint implements Polymorphic {
     @JsonPOJOBuilder(withPrefix = "")
     public static class NifiTransferEndpointBuilder {
         private final Map<String, String> properties;
-        private String key;
         private String type;
 
         private NifiTransferEndpointBuilder() {
@@ -57,12 +47,6 @@ public class NifiTransferEndpoint implements Polymorphic {
         @JsonCreator
         public static NifiTransferEndpointBuilder newInstance() {
             return new NifiTransferEndpointBuilder();
-        }
-
-        @JsonProperty("sas")
-        public NifiTransferEndpointBuilder key(String key) {
-            this.key = key;
-            return this;
         }
 
         public NifiTransferEndpointBuilder type(String type) {
@@ -84,7 +68,6 @@ public class NifiTransferEndpoint implements Polymorphic {
 
         public NifiTransferEndpoint build() {
             NifiTransferEndpoint nifiTransferEndpoint = new NifiTransferEndpoint(type);
-            nifiTransferEndpoint.setKey(key);
             nifiTransferEndpoint.properties = properties;
             return nifiTransferEndpoint;
         }

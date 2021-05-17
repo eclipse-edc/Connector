@@ -25,16 +25,16 @@ class NifiTransferEndpointConverterTest {
     private SchemaRegistry registry;
 
     @BeforeEach
-    void setup(){
-        vault= mock(Vault.class);
-        registry= mock(SchemaRegistry.class);
+    void setup() {
+        vault = mock(Vault.class);
+        registry = mock(SchemaRegistry.class);
         converter = new NifiTransferEndpointConverter(registry, vault);
 
-        expect(vault.resolveSecret("VerySecret")).andReturn("thesecret").times(1);
+        expect(vault.resolveSecret("VerySecret")).andReturn("thesecret").anyTimes();
     }
 
     @Test
-    void convert_success(){
+    void convert_success() {
         final String type = "SomeType";
         var da = DataAddress.Builder.newInstance()
                 .type(type)
@@ -42,7 +42,7 @@ class NifiTransferEndpointConverterTest {
                 .property("someprop", "someval")
                 .build();
 
-        var schema= new Schema(){
+        var schema = new Schema() {
 
             @Override
             protected void addAttributes() {
@@ -57,8 +57,7 @@ class NifiTransferEndpointConverterTest {
         expect(registry.getSchema(type)).andReturn(schema);
         replay(registry);
 
-        var endpoint= converter.convert(da);
-        assertThat(endpoint.getKey()).isEqualTo(null);
+        var endpoint = converter.convert(da);
         assertThat(endpoint.getType()).isEqualTo(type);
         assertThat(endpoint.getProperties()).hasSize(1)
                 .containsEntry("someprop", "someval");
@@ -66,7 +65,7 @@ class NifiTransferEndpointConverterTest {
     }
 
     @Test
-    void convert_noSchemaFound(){
+    void convert_noSchemaFound() {
         final String type = "SomeType";
         var da = DataAddress.Builder.newInstance()
                 .type(type)
@@ -77,10 +76,11 @@ class NifiTransferEndpointConverterTest {
         replay(registry);
 
         assertThatThrownBy(() -> converter.convert(da)).isInstanceOf(NifiTransferException.class)
-                .hasMessageContaining("No schema is registered for type "+type);
+                .hasMessageContaining("No schema is registered for type " + type);
     }
+
     @Test
-    void convert_noTypeSpecified(){
+    void convert_noTypeSpecified() {
         final String type = "SomeType";
         var da = DataAddress.Builder.newInstance()
                 .keyName("VerySecret")
@@ -95,7 +95,7 @@ class NifiTransferEndpointConverterTest {
     }
 
     @Test
-    void convert_requiredPropsMissing(){
+    void convert_requiredPropsMissing() {
         final String type = "SomeType";
         var da = DataAddress.Builder.newInstance()
                 .type(type)
@@ -103,7 +103,7 @@ class NifiTransferEndpointConverterTest {
                 .property("someprop", "someval")
                 .build();
 
-        var schema= new Schema(){
+        var schema = new Schema() {
 
             @Override
             protected void addAttributes() {
@@ -124,7 +124,7 @@ class NifiTransferEndpointConverterTest {
     }
 
     @Test
-    void convert_propertyHasWrongType(){
+    void convert_propertyHasWrongType() {
         final String type = "SomeType";
         var da = DataAddress.Builder.newInstance()
                 .type(type)
@@ -133,12 +133,12 @@ class NifiTransferEndpointConverterTest {
                 .property("anotherprop", "notAnInt")
                 .build();
 
-        var schema= new Schema(){
+        var schema = new Schema() {
 
             @Override
             protected void addAttributes() {
                 attributes.add(new SchemaAttribute("someprop", true));
-                attributes.add(new SchemaAttribute("anotherprop","int", false));
+                attributes.add(new SchemaAttribute("anotherprop", "int", false));
             }
 
             @Override
@@ -156,7 +156,7 @@ class NifiTransferEndpointConverterTest {
 
 
     @Test
-    void convert_addressHasNoKeyName(){
+    void convert_addressHasNoKeyName() {
         final String type = "SomeType";
         var da = DataAddress.Builder.newInstance()
                 .type(type)
@@ -167,12 +167,12 @@ class NifiTransferEndpointConverterTest {
 
         da.getProperties().replace("keyName", null);
 
-        var schema= new Schema(){
+        var schema = new Schema() {
 
             @Override
             protected void addAttributes() {
                 attributes.add(new SchemaAttribute("someprop", true));
-                attributes.add(new SchemaAttribute("anotherprop","int", false));
+                attributes.add(new SchemaAttribute("anotherprop", "int", false));
             }
 
             @Override
@@ -188,7 +188,7 @@ class NifiTransferEndpointConverterTest {
     }
 
     @Test
-    void convert_addressHasNoType(){
+    void convert_addressHasNoType() {
         final String type = "SomeType";
         var da = DataAddress.Builder.newInstance()
                 .type(type)
@@ -199,12 +199,12 @@ class NifiTransferEndpointConverterTest {
 
         da.getProperties().replace("type", null);
 
-        var schema= new Schema(){
+        var schema = new Schema() {
 
             @Override
             protected void addAttributes() {
                 attributes.add(new SchemaAttribute("someprop", true));
-                attributes.add(new SchemaAttribute("anotherprop","int", false));
+                attributes.add(new SchemaAttribute("anotherprop", "int", false));
             }
 
             @Override

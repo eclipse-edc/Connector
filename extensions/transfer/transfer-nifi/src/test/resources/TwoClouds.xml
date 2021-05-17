@@ -649,15 +649,39 @@
                 <y>2264.0</y>
             </position>
             <bundle>
-                <artifact>nifi-aws-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.2</version>
+                <artifact>amazons3</artifact>
+                <group>dagx-nifi-processors.processors</group>
+                <version>unspecified</version>
             </bundle>
             <config>
                 <bulletinLevel>WARN</bulletinLevel>
                 <comments></comments>
                 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                 <descriptors>
+                    <entry>
+                        <key>Access Key ID</key>
+                        <value>
+                            <name>Access Key ID</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Secret Access Key</key>
+                        <value>
+                            <name>Secret Access Key</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Region</key>
+                        <value>
+                            <name>Region</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Session Token (STS)</key>
+                        <value>
+                            <name>Session Token (STS)</name>
+                        </value>
+                    </entry>
                     <entry>
                         <key>Object Key</key>
                         <value>
@@ -671,229 +695,9 @@
                         </value>
                     </entry>
                     <entry>
-                        <key>Content Type</key>
-                        <value>
-                            <name>Content Type</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Content Disposition</key>
-                        <value>
-                            <name>Content Disposition</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Cache Control</key>
-                        <value>
-                            <name>Cache Control</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Access Key</key>
-                        <value>
-                            <name>Access Key</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Secret Key</key>
-                        <value>
-                            <name>Secret Key</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Credentials File</key>
-                        <value>
-                            <name>Credentials File</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>AWS Credentials Provider service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.processors.aws.credentials.provider.service.AWSCredentialsProviderService</identifiesControllerService>
-                            <name>AWS Credentials Provider service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>s3-object-tags-prefix</key>
-                        <value>
-                            <name>s3-object-tags-prefix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>s3-object-remove-tags-prefix</key>
-                        <value>
-                            <name>s3-object-remove-tags-prefix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Storage Class</key>
-                        <value>
-                            <name>Storage Class</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Region</key>
-                        <value>
-                            <name>Region</name>
-                        </value>
-                    </entry>
-                    <entry>
                         <key>Communications Timeout</key>
                         <value>
                             <name>Communications Timeout</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Expiration Time Rule</key>
-                        <value>
-                            <name>Expiration Time Rule</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>FullControl User List</key>
-                        <value>
-                            <name>FullControl User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Read Permission User List</key>
-                        <value>
-                            <name>Read Permission User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Write Permission User List</key>
-                        <value>
-                            <name>Write Permission User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Read ACL User List</key>
-                        <value>
-                            <name>Read ACL User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Write ACL User List</key>
-                        <value>
-                            <name>Write ACL User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Owner</key>
-                        <value>
-                            <name>Owner</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>canned-acl</key>
-                        <value>
-                            <name>canned-acl</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>SSL Context Service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
-                            <name>SSL Context Service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Endpoint Override URL</key>
-                        <value>
-                            <name>Endpoint Override URL</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Signer Override</key>
-                        <value>
-                            <name>Signer Override</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Threshold</key>
-                        <value>
-                            <name>Multipart Threshold</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Part Size</key>
-                        <value>
-                            <name>Multipart Part Size</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Upload AgeOff Interval</key>
-                        <value>
-                            <name>Multipart Upload AgeOff Interval</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Upload Max Age Threshold</key>
-                        <value>
-                            <name>Multipart Upload Max Age Threshold</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>s3-temporary-directory-multipart</key>
-                        <value>
-                            <name>s3-temporary-directory-multipart</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>server-side-encryption</key>
-                        <value>
-                            <name>server-side-encryption</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>encryption-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.processors.aws.s3.AmazonS3EncryptionService</identifiesControllerService>
-                            <name>encryption-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>use-chunked-encoding</key>
-                        <value>
-                            <name>use-chunked-encoding</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>use-path-style-access</key>
-                        <value>
-                            <name>use-path-style-access</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
-                            <name>proxy-configuration-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host</key>
-                        <value>
-                            <name>Proxy Host</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host Port</key>
-                        <value>
-                            <name>Proxy Host Port</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-name</key>
-                        <value>
-                            <name>proxy-user-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-password</key>
-                        <value>
-                            <name>proxy-user-password</name>
                         </value>
                     </entry>
                 </descriptors>
@@ -901,6 +705,22 @@
                 <lossTolerant>false</lossTolerant>
                 <penaltyDuration>30 sec</penaltyDuration>
                 <properties>
+                    <entry>
+                        <key>Access Key ID</key>
+                        <value>${HttpBody:jsonPath('$.destination.accessKeyId')}</value>
+                    </entry>
+                    <entry>
+                        <key>Secret Access Key</key>
+                        <value>${HttpBody:jsonPath('$.destination.secretAccessKey')}</value>
+                    </entry>
+                    <entry>
+                        <key>Region</key>
+                        <value>us-east-1</value>
+                    </entry>
+                    <entry>
+                        <key>Session Token (STS)</key>
+                        <value>${HttpBody:jsonPath('$.destination.sessionToken')}</value>
+                    </entry>
                     <entry>
                         <key>Object Key</key>
                         <value>${HttpBody:jsonPath('$.requestId')}.complete</value>
@@ -910,137 +730,8 @@
                         <value>${HttpBody:jsonPath('$.destination.bucketName')}</value>
                     </entry>
                     <entry>
-                        <key>Content Type</key>
-                    </entry>
-                    <entry>
-                        <key>Content Disposition</key>
-                    </entry>
-                    <entry>
-                        <key>Cache Control</key>
-                    </entry>
-                    <entry>
-                        <key>Access Key</key>
-                        <value>${s3.accessKeyId}</value>
-                    </entry>
-                    <entry>
-                        <key>Secret Key</key>
-                        <value>${s3.secretAccessKey}</value>
-                    </entry>
-                    <entry>
-                        <key>Credentials File</key>
-                    </entry>
-                    <entry>
-                        <key>AWS Credentials Provider service</key>
-                    </entry>
-                    <entry>
-                        <key>s3-object-tags-prefix</key>
-                    </entry>
-                    <entry>
-                        <key>s3-object-remove-tags-prefix</key>
-                        <value>false</value>
-                    </entry>
-                    <entry>
-                        <key>Storage Class</key>
-                        <value>Standard</value>
-                    </entry>
-                    <entry>
-                        <key>Region</key>
-                        <value>us-east-1</value>
-                    </entry>
-                    <entry>
                         <key>Communications Timeout</key>
                         <value>30 secs</value>
-                    </entry>
-                    <entry>
-                        <key>Expiration Time Rule</key>
-                    </entry>
-                    <entry>
-                        <key>FullControl User List</key>
-                        <value>${s3.permissions.full.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Read Permission User List</key>
-                        <value>${s3.permissions.read.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Write Permission User List</key>
-                        <value>${s3.permissions.write.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Read ACL User List</key>
-                        <value>${s3.permissions.readacl.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Write ACL User List</key>
-                        <value>${s3.permissions.writeacl.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Owner</key>
-                        <value>${s3.owner}</value>
-                    </entry>
-                    <entry>
-                        <key>canned-acl</key>
-                        <value>${s3.permissions.cannedacl}</value>
-                    </entry>
-                    <entry>
-                        <key>SSL Context Service</key>
-                    </entry>
-                    <entry>
-                        <key>Endpoint Override URL</key>
-                    </entry>
-                    <entry>
-                        <key>Signer Override</key>
-                        <value>Default Signature</value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Threshold</key>
-                        <value>5 GB</value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Part Size</key>
-                        <value>5 GB</value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Upload AgeOff Interval</key>
-                        <value>60 min</value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Upload Max Age Threshold</key>
-                        <value>7 days</value>
-                    </entry>
-                    <entry>
-                        <key>s3-temporary-directory-multipart</key>
-                        <value>${java.io.tmpdir}</value>
-                    </entry>
-                    <entry>
-                        <key>server-side-encryption</key>
-                        <value>None</value>
-                    </entry>
-                    <entry>
-                        <key>encryption-service</key>
-                    </entry>
-                    <entry>
-                        <key>use-chunked-encoding</key>
-                        <value>true</value>
-                    </entry>
-                    <entry>
-                        <key>use-path-style-access</key>
-                        <value>false</value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host</key>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host Port</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-name</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-password</key>
                     </entry>
                 </properties>
                 <runDurationMillis>0</runDurationMillis>
@@ -1060,7 +751,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>org.apache.nifi.processors.aws.s3.PutS3Object</type>
+            <type>microsoft.dagx.transfer.nifi.processors.PutS3Object</type>
         </processors>
         <processors>
             <id>2c0e3b2f-4ab1-3071-0000-000000000000</id>
@@ -1361,15 +1052,39 @@
                 <y>1528.0</y>
             </position>
             <bundle>
-                <artifact>nifi-aws-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.2</version>
+                <artifact>amazons3</artifact>
+                <group>dagx-nifi-processors.processors</group>
+                <version>unspecified</version>
             </bundle>
             <config>
                 <bulletinLevel>WARN</bulletinLevel>
                 <comments></comments>
                 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                 <descriptors>
+                    <entry>
+                        <key>Access Key ID</key>
+                        <value>
+                            <name>Access Key ID</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Secret Access Key</key>
+                        <value>
+                            <name>Secret Access Key</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Region</key>
+                        <value>
+                            <name>Region</name>
+                        </value>
+                    </entry>
+                    <entry>
+                        <key>Session Token (STS)</key>
+                        <value>
+                            <name>Session Token (STS)</name>
+                        </value>
+                    </entry>
                     <entry>
                         <key>Object Key</key>
                         <value>
@@ -1383,229 +1098,9 @@
                         </value>
                     </entry>
                     <entry>
-                        <key>Content Type</key>
-                        <value>
-                            <name>Content Type</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Content Disposition</key>
-                        <value>
-                            <name>Content Disposition</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Cache Control</key>
-                        <value>
-                            <name>Cache Control</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Access Key</key>
-                        <value>
-                            <name>Access Key</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Secret Key</key>
-                        <value>
-                            <name>Secret Key</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Credentials File</key>
-                        <value>
-                            <name>Credentials File</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>AWS Credentials Provider service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.processors.aws.credentials.provider.service.AWSCredentialsProviderService</identifiesControllerService>
-                            <name>AWS Credentials Provider service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>s3-object-tags-prefix</key>
-                        <value>
-                            <name>s3-object-tags-prefix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>s3-object-remove-tags-prefix</key>
-                        <value>
-                            <name>s3-object-remove-tags-prefix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Storage Class</key>
-                        <value>
-                            <name>Storage Class</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Region</key>
-                        <value>
-                            <name>Region</name>
-                        </value>
-                    </entry>
-                    <entry>
                         <key>Communications Timeout</key>
                         <value>
                             <name>Communications Timeout</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Expiration Time Rule</key>
-                        <value>
-                            <name>Expiration Time Rule</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>FullControl User List</key>
-                        <value>
-                            <name>FullControl User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Read Permission User List</key>
-                        <value>
-                            <name>Read Permission User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Write Permission User List</key>
-                        <value>
-                            <name>Write Permission User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Read ACL User List</key>
-                        <value>
-                            <name>Read ACL User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Write ACL User List</key>
-                        <value>
-                            <name>Write ACL User List</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Owner</key>
-                        <value>
-                            <name>Owner</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>canned-acl</key>
-                        <value>
-                            <name>canned-acl</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>SSL Context Service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
-                            <name>SSL Context Service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Endpoint Override URL</key>
-                        <value>
-                            <name>Endpoint Override URL</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Signer Override</key>
-                        <value>
-                            <name>Signer Override</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Threshold</key>
-                        <value>
-                            <name>Multipart Threshold</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Part Size</key>
-                        <value>
-                            <name>Multipart Part Size</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Upload AgeOff Interval</key>
-                        <value>
-                            <name>Multipart Upload AgeOff Interval</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Upload Max Age Threshold</key>
-                        <value>
-                            <name>Multipart Upload Max Age Threshold</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>s3-temporary-directory-multipart</key>
-                        <value>
-                            <name>s3-temporary-directory-multipart</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>server-side-encryption</key>
-                        <value>
-                            <name>server-side-encryption</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>encryption-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.processors.aws.s3.AmazonS3EncryptionService</identifiesControllerService>
-                            <name>encryption-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>use-chunked-encoding</key>
-                        <value>
-                            <name>use-chunked-encoding</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>use-path-style-access</key>
-                        <value>
-                            <name>use-path-style-access</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
-                            <name>proxy-configuration-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host</key>
-                        <value>
-                            <name>Proxy Host</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host Port</key>
-                        <value>
-                            <name>Proxy Host Port</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-name</key>
-                        <value>
-                            <name>proxy-user-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-password</key>
-                        <value>
-                            <name>proxy-user-password</name>
                         </value>
                     </entry>
                 </descriptors>
@@ -1613,6 +1108,22 @@
                 <lossTolerant>false</lossTolerant>
                 <penaltyDuration>30 sec</penaltyDuration>
                 <properties>
+                    <entry>
+                        <key>Access Key ID</key>
+                        <value>${HttpBody:jsonPath('$.destination.accessKeyId')}</value>
+                    </entry>
+                    <entry>
+                        <key>Secret Access Key</key>
+                        <value>${HttpBody:jsonPath('$.destination.secretAccessKey')}</value>
+                    </entry>
+                    <entry>
+                        <key>Region</key>
+                        <value>us-east-1</value>
+                    </entry>
+                    <entry>
+                        <key>Session Token (STS)</key>
+                        <value>${HttpBody:jsonPath('$.destination.sessionToken')}</value>
+                    </entry>
                     <entry>
                         <key>Object Key</key>
                         <value>${HttpBody:jsonPath('$.destination.objectName')}</value>
@@ -1622,137 +1133,8 @@
                         <value>${HttpBody:jsonPath('$.destination.bucketName')}</value>
                     </entry>
                     <entry>
-                        <key>Content Type</key>
-                    </entry>
-                    <entry>
-                        <key>Content Disposition</key>
-                    </entry>
-                    <entry>
-                        <key>Cache Control</key>
-                    </entry>
-                    <entry>
-                        <key>Access Key</key>
-                        <value>${s3.accessKeyId}</value>
-                    </entry>
-                    <entry>
-                        <key>Secret Key</key>
-                        <value>${s3.secretAccessKey}</value>
-                    </entry>
-                    <entry>
-                        <key>Credentials File</key>
-                    </entry>
-                    <entry>
-                        <key>AWS Credentials Provider service</key>
-                    </entry>
-                    <entry>
-                        <key>s3-object-tags-prefix</key>
-                    </entry>
-                    <entry>
-                        <key>s3-object-remove-tags-prefix</key>
-                        <value>false</value>
-                    </entry>
-                    <entry>
-                        <key>Storage Class</key>
-                        <value>Standard</value>
-                    </entry>
-                    <entry>
-                        <key>Region</key>
-                        <value>us-east-1</value>
-                    </entry>
-                    <entry>
                         <key>Communications Timeout</key>
                         <value>30 secs</value>
-                    </entry>
-                    <entry>
-                        <key>Expiration Time Rule</key>
-                    </entry>
-                    <entry>
-                        <key>FullControl User List</key>
-                        <value>${s3.permissions.full.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Read Permission User List</key>
-                        <value>${s3.permissions.read.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Write Permission User List</key>
-                        <value>${s3.permissions.write.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Read ACL User List</key>
-                        <value>${s3.permissions.readacl.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Write ACL User List</key>
-                        <value>${s3.permissions.writeacl.users}</value>
-                    </entry>
-                    <entry>
-                        <key>Owner</key>
-                        <value>${s3.owner}</value>
-                    </entry>
-                    <entry>
-                        <key>canned-acl</key>
-                        <value>${s3.permissions.cannedacl}</value>
-                    </entry>
-                    <entry>
-                        <key>SSL Context Service</key>
-                    </entry>
-                    <entry>
-                        <key>Endpoint Override URL</key>
-                    </entry>
-                    <entry>
-                        <key>Signer Override</key>
-                        <value>Default Signature</value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Threshold</key>
-                        <value>5 GB</value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Part Size</key>
-                        <value>5 GB</value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Upload AgeOff Interval</key>
-                        <value>60 min</value>
-                    </entry>
-                    <entry>
-                        <key>Multipart Upload Max Age Threshold</key>
-                        <value>7 days</value>
-                    </entry>
-                    <entry>
-                        <key>s3-temporary-directory-multipart</key>
-                        <value>${java.io.tmpdir}</value>
-                    </entry>
-                    <entry>
-                        <key>server-side-encryption</key>
-                        <value>None</value>
-                    </entry>
-                    <entry>
-                        <key>encryption-service</key>
-                    </entry>
-                    <entry>
-                        <key>use-chunked-encoding</key>
-                        <value>true</value>
-                    </entry>
-                    <entry>
-                        <key>use-path-style-access</key>
-                        <value>false</value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host</key>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host Port</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-name</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-password</key>
                     </entry>
                 </properties>
                 <runDurationMillis>0</runDurationMillis>
@@ -1761,7 +1143,7 @@
                 <yieldDuration>1 sec</yieldDuration>
             </config>
             <executionNodeRestricted>false</executionNodeRestricted>
-            <name>PutS3Object</name>
+            <name>Store_Data_Item_In_S3</name>
             <relationships>
                 <autoTerminate>true</autoTerminate>
                 <name>failure</name>
@@ -1772,7 +1154,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>org.apache.nifi.processors.aws.s3.PutS3Object</type>
+            <type>microsoft.dagx.transfer.nifi.processors.PutS3Object</type>
         </processors>
         <processors>
             <id>46aacc35-6d27-3734-0000-000000000000</id>
@@ -1973,9 +1355,9 @@
                 <y>1024.0</y>
             </position>
             <bundle>
-                <artifact>nifi-aws-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.2</version>
+                <artifact>amazons3</artifact>
+                <group>dagx-nifi-processors.processors</group>
+                <version>unspecified</version>
             </bundle>
             <config>
                 <bulletinLevel>WARN</bulletinLevel>
@@ -1983,15 +1365,15 @@
                 <concurrentlySchedulableTaskCount>1</concurrentlySchedulableTaskCount>
                 <descriptors>
                     <entry>
-                        <key>Bucket</key>
+                        <key>Access Key ID</key>
                         <value>
-                            <name>Bucket</name>
+                            <name>Access Key ID</name>
                         </value>
                     </entry>
                     <entry>
-                        <key>Object Key</key>
+                        <key>Secret Access Key</key>
                         <value>
-                            <name>Object Key</name>
+                            <name>Secret Access Key</name>
                         </value>
                     </entry>
                     <entry>
@@ -2001,28 +1383,21 @@
                         </value>
                     </entry>
                     <entry>
-                        <key>Access Key</key>
+                        <key>Session Token (STS)</key>
                         <value>
-                            <name>Access Key</name>
+                            <name>Session Token (STS)</name>
                         </value>
                     </entry>
                     <entry>
-                        <key>Secret Key</key>
+                        <key>Object Key</key>
                         <value>
-                            <name>Secret Key</name>
+                            <name>Object Key</name>
                         </value>
                     </entry>
                     <entry>
-                        <key>Credentials File</key>
+                        <key>Bucket</key>
                         <value>
-                            <name>Credentials File</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>AWS Credentials Provider service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.processors.aws.credentials.provider.service.AWSCredentialsProviderService</identifiesControllerService>
-                            <name>AWS Credentials Provider service</name>
+                            <name>Bucket</name>
                         </value>
                     </entry>
                     <entry>
@@ -2031,144 +1406,38 @@
                             <name>Communications Timeout</name>
                         </value>
                     </entry>
-                    <entry>
-                        <key>Version</key>
-                        <value>
-                            <name>Version</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>SSL Context Service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.ssl.SSLContextService</identifiesControllerService>
-                            <name>SSL Context Service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Endpoint Override URL</key>
-                        <value>
-                            <name>Endpoint Override URL</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Signer Override</key>
-                        <value>
-                            <name>Signer Override</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>encryption-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.processors.aws.s3.AmazonS3EncryptionService</identifiesControllerService>
-                            <name>encryption-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
-                            <name>proxy-configuration-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host</key>
-                        <value>
-                            <name>Proxy Host</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host Port</key>
-                        <value>
-                            <name>Proxy Host Port</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-name</key>
-                        <value>
-                            <name>proxy-user-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-password</key>
-                        <value>
-                            <name>proxy-user-password</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>requester-pays</key>
-                        <value>
-                            <name>requester-pays</name>
-                        </value>
-                    </entry>
                 </descriptors>
                 <executionNode>ALL</executionNode>
                 <lossTolerant>false</lossTolerant>
                 <penaltyDuration>30 sec</penaltyDuration>
                 <properties>
                     <entry>
-                        <key>Bucket</key>
-                        <value>${HttpBody:jsonPath('$.source.bucketName')}</value>
+                        <key>Access Key ID</key>
+                        <value>${HttpBody:jsonPath('$.source.accessKeyId')}</value>
                     </entry>
                     <entry>
-                        <key>Object Key</key>
-                        <value>${HttpBody:jsonPath('$.source.objectName')}</value>
+                        <key>Secret Access Key</key>
+                        <value>${HttpBody:jsonPath('$.source.secretAccessKey')}</value>
                     </entry>
                     <entry>
                         <key>Region</key>
                         <value>us-east-1</value>
                     </entry>
                     <entry>
-                        <key>Access Key</key>
-                        <value>${s3.accessKeyId}</value>
+                        <key>Session Token (STS)</key>
+                        <value>${HttpBody:jsonPath('$.source.sessionToken')}</value>
                     </entry>
                     <entry>
-                        <key>Secret Key</key>
-                        <value>${s3.secretAccessKey}</value>
+                        <key>Object Key</key>
+                        <value>${HttpBody:jsonPath('$.source.objectName')}</value>
                     </entry>
                     <entry>
-                        <key>Credentials File</key>
-                    </entry>
-                    <entry>
-                        <key>AWS Credentials Provider service</key>
+                        <key>Bucket</key>
+                        <value>${HttpBody:jsonPath('$.source.bucketName')}</value>
                     </entry>
                     <entry>
                         <key>Communications Timeout</key>
                         <value>30 secs</value>
-                    </entry>
-                    <entry>
-                        <key>Version</key>
-                    </entry>
-                    <entry>
-                        <key>SSL Context Service</key>
-                    </entry>
-                    <entry>
-                        <key>Endpoint Override URL</key>
-                    </entry>
-                    <entry>
-                        <key>Signer Override</key>
-                        <value>Default Signature</value>
-                    </entry>
-                    <entry>
-                        <key>encryption-service</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host</key>
-                    </entry>
-                    <entry>
-                        <key>Proxy Host Port</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-name</key>
-                    </entry>
-                    <entry>
-                        <key>proxy-user-password</key>
-                    </entry>
-                    <entry>
-                        <key>requester-pays</key>
-                        <value>false</value>
                     </entry>
                 </properties>
                 <runDurationMillis>0</runDurationMillis>
@@ -2177,7 +1446,7 @@
                 <yieldDuration>1 sec</yieldDuration>
             </config>
             <executionNodeRestricted>false</executionNodeRestricted>
-            <name>FetchS3Object</name>
+            <name>Fetch_Object_From_S3</name>
             <relationships>
                 <autoTerminate>true</autoTerminate>
                 <name>failure</name>
@@ -2188,7 +1457,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>org.apache.nifi.processors.aws.s3.FetchS3Object</type>
+            <type>microsoft.dagx.transfer.nifi.processors.FetchS3Object</type>
         </processors>
         <processors>
             <id>6666a7ba-792b-3cae-0000-000000000000</id>

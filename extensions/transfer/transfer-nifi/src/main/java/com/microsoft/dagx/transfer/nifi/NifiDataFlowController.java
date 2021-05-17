@@ -123,9 +123,10 @@ public class NifiDataFlowController implements DataFlowController {
 
         String url = baseUrl + CONTENTLISTENER;
         var nifiPayload = new NifiPayload(requestId, source, destination);
+        String requestBody = typeManager.writeValueAsString(nifiPayload);
         return new Request.Builder()
                 .url(url)
-                .post(RequestBody.create(typeManager.writeValueAsString(nifiPayload), JSON))
+                .post(RequestBody.create(requestBody, JSON))
                 .addHeader("Authorization", basicAuthCredentials)
                 .build();
     }
