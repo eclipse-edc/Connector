@@ -247,7 +247,7 @@ public class NifiDataFlowControllerTest {
         SchemaRegistry registry = new SchemaRegistryImpl();
         registry.register(new AzureBlobStoreSchema());
         registry.register(new S3BucketSchema());
-        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new NifiTransferEndpointConverter(registry, vault));
+        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new NifiTransferEndpointConverter(registry, vault, typeManager));
     }
 
     @Test

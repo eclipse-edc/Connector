@@ -10,6 +10,7 @@ import com.microsoft.dagx.schema.SchemaAttribute;
 import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.schema.SchemaValidationException;
 import com.microsoft.dagx.spi.security.Vault;
+import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,14 +22,14 @@ import static org.easymock.EasyMock.*;
 class NifiTransferEndpointConverterTest {
 
     private NifiTransferEndpointConverter converter;
-    private Vault vault;
     private SchemaRegistry registry;
 
     @BeforeEach
     void setup() {
-        vault = mock(Vault.class);
+        Vault vault = mock(Vault.class);
         registry = mock(SchemaRegistry.class);
-        converter = new NifiTransferEndpointConverter(registry, vault);
+        var typeManager = new TypeManager();
+        converter = new NifiTransferEndpointConverter(registry, vault, typeManager);
 
         expect(vault.resolveSecret("VerySecret")).andReturn("thesecret").anyTimes();
     }

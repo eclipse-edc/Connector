@@ -5,13 +5,11 @@
 
 package com.microsoft.dagx.transfer.nifi;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.schema.Schema;
 import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.schema.SchemaValidationException;
-import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.security.Vault;
+import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 
 import java.util.Map;
@@ -20,11 +18,13 @@ import java.util.Objects;
 public class NifiTransferEndpointConverter {
     private final SchemaRegistry schemaRegistry;
     private final Vault vault;
+    private final TypeManager typeManager;
 
-    public NifiTransferEndpointConverter(SchemaRegistry registry, Vault vault) {
+    public NifiTransferEndpointConverter(SchemaRegistry registry, Vault vault, TypeManager typeManager) {
 
         schemaRegistry = registry;
         this.vault = vault;
+        this.typeManager = typeManager;
     }
 
     NifiTransferEndpoint convert(DataAddress dataAddress) {
@@ -53,15 +53,10 @@ public class NifiTransferEndpointConverter {
         //different endpoints might have different credentials, such as SAS token, access key id + secret, etc.
         // this requireds that the credentials are stored as JSON-encoded Map
         if (key != null) {
-            try {
-                //noinspection unchecked
-                Map<String, String> secret = new ObjectMapper().readValue(key, Map.class);
-                properties.putAll(secret);
-            } catch (JsonProcessingException e) {
-                throw new DagxException(e);
-            }
+            //noinspection unchecked
+            Map<String, String> secret = typeManager.readValue(key, Map.class);
+            properties.putAll(secret);
         }
-
 
         return NifiTransferEndpoint.NifiTransferEndpointBuilder.newInstance()
                 .type(type)
