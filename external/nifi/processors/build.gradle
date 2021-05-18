@@ -1,0 +1,144 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
+apply plugin: 'java-library'
+apply plugin: NarPlugin
+
+enum NarManifestEntry {
+    NAR_GROUP("Nar-Group"),
+    NAR_ID("Nar-Id"),
+    NAR_VERSION("Nar-Version"),
+    NAR_DEPENDENCY_GROUP("Nar-Dependency-Group"),
+    NAR_DEPENDENCY_ID("Nar-Dependency-Id"),
+    NAR_DEPENDENCY_VERSION("Nar-Dependency-Version")
+
+    private final String manifestKey
+
+    NarManifestEntry(String manifestKey) {
+        this.manifestKey = manifestKey
+    }
+
+    String getManifestKey() {
+        return manifestKey
+    }
+}
+
+class Nar extends Jar {
+
+    @Internal
+    List<Object> bundledDependencies
+
+    @Internal
+    Configuration parentNarConfiguration
+
+    Nar() {
+        archiveExtension.set('nar')
+        bundledDependencies = []
+        configureBundledDependencies()
+        configureManifest()
+        configureParentNarManifestEntry()
+    }
+
+    private void configureBundledDependencies() {
+        configure {
+            into('META-INF/bundled-dependencies') {
+                from({ -> bundledDependencies })
+            }
+        }
+    }
+
+    private void configureManifest() {
+        project.afterEvaluate {
+            configure {
+                Attributes attr = manifest.attributes
+                attr.putIfAbsent(NarManifestEntry.NAR_GROUP.manifestKey, project.group)
+                attr.putIfAbsent(NarManifestEntry.NAR_ID.manifestKey, project.name)
+                attr.putIfAbsent(NarManifestEntry.NAR_VERSION.manifestKey, project.version)
+            }
+        }
+    }
+
+    private Task configureParentNarManifestEntry() {
+        project.afterEvaluate {
+            configure {
+                if (parentNarConfiguration == null) return
+
+                if (parentNarConfiguration.size() > 1) {
+                    throw new RuntimeException("Only one parent nar dependency allowed in nar configuration but found ${parentNarConfiguration.size()} configurations")
+                }
+
+                if (parentNarConfiguration.size() == 1) {
+                    Dependency parentNarDependency = parentNarConfiguration.allDependencies.first()
+                    Attributes attr = manifest.attributes
+                    attr.putIfAbsent(NarManifestEntry.NAR_DEPENDENCY_GROUP.manifestKey, parentNarDependency.group)
+                    attr.putIfAbsent(NarManifestEntry.NAR_DEPENDENCY_ID.manifestKey, parentNarDependency.name)
+                    attr.putIfAbsent(NarManifestEntry.NAR_DEPENDENCY_VERSION.manifestKey, parentNarDependency.version)
+                }
+            }
+        }
+    }
+}
+
+class NarPlugin implements Plugin<Project> {
+
+    public static final String NAR_TASK_NAME = 'nar'
+    public static final String NAR_CONFIGURATION = 'nar'
+
+    @Override
+    void apply(Project project) {
+        ensureJavaPlugin(project)
+        Configuration conf = createNarConfiguration(project)
+        createNarTask(project, conf)
+    }
+
+    private void ensureJavaPlugin(Project project) {
+        if (!project.plugins.hasPlugin(JavaPlugin)) {
+            project.plugins.apply(JavaPlugin)
+        }
+    }
+
+    private Configuration createNarConfiguration(Project project) {
+        Configuration narConfiguration = project.configurations.create(NAR_CONFIGURATION)
+        project.configurations.compileOnly.extendsFrom(project.configurations.nar)
+        narConfiguration.transitive = false
+        narConfiguration
+    }
+
+    private void createNarTask(Project project, Configuration conf) {
+        Nar nar = project.tasks.create(NAR_TASK_NAME, Nar)
+        nar.setDescription("Assembles a nar archive containing the main classes jar and the runtimeClasspath configuration dependencies.")
+        nar.setGroup(BasePlugin.BUILD_GROUP)
+        nar.inputs.files(conf)
+
+        configureBundledDependencies(project, nar)
+        configureParentNarManifestEntry(nar, conf)
+
+        project.tasks[BasePlugin.ASSEMBLE_TASK_NAME].dependsOn(nar)
+    }
+
+    private void configureBundledDependencies(Project project, Nar nar) {
+        nar.bundledDependencies = [project.configurations.runtimeClasspath, project.tasks[JavaPlugin.JAR_TASK_NAME]]
+    }
+
+    private void configureParentNarManifestEntry(Nar nar, Configuration conf) {
+        nar.parentNarConfiguration = conf
+    }
+}
+
+dependencies {
+
+    implementation("org.apache.nifi:nifi-api:1.13.2")
+    implementation("org.apache.nifi:nifi-utils:1.13.2")
+
+    implementation(platform("com.amazonaws:aws-java-sdk-bom:1.11.1018"))
+    implementation("com.amazonaws:aws-java-sdk-s3")
+
+    testImplementation("org.apache.nifi:nifi-mock:1.13.2")
+    testImplementation("org.assertj:assertj-core:3.19.0")
+
+    testImplementation(project(":spi"))
+}
+
+
