@@ -32,3 +32,27 @@ jobs:
 
       - name: Build Azure Image
         run: ./gradlew clean buildAzure
+
+  build-nifi-processor:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '8'
+      - name: Build NAR file
+        run: ./gradlew nar
+
+      - name: Push to GitHub Packages
+        uses: docker/build-push-action@v1
+        with:
+          path: external/nifi
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+          registry: docker.pkg.github.com
+          repository: microsoft/Data-Appliance-GX/nifi
+          tag_with_ref: true
