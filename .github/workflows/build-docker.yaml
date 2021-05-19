@@ -48,7 +48,7 @@ jobs:
         run: ./gradlew nar
 
       - name: Push to GitHub Packages
-        uses: docker/build-push-action@v2
+        uses: docker/build-push-action@v1
         with:
           path: external/nifi
           username: ${{ github.actor }}
