@@ -47,12 +47,28 @@ jobs:
       - name: Build NAR file
         run: ./gradlew nar
 
-      - name: Push to GitHub Packages
-        uses: docker/build-push-action@v1
+      #      - name: Push to GitHub Packages
+      #        uses: docker/build-push-action@v1
+      #        with:
+      #          path: external/nifi
+      #          username: ${{ github.actor }}
+      #          password: ${{ secrets.GITHUB_TOKEN }}
+      #          registry: docker.pkg.github.com
+      #          repository: microsoft/data-appliance-gx/nifi
+      #          tag_with_ref: true
+      - name: Login to Github Container Registry
+        uses: docker/login-action@v1
         with:
-          path: external/nifi
-          username: ${{ github.actor }}
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
-          repository: microsoft/data-appliance-gx/nifi
-          tag_with_ref: true
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: external/nifi
+          pull: true
+          push: true
+          cache-from: type=registry,ref=microsoft/data-appliance-gx/nifi:latest
+          cache-to: type=inline
+          tags: microsoft/data-appliance-gx/nifi:latest
