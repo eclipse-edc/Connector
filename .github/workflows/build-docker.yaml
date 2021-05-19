@@ -55,7 +55,7 @@ jobs:
       #          password: ${{ secrets.GITHUB_TOKEN }}
       #          registry: docker.pkg.github.com
       #          repository: microsoft/data-appliance-gx/nifi
-      #          tag_with_ref: true
+      #          tag_with_ref: false
       - name: Login to Github Container Registry
         uses: docker/login-action@v1
         with:
@@ -69,6 +69,6 @@ jobs:
           context: external/nifi
           pull: true
           push: true
-          cache-from: type=registry,ref=microsoft/data-appliance-gx/nifi:latest
+          #          cache-from: type=registry,ref=microsoft/data-appliance-gx/nifi:latest
           cache-to: type=inline
-          tags: microsoft/data-appliance-gx/nifi:latest
+          tags: ghcr.io/microsoft/data-appliance-gx/nifi:latest
