@@ -54,5 +54,5 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
           registry: docker.pkg.github.com
-          repository: microsoft/Data-Appliance-GX/nifi
+          repository: microsoft/data-appliance-gx/nifi
           tag_with_ref: true
