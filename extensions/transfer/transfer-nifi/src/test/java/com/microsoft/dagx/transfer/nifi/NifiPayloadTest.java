@@ -27,9 +27,9 @@ class NifiPayloadTest {
     void serialize() {
         NifiTransferEndpoint endpoint = NifiTransferEndpoint.NifiTransferEndpointBuilder.newInstance()
                 .property("account", "testaccount")
-                .key("mykey")
                 .type("AzureStorage")
                 .property("blobname", "testblob")
+                .property("sas", "mykey")
                 .property("container", "testcontainer").build();
         var id = UUID.randomUUID().toString();
         var nifipayload = new NifiPayload(id, endpoint, endpoint);
@@ -51,9 +51,9 @@ class NifiPayloadTest {
     void deserialize() {
         NifiTransferEndpoint endpoint = NifiTransferEndpoint.NifiTransferEndpointBuilder.newInstance()
                 .type("AzureStorage")
-                .key("mykey")
                 .property("account", "testaccount")
                 .property("blobname", "testblob")
+                .property("sas", "mykey")
                 .property("container", "testcontainer").build();
         var id = UUID.randomUUID().toString();
         var nifipayload = new NifiPayload(id, endpoint, endpoint);
@@ -61,22 +61,22 @@ class NifiPayloadTest {
         var json = typeManager.writeValueAsString(nifipayload);
 
         var deserialized = typeManager.readValue(json, NifiPayload.class);
-        assertThat(deserialized.getSource().getKey()).isEqualTo("mykey");
         assertThat(deserialized.getSource().getType()).isEqualTo("AzureStorage");
         assertThat(deserialized.getSource().getProperties())
-                .hasSize(3)
+                .hasSize(4)
                 .containsEntry("blobname", "testblob")
                 .containsEntry("container", "testcontainer")
                 .containsEntry("account", "testaccount")
+                .containsEntry("sas", "mykey")
                 .doesNotContainValue(null);
 
-        assertThat(deserialized.getDestination().getKey()).isEqualTo("mykey");
         assertThat(deserialized.getDestination().getType()).isEqualTo("AzureStorage");
         assertThat(deserialized.getDestination().getProperties())
-                .hasSize(3)
+                .hasSize(4)
                 .containsEntry("blobname", "testblob")
                 .containsEntry("container", "testcontainer")
                 .containsEntry("account", "testaccount")
+                .containsEntry("sas", "mykey")
                 .doesNotContainValue(null);
 
     }

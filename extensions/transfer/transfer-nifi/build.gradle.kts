@@ -28,7 +28,7 @@ dependencies {
     // https://docs.gradle.org/current/userguide/dependency_downgrade_and_exclude.html
     testImplementation("org.apache.httpcomponents:httpclient") {
         version {
-            strictly("4.5.4")
+            strictly("4.5.5")
         }
     }
 

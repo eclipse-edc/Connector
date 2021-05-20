@@ -57,3 +57,5 @@ include(":integration:integration-core")
 include(":runtime")
 include(":client-runtime")
 include(":client")
+
+include(":external:nifi:processors")

@@ -27,6 +27,7 @@ jobs:
           java-version: '11'
 
       - name: Gradle Test Nifi Integration
+        #        if: github.event.pull_request.draft == false
         if: ${{ false }} # disabled due to current instability
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
@@ -44,6 +45,7 @@ jobs:
         run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check
 
       - name: Gradle Test Atlas Integration
+        if: github.event.pull_request.draft == false
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
@@ -52,6 +54,7 @@ jobs:
         run: ./gradlew extensions:catalog:catalog-atlas:check
 
       - name: Gradle Test Azure Vault Integration
+        if: github.event.pull_request.draft == false
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}

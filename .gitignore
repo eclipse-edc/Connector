@@ -43,3 +43,5 @@ distributions/**/github.properties
 
 distributions/azure/azure.properties
 .terraform*
+
+.DS_Store

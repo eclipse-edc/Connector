@@ -230,19 +230,24 @@ public class NifiDataFlowControllerTest {
                 .build();
         typeManager.registerTypes(DataRequest.class);
 
-        vault = mock(MockType.STRICT, Vault.class);
+        vault = mock(MockType.NICE, Vault.class);
         var nifiAuth = propOrEnv("NIFI_API_AUTH", null);
         if (nifiAuth == null) {
             throw new RuntimeException("No environment variable found NIFI_API_AUTH!");
         }
         expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn(nifiAuth);
-        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(sharedAccessSignature);
-        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(sharedAccessSignature);
+        var azureSecret = Map.of("sas", "?" + sharedAccessSignature);
+        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(typeManager.writeValueAsString(azureSecret));
+        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(typeManager.writeValueAsString(azureSecret));
+
+        var token = Map.of("accessKeyId", "AKIAY2XSTIMWG2HEKF77", "secretAccessKey", "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", "sessionToken", "");
+        expect(vault.resolveSecret(s3BucketName)).andReturn(typeManager.writeValueAsString(token));
+        expect(vault.resolveSecret(s3BucketName)).andReturn(typeManager.writeValueAsString(token));
         replay(vault);
         SchemaRegistry registry = new SchemaRegistryImpl();
         registry.register(new AzureBlobStoreSchema());
         registry.register(new S3BucketSchema());
-        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new NifiTransferEndpointConverter(registry, vault));
+        controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new NifiTransferEndpointConverter(registry, vault, typeManager));
     }
 
     @Test
@@ -389,7 +394,7 @@ public class NifiDataFlowControllerTest {
     }
 
     @Test
-    @Timeout(60)
+    @Timeout(10)
     @DisplayName("transfer from Azure Blob to S3")
     void transfer_fromAzureBlob_toS3() throws InterruptedException {
         String id = UUID.randomUUID().toString();
@@ -403,7 +408,7 @@ public class NifiDataFlowControllerTest {
                         .property("region", "us-east-1")
                         .property("bucketName", s3BucketName)
                         .property("objectName", "bike_very_new.jpg")
-                        .property("keyName", storageAccount + "-key1")
+                        .property("keyName", s3BucketName)
                         .build())
                 .build();
 
@@ -422,11 +427,77 @@ public class NifiDataFlowControllerTest {
     }
 
     @Test
-    @Timeout(60)
+    @Timeout(10)
     @DisplayName("transfer from S3 to Azure Blob")
     void transfer_fromS3_toAzureBlob() throws InterruptedException {
         String id = UUID.randomUUID().toString();
         DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createS3CatalogEntry()).build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataEntry(entry)
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type("AzureStorage")
+                        .property("account", storageAccount)
+                        .property("container", containerName)
+                        .property("blobname", "bike_very_new.jpg")
+                        .keyName(storageAccount + "-key1")
+                        .build())
+                .build();
+
+        //act
+        DataFlowInitiateResponse response = controller.initiateFlow(dataRequest);
+
+        //assert
+        assertEquals(ResponseStatus.OK, response.getStatus());
+
+
+        // will fail if new blob is not there after 10 seconds
+        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
+            Thread.sleep(500);
+        }
+        assertThat(listBlobs().stream().anyMatch(bi -> bi.getName().equals("bike_very_new.jpg"))).isTrue();
+    }
+
+    @Test
+    @Timeout(10)
+    @DisplayName("transfer from S3 to S3")
+    void transfer_fromS3_toS3() throws InterruptedException {
+        String id = UUID.randomUUID().toString();
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createS3CatalogEntry()).build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataEntry(entry)
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type("AmazonS3")
+                        .property("region", "us-east-1")
+                        .property("bucketName", s3BucketName)
+                        .property("objectName", "bike_very_new.jpg")
+                        .property("keyName", s3BucketName)
+                        .build())
+                .build();
+
+        //act
+        DataFlowInitiateResponse response = controller.initiateFlow(dataRequest);
+
+        //assert
+        assertEquals(ResponseStatus.OK, response.getStatus());
+
+
+        // will fail if new blob is not there after 10 seconds
+        while (listS3BucketContents().stream().noneMatch(blob -> blob.key().equals(id + ".complete"))) {
+            Thread.sleep(500);
+        }
+        assertThat(listS3BucketContents().stream().anyMatch(bi -> bi.key().equals("bike_very_new.jpg"))).isTrue();
+    }
+
+    @Test
+    @Timeout(10)
+    @DisplayName("transfer from Azure Blob to Azure blob")
+    void transfer_fromAzureBlob_toAzureBlob() throws InterruptedException {
+        String id = UUID.randomUUID().toString();
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -471,7 +542,7 @@ public class NifiDataFlowControllerTest {
                 .property("region", "us-east-1")
                 .property("bucketName", s3BucketName)
                 .property("objectName", blobName)
-                .property("keyName", storageAccount + "-key1")
+                .property("keyName", s3BucketName)
                 .build();
     }
 
