@@ -32,6 +32,8 @@ class DemoProtocolsTransferExtensionTest {
      * Perform a push stream flow using the loopback protocol.
      *
      * @param processManager the injected process manager
+     * @param destinationManager the injected destination manager
+     * @param monitor the injected runtime monitor
      */
     @Test
     void verifyPushStreamFlow(TransferProcessManager processManager, DestinationManager destinationManager, Monitor monitor) throws InterruptedException {
@@ -44,7 +46,6 @@ class DemoProtocolsTransferExtensionTest {
         });
 
         var dataEntry = DataEntry.Builder.newInstance().id("test123").build();
-
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
