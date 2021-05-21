@@ -27,6 +27,9 @@ dependencies {
     implementation("org.glassfish.jersey.inject:jersey-hk2:${jerseyVersion}")
     implementation("org.glassfish.jersey.containers:jersey-container-servlet:${jerseyVersion}")
 
+    implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
+    implementation("jakarta.websocket:jakarta.websocket-api:2.0.0")
+
 }
 
 

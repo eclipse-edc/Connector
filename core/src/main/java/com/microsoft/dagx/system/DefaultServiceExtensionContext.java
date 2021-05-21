@@ -47,6 +47,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         this.typeManager = typeManager;
         this.monitor = monitor;
         this.serviceLocator = serviceLocator;
+        // register as services
+        this.services.put(TypeManager.class, typeManager);
+        this.services.put(Monitor.class, monitor);
     }
 
     public void initialize() {

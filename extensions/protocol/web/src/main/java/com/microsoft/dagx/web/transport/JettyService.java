@@ -8,6 +8,7 @@ package com.microsoft.dagx.web.transport;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import jakarta.servlet.Servlet;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
@@ -20,11 +21,10 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.Source;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
-import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.security.KeyStore;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Provides HTTP(S) support using Jetty.
@@ -39,12 +39,10 @@ public class JettyService {
     private final Monitor monitor;
 
     private Server server;
-    private List<Handler> handlers = new ArrayList<>();
+    private Map<String, ServletContextHandler> handlers = new HashMap<>();
 
     public JettyService(JettyConfiguration configuration, Monitor monitor) {
-        this.configuration = configuration;
-        this.monitor = monitor;
-        System.setProperty(LOG_ANNOUNCE, "false");
+        this(configuration, null, monitor);
     }
 
     public JettyService(JettyConfiguration configuration, KeyStore keyStore, Monitor monitor) {
@@ -52,6 +50,9 @@ public class JettyService {
         this.keyStore = keyStore;
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
+        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+        handler.setContextPath("/");
+        handlers.put("/", handler);
     }
 
     public void start() {
@@ -61,7 +62,7 @@ public class JettyService {
             if (keyStore != null) {
                 server = new Server();
                 var storePassword = configuration.getSetting("keystore.password", "password");
-                var managerPassword = configuration.getSetting("keymanager.password", "password"); 
+                var managerPassword = configuration.getSetting("keymanager.password", "password");
 
                 SslContextFactory.Server contextFactory = new SslContextFactory.Server();
                 contextFactory.setKeyStore(keyStore);
@@ -84,7 +85,7 @@ public class JettyService {
 
             server.setErrorHandler(new JettyErrorHandler());
             ContextHandlerCollection contexts = new ContextHandlerCollection();
-            contexts.setHandlers(handlers.toArray(new Handler[0]));
+            contexts.setHandlers(handlers.values().toArray(new Handler[0]));
             server.setHandler(contexts);
 
             server.start();
@@ -105,18 +106,32 @@ public class JettyService {
         }
     }
 
-    public void registerServlet(String path, ServletContainer servletContainer) {
+    public void registerServlet(String contextPath, String path, Servlet servlet) {
         ServletHolder servletHolder = new ServletHolder(Source.EMBEDDED);
         servletHolder.setName("DA-GX");
-        servletHolder.setServlet(servletContainer);
+        servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
 
-        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        handler.setContextPath("/");
-
-        handlers.add(handler);
+        var handler = getOrCreate(contextPath);
 
         handler.getServletHandler().addServletWithMapping(servletHolder, path);
     }
+
+    public ServletContextHandler getHandler(String path) {
+        return handlers.get(path);
+    }
+
+    public void registerHandler(ServletContextHandler handler) {
+        handlers.put( handler.getContextPath(), handler);
+    }
+
+    private ServletContextHandler getOrCreate(String contextPath) {
+        return handlers.computeIfAbsent(contextPath, k -> {
+            ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+            handler.setContextPath(contextPath);
+            return handler;
+        });
+    }
+
 }
 

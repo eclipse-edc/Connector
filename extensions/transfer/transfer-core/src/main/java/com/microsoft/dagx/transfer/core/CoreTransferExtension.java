@@ -11,6 +11,7 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
+import com.microsoft.dagx.spi.transfer.TransferWaitStrategy;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
@@ -64,8 +65,10 @@ public class CoreTransferExtension implements ServiceExtension {
         provisionManager = new ProvisionManagerImpl(vault, typeManager, monitor);
         context.registerService(ProvisionManager.class, provisionManager);
 
+        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) :new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
+        
         processManager = TransferProcessManagerImpl.Builder.newInstance()
-                .waitStrategy(new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT))  // TODO make configurable
+                .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)
                 .provisionManager(provisionManager)

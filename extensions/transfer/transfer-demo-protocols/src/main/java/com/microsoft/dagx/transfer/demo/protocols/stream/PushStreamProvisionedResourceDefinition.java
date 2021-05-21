@@ -1,0 +1,73 @@
+package com.microsoft.dagx.transfer.demo.protocols.stream;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
+import com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols;
+
+import java.util.Objects;
+
+/**
+ * Defines a streaming destination to be provisioned.
+ */
+@JsonDeserialize(builder = PushStreamProvisionedResourceDefinition.Builder.class)
+@JsonTypeName("dagx:pushstreamprovisionedresource")
+public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDestinationResource {
+    private String endpointAddress;
+    private String destinationName;
+
+    public String getEndpointAddress() {
+        return endpointAddress;
+    }
+
+    public String getDestinationName() {
+        return destinationName;
+    }
+
+    @Override
+    public DataAddress createDataDestination() {
+        return DataAddress.Builder.newInstance()
+                .type(DemoProtocols.PUSH_STREAM)
+                .keyName("demo-temp-" + destinationName)
+                .property(DemoProtocols.ENDPOINT_ADDRESS, endpointAddress)
+                .property(DemoProtocols.DESTINATION_NAME, destinationName)
+                .build();
+    }
+
+    private PushStreamProvisionedResourceDefinition() {
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static class Builder extends ProvisionedResource.Builder<PushStreamProvisionedResourceDefinition, Builder> {
+
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder endpointAddress(String endpointAddress) {
+            provisionedResource.endpointAddress = endpointAddress;
+            return this;
+        }
+
+        public Builder destinationName(String destinationName) {
+            provisionedResource.destinationName = destinationName;
+            return this;
+        }
+
+        @Override
+        public void verify() {
+            Objects.requireNonNull(provisionedResource.endpointAddress, "endpointAddress");
+            Objects.requireNonNull(provisionedResource.destinationName, "destinationName");
+        }
+
+        private Builder() {
+            super(new PushStreamProvisionedResourceDefinition());
+        }
+    }
+
+}

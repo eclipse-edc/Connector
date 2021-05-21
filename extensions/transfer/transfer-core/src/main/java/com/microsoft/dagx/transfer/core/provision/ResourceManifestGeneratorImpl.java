@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Default implemnentation.
+ * Default implementation.
  */
 public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator {
     private List<ResourceDefinitionGenerator> clientGenerators = new ArrayList<>();

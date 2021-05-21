@@ -57,7 +57,7 @@ public class JerseyRestService implements WebService {
 
             // Register the Jersey container with Jetty
             ServletContainer servletContainer = new ServletContainer(resourceConfig);
-            jettyService.registerServlet(API_PATH, servletContainer);
+            jettyService.registerServlet("/", API_PATH, servletContainer);
 
             monitor.info("Registered Web API context at: " + API_PATH);
         } catch (Exception e) {

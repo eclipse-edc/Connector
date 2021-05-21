@@ -36,6 +36,8 @@ public class WebServiceExtension implements ServiceExtension {
         TypeManager typeManager = context.getTypeManager();
 
         jettyService = new JettyService(context::getSetting, monitor);
+        context.registerService(JettyService.class, jettyService);
+
         jerseyRestService = new JerseyRestService(jettyService, typeManager, monitor);
 
         context.registerService(WebService.class, jerseyRestService);
