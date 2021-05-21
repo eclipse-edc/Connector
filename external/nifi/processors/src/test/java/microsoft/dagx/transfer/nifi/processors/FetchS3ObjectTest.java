@@ -146,6 +146,34 @@ class FetchS3ObjectTest extends AbstractS3Test {
     }
 
     @Test
+    @DisplayName("When a set of files is specified, the processor should fetch those")
+    public void fetchFile_multiple_someDontExist_shouldEnumerate() throws IOException {
+        File contents1 = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);
+        putTestFile("hello1.txt", contents1);
+
+
+        final TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
+
+        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.BUCKET, BUCKET_NAME);
+        runner.setProperty(Properties.OBJECT_KEYS, "[\"hello1.txt\",\"notexist.txt\"]");
+        runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
+        runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
+
+
+        final Map<String, String> attrs = new HashMap<>();
+        runner.enqueue(new byte[0], attrs);
+
+        runner.run(1);
+
+        final List<MockFlowFile> successfulFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
+        assertThat(successfulFlowFiles).hasSize(1);
+
+        final List<MockFlowFile> failedFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_FAILURE);
+        assertThat(failedFlowFiles).hasSize(1);
+    }
+
+    @Test
     @DisplayName("When a no list of files is specified, the processor should enumerate")
     public void fetchFile_none_shouldEnumerate() throws IOException {
         File contents1 = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);

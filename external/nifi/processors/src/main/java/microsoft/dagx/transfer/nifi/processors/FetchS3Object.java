@@ -45,7 +45,7 @@ import java.util.stream.Collectors;
 @SeeAlso({PutS3Object.class})
 @InputRequirement(InputRequirement.Requirement.INPUT_REQUIRED)
 @Tags({"Amazon", "S3", "AWS", "Get", "Fetch"})
-@CapabilityDescription("Retrieves the contents of an S3 Object and writes it to the content of a FlowFile")
+@CapabilityDescription("Retrieves the contents of one or many S3 Objects and produces one FlowFile per object.")
 @WritesAttributes({
         @WritesAttribute(attribute = "s3.bucket", description = "The name of the S3 bucket"),
         @WritesAttribute(attribute = "path", description = "The path of the file"),
@@ -176,7 +176,7 @@ public class FetchS3Object extends AbstractProcessor {
 
             } catch (IOException | AmazonClientException | FlowFileAccessException ioe) {
                 getLogger().error("Failed to retrieve S3 Object for {}; routing to failure", ff, ioe);
-                flowFile = session.penalize(ff);
+                ff = session.penalize(ff);
                 session.transfer(ff, Properties.REL_FAILURE);
                 continue;
             }
