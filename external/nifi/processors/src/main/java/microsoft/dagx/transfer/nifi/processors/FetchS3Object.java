@@ -16,6 +16,11 @@ import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
+import com.amazonaws.util.StringUtils;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.nifi.annotation.behavior.InputRequirement;
 import org.apache.nifi.annotation.behavior.SupportsBatching;
 import org.apache.nifi.annotation.behavior.WritesAttribute;
@@ -33,6 +38,7 @@ import org.apache.nifi.processor.exception.ProcessException;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 
 @SupportsBatching
@@ -68,7 +74,6 @@ public class FetchS3Object extends AbstractProcessor {
         final List<PropertyDescriptor> descriptors = new ArrayList<>(Properties.FetchS3.Properties);
 
         this.descriptors = Collections.unmodifiableList(descriptors);
-
         relationships = Properties.FetchS3.Relationships;
     }
 
@@ -91,7 +96,7 @@ public class FetchS3Object extends AbstractProcessor {
         final long startNanos = System.nanoTime();
 
         final String bucket = context.getProperty(Properties.BUCKET).evaluateAttributeExpressions(flowFile).getValue();
-        final String key = context.getProperty(Properties.OBJECT_KEY).evaluateAttributeExpressions(flowFile).getValue();
+        final String objectKeyJsonArray = context.getProperty(Properties.OBJECT_KEYS).evaluateAttributeExpressions(flowFile).getValue();
         final String region = context.getProperty(Properties.REGION).evaluateAttributeExpressions(flowFile).getValue();
         final String accessKeyId = context.getProperty(Properties.ACCESS_KEY_ID).evaluateAttributeExpressions(flowFile).getValue();
         final String secretKey = context.getProperty(Properties.SECRET_ACCESS_KEY).evaluateAttributeExpressions(flowFile).getValue();
@@ -101,72 +106,91 @@ public class FetchS3Object extends AbstractProcessor {
                 ? new BasicSessionCredentials(accessKeyId, secretKey, sessionToken)
                 : new BasicAWSCredentials(accessKeyId, secretKey);
 
+
         AmazonS3 s3Client = AmazonS3ClientBuilder.standard()
                 .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .withRegion(region)
                 .build();
 
-        GetObjectRequest request = new GetObjectRequest(bucket, key);
-
-        final Map<String, String> attributes = new HashMap<>();
-
-        try (final S3Object s3Object = s3Client.getObject(request)) {
-            if (s3Object == null) {
-                throw new IOException("AWS refused to execute this request.");
+        List<String> names;
+        if (StringUtils.isNullOrEmpty(objectKeyJsonArray)) {
+            //fetch all
+            names = s3Client.listObjects(bucket).getObjectSummaries().stream().map(S3ObjectSummary::getKey).collect(Collectors.toList());
+        } else {
+            try {
+                names = new ObjectMapper().readValue(objectKeyJsonArray, new TypeReference<>() {
+                });
+            } catch (JsonProcessingException e) {
+                getLogger().info("Could not interpret file names as JSON list - interpreting as single file name.");
+                names = Collections.singletonList(objectKeyJsonArray);
             }
+        }
 
-            session.importFrom(s3Object.getObjectContent(), flowFile);
-            attributes.put("s3.bucket", bucket);
 
-            ObjectMetadata metadata = s3Object.getObjectMetadata();
+        for (String objectKey : names) {
 
-            if (metadata.getContentDisposition() != null) {
-                final String contentDisposition = metadata.getContentDisposition();
+            var ff = session.clone(flowFile);
+            GetObjectRequest request = new GetObjectRequest(bucket, objectKey);
+            final Map<String, String> attributes = new HashMap<>();
 
-                if (contentDisposition.equals("inline") || contentDisposition.startsWith("attachment; filename=")) {
-                    setFilePathAttributes(attributes, key);
-                } else {
-                    setFilePathAttributes(attributes, contentDisposition);
+            try (final S3Object s3Object = s3Client.getObject(request)) {
+                if (s3Object == null) {
+                    throw new IOException("AWS refused to execute this request.");
                 }
-            }
-            if (metadata.getContentMD5() != null) {
-                attributes.put("hash.value", metadata.getContentMD5());
-                attributes.put("hash.algorithm", "MD5");
-            }
-            if (metadata.getContentType() != null) {
-                attributes.put(CoreAttributes.MIME_TYPE.key(), metadata.getContentType());
-            }
-            if (metadata.getETag() != null) {
-                attributes.put("s3.etag", metadata.getETag());
-            }
-            if (metadata.getExpirationTime() != null) {
-                attributes.put("s3.expirationTime", String.valueOf(metadata.getExpirationTime().getTime()));
-            }
-            if (metadata.getExpirationTimeRuleId() != null) {
-                attributes.put("s3.expirationTimeRuleId", metadata.getExpirationTimeRuleId());
-            }
-            if (metadata.getUserMetadata() != null) {
-                attributes.putAll(metadata.getUserMetadata());
-            }
-            if (metadata.getVersionId() != null) {
-                attributes.put("s3.version", metadata.getVersionId());
+                session.importFrom(s3Object.getObjectContent(), ff);
+                attributes.put("s3.bucket", bucket);
+
+                ObjectMetadata metadata = s3Object.getObjectMetadata();
+
+                if (metadata.getContentDisposition() != null) {
+                    final String contentDisposition = metadata.getContentDisposition();
+
+                    if (contentDisposition.equals("inline") || contentDisposition.startsWith("attachment; filename=")) {
+                        setFilePathAttributes(attributes, objectKey);
+                    } else {
+                        setFilePathAttributes(attributes, contentDisposition);
+                    }
+                }
+                if (metadata.getContentMD5() != null) {
+                    attributes.put("hash.value", metadata.getContentMD5());
+                    attributes.put("hash.algorithm", "MD5");
+                }
+                if (metadata.getContentType() != null) {
+                    attributes.put(CoreAttributes.MIME_TYPE.key(), metadata.getContentType());
+                }
+                if (metadata.getETag() != null) {
+                    attributes.put("s3.etag", metadata.getETag());
+                }
+                if (metadata.getExpirationTime() != null) {
+                    attributes.put("s3.expirationTime", String.valueOf(metadata.getExpirationTime().getTime()));
+                }
+                if (metadata.getExpirationTimeRuleId() != null) {
+                    attributes.put("s3.expirationTimeRuleId", metadata.getExpirationTimeRuleId());
+                }
+                if (metadata.getUserMetadata() != null) {
+                    attributes.putAll(metadata.getUserMetadata());
+                }
+                if (metadata.getVersionId() != null) {
+                    attributes.put("s3.version", metadata.getVersionId());
+                }
+
+            } catch (IOException | AmazonClientException | FlowFileAccessException ioe) {
+                getLogger().error("Failed to retrieve S3 Object for {}; routing to failure", ff, ioe);
+                flowFile = session.penalize(ff);
+                session.transfer(ff, Properties.REL_FAILURE);
+                continue;
             }
 
-        } catch (IOException | AmazonClientException | FlowFileAccessException ioe) {
-            getLogger().error("Failed to retrieve S3 Object for {}; routing to failure", flowFile, ioe);
-            flowFile = session.penalize(flowFile);
-            session.transfer(flowFile, Properties.REL_FAILURE);
-            return;
+            if (!attributes.isEmpty()) {
+                ff = session.putAllAttributes(ff, attributes);
+            }
+
+            session.transfer(ff, Properties.REL_SUCCESS);
+            final long transferMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+            getLogger().info("Successfully retrieved S3 Object for {} in {} millis; routing to success", ff, transferMillis);
+            session.getProvenanceReporter().fetch(ff, "http://" + bucket + ".amazonaws.com/" + objectKey, transferMillis);
         }
-
-        if (!attributes.isEmpty()) {
-            flowFile = session.putAllAttributes(flowFile, attributes);
-        }
-
-        session.transfer(flowFile, Properties.REL_SUCCESS);
-        final long transferMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
-        getLogger().info("Successfully retrieved S3 Object for {} in {} millis; routing to success", flowFile, transferMillis);
-        session.getProvenanceReporter().fetch(flowFile, "http://" + bucket + ".amazonaws.com/" + key, transferMillis);
+        session.remove(flowFile);
     }
 
     protected void setFilePathAttributes(Map<String, String> attributes, String filePathName) {

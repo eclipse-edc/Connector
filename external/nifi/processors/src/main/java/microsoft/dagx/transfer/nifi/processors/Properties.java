@@ -34,10 +34,10 @@ class Properties {
             .required(true)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
-    public static final PropertyDescriptor OBJECT_KEY = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor OBJECT_KEYS = new PropertyDescriptor.Builder()
             .name("Object Key")
-            .description("The name of the object that is being put into the bucket. I.e. the filename, if you will.")
-            .required(true)
+            .description("A JSON-array of file names of objects that are to be fetched.")
+            .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .build();
@@ -131,18 +131,18 @@ class Properties {
 
     public static class FetchS3 {
 
-        public static final Set<Relationship> Relationships = new HashSet<Relationship>() {{
+        public static final Set<Relationship> Relationships = new HashSet<>() {{
             add(REL_SUCCESS);
             add(REL_FAILURE);
         }};
-        public static List<PropertyDescriptor> Properties = Arrays.asList(ACCESS_KEY_ID, SECRET_ACCESS_KEY, REGION, SESSION_TOKEN, OBJECT_KEY, BUCKET, TIMEOUT);
+        public static List<PropertyDescriptor> Properties = Arrays.asList(ACCESS_KEY_ID, SECRET_ACCESS_KEY, REGION, SESSION_TOKEN, OBJECT_KEYS, BUCKET, TIMEOUT);
     }
 
     public static class PutS3 {
-        public static final Set<Relationship> Relationships = new HashSet<Relationship>() {{
+        public static final Set<Relationship> Relationships = new HashSet<>() {{
             add(REL_SUCCESS);
             add(REL_FAILURE);
         }};
-        public static List<PropertyDescriptor> Properties = Arrays.asList(ACCESS_KEY_ID, SECRET_ACCESS_KEY, REGION, SESSION_TOKEN, OBJECT_KEY, BUCKET, TIMEOUT);
+        public static List<PropertyDescriptor> Properties = Arrays.asList(ACCESS_KEY_ID, SECRET_ACCESS_KEY, REGION, SESSION_TOKEN, OBJECT_KEYS, BUCKET, TIMEOUT);
     }
 }

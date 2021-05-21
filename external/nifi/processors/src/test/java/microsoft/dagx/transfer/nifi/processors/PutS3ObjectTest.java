@@ -37,7 +37,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
 
         runner.setProperty(Properties.REGION, REGION);
         runner.setProperty(Properties.BUCKET, BUCKET_NAME);
-        runner.setProperty(Properties.OBJECT_KEY, key);
+        runner.setProperty(Properties.OBJECT_KEYS, key);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
 
@@ -61,7 +61,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
 
         runner.setProperty(Properties.REGION, REGION);
         runner.setProperty(Properties.BUCKET, BUCKET_NAME);
-        runner.setProperty(Properties.OBJECT_KEY, key);
+        runner.setProperty(Properties.OBJECT_KEYS, key);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
 
