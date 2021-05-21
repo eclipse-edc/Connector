@@ -36,14 +36,9 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private DataAddress dataAddress;
 
-    private String destinationType;
-
     private boolean managedResources = true;
 
     private Map<String, String> dataAddressProperties = new HashMap<>();
-
-    private DataRequest() {
-    }
 
     /**
      * The unique request id. Request ids are provided by the originating client and must be unique.
@@ -57,10 +52,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
      */
     public String getProcessId() {
         return processId;
-    }
-
-    void setProcessId(String processId) {
-        this.processId = processId;
     }
 
     /**
@@ -126,7 +117,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .connectorId(connectorId)
                 .dataEntry(dataEntry)    // shallow copy, may need to revisit
                 .dataAddress(dataAddress)
-                .destinationType(destinationType)
                 .managedResources(managedResources)
                 .dataAddressProperties(dataAddressProperties)
                 .build();

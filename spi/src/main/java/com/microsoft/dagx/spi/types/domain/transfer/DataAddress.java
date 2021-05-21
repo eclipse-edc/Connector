@@ -32,6 +32,7 @@ public class DataAddress {
     }
 
     public void setType(String type) {
+        Objects.requireNonNull(type);
         properties.replace(TYPE, type);
     }
 
@@ -48,6 +49,7 @@ public class DataAddress {
     }
 
     public void setKeyName(String keyName) {
+        Objects.requireNonNull(keyName);
         properties.replace(KEYNAME, keyName);
     }
 
@@ -70,6 +72,7 @@ public class DataAddress {
         }
 
         public Builder property(String key, String value) {
+            Objects.requireNonNull(value);
             address.properties.put(key, value);
             return this;
         }

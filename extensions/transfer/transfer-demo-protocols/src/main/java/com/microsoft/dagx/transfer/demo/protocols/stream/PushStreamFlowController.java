@@ -6,7 +6,7 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
+import com.microsoft.dagx.transfer.demo.protocols.common.ProtocolsSecretToken;
 import com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.PublishMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.UnSubscribeMessage;
@@ -54,7 +54,7 @@ public class PushStreamFlowController implements DataFlowController {
         var destinationSecretName = dataRequest.getDataDestination().getKeyName();
         var accessToken = vault.resolveSecret(destinationSecretName);
         try {
-            var destinationToken = objectMapper.readValue(accessToken, DestinationSecretToken.class);
+            var destinationToken = objectMapper.readValue(accessToken, ProtocolsSecretToken.class);
             var container = ContainerProvider.getWebSocketContainer();
 
             var endpoint = new PubSubClientEndpoint(objectMapper, monitor, m -> {

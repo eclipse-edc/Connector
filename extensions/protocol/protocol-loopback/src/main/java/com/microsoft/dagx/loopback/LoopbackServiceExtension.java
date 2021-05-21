@@ -19,8 +19,7 @@ public class LoopbackServiceExtension implements ServiceExtension {
         var messageDispatcher = context.getService(RemoteMessageDispatcherRegistry.class);
         var processManager = context.getService(TransferProcessManager.class);
 
-        var vault = context.getService(Vault.class);
-        messageDispatcher.register(new LoopbackDispatcher(processManager, vault, monitor));
+        messageDispatcher.register(new LoopbackDispatcher(processManager, monitor));
 
         monitor.info("Initialized Loopback extension");
     }

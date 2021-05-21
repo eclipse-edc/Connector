@@ -29,6 +29,11 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
     }
 
     @Override
+    public String getResourceName() {
+        return getDestinationName();
+    }
+
+    @Override
     public DataAddress createDataDestination() {
         return DataAddress.Builder.newInstance()
                 .type(DemoProtocols.PUSH_STREAM)

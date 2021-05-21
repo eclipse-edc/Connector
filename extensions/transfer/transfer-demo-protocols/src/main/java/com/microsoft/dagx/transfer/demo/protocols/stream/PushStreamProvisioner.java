@@ -3,9 +3,10 @@ package com.microsoft.dagx.transfer.demo.protocols.stream;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
+import com.microsoft.dagx.spi.types.domain.transfer.SecretToken;
+import com.microsoft.dagx.transfer.demo.protocols.common.ProtocolsSecretToken;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.DestinationManager;
 
 /**
@@ -46,7 +47,7 @@ public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefi
                     .endpointAddress(resourceDefinition.getEndpointAddress())
                     .destinationName(destination.getDestinationName())
                     .build();
-            DestinationSecretToken secretToken = new DestinationSecretToken(destination.getAccessToken());
+            SecretToken secretToken = new ProtocolsSecretToken(destination.getAccessToken());
 
             context.callback(provisionedResource, secretToken);
         });
