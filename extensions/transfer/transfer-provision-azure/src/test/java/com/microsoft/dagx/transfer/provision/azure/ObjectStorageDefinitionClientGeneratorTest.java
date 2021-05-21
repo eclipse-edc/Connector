@@ -56,7 +56,6 @@ class ObjectStorageDefinitionClientGeneratorTest {
     @Test
     void generate_containerIsNull() {
         DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
-                .property(AzureBlobStoreSchema.CONTAINER_NAME, null)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
         var entry = DataEntry.Builder.newInstance().catalog(GenericDataCatalog.Builder.newInstance().build())
