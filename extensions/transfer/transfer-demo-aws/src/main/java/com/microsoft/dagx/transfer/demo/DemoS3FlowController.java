@@ -15,7 +15,7 @@ import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
+import com.microsoft.dagx.transfer.provision.aws.AwsTemporarySecretToken;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.jetbrains.annotations.NotNull;
@@ -33,12 +33,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.Map;
 import java.util.Objects;
 
-public class DemoFlowController implements DataFlowController {
+public class DemoS3FlowController implements DataFlowController {
     private final Vault vault;
     private final Monitor monitor;
     private final RetryPolicy<Object> retryPolicy;
 
-    public DemoFlowController(Vault vault, Monitor monitor) {
+    public DemoS3FlowController(Vault vault, Monitor monitor) {
         this.vault = vault;
         this.monitor = monitor;
         retryPolicy = new RetryPolicy<>()
@@ -48,7 +48,7 @@ public class DemoFlowController implements DataFlowController {
 
     @Override
     public boolean canHandle(DataRequest dataRequest) {
-        return true;
+        return S3BucketSchema.TYPE.equals(dataRequest.getDestinationType());
     }
 
     @Override
@@ -66,7 +66,7 @@ public class DemoFlowController implements DataFlowController {
     }
 
     @NotNull
-    private DataFlowInitiateResponse copyToBucket(String bucketName, String region, DestinationSecretToken dt) {
+    private DataFlowInitiateResponse copyToBucket(String bucketName, String region, AwsTemporarySecretToken dt) {
 
 
         try (S3Client s3 = S3Client.builder()
@@ -93,10 +93,10 @@ public class DemoFlowController implements DataFlowController {
         }
     }
 
-    private DestinationSecretToken convertSecret(String awsSecret) {
+    private AwsTemporarySecretToken convertSecret(String awsSecret) {
         try {
             var mapper = new ObjectMapper();
-            return mapper.readValue(awsSecret, DestinationSecretToken.class);
+            return mapper.readValue(awsSecret, AwsTemporarySecretToken.class);
         } catch (JsonProcessingException e) {
             e.printStackTrace();
         }

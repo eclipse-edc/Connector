@@ -45,3 +45,4 @@ distributions/azure/azure.properties
 .terraform*
 
 .DS_Store
+**/secrets

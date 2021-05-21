@@ -9,6 +9,7 @@ include(":spi")
 include(":core")
 
 include(":distributions:demo")
+include(":distributions:demo-e2e")
 include(":distributions:azure")
 include(":distributions:junit")
 

@@ -28,6 +28,7 @@ dependencies {
     implementation(project(":extensions:transfer:transfer-core"))
     implementation(project(":extensions:transfer:transfer-store-memory"))
     implementation(project(":extensions:transfer:transfer-provision-aws"))
+    implementation(project(":extensions:transfer:transfer-provision-azure"))
     implementation(project(":extensions:transfer:transfer-demo-aws"))
     implementation(project(":extensions:ids"))
     implementation(project(":extensions:demo:demo-nifi"))

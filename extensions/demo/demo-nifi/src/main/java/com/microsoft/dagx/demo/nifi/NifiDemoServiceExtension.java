@@ -6,6 +6,7 @@
 package com.microsoft.dagx.demo.nifi;
 
 import com.microsoft.dagx.policy.model.*;
+import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.policy.PolicyRegistry;
@@ -51,11 +52,18 @@ public class NifiDemoServiceExtension implements ServiceExtension {
     private void saveDataEntries() {
         MetadataStore metadataStore = context.getService(MetadataStore.class);
 
-        GenericDataCatalog extensions = GenericDataCatalog.Builder.newInstance().property("processGroup", "ee3eb39c-3c08-422a-a5e0-797d33031070").build();
-        DataEntry<DataCatalog> entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).catalog(extensions).build();
+        GenericDataCatalog sourceFileCatalog = GenericDataCatalog.Builder.newInstance()
+                .property(AzureBlobStoreSchema.ACCOUNT_NAME, "dagxblobstoreitest")
+                .property(AzureBlobStoreSchema.CONTAINER_NAME, "nifitest")
+                .property(AzureBlobStoreSchema.BLOB_NAME, "lili.jpg")
+                .property("keyName", "lili.jpg")
+                .property("type", AzureBlobStoreSchema.TYPE)
+                .build();
+
+        DataEntry<DataCatalog> entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).catalog(sourceFileCatalog).build();
         metadataStore.save(entry1);
 
-        DataEntry<DataCatalog> entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalog(extensions).build();
+        DataEntry<DataCatalog> entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalog(sourceFileCatalog).build();
         metadataStore.save(entry2);
     }
 

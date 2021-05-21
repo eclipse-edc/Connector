@@ -7,9 +7,9 @@ package com.microsoft.dagx.transfer.provision.aws.s3;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
+import com.microsoft.dagx.spi.types.domain.transfer.SecretToken;
 import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
 import net.jodah.failsafe.RetryPolicy;
 import org.easymock.EasyMock;
@@ -82,7 +82,7 @@ class S3BucketProvisionerTest {
             }
 
             @Override
-            public void callback(ProvisionedDataDestinationResource resource, @Nullable DestinationSecretToken secretToken) {
+            public void callback(ProvisionedDataDestinationResource resource, @Nullable SecretToken secretToken) {
                 latch.countDown();
             }
         });

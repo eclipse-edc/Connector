@@ -7,9 +7,9 @@ package com.microsoft.dagx.transfer.core.provision;
 
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
+import com.microsoft.dagx.spi.types.domain.transfer.SecretToken;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.BiConsumer;
@@ -19,13 +19,13 @@ import java.util.function.Consumer;
  * Provision context backed by a {@link TransferProcessStore}.
  */
 public class ProvisionContextImpl implements ProvisionContext {
-    private TransferProcessStore processStore;
     private final Consumer<ProvisionedResource> resourceCallback;
-    private final BiConsumer<ProvisionedDataDestinationResource, DestinationSecretToken> destinationCallback;
+    private final BiConsumer<ProvisionedDataDestinationResource, SecretToken> destinationCallback;
+    private final TransferProcessStore processStore;
 
     public ProvisionContextImpl(TransferProcessStore processStore,
                                 Consumer<ProvisionedResource> resourceCallback,
-                                BiConsumer<ProvisionedDataDestinationResource, DestinationSecretToken> destinationCallback) {
+                                BiConsumer<ProvisionedDataDestinationResource, SecretToken> destinationCallback) {
         this.processStore = processStore;
         this.resourceCallback = resourceCallback;
         this.destinationCallback = destinationCallback;
@@ -37,7 +37,7 @@ public class ProvisionContextImpl implements ProvisionContext {
     }
 
     @Override
-    public void callback(ProvisionedDataDestinationResource resource, DestinationSecretToken secretToken) {
+    public void callback(ProvisionedDataDestinationResource resource, SecretToken secretToken) {
         destinationCallback.accept(resource, secretToken);
     }
 

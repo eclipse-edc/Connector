@@ -7,7 +7,7 @@ package com.microsoft.dagx.transfer.provision.aws.s3;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
+import com.microsoft.dagx.transfer.provision.aws.AwsTemporarySecretToken;
 import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
@@ -135,7 +135,7 @@ class S3ProvisionPipeline {
                     .bucketName(resourceDefinition.getBucketName())
                     .transferProcessId(transferProcessId).build();
 
-            var secretToken = new DestinationSecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());
+            var secretToken = new AwsTemporarySecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());
 
             context.callback(resource, secretToken);
         } else if (exception != null) {

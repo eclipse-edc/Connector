@@ -33,10 +33,11 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private DataAddress dataAddress;
 
-    private String destinationType;
-
     private boolean managedResources = true;
 
+
+    private DataRequest() {
+    }
 
     /**
      * The unique request id. Request ids are provided by the originating client and must be unique.
@@ -52,6 +53,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return processId;
     }
 
+    void setProcessId(String processId) {
+        this.processId = processId;
+    }
+
     /**
      * The protocol-specific address of the provider connector.
      */
@@ -62,6 +67,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     /**
      * The protocol over which the data request is sent to the provider connector.
      */
+    @Override
     public String getProtocol() {
         return protocol;
     }
@@ -78,7 +84,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     public String getDestinationType() {
-        return destinationType;
+        return dataAddress != null ? dataAddress.getType() : null;
     }
 
     /**
@@ -92,13 +98,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return managedResources;
     }
 
-    void setProcessId(String processId) {
-        this.processId = processId;
-    }
-
-    private DataRequest() {
-    }
-
     public void updateDestination(DataAddress dataAddress) {
         this.dataAddress = dataAddress;
     }
@@ -106,6 +105,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataRequest request;
+
+        private Builder() {
+            request = new DataRequest();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -143,7 +146,12 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         }
 
         public Builder destinationType(String type) {
-            request.destinationType = type;
+            if (request.dataAddress == null) {
+                request.dataAddress = DataAddress.Builder.newInstance()
+                        .type(type).build();
+            } else {
+                request.dataAddress.setType(type);
+            }
             return this;
         }
 
@@ -157,12 +165,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        private Builder() {
-            request = new DataRequest();
-        }
-
         public DataRequest build() {
-            if (request.dataAddress == null && request.destinationType == null) {
+            if (request.dataAddress == null && request.getDestinationType() == null) {
                 throw new IllegalArgumentException("A data destination or type must be specified");
             }
             return request;

@@ -6,10 +6,17 @@
 package com.microsoft.dagx.transfer.provision.azure;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
+import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.types.TypeManager;
+import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApi;
+import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApiImpl;
+import net.jodah.failsafe.RetryPolicy;
+
+import java.util.Set;
 
 /**
  * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by Azure services.
@@ -19,12 +26,29 @@ public class AzureProvisionExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+
+        monitor = context.getMonitor();
+        var provisionManager = context.getService(ProvisionManager.class);
+
+        context.registerService(BlobStoreApi.class, new BlobStoreApiImpl(context.getService(Vault.class)));
+
+        //noinspection unchecked
+        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
+        provisionManager.register(new ObjectStorageProvisioner(retryPolicy, monitor, context.getService(BlobStoreApi.class)));
+
+        // register the generator
+        var manifestGenerator = context.getService(ResourceManifestGenerator.class);
+        manifestGenerator.registerClientGenerator(new ObjectStorageDefinitionClientGenerator());
+
+
         registerTypes(context.getTypeManager());
 
-        var provisionManager = context.getService(ProvisionManager.class);
-        provisionManager.register(new ObjectStorageProvisioner());
-        monitor = context.getMonitor();
         monitor.info("Initialized Azure Provision extension");
+    }
+
+    @Override
+    public Set<String> requires() {
+        return Set.of("dagx:retry-policy");
     }
 
     @Override
@@ -38,7 +62,7 @@ public class AzureProvisionExtension implements ServiceExtension {
     }
 
     private void registerTypes(TypeManager typeManager) {
-        typeManager.registerTypes(ObjectContainerProvisionedResource.class);
+        typeManager.registerTypes(ObjectContainerProvisionedResource.class, ObjectStorageResourceDefinition.class, AzureSasToken.class);
     }
 
 }

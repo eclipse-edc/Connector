@@ -26,7 +26,7 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 import java.util.Set;
 
 /**
- * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by Azure services.
+ * Provides data transfer {@link com.microsoft.dagx.spi.transfer.provision.Provisioner}s backed by AWS services.
  */
 public class AwsProvisionExtension implements ServiceExtension {
     @DagxSetting
@@ -100,7 +100,7 @@ public class AwsProvisionExtension implements ServiceExtension {
     }
 
     private void registerTypes(TypeManager typeManager) {
-        typeManager.registerTypes(S3BucketProvisionedResource.class, S3BucketResourceDefinition.class);
+        typeManager.registerTypes(S3BucketProvisionedResource.class, S3BucketResourceDefinition.class, AwsTemporarySecretToken.class);
     }
 
 

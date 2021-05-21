@@ -22,11 +22,11 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * Represents a data transfer process.
- *
+ * <p>
  * A data transfer process exists on both the client and provider connector; it is a representation of the data sharing transaction from the perspective of each endpoint. The data
  * transfer process is modeled as a "loosely" coordinated state machine on each connector. The state transitions are symmetric on the client and provider with the exception that
  * the client process has two additional states for request/request ack.
- *
+ * <p>
  * The client transitions are:
  *
  * </pre>
@@ -41,8 +41,8 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#DEPROVISIONED} ->
  * {@link TransferProcessStates#ENDED} ->
  * </pre>
- *
- *
+ * <p>
+ * <p>
  * The provider transitions are:
  *
  * </pre>
@@ -60,27 +60,18 @@ import static java.util.stream.Collectors.toSet;
 @JsonDeserialize(builder = TransferProcess.Builder.class)
 public class TransferProcess {
 
-    public enum Type {
-        CLIENT, PROVIDER
-    }
-
     private String id;
-
     private Type type = Type.CLIENT;
-
     private int state;
-
     private int stateCount = TransferProcessStates.UNSAVED.code();
-
     private long stateTimestamp;
-
     private String errorDetail;
-
     private DataRequest dataRequest;
-
     private ResourceManifest resourceManifest;
-
     private ProvisionedResourceSet provisionedResourceSet;
+
+    private TransferProcess() {
+    }
 
     public String getId() {
         return id;
@@ -125,12 +116,12 @@ public class TransferProcess {
     public void transitionProvisioning(ResourceManifest manifest) {
         transition(TransferProcessStates.PROVISIONING, TransferProcessStates.INITIAL, TransferProcessStates.PROVISIONING);
         resourceManifest = manifest;
-        resourceManifest.setTransferProcessId(this.id);
+        resourceManifest.setTransferProcessId(id);
     }
 
     public void addProvisionedResource(ProvisionedResource resource) {
         if (provisionedResourceSet == null) {
-            provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().transferProcessId(this.id).build();
+            provisionedResourceSet = ProvisionedResourceSet.Builder.newInstance().transferProcessId(id).build();
         }
         provisionedResourceSet.addResource(resource);
     }
@@ -155,6 +146,7 @@ public class TransferProcess {
             throw new IllegalStateException("Provider processes have no REQUESTED state");
         }
         transition(TransferProcessStates.REQUESTED, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
+
     }
 
     public void transitionRequestAck() {
@@ -191,10 +183,10 @@ public class TransferProcess {
     }
 
     public void transitionError(@Nullable String errorDetail) {
-        this.state = TransferProcessStates.ERROR.code();
+        state = TransferProcessStates.ERROR.code();
         this.errorDetail = errorDetail;
-        this.stateCount = 1;
-        this.stateTimestamp = Instant.now().toEpochMilli();
+        stateCount = 1;
+        stateTimestamp = Instant.now().toEpochMilli();
     }
 
 
@@ -210,7 +202,7 @@ public class TransferProcess {
     }
 
     public Builder toBuilder() {
-        return new Builder(this.copy());
+        return new Builder(copy());
     }
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
@@ -222,13 +214,14 @@ public class TransferProcess {
         stateTimestamp = Instant.now().toEpochMilli();
     }
 
-    private TransferProcess() {
-    }
-
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         TransferProcess that = (TransferProcess) o;
         return id.equals(that.id);
     }
@@ -238,10 +231,18 @@ public class TransferProcess {
         return Objects.hash(id);
     }
 
+    public enum Type {
+        CLIENT, PROVIDER
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
         private final TransferProcess process;
+
+        private Builder(TransferProcess process) {
+            this.process = process;
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -310,10 +311,6 @@ public class TransferProcess {
                 process.dataRequest.setProcessId(process.id);
             }
             return process;
-        }
-
-        private Builder(TransferProcess process) {
-            this.process = process;
         }
 
     }

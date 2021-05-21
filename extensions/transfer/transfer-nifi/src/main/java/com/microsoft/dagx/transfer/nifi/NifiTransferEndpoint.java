@@ -24,7 +24,6 @@ public class NifiTransferEndpoint implements Polymorphic {
         properties = new HashMap<>();
     }
 
-
     public String getType() {
         return type;
     }
@@ -48,6 +47,7 @@ public class NifiTransferEndpoint implements Polymorphic {
         public static NifiTransferEndpointBuilder newInstance() {
             return new NifiTransferEndpointBuilder();
         }
+
 
         public NifiTransferEndpointBuilder type(String type) {
             this.type = type;

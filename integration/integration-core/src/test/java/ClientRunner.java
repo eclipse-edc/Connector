@@ -5,6 +5,7 @@
 
 import com.microsoft.dagx.junit.DagxExtension;
 import com.microsoft.dagx.schema.aws.S3BucketSchema;
+import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.iam.IdentityService;
 import com.microsoft.dagx.spi.iam.TokenResult;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
@@ -12,6 +13,7 @@ import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.QueryRequest;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
@@ -41,7 +43,8 @@ public class ClientRunner {
     private CountDownLatch latch;
 
     @Test
-    void processClientRequest(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager) throws Exception {
+    @Disabled
+    void processClientRequest_toAws(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager) throws Exception {
 
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
@@ -55,16 +58,45 @@ public class ClientRunner {
         var artifacts = future.get();
         for (String artifact : artifacts) {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
-            var usOrEuRequest = createRequest("us-eu-request", DataEntry.Builder.newInstance().id(artifact).build());
+            var usOrEuRequest = createRequestAws("us-eu-request", DataEntry.Builder.newInstance().id(artifact).build());
 
             processManager.initiateClientRequest(usOrEuRequest);
         }
 
         // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
-        var usRequest = createRequest("us-request", EU_ARTIFACT);
+        var usRequest = createRequestAws("us-request", EU_ARTIFACT);
 
         processManager.initiateClientRequest(usRequest);
 
+
+        latch.await(1, TimeUnit.DAYS);
+    }
+
+
+    @Test
+//    @Disabled
+    void processClientRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager) throws Exception {
+        var query = QueryRequest.Builder.newInstance()
+                .connectorAddress(PROVIDER_CONNECTOR)
+                .connectorId(PROVIDER_CONNECTOR)
+                .queryLanguage("dagx")
+                .query("select *")
+                .protocol("ids-rest").build();
+
+        CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
+
+        var artifacts = future.get();
+        for (String artifact : artifacts) {
+            // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
+            var usOrEuRequest = createRequestAzure("us-eu-request", DataEntry.Builder.newInstance().id(artifact).build());
+
+            processManager.initiateClientRequest(usOrEuRequest);
+        }
+
+//        // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
+//        var usRequest = createRequestAzure("us-request", EU_ARTIFACT);
+//
+//        processManager.initiateClientRequest(usRequest);
 
         latch.await(1, TimeUnit.DAYS);
     }
@@ -79,7 +111,7 @@ public class ClientRunner {
         extension.registerSystemExtension(ServiceExtension.class, TestExtensions.mockIamExtension(identityService));
     }
 
-    private DataRequest createRequest(String id, DataEntry<?> artifactId) {
+    private DataRequest createRequestAws(String id, DataEntry<?> artifactId) {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")
@@ -87,5 +119,21 @@ public class ClientRunner {
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .destinationType(S3BucketSchema.TYPE).build();
+    }
+
+    private DataRequest createRequestAzure(String id, DataEntry<?> artifactId) {
+        return DataRequest.Builder.newInstance()
+                .id(id)
+                .protocol("ids-rest")
+                .dataEntry(artifactId)
+                .connectorId(PROVIDER_CONNECTOR)
+                .connectorAddress(PROVIDER_CONNECTOR)
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type(AzureBlobStoreSchema.TYPE)
+                        .property(AzureBlobStoreSchema.ACCOUNT_NAME, "dagxblobstoreitest")
+                        .property(AzureBlobStoreSchema.CONTAINER_NAME, "temp-dest-container")
+                        .build())
+                .destinationType(AzureBlobStoreSchema.TYPE)
+                .build();
     }
 }

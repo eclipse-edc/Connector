@@ -30,6 +30,7 @@ import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalog;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
+import com.microsoft.dagx.transfer.provision.azure.AzureSasToken;
 import okhttp3.OkHttpClient;
 import org.apache.atlas.AtlasClientV2;
 import org.easymock.MockType;
@@ -236,13 +237,13 @@ public class NifiDataFlowControllerTest {
             throw new RuntimeException("No environment variable found NIFI_API_AUTH!");
         }
         expect(vault.resolveSecret(NifiDataFlowController.NIFI_CREDENTIALS)).andReturn(nifiAuth);
-        var azureSecret = Map.of("sas", "?" + sharedAccessSignature);
-        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(typeManager.writeValueAsString(azureSecret));
-        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(typeManager.writeValueAsString(azureSecret));
+
+        var tokenJson = typeManager.writeValueAsString(new AzureSasToken(sharedAccessSignature, 0));
+        expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(tokenJson).anyTimes();
 
         var token = Map.of("accessKeyId", "AKIAY2XSTIMWG2HEKF77", "secretAccessKey", "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", "sessionToken", "");
-        expect(vault.resolveSecret(s3BucketName)).andReturn(typeManager.writeValueAsString(token));
-        expect(vault.resolveSecret(s3BucketName)).andReturn(typeManager.writeValueAsString(token));
+        expect(vault.resolveSecret(s3BucketName)).andReturn(typeManager.writeValueAsString(token)).anyTimes();
+
         replay(vault);
         SchemaRegistry registry = new SchemaRegistryImpl();
         registry.register(new AzureBlobStoreSchema());

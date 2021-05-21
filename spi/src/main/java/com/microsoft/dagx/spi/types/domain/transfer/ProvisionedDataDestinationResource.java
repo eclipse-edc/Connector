@@ -10,13 +10,15 @@ package com.microsoft.dagx.spi.types.domain.transfer;
  */
 public abstract class ProvisionedDataDestinationResource extends ProvisionedResource {
 
-    public abstract DataAddress createDataDestination();
-
     protected ProvisionedDataDestinationResource() {
         super();
     }
 
-    protected static class Builder<PR extends ProvisionedResource, B extends ProvisionedResource.Builder<PR, B>> extends  ProvisionedResource.Builder<PR, B> {
+    public abstract DataAddress createDataDestination();
+
+    public abstract String getResourceName();
+
+    protected static class Builder<PR extends ProvisionedResource, B extends ProvisionedResource.Builder<PR, B>> extends ProvisionedResource.Builder<PR, B> {
 
         protected Builder(PR resource) {
             super(resource);

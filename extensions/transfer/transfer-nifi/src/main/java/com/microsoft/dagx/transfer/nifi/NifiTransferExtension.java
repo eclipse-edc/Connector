@@ -38,9 +38,8 @@ public class NifiTransferExtension implements ServiceExtension {
     private void registerConverters(ServiceExtensionContext context) {
         Vault vault = context.getService(Vault.class);
         var sr = context.getService(SchemaRegistry.class);
-        var typeManager = context.getTypeManager();
 
-        var converter = new NifiTransferEndpointConverter(sr, vault, typeManager);
+        var converter = new NifiTransferEndpointConverter(sr, vault, context.getTypeManager());
         context.registerService(NifiTransferEndpointConverter.class, converter);
     }
 

@@ -16,6 +16,7 @@ dependencies {
 
     testImplementation(project(":extensions:catalog:catalog-atlas"))
     testImplementation(project(":extensions:catalog:catalog-atlas-dataseed"))
+    testImplementation(project(":extensions:transfer:transfer-provision-azure"))
 
     // There is an incompatibility between the Amazon SDK, which internally uses httpclient 4.5.4 and
     // the Atlas Client, which is pulled in by the "catalog-atlas" extension, and which uses an earlier version

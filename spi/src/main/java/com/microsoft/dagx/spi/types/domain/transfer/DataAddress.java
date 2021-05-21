@@ -9,7 +9,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -24,9 +23,16 @@ public class DataAddress {
     private static final String KEYNAME = "keyName";
     private final Map<String, String> properties = new HashMap<>();
 
+    private DataAddress() {
+    }
+
     @NotNull
     public String getType() {
         return properties.get(TYPE);
+    }
+
+    public void setType(String type) {
+        properties.replace(TYPE, type);
     }
 
     public String getProperty(String key) {
@@ -41,12 +47,17 @@ public class DataAddress {
         return properties.get(KEYNAME);
     }
 
-    private DataAddress() {
+    public void setKeyName(String keyName) {
+        properties.replace(KEYNAME, keyName);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataAddress address;
+
+        private Builder() {
+            address = new DataAddress();
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -67,19 +78,16 @@ public class DataAddress {
             address.properties.putAll(properties);
             return this;
         }
-        public Builder keyName(String keyName){
+
+        public Builder keyName(String keyName) {
             address.getProperties().put(KEYNAME, Objects.requireNonNull(keyName));
             return this;
         }
 
         public DataAddress build() {
             Objects.requireNonNull(address.getType(), "type");
-            Objects.requireNonNull(address.getKeyName(), "keyName");
+//            Objects.requireNonNull(address.getKeyName(), "keyName");
             return address;
-        }
-
-        private Builder() {
-            address = new DataAddress();
         }
     }
 }

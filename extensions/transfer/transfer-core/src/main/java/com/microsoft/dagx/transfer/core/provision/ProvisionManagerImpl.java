@@ -12,12 +12,7 @@ import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.TypeManager;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
-import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
-import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
-import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
+import com.microsoft.dagx.spi.types.domain.transfer.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -29,11 +24,11 @@ import static java.lang.String.format;
  * Default provision manager. Invoke {@link #start(TransferProcessStore)} to initialize an instance.
  */
 public class ProvisionManagerImpl implements ProvisionManager {
-    private Vault vault;
-    private TypeManager typeManager;
-    private Monitor monitor;
+    private final Vault vault;
+    private final TypeManager typeManager;
+    private final Monitor monitor;
+    private final List<Provisioner<?, ?>> provisioners = new ArrayList<>();
     private TransferProcessStore processStore;
-    private List<Provisioner<?, ?>> provisioners = new ArrayList<>();
 
     public ProvisionManagerImpl(Vault vault, TypeManager typeManager, Monitor monitor) {
         this.vault = vault;
@@ -73,7 +68,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
         }
     }
 
-    void onDestinationResource(ProvisionedDataDestinationResource destinationResource, DestinationSecretToken secretToken) {
+    void onDestinationResource(ProvisionedDataDestinationResource destinationResource, SecretToken secretToken) {
         var processId = destinationResource.getTransferProcessId();
         var transferProcess = processStore.find(processId);
         if (transferProcess == null) {
@@ -81,11 +76,15 @@ public class ProvisionManagerImpl implements ProvisionManager {
             return;
         }
 
-        if (secretToken != null) {
-            vault.storeSecret(DestinationSecretToken.KEY + "-" + processId, typeManager.writeValueAsString(secretToken));
-        }
 
         transferProcess.getDataRequest().updateDestination(destinationResource.createDataDestination());
+
+        if (secretToken != null) {
+            String keyName = destinationResource.getResourceName();
+            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+            transferProcess.getDataRequest().getDataDestination().setKeyName(keyName);
+
+        }
 
         updateProcessWithProvisionedResource(destinationResource, transferProcess);
     }

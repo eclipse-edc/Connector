@@ -39,11 +39,11 @@ class DataAddressTest {
     }
 
     @Test
-    void verifyThrowsException(){
+    void verifyThrowsException() {
 
-        assertThatThrownBy(() -> DataAddress.Builder.newInstance()
-                .type("sometype")
-                .property("foo", "bar").build()).isInstanceOf(NullPointerException.class).hasMessageContaining("keyName");
+//        assertThatThrownBy(() -> DataAddress.Builder.newInstance()
+//                .type("sometype")
+//                .property("foo", "bar").build()).isInstanceOf(NullPointerException.class).hasMessageContaining("keyName");
 
         assertThatThrownBy(() -> DataAddress.Builder.newInstance()
                 .keyName("somekey")

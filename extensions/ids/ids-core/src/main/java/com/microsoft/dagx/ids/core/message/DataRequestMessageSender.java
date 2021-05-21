@@ -12,7 +12,6 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.spi.types.domain.transfer.DestinationSecretToken;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
@@ -34,14 +33,13 @@ import static com.microsoft.dagx.ids.core.message.MessageFunctions.writeJson;
 public class DataRequestMessageSender implements IdsMessageSender<DataRequest, Void> {
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
-
-    private URI connectorName;
-    private IdentityService identityService;
-    private TransferProcessStore transferProcessStore;
-    private Vault vault;
-    private OkHttpClient httpClient;
-    private ObjectMapper mapper;
     private final Monitor monitor;
+    private final URI connectorName;
+    private final IdentityService identityService;
+    private final TransferProcessStore transferProcessStore;
+    private final Vault vault;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper mapper;
 
     public DataRequestMessageSender(String connectorName,
                                     IdentityService identityService,
@@ -83,7 +81,7 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
 
         var processId = context.getProcessId();
 
-        var serializedToken = vault.resolveSecret(DestinationSecretToken.KEY + "-" + processId);
+        var serializedToken = vault.resolveSecret(dataRequest.getDataDestination().getKeyName());
         if (serializedToken != null) {
             artifactMessage.setProperty("dagx-destination-token", serializedToken);
         }
