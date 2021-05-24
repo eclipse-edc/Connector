@@ -47,7 +47,7 @@ public class FetchAzureBlob extends AbstractProcessor {
 
     @Override
     protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
-        return Properties.FetchAzureBlob.Properties.stream().toList();
+        return new ArrayList<>(Properties.FetchAzureBlob.Properties);
     }
 
     @Override
