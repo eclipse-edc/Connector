@@ -144,7 +144,7 @@ class Properties {
             .description("The name of the storage account that contains the container and for which the sas token is valid.")
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
-            .required(false)
+            .required(true)
             .sensitive(true)
             .build();
     private static final Set<String> ALLOWED_REGIONS = Stream.of(Regions.values()).map(Regions::getName).collect(Collectors.toSet());

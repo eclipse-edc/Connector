@@ -24,10 +24,7 @@ import org.apache.nifi.annotation.documentation.CapabilityDescription;
 import org.apache.nifi.annotation.documentation.Tags;
 import org.apache.nifi.components.PropertyDescriptor;
 import org.apache.nifi.flowfile.FlowFile;
-import org.apache.nifi.processor.AbstractProcessor;
-import org.apache.nifi.processor.ProcessContext;
-import org.apache.nifi.processor.ProcessSession;
-import org.apache.nifi.processor.Relationship;
+import org.apache.nifi.processor.*;
 import org.apache.nifi.processor.exception.ProcessException;
 
 import java.io.IOException;
@@ -46,15 +43,31 @@ import java.util.stream.Collectors;
 })
 public class FetchAzureBlob extends AbstractProcessor {
 
+    private List<PropertyDescriptor> propertyDescriptors;
+    private Set<Relationship> relationships;
+
+    public FetchAzureBlob() {
+        //needed by the ServiceLoader mechanism
+    }
+
     @Override
     protected List<PropertyDescriptor> getSupportedPropertyDescriptors() {
-        return new ArrayList<>(Properties.FetchAzureBlob.Properties);
+        return propertyDescriptors;
     }
 
     @Override
     public Set<Relationship> getRelationships() {
-        return Properties.FetchAzureBlob.Relationships;
+        return relationships;
     }
+
+    @Override
+    protected void init(final ProcessorInitializationContext context) {
+        final List<PropertyDescriptor> descriptors = new ArrayList<>(Properties.FetchAzureBlob.Properties);
+
+        propertyDescriptors = Collections.unmodifiableList(descriptors);
+        relationships = Properties.FetchAzureBlob.Relationships;
+    }
+
 
     @Override
     public void onTrigger(ProcessContext context, ProcessSession session) throws ProcessException {
