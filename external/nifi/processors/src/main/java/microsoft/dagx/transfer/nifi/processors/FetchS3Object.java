@@ -151,6 +151,9 @@ public class FetchS3Object extends AbstractProcessor {
                         setFilePathAttributes(attributes, contentDisposition);
                     }
                 }
+
+                attributes.put("filename", objectKey);
+
                 if (metadata.getContentMD5() != null) {
                     attributes.put("hash.value", metadata.getContentMD5());
                     attributes.put("hash.algorithm", "MD5");

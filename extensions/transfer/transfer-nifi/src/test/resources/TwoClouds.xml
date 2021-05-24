@@ -1126,7 +1126,7 @@
                     </entry>
                     <entry>
                         <key>Object Key</key>
-                        <value>${HttpBody:jsonPath('$.destination.objectName')}</value>
+                        <value>${filename}</value>
                     </entry>
                     <entry>
                         <key>Bucket</key>
@@ -2649,7 +2649,7 @@
                     </entry>
                     <entry>
                         <key>blob</key>
-                        <value>${HttpBody:jsonPath('$.destination.blobname')}</value>
+                        <value>${filename}</value>
                     </entry>
                     <entry>
                         <key>azure-create-container</key>
@@ -2662,7 +2662,7 @@
                 <yieldDuration>1 sec</yieldDuration>
             </config>
             <executionNodeRestricted>false</executionNodeRestricted>
-            <name>PutAzureBlobStorage</name>
+            <name>Store_Data_Item_In_Azure</name>
             <relationships>
                 <autoTerminate>true</autoTerminate>
                 <name>failure</name>

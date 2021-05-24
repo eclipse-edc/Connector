@@ -121,6 +121,8 @@ public class FetchAzureBlob extends AbstractProcessor {
                 BlobClient blob = blobContainerClient.getBlobClient(blobName);
                 final Map<String, String> attributes = new HashMap<>();
 
+                attributes.put("filename", blobName);
+
                 ff = session.write(ff, os -> {
                     try {
                         blob.downloadStream(os);

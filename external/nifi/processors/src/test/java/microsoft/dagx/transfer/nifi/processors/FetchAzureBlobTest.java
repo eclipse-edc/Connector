@@ -14,10 +14,7 @@ import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
 import java.io.File;
 import java.io.IOException;
@@ -127,6 +124,8 @@ class FetchAzureBlobTest {
     }
 
     @Test
+    @Disabled
+        //takes very long
     void testFetch_accountNotExist() {
         String name = "hello.txt";
         File fileFromResourceName = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);
@@ -162,6 +161,7 @@ class FetchAzureBlobTest {
         runner.assertAllFlowFilesTransferred(Properties.REL_SUCCESS, 2);
         List<MockFlowFile> flowFilesForRelationship = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
         assertThat(flowFilesForRelationship).hasSize(2);
+        assertThat(flowFilesForRelationship).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("hello"));
     }
 
     @Test
@@ -182,6 +182,7 @@ class FetchAzureBlobTest {
         List<MockFlowFile> successFulFiles = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
         assertThat(successFulFiles).hasSize(1);
         successFulFiles.get(0).assertContentEquals(EXPECTED_CONTENT);
+        assertThat(successFulFiles).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("hello"));
 
         var failedFiles = runner.getFlowFilesForRelationship(Properties.REL_FAILURE);
         assertThat(failedFiles).hasSize(1);
@@ -206,6 +207,8 @@ class FetchAzureBlobTest {
         runner.assertAllFlowFilesTransferred(Properties.REL_SUCCESS, 2);
         List<MockFlowFile> flowFilesForRelationship = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
         assertThat(flowFilesForRelationship).hasSize(2);
+        assertThat(flowFilesForRelationship).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("hello"));
+
     }
 
     private void putBlob(String name, File file) {
