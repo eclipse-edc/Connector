@@ -118,7 +118,7 @@ public class FetchS3Object extends AbstractProcessor {
             names = s3Client.listObjects(bucket).getObjectSummaries().stream().map(S3ObjectSummary::getKey).collect(Collectors.toList());
         } else {
             try {
-                names = new ObjectMapper().readValue(objectKeyJsonArray, new TypeReference<>() {
+                names = new ObjectMapper().readValue(objectKeyJsonArray, new TypeReference<List<String>>() {
                 });
             } catch (JsonProcessingException e) {
                 getLogger().info("Could not interpret file names as JSON list - interpreting as single file name.");
@@ -129,7 +129,7 @@ public class FetchS3Object extends AbstractProcessor {
 
         for (String objectKey : names) {
 
-            var ff = session.clone(flowFile);
+            FlowFile ff = session.clone(flowFile);
             GetObjectRequest request = new GetObjectRequest(bucket, objectKey);
             final Map<String, String> attributes = new HashMap<>();
 

@@ -8,6 +8,7 @@ package microsoft.dagx.transfer.nifi.processors;
 
 import com.amazonaws.util.StringUtils;
 import com.azure.core.http.policy.TimeoutPolicy;
+import com.azure.storage.blob.BlobClient;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
@@ -91,7 +92,7 @@ public class FetchAzureBlob extends AbstractProcessor {
             names = blobContainerClient.listBlobs().stream().map(BlobItem::getName).collect(Collectors.toList());
         } else {
             try {
-                names = new ObjectMapper().readValue(blobNamesJsonArray, new TypeReference<>() {
+                names = new ObjectMapper().readValue(blobNamesJsonArray, new TypeReference<List<String>>() {
                 });
             } catch (JsonProcessingException e) {
                 getLogger().info("Could not interpret file names as JSON list - interpreting as single file name.");
@@ -100,11 +101,11 @@ public class FetchAzureBlob extends AbstractProcessor {
         }
 
         for (String blobName : names) {
-            var ff = session.clone(flowFile);
+            FlowFile ff = session.clone(flowFile);
             AtomicReference<Exception> storedException = new AtomicReference<>();
             try {
 
-                var blob = blobContainerClient.getBlobClient(blobName);
+                BlobClient blob = blobContainerClient.getBlobClient(blobName);
                 final Map<String, String> attributes = new HashMap<>();
 
                 ff = session.write(ff, os -> {

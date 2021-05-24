@@ -161,7 +161,7 @@ class Properties {
 
     public static class FetchS3 {
 
-        public static final Set<Relationship> Relationships = new HashSet<>() {{
+        public static final Set<Relationship> Relationships = new HashSet<Relationship>() {{
             add(REL_SUCCESS);
             add(REL_FAILURE);
         }};
@@ -169,7 +169,7 @@ class Properties {
     }
 
     public static class PutS3 {
-        public static final Set<Relationship> Relationships = new HashSet<>() {{
+        public static final Set<Relationship> Relationships = new HashSet<Relationship>() {{
             add(REL_SUCCESS);
             add(REL_FAILURE);
         }};
@@ -177,8 +177,8 @@ class Properties {
     }
 
     public static class FetchAzureBlob {
-        public static final Set<PropertyDescriptor> Properties = Set.of(CONTAINER, ACCOUNT_NAME, SAS_TOKEN, OBJECT_KEYS);
-        public static final Set<Relationship> Relationships = new HashSet<>() {{
+        public static final List<PropertyDescriptor> Properties = Arrays.asList(CONTAINER, ACCOUNT_NAME, SAS_TOKEN, OBJECT_KEYS);
+        public static final Set<Relationship> Relationships = new HashSet<Relationship>() {{
             add(REL_SUCCESS);
             add(REL_FAILURE);
         }};
