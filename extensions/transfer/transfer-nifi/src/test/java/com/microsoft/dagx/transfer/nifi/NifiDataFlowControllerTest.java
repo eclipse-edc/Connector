@@ -202,20 +202,7 @@ public class NifiDataFlowControllerTest {
 
         deleteContainer(containerName);
 
-        DeleteBucketRequest rq = DeleteBucketRequest.builder().bucket(s3BucketName).build();
-        Failsafe.with(new RetryPolicy<>().withMaxRetries(5)
-                .handle(S3Exception.class)
-                .withDelay(Duration.ofMillis(1000)))
-                .run(() -> {
-                    System.out.println("oneTimeTeardown - clean bucket");
-                    var objects = listS3BucketContents(s3BucketName);
-                    for (var obj : objects) {
-                        System.out.println("  Delete Bucket object " + obj.key());
-                        s3client.deleteObject(DeleteObjectRequest.builder().bucket(s3BucketName).key(obj.key()).build());
-                    }
-                    System.out.println("oneTimeTeardown - delete bucket");
-                    s3client.deleteBucket(rq);
-                });
+        deleteBucket(s3BucketName);
     }
 
     private static void deleteContainer(String containerName) {
@@ -250,6 +237,23 @@ public class NifiDataFlowControllerTest {
         String absolutePath = Objects.requireNonNull(Paths.get(testImageStream.toURI())).toString();
         blobClient.uploadFromFile(absolutePath, true);
 
+    }
+
+    private static void deleteBucket(String destBucketName) {
+        DeleteBucketRequest rq = DeleteBucketRequest.builder().bucket(destBucketName).build();
+        Failsafe.with(new RetryPolicy<>().withMaxRetries(5)
+                .handle(S3Exception.class)
+                .withDelay(Duration.ofMillis(1000)))
+                .run(() -> {
+                    System.out.println("oneTimeTeardown - clean bucket");
+                    var objects = listS3BucketContents(destBucketName);
+                    for (var obj : objects) {
+                        System.out.println("  Delete Bucket object " + obj.key());
+                        s3client.deleteObject(DeleteObjectRequest.builder().bucket(destBucketName).key(obj.key()).build());
+                    }
+                    System.out.println("oneTimeTeardown - delete bucket");
+                    s3client.deleteBucket(rq);
+                });
     }
 
     @BeforeEach
@@ -692,6 +696,55 @@ public class NifiDataFlowControllerTest {
         assertThat(listBlobs(destContainerName).stream().anyMatch(bi -> bi.getName().equals(secondBlobName))).isTrue();
         assertThat(listBlobs(destContainerName).stream().anyMatch(bi -> bi.getName().equals(blobName))).isTrue();
         container.delete();
+    }
+
+    @Test
+    @Timeout(20)
+    @DisplayName("Transfer all files from S3 to S3")
+    void transfer_all_fromS3_ToS3() throws InterruptedException {
+        String id = UUID.randomUUID().toString();
+        GenericDataCatalog dataEntry = createS3CatalogEntry();
+
+        final var destBucketName = "dagx-nifi-dest-" + System.currentTimeMillis();
+        createBucket(destBucketName);
+
+
+        dataEntry.getProperties().remove("blobname");
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+                .id(id)
+                .catalog(dataEntry)
+                .build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataEntry(entry)
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type(S3BucketSchema.TYPE)
+                        .property("region", "us-east-1")
+                        .property("bucketName", destBucketName)
+                        .property("keyName", s3BucketName)
+                        .build())
+                .build();
+
+        //act
+        DataFlowInitiateResponse response = controller.initiateFlow(dataRequest);
+
+        //assert
+        assertEquals(ResponseStatus.OK, response.getStatus());
+
+
+        // will fail if new blob is not there after 10 seconds
+        var contents = listS3BucketContents(destBucketName);
+        while (contents.stream().noneMatch(blob -> blob.key().equals(secondBlobName)) || contents.stream().noneMatch(blob -> blob.key().equals(blobName))) {
+            Thread.sleep(500);
+            contents = listS3BucketContents(destBucketName);
+        }
+
+        contents = listS3BucketContents(destBucketName);
+
+        assertThat(contents.stream().anyMatch(bi -> bi.key().equals(secondBlobName))).isTrue();
+        assertThat(contents.stream().anyMatch(bi -> bi.key().equals(blobName))).isTrue();
+        deleteBucket(destBucketName);
     }
 
     /// HELPERS ///
