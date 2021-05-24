@@ -78,6 +78,7 @@ jobs:
         env:
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
         run: ./gradlew external:nifi:processors:check
 
       - name: Publish Integration Test Results
