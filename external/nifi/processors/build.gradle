@@ -135,6 +135,8 @@ dependencies {
     implementation(platform("com.amazonaws:aws-java-sdk-bom:1.11.1018"))
     implementation("com.amazonaws:aws-java-sdk-s3")
 
+    implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
+
     testImplementation("org.apache.nifi:nifi-mock:1.13.2")
     testImplementation("org.assertj:assertj-core:3.19.0")
 

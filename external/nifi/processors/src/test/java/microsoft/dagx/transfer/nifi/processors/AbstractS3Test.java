@@ -20,10 +20,6 @@ import org.junit.jupiter.api.BeforeAll;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
 
@@ -31,7 +27,7 @@ import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class AbstractS3Test {
-    protected final static String SAMPLE_FILE_RESOURCE_NAME = "hello.txt";
+
     protected final static String REGION = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
     // Adding REGION to bucket prevents errors of
     //      "A conflicting conditional operation is currently in progress against this resource."
@@ -140,26 +136,5 @@ public class AbstractS3Test {
         PutObjectResult result = client.putObject(putRequest);
     }
 
-    protected Path getResourcePath(String resourceName) {
-        Path path = null;
 
-        try {
-            path = Paths.get(Thread.currentThread().getContextClassLoader().getResource(resourceName).toURI());
-        } catch (URISyntaxException e) {
-            fail("Resource: " + resourceName + " does not exist" + e.getLocalizedMessage());
-        }
-
-        return path;
-    }
-
-    protected File getFileFromResourceName(String resourceName) {
-        URI uri = null;
-        try {
-            uri = Thread.currentThread().getContextClassLoader().getResource(resourceName).toURI();
-        } catch (URISyntaxException e) {
-            fail("Cannot proceed without File : " + resourceName);
-        }
-
-        return new File(uri);
-    }
 }
