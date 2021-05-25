@@ -19,6 +19,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import static microsoft.dagx.transfer.nifi.processors.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
@@ -37,7 +38,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
 
         runner.setProperty(Properties.REGION, REGION);
         runner.setProperty(Properties.BUCKET, BUCKET_NAME);
-        runner.setProperty(Properties.OBJECT_KEY, key);
+        runner.setProperty(Properties.OBJECT_KEYS, key);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
 
@@ -61,7 +62,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
 
         runner.setProperty(Properties.REGION, REGION);
         runner.setProperty(Properties.BUCKET, BUCKET_NAME);
-        runner.setProperty(Properties.OBJECT_KEY, key);
+        runner.setProperty(Properties.OBJECT_KEYS, key);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
 

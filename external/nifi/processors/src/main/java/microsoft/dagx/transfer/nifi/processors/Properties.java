@@ -34,10 +34,10 @@ class Properties {
             .required(true)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
-    public static final PropertyDescriptor OBJECT_KEY = new PropertyDescriptor.Builder()
+    public static final PropertyDescriptor OBJECT_KEYS = new PropertyDescriptor.Builder()
             .name("Object Key")
-            .description("The name of the object that is being put into the bucket. I.e. the filename, if you will.")
-            .required(true)
+            .description("A JSON-array of file names of objects that are to be fetched.")
+            .required(false)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .build();
@@ -116,7 +116,37 @@ class Properties {
             .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
             .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
             .build();
-
+    public static final PropertyDescriptor CONTAINER = new PropertyDescriptor.Builder()
+            .name("container-name")
+            .displayName("Container Name")
+            .description("Name of the Azure storage container.")
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .required(true)
+            .build();
+    public static final PropertyDescriptor SAS_TOKEN = new PropertyDescriptor.Builder()
+            .name("storage-sas-token")
+            .displayName("SAS Token")
+            .description("Shared Access Signature token, including the leading '?'. Specify either SAS Token (recommended) or Account Key. " +
+                    "There are certain risks in allowing the SAS token to be stored as a flowfile " +
+                    "attribute. While it does provide for a more flexible flow by allowing the account name to " +
+                    "be fetched dynamically from a flowfile attribute, care must be taken to restrict access to " +
+                    "the event provenance data (e.g. by strictly controlling the policies governing provenance for this Processor). " +
+                    "In addition, the provenance repositories may be put on encrypted disk partitions.")
+            .required(true)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .sensitive(true)
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .build();
+    public static final PropertyDescriptor ACCOUNT_NAME = new PropertyDescriptor.Builder()
+            .name("account-name")
+            .displayName("Storage Account Name")
+            .description("The name of the storage account that contains the container and for which the sas token is valid.")
+            .addValidator(StandardValidators.NON_EMPTY_VALIDATOR)
+            .expressionLanguageSupported(ExpressionLanguageScope.FLOWFILE_ATTRIBUTES)
+            .required(true)
+            .sensitive(true)
+            .build();
     private static final Set<String> ALLOWED_REGIONS = Stream.of(Regions.values()).map(Regions::getName).collect(Collectors.toSet());
     public static final PropertyDescriptor REGION = new PropertyDescriptor
             .Builder().name("Region")
@@ -135,7 +165,7 @@ class Properties {
             add(REL_SUCCESS);
             add(REL_FAILURE);
         }};
-        public static List<PropertyDescriptor> Properties = Arrays.asList(ACCESS_KEY_ID, SECRET_ACCESS_KEY, REGION, SESSION_TOKEN, OBJECT_KEY, BUCKET, TIMEOUT);
+        public static List<PropertyDescriptor> Properties = Arrays.asList(ACCESS_KEY_ID, SECRET_ACCESS_KEY, REGION, SESSION_TOKEN, OBJECT_KEYS, BUCKET, TIMEOUT);
     }
 
     public static class PutS3 {
@@ -143,6 +173,14 @@ class Properties {
             add(REL_SUCCESS);
             add(REL_FAILURE);
         }};
-        public static List<PropertyDescriptor> Properties = Arrays.asList(ACCESS_KEY_ID, SECRET_ACCESS_KEY, REGION, SESSION_TOKEN, OBJECT_KEY, BUCKET, TIMEOUT);
+        public static List<PropertyDescriptor> Properties = Arrays.asList(ACCESS_KEY_ID, SECRET_ACCESS_KEY, REGION, SESSION_TOKEN, OBJECT_KEYS, BUCKET, TIMEOUT);
+    }
+
+    public static class FetchAzureBlob {
+        public static final List<PropertyDescriptor> Properties = Arrays.asList(CONTAINER, ACCOUNT_NAME, SAS_TOKEN, OBJECT_KEYS);
+        public static final Set<Relationship> Relationships = new HashSet<Relationship>() {{
+            add(REL_SUCCESS);
+            add(REL_FAILURE);
+        }};
     }
 }

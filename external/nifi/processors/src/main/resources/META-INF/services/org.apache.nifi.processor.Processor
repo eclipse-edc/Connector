@@ -1,2 +1,3 @@
 microsoft.dagx.transfer.nifi.processors.FetchS3Object
 microsoft.dagx.transfer.nifi.processors.PutS3Object
+microsoft.dagx.transfer.nifi.processors.FetchAzureBlob

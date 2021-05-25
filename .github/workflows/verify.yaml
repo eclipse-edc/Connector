@@ -19,7 +19,7 @@ jobs:
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-        run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check
+        run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check -x :external:nifi:processors:check
 
       - name: Publish Unit Test Results
         uses: EnricoMi/publish-unit-test-result-action@v1
@@ -31,7 +31,10 @@ jobs:
     runs-on: ubuntu-latest
     services:
       nifi:
-        image: apache/nifi
+        image: docker.pkg.github.com/microsoft/data-appliance-gx/nifi
+        credentials:
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
         ports:
           - 8080:8080
           - 8888:8888
@@ -49,33 +52,36 @@ jobs:
           java-version: '11'
 
       - name: Test Nifi Integration
-        #        if: github.event.pull_request.draft == false
-        if: ${{ false }} # disabled due to current instability
+        if: ${{ false }}
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-        run: ./gradlew extensions:transfer:transfer-nifi:check -i
+        run: ./gradlew extensions:transfer:transfer-nifi:check
 
       - name: Test Atlas Integration
+        run: ./gradlew extensions:catalog:catalog-atlas:check
+
+
+  Cloud-Integration-Test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+
+      - name: Test Custom Nifi Processors
         env:
-          AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
-          NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-        run: ./gradlew extensions:catalog:catalog-atlas:check
+          AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
+        run: ./gradlew external:nifi:processors:check
 
       - name: Test Azure Vault Integration
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
-          NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
-          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
         run: ./gradlew extensions:security:security-azure:check
-
-      - name: Publish Integration Test Results
-        uses: EnricoMi/publish-unit-test-result-action@v1
-        if: always()
-        with:
-          files: ./**/test-results/**/*.xml

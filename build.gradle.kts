@@ -50,6 +50,13 @@ allprojects {
     tasks.withType<Test> {
         useJUnitPlatform()
     }
+    tasks.withType<Test> {
+        testLogging {
+            events("passed", "skipped", "failed")
+            showStackTraces = true
+            exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
+    }
 }
 
 val test by tasks.getting(Test::class) {

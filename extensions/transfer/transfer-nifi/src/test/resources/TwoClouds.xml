@@ -1126,7 +1126,7 @@
                     </entry>
                     <entry>
                         <key>Object Key</key>
-                        <value>${HttpBody:jsonPath('$.destination.objectName')}</value>
+                        <value>${filename}</value>
                     </entry>
                     <entry>
                         <key>Bucket</key>
@@ -1929,9 +1929,8 @@
                 <y>1024.0</y>
             </position>
             <bundle>
-                <artifact>nifi-azure-nar</artifact>
-                <group>org.apache.nifi</group>
-                <version>1.13.2</version>
+                <artifact>dagx-processors</artifact>
+                <group>dagx-nifi-processors.processors</group>
             </bundle>
             <config>
                 <bulletinLevel>WARN</bulletinLevel>
@@ -1945,22 +1944,9 @@
                         </value>
                     </entry>
                     <entry>
-                        <key>storage-credentials-service</key>
-                        <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
-                            <name>storage-credentials-service</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
+                        <key>account-name</key>
                         <value>
                             <name>storage-account-name</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
-                        <value>
-                            <name>storage-account-key</name>
                         </value>
                     </entry>
                     <entry>
@@ -1970,13 +1956,7 @@
                         </value>
                     </entry>
                     <entry>
-                        <key>storage-endpoint-suffix</key>
-                        <value>
-                            <name>storage-endpoint-suffix</name>
-                        </value>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
+                        <key>Object Key</key>
                         <value>
                             <name>blob</name>
                         </value>
@@ -1998,28 +1978,16 @@
                         <value>${HttpBody:jsonPath('$.source.container')}</value>
                     </entry>
                     <entry>
-                        <key>storage-credentials-service</key>
-                    </entry>
-                    <entry>
-                        <key>storage-account-name</key>
+                        <key>account-name</key>
                         <value>${HttpBody:jsonPath('$.source.account')}</value>
-                    </entry>
-                    <entry>
-                        <key>storage-account-key</key>
                     </entry>
                     <entry>
                         <key>storage-sas-token</key>
                         <value>${HttpBody:jsonPath('$.source.sas')}</value>
                     </entry>
                     <entry>
-                        <key>storage-endpoint-suffix</key>
-                    </entry>
-                    <entry>
-                        <key>blob</key>
+                        <key>Object Key</key>
                         <value>${HttpBody:jsonPath('$.source.blobname')}</value>
-                    </entry>
-                    <entry>
-                        <key>proxy-configuration-service</key>
                     </entry>
                 </properties>
                 <runDurationMillis>0</runDurationMillis>
@@ -2028,7 +1996,7 @@
                 <yieldDuration>1 sec</yieldDuration>
             </config>
             <executionNodeRestricted>false</executionNodeRestricted>
-            <name>FetchAzureBlobStorage</name>
+            <name>Fetch_Objects_From_AzureStorage</name>
             <relationships>
                 <autoTerminate>true</autoTerminate>
                 <name>failure</name>
@@ -2039,7 +2007,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>org.apache.nifi.processors.azure.storage.FetchAzureBlobStorage</type>
+            <type>microsoft.dagx.transfer.nifi.processors.FetchAzureBlob</type>
         </processors>
         <processors>
             <id>905a63ec-0706-3df3-0000-000000000000</id>
@@ -2681,7 +2649,7 @@
                     </entry>
                     <entry>
                         <key>blob</key>
-                        <value>${HttpBody:jsonPath('$.destination.blobname')}</value>
+                        <value>${filename}</value>
                     </entry>
                     <entry>
                         <key>azure-create-container</key>
@@ -2694,7 +2662,7 @@
                 <yieldDuration>1 sec</yieldDuration>
             </config>
             <executionNodeRestricted>false</executionNodeRestricted>
-            <name>PutAzureBlobStorage</name>
+            <name>Store_Data_Item_In_Azure</name>
             <relationships>
                 <autoTerminate>true</autoTerminate>
                 <name>failure</name>

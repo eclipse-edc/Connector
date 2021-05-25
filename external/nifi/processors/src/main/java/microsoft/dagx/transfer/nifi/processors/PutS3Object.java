@@ -91,7 +91,7 @@ public class PutS3Object extends AbstractProcessor {
         final long startNanos = System.nanoTime();
 
         final String bucket = context.getProperty(Properties.BUCKET).evaluateAttributeExpressions(flowFile).getValue();
-        final String key = context.getProperty(Properties.OBJECT_KEY).evaluateAttributeExpressions(flowFile).getValue();
+        final String key = context.getProperty(Properties.OBJECT_KEYS).evaluateAttributeExpressions(flowFile).getValue();
         final String region = context.getProperty(Properties.REGION).evaluateAttributeExpressions(flowFile).getValue();
         final String accessKeyId = context.getProperty(Properties.ACCESS_KEY_ID).evaluateAttributeExpressions(flowFile).getValue();
         final String secretKey = context.getProperty(Properties.SECRET_ACCESS_KEY).evaluateAttributeExpressions(flowFile).getValue();

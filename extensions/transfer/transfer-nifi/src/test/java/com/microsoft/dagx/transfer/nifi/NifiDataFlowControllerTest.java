@@ -7,6 +7,7 @@ package com.microsoft.dagx.transfer.nifi;
 
 import com.azure.core.http.rest.PagedIterable;
 import com.azure.storage.blob.BlobContainerClient;
+import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -31,6 +32,8 @@ import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
 import com.microsoft.dagx.transfer.provision.azure.AzureSasToken;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.apache.atlas.AtlasClientV2;
 import org.easymock.MockType;
@@ -44,9 +47,11 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 
 import java.io.File;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
 import java.util.*;
 
 import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
@@ -64,7 +69,6 @@ public class NifiDataFlowControllerTest {
     private static String atlasApiUrl;
     private static String nifiContentlistenerHost;
     private static String s3BucketName = "dagx-itest";
-    //todo: move this to an env var or repo secret
     private static String s3AccessKeyId;
     private static String s3SecretAccessKey;
     private static String sharedAccessSignature = null;
@@ -72,13 +76,14 @@ public class NifiDataFlowControllerTest {
     private static OkHttpClient httpClient;
     private static TypeManager typeManager;
     private static String containerName;
-    private static BlobContainerClient blobContainerClient;
     private static S3Client s3client;
+    private static BlobServiceClient blobServiceClient;
+    private static String secondBlobName;
     private NifiDataFlowController controller;
     private Vault vault;
 
     @BeforeAll
-    public static void prepare() throws Exception {
+    public static void oneTimeSetup() throws Exception {
 
         System.out.println("prepare");
 
@@ -138,13 +143,13 @@ public class NifiDataFlowControllerTest {
         }
 
         blobName = "testimage.jpg";
-        URL testImageStream = Thread.currentThread().getContextClassLoader().getResource(blobName);
-        String absolutePath = Objects.requireNonNull(Paths.get(testImageStream.toURI())).toString();
+        secondBlobName = "secondFile.txt";
 
         //prepare bucket, i.e, upload test file to bucket
         System.out.println("prepare - create S3 bucket");
 
-        s3BucketName += UUID.randomUUID().toString();
+        UUID testId = UUID.randomUUID();
+        s3BucketName += "-" + testId;
         s3client = S3Client.builder().region(Region.US_EAST_1)
                 .credentialsProvider(StaticCredentialsProvider.create(new AwsCredentials() {
                     @Override
@@ -157,18 +162,15 @@ public class NifiDataFlowControllerTest {
                         return s3SecretAccessKey;
                     }
                 })).build();
-        s3client.createBucket(CreateBucketRequest.builder().bucket(s3BucketName).build());
+        createBucket(s3BucketName);
 
         System.out.println("prepare - upload image to S3 bucket");
 
-        Path of = Path.of(testImageStream.toURI());
-        RequestBody requestBody = RequestBody.fromFile(of);
-        PutObjectResponse putObjectResponse = s3client.putObject(PutObjectRequest.builder().bucket(s3BucketName).key(blobName).build(), requestBody);
-        String s = putObjectResponse.eTag();
-
+        uploadFileToS3Bucket(s3BucketName, blobName);
+        uploadFileToS3Bucket(s3BucketName, secondBlobName);
 
         // create azure storage container
-        containerName = "dagx-itest-" + UUID.randomUUID().toString();
+        containerName = "dagx-itest-" + testId;
 
         sharedAccessSignature = propOrEnv("AZ_STORAGE_SAS", null);
         if (sharedAccessSignature == null) {
@@ -177,47 +179,81 @@ public class NifiDataFlowControllerTest {
 
         System.out.println("prepare - construct blobservice client");
 
-        var bsc = new BlobServiceClientBuilder().sasToken(sharedAccessSignature)
+        blobServiceClient = new BlobServiceClientBuilder().sasToken(sharedAccessSignature)
                 .endpoint("https://" + storageAccount + ".blob.core.windows.net")
                 .buildClient();
-
-        System.out.println("prepare - construct blob container client client");
-        blobContainerClient = bsc.getBlobContainerClient(containerName);
-        System.out.println("prepare - create container " + containerName);
-        blobContainerClient.create();
-
 
         // upload blob to storage
         System.out.println("prepare - upload test file to blob store");
 
-        var blobClient = blobContainerClient.getBlobClient(blobName);
-        blobClient.uploadFromFile(absolutePath, true);
+        uploadFileToBlobContainer(containerName, blobName);
+        uploadFileToBlobContainer(containerName, secondBlobName);
 
         System.out.println("prepare - done");
+    }
 
+    private static void createBucket(String bucketName) {
+        s3client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build());
     }
 
     @AfterAll
-    public static void winddown() {
-        System.out.println("winddown - clean blobs");
+    public static void oneTimeTeardown() {
+        System.out.println("oneTimeTeardown - clean blobs");
 
-        blobContainerClient.delete();
+        deleteContainer(containerName);
 
-        System.out.println("winddown - clean bucket");
-        var objects = listS3BucketContents();
-        for (var obj : objects) {
-            System.out.println("  Delete Bucket object " + obj.key());
-            s3client.deleteObject(DeleteObjectRequest.builder().bucket(s3BucketName).key(obj.key()).build());
-        }
-        System.out.println("winddown - delete bucket");
-        s3client.deleteBucket(DeleteBucketRequest.builder().bucket(s3BucketName).build());
+        deleteBucket(s3BucketName);
     }
 
-    private static List<S3Object> listS3BucketContents() {
+    private static void deleteContainer(String containerName) {
+        BlobContainerClient cc = blobServiceClient.getBlobContainerClient(containerName);
+        if (cc.exists()) {
+            cc.delete();
+        }
+    }
+
+    private static List<S3Object> listS3BucketContents(String bucketName) {
         return s3client.listObjectsV2(ListObjectsV2Request.builder()
-                .bucket(s3BucketName)
+                .bucket(bucketName)
                 .build())
                 .contents();
+    }
+
+    private static void uploadFileToS3Bucket(String bucketName, String filename) throws URISyntaxException {
+        URL testImageStream = Thread.currentThread().getContextClassLoader().getResource(filename);
+        RequestBody requestBody = RequestBody.fromFile(Path.of(testImageStream.toURI()));
+        PutObjectResponse putObjectResponse = s3client.putObject(PutObjectRequest.builder().bucket(bucketName).key(filename).build(), requestBody);
+        String s = putObjectResponse.eTag();
+    }
+
+    private static void uploadFileToBlobContainer(String containerName, String blobName) throws URISyntaxException {
+        BlobContainerClient cc = blobServiceClient.getBlobContainerClient(containerName);
+
+        if (!cc.exists()) {
+            cc.create();
+        }
+        var blobClient = cc.getBlobClient(blobName);
+        URL testImageStream = Thread.currentThread().getContextClassLoader().getResource(NifiDataFlowControllerTest.blobName);
+        String absolutePath = Objects.requireNonNull(Paths.get(testImageStream.toURI())).toString();
+        blobClient.uploadFromFile(absolutePath, true);
+
+    }
+
+    private static void deleteBucket(String destBucketName) {
+        DeleteBucketRequest rq = DeleteBucketRequest.builder().bucket(destBucketName).build();
+        Failsafe.with(new RetryPolicy<>().withMaxRetries(5)
+                .handle(S3Exception.class)
+                .withDelay(Duration.ofMillis(1000)))
+                .run(() -> {
+                    System.out.println("oneTimeTeardown - clean bucket");
+                    var objects = listS3BucketContents(destBucketName);
+                    for (var obj : objects) {
+                        System.out.println("  Delete Bucket object " + obj.key());
+                        s3client.deleteObject(DeleteObjectRequest.builder().bucket(destBucketName).key(obj.key()).build());
+                    }
+                    System.out.println("oneTimeTeardown - delete bucket");
+                    s3client.deleteBucket(rq);
+                });
     }
 
     @BeforeEach
@@ -249,6 +285,10 @@ public class NifiDataFlowControllerTest {
         registry.register(new AzureBlobStoreSchema());
         registry.register(new S3BucketSchema());
         controller = new NifiDataFlowController(config, typeManager, monitor, vault, httpClient, new NifiTransferEndpointConverter(registry, vault, typeManager));
+        blobServiceClient = new BlobServiceClientBuilder().sasToken(sharedAccessSignature)
+                .endpoint("https://" + storageAccount + ".blob.core.windows.net")
+                .buildClient();
+        secondBlobName = "secondFile.txt";
     }
 
     @Test
@@ -285,7 +325,6 @@ public class NifiDataFlowControllerTest {
                         .type("AzureStorage")
                         .property("account", storageAccount)
                         .property("container", containerName)
-                        .property("blobname", "bike_very_new.jpg")
                         .keyName(storageAccount + "-key1")
                         .build())
                 .build();
@@ -299,10 +338,11 @@ public class NifiDataFlowControllerTest {
         atlasApi.deleteEntities(Collections.singletonList(id));
 
         // will fail if new blob is not there after 60 seconds
-        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
+        while (listBlobs(containerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
             Thread.sleep(500);
         }
-        assertThat(listBlobs().stream().anyMatch(bi -> bi.getName().equals("bike_very_new.jpg"))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(blobName))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(secondBlobName))).isTrue();
 
     }
 
@@ -321,7 +361,6 @@ public class NifiDataFlowControllerTest {
                         .type("AzureStorage")
                         .property("account", storageAccount)
                         .property("container", containerName)
-                        .property("blobname", "bike_very_new.jpg")
                         .keyName(storageAccount + "-key1")
                         .build())
                 .build();
@@ -334,10 +373,11 @@ public class NifiDataFlowControllerTest {
 
 
         // will fail if new blob is not there after 10 seconds
-        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
+        while (listBlobs(containerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
             Thread.sleep(500);
         }
-        assertThat(listBlobs().stream().anyMatch(bi -> bi.getName().equals("bike_very_new.jpg"))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(blobName))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(secondBlobName))).isTrue();
 
     }
 
@@ -408,7 +448,6 @@ public class NifiDataFlowControllerTest {
                         .type("AmazonS3")
                         .property("region", "us-east-1")
                         .property("bucketName", s3BucketName)
-                        .property("objectName", "bike_very_new.jpg")
                         .property("keyName", s3BucketName)
                         .build())
                 .build();
@@ -421,10 +460,12 @@ public class NifiDataFlowControllerTest {
 
 
         // will fail if new blob is not there after 10 seconds
-        while (listS3BucketContents().stream().noneMatch(blob -> blob.key().equals(id + ".complete"))) {
+        while (listS3BucketContents(s3BucketName).stream().noneMatch(blob -> blob.key().equals(id + ".complete"))) {
             Thread.sleep(500);
         }
-        assertThat(listS3BucketContents().stream().anyMatch(bi -> bi.key().equals("bike_very_new.jpg"))).isTrue();
+        Thread.sleep(1000);
+        assertThat(listS3BucketContents(s3BucketName).stream().anyMatch(bi -> bi.key().equals(blobName))).isTrue();
+        assertThat(listS3BucketContents(s3BucketName).stream().anyMatch(bi -> bi.key().equals(secondBlobName))).isTrue();
     }
 
     @Test
@@ -454,10 +495,11 @@ public class NifiDataFlowControllerTest {
 
 
         // will fail if new blob is not there after 10 seconds
-        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
+        while (listBlobs(containerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
             Thread.sleep(500);
         }
-        assertThat(listBlobs().stream().anyMatch(bi -> bi.getName().equals("bike_very_new.jpg"))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(blobName))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(secondBlobName))).isTrue();
     }
 
     @Test
@@ -474,7 +516,6 @@ public class NifiDataFlowControllerTest {
                         .type("AmazonS3")
                         .property("region", "us-east-1")
                         .property("bucketName", s3BucketName)
-                        .property("objectName", "bike_very_new.jpg")
                         .property("keyName", s3BucketName)
                         .build())
                 .build();
@@ -487,10 +528,11 @@ public class NifiDataFlowControllerTest {
 
 
         // will fail if new blob is not there after 10 seconds
-        while (listS3BucketContents().stream().noneMatch(blob -> blob.key().equals(id + ".complete"))) {
+        while (listS3BucketContents(s3BucketName).stream().noneMatch(blob -> blob.key().equals(id + ".complete"))) {
             Thread.sleep(500);
         }
-        assertThat(listS3BucketContents().stream().anyMatch(bi -> bi.key().equals("bike_very_new.jpg"))).isTrue();
+        assertThat(listS3BucketContents(s3BucketName).stream().anyMatch(bi -> bi.key().equals(blobName))).isTrue();
+        assertThat(listS3BucketContents(s3BucketName).stream().anyMatch(bi -> bi.key().equals(secondBlobName))).isTrue();
     }
 
     @Test
@@ -520,18 +562,197 @@ public class NifiDataFlowControllerTest {
 
 
         // will fail if new blob is not there after 10 seconds
-        while (listBlobs().stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
+        while (listBlobs(containerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
             Thread.sleep(500);
         }
-        assertThat(listBlobs().stream().anyMatch(bi -> bi.getName().equals("bike_very_new.jpg"))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(blobName))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(secondBlobName))).isTrue();
     }
 
+    @Test
+    @Timeout(20)
+    @DisplayName("Transfer several files from Azure Blob to Azure Blob")
+    void transfer_multiple_fromAzureToAzure() throws InterruptedException {
+        String id = UUID.randomUUID().toString();
+        GenericDataCatalog dataEntry = createAzureCatalogEntry();
+
+
+        final var destContainerName = "dagx-nifi-dest-" + System.currentTimeMillis();
+        BlobContainerClient destinationContainer = blobServiceClient.createBlobContainer(destContainerName);
+
+
+        dataEntry.getProperties().replace("blobname", "[\"" + blobName + "\", \"" + secondBlobName + "\"]");
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+                .id(id)
+                .catalog(dataEntry)
+                .build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataEntry(entry)
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type(AzureBlobStoreSchema.TYPE)
+                        .property("account", storageAccount)
+                        .property("container", destContainerName)
+                        .keyName(storageAccount + "-key1")
+                        .build())
+                .build();
+
+        //act
+        DataFlowInitiateResponse response = controller.initiateFlow(dataRequest);
+
+        //assert
+        assertEquals(ResponseStatus.OK, response.getStatus());
+
+
+        // will fail if new blob is not there after 10 seconds
+        while (listBlobs(destContainerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
+            Thread.sleep(500);
+        }
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(blobName))).isTrue();
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(secondBlobName))).isTrue();
+        destinationContainer.delete();
+    }
+
+    @Test
+    @Timeout(20)
+    @DisplayName("Transfer several files from Azure Blob to Azure Blob")
+    void transfer_multiple_fromS3_toAzure() throws InterruptedException {
+        String id = UUID.randomUUID().toString();
+        GenericDataCatalog dataEntry = createS3CatalogEntry();
+
+        dataEntry.getProperties().replace("blobname", "[\"" + blobName + "\", \"" + secondBlobName + "\"]");
+
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+                .id(id)
+                .catalog(dataEntry)
+                .build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataEntry(entry)
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type("AzureStorage")
+                        .property("account", storageAccount)
+                        .property("container", containerName)
+                        .keyName(storageAccount + "-key1")
+                        .build())
+                .build();
+
+        //act
+        DataFlowInitiateResponse response = controller.initiateFlow(dataRequest);
+
+        //assert
+        assertEquals(ResponseStatus.OK, response.getStatus());
+
+
+        // will fail if new blob is not there after 10 seconds
+        while (listBlobs(containerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
+            Thread.sleep(500);
+        }
+        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(blobName))).isTrue();
+//        assertThat(listBlobs(containerName).stream().anyMatch(bi -> bi.getName().equals(secondBlobName))).isTrue();
+    }
+
+    @Test
+    @Timeout(20)
+    @DisplayName("Transfer several files from Azure Blob to Azure Blob")
+    void transfer_all_fromAzureToAzure() throws InterruptedException {
+        String id = UUID.randomUUID().toString();
+        GenericDataCatalog dataEntry = createAzureCatalogEntry();
+
+        final var destContainerName = "dagx-nifi-dest-" + System.currentTimeMillis();
+        BlobContainerClient container = blobServiceClient.createBlobContainer(destContainerName);
+
+
+        dataEntry.getProperties().remove("blobname");
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+                .id(id)
+                .catalog(dataEntry)
+                .build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataEntry(entry)
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type(AzureBlobStoreSchema.TYPE)
+                        .property("account", storageAccount)
+                        .property("container", destContainerName)
+                        .keyName(storageAccount + "-key1")
+                        .build())
+                .build();
+
+        //act
+        DataFlowInitiateResponse response = controller.initiateFlow(dataRequest);
+
+        //assert
+        assertEquals(ResponseStatus.OK, response.getStatus());
+
+
+        // will fail if new blob is not there after 10 seconds
+        while (listBlobs(destContainerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
+            Thread.sleep(500);
+        }
+        assertThat(listBlobs(destContainerName).stream().anyMatch(bi -> bi.getName().equals(secondBlobName))).isTrue();
+        assertThat(listBlobs(destContainerName).stream().anyMatch(bi -> bi.getName().equals(blobName))).isTrue();
+        container.delete();
+    }
+
+    @Test
+    @Timeout(20)
+    @DisplayName("Transfer all files from S3 to S3")
+    void transfer_all_fromS3_ToS3() throws InterruptedException {
+        String id = UUID.randomUUID().toString();
+        GenericDataCatalog dataEntry = createS3CatalogEntry();
+
+        final var destBucketName = "dagx-nifi-dest-" + System.currentTimeMillis();
+        createBucket(destBucketName);
+
+
+        dataEntry.getProperties().remove("blobname");
+        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+                .id(id)
+                .catalog(dataEntry)
+                .build();
+
+        DataRequest dataRequest = DataRequest.Builder.newInstance()
+                .id(id)
+                .dataEntry(entry)
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type(S3BucketSchema.TYPE)
+                        .property("region", "us-east-1")
+                        .property("bucketName", destBucketName)
+                        .property("keyName", s3BucketName)
+                        .build())
+                .build();
+
+        //act
+        DataFlowInitiateResponse response = controller.initiateFlow(dataRequest);
+
+        //assert
+        assertEquals(ResponseStatus.OK, response.getStatus());
+
+
+        // will fail if new blob is not there after 10 seconds
+        var contents = listS3BucketContents(destBucketName);
+        while (contents.stream().noneMatch(blob -> blob.key().equals(secondBlobName)) || contents.stream().noneMatch(blob -> blob.key().equals(blobName))) {
+            Thread.sleep(500);
+            contents = listS3BucketContents(destBucketName);
+        }
+
+        contents = listS3BucketContents(destBucketName);
+
+        assertThat(contents.stream().anyMatch(bi -> bi.key().equals(secondBlobName))).isTrue();
+        assertThat(contents.stream().anyMatch(bi -> bi.key().equals(blobName))).isTrue();
+        deleteBucket(destBucketName);
+    }
+
+    /// HELPERS ///
     private GenericDataCatalog createAzureCatalogEntry() {
         return GenericDataCatalog.Builder.newInstance()
                 .property("type", "AzureStorage")
                 .property("account", storageAccount)
                 .property("container", containerName)
-                .property("blobname", blobName)
                 .property("keyName", storageAccount + "-key1")
                 .build();
 
@@ -542,12 +763,11 @@ public class NifiDataFlowControllerTest {
                 .property("type", "AmazonS3")
                 .property("region", "us-east-1")
                 .property("bucketName", s3BucketName)
-                .property("objectName", blobName)
                 .property("keyName", s3BucketName)
                 .build();
     }
 
-    private PagedIterable<BlobItem> listBlobs() {
+    private PagedIterable<BlobItem> listBlobs(String containerName) {
         var connectionString = "BlobEndpoint=https://" + storageAccount + ".blob.core.windows.net/;SharedAccessSignature=" + sharedAccessSignature;
         var bsc = new BlobServiceClientBuilder().connectionString(connectionString)
                 .buildClient();
