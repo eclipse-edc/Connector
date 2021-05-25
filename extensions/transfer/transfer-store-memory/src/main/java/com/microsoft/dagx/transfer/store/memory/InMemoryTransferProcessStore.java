@@ -6,17 +6,14 @@
 package com.microsoft.dagx.transfer.store.memory;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
+import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -26,17 +23,15 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * An in-memory, threadsafe process store.
- *
+ * <p>
  * This implementation is intended for testing purposes only.
  */
 public class InMemoryTransferProcessStore implements TransferProcessStore {
     private static final int TIMEOUT = 1000;
-
-    private Map<String, TransferProcess> processesById = new HashMap<>();
-    private Map<String, TransferProcess> processesByExternalId = new HashMap<>();
-    private Map<Integer, List<TransferProcess>> stateCache = new HashMap<>();
-
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Map<String, TransferProcess> processesById = new HashMap<>();
+    private final Map<String, TransferProcess> processesByExternalId = new HashMap<>();
+    private final Map<Integer, List<TransferProcess>> stateCache = new HashMap<>();
 
     @Override
     public TransferProcess find(String id) {
@@ -124,6 +119,18 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public <T> T findData(Class<T> type, String processId, String resourceDefinitionId) {
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public void printState(Monitor monitor) {
+        monitor.debug("*** Process state machine ***");
+        for (Map.Entry<Integer, List<TransferProcess>> state : stateCache.entrySet()) {
+            Optional<TransferProcessStates> tps = TransferProcessStates.from(state.getKey());
+            tps.ifPresentOrElse(t -> monitor.debug("   " + t.name() + ": has " + state.getValue().size() + " processes"), () ->
+                    monitor.severe("no transfer process state found for code " + state.getKey()));
+
+
+        }
     }
 
     private <T> T readLock(Supplier<T> work) {

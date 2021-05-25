@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.spi.transfer.store;
 
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -40,4 +41,6 @@ public interface TransferProcessStore {
     void deleteData(String processId, Set<String> keys);
 
     <T> T findData(Class<T> type, String processId, String resourceDefinitionId);
+
+    void printState(Monitor monitor);
 }

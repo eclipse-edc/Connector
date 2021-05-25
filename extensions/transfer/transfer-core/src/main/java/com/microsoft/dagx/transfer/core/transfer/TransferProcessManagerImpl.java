@@ -18,6 +18,7 @@ import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
+import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
 
 import java.util.List;
 import java.util.Objects;
@@ -36,23 +37,22 @@ import static java.util.UUID.randomUUID;
  *
  */
 public class TransferProcessManagerImpl implements TransferProcessManager {
+    private final AtomicBoolean active = new AtomicBoolean();
     private int batchSize = 5;
     private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
-
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private TransferProcessStore transferProcessStore;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
-
     private Monitor monitor;
-
     private ExecutorService executor;
 
-    private AtomicBoolean active = new AtomicBoolean();
+    private TransferProcessManagerImpl() {
+    }
 
     public void start(TransferProcessStore processStore) {
-        this.transferProcessStore = processStore;
+        transferProcessStore = processStore;
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -97,9 +97,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
                 int sent = sendOrProcessProvisionedRequests();
 
+                int finished = pollForCompletion();
+
                 if (provisioned == 0 && sent == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
+                transferProcessStore.printState(monitor);
                 waitStrategy.success();
             } catch (Error e) {
                 throw e; // let the thread die and don't reschedule as the error is unrecoverable
@@ -120,9 +123,25 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
+    private int pollForCompletion() {
+
+        //deal with all the client processes
+        List<TransferProcess> processes = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
+        if (processes.stream().anyMatch(p -> p.getType() != CLIENT)) {
+            throw new IllegalStateException("Only CLIENT processes can be in state REQUESTED_ACK!");
+        }
+
+        for (var process : processes) {
+            var rq = process.getDataRequest();
+            //todo: query for completion marker, e.g. a *.complete file in an s3 bucket
+        }
+        return 0;
+
+    }
+
     /**
      * Performs client-side or provider side provisioning for a service.
-     *
+     * <p>
      * On a client, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
      * map involve preprocessing data or other operations.
      */
@@ -174,11 +193,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return processes.size();
     }
 
-    private TransferProcessManagerImpl() {
-    }
-
     public static class Builder {
-        private TransferProcessManagerImpl manager;
+        private final TransferProcessManagerImpl manager;
+
+        private Builder() {
+            manager = new TransferProcessManagerImpl();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -226,10 +246,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.monitor, "monitor");
             return manager;
-        }
-
-        private Builder() {
-            manager = new TransferProcessManagerImpl();
         }
     }
 }
