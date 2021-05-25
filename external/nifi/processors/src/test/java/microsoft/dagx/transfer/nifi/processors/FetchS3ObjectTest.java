@@ -7,6 +7,8 @@
 package microsoft.dagx.transfer.nifi.processors;
 
 import com.amazonaws.auth.AWSCredentials;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
 import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
@@ -18,6 +20,7 @@ import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,10 +32,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FetchS3ObjectTest extends AbstractS3Test {
 
     private AWSCredentials credentials;
+    private RetryPolicy<Object> retryPolicy;
 
     @BeforeEach
     void setup() {
         credentials = getCredentials();
+        retryPolicy = new RetryPolicy<>().withBackoff(500, 5000, ChronoUnit.MILLIS).withMaxRetries(5).handle(AssertionError.class);
     }
 
     @Test
@@ -54,11 +59,15 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         runner.run(1);
 
-        runner.assertAllFlowFilesTransferred(Properties.REL_SUCCESS, 1);
-        final List<MockFlowFile> ffs = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
-        MockFlowFile ff = ffs.get(0);
-        ff.assertContentEquals(getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME));
-        assertThat(ffs).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("test-file"));
+        Failsafe.with(retryPolicy).run(() -> {
+            System.out.println("");
+            final List<MockFlowFile> ffs = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
+            assertThat(ffs).hasSize(1);
+
+            MockFlowFile ff = ffs.get(0);
+            ff.assertContentEquals(getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME));
+            assertThat(ffs).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("test-file"));
+        });
 
     }
 
@@ -78,10 +87,11 @@ class FetchS3ObjectTest extends AbstractS3Test {
         runner.enqueue(new byte[0], attrs);
 
         runner.run(1);
-
-        runner.assertAllFlowFilesTransferred(Properties.REL_FAILURE, 1);
-        final List<MockFlowFile> ffs = runner.getFlowFilesForRelationship(Properties.REL_FAILURE);
-        MockFlowFile ff = ffs.get(0);
+        Failsafe.with(retryPolicy).run(() -> {
+            final List<MockFlowFile> ffs = runner.getFlowFilesForRelationship(Properties.REL_FAILURE);
+            assertThat(ffs).hasSize(1);
+            MockFlowFile ff = ffs.get(0);
+        });
     }
 
     @Test
@@ -103,19 +113,21 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         runner.run(1);
 
-        runner.assertAllFlowFilesTransferred(Properties.REL_SUCCESS, 1);
 
-        final List<MockFlowFile> ffs = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
-        assertThat(ffs).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("folder/1.txt"));
-        final MockFlowFile out = ffs.iterator().next();
+        Failsafe.with(retryPolicy).run(() -> {
+            final List<MockFlowFile> ffs = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
+            assertThat(ffs).hasSize(1);
+            assertThat(ffs).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("folder/1.txt"));
+            final MockFlowFile out = ffs.iterator().next();
 
-        final byte[] expectedBytes = Files.readAllBytes(getResourcePath(SAMPLE_FILE_RESOURCE_NAME));
-        out.assertContentEquals(new String(expectedBytes));
+            final byte[] expectedBytes = Files.readAllBytes(getResourcePath(SAMPLE_FILE_RESOURCE_NAME));
+            out.assertContentEquals(new String(expectedBytes));
 
 
-        for (final Map.Entry<String, String> entry : out.getAttributes().entrySet()) {
-            System.out.println(entry.getKey() + " : " + entry.getValue());
-        }
+            for (final Map.Entry<String, String> entry : out.getAttributes().entrySet()) {
+                System.out.println(entry.getKey() + " : " + entry.getValue());
+            }
+        });
     }
 
     @Test
@@ -142,14 +154,16 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         runner.run(1);
 
-        runner.assertAllFlowFilesTransferred(Properties.REL_SUCCESS, 2);
-        final List<MockFlowFile> successfulFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
-        assertThat(successfulFlowFiles).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("hello"));
+        Failsafe.with(retryPolicy).run(() -> {
+            final List<MockFlowFile> successfulFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
+            assertThat(successfulFlowFiles).hasSize(2);
+            assertThat(successfulFlowFiles).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("hello"));
 
-        MockFlowFile ff = successfulFlowFiles.get(0);
-        ff.assertContentEquals(getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME));
-        MockFlowFile ff2 = successfulFlowFiles.get(1);
-        ff2.assertContentEquals(contents2);
+            MockFlowFile ff = successfulFlowFiles.get(0);
+            ff.assertContentEquals(getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME));
+            MockFlowFile ff2 = successfulFlowFiles.get(1);
+            ff2.assertContentEquals(contents2);
+        });
     }
 
     @Test
@@ -173,14 +187,16 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         runner.run(1);
 
-        final List<MockFlowFile> successfulFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
-        assertThat(successfulFlowFiles).hasSize(1);
+        Failsafe.with(retryPolicy).run(() -> {
+            final List<MockFlowFile> successfulFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
+            assertThat(successfulFlowFiles).hasSize(1);
 
-        assertThat(successfulFlowFiles).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("hello1"));
+            assertThat(successfulFlowFiles).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).contains("hello1"));
 
+            final List<MockFlowFile> failedFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_FAILURE);
+            assertThat(failedFlowFiles).hasSize(1);
+        });
 
-        final List<MockFlowFile> failedFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_FAILURE);
-        assertThat(failedFlowFiles).hasSize(1);
     }
 
     @Test
@@ -206,13 +222,14 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         runner.run(1);
 
-        runner.assertAllFlowFilesTransferred(Properties.REL_SUCCESS);
-        final List<MockFlowFile> successfulFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
+        Failsafe.with(retryPolicy).run(() -> {
+            runner.assertAllFlowFilesTransferred(Properties.REL_SUCCESS);
+            final List<MockFlowFile> successfulFlowFiles = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
 
-        assertThat(successfulFlowFiles).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).isNotEmpty());
+            assertThat(successfulFlowFiles).allSatisfy(mff -> assertThat(mff.getAttribute("filename")).isNotEmpty());
 
-        assertThat(successfulFlowFiles).hasSizeGreaterThanOrEqualTo(2);
-
+            assertThat(successfulFlowFiles).hasSizeGreaterThanOrEqualTo(2);
+        });
     }
 
 }
