@@ -24,12 +24,8 @@ public class PushStreamFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
-        sendMessage(dataRequest);
-        return DataFlowInitiateResponse.OK;
-    }
-
-    void sendMessage(DataRequest dataRequest) {
         publisherRegistry.notifyPublisher(dataRequest);
+        return DataFlowInitiateResponse.OK;
     }
 
 }
