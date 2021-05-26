@@ -23,15 +23,15 @@ public class WsPushStreamSession implements StreamSession {
     private Monitor monitor;
 
     private final URI uri;
-    private String destinationName;
-    private String destinationToken;
+    private String topicName;
+    private String topicToken;
     private Session session;
     private WebSocketContainer container;
 
-    public WsPushStreamSession(URI uri, String destinationName, String destinationToken, ObjectMapper objectMapper, Monitor monitor) {
+    public WsPushStreamSession(URI uri, String topicName, String topicToken, ObjectMapper objectMapper, Monitor monitor) {
         this.uri = uri;
-        this.destinationName = destinationName;
-        this.destinationToken = destinationToken;
+        this.topicName = topicName;
+        this.topicToken = topicToken;
         this.objectMapper = objectMapper;
         this.monitor = monitor;
     }
@@ -52,8 +52,8 @@ public class WsPushStreamSession implements StreamSession {
         try {
             var publishMessage = PublishMessage.Builder.newInstance()
                     .payload(data)
-                    .destinationName(destinationName)
-                    .accessToken(destinationToken).build();
+                    .topicName(topicName)
+                    .accessToken(topicToken).build();
 
             session.getBasicRemote().sendBinary(ByteBuffer.wrap(objectMapper.writeValueAsBytes(publishMessage)));
         } catch (IOException e) {
@@ -64,13 +64,13 @@ public class WsPushStreamSession implements StreamSession {
     @Override
     public void close() {
         try {
-            var disconnect = UnSubscribeMessage.Builder.newInstance().destinationName(destinationName).build();
+            var disconnect = UnSubscribeMessage.Builder.newInstance().topicName(topicName).build();
             session.getBasicRemote().sendBinary(ByteBuffer.wrap(objectMapper.writeValueAsBytes(disconnect)));
         } catch (IOException e) {
             throw new DagxException(e);
         } finally {
-            destinationName = null;
-            destinationToken = null; // NB: the access token must be removed
+            topicName = null;
+            topicToken = null; // NB: the access token must be removed
             session = null;
             if (container != null) {
                 LifeCycle.stop(container);

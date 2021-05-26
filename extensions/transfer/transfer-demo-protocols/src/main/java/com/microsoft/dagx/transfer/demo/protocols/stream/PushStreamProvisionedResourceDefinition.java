@@ -12,7 +12,7 @@ import com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols;
 import java.util.Objects;
 
 /**
- * Defines a streaming destination to be provisioned.
+ * Defines a streaming destination topic to be provisioned.
  */
 @JsonDeserialize(builder = PushStreamProvisionedResourceDefinition.Builder.class)
 @JsonTypeName("dagx:pushstreamprovisionedresource")

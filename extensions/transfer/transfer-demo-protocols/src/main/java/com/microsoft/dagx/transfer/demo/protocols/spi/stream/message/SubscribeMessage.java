@@ -8,16 +8,16 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Objects;
 
 /**
- * Subscribes to receive data when published to a destination.
+ * Subscribes to receive data when published to a topic.
  */
 @JsonTypeName("dagx:subscribemessage")
 @JsonDeserialize(builder = SubscribeMessage.Builder.class)
 public class SubscribeMessage extends PubSubMessage {
-    private String destinationName;
+    private String topicName;
     private String accessToken;
 
-    public String getDestinationName() {
-        return destinationName;
+    public String getTopicName() {
+        return topicName;
     }
 
     public String getAccessToken() {
@@ -37,8 +37,8 @@ public class SubscribeMessage extends PubSubMessage {
             return new Builder();
         }
 
-        public Builder destinationName(String destinationName) {
-            message.destinationName = destinationName;
+        public Builder topicName(String topicName) {
+            message.topicName = topicName;
             return this;
         }
 
@@ -48,7 +48,7 @@ public class SubscribeMessage extends PubSubMessage {
         }
 
         public SubscribeMessage build() {
-            Objects.requireNonNull(message.destinationName);
+            Objects.requireNonNull(message.topicName);
             Objects.requireNonNull(message.accessToken);
             return message;
         }

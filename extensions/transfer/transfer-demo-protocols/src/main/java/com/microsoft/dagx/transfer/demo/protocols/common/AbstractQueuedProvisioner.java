@@ -13,7 +13,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 /**
  * Implements async resource provisioning.
  *
- * This simulates the asynchronous nature of provisioning cloud storage and data destinations.
+ * This simulates the asynchronous nature of provisioning cloud storage and data topics.
  */
 public abstract class AbstractQueuedProvisioner {
 
@@ -41,10 +41,10 @@ public abstract class AbstractQueuedProvisioner {
         }
     }
 
-    public CompletableFuture<DataDestination> provision(String destinationName) {
+    public CompletableFuture<DataDestination> provision(String topicName) {
         CompletableFuture<DataDestination> future = new CompletableFuture<>();
         try {
-            queue.put(new QueueEntry(destinationName, future));
+            queue.put(new QueueEntry(topicName, future));
             return future;
         } catch (InterruptedException e) {
             Thread.interrupted();

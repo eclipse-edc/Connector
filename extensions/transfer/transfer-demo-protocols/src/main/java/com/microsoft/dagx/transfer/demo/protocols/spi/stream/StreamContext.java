@@ -11,11 +11,11 @@ public interface StreamContext {
      * Creates a stream session.
      *
      * @param uri the stream endpoint uri
-     * @param destinationName the destination name data is to be sent to
-     * @param secretName the destination secret to be resolved by the context
+     * @param topicName the topic name data is to be sent to
+     * @param secretName the topic secret to be resolved by the context
      * @return the session
      */
-    StreamSession createSession(String uri, String destinationName, String secretName);
+    StreamSession createSession(String uri, String topicName, String secretName);
 
 
 }

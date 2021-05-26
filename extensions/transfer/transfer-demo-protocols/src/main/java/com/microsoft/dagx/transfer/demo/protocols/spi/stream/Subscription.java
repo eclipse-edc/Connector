@@ -3,19 +3,19 @@ package com.microsoft.dagx.transfer.demo.protocols.spi.stream;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
- * A subscription to a destination.
+ * A subscription to a destination topic.
  */
 public class Subscription {
-    private String destinationName;
+    private String topicName;
     private String subscriptionId;
 
-    public Subscription(@JsonProperty("destinationName") String destinationName, @JsonProperty("subscriptionId") String subscriptionId) {
-        this.destinationName = destinationName;
+    public Subscription(@JsonProperty("topicName") String topicName, @JsonProperty("subscriptionId") String subscriptionId) {
+        this.topicName = topicName;
         this.subscriptionId = subscriptionId;
     }
 
-    public String getDestinationName() {
-        return destinationName;
+    public String getTopicName() {
+        return topicName;
     }
 
     public String getSubscriptionId() {

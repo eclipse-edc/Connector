@@ -7,7 +7,7 @@ import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.demo.protocols.fixture.AbstractDemoTransferTest;
 import com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols;
-import com.microsoft.dagx.transfer.demo.protocols.spi.stream.DestinationManager;
+import com.microsoft.dagx.transfer.demo.protocols.spi.stream.TopicManager;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamContext;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamPublisher;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
@@ -15,10 +15,11 @@ import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
-import static java.util.concurrent.TimeUnit.MINUTES;
 
 import static com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols.DESTINATION_NAME;
 import static com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols.ENDPOINT_ADDRESS;
+import static com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols.PUSH_STREAM;
+import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
  * Demonstrates an-end-to-end push stream transfer.
@@ -29,15 +30,15 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
      * Perform a push stream flow using the loopback protocol.
      *
      * @param processManager the injected process manager
-     * @param destinationManager the injected destination manager
+     * @param topicManager the injected destination manager
      * @param monitor the injected runtime monitor
      */
     @Test
-    void verifyPushStreamFlow(TransferProcessManager processManager, DestinationManager destinationManager, StreamPublisherRegistry registry, Monitor monitor) throws InterruptedException {
+    void verifyPushStreamFlow(TransferProcessManager processManager, TopicManager topicManager, StreamPublisherRegistry registry, Monitor monitor) throws InterruptedException {
         var latch = new CountDownLatch(1);
 
         var destinationName = UUID.randomUUID().toString();
-        destinationManager.registerObserver((name, payload) -> {
+        topicManager.registerObserver((name, payload) -> {
             monitor.info("Message: " + new String(payload));
             latch.countDown();
         });

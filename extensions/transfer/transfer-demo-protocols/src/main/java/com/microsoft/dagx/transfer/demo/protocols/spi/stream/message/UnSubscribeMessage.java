@@ -8,15 +8,15 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Objects;
 
 /**
- * Unsubscribes from a destination.
+ * Unsubscribes from a topic.
  */
 @JsonTypeName("dagx:unsubscribemessage")
 @JsonDeserialize(builder = UnSubscribeMessage.Builder.class)
 public class UnSubscribeMessage extends PubSubMessage {
-    private String destinationName;
+    private String topicName;
 
-    public String getDestinationName() {
-        return destinationName;
+    public String getTopicName() {
+        return topicName;
     }
 
     private UnSubscribeMessage() {
@@ -32,13 +32,13 @@ public class UnSubscribeMessage extends PubSubMessage {
             return new Builder();
         }
 
-        public Builder destinationName(String destinationName) {
-            message.destinationName = destinationName;
+        public Builder topicName(String topicName) {
+            message.topicName = topicName;
             return this;
         }
 
         public UnSubscribeMessage build() {
-            Objects.requireNonNull(message.destinationName);
+            Objects.requireNonNull(message.topicName);
             return message;
         }
 

@@ -8,8 +8,8 @@ import org.jetbrains.annotations.Nullable;
 import java.util.UUID;
 
 /**
- * Generates resource definitions for push stream transfers. If the data destination is unmanaged (i.e. it is already created and managed independently) a definition will bot be
- * generated. Otherwise, a definition containing metadata to create a definition will be returned.
+ * Generates resource definitions for push stream transfers. If the data destination is unmanaged (i.e. it is already created and managed independently) a definition will not be
+ * generated. Otherwise, a definition containing metadata to create a destination topic will be returned.
  */
 public class PushStreamResourceGenerator implements ResourceDefinitionGenerator {
     private final String endpointAddress;
@@ -36,7 +36,7 @@ public class PushStreamResourceGenerator implements ResourceDefinitionGenerator 
         }
         return PushStreamResourceDefinition.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .destinationName(destinationName)
+                .topicName(destinationName)
                 .endpointAddress(endpointAddress)
                 .build();
     }

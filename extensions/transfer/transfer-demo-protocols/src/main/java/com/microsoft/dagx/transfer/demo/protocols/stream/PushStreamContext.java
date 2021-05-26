@@ -17,7 +17,7 @@ import java.net.URI;
 import static java.lang.String.format;
 
 /**
- *
+ * Implements a push stream context that can create WebSocket-based and HTTP-based sessions.
  */
 public class PushStreamContext implements StreamContext {
     private Vault vault;
@@ -33,12 +33,12 @@ public class PushStreamContext implements StreamContext {
     }
 
     @Override
-    public StreamSession createSession(String uri, String destinationName, String secretName) {
+    public StreamSession createSession(String uri, String topicName, String secretName) {
         var accessToken = vault.resolveSecret(secretName);
         var destinationToken = readAccessToken(accessToken, secretName);
         var endpointUri = URI.create(uri);
         if ("ws".equalsIgnoreCase(endpointUri.getScheme())) {
-            var session = new WsPushStreamSession(endpointUri, destinationName, destinationToken, objectMapper, monitor);
+            var session = new WsPushStreamSession(endpointUri, topicName, destinationToken, objectMapper, monitor);
             session.connect();
             return session;
         } else if ("https".equalsIgnoreCase(endpointUri.getScheme()) || "http".equalsIgnoreCase(endpointUri.getScheme())) {

@@ -11,8 +11,8 @@ import java.util.function.Consumer;
 /**
  *
  */
-class DemoDestinationManagerTest {
-    private DemoDestinationManager destinationManager;
+class DemoTopicManagerTest {
+    private DemoTopicManager destinationManager;
 
     @Test
     void verifyPubSub() throws Exception {
@@ -36,7 +36,7 @@ class DemoDestinationManagerTest {
 
     @BeforeEach
     void setUp() {
-        destinationManager = new DemoDestinationManager(new Monitor() {
+        destinationManager = new DemoTopicManager(new Monitor() {
         });
     }
 

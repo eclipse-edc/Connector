@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
- * Connects to a destination.
+ * Connects to a destination topic.
  */
 @JsonTypeName("dagx:connectmessage")
 @JsonDeserialize(builder = ConnectMessage.Builder.class)

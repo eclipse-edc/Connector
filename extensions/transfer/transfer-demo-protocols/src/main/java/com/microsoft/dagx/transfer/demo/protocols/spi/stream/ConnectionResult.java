@@ -25,7 +25,7 @@ public class ConnectionResult {
     }
 
     /**
-     * Returns a consumer that can be used to publish data to the destination.
+     * Returns a consumer that can be used to publish data to the topic.
      */
     public Consumer<byte[]> getConsumer() {
         return consumer;

@@ -7,18 +7,18 @@ import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import com.microsoft.dagx.spi.types.domain.transfer.SecretToken;
 import com.microsoft.dagx.transfer.demo.protocols.common.ProtocolsSecretToken;
-import com.microsoft.dagx.transfer.demo.protocols.spi.stream.DestinationManager;
+import com.microsoft.dagx.transfer.demo.protocols.spi.stream.TopicManager;
 
 /**
- *
+ * Provisions a topic that receives data from a provider runtime.
  */
 public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefinition, PushStreamProvisionedResourceDefinition> {
-    private DestinationManager destinationManager;
+    private TopicManager topicManager;
 
     private ProvisionContext context;
 
-    public PushStreamProvisioner(DestinationManager destinationManager) {
-        this.destinationManager = destinationManager;
+    public PushStreamProvisioner(TopicManager topicManager) {
+        this.topicManager = topicManager;
     }
 
     @Override
@@ -38,7 +38,7 @@ public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefi
 
     @Override
     public ResponseStatus provision(PushStreamResourceDefinition resourceDefinition) {
-        destinationManager.provision(resourceDefinition.getDestinationName()).whenComplete((destination, e) -> {
+        topicManager.provision(resourceDefinition.getTopicName()).whenComplete((destination, e) -> {
             var transferProcessId = resourceDefinition.getTransferProcessId();
             var provisionedResource = PushStreamProvisionedResourceDefinition.Builder.newInstance()
                     .id(destination.getDestinationName())
@@ -57,7 +57,7 @@ public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefi
     @Override
     public ResponseStatus deprovision(PushStreamProvisionedResourceDefinition provisionedResource) {
         // FIXME
-        // destinationManager.deprovision(provisionedResource);
+        // topicManager.deprovision(provisionedResource);
         return ResponseStatus.OK;
     }
 }

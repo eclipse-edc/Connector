@@ -1,12 +1,12 @@
 package com.microsoft.dagx.transfer.demo.protocols.spi.stream;
 
 /**
- * Observes a destination, receiving callbacks when data is published to it.
+ * Observes a topic, receiving callbacks when data is published to it.
  */
 @FunctionalInterface
 public interface StreamObserver {
     /**
-     * Callback when data is published to a destination.
+     * Callback when data is published to a topic.
      */
-    void onPublish(String destinationName, byte[] payload);
+    void onPublish(String topicName, byte[] payload);
 }

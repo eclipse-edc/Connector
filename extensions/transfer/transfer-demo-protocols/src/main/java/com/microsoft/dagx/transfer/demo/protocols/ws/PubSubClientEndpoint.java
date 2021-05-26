@@ -15,7 +15,7 @@ import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
 
 /**
- * Implements a web socket client endpoint that receives data published to a destination that the current runtime is subscribed to.
+ * Implements a web socket client endpoint that receives data published to a topic that the current runtime is subscribed to.
  */
 @ClientEndpoint
 public class PubSubClientEndpoint {

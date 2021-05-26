@@ -8,7 +8,7 @@ import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamPublisherRegi
 import org.jetbrains.annotations.NotNull;
 
 /**
- * Implements push-style streaming. The client runtime provisions a destination which the provider runtime publishes to.
+ * Implements push-style streaming. The client runtime provisions a topic which the provider runtime publishes to.
  */
 public class PushStreamFlowController implements DataFlowController {
     private StreamPublisherRegistry publisherRegistry;

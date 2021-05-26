@@ -10,18 +10,18 @@ import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import java.util.Objects;
 
 /**
- * Defines a destination to be provisioned that will receive push data events from the provider connector.
+ * Defines a topic to be provisioned that will receive push data from the provider runtime.
  */
 public class PushStreamResourceDefinition extends ResourceDefinition {
     private String endpointAddress;
-    private String destinationName;
+    private String topicName;
 
     public String getEndpointAddress() {
         return endpointAddress;
     }
 
-    public String getDestinationName() {
-        return destinationName;
+    public String getTopicName() {
+        return topicName;
     }
 
     public static class Builder extends ResourceDefinition.Builder<PushStreamResourceDefinition, Builder> {
@@ -35,15 +35,15 @@ public class PushStreamResourceDefinition extends ResourceDefinition {
             return this;
         }
 
-        public Builder destinationName(String destinationName) {
-            resourceDefinition.destinationName = destinationName;
+        public Builder topicName(String topicName) {
+            resourceDefinition.topicName = topicName;
             return this;
         }
 
         public void verify() {
             super.verify();
             Objects.requireNonNull(resourceDefinition.endpointAddress, "endpointAddress");
-            Objects.requireNonNull(resourceDefinition.destinationName, "destinationName");
+            Objects.requireNonNull(resourceDefinition.topicName, "topicName");
         }
         private Builder() {
             super(new PushStreamResourceDefinition());

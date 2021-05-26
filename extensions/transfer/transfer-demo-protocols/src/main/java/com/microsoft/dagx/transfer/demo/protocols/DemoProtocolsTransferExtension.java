@@ -12,7 +12,7 @@ import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.transfer.demo.protocols.object.DemoObjectStorage;
 import com.microsoft.dagx.transfer.demo.protocols.object.ObjectStorageFlowController;
 import com.microsoft.dagx.transfer.demo.protocols.spi.object.ObjectStorageMessage;
-import com.microsoft.dagx.transfer.demo.protocols.spi.stream.DestinationManager;
+import com.microsoft.dagx.transfer.demo.protocols.spi.stream.TopicManager;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.ConnectMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.DataMessage;
@@ -20,7 +20,7 @@ import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.PubSubMessa
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.PublishMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.SubscribeMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.UnSubscribeMessage;
-import com.microsoft.dagx.transfer.demo.protocols.stream.DemoDestinationManager;
+import com.microsoft.dagx.transfer.demo.protocols.stream.DemoTopicManager;
 import com.microsoft.dagx.transfer.demo.protocols.stream.PushStreamFlowController;
 import com.microsoft.dagx.transfer.demo.protocols.stream.PushStreamProvisioner;
 import com.microsoft.dagx.transfer.demo.protocols.stream.PushStreamResourceGenerator;
@@ -37,9 +37,9 @@ import java.util.Set;
  * <p>
  * (1) Object storage
  * <p>
- * (2) Push-style streaming using pub/sub destinations
+ * (2) Push-style streaming using pub/sub topics
  * <p>
- * (3) Pull-style streaming using pub/sub destinations
+ * (3) Pull-style streaming using pub/sub topics
  * <p>
  * Integration testing
  * <p>
@@ -52,7 +52,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
     private static final String DEFAULT_WS_PUBSUB_ENDPOINT = "ws://localhost:8181/pubsub/";
 
     DemoObjectStorage objectStorage;
-    DemoDestinationManager destinationManager;
+    DemoTopicManager topicManager;
 
     private Monitor monitor;
 
@@ -67,8 +67,8 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
 
         var objectMapper = context.getTypeManager().getMapper();
 
-        destinationManager = new DemoDestinationManager(monitor);
-        context.registerService(DestinationManager.class, destinationManager);
+        topicManager = new DemoTopicManager(monitor);
+        context.registerService(TopicManager.class, topicManager);
 
         // setup object storage
         objectStorage = new DemoObjectStorage(monitor);
@@ -76,11 +76,11 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
 
         // setup streaming endpoints
         var jettyService = context.getService(JettyService.class);
-        new WebSocketFactory().publishEndpoint(PubSubServerEndpoint.class, () -> new PubSubServerEndpoint(destinationManager, objectMapper, monitor), jettyService);
+        new WebSocketFactory().publishEndpoint(PubSubServerEndpoint.class, () -> new PubSubServerEndpoint(topicManager, objectMapper, monitor), jettyService);
 
         registerGenerators(context);
 
-        registerProvisioners(destinationManager, context);
+        registerProvisioners(topicManager, context);
 
         registerFlowControllers(context, objectMapper);
 
@@ -90,7 +90,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
     @Override
     public void start() {
         objectStorage.start();
-        destinationManager.start();
+        topicManager.start();
     }
 
     @Override
@@ -98,8 +98,8 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         if (objectStorage != null) {
             objectStorage.stop();
         }
-        if (destinationManager != null) {
-            destinationManager.stop();
+        if (topicManager != null) {
+            topicManager.stop();
         }
     }
 
@@ -110,9 +110,9 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         manifestGenerator.registerClientGenerator(new PushStreamResourceGenerator(endpointAddress));
     }
 
-    private void registerProvisioners(DestinationManager destinationManager, ServiceExtensionContext context) {
+    private void registerProvisioners(TopicManager topicManager, ServiceExtensionContext context) {
         var provisionManager = context.getService(ProvisionManager.class);
-        provisionManager.register(new PushStreamProvisioner(destinationManager));
+        provisionManager.register(new PushStreamProvisioner(topicManager));
     }
 
     private void registerFlowControllers(ServiceExtensionContext context, ObjectMapper objectMapper) {

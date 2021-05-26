@@ -8,16 +8,16 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import java.util.Objects;
 
 /**
- * Sent to consumers when data has been published to a destination.
+ * Sent to consumers when data has been published to a topic.
  */
 @JsonTypeName("dagx:payloadmessage")
 @JsonDeserialize(builder = DataMessage.Builder.class)
 public class DataMessage extends PubSubMessage {
-    private String destinationName;
+    private String topicName;
     private byte[] payload;
 
-    public String getDestinationName() {
-        return destinationName;
+    public String getTopicName() {
+        return topicName;
     }
 
     public byte[] getPayload() {
@@ -37,8 +37,8 @@ public class DataMessage extends PubSubMessage {
             return new Builder();
         }
 
-        public Builder destinationName(String destinationName) {
-            message.destinationName = destinationName;
+        public Builder topicName(String topicName) {
+            message.topicName = topicName;
             return this;
         }
 
@@ -48,7 +48,7 @@ public class DataMessage extends PubSubMessage {
         }
 
         public DataMessage build() {
-            Objects.requireNonNull(message.destinationName);
+            Objects.requireNonNull(message.topicName);
             Objects.requireNonNull(message.payload);
             return message;
         }

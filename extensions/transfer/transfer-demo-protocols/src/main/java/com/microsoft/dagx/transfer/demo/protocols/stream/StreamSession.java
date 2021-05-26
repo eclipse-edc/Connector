@@ -1,7 +1,7 @@
 package com.microsoft.dagx.transfer.demo.protocols.stream;
 
 /**
- * A stateful connection to a streaming destination.
+ * A stateful connection to a streaming topic.
  */
 public interface StreamSession extends AutoCloseable {
 

@@ -7,7 +7,7 @@ import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.DataMessage
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.PubSubMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.PublishMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.SubscribeMessage;
-import com.microsoft.dagx.transfer.demo.protocols.stream.DemoDestinationManager;
+import com.microsoft.dagx.transfer.demo.protocols.stream.DemoTopicManager;
 import jakarta.websocket.CloseReason;
 import jakarta.websocket.OnError;
 import jakarta.websocket.OnMessage;
@@ -30,13 +30,13 @@ public class PubSubServerEndpoint {
     private static final CloseReason UNSUBSCRIBE_REASON = new CloseReason(NORMAL_CLOSURE, "unsubscribe");
     private static final CloseReason NOT_AUTHORIZED_REASON = new CloseReason(VIOLATED_POLICY, "not authorized");
 
-    private DemoDestinationManager destinationManager;
+    private DemoTopicManager topicManager;
     private ObjectMapper objectMapper;
     private Monitor monitor;
     private Subscription subscription;
 
-    public PubSubServerEndpoint(DemoDestinationManager destinationManager, ObjectMapper objectMapper, Monitor monitor) {
-        this.destinationManager = destinationManager;
+    public PubSubServerEndpoint(DemoTopicManager topicManager, ObjectMapper objectMapper, Monitor monitor) {
+        this.topicManager = topicManager;
         this.objectMapper = objectMapper;
         this.monitor = monitor;
     }
@@ -50,9 +50,9 @@ public class PubSubServerEndpoint {
 
             case SUBSCRIBE:
                 var subscribe = (SubscribeMessage) message;
-                var result = destinationManager.subscribe(subscribe.getDestinationName(), subscribe.getAccessToken(), payload -> {
+                var result = topicManager.subscribe(subscribe.getTopicName(), subscribe.getAccessToken(), payload -> {
                     try {
-                        byte[] bytes = objectMapper.writeValueAsBytes(DataMessage.Builder.newInstance().destinationName(subscribe.getDestinationName()).payload(payload).build());
+                        byte[] bytes = objectMapper.writeValueAsBytes(DataMessage.Builder.newInstance().topicName(subscribe.getTopicName()).payload(payload).build());
                         session.getBasicRemote().sendBinary(ByteBuffer.wrap(bytes));
                     } catch (IOException e) {
                         monitor.severe("Error connecting to websocket client", e);
@@ -66,7 +66,7 @@ public class PubSubServerEndpoint {
                 break;
             case UNSUBSCRIBE:
                 if (subscription != null) {
-                    destinationManager.unsubscribe(subscription);
+                    topicManager.unsubscribe(subscription);
                     session.close(UNSUBSCRIBE_REASON);
                 }
                 break;
@@ -78,7 +78,7 @@ public class PubSubServerEndpoint {
                 break;
             case PUBLISH:
                 var publish = (PublishMessage) message;
-                var connectResult = destinationManager.connect(publish.getDestinationName(), publish.getAccessToken());
+                var connectResult = topicManager.connect(publish.getTopicName(), publish.getAccessToken());
                 if (!connectResult.success()) {
                     session.close(NOT_AUTHORIZED_REASON);
                 } else {
