@@ -22,24 +22,26 @@ public class WsPushStreamSession implements StreamSession {
     private ObjectMapper objectMapper;
     private Monitor monitor;
 
+    private final URI uri;
     private String destinationName;
     private String destinationToken;
     private Session session;
     private WebSocketContainer container;
 
     public WsPushStreamSession(URI uri, String destinationName, String destinationToken, ObjectMapper objectMapper, Monitor monitor) {
+        this.uri = uri;
         this.destinationName = destinationName;
         this.destinationToken = destinationToken;
         this.objectMapper = objectMapper;
         this.monitor = monitor;
+    }
 
+    public void connect() {
         container = ContainerProvider.getWebSocketContainer();
-
         var endpoint = new PubSubClientEndpoint(objectMapper, monitor, m -> {
         });
-
         try {
-        session = container.connectToServer(endpoint, uri);
+            session = container.connectToServer(endpoint, uri);
         } catch (Exception e) {
             throw new DagxException("Error connecting to stream:" + e.getMessage());
         }

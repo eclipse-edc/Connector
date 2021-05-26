@@ -7,6 +7,7 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamPublisher;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
+import okhttp3.OkHttpClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,20 +17,22 @@ import java.util.List;
  */
 public class StreamPublisherRegistryImpl implements StreamPublisherRegistry {
     private Vault vault;
+    private OkHttpClient httpClient;
     private ObjectMapper objectMapper;
     private Monitor monitor;
 
     private List<StreamPublisher> publishers = new ArrayList<>();
 
-    public StreamPublisherRegistryImpl(Vault vault, ObjectMapper objectMapper, Monitor monitor) {
+    public StreamPublisherRegistryImpl(Vault vault, OkHttpClient httpClient, ObjectMapper objectMapper, Monitor monitor) {
         this.vault = vault;
+        this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.monitor = monitor;
     }
 
     @Override
     public void register(StreamPublisher publisher) {
-        var context = new PushStreamContext(vault, objectMapper, monitor);
+        var context = new PushStreamContext(vault, httpClient, objectMapper, monitor);
         publisher.initialize(context);
         publishers.add(publisher);
     }

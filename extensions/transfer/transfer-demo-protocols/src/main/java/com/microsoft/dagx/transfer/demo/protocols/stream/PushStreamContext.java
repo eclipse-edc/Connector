@@ -5,10 +5,13 @@ import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.transfer.demo.protocols.common.ProtocolsSecretToken;
+import com.microsoft.dagx.transfer.demo.protocols.http.HttpStreamSession;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamContext;
 import com.microsoft.dagx.transfer.demo.protocols.ws.WsPushStreamSession;
+import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.Nullable;
 
+import java.net.MalformedURLException;
 import java.net.URI;
 
 import static java.lang.String.format;
@@ -18,11 +21,13 @@ import static java.lang.String.format;
  */
 public class PushStreamContext implements StreamContext {
     private Vault vault;
+    private OkHttpClient httpClient;
     private ObjectMapper objectMapper;
     private Monitor monitor;
 
-    public PushStreamContext(Vault vault, ObjectMapper objectMapper, Monitor monitor) {
+    public PushStreamContext(Vault vault, OkHttpClient httpClient, ObjectMapper objectMapper, Monitor monitor) {
         this.vault = vault;
+        this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.monitor = monitor;
     }
@@ -33,7 +38,16 @@ public class PushStreamContext implements StreamContext {
         var destinationToken = readAccessToken(accessToken, secretName);
         var endpointUri = URI.create(uri);
         if ("ws".equalsIgnoreCase(endpointUri.getScheme())) {
-            return new WsPushStreamSession(endpointUri, destinationName, destinationToken, objectMapper, monitor);
+            var session = new WsPushStreamSession(endpointUri, destinationName, destinationToken, objectMapper, monitor);
+            session.connect();
+            return session;
+        } else if ("https".equalsIgnoreCase(endpointUri.getScheme()) || "http".equalsIgnoreCase(endpointUri.getScheme())) {
+            try {
+                var endpointUrl = endpointUri.toURL();
+                return new HttpStreamSession(endpointUrl, httpClient);
+            } catch (MalformedURLException e) {
+                throw new DagxException(e);
+            }
         } else {
             throw new UnsupportedOperationException("Unsupported scheme: " + endpointUri.getScheme());
         }

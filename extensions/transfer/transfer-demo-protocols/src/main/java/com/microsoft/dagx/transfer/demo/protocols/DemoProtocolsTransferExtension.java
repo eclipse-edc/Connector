@@ -28,6 +28,7 @@ import com.microsoft.dagx.transfer.demo.protocols.stream.StreamPublisherRegistry
 import com.microsoft.dagx.transfer.demo.protocols.ws.PubSubServerEndpoint;
 import com.microsoft.dagx.transfer.demo.protocols.ws.WebSocketFactory;
 import com.microsoft.dagx.web.transport.JettyService;
+import okhttp3.OkHttpClient;
 
 import java.util.Set;
 
@@ -121,7 +122,9 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         dataFlowMgr.register(objectStorageFlowController);
 
         var vault = context.getService(Vault.class);
-        var publisherRegistry = new StreamPublisherRegistryImpl(vault, objectMapper, monitor);
+        var httpClient = context.getService(OkHttpClient.class);
+
+        var publisherRegistry = new StreamPublisherRegistryImpl(vault, httpClient, objectMapper, monitor);
         context.registerService(StreamPublisherRegistry.class, publisherRegistry);
 
         var pushStreamFlowController = new PushStreamFlowController(publisherRegistry);
