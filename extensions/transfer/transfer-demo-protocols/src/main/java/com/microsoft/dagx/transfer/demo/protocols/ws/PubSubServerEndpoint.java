@@ -17,6 +17,7 @@ import jakarta.websocket.server.ServerEndpoint;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.channels.ClosedChannelException;
 
 import static jakarta.websocket.CloseReason.CloseCodes.NORMAL_CLOSURE;
 import static jakarta.websocket.CloseReason.CloseCodes.VIOLATED_POLICY;
@@ -83,13 +84,16 @@ public class PubSubServerEndpoint {
                 } else {
                     connectResult.getConsumer().accept(publish.getPayload());
                 }
-
                 break;
         }
     }
 
     @OnError
     public void onWebSocketError(Throwable e) {
+        if (e instanceof ClosedChannelException){
+            // ignore
+            return;
+        }
         monitor.severe("Websocket error", e);
     }
 

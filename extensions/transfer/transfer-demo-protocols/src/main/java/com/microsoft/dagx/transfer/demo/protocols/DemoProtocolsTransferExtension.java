@@ -11,9 +11,10 @@ import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.transfer.demo.protocols.object.DemoObjectStorage;
 import com.microsoft.dagx.transfer.demo.protocols.object.ObjectStorageFlowController;
 import com.microsoft.dagx.transfer.demo.protocols.spi.object.ObjectStorageMessage;
+import com.microsoft.dagx.transfer.demo.protocols.spi.stream.DestinationManager;
+import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.ConnectMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.DataMessage;
-import com.microsoft.dagx.transfer.demo.protocols.spi.stream.DestinationManager;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.PubSubMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.PublishMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.SubscribeMessage;
@@ -22,6 +23,7 @@ import com.microsoft.dagx.transfer.demo.protocols.stream.DemoDestinationManager;
 import com.microsoft.dagx.transfer.demo.protocols.stream.PushStreamFlowController;
 import com.microsoft.dagx.transfer.demo.protocols.stream.PushStreamProvisioner;
 import com.microsoft.dagx.transfer.demo.protocols.stream.PushStreamResourceGenerator;
+import com.microsoft.dagx.transfer.demo.protocols.stream.StreamPublisherRegistryImpl;
 import com.microsoft.dagx.transfer.demo.protocols.ws.PubSubServerEndpoint;
 import com.microsoft.dagx.transfer.demo.protocols.ws.WebSocketFactory;
 import com.microsoft.dagx.web.transport.JettyService;
@@ -70,9 +72,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         var eventSocket = new PubSubServerEndpoint(destinationManager, objectMapper, monitor);
         new WebSocketFactory().publishEndpoint(eventSocket, jettyService);
 
-        // FIXME
-        var endpointAddress = "ws://localhost:8181/pubsub/";
-        registerGenerators(endpointAddress, context);
+        registerGenerators(context);
 
         registerProvisioners(destinationManager, context);
 
@@ -97,8 +97,11 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         }
     }
 
-    private void registerGenerators(String endpointAddress, ServiceExtensionContext context) {
+    private void registerGenerators(ServiceExtensionContext context) {
         var manifestGenerator = context.getService(ResourceManifestGenerator.class);
+
+        // FIXME
+        var endpointAddress = "ws://localhost:8181/pubsub/";
         manifestGenerator.registerClientGenerator(new PushStreamResourceGenerator(endpointAddress));
     }
 
@@ -107,15 +110,19 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         provisionManager.register(new PushStreamProvisioner(destinationManager));
     }
 
-    private void registerFlowControllers(ServiceExtensionContext context, com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
+    private void registerFlowControllers(ServiceExtensionContext context, ObjectMapper objectMapper) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
 
-        var objectStorageFlowController = new ObjectStorageFlowController(destinationManager, objectMapper, monitor);
+        var objectStorageFlowController = new ObjectStorageFlowController(objectMapper, monitor);
         dataFlowMgr.register(objectStorageFlowController);
 
-        var service = context.getService(Vault.class);
-        var pushStreamFlowController = new PushStreamFlowController(service, objectMapper, monitor);
+        var vault = context.getService(Vault.class);
+        var publisherRegistry = new StreamPublisherRegistryImpl(vault, objectMapper, monitor);
+        context.registerService(StreamPublisherRegistry.class, publisherRegistry);
+
+        var pushStreamFlowController = new PushStreamFlowController(publisherRegistry);
         dataFlowMgr.register(pushStreamFlowController);
+
     }
 
     private void registerTypes(ObjectMapper objectMapper) {

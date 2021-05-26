@@ -58,8 +58,8 @@ public class PublishMessage extends PubSubMessage {
         }
 
         public PublishMessage build() {
-            Objects.requireNonNull(message.destinationName);
-            Objects.requireNonNull(message.accessToken);
+            Objects.requireNonNull(message.destinationName, "destinationName");
+            Objects.requireNonNull(message.accessToken, "accessToken");
             return message;
         }
 
