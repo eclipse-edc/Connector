@@ -69,8 +69,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
 
         // setup streaming endpoints
         var jettyService = context.getService(JettyService.class);
-        var eventSocket = new PubSubServerEndpoint(destinationManager, objectMapper, monitor);
-        new WebSocketFactory().publishEndpoint(eventSocket, jettyService);
+        new WebSocketFactory().publishEndpoint(PubSubServerEndpoint.class, () -> new PubSubServerEndpoint(destinationManager, objectMapper, monitor), jettyService);
 
         registerGenerators(context);
 
