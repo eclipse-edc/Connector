@@ -12,6 +12,7 @@ import net.jodah.failsafe.RetryPolicy;
 import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -33,22 +34,31 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
     private AWSCredentials credentials;
     private RetryPolicy<Object> retryPolicy;
+    private String bucketName;
 
     @BeforeEach
     void setup() {
+        bucketName = "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
+        createBucket(client, bucketName, REGION);
+
         credentials = getCredentials();
         retryPolicy = new RetryPolicy<>().withBackoff(500, 5000, ChronoUnit.MILLIS).withMaxRetries(5).handle(AssertionError.class);
+    }
+
+    @AfterEach
+    void cleanup(){
+        deleteBucket(bucketName, client);
     }
 
     @Test
     @DisplayName("Verifies that a file is downloaded and the 'success' relation is traversed")
     public void testFetchFile_single() throws IOException {
-        putTestFile("test-file", getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME));
+        putTestFile("test-file", getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME), bucketName);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
         runner.setProperty(Properties.REGION, REGION);
-        runner.setProperty(Properties.BUCKET, BUCKET_NAME);
+        runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, "test-file");
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
@@ -77,7 +87,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
         final TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
         runner.setProperty(Properties.REGION, REGION);
-        runner.setProperty(Properties.BUCKET, BUCKET_NAME);
+        runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, "non-existing-file");
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
@@ -98,12 +108,12 @@ class FetchS3ObjectTest extends AbstractS3Test {
     @DisplayName("Downloads a file and compares the contents")
     public void testFetchFile_single_assertContents() throws IOException {
         String key = "folder/1.txt";
-        putTestFile(key, getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME));
+        putTestFile(key, getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME), bucketName);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
         runner.setProperty(Properties.REGION, REGION);
-        runner.setProperty(Properties.BUCKET, BUCKET_NAME);
+        runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, key);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
@@ -134,16 +144,16 @@ class FetchS3ObjectTest extends AbstractS3Test {
     @DisplayName("When a set of files is specified, the processor should fetch those")
     public void fetchFile_multiple_shouldEnumerate() throws IOException {
         File contents1 = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);
-        putTestFile("hello1.txt", contents1);
+        putTestFile("hello1.txt", contents1, bucketName);
 
         String testfile2 = "hello2.txt";
         File contents2 = getFileFromResourceName(testfile2);
-        putTestFile(testfile2, contents2);
+        putTestFile(testfile2, contents2, bucketName);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
         runner.setProperty(Properties.REGION, REGION);
-        runner.setProperty(Properties.BUCKET, BUCKET_NAME);
+        runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, "[\"hello1.txt\",\"hello2.txt\"]");
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
@@ -170,13 +180,13 @@ class FetchS3ObjectTest extends AbstractS3Test {
     @DisplayName("When a set of files is specified, the processor should fetch those")
     public void fetchFile_multiple_someDontExist_shouldEnumerate() throws IOException {
         File contents1 = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);
-        putTestFile("hello1.txt", contents1);
+        putTestFile("hello1.txt", contents1, bucketName);
 
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
         runner.setProperty(Properties.REGION, REGION);
-        runner.setProperty(Properties.BUCKET, BUCKET_NAME);
+        runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, "[\"hello1.txt\",\"notexist.txt\"]");
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
@@ -203,16 +213,16 @@ class FetchS3ObjectTest extends AbstractS3Test {
     @DisplayName("When no list of files is specified, the processor should enumerate all")
     public void fetchFile_none_shouldEnumerate() throws IOException {
         File contents1 = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);
-        putTestFile("file1.txt", contents1);
+        putTestFile("file1.txt", contents1, bucketName);
 
         String testfile2 = "hello2.txt";
         File contents2 = getFileFromResourceName(testfile2);
-        putTestFile("file2.txt", contents2);
+        putTestFile("file2.txt", contents2, bucketName);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
         runner.setProperty(Properties.REGION, REGION);
-        runner.setProperty(Properties.BUCKET, BUCKET_NAME);
+        runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
 

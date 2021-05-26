@@ -14,7 +14,6 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
 import java.io.File;
@@ -34,7 +33,6 @@ public class AbstractS3Test {
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
     // (Should not be necessary if REGION remains static, but added to prevent future frustration.)
     // [see http://stackoverflow.com/questions/13898057/aws-error-message-a-conflicting-conditional-operation-is-currently-in-progress]
-    protected final static String BUCKET_NAME = "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
     protected static AmazonS3 client;
 
     @BeforeAll
@@ -47,33 +45,35 @@ public class AbstractS3Test {
         final AWSCredentials credentials = getCredentials();
         client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(REGION).build();
 
-        if (client.doesBucketExistV2(BUCKET_NAME)) {
-            fail("Bucket " + BUCKET_NAME + " exists. Choose a different bucket name to continue test");
+    }
+
+    protected void createBucket(AmazonS3 client, String bucketName, String region) {
+        if (client.doesBucketExistV2(bucketName)) {
+            fail("Bucket " + bucketName + " exists. Choose a different bucket name to continue test");
         }
 
-        CreateBucketRequest request = REGION.contains("east")
-                ? new CreateBucketRequest(BUCKET_NAME) // See https://github.com/boto/boto3/issues/125
-                : new CreateBucketRequest(BUCKET_NAME, REGION);
+        CreateBucketRequest request = region.contains("east")
+                ? new CreateBucketRequest(bucketName) // See https://github.com/boto/boto3/issues/125
+                : new CreateBucketRequest(bucketName, region);
         client.createBucket(request);
 
-        if (!client.doesBucketExistV2(BUCKET_NAME)) {
+        if (!client.doesBucketExistV2(bucketName)) {
             fail("Setup incomplete, tests will fail");
         }
     }
 
-    @AfterAll
-    public static void oneTimeTearDown() {
+    protected void deleteBucket(String bucketName, AmazonS3 client) {
         // Empty the bucket before deleting it.
         try {
             if (client == null) {
                 return;
             }
 
-            ObjectListing objectListing = client.listObjects(BUCKET_NAME);
+            ObjectListing objectListing = client.listObjects(bucketName);
 
             while (true) {
                 for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
-                    client.deleteObject(BUCKET_NAME, objectSummary.getKey());
+                    client.deleteObject(bucketName, objectSummary.getKey());
                 }
 
                 if (objectListing.isTruncated()) {
@@ -83,13 +83,13 @@ public class AbstractS3Test {
                 }
             }
 
-            DeleteBucketRequest dbr = new DeleteBucketRequest(BUCKET_NAME);
+            DeleteBucketRequest dbr = new DeleteBucketRequest(bucketName);
             client.deleteBucket(dbr);
         } catch (final AmazonS3Exception e) {
-            System.err.println("Unable to delete bucket " + BUCKET_NAME + e.toString());
+            System.err.println("Unable to delete bucket " + bucketName + e.toString());
         }
 
-        if (client.doesBucketExistV2(BUCKET_NAME)) {
+        if (client.doesBucketExistV2(bucketName)) {
             fail("Incomplete teardown, subsequent tests might fail");
         }
 
@@ -103,8 +103,8 @@ public class AbstractS3Test {
         return new BasicAWSCredentials(accessKeyId, secretKey);
     }
 
-    protected PutObjectResult putTestFile(String key, File file) throws AmazonS3Exception {
-        PutObjectRequest putRequest = new PutObjectRequest(BUCKET_NAME, key, file);
+    protected PutObjectResult putTestFile(String key, File file, String bucketName) throws AmazonS3Exception {
+        PutObjectRequest putRequest = new PutObjectRequest(bucketName, key, file);
 
         return client.putObject(putRequest);
     }
@@ -114,27 +114,6 @@ public class AbstractS3Test {
         return client.getObject(request);
     }
 
-    protected void putTestFileEncrypted(String key, File file) throws AmazonS3Exception, FileNotFoundException {
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setSSEAlgorithm(ObjectMetadata.AES_256_SERVER_SIDE_ENCRYPTION);
-        PutObjectRequest putRequest = new PutObjectRequest(BUCKET_NAME, key, new FileInputStream(file), objectMetadata);
-
-        client.putObject(putRequest);
-    }
-
-    protected void putFileWithUserMetadata(String key, File file, Map<String, String> userMetadata) throws AmazonS3Exception, FileNotFoundException {
-        ObjectMetadata objectMetadata = new ObjectMetadata();
-        objectMetadata.setUserMetadata(userMetadata);
-        PutObjectRequest putRequest = new PutObjectRequest(BUCKET_NAME, key, new FileInputStream(file), objectMetadata);
-
-        client.putObject(putRequest);
-    }
-
-    protected void putFileWithObjectTag(String key, File file, List<Tag> objectTags) {
-        PutObjectRequest putRequest = new PutObjectRequest(BUCKET_NAME, key, file);
-        putRequest.setTagging(new ObjectTagging(objectTags));
-        PutObjectResult result = client.putObject(putRequest);
-    }
 
 
 }
