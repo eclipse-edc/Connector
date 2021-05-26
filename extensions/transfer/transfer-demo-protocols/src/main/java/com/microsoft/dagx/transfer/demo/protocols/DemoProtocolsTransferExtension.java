@@ -1,6 +1,7 @@
 package com.microsoft.dagx.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -44,6 +45,11 @@ import java.util.Set;
  * The JUnit test for this class demonstrates how to perform extension integration testing using and embedded runtime.
  */
 public class DemoProtocolsTransferExtension implements ServiceExtension {
+    @DagxSetting
+    private static final String WS_PUBSUB_ENDPOINT = "dagx.demo.protocol.ws.pubsub";
+
+    private static final String DEFAULT_WS_PUBSUB_ENDPOINT = "ws://localhost:8181/pubsub/";
+
     DemoObjectStorage objectStorage;
     DemoDestinationManager destinationManager;
 
@@ -99,8 +105,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
     private void registerGenerators(ServiceExtensionContext context) {
         var manifestGenerator = context.getService(ResourceManifestGenerator.class);
 
-        // FIXME
-        var endpointAddress = "ws://localhost:8181/pubsub/";
+        var endpointAddress = context.getSetting(WS_PUBSUB_ENDPOINT, DEFAULT_WS_PUBSUB_ENDPOINT);
         manifestGenerator.registerClientGenerator(new PushStreamResourceGenerator(endpointAddress));
     }
 
