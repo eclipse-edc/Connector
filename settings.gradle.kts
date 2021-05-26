@@ -12,6 +12,7 @@ include(":distributions:demo")
 include(":distributions:demo-e2e")
 include(":distributions:azure")
 include(":distributions:junit")
+include(":distributions:file")
 
 include(":extensions:schema")
 
@@ -48,11 +49,11 @@ include(":extensions:ids:ids-policy-mock")
 include(":extensions:catalog:catalog-atlas")
 include(":extensions:catalog:catalog-atlas-dataseed")
 
-
 include(":policy:policy-model")
 include(":policy:policy-engine")
 
 include(":extensions:demo:demo-nifi")
+include(":extensions:demo:demo-file")
 include(":extensions:demo:demo-ui-api")
 
 include(":integration:integration-core")
