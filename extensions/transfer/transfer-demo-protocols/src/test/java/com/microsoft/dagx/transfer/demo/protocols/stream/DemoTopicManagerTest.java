@@ -12,13 +12,13 @@ import java.util.function.Consumer;
  *
  */
 class DemoTopicManagerTest {
-    private DemoTopicManager destinationManager;
+    private DemoTopicManager topicManager;
 
     @Test
     void verifyPubSub() throws Exception {
-        destinationManager.start();
+        topicManager.start();
 
-        var dataDestination = destinationManager.provision("destination").get();
+        var dataDestination = topicManager.provision("destination").get();
 
         Consumer<byte[]> consumer1 = EasyMock.createMock(Consumer.class);
         consumer1.accept(EasyMock.isA(byte[].class));
@@ -27,21 +27,21 @@ class DemoTopicManagerTest {
 
         EasyMock.replay(consumer1, consumer2);
 
-        destinationManager.subscribe(dataDestination.getDestinationName(), dataDestination.getAccessToken(), consumer1);
-        destinationManager.subscribe(dataDestination.getDestinationName(), dataDestination.getAccessToken(), consumer2);
+        topicManager.subscribe(dataDestination.getDestinationName(), dataDestination.getAccessToken(), consumer1);
+        topicManager.subscribe(dataDestination.getDestinationName(), dataDestination.getAccessToken(), consumer2);
 
-        destinationManager.connect("destination",  dataDestination.getAccessToken()).getConsumer().accept("test".getBytes());
+        topicManager.connect("destination",  dataDestination.getAccessToken()).getConsumer().accept("test".getBytes());
         EasyMock.verify(consumer1, consumer2);
     }
 
     @BeforeEach
     void setUp() {
-        destinationManager = new DemoTopicManager(new Monitor() {
+        topicManager = new DemoTopicManager(new Monitor() {
         });
     }
 
     @AfterEach
     void tearDown() {
-        destinationManager.stop();
+        topicManager.stop();
     }
 }
