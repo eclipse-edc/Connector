@@ -42,6 +42,6 @@ public class StreamPublisherRegistryImpl implements StreamPublisherRegistry {
                 return;
             }
         }
-        throw new DagxException("Mo stream publisher found for request: " + data.getId());
+        throw new DagxException("No stream publisher found for request: " + data.getId());
     }
 }
