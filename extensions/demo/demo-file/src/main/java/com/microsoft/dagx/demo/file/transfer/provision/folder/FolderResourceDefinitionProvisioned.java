@@ -28,6 +28,11 @@ public class FolderResourceDefinitionProvisioned extends ProvisionedDataDestinat
                 .build();
     }
 
+    @Override
+    public String getResourceName() {
+        return targetFileName;
+    }
+
     public static class Builder extends ProvisionedResource.Builder<FolderResourceDefinitionProvisioned, Builder> {
 
         public static Builder newInstance() {

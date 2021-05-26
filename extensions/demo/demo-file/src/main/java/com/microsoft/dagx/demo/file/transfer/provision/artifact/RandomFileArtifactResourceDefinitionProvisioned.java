@@ -27,6 +27,11 @@ public class RandomFileArtifactResourceDefinitionProvisioned extends Provisioned
                 .build();
     }
 
+    @Override
+    public String getResourceName() {
+        return sourceFileName;
+    }
+
     public String getSourceDirectory() {
         return sourceFolderName;
     }
