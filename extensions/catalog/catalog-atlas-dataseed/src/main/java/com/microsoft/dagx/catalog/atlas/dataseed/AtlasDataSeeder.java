@@ -5,6 +5,8 @@
 
 package com.microsoft.dagx.catalog.atlas.dataseed;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.dagx.catalog.atlas.dto.AtlasTypesDef;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.schema.DataSchema;
 import com.microsoft.dagx.schema.RelationshipSchema;
@@ -13,8 +15,6 @@ import com.microsoft.dagx.schema.azure.AzureBlobHasPolicyRelationshipSchema;
 import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.schema.policy.PolicySchema;
 import com.microsoft.dagx.spi.DagxException;
-import org.apache.atlas.model.typedef.AtlasTypesDef;
-import org.codehaus.jackson.map.ObjectMapper;
 
 import java.io.IOException;
 import java.util.*;
@@ -123,7 +123,7 @@ public class AtlasDataSeeder {
 
     public void deleteClassifications(String... classificationNames) {
         if (classificationNames != null) {
-            atlasApi.deleteClassification(classificationNames);
+            Arrays.stream(classificationNames).forEach(atlasApi::deleteClassification);
         }
     }
 

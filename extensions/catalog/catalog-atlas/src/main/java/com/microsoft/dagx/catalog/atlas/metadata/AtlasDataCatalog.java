@@ -27,9 +27,9 @@ public class AtlasDataCatalog implements DataCatalog {
 
         if (entity != null) {
             return DataAddress.Builder.newInstance()
-                    .keyName(entity.getAttribute(ATLAS_PROPERTY_KEYNAME).toString())
-                    .type(entity.getAttribute(ATLAS_PROPERTY_TYPE).toString())
-                    .properties(convert(entity.getAttributes()))
+                    .keyName(entity.getEntity().getAttribute(ATLAS_PROPERTY_KEYNAME).toString())
+                    .type(entity.getEntity().getAttribute(ATLAS_PROPERTY_TYPE).toString())
+                    .properties(convert(entity.getEntity().getAttributes()))
                     .build();
         }
 

@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.catalog.atlas.dataseed;
 
+import com.microsoft.dagx.catalog.atlas.dto.AtlasTypesDef;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasExtension;
 import com.microsoft.dagx.schema.SchemaRegistry;
@@ -12,7 +13,6 @@ import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
-import org.apache.atlas.model.typedef.AtlasTypesDef;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,12 +60,6 @@ public class AtlasDataSeederExtension implements ServiceExtension {
     @Override
     public void start() {
         monitor.info("Starting to seed data to Atlas");
-//        try {
-//            monitor.debug("Create Classifications");
-//            classificationNames = dataSeeder.createClassifications();
-//        } catch (DagxException e) {
-//            monitor.severe("Error creating classifications", e);
-//        }
 
         try {
             monitor.debug("Create TypeDefs");

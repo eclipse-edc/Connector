@@ -12,6 +12,7 @@ plugins {
 
 dependencies {
     api(project(":spi"))
+    api(project(":core"))
     implementation(project(":extensions:schema"))
 
     testImplementation(project(":extensions:catalog:catalog-atlas"))

@@ -15,6 +15,8 @@ import com.microsoft.dagx.catalog.atlas.dataseed.AzureBlobFileEntityBuilder;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApiImpl;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataCatalog;
+import com.microsoft.dagx.monitor.ConsoleMonitor;
+import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.schema.SchemaRegistryImpl;
 import com.microsoft.dagx.schema.aws.S3BucketSchema;
@@ -35,7 +37,6 @@ import com.microsoft.dagx.transfer.provision.azure.AzureSasToken;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.apache.atlas.AtlasClientV2;
 import org.easymock.MockType;
 import org.junit.jupiter.api.*;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -79,6 +80,7 @@ public class NifiDataFlowControllerTest {
     private static S3Client s3client;
     private static BlobServiceClient blobServiceClient;
     private static String secondBlobName;
+    private static Monitor monitor;
     private NifiDataFlowController controller;
     private Vault vault;
 
@@ -92,6 +94,9 @@ public class NifiDataFlowControllerTest {
         if (!Boolean.parseBoolean(isCi)) {
             return;
         }
+
+        monitor = new ConsoleMonitor();
+        MonitorProvider.setInstance(monitor);
 
         var host = propOrEnv("NIFI_URL", DEFAULT_NIFI_HOST);
 
@@ -261,8 +266,7 @@ public class NifiDataFlowControllerTest {
 
         System.out.println("");
 
-        Monitor monitor = new Monitor() {
-        };
+
         NifiTransferManagerConfiguration config = NifiTransferManagerConfiguration.Builder.newInstance().url(nifiContentlistenerHost)
                 .build();
         typeManager.registerTypes(DataRequest.class);
@@ -299,7 +303,7 @@ public class NifiDataFlowControllerTest {
         // create custom atlas type and an instance
         String id;
         var schema = new AzureBlobStoreSchema();
-        AtlasApi atlasApi = new AtlasApiImpl(new AtlasClientV2(new String[]{atlasApiUrl}, new String[]{atlasUsername, atlasPassword}));
+        AtlasApi atlasApi = new AtlasApiImpl(atlasApiUrl, atlasUsername, atlasPassword, httpClient, typeManager);
         try {
 
             atlasApi.createCustomTypes(schema.getName(), Set.of("DataSet"), new ArrayList<>(schema.getAttributes()));

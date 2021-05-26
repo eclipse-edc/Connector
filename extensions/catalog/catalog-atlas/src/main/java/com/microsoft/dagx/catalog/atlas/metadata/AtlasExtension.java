@@ -8,7 +8,7 @@ package com.microsoft.dagx.catalog.atlas.metadata;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
-import org.apache.atlas.AtlasClientV2;
+import okhttp3.OkHttpClient;
 
 import java.util.Set;
 
@@ -37,18 +37,12 @@ public class AtlasExtension implements ServiceExtension {
 
         var atlasUrl = context.getSetting(ATLAS_URL_PROPERTY, DEFAULT_ATLAS_URL);
 
-
-        var api = new AtlasApiImpl(createAtlasClient(vault, atlasUrl));
+        var user = vault.resolveSecret(SECRET_ATLAS_USER);
+        var pwd = vault.resolveSecret(SECRET_ATLAS_PWD);
+        var api = new AtlasApiImpl(atlasUrl, user, pwd, context.getService(OkHttpClient.class), context.getTypeManager());
         context.registerService(AtlasApi.class, api);
         context.getMonitor().info("Initialized Atlas API extension.");
     }
 
-    private AtlasClientV2 createAtlasClient(Vault vault, String atlasUrl) {
-
-        var user = vault.resolveSecret(SECRET_ATLAS_USER);
-        var pwd = vault.resolveSecret(SECRET_ATLAS_PWD);
-
-        return new AtlasClientV2(new String[]{atlasUrl}, new String[]{user, pwd});
-    }
 
 }
