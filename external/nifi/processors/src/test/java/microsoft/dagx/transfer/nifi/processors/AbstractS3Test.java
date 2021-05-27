@@ -14,13 +14,9 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.*;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.util.List;
-import java.util.Map;
 
 import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -33,18 +29,23 @@ public class AbstractS3Test {
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
     // (Should not be necessary if REGION remains static, but added to prevent future frustration.)
     // [see http://stackoverflow.com/questions/13898057/aws-error-message-a-conflicting-conditional-operation-is-currently-in-progress]
-    protected static AmazonS3 client;
+    protected AmazonS3 client;
+    protected String bucketName;
+    protected AWSCredentials credentials;
 
-    @BeforeAll
-    public static void oneTimeSetup() {
-        //         this is necessary because the @EnabledIf... annotation does not prevent @BeforeAll to be called
-        var isCi = propOrEnv("CI", "false");
-        if (!Boolean.parseBoolean(isCi)) {
-            return;
-        }
-        final AWSCredentials credentials = getCredentials();
+    @BeforeEach
+    public void oneTimeSetup() {
+        bucketName = "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
+        credentials = getCredentials();
         client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(REGION).build();
 
+    }
+
+    protected @NotNull AWSCredentials getCredentials() {
+        var accessKeyId = propOrEnv("S3_ACCESS_KEY_ID", null);
+        var secretKey = propOrEnv("S3_SECRET_ACCESS_KEY", null);
+
+        return new BasicAWSCredentials(accessKeyId, secretKey);
     }
 
     protected void createBucket(AmazonS3 client, String bucketName, String region) {
@@ -63,7 +64,7 @@ public class AbstractS3Test {
     }
 
     protected void deleteBucket(String bucketName, AmazonS3 client) {
-        // Empty the bucket before deleting it.
+        // Empty the bucket before deleting it, otherwise the AWS S3 API fails
         try {
             if (client == null) {
                 return;
@@ -86,21 +87,13 @@ public class AbstractS3Test {
             DeleteBucketRequest dbr = new DeleteBucketRequest(bucketName);
             client.deleteBucket(dbr);
         } catch (final AmazonS3Exception e) {
-            System.err.println("Unable to delete bucket " + bucketName + e.toString());
+            System.err.println("Unable to delete bucket " + bucketName + e);
         }
 
         if (client.doesBucketExistV2(bucketName)) {
             fail("Incomplete teardown, subsequent tests might fail");
         }
 
-    }
-
-    protected static @NotNull AWSCredentials getCredentials() {
-
-        var accessKeyId = propOrEnv("S3_ACCESS_KEY_ID", null);
-        var secretKey = propOrEnv("S3_SECRET_ACCESS_KEY", null);
-
-        return new BasicAWSCredentials(accessKeyId, secretKey);
     }
 
     protected PutObjectResult putTestFile(String key, File file, String bucketName) throws AmazonS3Exception {
@@ -113,7 +106,6 @@ public class AbstractS3Test {
         GetObjectRequest request = new GetObjectRequest(bucket, key);
         return client.getObject(request);
     }
-
 
 
 }

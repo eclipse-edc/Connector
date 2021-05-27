@@ -6,7 +6,6 @@
 
 package microsoft.dagx.transfer.nifi.processors;
 
-import com.amazonaws.auth.AWSCredentials;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.nifi.util.MockFlowFile;
@@ -19,7 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.time.temporal.ChronoUnit;
 import java.util.HashMap;
@@ -32,27 +30,22 @@ import static org.assertj.core.api.Assertions.assertThat;
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 class FetchS3ObjectTest extends AbstractS3Test {
 
-    private AWSCredentials credentials;
     private RetryPolicy<Object> retryPolicy;
-    private String bucketName;
 
     @BeforeEach
     void setup() {
-        bucketName = "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
         createBucket(client, bucketName, REGION);
-
-        credentials = getCredentials();
         retryPolicy = new RetryPolicy<>().withBackoff(500, 5000, ChronoUnit.MILLIS).withMaxRetries(5).handle(AssertionError.class);
     }
 
     @AfterEach
-    void cleanup(){
+    void cleanup() {
         deleteBucket(bucketName, client);
     }
 
     @Test
     @DisplayName("Verifies that a file is downloaded and the 'success' relation is traversed")
-    public void testFetchFile_single() throws IOException {
+    public void testFetchFile_single() {
         putTestFile("test-file", getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME), bucketName);
 
         final TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
@@ -106,7 +99,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
     @Test
     @DisplayName("Downloads a file and compares the contents")
-    public void testFetchFile_single_assertContents() throws IOException {
+    public void testFetchFile_single_assertContents() {
         String key = "folder/1.txt";
         putTestFile(key, getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME), bucketName);
 
@@ -142,7 +135,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
     @Test
     @DisplayName("When a set of files is specified, the processor should fetch those")
-    public void fetchFile_multiple_shouldEnumerate() throws IOException {
+    public void fetchFile_multiple_shouldEnumerate() {
         File contents1 = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);
         putTestFile("hello1.txt", contents1, bucketName);
 
@@ -178,7 +171,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
     @Test
     @DisplayName("When a set of files is specified, the processor should fetch those")
-    public void fetchFile_multiple_someDontExist_shouldEnumerate() throws IOException {
+    public void fetchFile_multiple_someDontExist_shouldEnumerate() {
         File contents1 = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);
         putTestFile("hello1.txt", contents1, bucketName);
 
@@ -211,7 +204,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
     @Test
     @DisplayName("When no list of files is specified, the processor should enumerate all")
-    public void fetchFile_none_shouldEnumerate() throws IOException {
+    public void fetchFile_none_shouldEnumerate() {
         File contents1 = getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME);
         putTestFile("file1.txt", contents1, bucketName);
 
@@ -241,5 +234,4 @@ class FetchS3ObjectTest extends AbstractS3Test {
             assertThat(successfulFlowFiles).hasSizeGreaterThanOrEqualTo(2);
         });
     }
-
 }

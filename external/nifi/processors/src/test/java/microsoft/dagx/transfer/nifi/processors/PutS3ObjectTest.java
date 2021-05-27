@@ -6,7 +6,6 @@
 
 package microsoft.dagx.transfer.nifi.processors;
 
-import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import org.apache.nifi.util.TestRunner;
@@ -25,20 +24,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
 public class PutS3ObjectTest extends AbstractS3Test {
-    private AWSCredentials credentials;
-    private String bucketName ;
 
     @BeforeEach
     void setup() {
-        bucketName = "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
         createBucket(client, bucketName, REGION);
-        credentials = getCredentials();
     }
 
     @AfterEach
-    void cleanup(){
+    void cleanup() {
         deleteBucket(bucketName, client);
     }
+
     @Test
     void upload() throws IOException {
         String key = "test-file.txt";
@@ -87,6 +83,5 @@ public class PutS3ObjectTest extends AbstractS3Test {
         assertThat(new String(newS3Object.getObjectContent().readAllBytes())).isEqualTo(newContent);
         assertThat(newS3Object.getObjectMetadata().getETag()).isNotEqualTo(response.getETag());
     }
-
 
 }
