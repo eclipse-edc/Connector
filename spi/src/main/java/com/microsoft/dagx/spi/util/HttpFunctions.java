@@ -4,7 +4,7 @@
  *
  */
 
-package com.microsoft.dagx.system;
+package com.microsoft.dagx.spi.util;
 
 import com.microsoft.dagx.spi.DagxException;
 import okhttp3.Credentials;

@@ -10,7 +10,6 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":core"))
     api(project(":extensions:schema"))
 
     testImplementation(project(":distributions:junit"))

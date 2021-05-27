@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.microsoft.dagx.spi.util.CollectionUtil;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -158,7 +159,7 @@ public class AtlasTypesDef {
     }
 
     private <T extends AtlasBaseTypeDef> boolean hasTypeDef(Collection<T> typeDefs, String name) {
-        if (Functions.isNotEmpty(typeDefs)) {
+        if (CollectionUtil.isNotEmpty(typeDefs)) {
             for (T typeDef : typeDefs) {
                 if (typeDef.getName().equals(name)) {
                     return true;
@@ -171,12 +172,12 @@ public class AtlasTypesDef {
 
     @JsonIgnore
     public boolean isEmpty() {
-        return Functions.isEmpty(enumDefs) &&
-                Functions.isEmpty(structDefs) &&
-                Functions.isEmpty(classificationDefs) &&
-                Functions.isEmpty(entityDefs) &&
-                Functions.isEmpty(relationshipDefs) &&
-                Functions.isEmpty(businessMetadataDefs);
+        return CollectionUtil.isEmpty(enumDefs) &&
+                CollectionUtil.isEmpty(structDefs) &&
+                CollectionUtil.isEmpty(classificationDefs) &&
+                CollectionUtil.isEmpty(entityDefs) &&
+                CollectionUtil.isEmpty(relationshipDefs) &&
+                CollectionUtil.isEmpty(businessMetadataDefs);
     }
 
     public void clear() {

@@ -11,6 +11,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.microsoft.dagx.spi.util.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.*;
@@ -78,9 +79,9 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
     public static AtlasStructDef.AtlasAttributeDef findAttribute(Collection<AtlasStructDef.AtlasAttributeDef> attributeDefs, String attrName) {
         AtlasStructDef.AtlasAttributeDef ret = null;
 
-        if (Functions.isNotEmpty(attributeDefs)) {
+        if (CollectionUtil.isNotEmpty(attributeDefs)) {
             for (AtlasStructDef.AtlasAttributeDef attributeDef : attributeDefs) {
-                if (Functions.equalsIgnoreCase(attributeDef.getName(), attrName)) {
+                if (CollectionUtil.equalsIgnoreCase(attributeDef.getName(), attrName)) {
                     ret = attributeDef;
                     break;
                 }
@@ -99,7 +100,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
             return;
         }
 
-        if (Functions.isEmpty(attributeDefs)) {
+        if (CollectionUtil.isEmpty(attributeDefs)) {
             this.attributeDefs = new ArrayList<>();
         } else {
             // if multiple attributes with same name are present, keep only the last entry
@@ -139,10 +140,10 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
         List<AtlasStructDef.AtlasAttributeDef> a = attributeDefs;
 
         List<AtlasStructDef.AtlasAttributeDef> tmpList = new ArrayList<>();
-        if (Functions.isNotEmpty(a)) {
+        if (CollectionUtil.isNotEmpty(a)) {
             // copy existing attributes, except ones having same name as the attribute being added
             for (AtlasStructDef.AtlasAttributeDef existingAttrDef : a) {
-                if (!Functions.equalsIgnoreCase(existingAttrDef.getName(), attributeDef.getName())) {
+                if (!CollectionUtil.equalsIgnoreCase(existingAttrDef.getName(), attributeDef.getName())) {
                     tmpList.add(existingAttrDef);
                 }
             }
@@ -160,7 +161,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
 
             // copy existing attributes, except ones having same name as the attribute being removed
             for (AtlasStructDef.AtlasAttributeDef existingAttrDef : a) {
-                if (!Functions.equalsIgnoreCase(existingAttrDef.getName(), attrName)) {
+                if (!CollectionUtil.equalsIgnoreCase(existingAttrDef.getName(), attrName)) {
                     tmpList.add(existingAttrDef);
                 }
             }
@@ -182,7 +183,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
         sb.append("AtlasStructDef{");
         super.toString(sb);
         sb.append(", attributeDefs=[");
-        if (Functions.isNotEmpty(attributeDefs)) {
+        if (CollectionUtil.isNotEmpty(attributeDefs)) {
             int i = 0;
             for (AtlasStructDef.AtlasAttributeDef attributeDef : attributeDefs) {
                 attributeDef.toString(sb);
@@ -254,9 +255,11 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
         private List<AtlasStructDef.AtlasConstraintDef> constraints;
         private Map<String, String> options;
         private String displayName;
+
         public AtlasAttributeDef() {
             this(null, null);
         }
+
         public AtlasAttributeDef(String name, String typeName) {
             this(name, typeName, DEFAULT_SEARCHWEIGHT);
         }
@@ -451,7 +454,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
                 return;
             }
 
-            if (Functions.isEmpty(constraints)) {
+            if (CollectionUtil.isEmpty(constraints)) {
                 this.constraints = null;
             } else {
                 this.constraints = new ArrayList<>(constraints);
@@ -542,7 +545,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
             sb.append(", indexType='").append(indexType).append('\'');
             sb.append(", displayName='").append(displayName).append('\'');
             sb.append(", constraints=[");
-            if (Functions.isNotEmpty(constraints)) {
+            if (CollectionUtil.isNotEmpty(constraints)) {
                 int i = 0;
                 for (AtlasStructDef.AtlasConstraintDef constraintDef : constraints) {
                     constraintDef.toString(sb);
@@ -662,7 +665,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
 
         @JsonIgnore
         public boolean isConstraintType(String name) {
-            return Functions.equalsIgnoreCase(name, type);
+            return CollectionUtil.equalsIgnoreCase(name, type);
         }
 
         @JsonIgnore

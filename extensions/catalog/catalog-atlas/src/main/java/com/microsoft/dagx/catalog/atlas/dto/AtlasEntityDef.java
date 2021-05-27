@@ -9,6 +9,7 @@ package com.microsoft.dagx.catalog.atlas.dto;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.microsoft.dagx.spi.util.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.*;
@@ -116,7 +117,7 @@ public class AtlasEntityDef extends AtlasStructDef implements java.io.Serializab
             return;
         }
 
-        if (Functions.isEmpty(superTypes)) {
+        if (CollectionUtil.isEmpty(superTypes)) {
             this.superTypes = new HashSet<>();
         } else {
             this.superTypes = new HashSet<>(superTypes);
@@ -187,7 +188,7 @@ public class AtlasEntityDef extends AtlasStructDef implements java.io.Serializab
         dumpObjects(superTypes, sb);
         sb.append("]");
         sb.append(", relationshipAttributeDefs=[");
-        if (Functions.isNotEmpty(relationshipAttributeDefs)) {
+        if (CollectionUtil.isNotEmpty(relationshipAttributeDefs)) {
             int i = 0;
             for (AtlasEntityDef.AtlasRelationshipAttributeDef attributeDef : relationshipAttributeDefs) {
                 if (i > 0) {
@@ -201,7 +202,7 @@ public class AtlasEntityDef extends AtlasStructDef implements java.io.Serializab
         }
         sb.append(']');
         sb.append(", businessAttributeDefs={");
-        if (Functions.isNotEmpty(businessAttributeDefs)) {
+        if (CollectionUtil.isNotEmpty(businessAttributeDefs)) {
             int nsIdx = 0;
 
             for (Map.Entry<String, List<AtlasAttributeDef>> entry : businessAttributeDefs.entrySet()) {

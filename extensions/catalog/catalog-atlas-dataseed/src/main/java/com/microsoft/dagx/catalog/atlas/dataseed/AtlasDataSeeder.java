@@ -103,10 +103,10 @@ public class AtlasDataSeeder {
             }});
             entityGuids.add(policyId);
 
-            var relation = atlasApi.createRelation(entityId, policyId, AzureBlobHasPolicyRelationshipSchema.TYPE);
+            var relation = atlasApi.createRelationship(entityId, policyId, AzureBlobHasPolicyRelationshipSchema.TYPE);
             entityGuids.add(relation.getGuid());
 
-            var relation2 = atlasApi.createRelation(entity2Id, policyId, AzureBlobHasPolicyRelationshipSchema.TYPE);
+            var relation2 = atlasApi.createRelationship(entity2Id, policyId, AzureBlobHasPolicyRelationshipSchema.TYPE);
             entityGuids.add(relation2.getGuid());
             return entityGuids;
 

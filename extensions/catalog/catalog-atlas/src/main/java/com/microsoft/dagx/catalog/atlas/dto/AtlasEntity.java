@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.microsoft.dagx.spi.util.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.*;
@@ -678,7 +679,7 @@ public class AtlasEntity extends AtlasStruct implements Serializable {
             AtlasEntity ret = super.getEntity(guid);
 
             if (ret == null && entity != null) {
-                if (Functions.equals(guid, entity.getGuid())) {
+                if (CollectionUtil.equals(guid, entity.getGuid())) {
                     ret = entity;
                 }
             }
@@ -774,9 +775,9 @@ public class AtlasEntity extends AtlasStruct implements Serializable {
         public AtlasEntity getEntity(String guid) {
             AtlasEntity ret = super.getEntity(guid);
 
-            if (ret == null && Functions.isNotEmpty(entities)) {
+            if (ret == null && CollectionUtil.isNotEmpty(entities)) {
                 for (AtlasEntity entity : entities) {
-                    if (Functions.equals(guid, entity.getGuid())) {
+                    if (CollectionUtil.equals(guid, entity.getGuid())) {
                         ret = entity;
 
                         break;
@@ -812,7 +813,7 @@ public class AtlasEntity extends AtlasStruct implements Serializable {
             super.compact();
 
             // remove 'entities' from referredEntities
-            if (Functions.isNotEmpty(entities)) {
+            if (CollectionUtil.isNotEmpty(entities)) {
                 for (AtlasEntity entity : entities) {
                     removeReferredEntity(entity.getGuid());
                 }

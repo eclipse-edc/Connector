@@ -9,6 +9,7 @@ package com.microsoft.dagx.catalog.atlas.dto;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.microsoft.dagx.spi.util.CollectionUtil;
 
 import java.io.Serializable;
 import java.text.DateFormat;
@@ -74,7 +75,7 @@ public class AtlasStruct implements Serializable {
             sb = new StringBuilder();
         }
 
-        if (Functions.isNotEmpty(objList)) {
+        if (CollectionUtil.isNotEmpty(objList)) {
             int i = 0;
             for (AtlasStruct obj : objList) {
                 if (i > 0) {
@@ -94,7 +95,7 @@ public class AtlasStruct implements Serializable {
             sb = new StringBuilder();
         }
 
-        if (Functions.isNotEmpty(objects)) {
+        if (CollectionUtil.isNotEmpty(objects)) {
             int i = 0;
             for (Object obj : objects) {
                 if (i > 0) {
@@ -114,7 +115,7 @@ public class AtlasStruct implements Serializable {
             sb = new StringBuilder();
         }
 
-        if (Functions.isNotEmpty(objects)) {
+        if (CollectionUtil.isNotEmpty(objects)) {
             int i = 0;
             for (Map.Entry<?, ?> e : objects.entrySet()) {
                 if (i > 0) {

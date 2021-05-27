@@ -44,7 +44,7 @@ public class AtlasApiTest {
         username = propOrEnv("atlas.username", username);
         password = propOrEnv("atlas.password", password);
 
-        atlasApi = new AtlasApiImpl(baseUrl, username, password, new OkHttpClient.Builder().readTimeout(Duration.ofSeconds(30)).build(), new TypeManager());
+        atlasApi = new AtlasApiImpl(baseUrl, username, password, new OkHttpClient.Builder().readTimeout(Duration.ofSeconds(120)).build(), new TypeManager());
 
         if (typeDef == null) {
             typeDef = createTypesAndRelations();
@@ -365,7 +365,7 @@ public class AtlasApiTest {
             put("expression", "foo-bar-baz");
         }});
 
-        var relation = atlasApi.createRelation(entityId, policyId, RELATION_TYPE_NAME);
+        var relation = atlasApi.createRelationship(entityId, policyId, RELATION_TYPE_NAME);
 
         assertThat(relation).isNotNull();
         assertThat(relation.getEnd1().getTypeName()).isEqualTo("TestEntity");
@@ -376,9 +376,10 @@ public class AtlasApiTest {
 
     @Test
     void queryEntities_byPolicy() {
+        var uuid = UUID.randomUUID().toString();
         var entity1 = atlasApi.createEntity("TestEntity", new HashMap<>() {{
-            put("name", "TestEntity1");
-            put("displayName", "File1");
+            put("name", "TestEntity1_" + uuid);
+            put("displayName", "File1_" + uuid);
             put("qualifiedName", "This is just a Test Blob Entity");
             put("account", "TestAccount");
             put("someNumber", 42);
@@ -386,8 +387,8 @@ public class AtlasApiTest {
         assertThat(entity1).isNotNull().isNotEmpty();
 
         var entity2 = atlasApi.createEntity("TestEntity", new HashMap<>() {{
-            put("name", "TestEntity1");
-            put("displayName", "File2");
+            put("name", "TestEntity2_" + uuid);
+            put("displayName", "File2_" + uuid);
             put("qualifiedName", "This is just another Test Blob Entity");
             put("account", "TestAccount");
             put("someNumber", 69);
@@ -399,8 +400,8 @@ public class AtlasApiTest {
             put("qualifiedName", "This is a test policy");
         }});
 
-        var rel1 = atlasApi.createRelation(entity1, policyId, RELATION_TYPE_NAME);
-        var rel2 = atlasApi.createRelation(entity2, policyId, RELATION_TYPE_NAME);
+        var rel1 = atlasApi.createRelationship(entity1, policyId, RELATION_TYPE_NAME);
+        var rel2 = atlasApi.createRelationship(entity2, policyId, RELATION_TYPE_NAME);
 
         try {
             assertThat(entity1).isNotNull().isNotEmpty();

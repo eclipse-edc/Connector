@@ -22,7 +22,7 @@ import java.util.Map;
 
 import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 import static com.microsoft.dagx.spi.transfer.response.ResponseStatus.FATAL_ERROR;
-import static com.microsoft.dagx.system.HttpFunctions.createUnsecureClient;
+import static com.microsoft.dagx.spi.util.HttpFunctions.createUnsecureClient;
 import static java.lang.String.format;
 
 public class NifiDataFlowController implements DataFlowController {

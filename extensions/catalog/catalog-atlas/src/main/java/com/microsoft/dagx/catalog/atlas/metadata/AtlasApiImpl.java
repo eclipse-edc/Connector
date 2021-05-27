@@ -17,8 +17,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.microsoft.dagx.catalog.atlas.dto.Functions.*;
-import static com.microsoft.dagx.system.HttpFunctions.createAuthorizedClient;
-import static com.microsoft.dagx.system.HttpFunctions.createUnsecureClient;
+import static com.microsoft.dagx.spi.util.HttpFunctions.createAuthorizedClient;
+import static com.microsoft.dagx.spi.util.HttpFunctions.createUnsecureClient;
 
 
 public class AtlasApiImpl implements AtlasApi {
@@ -37,7 +37,6 @@ public class AtlasApiImpl implements AtlasApi {
         this.typeManager = typeManager;
     }
 
-
     @Override
     public AtlasTypesDef createClassifications(String... classificationName) {
         var defs = Arrays.stream(classificationName).map(name ->
@@ -48,7 +47,7 @@ public class AtlasApiImpl implements AtlasApi {
         typedef.setClassificationDefs(defs);
 
 
-        var url = atlasBaseUrl + API_PREFIX + TYPEDEFS_API;
+        var url = createAtlasUrl(TYPEDEFS_API);
         var rqBody = RequestBody.create(typeManager.writeValueAsString(typedef), JSON);
         var request = new Request.Builder().url(url).post(rqBody)
                 .build();
@@ -70,7 +69,7 @@ public class AtlasApiImpl implements AtlasApi {
     public void deleteClassification(String classificationName) {
 
         classificationName = Objects.requireNonNull(classificationName, "classificationName");
-        var url = atlasBaseUrl + API_PREFIX + TYPEDEFS_API + "?name=" + classificationName;
+        var url = createAtlasUrl(TYPEDEFS_API + "?name=" + classificationName);
         var rq = new Request.Builder().url(url).build();
 
         try (Response response = httpClient.newCall(rq).execute()) {
@@ -111,7 +110,6 @@ public class AtlasApiImpl implements AtlasApi {
 
     }
 
-
     @Override
     public void deleteCustomType(String typeName) {
 
@@ -122,11 +120,10 @@ public class AtlasApiImpl implements AtlasApi {
         deleteType(Collections.singletonList(typesDef));
     }
 
-
     @Override
     public void deleteEntities(List<String> entityGuids) {
 
-        var urlBuilder = Objects.requireNonNull(HttpUrl.parse(atlasBaseUrl + API_PREFIX + ENTITY_API + "/bulk")).newBuilder();
+        var urlBuilder = Objects.requireNonNull(HttpUrl.parse(createAtlasUrl(ENTITY_API + "/bulk"))).newBuilder();
 
         entityGuids.forEach(guid -> urlBuilder.addQueryParameter("guid", guid));
         final var url = urlBuilder.build();
@@ -165,15 +162,11 @@ public class AtlasApiImpl implements AtlasApi {
         }
     }
 
-    private AtlasStructDef.AtlasAttributeDef.Cardinality cardinalityFromInteger(int cardinality) {
-        return AtlasStructDef.AtlasAttributeDef.Cardinality.values()[cardinality];
-    }
-
     @Override
-    public AtlasRelationship createRelation(String sourceEntityGuid, String targetEntityGuid, String name) {
+    public AtlasRelationship createRelationship(String sourceEntityGuid, String targetEntityGuid, String name) {
         name = sanitize(name);
         AtlasRelationship relationship = new AtlasRelationship(name, new AtlasObjectId(sourceEntityGuid), new AtlasObjectId(targetEntityGuid));
-        var url = atlasBaseUrl + API_PREFIX + "/relationship";
+        var url = createAtlasUrl("/relationship");
 
         var rq = new Request.Builder().url(url).post(RequestBody.create(typeManager.writeValueAsString(relationship), JSON)).build();
 
@@ -192,7 +185,7 @@ public class AtlasApiImpl implements AtlasApi {
     @Override
     public void deleteType(List<AtlasTypesDef> classificationTypes) {
         for (AtlasTypesDef type : classificationTypes) {
-            var deleteUrl = atlasBaseUrl + API_PREFIX + TYPEDEFS_API;
+            var deleteUrl = createAtlasUrl(TYPEDEFS_API);
             var rq = new Request.Builder().url(deleteUrl)
                     .delete(RequestBody.create(typeManager.writeValueAsString(type), JSON)).build();
 
@@ -209,7 +202,7 @@ public class AtlasApiImpl implements AtlasApi {
     @Override
     public AtlasEntity.AtlasEntityWithExtInfo getEntityById(String id) {
 
-        var url = atlasBaseUrl + API_PREFIX + ENTITY_API + "/guid/" + id;
+        var url = createAtlasUrl(ENTITY_API + "/guid/" + id);
         var rq = new Request.Builder().url(url).get().build();
 
         try (Response response = httpClient.newCall(rq).execute()) {
@@ -249,34 +242,9 @@ public class AtlasApiImpl implements AtlasApi {
         }
     }
 
-    private List<AtlasClassification> toAtlasClassifications(List<String> classificationNames) {
-        if (classificationNames != null) {
-            return classificationNames.stream().map(AtlasClassification::new).collect(Collectors.toList());
-        }
-        return Collections.emptyList();
-    }
-
-    private EntityMutationResponse createEntity(AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo) {
-        var url = atlasBaseUrl + API_PREFIX + ENTITY_API;
-
-        var rq = new Request.Builder().url(url).post(RequestBody.create(typeManager.writeValueAsString(atlasEntityWithExtInfo), JSON)).build();
-
-        try (Response response = httpClient.newCall(rq).execute()) {
-
-            if (!response.isSuccessful()) {
-                throw new DagxException(response.body() != null ? Objects.requireNonNull(response.body()).string() : "creating entity failed");
-            }
-            var json = Objects.requireNonNull(response.body()).string();
-            return typeManager.readValue(json, EntityMutationResponse.class);
-        } catch (IOException e) {
-            throw new DagxException(e);
-        }
-
-    }
-
     @Override
     public AtlasTypesDef getAllTypes(String name) {
-        var url = atlasBaseUrl + API_PREFIX + TYPEDEFS_API + "?name=" + name;
+        var url = createAtlasUrl(TYPEDEFS_API + "?name=" + name);
         var request = new Request.Builder().url(url).get().build();
 
         try (var response = httpClient.newCall(request).execute()) {
@@ -296,7 +264,7 @@ public class AtlasApiImpl implements AtlasApi {
     @Override
     public AtlasSearchResult dslSearchWithParams(String query, int limit, int offset) {
 
-        var url = atlasBaseUrl + API_PREFIX + "/search/dsl";
+        var url = createAtlasUrl("/search/dsl");
         var httpUrl = Objects.requireNonNull(HttpUrl.parse(url), "Could not parse url " + url).newBuilder()
                 .addQueryParameter("query", query)
                 .addQueryParameter("limit", String.valueOf(limit))
@@ -327,7 +295,7 @@ public class AtlasApiImpl implements AtlasApi {
     }
 
     AtlasTypesDef createTypesDef(AtlasTypesDef atlasTypesDef) {
-        var url = atlasBaseUrl + API_PREFIX + TYPEDEFS_API;
+        var url = createAtlasUrl(TYPEDEFS_API);
         var body = RequestBody.create(typeManager.writeValueAsString(atlasTypesDef), JSON);
         var rqBuilder = new Request.Builder().url(url);
         rqBuilder.post(body);
@@ -346,7 +314,7 @@ public class AtlasApiImpl implements AtlasApi {
     }
 
     AtlasTypesDef updateTypesDef(AtlasTypesDef atlasTypesDef) {
-        var url = atlasBaseUrl + API_PREFIX + TYPEDEFS_API;
+        var url = createAtlasUrl(TYPEDEFS_API);
         var body = RequestBody.create(typeManager.writeValueAsString(atlasTypesDef), JSON);
         var rqBuilder = new Request.Builder().url(url);
         rqBuilder.put(body);
@@ -362,5 +330,38 @@ public class AtlasApiImpl implements AtlasApi {
         } catch (IOException e) {
             throw new DagxException(e);
         }
+    }
+
+    private String createAtlasUrl(String api) {
+        return atlasBaseUrl + API_PREFIX + api;
+    }
+
+    private List<AtlasClassification> toAtlasClassifications(List<String> classificationNames) {
+        if (classificationNames != null) {
+            return classificationNames.stream().map(AtlasClassification::new).collect(Collectors.toList());
+        }
+        return Collections.emptyList();
+    }
+
+    private EntityMutationResponse createEntity(AtlasEntity.AtlasEntityWithExtInfo atlasEntityWithExtInfo) {
+        var url = createAtlasUrl(ENTITY_API);
+
+        var rq = new Request.Builder().url(url).post(RequestBody.create(typeManager.writeValueAsString(atlasEntityWithExtInfo), JSON)).build();
+
+        try (Response response = httpClient.newCall(rq).execute()) {
+
+            if (!response.isSuccessful()) {
+                throw new DagxException(response.body() != null ? Objects.requireNonNull(response.body()).string() : "creating entity failed");
+            }
+            var json = Objects.requireNonNull(response.body()).string();
+            return typeManager.readValue(json, EntityMutationResponse.class);
+        } catch (IOException e) {
+            throw new DagxException(e);
+        }
+
+    }
+
+    private AtlasStructDef.AtlasAttributeDef.Cardinality cardinalityFromInteger(int cardinality) {
+        return AtlasStructDef.AtlasAttributeDef.Cardinality.values()[cardinality];
     }
 }

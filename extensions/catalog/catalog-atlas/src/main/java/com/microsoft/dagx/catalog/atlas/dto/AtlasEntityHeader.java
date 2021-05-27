@@ -9,6 +9,7 @@ package com.microsoft.dagx.catalog.atlas.dto;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.microsoft.dagx.spi.util.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.*;
@@ -83,7 +84,7 @@ public class AtlasEntityHeader extends AtlasStruct implements Serializable {
         setClassifications(entity.getClassifications());
         setIsIncomplete(entity.getIsIncomplete());
 
-        if (Functions.isNotEmpty(entity.getClassifications())) {
+        if (CollectionUtil.isNotEmpty(entity.getClassifications())) {
             classificationNames = new ArrayList<>(entity.getClassifications().size());
 
             for (AtlasClassification classification : entity.getClassifications()) {
@@ -91,7 +92,7 @@ public class AtlasEntityHeader extends AtlasStruct implements Serializable {
             }
         }
 
-        if (Functions.isNotEmpty(entity.getLabels())) {
+        if (CollectionUtil.isNotEmpty(entity.getLabels())) {
             setLabels(entity.getLabels());
         }
     }
