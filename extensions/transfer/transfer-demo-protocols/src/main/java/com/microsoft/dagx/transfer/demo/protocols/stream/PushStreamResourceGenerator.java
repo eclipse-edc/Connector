@@ -12,7 +12,7 @@ import java.util.UUID;
  * generated. Otherwise, a definition containing metadata to create a definition will be returned.
  */
 public class PushStreamResourceGenerator implements ResourceDefinitionGenerator {
-    private String endpointAddress;
+    private final String endpointAddress;
 
     public PushStreamResourceGenerator(String endpointAddress) {
         this.endpointAddress = endpointAddress;
@@ -30,7 +30,7 @@ public class PushStreamResourceGenerator implements ResourceDefinitionGenerator 
             return null;
         }
 
-        var destinationName = dataRequest.getDataAddressProperties().get(DemoProtocols.DESTINATION_NAME);
+        var destinationName = dataRequest.getDataDestination().getProperty(DemoProtocols.DESTINATION_NAME);
         if (destinationName == null) {
             destinationName = UUID.randomUUID().toString();
         }

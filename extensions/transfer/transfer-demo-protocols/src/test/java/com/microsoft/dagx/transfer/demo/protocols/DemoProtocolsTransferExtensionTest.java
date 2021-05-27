@@ -7,6 +7,7 @@ import com.microsoft.dagx.spi.security.VaultResponse;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.transfer.TransferWaitStrategy;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
+import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.DestinationManager;
@@ -31,9 +32,9 @@ class DemoProtocolsTransferExtensionTest {
     /**
      * Perform a push stream flow using the loopback protocol.
      *
-     * @param processManager the injected process manager
+     * @param processManager     the injected process manager
      * @param destinationManager the injected destination manager
-     * @param monitor the injected runtime monitor
+     * @param monitor            the injected runtime monitor
      */
     @Test
     void verifyPushStreamFlow(TransferProcessManager processManager, DestinationManager destinationManager, Monitor monitor) throws InterruptedException {
@@ -52,7 +53,8 @@ class DemoProtocolsTransferExtensionTest {
                 .protocol("loopback")
                 .destinationType(DemoProtocols.PUSH_STREAM)
                 .dataEntry(dataEntry)
-                .dataAddressProperty(DemoProtocols.DESTINATION_NAME, destinationName)
+                .dataDestination(DataAddress.Builder.newInstance().type(DemoProtocols.PUSH_STREAM)
+                        .property(DemoProtocols.DESTINATION_NAME, destinationName).build())
                 .connectorId("test").build();
 
         processManager.initiateClientRequest(dataRequest);
@@ -75,7 +77,7 @@ class DemoProtocolsTransferExtensionTest {
     }
 
     private static class MockVault implements Vault {
-        private Map<String, String> secrets = new ConcurrentHashMap<>();
+        private final Map<String, String> secrets = new ConcurrentHashMap<>();
 
         @Override
         public @Nullable String resolveSecret(String key) {

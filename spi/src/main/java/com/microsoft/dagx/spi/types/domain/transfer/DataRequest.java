@@ -13,9 +13,6 @@ import com.microsoft.dagx.spi.types.domain.Polymorphic;
 import com.microsoft.dagx.spi.types.domain.message.RemoteMessage;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Polymorphic data request.
  */
@@ -38,7 +35,9 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private boolean managedResources = true;
 
-    private Map<String, String> dataAddressProperties = new HashMap<>();
+
+    private DataRequest() {
+    }
 
     /**
      * The unique request id. Request ids are provided by the originating client and must be unique.
@@ -52,6 +51,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
      */
     public String getProcessId() {
         return processId;
+    }
+
+    void setProcessId(String processId) {
+        this.processId = processId;
     }
 
     /**
@@ -91,13 +94,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     /**
-     * Returns properties used to specify the address where the requested data should be routed to.
-     */
-    public Map<String, String> getDataAddressProperties() {
-        return dataAddressProperties;
-    }
-
-    /**
      * The target address the data is to be sent to. Set by the request originator, e.g., the client connector.
      */
     public DataAddress getDataDestination() {
@@ -118,15 +114,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .dataEntry(dataEntry)    // shallow copy, may need to revisit
                 .dataAddress(dataAddress)
                 .managedResources(managedResources)
-                .dataAddressProperties(dataAddressProperties)
                 .build();
-    }
-
-    void setProcessId(String processId) {
-        this.processId = processId;
-    }
-
-    private DataRequest() {
     }
 
     public void updateDestination(DataAddress dataAddress) {
@@ -196,15 +184,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder dataAddressProperties(Map<String, String> properties) {
-            request.dataAddressProperties.putAll(properties);
-            return this;
-        }
-
-        public Builder dataAddressProperty(String key, String value) {
-            request.dataAddressProperties.put(key, value);
-            return this;
-        }
 
         private Builder dataAddress(DataAddress dataAddress) {
             request.dataAddress = dataAddress;
