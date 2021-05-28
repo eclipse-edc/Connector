@@ -1273,11 +1273,11 @@
                     </entry>
                     <entry>
                         <key>Maximum Buffer Size</key>
-                        <value>10 KB</value>
+                        <value>512 KB</value>
                     </entry>
                     <entry>
                         <key>Maximum Capture Group Length</key>
-                        <value>1024</value>
+                        <value>1048576</value>
                     </entry>
                     <entry>
                         <key>Enable Canonical Equivalence</key>

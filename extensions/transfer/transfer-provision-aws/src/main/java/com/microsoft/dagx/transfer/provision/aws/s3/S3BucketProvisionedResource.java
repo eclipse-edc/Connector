@@ -14,6 +14,14 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.schema.aws.S3BucketSchema;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
+import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
+import net.jodah.failsafe.Failsafe;
+import net.jodah.failsafe.RetryPolicy;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+
+import java.util.function.Supplier;
 
 
 /**
@@ -28,7 +36,13 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
     @JsonProperty
     private String bucketName;
 
+    private S3CompletionChecker checker;
+
     private S3BucketProvisionedResource() {
+    }
+
+    private S3BucketProvisionedResource(ClientProvider clientProvider, RetryPolicy<Object> retryPolicy) {
+        checker = new S3CompletionChecker(clientProvider, retryPolicy, region, bucketName);
     }
 
     public String getRegion() {
@@ -54,8 +68,17 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
         return bucketName;
     }
 
+    @Override
+    public Supplier<Boolean> getCompletionChecker() {
+        return checker;
+    }
+
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedDataDestinationResource.Builder<S3BucketProvisionedResource, Builder> {
+
+        private ClientProvider clientProvider;
+        private RetryPolicy<Object> retryPolicy;
 
         private Builder() {
             super(new S3BucketProvisionedResource());
@@ -74,6 +97,46 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
         public Builder bucketName(String bucketName) {
             provisionedResource.bucketName = bucketName;
             return this;
+        }
+
+        public Builder checker(ClientProvider clientProvider, RetryPolicy<Object> retryPolicy) {
+            this.clientProvider = clientProvider;
+            this.retryPolicy = retryPolicy;
+            return this;
+        }
+
+        @Override
+        public S3BucketProvisionedResource build() {
+            var res = super.build();
+            res.checker = new S3CompletionChecker(clientProvider, retryPolicy, res.getRegion(), res.getBucketName());
+            return res;
+        }
+    }
+
+    private static class S3CompletionChecker implements Supplier<Boolean> {
+        private final S3AsyncClient s3client;
+        private final RetryPolicy<Object> retryPolicy;
+        private final String bucketName;
+
+        public S3CompletionChecker(ClientProvider clientProvider, RetryPolicy<Object> retryPolicy, String region, String bucketName) {
+            this.retryPolicy = retryPolicy;
+            this.bucketName = bucketName;
+            s3client = clientProvider.clientFor(S3AsyncClient.class, region);
+        }
+
+        @Override
+        public Boolean get() {
+            return checkForCompleteFile();
+        }
+
+        private boolean checkForCompleteFile() {
+            try {
+                var rq = ListObjectsRequest.builder().bucket(bucketName).build();
+                var response = Failsafe.with(retryPolicy).get(() -> s3client.listObjects(rq).join());
+                return response.contents().stream().anyMatch(s3object -> s3object.key().endsWith(".complete"));
+            } catch (NoSuchBucketException ex) {
+                return false;
+            }
         }
     }
 }

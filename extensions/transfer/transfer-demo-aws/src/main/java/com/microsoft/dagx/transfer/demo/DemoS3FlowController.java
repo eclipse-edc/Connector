@@ -48,7 +48,7 @@ public class DemoS3FlowController implements DataFlowController {
 
     @Override
     public boolean canHandle(DataRequest dataRequest) {
-        return S3BucketSchema.TYPE.equals(dataRequest.getDestinationType());
+        return true;
     }
 
     @Override
@@ -70,16 +70,18 @@ public class DemoS3FlowController implements DataFlowController {
 
 
         try (S3Client s3 = S3Client.builder()
-                .credentialsProvider(StaticCredentialsProvider.create(AwsSessionCredentials.create(dt.getAccessKeyId(), dt.getSecretAccessKey(), dt.getToken())))
+                .credentialsProvider(StaticCredentialsProvider.create(AwsSessionCredentials.create(dt.getAccessKeyId(), dt.getSecretAccessKey(), dt.getSessionToken())))
                 .region(Region.of(region))
                 .build()) {
 
             String etag = null;
             PutObjectRequest request = createRequest(bucketName, "demo-image");
+            PutObjectRequest completionMarker = createRequest(bucketName, "asdf.complete");
 
             try {
                 monitor.debug("Data request: begin transfer...");
                 var response = Failsafe.with(retryPolicy).get(() -> s3.putObject(request, RequestBody.fromBytes(createRandomContent())));
+                var response2 = Failsafe.with(retryPolicy).get(() -> s3.putObject(completionMarker, RequestBody.empty()));
                 monitor.debug("Data request done.");
                 etag = response.eTag();
             } catch (S3Exception tmpEx) {

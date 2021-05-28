@@ -30,6 +30,10 @@ public abstract class ResourceDefinition {
     public static class Builder<RD extends ResourceDefinition, B extends Builder<RD, B>> {
         protected final RD resourceDefinition;
 
+        protected Builder(RD definition) {
+            resourceDefinition = definition;
+        }
+
         public B id(String id) {
             resourceDefinition.id = id;
             return (B) this;
@@ -47,10 +51,6 @@ public abstract class ResourceDefinition {
 
         protected void verify() {
             Objects.requireNonNull(resourceDefinition.id, "id");
-        }
-
-        protected Builder(RD definition) {
-            this.resourceDefinition = definition;
         }
     }
 }
