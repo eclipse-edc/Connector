@@ -27,7 +27,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
 
     @BeforeEach
     void setup() {
-        createBucket(client, bucketName, REGION);
+        createBucket(bucketName, REGION);
     }
 
     @AfterEach
@@ -38,7 +38,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
     @Test
     void upload() throws IOException {
         String key = "test-file.txt";
-        final TestRunner runner = TestRunners.newTestRunner(new PutS3Object());
+        TestRunner runner = TestRunners.newTestRunner(new PutS3Object());
 
         runner.setProperty(Properties.REGION, REGION);
         runner.setProperty(Properties.BUCKET, bucketName);
@@ -47,7 +47,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
 
 
-        final Map<String, String> attrs = new HashMap<>();
+        Map<String, String> attrs = new HashMap<>();
         runner.enqueue(getResourcePath(SAMPLE_FILE_RESOURCE_NAME), attrs);
         runner.enqueue(getResourcePath(SAMPLE_FILE_RESOURCE_NAME), attrs);
         runner.enqueue(getResourcePath(SAMPLE_FILE_RESOURCE_NAME), attrs);
@@ -62,7 +62,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
         String key = "test-file.txt";
         PutObjectResult response = putTestFile(key, getFileFromResourceName(SAMPLE_FILE_RESOURCE_NAME), bucketName);
 
-        final TestRunner runner = TestRunners.newTestRunner(new PutS3Object());
+        TestRunner runner = TestRunners.newTestRunner(new PutS3Object());
 
         runner.setProperty(Properties.REGION, REGION);
         runner.setProperty(Properties.BUCKET, bucketName);
@@ -71,7 +71,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());
 
 
-        final Map<String, String> attrs = new HashMap<>();
+        Map<String, String> attrs = new HashMap<>();
         String newContent = "this is another content!";
         runner.enqueue(newContent, attrs);
 

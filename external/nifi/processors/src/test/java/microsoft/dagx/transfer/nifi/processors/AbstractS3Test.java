@@ -48,7 +48,7 @@ public class AbstractS3Test {
         return new BasicAWSCredentials(accessKeyId, secretKey);
     }
 
-    protected void createBucket(AmazonS3 client, String bucketName, String region) {
+    protected void createBucket(String bucketName, String region) {
         if (client.doesBucketExistV2(bucketName)) {
             fail("Bucket " + bucketName + " exists. Choose a different bucket name to continue test");
         }
@@ -86,7 +86,7 @@ public class AbstractS3Test {
 
             DeleteBucketRequest dbr = new DeleteBucketRequest(bucketName);
             client.deleteBucket(dbr);
-        } catch (final AmazonS3Exception e) {
+        } catch (AmazonS3Exception e) {
             System.err.println("Unable to delete bucket " + bucketName + e);
         }
 
