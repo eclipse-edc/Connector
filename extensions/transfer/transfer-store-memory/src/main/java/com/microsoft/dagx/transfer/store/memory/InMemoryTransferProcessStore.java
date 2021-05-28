@@ -6,10 +6,8 @@
 package com.microsoft.dagx.transfer.store.memory;
 
 import com.microsoft.dagx.spi.DagxException;
-import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -119,18 +117,6 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public <T> T findData(Class<T> type, String processId, String resourceDefinitionId) {
         throw new UnsupportedOperationException("Not yet implemented");
-    }
-
-    @Override
-    public void printState(Monitor monitor) {
-        monitor.debug("*** Process state machine ***");
-        for (Map.Entry<Integer, List<TransferProcess>> state : stateCache.entrySet()) {
-            Optional<TransferProcessStates> tps = TransferProcessStates.from(state.getKey());
-            tps.ifPresentOrElse(t -> monitor.debug("   " + t.name() + ": has " + state.getValue().size() + " processes"), () ->
-                    monitor.severe("no transfer process state found for code " + state.getKey()));
-
-
-        }
     }
 
     private <T> T readLock(Supplier<T> work) {

@@ -15,16 +15,14 @@ import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
-import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
+import com.microsoft.dagx.spi.types.domain.transfer.*;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.CLIENT;
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
@@ -99,10 +97,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
                 int finished = pollForCompletion();
 
-                if (provisioned == 0 && sent == 0) {
+                if (provisioned + sent + finished == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
-                transferProcessStore.printState(monitor);
                 waitStrategy.success();
             } catch (Error e) {
                 throw e; // let the thread die and don't reschedule as the error is unrecoverable
@@ -128,15 +125,28 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         //deal with all the client processes
         List<TransferProcess> processes = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
         if (processes.stream().anyMatch(p -> p.getType() != CLIENT)) {
-            throw new IllegalStateException("Only CLIENT processes can be in state REQUESTED_ACK!");
+            final List<TransferProcess> invalidProcesses = processes.stream().filter(p -> p.getType() != CLIENT).collect(Collectors.toList());
+            throw new IllegalStateException("Only CLIENT processes can be in state REQUESTED_ACK " + invalidProcesses.size() + " weren't! Their IDs: " + invalidProcesses.stream().map(TransferProcess::getId).collect(Collectors.joining(", ")));
         }
+
 
         for (var process : processes) {
-            var rq = process.getDataRequest();
             //todo: query for completion marker, e.g. a *.complete file in an s3 bucket
-        }
-        return 0;
+            var dataResources = process.getProvisionedResourceSet().getResources().stream().filter(r -> r instanceof ProvisionedDataDestinationResource)
+                    .map(r -> (ProvisionedDataDestinationResource) r)
+                    .collect(Collectors.toList());
 
+            for (var definition : dataResources) {
+                var checker = definition.getCompletionChecker();
+                if (checker != null && checker.get()) {
+                    // transfer process is complete
+                    process.transitionCompleted();
+                    transferProcessStore.update(process);
+                }
+            }
+
+        }
+        return processes.size();
     }
 
     /**

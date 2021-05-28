@@ -167,7 +167,8 @@ public class TransferProcess {
     }
 
     public void transitionCompleted() {
-        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS);
+        // clients are in REQUESTED_ACK state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
+        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK);
     }
 
     public void transitionDeprovisioning() {

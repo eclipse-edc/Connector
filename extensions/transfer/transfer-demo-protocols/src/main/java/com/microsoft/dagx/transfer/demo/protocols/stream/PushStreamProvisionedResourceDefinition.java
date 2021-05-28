@@ -10,6 +10,7 @@ import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * Defines a streaming destination topic to be provisioned.
@@ -19,6 +20,9 @@ import java.util.Objects;
 public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDestinationResource {
     private String endpointAddress;
     private String destinationName;
+
+    private PushStreamProvisionedResourceDefinition() {
+    }
 
     public String getEndpointAddress() {
         return endpointAddress;
@@ -34,6 +38,11 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
     }
 
     @Override
+    public Supplier<Boolean> getCompletionChecker() {
+        return () -> true;
+    }
+
+    @Override
     public DataAddress createDataDestination() {
         return DataAddress.Builder.newInstance()
                 .type(DemoProtocols.PUSH_STREAM_WS)
@@ -43,11 +52,12 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
                 .build();
     }
 
-    private PushStreamProvisionedResourceDefinition() {
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedResource.Builder<PushStreamProvisionedResourceDefinition, Builder> {
+
+        private Builder() {
+            super(new PushStreamProvisionedResourceDefinition());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -68,10 +78,6 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
         public void verify() {
             Objects.requireNonNull(provisionedResource.endpointAddress, "endpointAddress");
             Objects.requireNonNull(provisionedResource.destinationName, "destinationName");
-        }
-
-        private Builder() {
-            super(new PushStreamProvisionedResourceDefinition());
         }
     }
 

@@ -12,6 +12,9 @@ import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
+import kotlin.NotImplementedError;
+
+import java.util.function.Supplier;
 
 /**
  *
@@ -44,6 +47,11 @@ public class ObjectContainerProvisionedResource extends ProvisionedDataDestinati
     @Override
     public String getResourceName() {
         return containerName;
+    }
+
+    @Override
+    public Supplier<Boolean> getCompletionChecker() {
+        throw new NotImplementedError();
     }
 
     @JsonPOJOBuilder(withPrefix = "")

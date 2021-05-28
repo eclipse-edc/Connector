@@ -28,6 +28,10 @@ public abstract class ProvisionedResource {
         return transferProcessId;
     }
 
+    void setTransferProcessId(String transferProcessId) {
+        this.transferProcessId = transferProcessId;
+    }
+
     @NotNull
     public String getResourceDefinitionId() {
         return resourceDefinitionId;
@@ -41,13 +45,14 @@ public abstract class ProvisionedResource {
         return errorMessage;
     }
 
-    void setTransferProcessId(String transferProcessId) {
-        this.transferProcessId = transferProcessId;
-    }
 
     @SuppressWarnings("unchecked")
     public static class Builder<PR extends ProvisionedResource, B extends Builder<PR, B>> {
         protected PR provisionedResource;
+
+        protected Builder(PR resource) {
+            provisionedResource = resource;
+        }
 
         public B id(String id) {
             provisionedResource.id = id;
@@ -83,10 +88,6 @@ public abstract class ProvisionedResource {
         }
 
         protected void verify() {
-        }
-
-        protected Builder(PR resource) {
-            this.provisionedResource = resource;
         }
     }
 
