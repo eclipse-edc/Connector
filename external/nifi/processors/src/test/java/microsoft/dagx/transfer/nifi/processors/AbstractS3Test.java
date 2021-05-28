@@ -34,7 +34,7 @@ public class AbstractS3Test {
     protected AWSCredentials credentials;
 
     @BeforeEach
-    public void oneTimeSetup() {
+    public void setupClient() {
         bucketName = "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
         credentials = getCredentials();
         client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(REGION).build();
