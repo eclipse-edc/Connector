@@ -17,7 +17,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @ExtendWith(DagxExtension.class)
 abstract public class AbstractDemoTransferTest {
 
-
     /**
      * Fixture that obtains a reference to the runtime.
      *
