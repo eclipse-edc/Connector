@@ -4,13 +4,13 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.microsoft.dagx.spi.types.domain.transfer.CompletionChecker;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols;
 
 import java.util.Objects;
-import java.util.function.Supplier;
 
 /**
  * Defines a streaming destination topic to be provisioned.
@@ -38,7 +38,7 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
     }
 
     @Override
-    public Supplier<Boolean> getCompletionChecker() {
+    public CompletionChecker getCompletionChecker() {
         return () -> true;
     }
 

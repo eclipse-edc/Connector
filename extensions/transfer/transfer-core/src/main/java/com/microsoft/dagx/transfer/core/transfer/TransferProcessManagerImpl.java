@@ -138,7 +138,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
             for (var definition : dataResources) {
                 var checker = definition.getCompletionChecker();
-                if (checker != null && checker.get()) {
+                if (checker != null && checker.check()) {
                     // transfer process is complete
                     process.transitionCompleted();
                     transferProcessStore.update(process);
