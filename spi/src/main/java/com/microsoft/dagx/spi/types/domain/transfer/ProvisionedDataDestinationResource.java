@@ -5,8 +5,6 @@
 
 package com.microsoft.dagx.spi.types.domain.transfer;
 
-import java.util.function.Supplier;
-
 /**
  * A provisioned resource that serves as a data destination.
  */
@@ -21,7 +19,7 @@ public abstract class ProvisionedDataDestinationResource extends ProvisionedReso
     public abstract String getResourceName();
 
 
-    public abstract Supplier<Boolean> getCompletionChecker();
+    public abstract CompletionChecker getCompletionChecker();
 
     protected static class Builder<PR extends ProvisionedResource, B extends ProvisionedResource.Builder<PR, B>> extends ProvisionedResource.Builder<PR, B> {
 

@@ -12,6 +12,7 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.schema.aws.S3BucketSchema;
+import com.microsoft.dagx.spi.types.domain.transfer.CompletionChecker;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
@@ -20,8 +21,6 @@ import net.jodah.failsafe.RetryPolicy;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
-
-import java.util.function.Supplier;
 
 
 /**
@@ -69,7 +68,7 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
     }
 
     @Override
-    public Supplier<Boolean> getCompletionChecker() {
+    public CompletionChecker getCompletionChecker() {
         return checker;
     }
 
@@ -113,7 +112,7 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
         }
     }
 
-    private static class S3CompletionChecker implements Supplier<Boolean> {
+    private static class S3CompletionChecker implements CompletionChecker {
         private final S3AsyncClient s3client;
         private final RetryPolicy<Object> retryPolicy;
         private final String bucketName;
@@ -125,7 +124,7 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
         }
 
         @Override
-        public Boolean get() {
+        public boolean check() {
             return checkForCompleteFile();
         }
 
