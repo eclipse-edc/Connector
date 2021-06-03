@@ -620,7 +620,7 @@ public class NifiDataFlowControllerTest {
 
     @Test
     @Timeout(20)
-    @DisplayName("Transfer several files from Azure Blob to Azure Blob")
+    @DisplayName("Transfer multiple files from S3 to Azure Blob")
     void transfer_multiple_fromS3_toAzure() throws InterruptedException {
         String id = UUID.randomUUID().toString();
         GenericDataCatalog dataEntry = createS3CatalogEntry();
@@ -660,7 +660,7 @@ public class NifiDataFlowControllerTest {
 
     @Test
     @Timeout(20)
-    @DisplayName("Transfer several files from Azure Blob to Azure Blob")
+    @DisplayName("Transfer all files from Azure Blob to Azure Blob")
     void transfer_all_fromAzureToAzure() throws InterruptedException {
         String id = UUID.randomUUID().toString();
         GenericDataCatalog dataEntry = createAzureCatalogEntry();
