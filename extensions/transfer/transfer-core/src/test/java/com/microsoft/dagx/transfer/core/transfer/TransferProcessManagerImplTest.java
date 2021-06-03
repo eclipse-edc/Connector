@@ -12,6 +12,7 @@ import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
+import com.microsoft.dagx.spi.types.domain.transfer.StatusCheckerRegistry;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.Test;
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 
 import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.niceMock;
 
 /**
  *
@@ -49,6 +51,7 @@ class TransferProcessManagerImplTest {
                 .provisionManager(createNiceMock(ProvisionManager.class))
                 .dataFlowManager(createNiceMock(DataFlowManager.class))
                 .monitor(createNiceMock(Monitor.class))
+                .statusCheckerRegistry(niceMock(StatusCheckerRegistry.class))
                 .manifestGenerator(createNiceMock(ResourceManifestGenerator.class)).build();
 
         manager.start(store);

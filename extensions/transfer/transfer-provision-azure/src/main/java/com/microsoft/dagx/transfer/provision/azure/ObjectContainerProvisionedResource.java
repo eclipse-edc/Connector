@@ -9,11 +9,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
-import com.microsoft.dagx.spi.types.domain.transfer.CompletionChecker;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
-import kotlin.NotImplementedError;
 
 /**
  *
@@ -46,11 +44,6 @@ public class ObjectContainerProvisionedResource extends ProvisionedDataDestinati
     @Override
     public String getResourceName() {
         return containerName;
-    }
-
-    @Override
-    public CompletionChecker getCompletionChecker() {
-        throw new NotImplementedError();
     }
 
     @JsonPOJOBuilder(withPrefix = "")

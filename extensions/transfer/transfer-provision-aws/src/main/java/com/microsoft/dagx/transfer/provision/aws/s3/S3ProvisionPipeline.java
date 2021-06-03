@@ -133,7 +133,6 @@ class S3ProvisionPipeline {
                     .resourceDefinitionId(resourceDefinition.getId())
                     .region(resourceDefinition.getRegionId())
                     .bucketName(resourceDefinition.getBucketName())
-                    .checker(clientProvider, retryPolicy)
                     .transferProcessId(transferProcessId).build();
 
             var secretToken = new AwsTemporarySecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());

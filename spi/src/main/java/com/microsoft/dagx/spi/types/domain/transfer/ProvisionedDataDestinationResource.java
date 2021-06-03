@@ -18,9 +18,6 @@ public abstract class ProvisionedDataDestinationResource extends ProvisionedReso
 
     public abstract String getResourceName();
 
-
-    public abstract CompletionChecker getCompletionChecker();
-
     protected static class Builder<PR extends ProvisionedResource, B extends ProvisionedResource.Builder<PR, B>> extends ProvisionedResource.Builder<PR, B> {
 
         protected Builder(PR resource) {

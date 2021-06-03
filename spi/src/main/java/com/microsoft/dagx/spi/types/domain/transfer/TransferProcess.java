@@ -10,6 +10,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import kotlin.NotImplementedError;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -230,6 +231,10 @@ public class TransferProcess {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public void transitionStreaming() {
+        throw new NotImplementedError();
     }
 
     public enum Type {

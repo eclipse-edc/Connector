@@ -76,8 +76,9 @@ public class ProvisionManagerImpl implements ProvisionManager {
             return;
         }
 
-
-        transferProcess.getDataRequest().updateDestination(destinationResource.createDataDestination());
+        if (!destinationResource.isError()) {
+            transferProcess.getDataRequest().updateDestination(destinationResource.createDataDestination());
+        }
 
         if (secretToken != null) {
             String keyName = destinationResource.getResourceName();
