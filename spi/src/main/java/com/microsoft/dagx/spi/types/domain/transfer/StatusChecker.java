@@ -7,6 +7,6 @@
 package com.microsoft.dagx.spi.types.domain.transfer;
 
 @FunctionalInterface
-public interface CompletionChecker {
-    boolean check();
+public interface StatusChecker<T extends ProvisionedResource> {
+    boolean isComplete(T provisionedResource);
 }

@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.microsoft.dagx.spi.types.domain.transfer.CompletionChecker;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
@@ -35,11 +34,6 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
     @Override
     public String getResourceName() {
         return getDestinationName();
-    }
-
-    @Override
-    public CompletionChecker getCompletionChecker() {
-        return () -> true;
     }
 
     @Override

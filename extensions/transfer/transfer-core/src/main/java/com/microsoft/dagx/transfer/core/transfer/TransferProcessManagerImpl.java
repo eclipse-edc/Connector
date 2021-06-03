@@ -45,6 +45,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private DataFlowManager dataFlowManager;
     private Monitor monitor;
     private ExecutorService executor;
+    private StatusCheckerRegistry statusCheckerRegistry;
 
     private TransferProcessManagerImpl() {
     }
@@ -89,15 +90,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private void run() {
         while (active.get()) {
             try {
-                int provisioned = provisionInitialProcesses();
+                int provisioning = provisionInitialProcesses();
 
                 // TODO check processes in provisioning state and timestamps for failed processes
 
                 int sent = sendOrProcessProvisionedRequests();
 
-                int finished = pollForCompletion();
+                int finished = checkCompleted();
 
-                if (provisioned + sent + finished == 0) {
+                int provisioned = checkProvisioned();
+
+                if (provisioning + provisioned + sent + finished == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
                 waitStrategy.success();
@@ -120,33 +123,71 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
-    private int pollForCompletion() {
+    private int checkProvisioned() {
+        List<TransferProcess> requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
+
+        for (var process : requestAcked) {
+            if (!process.getProvisionedResourceSet().empty()) {
+                monitor.debug("Process " + process.getId() + " is now ongoing");
+                if (process.getDataRequest().getTransferType().isFinite()) {
+                    process.transitionInProgress();
+                } else {
+                    process.transitionStreaming();
+                }
+                transferProcessStore.update(process);
+            } else {
+                monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
+            }
+        }
+
+        return requestAcked.size();
+
+    }
+
+    private int checkCompleted() {
 
         //deal with all the client processes
-        List<TransferProcess> processes = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
-        if (processes.stream().anyMatch(p -> p.getType() != CLIENT)) {
-            final List<TransferProcess> invalidProcesses = processes.stream().filter(p -> p.getType() != CLIENT).collect(Collectors.toList());
-            throw new IllegalStateException("Only CLIENT processes can be in state REQUESTED_ACK " + invalidProcesses.size() + " weren't! Their IDs: " + invalidProcesses.stream().map(TransferProcess::getId).collect(Collectors.joining(", ")));
-        }
+        List<TransferProcess> processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
+
+        for (var process : processesInProgress.stream().filter(p -> p.getType() == CLIENT).collect(Collectors.toList())) {
+
+            //only check resources for which a checker was registered.
+            // todo: maybe error out processes with uncheckable resources??
+            final List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
 
 
-        for (var process : processes) {
-            //todo: query for completion marker, e.g. a *.complete file in an s3 bucket
-            var dataResources = process.getProvisionedResourceSet().getResources().stream().filter(r -> r instanceof ProvisionedDataDestinationResource)
-                    .map(r -> (ProvisionedDataDestinationResource) r)
-                    .collect(Collectors.toList());
+            //todo: comment this in if we want to error out uncheckable resources
+//            var resourcesWithNoChecker = resources.stream().filter(resource -> statusCheckerRegistry.resolve(resource) == null).collect(Collectors.toList());
+//            if (!resourcesWithNoChecker.isEmpty()) {
+//                final String violatingResourceClasses = resourcesWithNoChecker.stream().map(r -> r.getClass().getName()).collect(Collectors.joining(", "));
+//                monitor.severe("There is no StatusChecker for resource type " + violatingResourceClasses);
+//                process.transitionError("No StatusChecker found for a provisioned resource of type(s) " + violatingResourceClasses + ". The violating resource is part of transfer process " + process.getId());
+//                transferProcessStore.update(process);
+//                continue;
+//            }
 
-            for (var definition : dataResources) {
-                var checker = definition.getCompletionChecker();
-                if (checker != null && checker.check()) {
-                    // transfer process is complete
-                    process.transitionCompleted();
-                    transferProcessStore.update(process);
-                }
+            // update the process once ALL resources are completed
+            if (resources.stream().allMatch(this::isComplete)) {
+                process.transitionCompleted();
+                transferProcessStore.update(process);
+                monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
             }
 
+
         }
-        return processes.size();
+        return processesInProgress.size();
+    }
+
+    private boolean hasChecker(ProvisionedResource provisionedResource) {
+        return statusCheckerRegistry.resolve(provisionedResource) != null;
+    }
+
+    private boolean isComplete(ProvisionedResource resource) {
+        var checker = statusCheckerRegistry.resolve(resource);
+        if (checker == null) {
+            return true;
+        }
+        return checker.isComplete(resource);
     }
 
     /**
@@ -195,7 +236,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                     monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), response.getError()));
                     process.transitionError(response.getError());
                 } else {
-                    process.transitionInProgress();
+                    if (process.getDataRequest().getTransferType().isFinite()) {
+                        process.transitionInProgress();
+                    } else {
+                        process.transitionStreaming();
+                    }
                 }
             }
             transferProcessStore.update(process);
@@ -249,12 +294,18 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
+        public Builder statusCheckerRegistry(StatusCheckerRegistry statusCheckerRegistry) {
+            manager.statusCheckerRegistry = statusCheckerRegistry;
+            return this;
+        }
+
         public TransferProcessManagerImpl build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
             Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.monitor, "monitor");
+            Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
             return manager;
         }
     }

@@ -43,7 +43,7 @@ public class ClientRunner {
     private CountDownLatch latch;
 
     @Test
-    @Disabled
+//    @Disabled
     void processClientRequest_toAws(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager) throws Exception {
 
         var query = QueryRequest.Builder.newInstance()
@@ -64,9 +64,9 @@ public class ClientRunner {
         }
 
         // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
-        var usRequest = createRequestAws("us-request", EU_ARTIFACT);
+//        var usRequest = createRequestAws("us-request", EU_ARTIFACT);
 
-        processManager.initiateClientRequest(usRequest);
+//        processManager.initiateClientRequest(usRequest);
 
 
         latch.await(1, TimeUnit.DAYS);
@@ -74,7 +74,7 @@ public class ClientRunner {
 
 
     @Test
-//    @Disabled
+    @Disabled
     void processClientRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager) throws Exception {
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)

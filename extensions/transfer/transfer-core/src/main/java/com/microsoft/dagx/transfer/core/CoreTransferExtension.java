@@ -18,12 +18,15 @@ import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
+import com.microsoft.dagx.spi.types.domain.transfer.StatusCheckerRegistry;
 import com.microsoft.dagx.transfer.core.flow.DataFlowManagerImpl;
 import com.microsoft.dagx.transfer.core.protocol.provider.RemoteMessageDispatcherRegistryImpl;
 import com.microsoft.dagx.transfer.core.provision.ProvisionManagerImpl;
 import com.microsoft.dagx.transfer.core.provision.ResourceManifestGeneratorImpl;
 import com.microsoft.dagx.transfer.core.transfer.ExponentialWaitStrategy;
 import com.microsoft.dagx.transfer.core.transfer.TransferProcessManagerImpl;
+
+import java.util.Set;
 
 /**
  * Provides core data transfer services to the system.
@@ -44,7 +47,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        this.monitor = context.getMonitor();
+        monitor = context.getMonitor();
         this.context = context;
 
         var typeManager = context.getTypeManager();
@@ -60,25 +63,34 @@ public class CoreTransferExtension implements ServiceExtension {
         var manifestGenerator = new ResourceManifestGeneratorImpl();
         context.registerService(ResourceManifestGenerator.class, manifestGenerator);
 
+        var statusCheckerRegistry = new StatusCheckerRegistryImpl();
+        context.registerService(StatusCheckerRegistry.class, statusCheckerRegistry);
+
         var vault = context.getService(Vault.class);
 
         provisionManager = new ProvisionManagerImpl(vault, typeManager, monitor);
         context.registerService(ProvisionManager.class, provisionManager);
 
-        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) :new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
-        
+        var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
+
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)
                 .provisionManager(provisionManager)
                 .dispatcherRegistry(dispatcherRegistry)
+                .statusCheckerRegistry(statusCheckerRegistry)
                 .monitor(monitor)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
 
         monitor.info("Initialized Core Transfer extension");
+    }
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("dagx:statuschecker", "dagx:dispatcher", "dagx:manifestgenerator");
     }
 
     @Override
