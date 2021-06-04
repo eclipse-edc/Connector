@@ -12,13 +12,19 @@ import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.types.TypeManager;
 import okhttp3.*;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.microsoft.dagx.catalog.atlas.dto.Functions.*;
-import static com.microsoft.dagx.spi.util.HttpFunctions.createAuthorizedClient;
-import static com.microsoft.dagx.spi.util.HttpFunctions.createUnsecureClient;
+import static com.microsoft.dagx.common.http.HttpUtil.addBasicAuth;
 
 
 public class AtlasApiImpl implements AtlasApi {
@@ -33,7 +39,7 @@ public class AtlasApiImpl implements AtlasApi {
 
     public AtlasApiImpl(String url, String username, String password, OkHttpClient client, TypeManager typeManager) {
         atlasBaseUrl = url;
-        httpClient = createAuthorizedClient(createUnsecureClient(client), username, password);
+        httpClient = addBasicAuth(createUnsecureClient(client), username, password);
         this.typeManager = typeManager;
     }
 
@@ -363,5 +369,51 @@ public class AtlasApiImpl implements AtlasApi {
 
     private AtlasStructDef.AtlasAttributeDef.Cardinality cardinalityFromInteger(int cardinality) {
         return AtlasStructDef.AtlasAttributeDef.Cardinality.values()[cardinality];
+    }
+
+    /**
+     * Creates an HTTP client that foregoes all SSL certificate validation. The original client is NOT modified, rather, a
+     * new OkHttpClient is used.
+     * <p>
+     * ### THIS IS INSECURE!! DO NOT USE IN PRODUCTION CODE!!!! ###
+     */
+    @Deprecated
+    private OkHttpClient createUnsecureClient(OkHttpClient httpClient) {
+        try {
+            // Create a trust manager that does not validate certificate chains
+            X509TrustManager x509TrustManager = new X509TrustManager() {
+                @Override
+                public void checkClientTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                @Override
+                public void checkServerTrusted(X509Certificate[] chain, String authType) {
+                }
+
+                @Override
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[]{};
+                }
+            };
+            final TrustManager[] trustAllCerts = new TrustManager[]{
+                    x509TrustManager
+            };
+
+            // Install the all-trusting trust manager
+            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+            // Create an ssl socket factory with our all-trusting manager
+            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+
+            return httpClient.newBuilder()
+                    .sslSocketFactory(sslSocketFactory, x509TrustManager)
+                    .hostnameVerifier((hostname, session) -> true)
+                    .build();
+
+        } catch (NoSuchAlgorithmException | KeyManagementException e) {
+            throw new DagxException("Error making the http client unsecure!", e);
+        }
+
     }
 }

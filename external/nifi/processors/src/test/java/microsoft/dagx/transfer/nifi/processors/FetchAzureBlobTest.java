@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
+import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static microsoft.dagx.transfer.nifi.processors.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

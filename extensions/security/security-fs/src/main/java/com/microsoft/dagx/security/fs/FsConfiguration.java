@@ -7,7 +7,7 @@ package com.microsoft.dagx.security.fs;
 
 import com.microsoft.dagx.spi.DagxSetting;
 
-import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
+import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 
 public final class FsConfiguration {
 

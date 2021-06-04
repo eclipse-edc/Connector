@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static com.microsoft.dagx.spi.util.Cast.cast;
+import static com.microsoft.dagx.common.Cast.cast;
 import static com.microsoft.dagx.system.ExtensionLoader.*;
 
 /**
@@ -30,11 +30,10 @@ import static com.microsoft.dagx.system.ExtensionLoader.*;
  * This extension attaches a DA-GX runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
 public class DagxExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
-    private List<ServiceExtension> runningServiceExtensions;
-    private DefaultServiceExtensionContext context;
-
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
     private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
+    private List<ServiceExtension> runningServiceExtensions;
+    private DefaultServiceExtensionContext context;
 
     /**
      * Registers a mock service with the runtime.

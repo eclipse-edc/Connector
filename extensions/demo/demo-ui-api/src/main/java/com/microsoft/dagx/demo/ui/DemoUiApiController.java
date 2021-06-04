@@ -11,12 +11,7 @@ import com.microsoft.dagx.spi.transfer.TransferProcessManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.QueryRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -26,7 +21,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static com.microsoft.dagx.spi.util.Cast.cast;
+import static com.microsoft.dagx.common.Cast.cast;
 
 /**
  *
@@ -37,10 +32,10 @@ import static com.microsoft.dagx.spi.util.Cast.cast;
 public class DemoUiApiController {
     private static final String PREFIX = "http://";
 
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private TransferProcessManager processManager;
+    private final RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private final TransferProcessManager processManager;
 
-    private Monitor monitor;
+    private final Monitor monitor;
 
     public DemoUiApiController(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, Monitor monitor) {
         this.dispatcherRegistry = dispatcherRegistry;

@@ -19,8 +19,8 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static com.microsoft.dagx.common.Cast.cast;
 import static com.microsoft.dagx.ids.core.message.MessageFunctions.writeJson;
-import static com.microsoft.dagx.spi.util.Cast.cast;
 
 /**
  *
@@ -29,12 +29,12 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
 
-    private OkHttpClient httpClient;
-    private ObjectMapper mapper;
-    private Monitor monitor;
-    private URI connectorName;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper mapper;
+    private final Monitor monitor;
+    private final URI connectorName;
 
-    private IdentityService identityService;
+    private final IdentityService identityService;
 
     public QueryMessageSender(String connectorName,
                               IdentityService identityService,

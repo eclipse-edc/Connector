@@ -19,7 +19,7 @@ import java.net.URISyntaxException;
 import java.util.Properties;
 import java.util.UUID;
 
-import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
+import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.*;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")

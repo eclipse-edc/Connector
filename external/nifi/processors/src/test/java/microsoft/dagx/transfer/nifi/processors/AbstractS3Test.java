@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 
-import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
+import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class AbstractS3Test {

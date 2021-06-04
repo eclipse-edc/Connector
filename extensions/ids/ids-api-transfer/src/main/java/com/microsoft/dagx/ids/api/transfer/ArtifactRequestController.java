@@ -26,13 +26,9 @@ import jakarta.ws.rs.core.Response;
 
 import java.util.Map;
 
+import static com.microsoft.dagx.common.Cast.cast;
 import static com.microsoft.dagx.ids.spi.Protocols.IDS_REST;
-import static com.microsoft.dagx.spi.util.Cast.cast;
-import static de.fraunhofer.iais.eis.RejectionReason.BAD_PARAMETERS;
-import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
-import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHORIZED;
-import static de.fraunhofer.iais.eis.RejectionReason.NOT_FOUND;
-import static de.fraunhofer.iais.eis.RejectionReason.TEMPORARILY_NOT_AVAILABLE;
+import static de.fraunhofer.iais.eis.RejectionReason.*;
 import static java.util.UUID.randomUUID;
 
 /**
@@ -45,13 +41,13 @@ public class ArtifactRequestController {
     private static final String TOKEN_KEY = "dagx-destination-token";
     private static final String DESTINATION_KEY = "dagx-data-destination";
 
-    private DapsService dapsService;
-    private MetadataStore metadataStore;
-    private TransferProcessManager processManager;
-    private IdsPolicyService policyService;
-    private PolicyRegistry policyRegistry;
-    private Vault vault;
-    private Monitor monitor;
+    private final DapsService dapsService;
+    private final MetadataStore metadataStore;
+    private final TransferProcessManager processManager;
+    private final IdsPolicyService policyService;
+    private final PolicyRegistry policyRegistry;
+    private final Vault vault;
+    private final Monitor monitor;
 
     public ArtifactRequestController(DapsService dapsService,
                                      MetadataStore metadataStore,

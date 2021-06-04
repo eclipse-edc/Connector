@@ -14,7 +14,7 @@ import com.microsoft.dagx.spi.system.VaultExtension;
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
+import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 
 
 public class AzureVaultExtension implements VaultExtension {
@@ -29,10 +29,11 @@ public class AzureVaultExtension implements VaultExtension {
         String certPath = propOrEnv("dagx.vault.certificate", null);
         String keyVaultName = propOrEnv("dagx.vault.name", null);
 
-        if (Stream.of(clientId, tenantId, certPath, keyVaultName).anyMatch(Objects::isNull))
+        if (Stream.of(clientId, tenantId, certPath, keyVaultName).anyMatch(Objects::isNull)) {
             throw new AzureVaultException("Please supply all of dagx.vault.clientid, dagx.vault.tenantid, dagx.vault.certificate and dagx.vault.name");
+        }
 
-        this.vault = AzureVault.authenticateWithCertificate(monitor, clientId, tenantId, certPath, keyVaultName);
+        vault = AzureVault.authenticateWithCertificate(monitor, clientId, tenantId, certPath, keyVaultName);
     }
 
     @Override

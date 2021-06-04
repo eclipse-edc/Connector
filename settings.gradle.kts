@@ -7,6 +7,7 @@ rootProject.name = "dagx"
 
 include(":spi")
 include(":core")
+include(":common")
 
 include(":distributions:demo")
 include(":distributions:demo-e2e")

@@ -1,9 +1,10 @@
 /*
  * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  All rights reserved.
+ *
  */
 
-package com.microsoft.dagx.spi.util;
+package com.microsoft.dagx.common;
 
 /**
  * Utility for performing typesafe casts.

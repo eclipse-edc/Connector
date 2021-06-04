@@ -4,11 +4,10 @@
  *
  */
 
-package com.microsoft.dagx.spi.util;
+package com.microsoft.dagx.common.collection;
 
 import java.util.Collection;
 import java.util.Map;
-import java.util.Objects;
 
 public class CollectionUtil {
 
@@ -28,11 +27,4 @@ public class CollectionUtil {
         return map == null || map.isEmpty();
     }
 
-    public static boolean equals(String str1, String str2) {
-        return Objects.equals(str1, str2);
-    }
-
-    public static boolean equalsIgnoreCase(String str1, String str2) {
-        return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
-    }
 }

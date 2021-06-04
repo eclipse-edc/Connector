@@ -1,9 +1,10 @@
 /*
  * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  All rights reserved.
+ *
  */
 
-package com.microsoft.dagx.spi.util;
+package com.microsoft.dagx.common;
 
 /**
  * Common configuration functions used by extensions.
@@ -12,7 +13,7 @@ public class ConfigurationFunctions {
 
     /**
      * Returns the property value, env value or default value for the key.
-     *
+     * <p>
      * Naming conventions for keys are '[qualifier].[value]' in lower case. When checking for env variables, keys will be converted to uppercase and '.' replaced by '_'.
      */
     public static String propOrEnv(String key, String defaultValue) {

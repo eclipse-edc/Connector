@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
-import static com.microsoft.dagx.spi.util.ConfigurationFunctions.propOrEnv;
+import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static java.lang.String.format;
 
 /**
@@ -30,7 +30,7 @@ public class FsConfigurationExtension implements ConfigurationExtension {
 
     private Path configFile;
 
-    private Map<String, String> propertyCache = new HashMap<>();
+    private final Map<String, String> propertyCache = new HashMap<>();
 
     /**
      * Default ctor - required for extension loading

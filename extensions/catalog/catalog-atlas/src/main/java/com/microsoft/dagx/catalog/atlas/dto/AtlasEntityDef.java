@@ -9,7 +9,7 @@ package com.microsoft.dagx.catalog.atlas.dto;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.microsoft.dagx.spi.util.CollectionUtil;
+import com.microsoft.dagx.common.collection.CollectionUtil;
 
 import java.io.Serializable;
 import java.util.*;

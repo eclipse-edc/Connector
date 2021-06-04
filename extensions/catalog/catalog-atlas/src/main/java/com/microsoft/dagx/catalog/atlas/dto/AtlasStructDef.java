@@ -11,7 +11,8 @@ import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import com.microsoft.dagx.spi.util.CollectionUtil;
+import com.microsoft.dagx.common.collection.CollectionUtil;
+import com.microsoft.dagx.common.string.StringUtils;
 
 import java.io.Serializable;
 import java.util.*;
@@ -81,7 +82,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
 
         if (CollectionUtil.isNotEmpty(attributeDefs)) {
             for (AtlasStructDef.AtlasAttributeDef attributeDef : attributeDefs) {
-                if (CollectionUtil.equalsIgnoreCase(attributeDef.getName(), attrName)) {
+                if (StringUtils.equalsIgnoreCase(attributeDef.getName(), attrName)) {
                     ret = attributeDef;
                     break;
                 }
@@ -143,7 +144,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
         if (CollectionUtil.isNotEmpty(a)) {
             // copy existing attributes, except ones having same name as the attribute being added
             for (AtlasStructDef.AtlasAttributeDef existingAttrDef : a) {
-                if (!CollectionUtil.equalsIgnoreCase(existingAttrDef.getName(), attributeDef.getName())) {
+                if (!StringUtils.equalsIgnoreCase(existingAttrDef.getName(), attributeDef.getName())) {
                     tmpList.add(existingAttrDef);
                 }
             }
@@ -161,7 +162,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
 
             // copy existing attributes, except ones having same name as the attribute being removed
             for (AtlasStructDef.AtlasAttributeDef existingAttrDef : a) {
-                if (!CollectionUtil.equalsIgnoreCase(existingAttrDef.getName(), attrName)) {
+                if (!StringUtils.equalsIgnoreCase(existingAttrDef.getName(), attrName)) {
                     tmpList.add(existingAttrDef);
                 }
             }
@@ -665,7 +666,7 @@ public class AtlasStructDef extends AtlasBaseTypeDef implements Serializable {
 
         @JsonIgnore
         public boolean isConstraintType(String name) {
-            return CollectionUtil.equalsIgnoreCase(name, type);
+            return StringUtils.equalsIgnoreCase(name, type);
         }
 
         @JsonIgnore
