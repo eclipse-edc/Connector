@@ -11,17 +11,17 @@ import com.microsoft.dagx.spi.transfer.TransferWaitStrategy;
  * Implements an exponential backoff strategy for failed iterations.
  */
 public class ExponentialWaitStrategy implements TransferWaitStrategy {
+    private final long successWaitPeriodMillis;
     private int errorCount = 0;
-    private long successWaitPeriod;
 
 
-    public ExponentialWaitStrategy(long successWaitPeriod) {
-        this.successWaitPeriod = successWaitPeriod;
+    public ExponentialWaitStrategy(long successWaitPeriodMillis) {
+        this.successWaitPeriodMillis = successWaitPeriodMillis;
     }
 
     @Override
     public long waitForMillis() {
-        return successWaitPeriod;
+        return successWaitPeriodMillis;
     }
 
     @Override
@@ -33,7 +33,7 @@ public class ExponentialWaitStrategy implements TransferWaitStrategy {
     public long retryInMillis() {
         errorCount++;
         double exponentialMultiplier = Math.pow(2.0, errorCount - 1);
-        double result = exponentialMultiplier * successWaitPeriod;
+        double result = exponentialMultiplier * successWaitPeriodMillis;
         return (long) Math.min(result, Long.MAX_VALUE);
     }
 }
