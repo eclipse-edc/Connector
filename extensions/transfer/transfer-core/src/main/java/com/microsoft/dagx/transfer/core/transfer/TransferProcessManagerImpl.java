@@ -182,7 +182,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
             }
 
-
         }
         return processesInProgress.size();
     }
