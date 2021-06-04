@@ -19,7 +19,7 @@ public class PushStreamFlowController implements DataFlowController {
 
     @Override
     public boolean canHandle(DataRequest dataRequest) {
-        return DemoProtocols.PUSH_STREAM.equals(dataRequest.getDestinationType());
+        return DemoProtocols.PUSH_STREAM_WS.equals(dataRequest.getDestinationType()) ||  DemoProtocols.PUSH_STREAM_HTTP.equals(dataRequest.getDestinationType()) ;
     }
 
     @Override

@@ -36,7 +36,7 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
     @Override
     public DataAddress createDataDestination() {
         return DataAddress.Builder.newInstance()
-                .type(DemoProtocols.PUSH_STREAM)
+                .type(DemoProtocols.PUSH_STREAM_WS)
                 .keyName("demo-temp-" + destinationName)
                 .property(DemoProtocols.ENDPOINT_ADDRESS, endpointAddress)
                 .property(DemoProtocols.DESTINATION_NAME, destinationName)

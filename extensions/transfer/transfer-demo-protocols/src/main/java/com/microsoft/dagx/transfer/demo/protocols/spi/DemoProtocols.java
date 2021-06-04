@@ -9,7 +9,9 @@ public interface DemoProtocols {
 
     String PULL_STREAM = "dagx:demo:pullstream";
 
-    String PUSH_STREAM = "dagx:demo:pushstream";
+    String PUSH_STREAM_WS = "dagx:demo:pushstream:ws";
+
+    String PUSH_STREAM_HTTP = "dagx:demo:pushstream:http";
 
     String ENDPOINT_ADDRESS = "endpointAddress";
 

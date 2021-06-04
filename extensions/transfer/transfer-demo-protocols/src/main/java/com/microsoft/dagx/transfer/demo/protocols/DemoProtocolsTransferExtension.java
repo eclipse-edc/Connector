@@ -3,17 +3,19 @@ package com.microsoft.dagx.transfer.demo.protocols;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.spi.DagxSetting;
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.protocol.web.WebService;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
+import com.microsoft.dagx.transfer.demo.protocols.http.PubSubHttpEndpoint;
 import com.microsoft.dagx.transfer.demo.protocols.object.DemoObjectStorage;
 import com.microsoft.dagx.transfer.demo.protocols.object.ObjectStorageFlowController;
 import com.microsoft.dagx.transfer.demo.protocols.spi.object.ObjectStorageMessage;
-import com.microsoft.dagx.transfer.demo.protocols.spi.stream.TopicManager;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
+import com.microsoft.dagx.transfer.demo.protocols.spi.stream.TopicManager;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.ConnectMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.DataMessage;
 import com.microsoft.dagx.transfer.demo.protocols.spi.stream.message.PubSubMessage;
@@ -48,11 +50,15 @@ import java.util.Set;
 public class DemoProtocolsTransferExtension implements ServiceExtension {
     @DagxSetting
     private static final String WS_PUBSUB_ENDPOINT = "dagx.demo.protocol.ws.pubsub";
-
     private static final String DEFAULT_WS_PUBSUB_ENDPOINT = "ws://localhost:8181/pubsub/";
+
+    @DagxSetting
+    private static final String HTTP_PUBSUB_ENDPOINT = "dagx.demo.protocol.http.pubsub";
+    private static final String DEFAULT_HTTP_PUBSUB_ENDPOINT = "http://localhost:8181/api/demo/pubsub/";
 
     DemoObjectStorage objectStorage;
     DemoTopicManager topicManager;
+    PubSubHttpEndpoint httpEndpoint;
 
     private Monitor monitor;
 
@@ -78,6 +84,9 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         var jettyService = context.getService(JettyService.class);
         new WebSocketFactory().publishEndpoint(PubSubServerEndpoint.class, () -> new PubSubServerEndpoint(topicManager, objectMapper, monitor), jettyService);
 
+        httpEndpoint = new PubSubHttpEndpoint(topicManager);
+        context.getService(WebService.class).registerController(httpEndpoint);
+
         registerGenerators(context);
 
         registerProvisioners(topicManager, context);
@@ -91,6 +100,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
     public void start() {
         objectStorage.start();
         topicManager.start();
+        httpEndpoint.start();
     }
 
     @Override
@@ -101,13 +111,17 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         if (topicManager != null) {
             topicManager.stop();
         }
+        if (httpEndpoint != null) {
+            httpEndpoint.stop();
+        }
     }
 
     private void registerGenerators(ServiceExtensionContext context) {
         var manifestGenerator = context.getService(ResourceManifestGenerator.class);
 
-        var endpointAddress = context.getSetting(WS_PUBSUB_ENDPOINT, DEFAULT_WS_PUBSUB_ENDPOINT);
-        manifestGenerator.registerClientGenerator(new PushStreamResourceGenerator(endpointAddress));
+        var wsEndpointAddress = context.getSetting(WS_PUBSUB_ENDPOINT, DEFAULT_WS_PUBSUB_ENDPOINT);
+        var httpEndpointAddress = context.getSetting(HTTP_PUBSUB_ENDPOINT, DEFAULT_HTTP_PUBSUB_ENDPOINT);
+        manifestGenerator.registerClientGenerator(new PushStreamResourceGenerator(wsEndpointAddress, httpEndpointAddress));
     }
 
     private void registerProvisioners(TopicManager topicManager, ServiceExtensionContext context) {

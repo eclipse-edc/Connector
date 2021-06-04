@@ -37,14 +37,15 @@ public class PushStreamContext implements StreamContext {
         var accessToken = vault.resolveSecret(secretName);
         var destinationToken = readAccessToken(accessToken, secretName);
         var endpointUri = URI.create(uri);
+
         if ("ws".equalsIgnoreCase(endpointUri.getScheme())) {
             var session = new WsPushStreamSession(endpointUri, topicName, destinationToken, objectMapper, monitor);
             session.connect();
             return session;
         } else if ("https".equalsIgnoreCase(endpointUri.getScheme()) || "http".equalsIgnoreCase(endpointUri.getScheme())) {
             try {
-                var endpointUrl = endpointUri.toURL();
-                return new HttpStreamSession(endpointUrl, httpClient);
+                var endpointUrl = endpointUri.resolve(topicName).toURL();
+                return new HttpStreamSession(endpointUrl, destinationToken, httpClient);
             } catch (MalformedURLException e) {
                 throw new DagxException(e);
             }
