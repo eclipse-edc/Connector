@@ -101,6 +101,7 @@ public class TransferManagerImplConsumerTest {
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.singletonList(process));
         processStoreMock.update(process);
         expectLastCall().times(1);
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();//ignore any subsequent calls
         replay(processStoreMock);
 
         //act
