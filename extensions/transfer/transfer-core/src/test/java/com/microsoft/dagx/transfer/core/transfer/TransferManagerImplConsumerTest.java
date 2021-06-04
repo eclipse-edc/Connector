@@ -170,7 +170,6 @@ public class TransferManagerImplConsumerTest {
             cdl.countDown();
             return null;
         }).times(1);
-        expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();//ignore any subsequent calls
         replay(processStoreMock);
 
