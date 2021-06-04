@@ -22,23 +22,22 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class TransferManagerImplConsumerTest {
 
-    private static final long TIMEOUT = 2;
+    private static final long TIMEOUT = 5;
     private TransferProcessManagerImpl transferProcessManager;
     private ProvisionManager provisionManager;
-    private DataFlowManager dataFlowManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private ResourceManifestGenerator manifestGenerator;
     private StatusCheckerRegistry statusCheckerRegistry;
 
     @BeforeEach
     void setup() {
         provisionManager = mock(ProvisionManager.class);
-        dataFlowManager = mock(DataFlowManager.class);
+        DataFlowManager dataFlowManager = mock(DataFlowManager.class);
         dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-        manifestGenerator = mock(ResourceManifestGenerator.class);
+        ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
 
         statusCheckerRegistry = mock(StatusCheckerRegistry.class);
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
@@ -132,7 +131,6 @@ public class TransferManagerImplConsumerTest {
             cdl.countDown();
             return null;
         }).times(1);
-        expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();//ignore any subsequent calls
         replay(processStoreMock);
 
@@ -216,6 +214,16 @@ public class TransferManagerImplConsumerTest {
         verify(processStoreMock);
         verify(statusCheckerRegistry);
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
+    }
+
+    @Test
+    void verifyComnpleted_notAllYetCompleted() throws InterruptedException {
+        fail("not yet implemented");
+    }
+
+    @Test
+    void verifyCompleted_noCheckerForSomeResources() throws InterruptedException {
+        fail("not yet implemented");
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
