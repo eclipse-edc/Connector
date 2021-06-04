@@ -96,9 +96,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
                 int sent = sendOrProcessProvisionedRequests();
 
-                int finished = checkCompleted();
-
                 int provisioned = checkProvisioned();
+
+                int finished = checkCompleted();
 
                 if (provisioning + provisioned + sent + finished == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
