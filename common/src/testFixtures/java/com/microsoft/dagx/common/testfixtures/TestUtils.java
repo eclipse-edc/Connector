@@ -4,7 +4,7 @@
  *
  */
 
-package microsoft.dagx.transfer.nifi.processors;
+package com.microsoft.dagx.common.testfixtures;
 
 import java.io.File;
 import java.net.URI;
@@ -15,7 +15,7 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestUtils {
-    protected final static String SAMPLE_FILE_RESOURCE_NAME = "hello.txt";
+    public final static String SAMPLE_FILE_RESOURCE_NAME = "hello.txt";
 
     public static Path getResourcePath(String resourceName) {
         Path path = null;
