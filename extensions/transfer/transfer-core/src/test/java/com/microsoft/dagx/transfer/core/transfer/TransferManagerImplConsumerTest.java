@@ -14,6 +14,7 @@ import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.*;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -82,6 +83,7 @@ public class TransferManagerImplConsumerTest {
     }
 
     @Test
+    @DisplayName("verifySend: check that the process is in REQUESTED state")
     void verifySend() throws InterruptedException {
         //arrange
         final TransferProcess process = createTransferProcess(TransferProcessStates.PROVISIONED);
@@ -112,6 +114,7 @@ public class TransferManagerImplConsumerTest {
     }
 
     @Test
+    @DisplayName("checkProvisioned: all resources belong to finite processes")
     void verifyCheckProvisioned_allAreFinite() throws InterruptedException {
         //arrange
         final TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK);
@@ -144,6 +147,7 @@ public class TransferManagerImplConsumerTest {
     }
 
     @Test
+    @DisplayName("checkProvisioned: all resources belong to non-finite processes")
     void verifyCheckProvisioned_allAreNonFinite() throws InterruptedException {
         //arrange
         final TransferType type = TransferType.Builder.transferType()
@@ -180,9 +184,11 @@ public class TransferManagerImplConsumerTest {
     }
 
     @Test
+    @DisplayName("checkComplete: all ProvisionedResources are complete")
     void verifyCompleted_allCompleted() throws InterruptedException {
         //arrange
         final TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK);
+        process.getProvisionedResourceSet().addResource(new TestResource());
         process.getProvisionedResourceSet().addResource(new TestResource());
 
         var cdl = new CountDownLatch(1);
@@ -199,10 +205,11 @@ public class TransferManagerImplConsumerTest {
             cdl.countDown();
             return null;
         }).times(1);
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();
         replay(processStoreMock);
 
         // prepare statuschecker registry
-        expect(statusCheckerRegistry.resolve(anyObject(TestResource.class))).andReturn(pr -> true).times(2);
+        expect(statusCheckerRegistry.resolve(anyObject(TestResource.class))).andReturn(pr -> true).times(4);
         replay(statusCheckerRegistry);
 
         //act
@@ -216,6 +223,7 @@ public class TransferManagerImplConsumerTest {
     }
 
     @Test
+    @DisplayName("checkComplete: not all ProvisionedResources are yet completed")
     void verifyComnpleted_notAllYetCompleted() throws InterruptedException {
         //arrange
         final TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
@@ -253,6 +261,7 @@ public class TransferManagerImplConsumerTest {
     }
 
     @Test
+    @DisplayName("checkComplete: Should ignore resources without StatusCheckers")
     void verifyCompleted_noCheckerForSomeResources() throws InterruptedException {
         //arrange
         final TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
