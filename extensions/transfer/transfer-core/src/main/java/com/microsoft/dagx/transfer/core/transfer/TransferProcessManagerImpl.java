@@ -123,6 +123,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
+    /**
+     * Transition all processes, who have provisioned resources, into the IN_PROCRESS or STREAMING status, depending on
+     * whether they're finite or not.
+     * If a process does not have provisioned resources, it will remain in REQUESTED_ACK.
+     */
     private int checkProvisioned() {
         List<TransferProcess> requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
 
@@ -144,6 +149,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     }
 
+    /**
+     * Checks all provisioned resources that are assigned to a transfer process for completion. If no StatusChecker exists
+     * for a particular ProvisionedResource, it is automatically assumed to be complete.
+     */
     private int checkCompleted() {
 
         //deal with all the client processes
