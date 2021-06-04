@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import kotlin.NotImplementedError;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -167,6 +166,16 @@ public class TransferProcess {
         }
     }
 
+    public void transitionStreaming() {
+        if (type == Type.CLIENT) {
+            // the client must first transition to the request/ack states before in progress
+            transition(TransferProcessStates.STREAMING, TransferProcessStates.REQUESTED_ACK);
+        } else {
+            // the provider transitions from provisioned to in progress directly
+            transition(TransferProcessStates.STREAMING, TransferProcessStates.PROVISIONED);
+        }
+    }
+
     public void transitionCompleted() {
         // clients are in REQUESTED_ACK state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
         transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK);
@@ -233,9 +242,6 @@ public class TransferProcess {
         return Objects.hash(id);
     }
 
-    public void transitionStreaming() {
-        throw new NotImplementedError();
-    }
 
     public enum Type {
         CLIENT, PROVIDER

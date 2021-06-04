@@ -12,10 +12,7 @@ import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
-import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.spi.types.domain.transfer.StatusCheckerRegistry;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
+import com.microsoft.dagx.spi.types.domain.transfer.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +25,7 @@ import static org.easymock.EasyMock.*;
 
 public class TransferManagerImplConsumerTest {
 
-    private static final long TIMEOUT = 5;
+    private static final long TIMEOUT = 2;
     private TransferProcessManagerImpl transferProcessManager;
     private ProvisionManager provisionManager;
     private DataFlowManager dataFlowManager;
@@ -87,7 +84,7 @@ public class TransferManagerImplConsumerTest {
     }
 
     @Test
-    void verifySend_whenClient() throws InterruptedException {
+    void verifySend() throws InterruptedException {
         //arrange
         final TransferProcess process = createTransferProcess(TransferProcessStates.PROVISIONED);
         var cdl = new CountDownLatch(1);
@@ -116,13 +113,128 @@ public class TransferManagerImplConsumerTest {
         assertThat(process.getState()).describedAs("State should be REQUESTED").isEqualTo(TransferProcessStates.REQUESTED.code());
     }
 
+    @Test
+    void verifyCheckProvisioned_allAreFinite() throws InterruptedException {
+        //arrange
+        final TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK);
+        process.getProvisionedResourceSet().addResource(new TestResource());
 
-    private TransferProcess createTransferProcess(TransferProcessStates state) {
+        var cdl = new CountDownLatch(1);
+
+        //prepare process store
+        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.singletonList(process));
+
+        processStoreMock.update(process);
+        expectLastCall().andAnswer(() -> {
+            cdl.countDown();
+            return null;
+        }).times(1);
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();//ignore any subsequent calls
+        replay(processStoreMock);
+
+
+        //act
+        transferProcessManager.start(processStoreMock);
+
+        //assert
+        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(processStoreMock);
+        assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(TransferProcessStates.IN_PROGRESS.code());
+    }
+
+    @Test
+    void verifyCheckProvisioned_allAreNonFinite() throws InterruptedException {
+        //arrange
+        final TransferType type = TransferType.Builder.transferType()
+                .isFinite(false).build();
+
+        final TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK, type);
+        process.getProvisionedResourceSet().addResource(new TestResource());
+
+        var cdl = new CountDownLatch(1);
+
+        //prepare process store
+        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.singletonList(process));
+
+        processStoreMock.update(process);
+        expectLastCall().andAnswer(() -> {
+            cdl.countDown();
+            return null;
+        }).times(1);
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();//ignore any subsequent calls
+        replay(processStoreMock);
+
+
+        //act
+        transferProcessManager.start(processStoreMock);
+
+        //assert
+        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(processStoreMock);
+        assertThat(process.getState()).describedAs("State should be STREAMING").isEqualTo(TransferProcessStates.STREAMING.code());
+    }
+
+    @Test
+    void verifyCompleted_allCompleted() throws InterruptedException {
+        //arrange
+        final TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK);
+        process.getProvisionedResourceSet().addResource(new TestResource());
+
+        var cdl = new CountDownLatch(1);
+
+        //prepare process store
+        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.singletonList(process));
+
+        processStoreMock.update(process);
+        expectLastCall().andAnswer(() -> {
+            cdl.countDown();
+            return null;
+        }).times(1);
+        replay(processStoreMock);
+
+        // prepare statuschecker registry
+        expect(statusCheckerRegistry.resolve(anyObject(TestResource.class))).andReturn(pr -> true).times(2);
+        replay(statusCheckerRegistry);
+
+        //act
+        transferProcessManager.start(processStoreMock);
+
+        //assert
+        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(processStoreMock);
+        verify(statusCheckerRegistry);
+        assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
+    }
+
+    private TransferProcess createTransferProcess(TransferProcessStates inState) {
+        return createTransferProcess(inState, new TransferType());
+    }
+
+    private TransferProcess createTransferProcess(TransferProcessStates inState, TransferType type) {
+        final DataRequest mock = niceMock(DataRequest.class);
+        expect(mock.getTransferType()).andReturn(type).anyTimes();
+        replay(mock);
         return TransferProcess.Builder.newInstance()
-                .state(state.code())
+                .state(inState.code())
                 .id("test-process-id")
+                .provisionedResourceSet(new ProvisionedResourceSet())
                 .type(TransferProcess.Type.CLIENT)
-                .dataRequest(mock(DataRequest.class))
+                .dataRequest(mock)
                 .build();
+    }
+
+    private static class TestResource extends ProvisionedResource {
     }
 }
