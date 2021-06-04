@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.*;
-import static org.junit.jupiter.api.Assertions.fail;
 
 public class TransferManagerImplConsumerTest {
 
@@ -218,12 +217,79 @@ public class TransferManagerImplConsumerTest {
 
     @Test
     void verifyComnpleted_notAllYetCompleted() throws InterruptedException {
-        fail("not yet implemented");
+        //arrange
+        final TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
+        process.getProvisionedResourceSet().addResource(new TestResource());
+        process.getProvisionedResourceSet().addResource(new TestResource());
+
+        var cdl = new CountDownLatch(1);
+
+        //prepare process store
+        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.singletonList(process));
+        // flip the latch on the next cycle
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andAnswer(() -> {
+            cdl.countDown();
+            return Collections.emptyList();
+        }).anyTimes();
+        replay(processStoreMock);
+
+        // prepare statuschecker registry
+        expect(statusCheckerRegistry.resolve(anyObject(TestResource.class))).andReturn(pr -> true).times(3);
+        expect(statusCheckerRegistry.resolve(anyObject(TestResource.class))).andReturn(pr -> false).times(1);
+        replay(statusCheckerRegistry);
+
+        //act
+        transferProcessManager.start(processStoreMock);
+
+        //assert
+        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(processStoreMock);
+        verify(statusCheckerRegistry);
+        assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(TransferProcessStates.IN_PROGRESS.code());
     }
 
     @Test
     void verifyCompleted_noCheckerForSomeResources() throws InterruptedException {
-        fail("not yet implemented");
+        //arrange
+        final TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
+        process.getProvisionedResourceSet().addResource(new TestResource());
+        process.getProvisionedResourceSet().addResource(new TestResource());
+
+        var cdl = new CountDownLatch(1);
+
+        //prepare process store
+        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.singletonList(process));
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();
+
+        processStoreMock.update(process);
+        expectLastCall().andAnswer(() -> {
+            cdl.countDown();
+            return null;
+        }).times(1);
+        replay(processStoreMock);
+
+        // prepare statuschecker registry
+        expect(statusCheckerRegistry.resolve(anyObject(TestResource.class))).andReturn(pr -> true).times(1);
+        expect(statusCheckerRegistry.resolve(anyObject(TestResource.class))).andReturn(null).times(1);
+        expect(statusCheckerRegistry.resolve(anyObject(TestResource.class))).andReturn(pr -> true).times(1);
+        replay(statusCheckerRegistry);
+
+        //act
+        transferProcessManager.start(processStoreMock);
+
+        //assert
+        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(processStoreMock);
+        verify(statusCheckerRegistry);
+        assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
