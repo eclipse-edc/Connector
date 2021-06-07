@@ -13,11 +13,14 @@ import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.*;
+import com.microsoft.dagx.transfer.store.memory.InMemoryTransferProcessStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -27,10 +30,12 @@ import static org.easymock.EasyMock.*;
 class TransferProcessManagerImplConsumerTest {
 
     private static final long TIMEOUT = 5;
+    private final static int TRANSFER_MANAGER_BATCHSIZE = 10;
     private TransferProcessManagerImpl transferProcessManager;
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private StatusCheckerRegistry statusCheckerRegistry;
+    private ExponentialWaitStrategy waitStrategyMock;
 
     @BeforeEach
     void setup() {
@@ -40,11 +45,17 @@ class TransferProcessManagerImplConsumerTest {
         ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
 
         statusCheckerRegistry = mock(StatusCheckerRegistry.class);
+
+        waitStrategyMock = partialMockBuilder(ExponentialWaitStrategy.class)
+                .withConstructor(1000L)
+                .addMockedMethod("success").strictMock();
+
+
         transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(dataFlowManager)
-                .waitStrategy(new ExponentialWaitStrategy(1000))
-                .batchSize(10)
+                .waitStrategy(waitStrategyMock)
+                .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
@@ -303,17 +314,68 @@ class TransferProcessManagerImplConsumerTest {
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
     }
 
+    @Test
+    @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
+    void verifyProvision_shouldNotStarve() throws InterruptedException {
+        var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
+
+        //prepare process store
+        final TransferProcessStore inMemoryProcessStore = new InMemoryTransferProcessStore();
+
+        //create a few processes
+        var processes = new ArrayList<TransferProcess>();
+        for (int i = 0; i < numProcesses; i++) {
+            final TransferProcess process = createTransferProcess(TransferProcessStates.UNSAVED);
+            processes.add(process);
+            inMemoryProcessStore.create(process);
+        }
+
+        var processesToProvision = new CountDownLatch(numProcesses); //all processes should be provisioned
+
+        //prepare provision manager
+        provisionManager.provision(anyObject(TransferProcess.class));
+        expectLastCall().andAnswer(() -> {
+            processesToProvision.countDown();
+            return null;
+        }).anyTimes();
+        replay(provisionManager);
+
+        // use the waitstrategy to count the number of iterations by making sure "success" was called exactly twice
+        waitStrategyMock.success();
+        expectLastCall().times(2);
+        replay(waitStrategyMock);
+
+
+        //act
+        transferProcessManager.start(inMemoryProcessStore);
+
+        //assert
+        assertThat(processesToProvision.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(provisionManager);
+        verify(waitStrategyMock);
+        assertThat(processes).describedAs("All transfer processes should be in PROVISIONING state").allSatisfy(p -> {
+            var id = p.getId();
+            var storedProcess = inMemoryProcessStore.find(id);
+            assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore").isNotNull();
+            assertThat(storedProcess.getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
+        });
+    }
+
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
         return createTransferProcess(inState, new TransferType());
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState, TransferType type) {
+
+        String processId = UUID.randomUUID().toString();
+
         final DataRequest mock = niceMock(DataRequest.class);
         expect(mock.getTransferType()).andReturn(type).anyTimes();
+        expect(mock.getId()).andReturn(processId).anyTimes();
         replay(mock);
         return TransferProcess.Builder.newInstance()
                 .state(inState.code())
-                .id("test-process-id")
+                .id("test-process-" + processId)
                 .provisionedResourceSet(new ProvisionedResourceSet())
                 .type(TransferProcess.Type.CLIENT)
                 .dataRequest(mock)

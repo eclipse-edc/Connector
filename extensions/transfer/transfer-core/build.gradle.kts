@@ -11,6 +11,7 @@ plugins {
 dependencies {
     api(project(":spi"))
 
+    testImplementation(project(":extensions:transfer:transfer-store-memory"))
 
 }
 

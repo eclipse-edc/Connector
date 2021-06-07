@@ -250,7 +250,7 @@ public class TransferProcess {
     public String toString() {
         return "TransferProcess{" +
                 "id='" + id + '\'' +
-                ", state=" + state +
+                ", state=" + TransferProcessStates.from(state) +
                 ", stateTimestamp=" + Instant.ofEpochMilli(stateTimestamp) +
                 '}';
     }
