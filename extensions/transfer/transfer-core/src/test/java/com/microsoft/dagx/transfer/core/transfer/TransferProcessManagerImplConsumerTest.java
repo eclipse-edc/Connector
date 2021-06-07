@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.*;
 
-public class TransferManagerImplConsumerTest {
+class TransferProcessManagerImplConsumerTest {
 
     private static final long TIMEOUT = 5;
     private TransferProcessManagerImpl transferProcessManager;
@@ -243,6 +243,8 @@ public class TransferManagerImplConsumerTest {
             cdl.countDown();
             return Collections.emptyList();
         }).anyTimes();
+        processStoreMock.update(eq(process));
+        expectLastCall().anyTimes();
         replay(processStoreMock);
 
         // prepare statuschecker registry

@@ -197,14 +197,14 @@ public class TransferProcess {
         state = TransferProcessStates.ERROR.code();
         this.errorDetail = errorDetail;
         stateCount = 1;
-        stateTimestamp = Instant.now().toEpochMilli();
+        updateStateTimestamp();
     }
 
 
     public void rollbackState(TransferProcessStates state) {
         this.state = state.code();
         stateCount = 1;
-        stateTimestamp = Instant.now().toEpochMilli();
+        updateStateTimestamp();
     }
 
     public TransferProcess copy() {
@@ -222,7 +222,7 @@ public class TransferProcess {
         }
         stateCount = state == end.code() ? stateCount + 1 : 1;
         state = end.code();
-        stateTimestamp = Instant.now().toEpochMilli();
+        updateStateTimestamp();
     }
 
     @Override
@@ -242,6 +242,18 @@ public class TransferProcess {
         return Objects.hash(id);
     }
 
+    public void updateStateTimestamp() {
+        stateTimestamp = Instant.now().toEpochMilli();
+    }
+
+    @Override
+    public String toString() {
+        return "TransferProcess{" +
+                "id='" + id + '\'' +
+                ", state=" + state +
+                ", stateTimestamp=" + Instant.ofEpochMilli(stateTimestamp) +
+                '}';
+    }
 
     public enum Type {
         CLIENT, PROVIDER

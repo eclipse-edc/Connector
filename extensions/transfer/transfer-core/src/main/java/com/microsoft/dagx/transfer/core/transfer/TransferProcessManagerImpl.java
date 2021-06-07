@@ -139,10 +139,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 } else {
                     process.transitionStreaming();
                 }
-                transferProcessStore.update(process);
             } else {
                 monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
             }
+            transferProcessStore.update(process);
         }
 
         return requestAcked.size();
@@ -164,7 +164,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             // todo: maybe error out processes with uncheckable resources??
             final List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
 
-
             //todo: comment this in if we want to error out uncheckable resources
 //            var resourcesWithNoChecker = resources.stream().filter(resource -> statusCheckerRegistry.resolve(resource) == null).collect(Collectors.toList());
 //            if (!resourcesWithNoChecker.isEmpty()) {
@@ -178,10 +177,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             // update the process once ALL resources are completed
             if (resources.stream().allMatch(this::isComplete)) {
                 process.transitionCompleted();
-                transferProcessStore.update(process);
                 monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
             }
-
+            transferProcessStore.update(process);
         }
         return processesInProgress.size();
     }

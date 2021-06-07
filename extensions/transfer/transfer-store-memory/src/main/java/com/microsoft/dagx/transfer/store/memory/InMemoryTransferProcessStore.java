@@ -47,7 +47,11 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     public @NotNull List<TransferProcess> nextForState(int state, int max) {
         return readLock(() -> {
             var set = stateCache.get(state);
-            return set == null ? Collections.emptyList() : set.stream().limit(max).map(TransferProcess::copy).collect(toList());
+            return set == null ? Collections.emptyList() : set.stream()
+                    .sorted(Comparator.comparingLong(TransferProcess::getStateTimestamp)) //order by state timestamp, oldest first
+                    .limit(max)
+                    .map(TransferProcess::copy)
+                    .collect(toList());
         });
     }
 
@@ -67,6 +71,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public void update(TransferProcess process) {
         writeLock(() -> {
+            process.updateStateTimestamp();
             delete(process.getId());
             TransferProcess internalCopy = process.copy();
             processesByExternalId.put(process.getDataRequest().getId(), internalCopy);
