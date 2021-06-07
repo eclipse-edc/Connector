@@ -1,9 +1,10 @@
 /*
  * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  All rights reserved.
+ *
  */
 
-package com.microsoft.dagx.transfer.provision.azure;
+package com.microsoft.dagx.transfer.provision.azure.blob;
 
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 

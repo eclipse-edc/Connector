@@ -4,7 +4,7 @@
  *
  */
 
-package com.microsoft.dagx.transfer.provision.azure;
+package com.microsoft.dagx.transfer.provision.azure.blob;
 
 import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
@@ -23,8 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 class ObjectStorageDefinitionClientGeneratorTest {
 
-    private ObjectStorageDefinitionClientGenerator generator;
     private final Pattern regexPattern = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
+    private ObjectStorageDefinitionClientGenerator generator;
 
     @BeforeEach
     void setUp() {

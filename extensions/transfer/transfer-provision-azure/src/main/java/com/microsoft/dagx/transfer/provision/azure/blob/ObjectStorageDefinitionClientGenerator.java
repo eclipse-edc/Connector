@@ -4,7 +4,7 @@
  *
  */
 
-package com.microsoft.dagx.transfer.provision.azure;
+package com.microsoft.dagx.transfer.provision.azure.blob;
 
 import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.transfer.provision.ResourceDefinitionGenerator;
