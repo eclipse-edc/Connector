@@ -224,7 +224,7 @@ public class TransferManagerImplConsumerTest {
 
     @Test
     @DisplayName("checkComplete: not all ProvisionedResources are yet completed")
-    void verifyComnpleted_notAllYetCompleted() throws InterruptedException {
+    void verifyCompleted_notAllYetCompleted() throws InterruptedException {
         //arrange
         final TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(new TestResource());
