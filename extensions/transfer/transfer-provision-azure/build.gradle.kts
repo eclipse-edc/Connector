@@ -15,5 +15,7 @@ dependencies {
 
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
 
+    testImplementation(testFixtures(project(":common")))
+
 }
 

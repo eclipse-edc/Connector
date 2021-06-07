@@ -8,6 +8,7 @@ package com.microsoft.dagx.transfer.provision.azure.provider;
 
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
+import com.azure.storage.blob.models.BlobItem;
 import com.azure.storage.blob.sas.BlobContainerSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.azure.storage.common.StorageSharedKeyCredential;
@@ -15,8 +16,10 @@ import com.microsoft.dagx.spi.security.Vault;
 
 import java.time.OffsetDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class BlobStoreApiImpl implements BlobStoreApi {
 
@@ -50,6 +53,11 @@ public class BlobStoreApiImpl implements BlobStoreApi {
         return getBlobServiceClient(accountName).getBlobContainerClient(containerName).generateSas(vals);
     }
 
+    @Override
+    public List<BlobItem> listContainer(String accountName, String containerName) {
+        return getBlobServiceClient(accountName).getBlobContainerClient(containerName).listBlobs().stream().collect(Collectors.toList());
+    }
+
     private BlobServiceClient getBlobServiceClient(String accountName) {
         Objects.requireNonNull(accountName, "accountName");
 
@@ -68,7 +76,7 @@ public class BlobStoreApiImpl implements BlobStoreApi {
                 .endpoint(createEndpoint(accountName))
                 .buildClient();
 
-        cache.put(accountKey, blobServiceClient);
+        cache.put(accountName, blobServiceClient);
         return blobServiceClient;
     }
 

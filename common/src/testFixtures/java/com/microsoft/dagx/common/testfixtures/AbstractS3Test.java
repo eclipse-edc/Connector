@@ -92,7 +92,7 @@ public abstract class AbstractS3Test {
                 }
 
                 if (objectListing.isTruncated()) {
-                    objectListing = client.listNextBatchOfObjects(objectListing);
+                    objectListing = client.listNextBatchOfObjects(objectListing);/**/
                 } else {
                     break;
                 }
