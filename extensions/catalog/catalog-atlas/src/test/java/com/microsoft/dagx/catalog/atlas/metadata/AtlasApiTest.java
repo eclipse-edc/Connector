@@ -395,7 +395,7 @@ public class AtlasApiTest {
         }});
 
         var policyId = atlasApi.createEntity("Policy", new HashMap<>() {{
-            put("name", "TestPolicy_" + uuid);
+            put("name", "TestPolicy");
             put("expression", "foo-bar");
             put("qualifiedName", "This is a test policy");
         }});
