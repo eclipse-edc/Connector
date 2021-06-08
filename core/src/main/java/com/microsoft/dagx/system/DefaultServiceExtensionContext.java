@@ -13,12 +13,7 @@ import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.util.TopologicalSort;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.microsoft.dagx.spi.system.ServiceExtension.LoadPhase.DEFAULT;
@@ -48,13 +43,13 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         this.monitor = monitor;
         this.serviceLocator = serviceLocator;
         // register as services
-        this.services.put(TypeManager.class, typeManager);
-        this.services.put(Monitor.class, monitor);
+        services.put(TypeManager.class, typeManager);
+        services.put(Monitor.class, monitor);
     }
 
     public void initialize() {
         configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
-        configurationExtensions.forEach(ext -> ext.initialize(monitor));
+        configurationExtensions.forEach(ext -> ext.initialize(this));
     }
 
     @Override

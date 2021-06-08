@@ -6,10 +6,10 @@
 package com.microsoft.dagx.security.fs;
 
 import com.microsoft.dagx.spi.DagxException;
-import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.security.Vault;
+import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.system.VaultExtension;
 
 import java.io.IOException;
@@ -19,10 +19,7 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
-import static com.microsoft.dagx.security.fs.FsConfiguration.KEYSTORE_LOCATION;
-import static com.microsoft.dagx.security.fs.FsConfiguration.KEYSTORE_PASSWORD;
-import static com.microsoft.dagx.security.fs.FsConfiguration.PERSISTENT_VAULT;
-import static com.microsoft.dagx.security.fs.FsConfiguration.VAULT_LOCATION;
+import static com.microsoft.dagx.security.fs.FsConfiguration.*;
 
 /**
  * Bootstraps the file system-based vault extension.
@@ -33,14 +30,14 @@ public class FsVaultExtension implements VaultExtension {
     private CertificateResolver certificateResolver;
 
     @Override
-    public void initialize(Monitor monitor) {
+    public void initialize(ServiceExtensionContext context) {
         vault = initializeVault();
 
         KeyStore keyStore = loadKeyStore();
         privateKeyResolver = new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
         certificateResolver = new FsCertificateResolver(keyStore);
 
-        monitor.info("Initialized FS Vault extension");
+        context.getMonitor().info("Initialized FS Vault extension");
     }
 
     @Override

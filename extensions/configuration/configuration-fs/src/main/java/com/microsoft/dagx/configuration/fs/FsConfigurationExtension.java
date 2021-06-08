@@ -6,8 +6,8 @@
 package com.microsoft.dagx.configuration.fs;
 
 import com.microsoft.dagx.spi.DagxException;
-import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ConfigurationExtension;
+import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -27,10 +27,8 @@ import static java.lang.String.format;
  */
 public class FsConfigurationExtension implements ConfigurationExtension {
     private static final String CONFIG_LOCATION = propOrEnv("dagx.fs.config", "dagx-configuration.properties");
-
-    private Path configFile;
-
     private final Map<String, String> propertyCache = new HashMap<>();
+    private Path configFile;
 
     /**
      * Default ctor - required for extension loading
@@ -47,8 +45,9 @@ public class FsConfigurationExtension implements ConfigurationExtension {
     }
 
     @Override
-    public void initialize(Monitor monitor) {
+    public void initialize(ServiceExtensionContext context) {
         var configPath = configFile != null ? configFile : Paths.get(CONFIG_LOCATION);
+        var monitor = context.getMonitor();
         if (!Files.exists(configPath)) {
             monitor.info(format("Configuration file does not exist: %s. Ignoring.", CONFIG_LOCATION));
             return;

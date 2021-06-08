@@ -28,7 +28,7 @@ dependencies {
     // todo: replace with atlas - but we need this for the time being to provide catalog entries
     implementation(project(":extensions:demo:demo-nifi"))
 
-    implementation(project(":extensions:security:security-fs"))
+    implementation(project(":extensions:security:security-azure"))
     implementation(project(":extensions:policy:policy-registry-memory"))
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:ids:ids-policy-mock"))
