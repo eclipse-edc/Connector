@@ -10,7 +10,7 @@ import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols;
-import com.microsoft.dagx.transfer.demo.protocols.spi.stream.DestinationManager;
+import com.microsoft.dagx.transfer.demo.protocols.stream.DemoTopicManager;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -38,7 +38,7 @@ class DemoProtocolsTransferExtensionTest {
      * @param monitor            the injected runtime monitor
      */
     @Test
-    void verifyPushStreamFlow(TransferProcessManager processManager, DestinationManager destinationManager, Monitor monitor) throws InterruptedException {
+    void verifyPushStreamFlow(TransferProcessManager processManager, DemoTopicManager destinationManager, Monitor monitor) throws InterruptedException {
         var latch = new CountDownLatch(1);
 
         var destinationName = UUID.randomUUID().toString();
@@ -52,9 +52,9 @@ class DemoProtocolsTransferExtensionTest {
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("loopback")
-                .destinationType(DemoProtocols.PUSH_STREAM)
+                .destinationType(DemoProtocols.PUSH_STREAM_WS)
                 .dataEntry(dataEntry)
-                .dataDestination(DataAddress.Builder.newInstance().type(DemoProtocols.PUSH_STREAM)
+                .dataDestination(DataAddress.Builder.newInstance().type(DemoProtocols.PUSH_STREAM_WS)
                         .property(DemoProtocols.DESTINATION_NAME, destinationName).build())
                 .connectorId("test").build();
 
