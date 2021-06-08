@@ -14,7 +14,7 @@ package com.microsoft.dagx.spi.types.domain.transfer;
  * @param <T> the concrete type of ProvisionedResource
  */
 @FunctionalInterface
-public interface StatusChecker<T extends ProvisionedResource> {
+public interface StatusChecker<T extends ProvisionedDataDestinationResource> {
     /**
      * checks whether a particular ProvisionedResource is "complete", i.e. whether the data transfer is finished.
      *

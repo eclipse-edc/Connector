@@ -6,7 +6,7 @@
 
 package com.microsoft.dagx.transfer.core;
 
-import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
+import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.StatusChecker;
 import com.microsoft.dagx.spi.types.domain.transfer.StatusCheckerRegistry;
 
@@ -14,25 +14,24 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StatusCheckerRegistryImpl implements StatusCheckerRegistry {
-    private final Map<Class<? extends ProvisionedResource>, StatusChecker<? extends ProvisionedResource>> inMemoryMap;
+    private final Map<Class<? extends ProvisionedDataDestinationResource>, StatusChecker<? extends ProvisionedDataDestinationResource>> inMemoryMap;
 
     public StatusCheckerRegistryImpl() {
         inMemoryMap = new HashMap<>();
     }
 
     @Override
-    public void register(Class<? extends ProvisionedResource> provisionedResourceClass, StatusChecker<? extends ProvisionedResource> statusChecker) {
+    public void register(Class<? extends ProvisionedDataDestinationResource> provisionedResourceClass, StatusChecker<? extends ProvisionedDataDestinationResource> statusChecker) {
         inMemoryMap.put(provisionedResourceClass, statusChecker);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public <T extends ProvisionedResource> StatusChecker<T> resolve(Class<? extends ProvisionedResource> provisionedResourceClass) {
+    public <T extends ProvisionedDataDestinationResource> StatusChecker<T> resolve(Class<? extends ProvisionedDataDestinationResource> provisionedResourceClass) {
         return (StatusChecker<T>) inMemoryMap.get(provisionedResourceClass);
     }
 
     @Override
-    public <T extends ProvisionedResource> StatusChecker<T> resolve(T resource) {
+    public <T extends ProvisionedDataDestinationResource> StatusChecker<T> resolve(T resource) {
         return resolve(resource.getClass());
     }
 }

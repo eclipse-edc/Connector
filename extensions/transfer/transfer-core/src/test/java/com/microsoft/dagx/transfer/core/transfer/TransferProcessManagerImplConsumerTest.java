@@ -66,7 +66,7 @@ class TransferProcessManagerImplConsumerTest {
     @Test
     void run_shouldProvision() throws InterruptedException {
         //arrange
-        final TransferProcess process = createTransferProcess(TransferProcessStates.INITIAL);
+        TransferProcess process = createTransferProcess(TransferProcessStates.INITIAL);
         var cdl = new CountDownLatch(1);
         //prepare provision manager
         provisionManager.provision(anyObject(TransferProcess.class));
@@ -77,7 +77,7 @@ class TransferProcessManagerImplConsumerTest {
         replay(provisionManager);
 
         //prepare process store
-        final TransferProcessStore processStoreMock = niceMock(TransferProcessStore.class);
+        TransferProcessStore processStoreMock = niceMock(TransferProcessStore.class);
         expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.singletonList(process));
         processStoreMock.update(process);
         expectLastCall().times(1);
@@ -97,7 +97,7 @@ class TransferProcessManagerImplConsumerTest {
     @DisplayName("verifySend: check that the process is in REQUESTED state")
     void verifySend() throws InterruptedException {
         //arrange
-        final TransferProcess process = createTransferProcess(TransferProcessStates.PROVISIONED);
+        TransferProcess process = createTransferProcess(TransferProcessStates.PROVISIONED);
         var cdl = new CountDownLatch(1);
         //prepare provision manager
         expect(dispatcherRegistry.send(eq(Void.class), anyObject(), anyObject())).andAnswer(() -> {
@@ -107,7 +107,7 @@ class TransferProcessManagerImplConsumerTest {
         replay(dispatcherRegistry);
 
         //prepare process store
-        final TransferProcessStore processStoreMock = niceMock(TransferProcessStore.class);
+        TransferProcessStore processStoreMock = niceMock(TransferProcessStore.class);
         expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.singletonList(process));
         processStoreMock.update(process);
@@ -129,13 +129,13 @@ class TransferProcessManagerImplConsumerTest {
     @DisplayName("checkProvisioned: all resources belong to finite processes")
     void verifyCheckProvisioned_allAreFinite() throws InterruptedException {
         //arrange
-        final TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK);
+        TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK);
         process.getProvisionedResourceSet().addResource(new TestResource());
 
         var cdl = new CountDownLatch(1);
 
         //prepare process store
-        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.singletonList(process));
@@ -162,16 +162,16 @@ class TransferProcessManagerImplConsumerTest {
     @DisplayName("checkProvisioned: all resources belong to non-finite processes")
     void verifyCheckProvisioned_allAreNonFinite() throws InterruptedException {
         //arrange
-        final TransferType type = TransferType.Builder.transferType()
+        TransferType type = TransferType.Builder.transferType()
                 .isFinite(false).build();
 
-        final TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK, type);
+        TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK, type);
         process.getProvisionedResourceSet().addResource(new TestResource());
 
         var cdl = new CountDownLatch(1);
 
         //prepare process store
-        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.singletonList(process));
@@ -198,14 +198,14 @@ class TransferProcessManagerImplConsumerTest {
     @DisplayName("checkComplete: all ProvisionedResources are complete")
     void verifyCompleted_allCompleted() throws InterruptedException {
         //arrange
-        final TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK);
+        TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK);
         process.getProvisionedResourceSet().addResource(new TestResource());
         process.getProvisionedResourceSet().addResource(new TestResource());
 
         var cdl = new CountDownLatch(1);
 
         //prepare process store
-        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.emptyList());
@@ -237,14 +237,14 @@ class TransferProcessManagerImplConsumerTest {
     @DisplayName("checkComplete: not all ProvisionedResources are yet completed")
     void verifyCompleted_notAllYetCompleted() throws InterruptedException {
         //arrange
-        final TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
+        TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(new TestResource());
         process.getProvisionedResourceSet().addResource(new TestResource());
 
         var cdl = new CountDownLatch(1);
 
         //prepare process store
-        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.emptyList());
@@ -277,14 +277,14 @@ class TransferProcessManagerImplConsumerTest {
     @DisplayName("checkComplete: Should ignore resources without StatusCheckers")
     void verifyCompleted_noCheckerForSomeResources() throws InterruptedException {
         //arrange
-        final TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
+        TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(new TestResource());
         process.getProvisionedResourceSet().addResource(new TestResource());
 
         var cdl = new CountDownLatch(1);
 
         //prepare process store
-        final TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.emptyList());
@@ -320,12 +320,12 @@ class TransferProcessManagerImplConsumerTest {
         var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
 
         //prepare process store
-        final TransferProcessStore inMemoryProcessStore = new InMemoryTransferProcessStore();
+        TransferProcessStore inMemoryProcessStore = new InMemoryTransferProcessStore();
 
         //create a few processes
         var processes = new ArrayList<TransferProcess>();
         for (int i = 0; i < numProcesses; i++) {
-            final TransferProcess process = createTransferProcess(TransferProcessStates.UNSAVED);
+            TransferProcess process = createTransferProcess(TransferProcessStates.UNSAVED);
             processes.add(process);
             inMemoryProcessStore.create(process);
         }
@@ -369,7 +369,7 @@ class TransferProcessManagerImplConsumerTest {
 
         String processId = UUID.randomUUID().toString();
 
-        final DataRequest mock = niceMock(DataRequest.class);
+        DataRequest mock = niceMock(DataRequest.class);
         expect(mock.getTransferType()).andReturn(type).anyTimes();
         expect(mock.getId()).andReturn(processId).anyTimes();
         replay(mock);
@@ -382,6 +382,19 @@ class TransferProcessManagerImplConsumerTest {
                 .build();
     }
 
-    private static class TestResource extends ProvisionedResource {
+    private static class TestResource extends ProvisionedDataDestinationResource {
+        protected TestResource() {
+            super();
+        }
+
+        @Override
+        public String getResourceName() {
+            return "test-resource";
+        }
+
+        @Override
+        public DataAddress createDataDestination() {
+            return null;
+        }
     }
 }

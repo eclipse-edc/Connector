@@ -86,7 +86,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return TransferInitiateResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.OK).build();
     }
 
-    @SuppressWarnings("BusyWait")
     private void run() {
         while (active.get()) {
             try {
@@ -162,7 +161,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
             //only check resources for which a checker was registered.
             // todo: maybe error out processes with uncheckable resources??
-            final List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
+            List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
 
             //todo: comment this in if we want to error out uncheckable resources
 //            var resourcesWithNoChecker = resources.stream().filter(resource -> statusCheckerRegistry.resolve(resource) == null).collect(Collectors.toList());
@@ -185,15 +184,19 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     private boolean hasChecker(ProvisionedResource provisionedResource) {
-        return statusCheckerRegistry.resolve(provisionedResource) != null;
+        return provisionedResource instanceof ProvisionedDataDestinationResource && statusCheckerRegistry.resolve((ProvisionedDataDestinationResource) provisionedResource) != null;
     }
 
     private boolean isComplete(ProvisionedResource resource) {
-        var checker = statusCheckerRegistry.resolve(resource);
+        if (!(resource instanceof ProvisionedDataDestinationResource)) {
+            return false;
+        }
+        ProvisionedDataDestinationResource dataResource = (ProvisionedDataDestinationResource) resource;
+        var checker = statusCheckerRegistry.resolve(dataResource);
         if (checker == null) {
             return true;
         }
-        return checker.isComplete(resource);
+        return checker.isComplete(dataResource);
     }
 
     /**
