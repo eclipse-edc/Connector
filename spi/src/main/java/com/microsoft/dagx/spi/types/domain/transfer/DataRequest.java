@@ -35,8 +35,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private boolean managedResources = true;
 
+    private TransferType transferType;
 
     private DataRequest() {
+        transferType = new TransferType();
     }
 
     /**
@@ -113,12 +115,17 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .connectorId(connectorId)
                 .dataEntry(dataEntry)    // shallow copy, may need to revisit
                 .dataAddress(dataAddress)
+                .transferType(transferType)
                 .managedResources(managedResources)
                 .build();
     }
 
     public void updateDestination(DataAddress dataAddress) {
         this.dataAddress = dataAddress;
+    }
+
+    public TransferType getTransferType() {
+        return transferType;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -187,6 +194,11 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
         private Builder dataAddress(DataAddress dataAddress) {
             request.dataAddress = dataAddress;
+            return this;
+        }
+
+        private Builder transferType(TransferType transferType) {
+            request.transferType = transferType;
             return this;
         }
 

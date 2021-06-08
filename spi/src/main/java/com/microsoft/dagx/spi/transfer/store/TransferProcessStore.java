@@ -22,6 +22,20 @@ public interface TransferProcessStore {
     @Nullable
     String processIdForTransferId(String id);
 
+    /**
+     * Returns a list of TransferProcesses that are in a specific state.
+     * <p>
+     * Implementors MUST handle the starvation scenario, i.e. when the number of processes is greater than the number
+     * passedin via {@code max}.
+     * E.g. database-based implementations should perform a query along the lines of {@code SELECT ... ORDER BY TransferProcess#stateTimestamp}.
+     * Then, after the check, users of this method must update the {@code TransferProcess#stateTimestamp} even if the process
+     * remains unchanged.
+     * Some database frameworks such as Spring have automatic lastChanged columns.
+     *
+     * @param state The state that the processes of interest should be in.
+     * @param max   The maximum amount of result items.
+     * @return A list of TransferProcesses (at most _max_) that are in the desired state.
+     */
     @NotNull
     List<TransferProcess> nextForState(int state, int max);
 
@@ -40,4 +54,5 @@ public interface TransferProcessStore {
     void deleteData(String processId, Set<String> keys);
 
     <T> T findData(Class<T> type, String processId, String resourceDefinitionId);
+
 }

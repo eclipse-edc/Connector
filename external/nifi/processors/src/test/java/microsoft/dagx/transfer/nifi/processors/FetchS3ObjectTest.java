@@ -6,6 +6,7 @@
 
 package microsoft.dagx.transfer.nifi.processors;
 
+import com.microsoft.dagx.common.testfixtures.AbstractS3Test;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.nifi.util.MockFlowFile;
@@ -23,7 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static microsoft.dagx.transfer.nifi.processors.TestUtils.*;
+import static com.microsoft.dagx.common.testfixtures.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
@@ -43,7 +44,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
-        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.REGION, region);
         runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, "test-file");
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
@@ -56,7 +57,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
         runner.run(1);
 
         Failsafe.with(retryPolicy).run(() -> {
-            System.out.println("");
+            System.out.println();
             List<MockFlowFile> ffs = runner.getFlowFilesForRelationship(Properties.REL_SUCCESS);
             assertThat(ffs).hasSize(1);
 
@@ -72,7 +73,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
     void fetchFile_single_whenNotExists() {
         TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
-        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.REGION, region);
         runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, "non-existing-file");
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
@@ -98,7 +99,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
-        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.REGION, region);
         runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, key);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
@@ -138,7 +139,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
-        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.REGION, region);
         runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, "[\"hello1.txt\",\"hello2.txt\"]");
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
@@ -171,7 +172,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
-        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.REGION, region);
         runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, "[\"hello1.txt\",\"notexist.txt\"]");
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
@@ -207,7 +208,7 @@ class FetchS3ObjectTest extends AbstractS3Test {
 
         TestRunner runner = TestRunners.newTestRunner(new FetchS3Object());
 
-        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.REGION, region);
         runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
         runner.setProperty(Properties.SECRET_ACCESS_KEY, credentials.getAWSSecretKey());

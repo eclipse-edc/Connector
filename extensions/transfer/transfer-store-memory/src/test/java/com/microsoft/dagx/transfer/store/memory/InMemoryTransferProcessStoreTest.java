@@ -5,10 +5,7 @@
 
 package com.microsoft.dagx.transfer.store.memory;
 
-import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.spi.types.domain.transfer.ResourceManifest;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
-import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
+import com.microsoft.dagx.spi.types.domain.transfer.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -16,11 +13,10 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.UUID;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNotSame;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.niceMock;
+import static org.easymock.EasyMock.replay;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  *
@@ -106,6 +102,46 @@ class InMemoryTransferProcessStoreTest {
         var found = store.nextForState(TransferProcessStates.INITIAL.code(), 3);
         assertEquals(2, found.size());
 
+    }
+
+    @Test
+    void verifyOrderingByTimestamp() {
+        for (int i = 0; i < 100; i++) {
+            final TransferProcess process = createProcess("test-process-" + i);
+            store.create(process);
+        }
+
+        final List<TransferProcess> processes = store.nextForState(TransferProcessStates.INITIAL.code(), 50);
+
+        assertThat(processes).hasSize(50);
+        assertThat(processes).allMatch(p -> p.getStateTimestamp() > 0);
+    }
+
+    @Test
+    void verifyNextForState_avoidsStarvation() throws InterruptedException {
+        for (int i = 0; i < 10; i++) {
+            final TransferProcess process = createProcess("test-process-" + i);
+            store.create(process);
+        }
+
+        var list1 = store.nextForState(TransferProcessStates.INITIAL.code(), 5);
+        Thread.sleep(50); //simulate a short delay to generate different timestamps
+        list1.forEach(tp -> store.update(tp));
+        var list2 = store.nextForState(TransferProcessStates.INITIAL.code(), 5);
+        assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
+    }
+
+    private TransferProcess createProcess(String name) {
+        final DataRequest mock = niceMock(DataRequest.class);
+        replay(mock);
+        return TransferProcess.Builder.newInstance()
+                .type(TransferProcess.Type.CLIENT)
+                .id(name)
+                .stateTimestamp(0)
+                .state(TransferProcessStates.UNSAVED.code())
+                .provisionedResourceSet(new ProvisionedResourceSet())
+                .dataRequest(mock)
+                .build();
     }
 
 

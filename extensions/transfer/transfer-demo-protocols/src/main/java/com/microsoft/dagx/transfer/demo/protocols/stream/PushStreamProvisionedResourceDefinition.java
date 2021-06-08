@@ -20,6 +20,9 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
     private String endpointAddress;
     private String destinationName;
 
+    private PushStreamProvisionedResourceDefinition() {
+    }
+
     public String getEndpointAddress() {
         return endpointAddress;
     }
@@ -43,11 +46,12 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
                 .build();
     }
 
-    private PushStreamProvisionedResourceDefinition() {
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedResource.Builder<PushStreamProvisionedResourceDefinition, Builder> {
+
+        private Builder() {
+            super(new PushStreamProvisionedResourceDefinition());
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -68,10 +72,6 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
         public void verify() {
             Objects.requireNonNull(provisionedResource.endpointAddress, "endpointAddress");
             Objects.requireNonNull(provisionedResource.destinationName, "destinationName");
-        }
-
-        private Builder() {
-            super(new PushStreamProvisionedResourceDefinition());
         }
     }
 

@@ -8,6 +8,7 @@ package microsoft.dagx.transfer.nifi.processors;
 
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
+import com.microsoft.dagx.common.testfixtures.AbstractS3Test;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
 import org.junit.jupiter.api.Test;
@@ -17,7 +18,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static microsoft.dagx.transfer.nifi.processors.TestUtils.*;
+import static com.microsoft.dagx.common.testfixtures.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
@@ -28,7 +29,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
         String key = "test-file.txt";
         TestRunner runner = TestRunners.newTestRunner(new PutS3Object());
 
-        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.REGION, region);
         runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, key);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());
@@ -52,7 +53,7 @@ public class PutS3ObjectTest extends AbstractS3Test {
 
         TestRunner runner = TestRunners.newTestRunner(new PutS3Object());
 
-        runner.setProperty(Properties.REGION, REGION);
+        runner.setProperty(Properties.REGION, region);
         runner.setProperty(Properties.BUCKET, bucketName);
         runner.setProperty(Properties.OBJECT_KEYS, key);
         runner.setProperty(Properties.ACCESS_KEY_ID, credentials.getAWSAccessKeyId());

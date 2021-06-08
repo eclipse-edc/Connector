@@ -11,12 +11,7 @@ import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -26,17 +21,15 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * An in-memory, threadsafe process store.
- *
+ * <p>
  * This implementation is intended for testing purposes only.
  */
 public class InMemoryTransferProcessStore implements TransferProcessStore {
     private static final int TIMEOUT = 1000;
-
-    private Map<String, TransferProcess> processesById = new HashMap<>();
-    private Map<String, TransferProcess> processesByExternalId = new HashMap<>();
-    private Map<Integer, List<TransferProcess>> stateCache = new HashMap<>();
-
     private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Map<String, TransferProcess> processesById = new HashMap<>();
+    private final Map<String, TransferProcess> processesByExternalId = new HashMap<>();
+    private final Map<Integer, List<TransferProcess>> stateCache = new HashMap<>();
 
     @Override
     public TransferProcess find(String id) {
@@ -54,7 +47,11 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     public @NotNull List<TransferProcess> nextForState(int state, int max) {
         return readLock(() -> {
             var set = stateCache.get(state);
-            return set == null ? Collections.emptyList() : set.stream().limit(max).map(TransferProcess::copy).collect(toList());
+            return set == null ? Collections.emptyList() : set.stream()
+                    .sorted(Comparator.comparingLong(TransferProcess::getStateTimestamp)) //order by state timestamp, oldest first
+                    .limit(max)
+                    .map(TransferProcess::copy)
+                    .collect(toList());
         });
     }
 
@@ -74,6 +71,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public void update(TransferProcess process) {
         writeLock(() -> {
+            process.updateStateTimestamp();
             delete(process.getId());
             TransferProcess internalCopy = process.copy();
             processesByExternalId.put(process.getDataRequest().getId(), internalCopy);

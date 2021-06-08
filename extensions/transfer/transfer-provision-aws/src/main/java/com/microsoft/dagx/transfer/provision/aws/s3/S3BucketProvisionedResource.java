@@ -54,6 +54,7 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
         return bucketName;
     }
 
+
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ProvisionedDataDestinationResource.Builder<S3BucketProvisionedResource, Builder> {
 
@@ -76,4 +77,5 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
             return this;
         }
     }
+
 }

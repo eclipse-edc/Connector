@@ -4,7 +4,7 @@
  *
  */
 
-package microsoft.dagx.transfer.nifi.processors;
+package com.microsoft.dagx.common.testfixtures;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
@@ -22,9 +22,12 @@ import java.io.File;
 import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class AbstractS3Test {
+/**
+ * Base class for tests that need an S3 bucket created and deleted on every test run.
+ */
+public abstract class AbstractS3Test {
 
-    protected final static String REGION = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
+    protected final static String region = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
     // Adding REGION to bucket prevents errors of
     //      "A conflicting conditional operation is currently in progress against this resource."
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
@@ -36,10 +39,15 @@ public class AbstractS3Test {
 
     @BeforeEach
     public void setupClient() {
-        bucketName = "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
+        bucketName = createBucketName();
         credentials = getCredentials();
-        client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(REGION).build();
+        client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
         createBucket(bucketName);
+    }
+
+    @NotNull
+    protected String createBucketName() {
+        return "test-bucket-" + System.currentTimeMillis() + "-" + region;
     }
 
     @AfterEach
@@ -59,9 +67,9 @@ public class AbstractS3Test {
             fail("Bucket " + bucketName + " exists. Choose a different bucket name to continue test");
         }
 
-        CreateBucketRequest request = AbstractS3Test.REGION.contains("east")
+        CreateBucketRequest request = AbstractS3Test.region.contains("east")
                 ? new CreateBucketRequest(bucketName) // See https://github.com/boto/boto3/issues/125
-                : new CreateBucketRequest(bucketName, AbstractS3Test.REGION);
+                : new CreateBucketRequest(bucketName, AbstractS3Test.region);
         client.createBucket(request);
 
         if (!client.doesBucketExistV2(bucketName)) {
@@ -84,7 +92,7 @@ public class AbstractS3Test {
                 }
 
                 if (objectListing.isTruncated()) {
-                    objectListing = client.listNextBatchOfObjects(objectListing);
+                    objectListing = client.listNextBatchOfObjects(objectListing);/**/
                 } else {
                     break;
                 }

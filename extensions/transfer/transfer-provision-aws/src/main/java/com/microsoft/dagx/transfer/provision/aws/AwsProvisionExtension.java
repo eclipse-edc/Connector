@@ -13,11 +13,9 @@ import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.types.TypeManager;
+import com.microsoft.dagx.spi.types.domain.transfer.StatusCheckerRegistry;
 import com.microsoft.dagx.transfer.provision.aws.provider.SdkClientProvider;
-import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisionedResource;
-import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketProvisioner;
-import com.microsoft.dagx.transfer.provision.aws.s3.S3BucketResourceDefinition;
-import com.microsoft.dagx.transfer.provision.aws.s3.S3ResourceDefinitionClientGenerator;
+import com.microsoft.dagx.transfer.provision.aws.s3.*;
 import net.jodah.failsafe.RetryPolicy;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -56,6 +54,9 @@ public class AwsProvisionExtension implements ServiceExtension {
         var manifestGenerator = context.getService(ResourceManifestGenerator.class);
         manifestGenerator.registerClientGenerator(new S3ResourceDefinitionClientGenerator());
 
+        var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
+        statusCheckerReg.register(S3BucketProvisionedResource.class, new S3StatusChecker(clientProvider, retryPolicy));
+
         registerTypes(context.getTypeManager());
 
         monitor.info("Initialized AWS Provision extension");
@@ -63,7 +64,7 @@ public class AwsProvisionExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("dagx:retry-policy");
+        return Set.of("dagx:retry-policy", "dagx:statuschecker");
     }
 
     @Override

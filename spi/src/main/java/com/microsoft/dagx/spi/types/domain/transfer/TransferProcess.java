@@ -166,8 +166,19 @@ public class TransferProcess {
         }
     }
 
+    public void transitionStreaming() {
+        if (type == Type.CLIENT) {
+            // the client must first transition to the request/ack states before in progress
+            transition(TransferProcessStates.STREAMING, TransferProcessStates.REQUESTED_ACK);
+        } else {
+            // the provider transitions from provisioned to in progress directly
+            transition(TransferProcessStates.STREAMING, TransferProcessStates.PROVISIONED);
+        }
+    }
+
     public void transitionCompleted() {
-        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS);
+        // clients are in REQUESTED_ACK state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
+        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK);
     }
 
     public void transitionDeprovisioning() {
@@ -186,14 +197,14 @@ public class TransferProcess {
         state = TransferProcessStates.ERROR.code();
         this.errorDetail = errorDetail;
         stateCount = 1;
-        stateTimestamp = Instant.now().toEpochMilli();
+        updateStateTimestamp();
     }
 
 
     public void rollbackState(TransferProcessStates state) {
         this.state = state.code();
         stateCount = 1;
-        stateTimestamp = Instant.now().toEpochMilli();
+        updateStateTimestamp();
     }
 
     public TransferProcess copy() {
@@ -211,7 +222,7 @@ public class TransferProcess {
         }
         stateCount = state == end.code() ? stateCount + 1 : 1;
         state = end.code();
-        stateTimestamp = Instant.now().toEpochMilli();
+        updateStateTimestamp();
     }
 
     @Override
@@ -229,6 +240,19 @@ public class TransferProcess {
     @Override
     public int hashCode() {
         return Objects.hash(id);
+    }
+
+    public void updateStateTimestamp() {
+        stateTimestamp = Instant.now().toEpochMilli();
+    }
+
+    @Override
+    public String toString() {
+        return "TransferProcess{" +
+                "id='" + id + '\'' +
+                ", state=" + TransferProcessStates.from(state) +
+                ", stateTimestamp=" + Instant.ofEpochMilli(stateTimestamp) +
+                '}';
     }
 
     public enum Type {

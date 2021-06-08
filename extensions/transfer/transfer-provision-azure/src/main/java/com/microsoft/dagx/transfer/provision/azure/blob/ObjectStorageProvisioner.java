@@ -1,9 +1,10 @@
 /*
  * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  All rights reserved.
+ *
  */
 
-package com.microsoft.dagx.transfer.provision.azure;
+package com.microsoft.dagx.transfer.provision.azure.blob;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
@@ -11,6 +12,7 @@ import com.microsoft.dagx.spi.transfer.provision.Provisioner;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
+import com.microsoft.dagx.transfer.provision.azure.AzureSasToken;
 import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApi;
 import net.jodah.failsafe.RetryPolicy;
 
