@@ -18,6 +18,7 @@ import java.util.concurrent.CountDownLatch;
 import static com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols.DESTINATION_NAME;
 import static com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols.ENDPOINT_ADDRESS;
 import static com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols.PUSH_STREAM_HTTP;
+import static com.microsoft.dagx.transfer.demo.protocols.spi.DemoProtocols.PUSH_STREAM_WS;
 import static java.util.concurrent.TimeUnit.MINUTES;
 
 /**
@@ -47,7 +48,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
 
         var dataEntry = DataEntry.Builder.newInstance().id("test123").build();
 
-        var destinationWs = DataAddress.Builder.newInstance().type(PUSH_STREAM_HTTP).property(DESTINATION_NAME, destinationName).build();
+        var destinationWs = DataAddress.Builder.newInstance().type(PUSH_STREAM_WS).property(DESTINATION_NAME, destinationName).build();
         var dataRequestWs = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("loopback")
