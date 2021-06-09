@@ -118,7 +118,7 @@ public class NifiDataFlowControllerTest {
 
         httpClient = new OkHttpClient.Builder().build();
 
-        var f = Thread.currentThread().getContextClassLoader().getResource("TwoClouds.xml");
+        var f = Thread.currentThread().getContextClassLoader().getResource("ThreeClouds.xml");
         var file = new File(Objects.requireNonNull(f).toURI());
         NifiApiClient client = new NifiApiClient(nifiApiHost, typeManager, httpClient);
         String processGroup = "root";

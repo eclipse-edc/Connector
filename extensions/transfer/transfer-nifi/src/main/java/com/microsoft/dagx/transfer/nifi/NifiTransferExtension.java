@@ -18,7 +18,7 @@ import java.util.Set;
 
 public class NifiTransferExtension implements ServiceExtension {
     @DagxSetting
-    private static final String URL_SETTING = "dagx.dagx.url";
+    private static final String URL_SETTING = "dagx.nifi.url";
 
     private static final String DEFAULT_NIFI_URL = "http://localhost:8080";
     private static final String PROVIDES_NIFI = "nifi";

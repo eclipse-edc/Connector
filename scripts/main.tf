@@ -3,11 +3,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 2.42"
+      version = ">= 2.62.1"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = ">=1.4.0"
+      version = ">=1.5.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -156,6 +156,44 @@ resource "azurerm_storage_account" "dagxblobstore" {
 #     value= data.azurerm_storage_account.dagxblobstore.primary_access_key
 #     key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
 # }
+# temporarily deploy nifi in a container as well as K8s was unstable
+resource "azurerm_container_group" "dagx-demo" {
+  name                = "dagx-demo-continst"
+  location            = azurerm_resource_group.rg.location
+  resource_group_name = azurerm_resource_group.rg.name
+  os_type             = "Linux"
+  ip_address_type     = "public"
+  dns_name_label      = "dagx-demo"
+  container {
+    cpu    = 2
+    image  = "beardyinc/dagx-demo"
+    memory = "2"
+    name   = "dagx-demo"
+
+    ports {
+      port     = 8181
+      protocol = "TCP"
+    }
+
+  }
+
+  container {
+    cpu = 2
+    image = "beardyinc/nifi:dagx"
+    memory = 2
+    name = "nifi"
+
+    ports {
+      port = 8080
+      protocol = "TCP"
+    }
+    ports {
+      port = 8888
+      protocol = "TCP"
+    }
+  }
+
+}
 
 
 

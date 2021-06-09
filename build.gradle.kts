@@ -8,7 +8,7 @@ plugins {
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 val jetBrainsAnnotationsVersion: String by project
@@ -21,7 +21,7 @@ val configFs by extra { System.getProperty("configuration.fs", "disabled") }
 subprojects {
 
     repositories {
-        jcenter()
+        mavenCentral()
         maven {
             url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
         }

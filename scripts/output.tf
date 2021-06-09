@@ -13,6 +13,13 @@ output "URLs" {
   }
 }
 
+output "demo-connector" {
+  value = {
+    client_id = azurerm_container_group.dagx-demo.id
+    url       = azurerm_container_group.dagx-demo.fqdn
+  }
+}
+
 output "namespaces" {
   value = {
     nifi  = module.nifi-deployment.nifi-cluster-namespace

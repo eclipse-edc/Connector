@@ -53,9 +53,9 @@ public class NifiDemoServiceExtension implements ServiceExtension {
         MetadataStore metadataStore = context.getService(MetadataStore.class);
 
         GenericDataCatalog sourceFileCatalog = GenericDataCatalog.Builder.newInstance()
-                .property(AzureBlobStoreSchema.ACCOUNT_NAME, "dagxblobstoreitest")
-                .property(AzureBlobStoreSchema.CONTAINER_NAME, "nifitest")
-                .property(AzureBlobStoreSchema.BLOB_NAME, "lili.jpg")
+                .property(AzureBlobStoreSchema.ACCOUNT_NAME, "dagxtfblob")
+                .property(AzureBlobStoreSchema.CONTAINER_NAME, "src-container")
+                .property(AzureBlobStoreSchema.BLOB_NAME, "IMG_1971.jpg")
                 .property("keyName", "lili.jpg")
                 .property("type", AzureBlobStoreSchema.TYPE)
                 .build();
