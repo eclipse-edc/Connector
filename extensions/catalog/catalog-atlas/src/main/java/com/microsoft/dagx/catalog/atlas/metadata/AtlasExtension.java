@@ -18,13 +18,17 @@ public class AtlasExtension implements ServiceExtension {
     private static final String SECRET_ATLAS_USER = "atlas-username";
     private static final String SECRET_ATLAS_PWD = "atlas-password";
     private static final String DEFAULT_ATLAS_URL = "http://localhost:21000";
-    private static final String ATLAS_URL_PROPERTY = "atlas.url";
+    private static final String ATLAS_URL_PROPERTY = "dagx.atlas.url";
 
     @Override
     public Set<String> provides() {
         return Set.of(ATLAS_FEATURE);
     }
 
+    @Override
+    public Set<String> requires() {
+        return Set.of("dagx:http-client");
+    }
 
     @Override
     public LoadPhase phase() {

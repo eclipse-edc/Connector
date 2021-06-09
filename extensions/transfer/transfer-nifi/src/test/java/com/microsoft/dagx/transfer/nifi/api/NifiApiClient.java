@@ -41,7 +41,7 @@ public class NifiApiClient {
         try {
             var uploadUrl = new URL(url, apiPath + "/process-groups/" + processGroup + "/templates/upload");
             RequestBody body = new MultipartBody.Builder().setType(MultipartBody.FORM)
-                    .addFormDataPart("template", "TwoClouds.xml", RequestBody.create(template, MediaType.parse("application/octet-stream")))
+                    .addFormDataPart("template", "ThreeClouds.xml", RequestBody.create(template, MediaType.parse("application/octet-stream")))
                     .build();
             Request request = new Request.Builder()
                     .url(uploadUrl)

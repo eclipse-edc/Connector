@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <template encoding-version="1.3">
-    <description></description>
+    <description>Default Nifi template for tranferring data between S3 and Azure Blob</description>
     <groupId>5a7cf7d4-0179-1000-523a-a5ac4c007e2b</groupId>
     <name>ThreeClouds</name>
     <snippet>
