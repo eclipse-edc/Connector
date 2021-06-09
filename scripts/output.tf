@@ -15,8 +15,9 @@ output "URLs" {
 
 output "demo-connector" {
   value = {
-    client_id = azurerm_container_group.dagx-demo.id
-    url       = azurerm_container_group.dagx-demo.fqdn
+    connector_client_id = azurerm_container_group.dagx-demo.id
+    connectur_url       = azurerm_container_group.dagx-demo.fqdn
+    nifi_url            = azurerm_container_group.dagx-nifi.fqdn
   }
 }
 

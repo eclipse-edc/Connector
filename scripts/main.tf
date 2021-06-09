@@ -166,7 +166,7 @@ resource "azurerm_container_group" "dagx-demo" {
   dns_name_label      = "dagx-demo"
   container {
     cpu    = 2
-    image  = "beardyinc/dagx-demo"
+    image  = "beardyinc/dagx-demo:${var.SHORT_SHA}"
     memory = "2"
     name   = "dagx-demo"
 
@@ -174,28 +174,31 @@ resource "azurerm_container_group" "dagx-demo" {
       port     = 8181
       protocol = "TCP"
     }
-
   }
-
-  container {
-    cpu = 2
-    image = "beardyinc/nifi:dagx"
-    memory = 2
-    name = "nifi"
-
-    ports {
-      port = 8080
-      protocol = "TCP"
-    }
-    ports {
-      port = 8888
-      protocol = "TCP"
-    }
-  }
-
 }
 
+resource "azurerm_container_group" "dagx-nifi" {
+  location            = azurerm_resource_group.rg.location
+  name                = "dagx-nifi-continst"
+  os_type             = "Linux"
+  resource_group_name = azurerm_resource_group.rg.name
+  dns_name_label      = "dagx-nifi"
+  container {
+    cpu    = 4
+    image  = "beardyinc/nifi:dagx"
+    memory = 4
+    name   = "nifi"
 
+    ports {
+      port     = 8080
+      protocol = "TCP"
+    }
+    ports {
+      port     = 8888
+      protocol = "TCP"
+    }
+  }
+}
 
 module "nifi-cluster" {
   source       = "./aks-cluster"

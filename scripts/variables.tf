@@ -11,3 +11,9 @@ locals {
 variable "resourcesuffix" {
   description = "identifying string that is used in all azure resources"
 }
+
+variable "SHORT_SHA" {
+  type        = string
+  description = "short commit SHA of the current HEAD"
+  default     = "latest"
+}
