@@ -47,8 +47,9 @@ include(":extensions:ids:ids-api-transfer")
 include(":extensions:ids:ids-policy-mock")
 
 include(":extensions:catalog:catalog-atlas")
-include(":extensions:catalog:catalog-atlas-dataseed")
-
+include(":extensions:dataseed:dataseed-atlas")
+include(":extensions:dataseed:dataseed-policy")
+include(":extensions:dataseed:dataseed-nifi")
 
 include(":policy:policy-model")
 include(":policy:policy-engine")

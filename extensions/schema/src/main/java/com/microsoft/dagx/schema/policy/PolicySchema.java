@@ -12,6 +12,7 @@ public class PolicySchema extends DataSchema {
         attributes.add(new SchemaAttribute("serialized", true));
         attributes.add(new SchemaAttribute("validity-start", false));
         attributes.add(new SchemaAttribute("validity-end", false));
+        attributes.add(new SchemaAttribute("policyId", false));
     }
 
     @Override

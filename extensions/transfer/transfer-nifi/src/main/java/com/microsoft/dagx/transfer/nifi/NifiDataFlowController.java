@@ -46,7 +46,7 @@ public class NifiDataFlowController implements DataFlowController {
     private final NifiTransferEndpointConverter converter;
 
     public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault, OkHttpClient httpClient, NifiTransferEndpointConverter converter) {
-        baseUrl = configuration.getUrl();
+        baseUrl = configuration.getFlowUrl();
         this.typeManager = typeManager;
         this.monitor = monitor;
         this.vault = vault;

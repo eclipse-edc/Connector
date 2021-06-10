@@ -16,7 +16,6 @@ dependencies {
     implementation(project(":extensions:protocol:web"))
     implementation(project(":extensions:control-http"))
 
-    implementation(project(":extensions:metadata:metadata-memory"))
     implementation(project(":extensions:transfer:transfer-core"))
     implementation(project(":extensions:transfer:transfer-store-memory"))
     implementation(project(":extensions:transfer:transfer-provision-aws"))
@@ -26,7 +25,8 @@ dependencies {
     implementation(project(":extensions:ids"))
 
     // todo: replace with atlas - but we need this for the time being to provide catalog entries
-    implementation(project(":extensions:demo:demo-nifi"))
+    implementation(project(":extensions:catalog:catalog-atlas"))
+    implementation(project(":extensions:dataseed"))
 
     implementation(project(":extensions:security:security-azure"))
     implementation(project(":extensions:policy:policy-registry-memory"))
