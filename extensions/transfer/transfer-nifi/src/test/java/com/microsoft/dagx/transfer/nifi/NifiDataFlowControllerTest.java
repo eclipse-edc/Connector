@@ -11,10 +11,7 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
-import com.microsoft.dagx.catalog.atlas.metadata.AtlasApiImpl;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataCatalog;
-import com.microsoft.dagx.dataseed.atlas.AzureBlobFileEntityBuilder;
 import com.microsoft.dagx.dataseed.nifi.api.NifiApiClient;
 import com.microsoft.dagx.monitor.ConsoleMonitor;
 import com.microsoft.dagx.monitor.MonitorProvider;
@@ -53,7 +50,10 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -67,8 +67,7 @@ public class NifiDataFlowControllerTest {
     private final static String storageAccount = "dagxblobstoreitest";
     private final static String atlasUsername = "admin";
     private final static String atlasPassword = "admin";
-    private static String atlasApiUrl;
-    private static String nifiContentlistenerHost;
+    private static String nifiFlowHost;
     private static String s3BucketName = "dagx-itest";
     private static String s3AccessKeyId;
     private static String s3SecretAccessKey;
@@ -81,6 +80,7 @@ public class NifiDataFlowControllerTest {
     private static BlobServiceClient blobServiceClient;
     private static String secondBlobName;
     private static Monitor monitor;
+    private static String nifiApiHost;
     private NifiDataFlowController controller;
     private Vault vault;
 
@@ -100,9 +100,8 @@ public class NifiDataFlowControllerTest {
 
         var host = propOrEnv("NIFI_URL", DEFAULT_NIFI_HOST);
 
-        String nifiApiHost = host + ":8080";
-        nifiContentlistenerHost = host + ":8888";
-        atlasApiUrl = propOrEnv("ATLAS_URL", "http://localhost:21000");
+        nifiApiHost = host + ":8080";
+        nifiFlowHost = host + ":8888";
 
         s3AccessKeyId = propOrEnv("S3_ACCESS_KEY_ID", null);
         if (s3AccessKeyId == null) {
@@ -129,12 +128,6 @@ public class NifiDataFlowControllerTest {
             System.out.println("prepare - instantiate template in nifi");
             client.instantiateTemplate(templateId);
             System.out.println("prepare - setup variable registry");
-            var pg = client.getProcessGroup(processGroup);
-            try {
-                client.updateVariableRegistry(processGroup, Map.of("s3.accessKeyId", s3AccessKeyId, "s3.secretAccessKey", s3SecretAccessKey), pg.revision);
-            } catch (Exception ex) {
-                System.out.println("prepare - creating variable registry failed: " + ex.getMessage());
-            }
         } catch (DagxException ignored) {
         } finally {
             System.out.println("prepare - start controller service");
@@ -267,7 +260,9 @@ public class NifiDataFlowControllerTest {
         System.out.println("");
 
 
-        NifiTransferManagerConfiguration config = NifiTransferManagerConfiguration.Builder.newInstance().url(nifiContentlistenerHost)
+        NifiTransferManagerConfiguration config = NifiTransferManagerConfiguration.Builder.newInstance()
+                .url(nifiApiHost)
+                .flowUrl(nifiFlowHost)
                 .build();
         typeManager.registerTypes(DataRequest.class);
 
@@ -281,7 +276,7 @@ public class NifiDataFlowControllerTest {
         var tokenJson = typeManager.writeValueAsString(new AzureSasToken(sharedAccessSignature, 0));
         expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(tokenJson).anyTimes();
 
-        var token = Map.of("accessKeyId", "AKIAY2XSTIMWG2HEKF77", "secretAccessKey", "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", "sessionToken", "");
+        var token = Map.of("accessKeyId", s3AccessKeyId, "secretAccessKey", s3SecretAccessKey, "sessionToken", "");
         expect(vault.resolveSecret(s3BucketName)).andReturn(typeManager.writeValueAsString(token)).anyTimes();
 
         replay(vault);
@@ -301,24 +296,16 @@ public class NifiDataFlowControllerTest {
     void initiateFlow_withAtlasCatalog() throws InterruptedException {
 
         // create custom atlas type and an instance
-        String id;
-        var schema = new AzureBlobStoreSchema();
-        AtlasApi atlasApi = new AtlasApiImpl(atlasApiUrl, atlasUsername, atlasPassword, httpClient, typeManager);
-        try {
-
-            atlasApi.createCustomTypes(schema.getName(), Set.of("DataSet"), new ArrayList<>(schema.getAttributes()));
-        } catch (Exception ignored) {
-        }
-        id = atlasApi.createEntity(schema.getName(), AzureBlobFileEntityBuilder.newInstance()
-                .withDescription("This is a test description")
-                .withAccount(storageAccount)
-                .withContainer(containerName)
-                .withBlobname(blobName)
-                .withKeyName(storageAccount + "-key1")
-                .build());
+        String id = UUID.randomUUID().toString();
 
         // perform the actual source file properties in Apache Atlas
-        var lookup = new AtlasDataCatalog(atlasApi);
+        var lookup = new AtlasDataCatalog(DataAddress.Builder.newInstance()
+                .type(AzureBlobStoreSchema.TYPE)
+                .keyName(storageAccount + "-key1")
+                .property("blobname", blobName)
+                .property("container", containerName)
+                .property("account", storageAccount)
+                .build());
         DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(lookup).build();
 
         // connect the "source" (i.e. the lookup) and the "destination"
@@ -338,8 +325,6 @@ public class NifiDataFlowControllerTest {
 
         //assert
         assertEquals(ResponseStatus.OK, response.getStatus());
-
-        atlasApi.deleteEntities(Collections.singletonList(id));
 
         // will fail if new blob is not there after 60 seconds
         while (listBlobs(containerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
