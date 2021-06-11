@@ -46,3 +46,5 @@ distributions/azure/azure.properties
 
 .DS_Store
 **/secrets
+kubeconfig
+**/dagx-config.properties
