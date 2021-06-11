@@ -1,5 +1,11 @@
 # Configure the Azure provider
 terraform {
+  backend "azurerm" {
+    resource_group_name   = "terraform"
+    storage_account_name  = "dagxtstate"
+    container_name        = "terraform-state"
+    key                   = "terraform.state"
+  }
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"

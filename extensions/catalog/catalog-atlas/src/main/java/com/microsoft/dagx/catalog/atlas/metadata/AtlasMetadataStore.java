@@ -99,7 +99,9 @@ public class AtlasMetadataStore implements MetadataStore {
         Set<String> policyIds = policies.stream().map(Identifiable::getUid).collect(toSet());
         try {
             var searchResult = atlasApi.dslSearchWithParams("from dagx_policy", 100, 0);
-            List<DataEntry<?>> dataObjectEntities = searchResult.getEntities().stream()
+
+            //now we have all valid relationship entities, need to navigate "towards" its entity
+            return searchResult.getEntities().stream()
                     .filter(eh -> eh.getStatus() == AtlasEntity.Status.ACTIVE)
                     .filter(eh -> {
                         var pe = atlasApi.getEntityById(eh.getGuid());
@@ -115,13 +117,10 @@ public class AtlasMetadataStore implements MetadataStore {
                     .map(entity -> entity.getEntity().getGuid())
                     .map(this::findForId)
                     .collect(Collectors.toList());
-
-            //now we have all valid relationship entities, need to navigate "towards" its entity
-            return dataObjectEntities;
         } catch (DagxException dagxException) {
             monitor.severe("Error during queryAll(): ", dagxException);
         }
-        return null;
+        return Collections.emptyList();
 
     }
 

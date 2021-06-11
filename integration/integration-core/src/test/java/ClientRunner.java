@@ -27,6 +27,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static com.microsoft.dagx.common.Cast.cast;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /**
  *
@@ -34,7 +35,7 @@ import static com.microsoft.dagx.common.Cast.cast;
 @ExtendWith(DagxExtension.class)
 @Disabled
 public class ClientRunner {
-    private static final String PROVIDER_CONNECTOR = "http://localhost:8181";
+    private static final String PROVIDER_CONNECTOR = "http://dagx-demo.westeurope.azurecontainer.io:8181";
     private static final TokenResult US_TOKEN = TokenResult.Builder.newInstance().token("mock-us").build();
     private static final TokenResult EU_TOKEN = TokenResult.Builder.newInstance().token("mock-eu").build();
     private static final DataEntry<?> EU_ARTIFACT = DataEntry.Builder.newInstance().id("test123").build();
@@ -86,6 +87,8 @@ public class ClientRunner {
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
         var artifacts = future.get();
+        assertThat(artifacts).describedAs("Should have returned artifacts!").isNotEmpty();
+
         for (String artifact : artifacts) {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAzure("us-eu-request", DataEntry.Builder.newInstance().id(artifact).build());
@@ -130,7 +133,7 @@ public class ClientRunner {
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type(AzureBlobStoreSchema.TYPE)
-                        .property(AzureBlobStoreSchema.ACCOUNT_NAME, "dagxblobstoreitest")
+                        .property(AzureBlobStoreSchema.ACCOUNT_NAME, "dagxtfblob")
                         .property(AzureBlobStoreSchema.CONTAINER_NAME, "temp-dest-container")
                         .build())
                 .destinationType(AzureBlobStoreSchema.TYPE)
