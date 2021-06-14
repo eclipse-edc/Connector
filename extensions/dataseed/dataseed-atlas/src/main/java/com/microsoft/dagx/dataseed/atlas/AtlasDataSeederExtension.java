@@ -73,7 +73,7 @@ public class AtlasDataSeederExtension implements ServiceExtension {
             monitor.debug("Create Entities");
             entityGuids = dataSeeder.createEntities();
         } catch (DagxException e) {
-            monitor.severe("Error creating Entities", e);
+//            monitor.severe("Error creating Entities", e);
         }
 
         monitor.info("Done seeding data to Atlas");

@@ -57,7 +57,7 @@ public class NifiDataSeedExtension implements ServiceExtension {
 
                 monitor.info("NifiDataSeed: start controller service");
             } catch (DagxException ex) {
-                monitor.severe("NifiDataSeed: updload template error: ", ex);
+//                monitor.severe("NifiDataSeed: updload template error: ", ex);
             } finally {
                 var controllerService = nifiApiClient.getControllerServices(processGroup).get(0);
                 var version = controllerService.revision.version;

@@ -7,12 +7,15 @@
 package com.microsoft.dagx.dataseed.azure;
 
 import com.microsoft.dagx.spi.monitor.Monitor;
+import com.microsoft.dagx.spi.security.Vault;
+import com.microsoft.dagx.spi.security.VaultResponse;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApi;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.time.OffsetDateTime;
 import java.util.Set;
 
 public class AzureBlobDataseedExtension implements ServiceExtension {
@@ -45,6 +48,16 @@ public class AzureBlobDataseedExtension implements ServiceExtension {
         var is2 = getClass().getClassLoader().getResourceAsStream(TEST_FILE_NAME2);
         uploadFile(is2, TEST_FILE_NAME2, "anotherimage.jpg");
 
+        monitor.info("Azure DataSeed: create SAS Token for container");
+        final String sasToken = blobStoreApi.createContainerSasToken(ACCOUNT_NAME, CONTAINER_NAME, "racwxdl", OffsetDateTime.now().plusMonths(1L));
+        var vault = context.getService(Vault.class);
+        final VaultResponse vaultResponse = vault.storeSecret(CONTAINER_NAME, sasToken);
+
+        if (vaultResponse.success()) {
+            monitor.info("Azure DataSeed: new temporary SAS token stored for " + CONTAINER_NAME);
+        } else {
+            monitor.severe("Azure DataSeed: error when storing temporary SAS token: " + vaultResponse.error());
+        }
     }
 
     private void uploadFile(InputStream is, String filename, String asBlobName) {
