@@ -12,6 +12,13 @@ variable "resourcesuffix" {
   description = "identifying string that is used in all azure resources"
 }
 
+variable "aws-key-id"{
+  description = "The Access Key ID of your AWS IAM user"
+}
+variable "aws-secret-key" {
+  description = "The Secret Key for your AWS IAM user"
+}
+
 variable "SHORT_SHA" {
   type        = string
   description = "short commit SHA of the current HEAD"

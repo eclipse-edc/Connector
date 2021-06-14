@@ -157,11 +157,43 @@ resource "azurerm_storage_account" "dagxblobstore" {
   account_kind             = "BlobStorage"
 }
 
-# resource "azurerm_key_vault_secret" "key1" {
-#     name = "blobstore-key1"  
-#     value= data.azurerm_storage_account.dagxblobstore.primary_access_key
-#     key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
-# }
+## KEYVAULT SECRETS
+resource "azurerm_key_vault_secret" "atlas-user" {
+  name         = "atlas-username"
+  value        = "admin"
+  key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
+}
+
+resource "azurerm_key_vault_secret" "atlas-password" {
+  name         = "atlas-password"
+  value        = "admin"
+  key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
+}
+
+resource "azurerm_key_vault_secret" "aws-keyid" {
+  name         = "dagx-aws-access-key"
+  value        = var.aws-key-id
+  key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
+}
+
+resource "azurerm_key_vault_secret" "aws-secret" {
+  name         = "dagx-aws-secret-access-key"
+  value        = var.aws-secret-key
+  key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
+}
+
+resource "azurerm_key_vault_secret" "blobstorekey" {
+  name         = "${azurerm_storage_account.dagxblobstore.name}-key1"
+  value        = azurerm_storage_account.dagxblobstore.primary_access_key
+  key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
+}
+
+resource "azurerm_key_vault_secret" "nifi-credentials" {
+  name         = "nifi-credentials"
+  value        = "Basic dGVzdHVzZXJAZ2FpYXguY29tOmdYcHdkIzIwMiE="
+  key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
+}
+
 # temporarily deploy nifi in a container as well as K8s was unstable
 resource "azurerm_container_group" "dagx-demo" {
   name                = "dagx-demo-continst"
@@ -182,7 +214,6 @@ resource "azurerm_container_group" "dagx-demo" {
     }
   }
 }
-
 resource "azurerm_container_group" "dagx-nifi" {
   location            = azurerm_resource_group.rg.location
   name                = "dagx-nifi-continst"
