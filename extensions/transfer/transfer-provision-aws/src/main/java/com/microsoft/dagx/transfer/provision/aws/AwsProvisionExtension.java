@@ -14,6 +14,7 @@ import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.StatusCheckerRegistry;
+import com.microsoft.dagx.transfer.provision.aws.provider.ClientProvider;
 import com.microsoft.dagx.transfer.provision.aws.provider.SdkClientProvider;
 import com.microsoft.dagx.transfer.provision.aws.s3.*;
 import net.jodah.failsafe.RetryPolicy;
@@ -44,6 +45,7 @@ public class AwsProvisionExtension implements ServiceExtension {
 
         // create an S3 client provider that is shared across provisioners
         clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(createCredentialsProvider(context)).build();
+        context.registerService(ClientProvider.class, clientProvider);
 
         //noinspection unchecked
         var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
@@ -65,6 +67,11 @@ public class AwsProvisionExtension implements ServiceExtension {
     @Override
     public Set<String> requires() {
         return Set.of("dagx:retry-policy", "dagx:statuschecker");
+    }
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("dagx:clientprovider");
     }
 
     @Override

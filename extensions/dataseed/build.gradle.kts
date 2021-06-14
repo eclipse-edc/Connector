@@ -14,6 +14,7 @@ dependencies {
     api(project(":extensions:dataseed:dataseed-policy"))
     api(project(":extensions:dataseed:dataseed-nifi"))
     api(project(":extensions:dataseed:dataseed-azure"))
+    api(project(":extensions:dataseed:dataseed-aws"))
 }
 
 

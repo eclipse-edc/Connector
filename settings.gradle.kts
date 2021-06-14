@@ -51,6 +51,7 @@ include(":extensions:dataseed:dataseed-atlas")
 include(":extensions:dataseed:dataseed-policy")
 include(":extensions:dataseed:dataseed-nifi")
 include(":extensions:dataseed:dataseed-azure")
+include(":extensions:dataseed:dataseed-aws")
 
 include(":policy:policy-model")
 include(":policy:policy-engine")
