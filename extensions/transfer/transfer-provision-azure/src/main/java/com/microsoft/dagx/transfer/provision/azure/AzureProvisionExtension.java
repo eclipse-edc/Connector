@@ -57,6 +57,11 @@ public class AzureProvisionExtension implements ServiceExtension {
     }
 
     @Override
+    public Set<String> provides() {
+        return Set.of("dagx:blobstoreapi");
+    }
+
+    @Override
     public void start() {
         monitor.info("Started Azure Provision extension");
     }

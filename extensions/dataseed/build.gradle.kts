@@ -13,6 +13,7 @@ dependencies {
     api(project(":extensions:dataseed:dataseed-atlas"))
     api(project(":extensions:dataseed:dataseed-policy"))
     api(project(":extensions:dataseed:dataseed-nifi"))
+    api(project(":extensions:dataseed:dataseed-azure"))
 }
 
 

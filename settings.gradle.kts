@@ -50,6 +50,7 @@ include(":extensions:catalog:catalog-atlas")
 include(":extensions:dataseed:dataseed-atlas")
 include(":extensions:dataseed:dataseed-policy")
 include(":extensions:dataseed:dataseed-nifi")
+include(":extensions:dataseed:dataseed-azure")
 
 include(":policy:policy-model")
 include(":policy:policy-engine")

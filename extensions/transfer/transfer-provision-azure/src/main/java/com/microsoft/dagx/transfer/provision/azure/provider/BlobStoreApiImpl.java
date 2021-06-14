@@ -6,6 +6,7 @@
 
 package com.microsoft.dagx.transfer.provision.azure.provider;
 
+import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
@@ -56,6 +57,12 @@ public class BlobStoreApiImpl implements BlobStoreApi {
     @Override
     public List<BlobItem> listContainer(String accountName, String containerName) {
         return getBlobServiceClient(accountName).getBlobContainerClient(containerName).listBlobs().stream().collect(Collectors.toList());
+    }
+
+    @Override
+    public void putBlob(String accountName, String containerName, String blobName, byte[] data) {
+        final BlobServiceClient blobServiceClient = getBlobServiceClient(accountName);
+        blobServiceClient.getBlobContainerClient(containerName).getBlobClient(blobName).upload(BinaryData.fromBytes(data), true);
     }
 
     private BlobServiceClient getBlobServiceClient(String accountName) {
