@@ -11,6 +11,7 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.security.VaultResponse;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
+import com.microsoft.dagx.transfer.provision.azure.AzureSasToken;
 import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApi;
 
 import java.io.IOException;
@@ -49,9 +50,12 @@ public class AzureBlobDataseedExtension implements ServiceExtension {
         uploadFile(is2, TEST_FILE_NAME2, "anotherimage.jpg");
 
         monitor.info("Azure DataSeed: create SAS Token for container");
-        final String sasToken = blobStoreApi.createContainerSasToken(ACCOUNT_NAME, CONTAINER_NAME, "racwxdl", OffsetDateTime.now().plusMonths(1L));
+        final OffsetDateTime expiry = OffsetDateTime.now().plusMonths(1L);
+        final String sasToken = "?" + blobStoreApi.createAccountSas(ACCOUNT_NAME, CONTAINER_NAME, "racwxdl", expiry);
+        AzureSasToken token = new AzureSasToken(sasToken, expiry.toInstant().toEpochMilli());
+
         var vault = context.getService(Vault.class);
-        final VaultResponse vaultResponse = vault.storeSecret(CONTAINER_NAME, sasToken);
+        final VaultResponse vaultResponse = vault.storeSecret(CONTAINER_NAME, context.getTypeManager().writeValueAsString(token));
 
         if (vaultResponse.success()) {
             monitor.info("Azure DataSeed: new temporary SAS token stored for " + CONTAINER_NAME);

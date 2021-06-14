@@ -24,4 +24,6 @@ public interface BlobStoreApi {
     List<BlobItem> listContainer(String accountName, String containerName);
 
     void putBlob(String accountName, String containerName, String blobName, byte[] data);
+
+    String createAccountSas(String accountName, String containerName, String racwxdl, OffsetDateTime expiry);
 }
