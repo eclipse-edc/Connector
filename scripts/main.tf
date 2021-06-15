@@ -1,10 +1,10 @@
 # Configure the Azure provider
 terraform {
   backend "azurerm" {
-    resource_group_name   = "terraform"
-    storage_account_name  = "dagxtstate"
-    container_name        = "terraform-state"
-    key                   = "terraform.state"
+    resource_group_name  = "terraform"
+    storage_account_name = "dagxtstate"
+    container_name       = "terraform-state"
+    key                  = "terraform.state"
   }
   required_providers {
     azurerm = {
@@ -155,6 +155,13 @@ resource "azurerm_storage_account" "dagxblobstore" {
   account_tier             = "Standard"
   account_replication_type = "GRS"
   account_kind             = "BlobStorage"
+}
+
+resource "azurerm_storage_container" "src-container" {
+  name                  = "src-container"
+  storage_account_name  = azurerm_storage_account.dagxblobstore.name
+  container_access_type = "blob"
+
 }
 
 ## KEYVAULT SECRETS
