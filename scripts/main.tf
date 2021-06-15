@@ -29,6 +29,10 @@ terraform {
         helm.nifi,
       helm.atlas]
     }
+    aws = {
+      source = "hashicorp/aws"
+      version = "3.45.0"
+    }
   }
 }
 
@@ -160,7 +164,7 @@ resource "azurerm_storage_account" "dagxblobstore" {
 resource "azurerm_storage_container" "src-container" {
   name                  = "src-container"
   storage_account_name  = azurerm_storage_account.dagxblobstore.name
-  container_access_type = "blob"
+  container_access_type = "private"
 
 }
 
@@ -179,13 +183,13 @@ resource "azurerm_key_vault_secret" "atlas-password" {
 
 resource "azurerm_key_vault_secret" "aws-keyid" {
   name         = "dagx-aws-access-key"
-  value        = var.aws-key-id
+  value        = aws_iam_access_key.dagx_access_key.id
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
 }
 
 resource "azurerm_key_vault_secret" "aws-secret" {
   name         = "dagx-aws-secret-access-key"
-  value        = var.aws-secret-key
+  value        = aws_iam_access_key.dagx_access_key.secret
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
 }
 

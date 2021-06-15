@@ -3,6 +3,12 @@ variable "location" {
   default     = "westeurope"
   type        = string
 }
+
+variable "aws_region" {
+  description = "geographic location of the AWS resources"
+  default = "eu-west-1"
+  type = string
+}
 locals {
   cluster_name_nifi  = "${var.resourcesuffix}-nifi-cluster"
   cluster_name_atlas = "${var.resourcesuffix}-atlas-cluster"
@@ -10,13 +16,6 @@ locals {
 
 variable "resourcesuffix" {
   description = "identifying string that is used in all azure resources"
-}
-
-variable "aws-key-id"{
-  description = "The Access Key ID of your AWS IAM user"
-}
-variable "aws-secret-key" {
-  description = "The Secret Key for your AWS IAM user"
 }
 
 variable "SHORT_SHA" {
