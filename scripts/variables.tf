@@ -6,7 +6,7 @@ variable "location" {
 
 variable "aws_region" {
   description = "geographic location of the AWS resources"
-  default = "eu-west-1"
+  default = "us-east-1"
   type = string
 }
 locals {
