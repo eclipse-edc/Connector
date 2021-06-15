@@ -1,7 +1,7 @@
 # Configure the Azure provider
 terraform {
   backend "azurerm" {
-    resource_group_name  = "terraform"
+    resource_group_name  = "dagx-infrastructure"
     storage_account_name = "dagxtstate"
     container_name       = "terraform-state"
     key                  = "terraform.state"
@@ -231,13 +231,22 @@ resource "azurerm_container_group" "dagx-demo" {
       protocol = "TCP"
     }
 
-    environment_variables = {
+    secure_environment_variables = {
       CLIENTID      = azuread_application.dagx-terraform-app.application_id,
       TENANTID      = data.azurerm_client_config.current.tenant_id,
       VAULTNAME     = azurerm_key_vault.dagx-terraform-vault.name,
       ATLAS_URL     = "https://${module.atlas-cluster.public-ip.fqdn}"
       NIFI_URL      = "http://${azurerm_container_group.dagx-nifi.fqdn}:8080/"
       NIFI_FLOW_URL = "http://${azurerm_container_group.dagx-nifi.fqdn}:8888/"
+    }
+
+    volume {
+      mount_path = "/cert"
+      name = "certificates"
+      share_name = "certificates"
+      storage_account_key = "t9Vm9GKL0KAEMt9OokmEbTxIr++aN7wsbug4R52g3EuPy6GcZoYwxjWaXUw7I3JqhnXUuJoJW093+DNQh5YZgA=="
+      storage_account_name = var.backend_account_name
+      read_only = true
     }
   }
 }

@@ -23,3 +23,9 @@ variable "SHORT_SHA" {
   description = "short commit SHA of the current HEAD"
   default     = "latest"
 }
+
+variable "backend_account_name"{
+  type= string
+  description = "A storage account where the Terraform state and certificates etc. are stored"
+  default = "dagxtstate"
+}
