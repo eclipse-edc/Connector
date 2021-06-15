@@ -241,12 +241,12 @@ resource "azurerm_container_group" "dagx-demo" {
     }
 
     volume {
-      mount_path = "/cert"
-      name = "certificates"
-      share_name = "certificates"
-      storage_account_key = "t9Vm9GKL0KAEMt9OokmEbTxIr++aN7wsbug4R52g3EuPy6GcZoYwxjWaXUw7I3JqhnXUuJoJW093+DNQh5YZgA=="
+      mount_path           = "/cert"
+      name                 = "certificates"
+      share_name           = "certificates"
+      storage_account_key  = var.backend_account_key
       storage_account_name = var.backend_account_name
-      read_only = true
+      read_only            = true
     }
   }
 }

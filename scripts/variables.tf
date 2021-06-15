@@ -24,8 +24,13 @@ variable "SHORT_SHA" {
   default     = "latest"
 }
 
-variable "backend_account_name"{
-  type= string
+variable "backend_account_name" {
+  type        = string
   description = "A storage account where the Terraform state and certificates etc. are stored"
-  default = "dagxtstate"
+  default     = "dagxtstate"
+}
+
+variable "backend_account_key" {
+  type        = string
+  description = "Access key of the storage account that holds the terraform state and the certificate file share."
 }
