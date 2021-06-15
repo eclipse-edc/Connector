@@ -30,7 +30,7 @@ terraform {
       helm.atlas]
     }
     aws = {
-      source = "hashicorp/aws"
+      source  = "hashicorp/aws"
       version = "3.45.0"
     }
   }
@@ -50,13 +50,13 @@ provider "azuread" {
   # Configuration options
 }
 
-provider "kubernetes" {
-  alias                  = "nifi"
-  host                   = data.azurerm_kubernetes_cluster.nifi.kube_config.0.host
-  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_certificate)
-  client_key             = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.cluster_ca_certificate)
-}
+//provider "kubernetes" {
+//  alias                  = "nifi"
+//  host                   = data.azurerm_kubernetes_cluster.nifi.kube_config.0.host
+//  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_certificate)
+//  client_key             = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_key)
+//  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.cluster_ca_certificate)
+//}
 
 provider "kubernetes" {
   alias                  = "atlas"
@@ -66,15 +66,15 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.cluster_ca_certificate)
 }
 
-provider "helm" {
-  alias = "nifi"
-  kubernetes {
-    host                   = data.azurerm_kubernetes_cluster.nifi.kube_config.0.host
-    client_certificate     = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_certificate)
-    client_key             = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_key)
-    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.cluster_ca_certificate)
-  }
-}
+//provider "helm" {
+//  alias = "nifi"
+//  kubernetes {
+//    host                   = data.azurerm_kubernetes_cluster.nifi.kube_config.0.host
+//    client_certificate     = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_certificate)
+//    client_key             = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_key)
+//    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.cluster_ca_certificate)
+//  }
+//}
 
 provider "helm" {
   alias = "atlas"
@@ -86,13 +86,13 @@ provider "helm" {
   }
 }
 
-data "azurerm_kubernetes_cluster" "nifi" {
-  depends_on = [
-  module.nifi-cluster]
-  # refresh cluster state before reading
-  name                = local.cluster_name_nifi
-  resource_group_name = local.cluster_name_nifi
-}
+//data "azurerm_kubernetes_cluster" "nifi" {
+//  depends_on = [
+//  module.nifi-cluster]
+//  # refresh cluster state before reading
+//  name                = local.cluster_name_nifi
+//  resource_group_name = local.cluster_name_nifi
+//}
 
 data "azurerm_kubernetes_cluster" "atlas" {
   depends_on = [
@@ -145,10 +145,17 @@ resource "azurerm_key_vault" "dagx-terraform-vault" {
 }
 
 # Role assignment so that the primary identity may access the vault
-resource "azurerm_role_assignment" "assign_vault" {
+resource "azurerm_role_assignment" "primary-id" {
   scope                = azurerm_key_vault.dagx-terraform-vault.id
   role_definition_name = "Key Vault Secrets Officer"
   principal_id         = azuread_service_principal.dagx-terraform-app-sp.object_id
+}
+
+#Role assignment so that the currently logged in user may access the vault, needed to add secrets
+resource "azurerm_role_assignment" "current-user" {
+  scope                = azurerm_key_vault.dagx-terraform-vault.id
+  role_definition_name = "Key Vault Secrets Officer"
+  principal_id         = data.azurerm_client_config.current.object_id
 }
 
 #storage account
@@ -223,6 +230,15 @@ resource "azurerm_container_group" "dagx-demo" {
       port     = 8181
       protocol = "TCP"
     }
+
+    environment_variables = {
+      CLIENTID      = azuread_application.dagx-terraform-app.application_id,
+      TENANTID      = data.azurerm_client_config.current.tenant_id,
+      VAULTNAME     = azurerm_key_vault.dagx-terraform-vault.name,
+      ATLAS_URL     = "https://${module.atlas-cluster.public-ip.fqdn}"
+      NIFI_URL      = "http://${azurerm_container_group.dagx-nifi.fqdn}:8080/"
+      NIFI_FLOW_URL = "http://${azurerm_container_group.dagx-nifi.fqdn}:8888/"
+    }
   }
 }
 resource "azurerm_container_group" "dagx-nifi" {
@@ -248,27 +264,27 @@ resource "azurerm_container_group" "dagx-nifi" {
   }
 }
 
-module "nifi-cluster" {
-  source       = "./aks-cluster"
-  cluster_name = local.cluster_name_nifi
-  location     = var.location
-  dns          = "dagx-nifi"
-}
-
-module "nifi-deployment" {
-  depends_on = [
-  module.nifi-cluster]
-  source         = "./nifi-deployment"
-  cluster_name   = local.cluster_name_nifi
-  kubeconfig     = data.azurerm_kubernetes_cluster.nifi.kube_config_raw
-  resourcesuffix = var.resourcesuffix
-  tenant_id      = data.azurerm_client_config.current.tenant_id
-  providers = {
-    kubernetes = kubernetes.nifi
-    helm       = helm.nifi
-  }
-  public-ip = module.nifi-cluster.public-ip
-}
+//module "nifi-cluster" {
+//  source       = "./aks-cluster"
+//  cluster_name = local.cluster_name_nifi
+//  location     = var.location
+//  dns          = "dagx-nifi"
+//}
+//
+//module "nifi-deployment" {
+//  depends_on = [
+//  module.nifi-cluster]
+//  source         = "./nifi-deployment"
+//  cluster_name   = local.cluster_name_nifi
+//  kubeconfig     = data.azurerm_kubernetes_cluster.nifi.kube_config_raw
+//  resourcesuffix = var.resourcesuffix
+//  tenant_id      = data.azurerm_client_config.current.tenant_id
+//  providers = {
+//    kubernetes = kubernetes.nifi
+//    helm       = helm.nifi
+//  }
+//  public-ip = module.nifi-cluster.public-ip
+//}
 
 module "atlas-cluster" {
   source       = "./aks-cluster"

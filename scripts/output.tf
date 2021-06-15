@@ -8,7 +8,7 @@ output "primary_id_certfile" {
 
 output "URLs" {
   value = {
-    nifi  = "https://${module.nifi-cluster.public-ip.fqdn}"
+    //    nifi  = "https://${module.nifi-cluster.public-ip.fqdn}"
     atlas = "https://${module.atlas-cluster.public-ip.fqdn}"
   }
 }
@@ -23,7 +23,7 @@ output "demo-connector" {
 
 output "namespaces" {
   value = {
-    nifi  = module.nifi-deployment.nifi-cluster-namespace
+    //    nifi  = module.nifi-deployment.nifi-cluster-namespace
     atlas = module.atlas-deployment.atlas-cluster-namespace
   }
 }

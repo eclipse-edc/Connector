@@ -6,8 +6,8 @@ provider "aws" {
 
 
 resource "aws_iam_user" "dagx" {
-  name = "dagx"
-  path = "/"
+  name          = "dagx"
+  path          = "/"
   force_destroy = true
 }
 
@@ -17,27 +17,15 @@ resource "aws_iam_access_key" "dagx_access_key" {
 }
 
 resource "aws_iam_user_policy_attachment" "dagx-s3fullaccess" {
-  user = aws_iam_user.dagx.name
-  policy_arn = aws_iam_policy.s3-full-access.arn
+  user       = aws_iam_user.dagx.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
-resource "aws_iam_policy" "s3-full-access" {
-  name        = "s3-full-access"
-  description = "Allows a user full access to S3"
+resource "aws_iam_user_policy_attachment" "dagx-iamfullaccess" {
+  user       = aws_iam_user.dagx.name
+  policy_arn = "arn:aws:iam::aws:policy/IAMFullAccess"
+}
 
-  policy = <<EOF
-{
- "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": "s3:*",
-            "Resource": "*"
-        }
-    ]
-}
-EOF
-}
 
 resource "aws_s3_bucket" "src-bucket" {
   bucket = "dagx-src-bucket"

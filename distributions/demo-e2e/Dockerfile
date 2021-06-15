@@ -2,9 +2,17 @@ FROM openjdk:11-jre-slim
 
 WORKDIR /app
 COPY ./build/libs/dagx-demo-e2e.jar /app
-COPY ./dagx-config-docker.properties /app/dagx-config.properties
+#COPY ./dagx-config-docker.properties /app/dagx-config.properties
 COPY ./cert.pfx /app
 
 EXPOSE 8181
 
-ENTRYPOINT ["java", "-Ddagx.fs.config=dagx-config.properties", "-Djava.security.edg=file:/dev/.urandom", "-jar", "dagx-demo-e2e.jar"]
+ENTRYPOINT java \
+    -Ddagx.vault.clientid=${CLIENTID} \
+    -Ddagx.vault.tenantid=${TENANTID} \
+    -Ddagx.vault.certificate=./cert.pfx \
+    -Ddagx.vault.name=${VAULTNAME} \
+    -Ddagx.atlas.url=${ATLAS_URL} \
+    -Ddagx.nifi.url=${NIFI_URL} \
+    -Ddagx.nifi.flow.url=${NIFI_FLOW_URL} \
+    -Djava.security.edg=file:/dev/.urandom -jar dagx-demo-e2e.jar

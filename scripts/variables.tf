@@ -6,8 +6,8 @@ variable "location" {
 
 variable "aws_region" {
   description = "geographic location of the AWS resources"
-  default = "us-east-1"
-  type = string
+  default     = "us-east-1"
+  type        = string
 }
 locals {
   cluster_name_nifi  = "${var.resourcesuffix}-nifi-cluster"
