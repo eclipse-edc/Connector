@@ -26,6 +26,7 @@ import org.junit.jupiter.api.Test;
 import java.util.*;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.easymock.EasyMock.*;
 
 class AtlasMetadataStoreTest {
@@ -53,9 +54,8 @@ class AtlasMetadataStoreTest {
         final AtlasEntity entity = createAzureEntity(testEntityName);
 
         expect(atlasApiMock.getEntityById(testEntityName)).andReturn(null);
-        expect(atlasApiMock.dslSearchWithParams("from AzureStorage where name = '" + testEntityName + "'", 100, 0)).andReturn(searchResult);
+        expect(atlasApiMock.dslSearchWithParams("from DataSet where name = '" + testEntityName + "'", 100, 0)).andReturn(searchResult);
         expect(atlasApiMock.getEntityById(entityId)).andReturn(new AtlasEntity.AtlasEntityWithExtInfo(entity)).times(1);
-        expect(atlasApiMock.dslSearchWithParams("from AmazonS3 where name = '" + testEntityName + "'", 100, 0)).andReturn(new AtlasSearchResult());
 
         replay(atlasApiMock);
         replay(monitorMock);
@@ -76,16 +76,19 @@ class AtlasMetadataStoreTest {
     void findForId_multipleResults() {
         final String azureId = UUID.randomUUID().toString();
         final String s3Id = UUID.randomUUID().toString();
-        AtlasSearchResult azureResult = createSearchResult(azureId, AzureBlobStoreSchema.TYPE);
-        AtlasSearchResult s3Result = createSearchResult(s3Id, S3BucketSchema.TYPE);
+        AtlasSearchResult searchResult = new AtlasSearchResult();
+        final AtlasEntityHeader header = new AtlasEntityHeader(AzureBlobStoreSchema.TYPE, azureId, new HashMap<>());
+        header.setStatus(AtlasEntity.Status.ACTIVE);
+        final AtlasEntityHeader header2 = new AtlasEntityHeader(S3BucketSchema.TYPE, s3Id, new HashMap<>());
+        searchResult.addEntity(header);
+        searchResult.addEntity(header2);
 
         final AtlasEntity azureEntity = createAzureEntity(testEntityName);
         final AtlasEntity s3Entity = createS3Entity(testEntityName);
 
         expect(atlasApiMock.getEntityById(testEntityName)).andReturn(null);
-        expect(atlasApiMock.dslSearchWithParams("from AzureStorage where name = '" + testEntityName + "'", 100, 0)).andReturn(azureResult);
+        expect(atlasApiMock.dslSearchWithParams("from DataSet where name = '" + testEntityName + "'", 100, 0)).andReturn(searchResult);
         expect(atlasApiMock.getEntityById(azureId)).andReturn(new AtlasEntity.AtlasEntityWithExtInfo(azureEntity)).times(1);
-        expect(atlasApiMock.dslSearchWithParams("from AmazonS3 where name = '" + testEntityName + "'", 100, 0)).andReturn(s3Result);
         expect(atlasApiMock.getEntityById(s3Id)).andReturn(new AtlasEntity.AtlasEntityWithExtInfo(s3Entity)).times(1);
         replay(atlasApiMock);
 
@@ -108,16 +111,16 @@ class AtlasMetadataStoreTest {
     }
 
     @Test
-    void findForId_datlasException() {
+    void findForId_atlasException() {
         expect(atlasApiMock.getEntityById(testEntityName)).andReturn(null);
         expect(atlasApiMock.dslSearchWithParams(anyString(), eq(100), eq(0)))
                 .andThrow(new AtlasQueryException(new AtlasErrorCode("ATLAS-400-00-059", "some error message")))
                 .times(2);
         replay(atlasApiMock);
-        var entry = atlasMetadataStore.findForId(testEntityName);
 
-        assertThat(entry).isNull();
-        verify(atlasApiMock);
+        //verify that the exception is not swallowed or rethrown
+        assertThatThrownBy(() -> atlasMetadataStore.findForId(testEntityName)).isInstanceOf(AtlasQueryException.class);
+
     }
 
     @Test
@@ -165,9 +168,9 @@ class AtlasMetadataStoreTest {
         var azureEntity = createAzureEntity("test-azure-entity");
 
 
-        expect(atlasApiMock.dslSearchWithParams("from dagx_policy", 100, 0)).andReturn(searchResult);
-        expect(atlasApiMock.getEntityById(policyGuid)).andReturn(new AtlasEntity.AtlasEntityWithExtInfo(policyEntity)).times(2);
-        expect(atlasApiMock.getEntityById(entityGuid)).andReturn(new AtlasEntity.AtlasEntityWithExtInfo(azureEntity));
+        expect(atlasApiMock.dslSearchWithParams("from AzureStorage where policyId = [\"test-policy\"]", 100, 0)).andReturn(searchResult);
+        expect(atlasApiMock.getEntityById(policyGuid)).andReturn(new AtlasEntity.AtlasEntityWithExtInfo(azureEntity));
+        expect(atlasApiMock.dslSearchWithParams("from AmazonS3 where policyId = [\"test-policy\"]", 100, 0)).andReturn(new AtlasSearchResult());
         replay(atlasApiMock);
         replay(monitorMock);
 
@@ -183,7 +186,7 @@ class AtlasMetadataStoreTest {
     @Test
     void queryAll_atlasException() {
         var policy = Policy.Builder.newInstance().id("test-policy").build();
-        expect(atlasApiMock.dslSearchWithParams("from dagx_policy", 100, 0))
+        expect(atlasApiMock.dslSearchWithParams("from AzureStorage where policyId = [\"test-policy\"]", 100, 0))
                 .andThrow(new AtlasQueryException(new AtlasErrorCode("ATLAS-400-00-059", "some error message")));
         monitorMock.severe(eq("Error during queryAll(): "), anyObject(DagxException.class));
         expectLastCall().times(1);
