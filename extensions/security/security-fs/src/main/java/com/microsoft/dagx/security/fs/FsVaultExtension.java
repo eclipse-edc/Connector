@@ -37,7 +37,7 @@ public class FsVaultExtension implements VaultExtension {
         privateKeyResolver = new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
         certificateResolver = new FsCertificateResolver(keyStore);
 
-        context.getMonitor().info("Initialized FS Vault extension");
+        monitor.info("Initialized FS Vault extension");
     }
 
     @Override

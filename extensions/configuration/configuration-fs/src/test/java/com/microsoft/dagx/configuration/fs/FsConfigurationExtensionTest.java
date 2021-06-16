@@ -26,7 +26,7 @@ class FsConfigurationExtensionTest {
         final ServiceExtensionContext context = niceMock(ServiceExtensionContext.class);
         expect(context.getMonitor()).andReturn(niceMock(Monitor.class));
         replay(context);
-        configurationExtension.initialize(context);
+        configurationExtension.initialize(context.getMonitor());
 
         assertEquals("testvalue1", configurationExtension.getSetting("testkey1"));
         assertNull(configurationExtension.getSetting("notthere"));

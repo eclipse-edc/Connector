@@ -47,7 +47,6 @@ public class FsConfigurationExtension implements ConfigurationExtension {
     @Override
     public void initialize(Monitor monitor) {
         var configPath = configFile != null ? configFile : Paths.get(CONFIG_LOCATION);
-        var monitor = context.getMonitor();
         if (!Files.exists(configPath)) {
             monitor.info(format("Configuration file does not exist: %s. Ignoring.", CONFIG_LOCATION));
             return;
