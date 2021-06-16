@@ -127,7 +127,8 @@ public class AzureVault implements Vault {
         } finally {
             try {
                 secretClient.purgeDeletedSecret(key);
-            } catch (Exception ignored) {
+            } catch (Exception e) {
+                monitor.severe("Error purging secret from AzureVault", e);
             }
         }
     }
