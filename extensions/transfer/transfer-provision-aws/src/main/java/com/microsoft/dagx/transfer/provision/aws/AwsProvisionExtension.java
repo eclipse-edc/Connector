@@ -102,6 +102,8 @@ public class AwsProvisionExtension implements ServiceExtension {
             monitor.severe("AWS secret key was not found in the vault");
             secretKey = "empty_secret_key";
         }
+
+        vault.storeSecret("aws-credential", context.getTypeManager().writeValueAsString(new AwsSecretToken(accessKey, secretKey)));
         var credentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         return () -> credentials;

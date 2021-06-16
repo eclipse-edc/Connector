@@ -31,27 +31,27 @@ public final class AzureBlobFileEntityBuilder {
         return new AzureBlobFileEntityBuilder();
     }
 
-    public AzureBlobFileEntityBuilder withAccount(String account) {
+    public AzureBlobFileEntityBuilder account(String account) {
         this.account = account;
         return this;
     }
 
-    public AzureBlobFileEntityBuilder withBlobname(String blobname) {
+    public AzureBlobFileEntityBuilder blobName(String blobname) {
         blobName = blobname;
         return this;
     }
 
-    public AzureBlobFileEntityBuilder withContainer(String container) {
+    public AzureBlobFileEntityBuilder container(String container) {
         this.container = container;
         return this;
     }
 
-    public AzureBlobFileEntityBuilder withKeyName(String keyName) {
+    public AzureBlobFileEntityBuilder keyName(String keyName) {
         this.keyName = keyName;
         return this;
     }
 
-    public AzureBlobFileEntityBuilder withDescription(String description) {
+    public AzureBlobFileEntityBuilder description(String description) {
         this.description = description;
         return this;
     }

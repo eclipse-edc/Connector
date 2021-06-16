@@ -89,22 +89,22 @@ public class AtlasDataSeeder {
             entityGuids.add(policyId);
 
             String azureEntity1 = atlasApi.createEntity(AzureBlobStoreSchema.TYPE, AzureBlobFileEntityBuilder.newInstance()
-                    .withAccount("dagxtfblob")
-                    .withBlobname("testimage.jpg")
-                    .withContainer("src-container")
-                    .withKeyName("src-container")
+                    .account("dagxtfblob")
+                    .blobName("testimage.jpg")
+                    .container("src-container")
+                    .keyName("src-container")
                     .policy(policyName)
-                    .withDescription("this is an entity, only for EU")
+                    .description("this is an entity, only for EU")
                     .build());
             entityGuids.add(azureEntity1);
 
             String azureEntity2 = atlasApi.createEntity(AzureBlobStoreSchema.TYPE, AzureBlobFileEntityBuilder.newInstance()
-                    .withAccount("dagxtfblob")
-                    .withBlobname("anotherimage.jpg")
-                    .withContainer("src-container")
-                    .withKeyName("src-container")
+                    .account("dagxtfblob")
+                    .blobName("anotherimage.jpg")
+                    .container("src-container")
+                    .keyName("src-container")
                     .policy(policyName)
-                    .withDescription("this is a second entity, for US or EU")
+                    .description("this is a second entity, for US or EU")
                     .build());
             entityGuids.add(azureEntity2);
 
@@ -113,7 +113,7 @@ public class AtlasDataSeeder {
                     .region("us-east-1")
                     .name("s3-testimage.jpg")
                     .description("this is a file hosted in an S3 bucket")
-                    .keyname("foobar")
+                    .keyname("aws-credential")
                     .policy(policyName)
                     .build());
             entityGuids.add(s3Entity1);
@@ -123,7 +123,7 @@ public class AtlasDataSeeder {
                     .region("us-east-1")
                     .name("s3-anotherimage.jpg")
                     .description("this is another file hosted in an S3 bucket")
-                    .keyname("barbaz")
+                    .keyname("aws-credential")
                     .policy(policyName)
                     .build());
             entityGuids.add(s3Entity2);
