@@ -9,9 +9,10 @@ package com.microsoft.dagx.dataseed.atlas;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.catalog.atlas.dto.AtlasTypesDef;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
-import com.microsoft.dagx.schema.DataSchema;
 import com.microsoft.dagx.schema.RelationshipSchema;
 import com.microsoft.dagx.schema.SchemaRegistry;
+import com.microsoft.dagx.schema.aws.AmazonS3HasPolicyRelationshipSchema;
+import com.microsoft.dagx.schema.aws.S3BucketSchema;
 import com.microsoft.dagx.schema.azure.AzureBlobHasPolicyRelationshipSchema;
 import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.schema.policy.PolicySchema;
@@ -51,7 +52,7 @@ public class AtlasDataSeeder {
 
         // create all entity types
         var schemas = schemaRegistry.getSchemas();
-        for (var schema : schemas.stream().filter(s -> s instanceof DataSchema).collect(Collectors.toList())) {
+        for (var schema : schemas.stream().filter(s -> !(s instanceof RelationshipSchema)).collect(Collectors.toList())) {
             String sanitizedName = schema.getName();
             try {
                 entityTypes.add(atlasApi.createCustomTypes(sanitizedName, Set.of("DataSet"), new ArrayList<>(schema.getAttributes())));
@@ -75,25 +76,7 @@ public class AtlasDataSeeder {
     public List<String> createEntities() {
         try {
             ArrayList<String> entityGuids = new ArrayList<>();
-
-            String entityId = atlasApi.createEntity(AzureBlobStoreSchema.TYPE, AzureBlobFileEntityBuilder.newInstance()
-                    .withAccount("dagxtfblob")
-                    .withBlobname("testimage.jpg")
-                    .withContainer("src-container")
-                    .withKeyName("src-container")
-                    .withDescription("this is an entity, only for EU")
-                    .build());
-            entityGuids.add(entityId);
-
-            String entity2Id = atlasApi.createEntity(AzureBlobStoreSchema.TYPE, AzureBlobFileEntityBuilder.newInstance()
-                    .withAccount("dagxtfblob")
-                    .withBlobname("anotherimage.jpg")
-                    .withContainer("src-container")
-                    .withKeyName("src-container")
-                    .withDescription("this is a second entity, for US or EU")
-                    .build());
-            entityGuids.add(entity2Id);
-
+            final String policyName = "use-us-eu";
             var policyId = atlasApi.createEntity(PolicySchema.TYPE, new HashMap<>() {{
                 put("name", "RegionalPolicy-US-EU");
                 put("type", PolicySchema.TYPE);
@@ -101,15 +84,75 @@ public class AtlasDataSeeder {
                 put("description", "This policy protects assets so they can only be read inside US or EU");
                 put("qualifiedName", "entity-policy-relation");
                 put("serialized", "not yet available");
-                put("policyId", "use-us-eu");
+                put("policyName", policyName);
             }});
             entityGuids.add(policyId);
 
-            var relation = atlasApi.createRelationship(entityId, policyId, AzureBlobHasPolicyRelationshipSchema.TYPE);
-            entityGuids.add(relation.getGuid());
+            String azureEntity1 = atlasApi.createEntity(AzureBlobStoreSchema.TYPE, AzureBlobFileEntityBuilder.newInstance()
+                    .withAccount("dagxtfblob")
+                    .withBlobname("testimage.jpg")
+                    .withContainer("src-container")
+                    .withKeyName("src-container")
+                    .policy(policyName)
+                    .withDescription("this is an entity, only for EU")
+                    .build());
+            entityGuids.add(azureEntity1);
 
-            var relation2 = atlasApi.createRelationship(entity2Id, policyId, AzureBlobHasPolicyRelationshipSchema.TYPE);
-            entityGuids.add(relation2.getGuid());
+            String azureEntity2 = atlasApi.createEntity(AzureBlobStoreSchema.TYPE, AzureBlobFileEntityBuilder.newInstance()
+                    .withAccount("dagxtfblob")
+                    .withBlobname("anotherimage.jpg")
+                    .withContainer("src-container")
+                    .withKeyName("src-container")
+                    .policy(policyName)
+                    .withDescription("this is a second entity, for US or EU")
+                    .build());
+            entityGuids.add(azureEntity2);
+
+            String s3Entity1 = atlasApi.createEntity(S3BucketSchema.TYPE, S3BucketFileEntityBuilder.newInstance()
+                    .bucket("dagx-src-bucket")
+                    .region("us-east-1")
+                    .name("s3-testimage.jpg")
+                    .description("this is a file hosted in an S3 bucket")
+                    .keyname("foobar")
+                    .policy(policyName)
+                    .build());
+            entityGuids.add(s3Entity1);
+
+            String s3Entity2 = atlasApi.createEntity(S3BucketSchema.TYPE, S3BucketFileEntityBuilder.newInstance()
+                    .bucket("dagx-src-bucket")
+                    .region("us-east-1")
+                    .name("s3-anotherimage.jpg")
+                    .description("this is another file hosted in an S3 bucket")
+                    .keyname("barbaz")
+                    .policy(policyName)
+                    .build());
+            entityGuids.add(s3Entity2);
+
+
+            try {
+                var relation = atlasApi.createRelationship(azureEntity1, policyId, AzureBlobHasPolicyRelationshipSchema.TYPE);
+                entityGuids.add(relation.getGuid());
+            } catch (DagxException ignored) {
+            }
+
+            try {
+                var relation2 = atlasApi.createRelationship(azureEntity2, policyId, AzureBlobHasPolicyRelationshipSchema.TYPE);
+                entityGuids.add(relation2.getGuid());
+            } catch (DagxException ignored) {
+            }
+
+            try {
+                var relation3 = atlasApi.createRelationship(s3Entity1, policyId, AmazonS3HasPolicyRelationshipSchema.TYPE);
+                entityGuids.add(relation3.getGuid());
+            } catch (DagxException ignored) {
+            }
+
+            try {
+                var relation4 = atlasApi.createRelationship(s3Entity2, policyId, AmazonS3HasPolicyRelationshipSchema.TYPE);
+                entityGuids.add(relation4.getGuid());
+            } catch (DagxException ignored) {
+            }
+
             return entityGuids;
 
         } catch (Exception e) {

@@ -75,9 +75,9 @@ public class S3BucketDataseedExtension implements ServiceExtension {
                         monitor.debug("AWS DataSeed: bucket already exists, will reuse");
                     }
                     monitor.info("AWS DataSeed: uploading test file '" + TEST_FILE_NAME + "'");
-                    final CompletableFuture<PutObjectResponse> putResponse1 = s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET_NAME).key("testimage.jpg").build(), AsyncRequestBody.fromBytes(bytes));
+                    final CompletableFuture<PutObjectResponse> putResponse1 = s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET_NAME).key("s3-testimage.jpg").build(), AsyncRequestBody.fromBytes(bytes));
                     monitor.info("AWS DataSeed: uploading test file '" + TEST_FILE_NAME2 + "'");
-                    final CompletableFuture<PutObjectResponse> putResponse2 = s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET_NAME).key("anotherimage.jpg").build(), AsyncRequestBody.fromBytes(bytes2));
+                    final CompletableFuture<PutObjectResponse> putResponse2 = s3Client.putObject(PutObjectRequest.builder().bucket(BUCKET_NAME).key("s3-anotherimage.jpg").build(), AsyncRequestBody.fromBytes(bytes2));
 
                     return CompletableFuture.allOf(putResponse1, putResponse2);
                 })

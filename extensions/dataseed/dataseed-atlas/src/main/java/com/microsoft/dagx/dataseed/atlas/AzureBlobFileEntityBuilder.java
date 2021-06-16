@@ -22,6 +22,7 @@ public final class AzureBlobFileEntityBuilder {
     private String container;
     private String keyName;
     private String description;
+    private String policy;
 
     private AzureBlobFileEntityBuilder() {
     }
@@ -62,11 +63,17 @@ public final class AzureBlobFileEntityBuilder {
         azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_CONTAINER, container);
         azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_ACCOUNT, account);
         azureBlobFileEntity.put(AtlasCustomTypeAttribute.AZURE_BLOB_BLOBNAME, blobName);
+        azureBlobFileEntity.put("policyId", policy);
 
         //the following properties are required by atlas
         azureBlobFileEntity.put("qualifiedName", format("%s/%s/%s", account, container, blobName));
         azureBlobFileEntity.put("name", blobName);
         azureBlobFileEntity.put("description", description);
         return azureBlobFileEntity;
+    }
+
+    public AzureBlobFileEntityBuilder policy(String policyId) {
+        policy = policyId;
+        return this;
     }
 }

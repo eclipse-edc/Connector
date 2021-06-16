@@ -7,6 +7,7 @@
 package com.microsoft.dagx.catalog.atlas.metadata;
 
 import com.microsoft.dagx.catalog.atlas.dto.AtlasEntity;
+import com.microsoft.dagx.catalog.atlas.dto.AtlasSearchResult;
 import com.microsoft.dagx.common.string.StringUtils;
 import com.microsoft.dagx.policy.model.Identifiable;
 import com.microsoft.dagx.policy.model.Policy;
@@ -20,7 +21,10 @@ import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
@@ -47,18 +51,14 @@ public class AtlasMetadataStore implements MetadataStore {
 
         if (properties == null) {
 
-            final List<AtlasEntity.AtlasEntityWithExtInfo> entityWithExtInfos = schemaRegistry.getSchemas().stream()
-                    .filter(schema -> schema instanceof DataSchema)
-                    .map(schema -> {
-                        try {
-                            return atlasApi.dslSearchWithParams("from " + schema.getName() + " where name = '" + id + "'", QUERY_RESULT_LIMIT, 0);
-                        } catch (AtlasQueryException atlasException) {
-                            monitor.severe("AtlasMetaDataStore: error in findForId: " + atlasException.getMessage());
-                            return null;
-                        }
-                    })
-                    .filter(atlasSearchResult -> atlasSearchResult != null && atlasSearchResult.getEntities() != null)
-                    .flatMap(atlasSearchResult -> atlasSearchResult.getEntities().stream())
+            final AtlasSearchResult searchResult = atlasApi.dslSearchWithParams("from DataSet where name = '" + id + "'", QUERY_RESULT_LIMIT, 0);
+
+            if (searchResult == null || searchResult.getEntities() == null) {
+                monitor.info("AtlasMetaDataStore: no Atlas entities with name " + id + " were found.");
+                return null;
+            }
+
+            final List<AtlasEntity.AtlasEntityWithExtInfo> entityWithExtInfos = searchResult.getEntities().stream()
                     .filter(entityHeader -> entityHeader.getStatus() == AtlasEntity.Status.ACTIVE)
                     .map(entityHeader -> atlasApi.getEntityById(entityHeader.getGuid()))
                     .collect(Collectors.toList());
@@ -96,18 +96,7 @@ public class AtlasMetadataStore implements MetadataStore {
 
     private String getPolicyIdForEntity(AtlasEntity entry) {
 
-        if (entry == null) {
-            return null;
-        }
-        Map<String, String> policyProperties = (Map<String, String>) entry.getRelationshipAttribute("itsAccessPolicy");
-        if (policyProperties == null) {
-            return null;
-        }
-        final String policyGuid = policyProperties.get("guid");
-
-        //lets make sure the policy actually exists
-        final AtlasEntity.AtlasEntityWithExtInfo policyEntity = atlasApi.getEntityById(policyGuid);
-        return policyEntity != null ? StringUtils.toString(policyEntity.getEntity().getAttribute("policyId")) : null;
+        return StringUtils.toString(entry.getAttribute("policyId"));
     }
 
     @Override
@@ -120,25 +109,18 @@ public class AtlasMetadataStore implements MetadataStore {
         if (policies.isEmpty()) {
             return Collections.emptyList();
         }
+        String policyIds = String.join("\", \"", policies.stream().map(Identifiable::getUid).collect(toSet()));
 
-        Set<String> policyIds = policies.stream().map(Identifiable::getUid).collect(toSet());
+        var allDataSchemas = schemaRegistry.getSchemas().stream().filter(s -> s instanceof DataSchema).collect(Collectors.toList());
         try {
-            var searchResult = atlasApi.dslSearchWithParams("from dagx_policy", 100, 0);
-
-            //now we have all valid relationship entities, need to navigate "towards" its entity
-            return searchResult.getEntities().stream()
-                    .filter(eh -> eh.getStatus() == AtlasEntity.Status.ACTIVE)
-                    .filter(eh -> {
-                        var pe = atlasApi.getEntityById(eh.getGuid());
-                        final Object policyId = pe.getEntity().getAttribute("policyId");
-                        return policyId != null && policyIds.contains(policyId.toString());
+            return allDataSchemas.stream()
+                    .map(dataSchema -> {
+                        var queryString = "from " + dataSchema.getName() + " where policyId = [\"" + policyIds + "\"]";
+                        return atlasApi.dslSearchWithParams(queryString, QUERY_RESULT_LIMIT, 0);
                     })
-                    .map(ph -> atlasApi.getEntityById(ph.getGuid()))
-                    .flatMap(policy -> {
-                        final Object itsEntity = policy.getEntity().getRelationshipAttribute("itsEntity");
-                        final List<Map<String, String>> targetEntityProperties = (List<Map<String, String>>) itsEntity;
-                        return targetEntityProperties.stream().map(te -> findForId(te.get("guid")));
-                    })
+                    .filter(atlasSearchResult -> atlasSearchResult.getEntities() != null && !atlasSearchResult.getEntities().isEmpty())
+                    .flatMap(searchResult -> searchResult.getEntities().stream())
+                    .map(entityHeader -> findForId(entityHeader.getGuid()))
                     .collect(Collectors.toList());
         } catch (DagxException dagxException) {
             monitor.severe("Error during queryAll(): ", dagxException);

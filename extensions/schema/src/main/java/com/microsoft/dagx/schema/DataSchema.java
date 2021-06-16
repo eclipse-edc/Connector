@@ -6,5 +6,6 @@ public abstract class DataSchema extends Schema {
     public DataSchema() {
         super();
         attributes.add(new SchemaAttribute("keyName", true));
+        attributes.add(new SchemaAttribute("policyId", false));
     }
 }
