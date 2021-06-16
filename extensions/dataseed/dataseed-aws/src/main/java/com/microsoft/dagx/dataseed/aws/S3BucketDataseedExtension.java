@@ -85,7 +85,7 @@ public class S3BucketDataseedExtension implements ServiceExtension {
                     if (throwable != null) {
                         monitor.severe("AWS DataSeed: An error happened during seeding", throwable);
                     } else {
-                        monitor.info("AWS DataSeed: completed seeding;");
+                        monitor.info("AWS DataSeed: completed seeding");
                     }
                 });
     }

@@ -270,6 +270,7 @@ public class AtlasApiImpl implements AtlasApi {
     @Override
     public AtlasSearchResult dslSearchWithParams(String query, int limit, int offset) {
 
+        query = sanitize(query);
         var url = createAtlasUrl("/search/dsl");
         var httpUrl = Objects.requireNonNull(HttpUrl.parse(url), "Could not parse url " + url).newBuilder()
                 .addQueryParameter("query", query)
@@ -282,7 +283,11 @@ public class AtlasApiImpl implements AtlasApi {
 
         try (var response = httpClient.newCall(rq).execute()) {
             if (!response.isSuccessful() && response.body() != null) {
-                throw new DagxException(response.body() != null ? Objects.requireNonNull(response.body()).string() : "executing a DSL query failed");
+
+                final AtlasErrorCode atlasErrorCode = typeManager.readValue(response.body().string(), AtlasErrorCode.class);
+                throw new AtlasQueryException(atlasErrorCode);
+
+//                throw new DagxException(response.body() != null ? Objects.requireNonNull(response.body()).string() : "executing a DSL query failed");
             } else {
                 var body = Objects.requireNonNull(response.body()).string();
                 return typeManager.readValue(body, AtlasSearchResult.class);

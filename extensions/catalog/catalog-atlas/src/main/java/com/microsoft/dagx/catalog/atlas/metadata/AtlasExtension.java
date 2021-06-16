@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.catalog.atlas.metadata;
 
+import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -28,7 +29,7 @@ public class AtlasExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("dagx:http-client");
+        return Set.of("dagx:http-client", SchemaRegistry.FEATURE);
     }
 
     @Override
@@ -46,7 +47,7 @@ public class AtlasExtension implements ServiceExtension {
         var pwd = vault.resolveSecret(SECRET_ATLAS_PWD);
         var api = new AtlasApiImpl(atlasUrl, user, pwd, context.getService(OkHttpClient.class), context.getTypeManager());
         context.registerService(AtlasApi.class, api);
-        context.registerService(MetadataStore.class, new AtlasMetadataStore(api, context.getMonitor()));
+        context.registerService(MetadataStore.class, new AtlasMetadataStore(api, context.getMonitor(), context.getService(SchemaRegistry.class)));
         context.getMonitor().info("Initialized Atlas API extension.");
     }
 

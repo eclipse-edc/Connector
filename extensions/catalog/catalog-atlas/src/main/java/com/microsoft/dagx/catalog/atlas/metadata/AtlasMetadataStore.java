@@ -10,6 +10,8 @@ import com.microsoft.dagx.catalog.atlas.dto.AtlasEntity;
 import com.microsoft.dagx.common.string.StringUtils;
 import com.microsoft.dagx.policy.model.Identifiable;
 import com.microsoft.dagx.policy.model.Policy;
+import com.microsoft.dagx.schema.DataSchema;
+import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
@@ -29,25 +31,48 @@ public class AtlasMetadataStore implements MetadataStore {
     private static final String ATLAS_PROPERTY_TYPE = "type";
     private final AtlasApi atlasApi;
     private final Monitor monitor;
+    private final SchemaRegistry schemaRegistry;
+    private final int QUERY_RESULT_LIMIT = 100;
 
-    public AtlasMetadataStore(AtlasApi atlasApi, Monitor monitor) {
+    public AtlasMetadataStore(AtlasApi atlasApi, Monitor monitor, SchemaRegistry schemaRegistry) {
         this.atlasApi = atlasApi;
         this.monitor = monitor;
+        this.schemaRegistry = schemaRegistry;
     }
 
     @Override
     public @Nullable DataEntry<?> findForId(String id) {
 
         var properties = atlasApi.getEntityById(id);
+
         if (properties == null) {
-            var searchResult = atlasApi.dslSearchWithParams("from AzureStorage where name = '" + id + "'", 100, 0);
-            properties = searchResult.getEntities().stream()
-                    .filter(eh -> eh.getStatus() == AtlasEntity.Status.ACTIVE)
-                    .map(eh -> atlasApi.getEntityById(eh.getGuid())).findFirst().orElse(null);
-            if (properties == null) {
+
+            final List<AtlasEntity.AtlasEntityWithExtInfo> entityWithExtInfos = schemaRegistry.getSchemas().stream()
+                    .filter(schema -> schema instanceof DataSchema)
+                    .map(schema -> {
+                        try {
+                            return atlasApi.dslSearchWithParams("from " + schema.getName() + " where name = '" + id + "'", QUERY_RESULT_LIMIT, 0);
+                        } catch (AtlasQueryException atlasException) {
+                            monitor.severe("AtlasMetaDataStore: error in findForId: " + atlasException.getMessage());
+                            return null;
+                        }
+                    })
+                    .filter(atlasSearchResult -> atlasSearchResult != null && atlasSearchResult.getEntities() != null)
+                    .flatMap(atlasSearchResult -> atlasSearchResult.getEntities().stream())
+                    .filter(entityHeader -> entityHeader.getStatus() == AtlasEntity.Status.ACTIVE)
+                    .map(entityHeader -> atlasApi.getEntityById(entityHeader.getGuid()))
+                    .collect(Collectors.toList());
+
+            if (entityWithExtInfos.isEmpty()) {
+                monitor.info("AtlasMetaDataStore: no Atlas entities with name " + id + " were found.");
                 return null;
             }
+            if (entityWithExtInfos.size() > 1) { // more than one entity found with the same name
+                monitor.info("AtlasMetaDataStore: " + entityWithExtInfos.size() + " entities with ID " + id + " were found. This is a sign of non-unique data! The first element will be used. If that's not what you want, consider prefixing the entry's name.");
+            }
+            properties = entityWithExtInfos.stream().findFirst().orElse(null);
         }
+
         final AtlasEntity entity = properties.getEntity();
         if (entity == null) {
             monitor.info("AtlasMetadataStore: no DataEntry found for ID " + id);
@@ -55,8 +80,8 @@ public class AtlasMetadataStore implements MetadataStore {
         }
         var policyId = getPolicyIdForEntity(entity);
         var address = DataAddress.Builder.newInstance()
-                .keyName(entity.getAttribute(ATLAS_PROPERTY_KEYNAME).toString())
-                .type(entity.getAttribute(ATLAS_PROPERTY_TYPE).toString())
+                .keyName(StringUtils.toString(entity.getAttribute(ATLAS_PROPERTY_KEYNAME)))
+                .type(StringUtils.toString(entity.getAttribute(ATLAS_PROPERTY_TYPE)))
                 .properties(convert(entity.getAttributes()))
                 .build();
 
@@ -111,11 +136,9 @@ public class AtlasMetadataStore implements MetadataStore {
                     .map(ph -> atlasApi.getEntityById(ph.getGuid()))
                     .flatMap(policy -> {
                         final Object itsEntity = policy.getEntity().getRelationshipAttribute("itsEntity");
-                        final List<Map<String, String>> entityProperties = (List<Map<String, String>>) itsEntity;
-                        return entityProperties.stream().map(ep -> atlasApi.getEntityById(ep.get("guid")));
+                        final List<Map<String, String>> targetEntityProperties = (List<Map<String, String>>) itsEntity;
+                        return targetEntityProperties.stream().map(te -> findForId(te.get("guid")));
                     })
-                    .map(entity -> entity.getEntity().getGuid())
-                    .map(this::findForId)
                     .collect(Collectors.toList());
         } catch (DagxException dagxException) {
             monitor.severe("Error during queryAll(): ", dagxException);
