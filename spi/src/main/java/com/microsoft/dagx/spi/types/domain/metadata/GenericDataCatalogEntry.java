@@ -19,8 +19,8 @@ import java.util.stream.Collectors;
  * Generic extension properties.
  */
 @JsonTypeName("dagx:genericdataentryextensions")
-@JsonDeserialize(builder = GenericDataCatalog.Builder.class)
-public class GenericDataCatalog implements DataCatalog {
+@JsonDeserialize(builder = GenericDataCatalogEntry.Builder.class)
+public class GenericDataCatalogEntry implements DataCatalogEntry {
     private final Map<String, Object> properties = new HashMap<>();
 
     public Map<String, Object> getProperties() {
@@ -28,7 +28,7 @@ public class GenericDataCatalog implements DataCatalog {
     }
 
     @Override
-    public DataAddress getPropertiesForEntity(String id) {
+    public DataAddress getAddress() {
         return DataAddress.Builder.newInstance()
                 //convert a Map of String-Object to String-String
                 .properties(getProperties().entrySet()
@@ -41,10 +41,10 @@ public class GenericDataCatalog implements DataCatalog {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private final GenericDataCatalog lookup;
+        private final GenericDataCatalogEntry lookup;
 
         private Builder() {
-            lookup = new GenericDataCatalog();
+            lookup = new GenericDataCatalogEntry();
         }
 
         @JsonCreator
@@ -57,7 +57,7 @@ public class GenericDataCatalog implements DataCatalog {
             return this;
         }
 
-        public GenericDataCatalog build() {
+        public GenericDataCatalogEntry build() {
             return lookup;
         }
     }

@@ -12,9 +12,9 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.policy.PolicyRegistry;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
-import com.microsoft.dagx.spi.types.domain.metadata.DataCatalog;
+import com.microsoft.dagx.spi.types.domain.metadata.DataCatalogEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
-import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalog;
+import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalogEntry;
 
 import java.util.List;
 
@@ -52,7 +52,7 @@ public class NifiDemoServiceExtension implements ServiceExtension {
     private void saveDataEntries() {
         MetadataStore metadataStore = context.getService(MetadataStore.class);
 
-        GenericDataCatalog sourceFileCatalog = GenericDataCatalog.Builder.newInstance()
+        GenericDataCatalogEntry sourceFileCatalog = GenericDataCatalogEntry.Builder.newInstance()
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "dagxtfblob")
                 .property(AzureBlobStoreSchema.CONTAINER_NAME, "src-container")
                 .property(AzureBlobStoreSchema.BLOB_NAME, "IMG_1971.jpg")
@@ -60,10 +60,10 @@ public class NifiDemoServiceExtension implements ServiceExtension {
                 .property("type", AzureBlobStoreSchema.TYPE)
                 .build();
 
-        DataEntry<DataCatalog> entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).catalog(sourceFileCatalog).build();
+        DataEntry<DataCatalogEntry> entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).catalog(sourceFileCatalog).build();
         metadataStore.save(entry1);
 
-        DataEntry<DataCatalog> entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalog(sourceFileCatalog).build();
+        DataEntry<DataCatalogEntry> entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalog(sourceFileCatalog).build();
         metadataStore.save(entry2);
     }
 

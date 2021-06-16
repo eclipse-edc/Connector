@@ -22,22 +22,22 @@ class DataEntryTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerSubtypes(TestExtension.class);
 
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id("id").catalog(new TestExtension()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id("id").catalog(new TestExtension()).build();
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, entry);
 
-        @SuppressWarnings("unchecked") DataEntry<DataCatalog> deserialized = mapper.readValue(writer.toString(), DataEntry.class);
+        @SuppressWarnings("unchecked") DataEntry<DataCatalogEntry> deserialized = mapper.readValue(writer.toString(), DataEntry.class);
 
         assertNotNull(deserialized);
-        assertTrue(deserialized.getCatalog() instanceof TestExtension);
+        assertTrue(deserialized.getCatalogEntry() instanceof TestExtension);
         assertEquals("id", deserialized.getId());
     }
 
     @JsonTypeName("dagx:testextensions")
-    public static class TestExtension implements DataCatalog {
+    public static class TestExtension implements DataCatalogEntry {
 
         @Override
-        public DataAddress getPropertiesForEntity(String id) {
+        public DataAddress getAddress() {
             return null;
         }
     }

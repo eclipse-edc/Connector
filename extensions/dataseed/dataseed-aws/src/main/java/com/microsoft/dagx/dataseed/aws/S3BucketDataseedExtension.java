@@ -26,7 +26,7 @@ public class S3BucketDataseedExtension implements ServiceExtension {
     private static final String REGION = Region.US_EAST_1.toString();
     private static final String BUCKET_NAME = "dagx-src-bucket";
     private static final String TEST_FILE_NAME = "donald.png";
-    private static final String TEST_FILE_NAME2 = "donald.png";
+    private static final String TEST_FILE_NAME2 = "dagobert.png";
     private Monitor monitor;
     private S3AsyncClient s3Client;
 
