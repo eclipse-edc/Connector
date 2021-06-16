@@ -29,18 +29,18 @@ public class PolicyDataSeederExtension implements ServiceExtension {
         monitor = context.getMonitor();
         this.context = context;
 
-        monitor.info("Initialized Nifi Demo extension");
+        monitor.info("Initialized Policy DataSeeder extension");
     }
 
     @Override
     public void start() {
         savePolicies();
-        monitor.info("Started Nifi Demo extension");
+        monitor.info("Started Policy DataSeeder extension");
     }
 
     @Override
     public void shutdown() {
-        monitor.info("Shutdown Nifi Demo extension");
+        monitor.info("Shutdown Policy DataSeeder extension");
     }
 
 

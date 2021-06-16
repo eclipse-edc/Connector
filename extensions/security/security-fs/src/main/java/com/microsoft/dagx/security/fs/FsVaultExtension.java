@@ -6,10 +6,10 @@
 package com.microsoft.dagx.security.fs;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.security.Vault;
-import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.system.VaultExtension;
 
 import java.io.IOException;
@@ -30,7 +30,7 @@ public class FsVaultExtension implements VaultExtension {
     private CertificateResolver certificateResolver;
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
+    public void initialize(Monitor monitor) {
         vault = initializeVault();
 
         KeyStore keyStore = loadKeyStore();

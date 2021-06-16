@@ -49,7 +49,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     public void initialize() {
         configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
-        configurationExtensions.forEach(ext -> ext.initialize(this));
+        configurationExtensions.forEach(ext -> ext.initialize(monitor));
     }
 
     @Override

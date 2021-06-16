@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.security.azure;
 
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.CertificateResolver;
 import com.microsoft.dagx.spi.security.PrivateKeyResolver;
 import com.microsoft.dagx.spi.security.Vault;
@@ -19,8 +20,12 @@ public class AzureVaultExtension implements VaultExtension {
     private Vault vault;
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
+    public void initialize(Monitor monitor) {
+        monitor.debug("AzureVaultExtension: general initialization complete");
+    }
 
+    @Override
+    public void intializeVault(ServiceExtensionContext context) {
         String clientId = context.getSetting("dagx.vault.clientid", null);
         if (isNullOrEmpty(clientId)) {
             throw new AzureVaultException("'dagx.vault.clientid' must be supplied but was null!");
@@ -42,6 +47,7 @@ public class AzureVaultExtension implements VaultExtension {
         }
 
         vault = AzureVault.authenticateWithCertificate(context.getMonitor(), clientId, tenantId, certPath, keyVaultName);
+        context.getMonitor().info("AzureVaultExtension: authentication/initialization complete.");
     }
 
     @Override

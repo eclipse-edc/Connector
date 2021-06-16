@@ -6,8 +6,8 @@
 package com.microsoft.dagx.configuration.fs;
 
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ConfigurationExtension;
-import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ public class FsConfigurationExtension implements ConfigurationExtension {
     }
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
+    public void initialize(Monitor monitor) {
         var configPath = configFile != null ? configFile : Paths.get(CONFIG_LOCATION);
         var monitor = context.getMonitor();
         if (!Files.exists(configPath)) {

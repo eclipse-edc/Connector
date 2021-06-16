@@ -44,7 +44,8 @@ public class ExtensionLoader {
             vaultExtension = new NullVaultExtension();
             context.getMonitor().info("Secrets vault not configured. Defaulting to null vault.");
         }
-        vaultExtension.initialize(context);
+        vaultExtension.initialize(context.getMonitor());
+        vaultExtension.intializeVault(context);
         context.registerService(Vault.class, vaultExtension.getVault());
         context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
         context.registerService(CertificateResolver.class, vaultExtension.getCertificateResolver());
