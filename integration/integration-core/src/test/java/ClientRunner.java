@@ -57,9 +57,11 @@ public class ClientRunner {
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
         var artifacts = future.get();
+        var count = 0;
         for (String artifact : artifacts) {
+            System.out.println("processing artifact " + artifact);
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
-            var usOrEuRequest = createRequestAws("us-eu-request", DataEntry.Builder.newInstance().id(artifact).build());
+            var usOrEuRequest = createRequestAws("us-eu-request-" + ++count, DataEntry.Builder.newInstance().id(artifact).build());
 
             processManager.initiateClientRequest(usOrEuRequest);
         }
