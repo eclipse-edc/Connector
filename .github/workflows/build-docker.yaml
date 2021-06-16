@@ -47,16 +47,26 @@ jobs:
       - name: Build NAR file
         run: ./gradlew nar
 
-      # until improved container support is enabled for the repo, we'll stick with V1 of the action
-      - name: Push to GitHub Packages
-        uses: docker/build-push-action@v1
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
         with:
-          path: external/nifi
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-          registry: docker.pkg.github.com
-          repository: microsoft/data-appliance-gx/nifi
-          tag_with_ref: false
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: external/nifi
+          push: true
+          platforms: linux/amd64,linux/arm64
+          cache-to: type=inline
+          tags: beardyinc/nifi:latest
 
 
         # we can enable the v2 of the docker build once the improved container support has been enabled for the repo:
