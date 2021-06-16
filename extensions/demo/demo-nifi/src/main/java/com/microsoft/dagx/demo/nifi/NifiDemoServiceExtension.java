@@ -60,10 +60,10 @@ public class NifiDemoServiceExtension implements ServiceExtension {
                 .property("type", AzureBlobStoreSchema.TYPE)
                 .build();
 
-        DataEntry<DataCatalogEntry> entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).catalog(sourceFileCatalog).build();
+        DataEntry<DataCatalogEntry> entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).catalogEntry(sourceFileCatalog).build();
         metadataStore.save(entry1);
 
-        DataEntry<DataCatalogEntry> entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalog(sourceFileCatalog).build();
+        DataEntry<DataCatalogEntry> entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalogEntry(sourceFileCatalog).build();
         metadataStore.save(entry2);
     }
 

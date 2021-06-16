@@ -37,7 +37,7 @@ class ObjectStorageDefinitionClientGeneratorTest {
                 .property(AzureBlobStoreSchema.CONTAINER_NAME, "test-container")
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
-        var entry = DataEntry.Builder.newInstance().catalog(GenericDataCatalogEntry.Builder.newInstance().build())
+        var entry = DataEntry.Builder.newInstance().catalogEntry(GenericDataCatalogEntry.Builder.newInstance().build())
                 .build();
         var dr = DataRequest.Builder.newInstance().dataDestination(destination)
                 .dataEntry(entry).build();
@@ -58,7 +58,7 @@ class ObjectStorageDefinitionClientGeneratorTest {
         DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
-        var entry = DataEntry.Builder.newInstance().catalog(GenericDataCatalogEntry.Builder.newInstance().build())
+        var entry = DataEntry.Builder.newInstance().catalogEntry(GenericDataCatalogEntry.Builder.newInstance().build())
                 .build();
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination)
                 .dataEntry(entry).build();

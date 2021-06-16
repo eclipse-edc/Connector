@@ -18,7 +18,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 public class DataEntry<T extends DataCatalogEntry> {
     private String id;
     private String policyId;
-    private T catalog;
+    private T catalogEntry;
 
     private DataEntry() {
     }
@@ -32,7 +32,7 @@ public class DataEntry<T extends DataCatalogEntry> {
     }
 
     public T getCatalogEntry() {
-        return catalog;
+        return catalogEntry;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -49,8 +49,8 @@ public class DataEntry<T extends DataCatalogEntry> {
             return new Builder<>();
         }
 
-        public Builder<K> catalog(K extensions) {
-            dataEntry.catalog = extensions;
+        public Builder<K> catalogEntry(K extensions) {
+            dataEntry.catalogEntry = extensions;
             return this;
         }
 

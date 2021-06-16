@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.spi.types.domain.metadata;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
@@ -22,7 +23,7 @@ class DataEntryTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerSubtypes(TestExtension.class);
 
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id("id").catalog(new TestExtension()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id("id").catalogEntry(new TestExtension()).build();
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, entry);
 
@@ -37,6 +38,7 @@ class DataEntryTest {
     public static class TestExtension implements DataCatalogEntry {
 
         @Override
+        @JsonIgnore
         public DataAddress getAddress() {
             return null;
         }

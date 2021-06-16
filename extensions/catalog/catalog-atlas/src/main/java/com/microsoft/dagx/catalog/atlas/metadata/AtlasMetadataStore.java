@@ -64,7 +64,7 @@ public class AtlasMetadataStore implements MetadataStore {
         return DataEntry.Builder.newInstance()
                 .id(StringUtils.toString(entity.getAttribute("name")))
                 .policyId(policyId)
-                .catalog(new AtlasDataCatalogEntry(address))
+                .catalogEntry(new AtlasDataCatalogEntry(address))
                 .build();
 
     }

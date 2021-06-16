@@ -306,7 +306,7 @@ public class NifiDataFlowControllerTest {
                 .property("container", containerName)
                 .property("account", storageAccount)
                 .build());
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalog(lookup).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(lookup).build();
 
         // connect the "source" (i.e. the lookup) and the "destination"
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -341,7 +341,7 @@ public class NifiDataFlowControllerTest {
     void initiateFlow_withInMemCatalog() throws InterruptedException {
 
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalog(createAzureCatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -378,7 +378,7 @@ public class NifiDataFlowControllerTest {
         lookup.getProperties().replace("blobname", "notexist.png");
         DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(lookup)
+                .catalogEntry(lookup)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -405,7 +405,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("Don't transfer if no creds are found in vault")
     void initiateFlow_noCredsFoundInVault() {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().catalog(createAzureCatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().catalogEntry(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -428,7 +428,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("transfer from Azure Blob to S3")
     void transfer_fromAzureBlob_toS3() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalog(createAzureCatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -462,7 +462,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("transfer from S3 to Azure Blob")
     void transfer_fromS3_toAzureBlob() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalog(createS3CatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createS3CatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -496,7 +496,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("transfer from S3 to S3")
     void transfer_fromS3_toS3() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalog(createS3CatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createS3CatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -529,7 +529,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("transfer from Azure Blob to Azure blob")
     void transfer_fromAzureBlob_toAzureBlob() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalog(createAzureCatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -573,7 +573,7 @@ public class NifiDataFlowControllerTest {
         dataEntry.getProperties().replace("blobname", "[\"" + blobName + "\", \"" + secondBlobName + "\"]");
         DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(dataEntry)
+                .catalogEntry(dataEntry)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -614,7 +614,7 @@ public class NifiDataFlowControllerTest {
 
         DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(dataEntry)
+                .catalogEntry(dataEntry)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -657,7 +657,7 @@ public class NifiDataFlowControllerTest {
         dataEntry.getProperties().remove("blobname");
         DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(dataEntry)
+                .catalogEntry(dataEntry)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -701,7 +701,7 @@ public class NifiDataFlowControllerTest {
         dataEntry.getProperties().remove("blobname");
         DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(dataEntry)
+                .catalogEntry(dataEntry)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()

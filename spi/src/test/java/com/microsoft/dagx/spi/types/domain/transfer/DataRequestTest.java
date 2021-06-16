@@ -21,7 +21,7 @@ class DataRequestTest {
     @Test
     void verifyNoDestination() {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().catalog(GenericDataCatalogEntry.Builder.newInstance().build()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().catalogEntry(GenericDataCatalogEntry.Builder.newInstance().build()).build();
 
         Assertions.assertThrows(IllegalArgumentException.class, () -> DataRequest.Builder.newInstance().id(id).dataEntry(entry).build());
     }
