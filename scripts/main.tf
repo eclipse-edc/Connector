@@ -180,49 +180,49 @@ resource "azurerm_key_vault_secret" "atlas-user" {
   name         = "atlas-username"
   value        = "admin"
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
-  depends_on = [azurerm_role_assignment.current-user]
+  depends_on   = [azurerm_role_assignment.current-user]
 }
 
 resource "azurerm_key_vault_secret" "atlas-password" {
   name         = "atlas-password"
   value        = "admin"
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
-  depends_on = [azurerm_role_assignment.current-user]
+  depends_on   = [azurerm_role_assignment.current-user]
 }
 
 resource "azurerm_key_vault_secret" "aws-keyid" {
   name         = "dagx-aws-access-key"
   value        = aws_iam_access_key.dagx_access_key.id
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
-  depends_on = [azurerm_role_assignment.current-user]
+  depends_on   = [azurerm_role_assignment.current-user]
 }
 
 resource "azurerm_key_vault_secret" "aws-secret" {
   name         = "dagx-aws-secret-access-key"
   value        = aws_iam_access_key.dagx_access_key.secret
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
-  depends_on = [azurerm_role_assignment.current-user]
+  depends_on   = [azurerm_role_assignment.current-user]
 }
 
 resource "azurerm_key_vault_secret" "aws-credentials" {
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
   name         = "aws-credentials"
   value        = jsonencode({ "accessKeyId" = aws_iam_access_key.dagx_access_key.id, "secretAccessKey" = aws_iam_access_key.dagx_access_key.secret })
-  depends_on = [azurerm_role_assignment.current-user]
+  depends_on   = [azurerm_role_assignment.current-user]
 }
 
 resource "azurerm_key_vault_secret" "blobstorekey" {
   name         = "${azurerm_storage_account.dagxblobstore.name}-key1"
   value        = azurerm_storage_account.dagxblobstore.primary_access_key
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
-  depends_on = [azurerm_role_assignment.current-user]
+  depends_on   = [azurerm_role_assignment.current-user]
 }
 
 resource "azurerm_key_vault_secret" "nifi-credentials" {
   name         = "nifi-credentials"
   value        = "Basic dGVzdHVzZXJAZ2FpYXguY29tOmdYcHdkIzIwMiE="
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
-  depends_on = [azurerm_role_assignment.current-user]
+  depends_on   = [azurerm_role_assignment.current-user]
 }
 
 # temporarily deploy nifi in a container as well as K8s was unstable
