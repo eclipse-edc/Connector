@@ -117,7 +117,7 @@ resource "azuread_application" "dagx-terraform-app" {
 resource "azuread_application_certificate" "dagx-terraform-app-cert" {
   type                  = "AsymmetricX509Cert"
   application_object_id = azuread_application.dagx-terraform-app.id
-  value                 = file("cert.pem")
+  value                 = var.CERTIFICATE
   end_date_relative     = "2400h"
 }
 

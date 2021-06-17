@@ -34,3 +34,8 @@ variable "backend_account_key" {
   type        = string
   description = "Access key of the storage account that holds the terraform state and the certificate file share."
 }
+
+variable "CERTIFICATE" {
+  type = string
+  description = "private key file for the primary azure app SP"
+}
