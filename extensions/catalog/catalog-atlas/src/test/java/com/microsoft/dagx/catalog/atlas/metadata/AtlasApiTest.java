@@ -40,7 +40,7 @@ public class AtlasApiTest {
 
     @BeforeEach
     void setup() throws IOException {
-        baseUrl = propOrEnv("atlas.url", baseUrl);
+        baseUrl = propOrEnv("dagx.atlas.url", baseUrl);
         username = propOrEnv("atlas.username", username);
         password = propOrEnv("atlas.password", password);
 

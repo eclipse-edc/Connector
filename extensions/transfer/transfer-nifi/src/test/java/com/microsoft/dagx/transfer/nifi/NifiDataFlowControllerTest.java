@@ -11,10 +11,8 @@ import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.microsoft.dagx.catalog.atlas.dataseed.AzureBlobFileEntityBuilder;
-import com.microsoft.dagx.catalog.atlas.metadata.AtlasApi;
-import com.microsoft.dagx.catalog.atlas.metadata.AtlasApiImpl;
-import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataCatalog;
+import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataCatalogEntry;
+import com.microsoft.dagx.dataseed.nifi.api.NifiApiClient;
 import com.microsoft.dagx.monitor.ConsoleMonitor;
 import com.microsoft.dagx.monitor.MonitorProvider;
 import com.microsoft.dagx.schema.SchemaRegistry;
@@ -27,12 +25,11 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.types.TypeManager;
-import com.microsoft.dagx.spi.types.domain.metadata.DataCatalog;
+import com.microsoft.dagx.spi.types.domain.metadata.DataCatalogEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
-import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalog;
+import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalogEntry;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
-import com.microsoft.dagx.transfer.nifi.api.NifiApiClient;
 import com.microsoft.dagx.transfer.provision.azure.AzureSasToken;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
@@ -53,7 +50,10 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
@@ -67,8 +67,7 @@ public class NifiDataFlowControllerTest {
     private final static String storageAccount = "dagxblobstoreitest";
     private final static String atlasUsername = "admin";
     private final static String atlasPassword = "admin";
-    private static String atlasApiUrl;
-    private static String nifiContentlistenerHost;
+    private static String nifiFlowHost;
     private static String s3BucketName = "dagx-itest";
     private static String s3AccessKeyId;
     private static String s3SecretAccessKey;
@@ -81,6 +80,7 @@ public class NifiDataFlowControllerTest {
     private static BlobServiceClient blobServiceClient;
     private static String secondBlobName;
     private static Monitor monitor;
+    private static String nifiApiHost;
     private NifiDataFlowController controller;
     private Vault vault;
 
@@ -100,9 +100,8 @@ public class NifiDataFlowControllerTest {
 
         var host = propOrEnv("NIFI_URL", DEFAULT_NIFI_HOST);
 
-        String nifiApiHost = host + ":8080";
-        nifiContentlistenerHost = host + ":8888";
-        atlasApiUrl = propOrEnv("ATLAS_URL", "http://localhost:21000");
+        nifiApiHost = host + ":8080";
+        nifiFlowHost = host + ":8888";
 
         s3AccessKeyId = propOrEnv("S3_ACCESS_KEY_ID", null);
         if (s3AccessKeyId == null) {
@@ -118,7 +117,7 @@ public class NifiDataFlowControllerTest {
 
         httpClient = new OkHttpClient.Builder().build();
 
-        var f = Thread.currentThread().getContextClassLoader().getResource("TwoClouds.xml");
+        var f = Thread.currentThread().getContextClassLoader().getResource("ThreeClouds.xml");
         var file = new File(Objects.requireNonNull(f).toURI());
         NifiApiClient client = new NifiApiClient(nifiApiHost, typeManager, httpClient);
         String processGroup = "root";
@@ -129,12 +128,6 @@ public class NifiDataFlowControllerTest {
             System.out.println("prepare - instantiate template in nifi");
             client.instantiateTemplate(templateId);
             System.out.println("prepare - setup variable registry");
-            var pg = client.getProcessGroup(processGroup);
-            try {
-                client.updateVariableRegistry(processGroup, Map.of("s3.accessKeyId", s3AccessKeyId, "s3.secretAccessKey", s3SecretAccessKey), pg.revision);
-            } catch (Exception ex) {
-                System.out.println("prepare - creating variable registry failed: " + ex.getMessage());
-            }
         } catch (DagxException ignored) {
         } finally {
             System.out.println("prepare - start controller service");
@@ -267,7 +260,9 @@ public class NifiDataFlowControllerTest {
         System.out.println("");
 
 
-        NifiTransferManagerConfiguration config = NifiTransferManagerConfiguration.Builder.newInstance().url(nifiContentlistenerHost)
+        NifiTransferManagerConfiguration config = NifiTransferManagerConfiguration.Builder.newInstance()
+                .url(nifiApiHost)
+                .flowUrl(nifiFlowHost)
                 .build();
         typeManager.registerTypes(DataRequest.class);
 
@@ -281,7 +276,7 @@ public class NifiDataFlowControllerTest {
         var tokenJson = typeManager.writeValueAsString(new AzureSasToken(sharedAccessSignature, 0));
         expect(vault.resolveSecret(storageAccount + "-key1")).andReturn(tokenJson).anyTimes();
 
-        var token = Map.of("accessKeyId", "AKIAY2XSTIMWG2HEKF77", "secretAccessKey", "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", "sessionToken", "");
+        var token = Map.of("accessKeyId", s3AccessKeyId, "secretAccessKey", s3SecretAccessKey, "sessionToken", "");
         expect(vault.resolveSecret(s3BucketName)).andReturn(typeManager.writeValueAsString(token)).anyTimes();
 
         replay(vault);
@@ -301,25 +296,17 @@ public class NifiDataFlowControllerTest {
     void initiateFlow_withAtlasCatalog() throws InterruptedException {
 
         // create custom atlas type and an instance
-        String id;
-        var schema = new AzureBlobStoreSchema();
-        AtlasApi atlasApi = new AtlasApiImpl(atlasApiUrl, atlasUsername, atlasPassword, httpClient, typeManager);
-        try {
-
-            atlasApi.createCustomTypes(schema.getName(), Set.of("DataSet"), new ArrayList<>(schema.getAttributes()));
-        } catch (Exception ignored) {
-        }
-        id = atlasApi.createEntity(schema.getName(), AzureBlobFileEntityBuilder.newInstance()
-                .withDescription("This is a test description")
-                .withAccount(storageAccount)
-                .withContainer(containerName)
-                .withBlobname(blobName)
-                .withKeyName(storageAccount + "-key1")
-                .build());
+        String id = UUID.randomUUID().toString();
 
         // perform the actual source file properties in Apache Atlas
-        var lookup = new AtlasDataCatalog(atlasApi);
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(lookup).build();
+        var lookup = new AtlasDataCatalogEntry(DataAddress.Builder.newInstance()
+                .type(AzureBlobStoreSchema.TYPE)
+                .keyName(storageAccount + "-key1")
+                .property("blobname", blobName)
+                .property("container", containerName)
+                .property("account", storageAccount)
+                .build());
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(lookup).build();
 
         // connect the "source" (i.e. the lookup) and the "destination"
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -339,8 +326,6 @@ public class NifiDataFlowControllerTest {
         //assert
         assertEquals(ResponseStatus.OK, response.getStatus());
 
-        atlasApi.deleteEntities(Collections.singletonList(id));
-
         // will fail if new blob is not there after 60 seconds
         while (listBlobs(containerName).stream().noneMatch(blob -> blob.getName().equals(id + ".complete"))) {
             Thread.sleep(500);
@@ -356,7 +341,7 @@ public class NifiDataFlowControllerTest {
     void initiateFlow_withInMemCatalog() throws InterruptedException {
 
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createAzureCatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -389,11 +374,11 @@ public class NifiDataFlowControllerTest {
     @DisplayName("Don't transfer if source not found")
     void initiateFlow_sourceNotFound() {
         String id = UUID.randomUUID().toString();
-        GenericDataCatalog lookup = createAzureCatalogEntry();
+        GenericDataCatalogEntry lookup = createAzureCatalogEntry();
         lookup.getProperties().replace("blobname", "notexist.png");
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(lookup)
+                .catalogEntry(lookup)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -420,7 +405,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("Don't transfer if no creds are found in vault")
     void initiateFlow_noCredsFoundInVault() {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().catalog(createAzureCatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().catalogEntry(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -443,7 +428,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("transfer from Azure Blob to S3")
     void transfer_fromAzureBlob_toS3() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createAzureCatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -477,7 +462,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("transfer from S3 to Azure Blob")
     void transfer_fromS3_toAzureBlob() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createS3CatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createS3CatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -511,7 +496,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("transfer from S3 to S3")
     void transfer_fromS3_toS3() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createS3CatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createS3CatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -544,7 +529,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("transfer from Azure Blob to Azure blob")
     void transfer_fromAzureBlob_toAzureBlob() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id(id).catalog(createAzureCatalogEntry()).build();
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id(id).catalogEntry(createAzureCatalogEntry()).build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(id)
@@ -578,7 +563,7 @@ public class NifiDataFlowControllerTest {
     @DisplayName("Transfer several files from Azure Blob to Azure Blob")
     void transfer_multiple_fromAzureToAzure() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        GenericDataCatalog dataEntry = createAzureCatalogEntry();
+        GenericDataCatalogEntry dataEntry = createAzureCatalogEntry();
 
 
         final var destContainerName = "dagx-nifi-dest-" + System.currentTimeMillis();
@@ -586,9 +571,9 @@ public class NifiDataFlowControllerTest {
 
 
         dataEntry.getProperties().replace("blobname", "[\"" + blobName + "\", \"" + secondBlobName + "\"]");
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(dataEntry)
+                .catalogEntry(dataEntry)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -623,13 +608,13 @@ public class NifiDataFlowControllerTest {
     @DisplayName("Transfer multiple files from S3 to Azure Blob")
     void transfer_multiple_fromS3_toAzure() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        GenericDataCatalog dataEntry = createS3CatalogEntry();
+        GenericDataCatalogEntry dataEntry = createS3CatalogEntry();
 
         dataEntry.getProperties().replace("blobname", "[\"" + blobName + "\", \"" + secondBlobName + "\"]");
 
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(dataEntry)
+                .catalogEntry(dataEntry)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -663,16 +648,16 @@ public class NifiDataFlowControllerTest {
     @DisplayName("Transfer all files from Azure Blob to Azure Blob")
     void transfer_all_fromAzureToAzure() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        GenericDataCatalog dataEntry = createAzureCatalogEntry();
+        GenericDataCatalogEntry dataEntry = createAzureCatalogEntry();
 
         final var destContainerName = "dagx-nifi-dest-" + System.currentTimeMillis();
         BlobContainerClient container = blobServiceClient.createBlobContainer(destContainerName);
 
 
         dataEntry.getProperties().remove("blobname");
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(dataEntry)
+                .catalogEntry(dataEntry)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -707,16 +692,16 @@ public class NifiDataFlowControllerTest {
     @DisplayName("Transfer all files from S3 to S3")
     void transfer_all_fromS3_ToS3() throws InterruptedException {
         String id = UUID.randomUUID().toString();
-        GenericDataCatalog dataEntry = createS3CatalogEntry();
+        GenericDataCatalogEntry dataEntry = createS3CatalogEntry();
 
         final var destBucketName = "dagx-nifi-dest-" + System.currentTimeMillis();
         createBucket(destBucketName);
 
 
         dataEntry.getProperties().remove("blobname");
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance()
+        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance()
                 .id(id)
-                .catalog(dataEntry)
+                .catalogEntry(dataEntry)
                 .build();
 
         DataRequest dataRequest = DataRequest.Builder.newInstance()
@@ -752,8 +737,8 @@ public class NifiDataFlowControllerTest {
     }
 
     /// HELPERS ///
-    private GenericDataCatalog createAzureCatalogEntry() {
-        return GenericDataCatalog.Builder.newInstance()
+    private GenericDataCatalogEntry createAzureCatalogEntry() {
+        return GenericDataCatalogEntry.Builder.newInstance()
                 .property("type", "AzureStorage")
                 .property("account", storageAccount)
                 .property("container", containerName)
@@ -762,8 +747,8 @@ public class NifiDataFlowControllerTest {
 
     }
 
-    private GenericDataCatalog createS3CatalogEntry() {
-        return GenericDataCatalog.Builder.newInstance()
+    private GenericDataCatalogEntry createS3CatalogEntry() {
+        return GenericDataCatalogEntry.Builder.newInstance()
                 .property("type", "AmazonS3")
                 .property("region", "us-east-1")
                 .property("bucketName", s3BucketName)

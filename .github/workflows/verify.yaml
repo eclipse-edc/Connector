@@ -9,11 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
+        id: setup-jdk
         uses: actions/setup-java@v1
         with:
           java-version: '11'
 
       - name: Gradle Test Core
+        id: test
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
           AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
@@ -23,6 +25,7 @@ jobs:
         run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check -x :external:nifi:processors:check
 
       - name: Publish Unit Test Results
+        id: publish-results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
@@ -48,6 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
+        id: setup-jdk
         uses: actions/setup-java@v1
         with:
           java-version: '11'
@@ -62,6 +66,7 @@ jobs:
         run: ./gradlew extensions:transfer:transfer-nifi:check
 
       - name: Test Atlas Integration
+        id: atlas-integration
         run: ./gradlew extensions:catalog:catalog-atlas:check
 
 
@@ -76,6 +81,7 @@ jobs:
           java-version: '11'
 
       - name: Test Custom Nifi Processors
+        id: custom-nifi-processors
         env:
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
@@ -83,6 +89,7 @@ jobs:
         run: ./gradlew external:nifi:processors:check
 
       - name: Test Azure Vault Integration
+        id: azure-vault-tests
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
         run: ./gradlew extensions:security:security-azure:check

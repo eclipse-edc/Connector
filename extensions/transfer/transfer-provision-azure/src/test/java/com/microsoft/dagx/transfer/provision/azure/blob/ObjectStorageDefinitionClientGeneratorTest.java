@@ -8,7 +8,7 @@ package com.microsoft.dagx.transfer.provision.azure.blob;
 
 import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
-import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalog;
+import com.microsoft.dagx.spi.types.domain.metadata.GenericDataCatalogEntry;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
@@ -37,7 +37,7 @@ class ObjectStorageDefinitionClientGeneratorTest {
                 .property(AzureBlobStoreSchema.CONTAINER_NAME, "test-container")
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
-        var entry = DataEntry.Builder.newInstance().catalog(GenericDataCatalog.Builder.newInstance().build())
+        var entry = DataEntry.Builder.newInstance().catalogEntry(GenericDataCatalogEntry.Builder.newInstance().build())
                 .build();
         var dr = DataRequest.Builder.newInstance().dataDestination(destination)
                 .dataEntry(entry).build();
@@ -58,7 +58,7 @@ class ObjectStorageDefinitionClientGeneratorTest {
         DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
-        var entry = DataEntry.Builder.newInstance().catalog(GenericDataCatalog.Builder.newInstance().build())
+        var entry = DataEntry.Builder.newInstance().catalogEntry(GenericDataCatalogEntry.Builder.newInstance().build())
                 .build();
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination)
                 .dataEntry(entry).build();

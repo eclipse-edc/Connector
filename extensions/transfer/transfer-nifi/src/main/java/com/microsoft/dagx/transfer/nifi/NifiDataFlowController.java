@@ -11,7 +11,7 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowController;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowInitiateResponse;
 import com.microsoft.dagx.spi.types.TypeManager;
-import com.microsoft.dagx.spi.types.domain.metadata.DataCatalog;
+import com.microsoft.dagx.spi.types.domain.metadata.DataCatalogEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
@@ -46,7 +46,7 @@ public class NifiDataFlowController implements DataFlowController {
     private final NifiTransferEndpointConverter converter;
 
     public NifiDataFlowController(NifiTransferManagerConfiguration configuration, TypeManager typeManager, Monitor monitor, Vault vault, OkHttpClient httpClient, NifiTransferEndpointConverter converter) {
-        baseUrl = configuration.getUrl();
+        baseUrl = configuration.getFlowUrl();
         this.typeManager = typeManager;
         this.monitor = monitor;
         this.vault = vault;
@@ -74,8 +74,8 @@ public class NifiDataFlowController implements DataFlowController {
         }
 
         DataEntry<?> dataEntry = dataRequest.getDataEntry();
-        DataCatalog catalog = dataEntry.getCatalog();
-        var sourceAddress = catalog.getPropertiesForEntity(dataEntry.getId());
+        DataCatalogEntry catalog = dataEntry.getCatalogEntry();
+        var sourceAddress = catalog.getAddress();
         // the "keyName" entry should always be there, regardless of the source storage system
         var sourceKeyName = sourceAddress.getKeyName();
 

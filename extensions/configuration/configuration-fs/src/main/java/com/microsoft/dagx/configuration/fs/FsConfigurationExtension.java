@@ -27,10 +27,8 @@ import static java.lang.String.format;
  */
 public class FsConfigurationExtension implements ConfigurationExtension {
     private static final String CONFIG_LOCATION = propOrEnv("dagx.fs.config", "dagx-configuration.properties");
-
-    private Path configFile;
-
     private final Map<String, String> propertyCache = new HashMap<>();
+    private Path configFile;
 
     /**
      * Default ctor - required for extension loading

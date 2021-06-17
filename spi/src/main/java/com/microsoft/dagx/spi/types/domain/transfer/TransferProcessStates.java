@@ -6,7 +6,6 @@
 package com.microsoft.dagx.spi.types.domain.transfer;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * Defines the states a client and provider transfer process can be in.
@@ -32,8 +31,8 @@ public enum TransferProcessStates {
         this.code = code;
     }
 
-    public static Optional<TransferProcessStates> from(int code) {
-        return Arrays.stream(values()).filter(tps -> tps.code == code).findFirst();
+    public static TransferProcessStates from(int code) {
+        return Arrays.stream(values()).filter(tps -> tps.code == code).findFirst().orElse(null);
     }
 
     public int code() {

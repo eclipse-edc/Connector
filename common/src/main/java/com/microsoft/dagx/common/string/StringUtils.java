@@ -24,4 +24,8 @@ public class StringUtils {
     public static boolean equalsIgnoreCase(String str1, String str2) {
         return str1 == null ? str2 == null : str1.equalsIgnoreCase(str2);
     }
+
+    public static String toString(Object nullable) {
+        return nullable != null ? nullable.toString() : null;
+    }
 }

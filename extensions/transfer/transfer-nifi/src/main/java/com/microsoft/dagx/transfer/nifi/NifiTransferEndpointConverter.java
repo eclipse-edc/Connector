@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.transfer.nifi;
 
+import com.microsoft.dagx.common.string.StringUtils;
 import com.microsoft.dagx.schema.Schema;
 import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.schema.SchemaValidationException;
@@ -54,7 +55,7 @@ public class NifiTransferEndpointConverter {
         // this requireds that the credentials are stored as JSON-encoded Map
 
         Map<String, ?> secretTokenAsMap = typeManager.readValue(secret, Map.class);
-        properties.putAll(secretTokenAsMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().toString())));
+        properties.putAll(secretTokenAsMap.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, e -> StringUtils.toString(e.getValue()))));
 
         return NifiTransferEndpoint.NifiTransferEndpointBuilder.newInstance()
                 .type(type)

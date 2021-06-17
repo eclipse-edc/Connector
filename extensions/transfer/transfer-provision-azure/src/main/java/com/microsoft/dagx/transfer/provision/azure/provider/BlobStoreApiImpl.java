@@ -6,12 +6,17 @@
 
 package com.microsoft.dagx.transfer.provision.azure.provider;
 
+import com.azure.core.util.BinaryData;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
 import com.azure.storage.blob.sas.BlobContainerSasPermission;
 import com.azure.storage.blob.sas.BlobServiceSasSignatureValues;
 import com.azure.storage.common.StorageSharedKeyCredential;
+import com.azure.storage.common.sas.AccountSasPermission;
+import com.azure.storage.common.sas.AccountSasResourceType;
+import com.azure.storage.common.sas.AccountSasService;
+import com.azure.storage.common.sas.AccountSasSignatureValues;
 import com.microsoft.dagx.spi.security.Vault;
 
 import java.time.OffsetDateTime;
@@ -56,6 +61,22 @@ public class BlobStoreApiImpl implements BlobStoreApi {
     @Override
     public List<BlobItem> listContainer(String accountName, String containerName) {
         return getBlobServiceClient(accountName).getBlobContainerClient(containerName).listBlobs().stream().collect(Collectors.toList());
+    }
+
+    @Override
+    public void putBlob(String accountName, String containerName, String blobName, byte[] data) {
+        final BlobServiceClient blobServiceClient = getBlobServiceClient(accountName);
+        blobServiceClient.getBlobContainerClient(containerName).getBlobClient(blobName).upload(BinaryData.fromBytes(data), true);
+    }
+
+    @Override
+    public String createAccountSas(String accountName, String containerName, String permissionSpec, OffsetDateTime expiry) {
+        AccountSasPermission permissions = AccountSasPermission.parse(permissionSpec);
+
+        AccountSasService services = AccountSasService.parse("b");
+        AccountSasResourceType resourceTypes = AccountSasResourceType.parse("co");
+        AccountSasSignatureValues vals = new AccountSasSignatureValues(expiry, permissions, services, resourceTypes);
+        return getBlobServiceClient(accountName).generateAccountSas(vals);
     }
 
     private BlobServiceClient getBlobServiceClient(String accountName) {

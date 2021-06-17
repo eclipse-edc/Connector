@@ -10,16 +10,25 @@ package com.microsoft.dagx.transfer.nifi;
  */
 public class NifiTransferManagerConfiguration {
     private String url;
+    private String flowUrl;
+
+    private NifiTransferManagerConfiguration() {
+    }
 
     public String getUrl() {
         return url;
     }
 
-    private NifiTransferManagerConfiguration() {
+    public String getFlowUrl() {
+        return flowUrl;
     }
 
     public static class Builder {
-        private NifiTransferManagerConfiguration configuration;
+        private final NifiTransferManagerConfiguration configuration;
+
+        private Builder() {
+            configuration = new NifiTransferManagerConfiguration();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -37,8 +46,9 @@ public class NifiTransferManagerConfiguration {
             return configuration;
         }
 
-        private Builder() {
-            configuration = new NifiTransferManagerConfiguration();
+        public Builder flowUrl(String flowUrl) {
+            configuration.flowUrl = flowUrl;
+            return this;
         }
     }
 }

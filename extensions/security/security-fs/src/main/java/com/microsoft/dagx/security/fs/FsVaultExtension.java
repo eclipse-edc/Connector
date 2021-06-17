@@ -19,10 +19,7 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
-import static com.microsoft.dagx.security.fs.FsConfiguration.KEYSTORE_LOCATION;
-import static com.microsoft.dagx.security.fs.FsConfiguration.KEYSTORE_PASSWORD;
-import static com.microsoft.dagx.security.fs.FsConfiguration.PERSISTENT_VAULT;
-import static com.microsoft.dagx.security.fs.FsConfiguration.VAULT_LOCATION;
+import static com.microsoft.dagx.security.fs.FsConfiguration.*;
 
 /**
  * Bootstraps the file system-based vault extension.

@@ -18,7 +18,8 @@ dependencies {
 
     api(project(":extensions:ids:ids-core"))
 
-    testImplementation(project(":extensions:security:security-fs"))
+    testImplementation(project(":extensions:configuration:configuration-fs"))
+    testImplementation(project(":extensions:security:security-azure"))
     testImplementation(project(":distributions:junit"))
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
 

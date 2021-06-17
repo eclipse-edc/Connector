@@ -33,4 +33,9 @@ public abstract class Schema {
     public AbstractSet<SchemaAttribute> getRequiredAttributes() {
         return getAttributes().stream().filter(SchemaAttribute::isRequired).collect(Collectors.toCollection(LinkedHashSet::new));
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

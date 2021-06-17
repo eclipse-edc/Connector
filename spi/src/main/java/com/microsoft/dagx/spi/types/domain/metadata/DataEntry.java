@@ -15,10 +15,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
  * @param <T> domain-specific extension properties.
  */
 @JsonDeserialize(builder = DataEntry.Builder.class)
-public class DataEntry<T extends DataCatalog> {
+public class DataEntry<T extends DataCatalogEntry> {
     private String id;
     private String policyId;
-    private T catalog;
+    private T catalogEntry;
 
     private DataEntry() {
     }
@@ -31,12 +31,12 @@ public class DataEntry<T extends DataCatalog> {
         return policyId;
     }
 
-    public T getCatalog() {
-        return catalog;
+    public T getCatalogEntry() {
+        return catalogEntry;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder<K extends DataCatalog> {
+    public static class Builder<K extends DataCatalogEntry> {
         private final DataEntry<K> dataEntry;
 
         private Builder() {
@@ -45,12 +45,12 @@ public class DataEntry<T extends DataCatalog> {
         }
 
         @JsonCreator
-        public static <K extends DataCatalog> Builder<K> newInstance() {
+        public static <K extends DataCatalogEntry> Builder<K> newInstance() {
             return new Builder<>();
         }
 
-        public Builder<K> catalog(K extensions) {
-            dataEntry.catalog = extensions;
+        public Builder<K> catalogEntry(K extensions) {
+            dataEntry.catalogEntry = extensions;
             return this;
         }
 

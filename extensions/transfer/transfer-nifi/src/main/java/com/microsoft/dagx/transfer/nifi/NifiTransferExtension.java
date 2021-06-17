@@ -18,9 +18,11 @@ import java.util.Set;
 
 public class NifiTransferExtension implements ServiceExtension {
     @DagxSetting
-    private static final String URL_SETTING = "nifi.url";
+    private static final String URL_SETTING = "dagx.nifi.url";
+    private static final String URL_SETTING_FLOW = "dagx.nifi.flow.url";
 
     private static final String DEFAULT_NIFI_URL = "http://localhost:8080";
+    private static final String DEFAULT_NIFI_FLOW_URL = "http://localhost:8888";
     private static final String PROVIDES_NIFI = "nifi";
 
     private Monitor monitor;
@@ -67,10 +69,11 @@ public class NifiTransferExtension implements ServiceExtension {
         DataFlowManager dataFlowManager = context.getService(DataFlowManager.class);
 
         String url = context.getSetting(URL_SETTING, DEFAULT_NIFI_URL);
+        String flowUrl = context.getSetting(URL_SETTING_FLOW, DEFAULT_NIFI_FLOW_URL);
 
         var httpClient = context.getService(OkHttpClient.class);
 
-        NifiTransferManagerConfiguration configuration = NifiTransferManagerConfiguration.Builder.newInstance().url(url).build();
+        NifiTransferManagerConfiguration configuration = NifiTransferManagerConfiguration.Builder.newInstance().url(url).flowUrl(flowUrl).build();
 
         var converter = context.getService(NifiTransferEndpointConverter.class);
 

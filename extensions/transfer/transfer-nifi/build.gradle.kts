@@ -17,7 +17,7 @@ dependencies {
     implementation(project(":extensions:schema"))
 
     testImplementation(project(":extensions:catalog:catalog-atlas"))
-    testImplementation(project(":extensions:catalog:catalog-atlas-dataseed"))
+    testImplementation(project(":extensions:dataseed"))
     testImplementation(project(":extensions:transfer:transfer-provision-azure"))
 
     // There is an incompatibility between the Amazon SDK, which internally uses httpclient 4.5.4 and

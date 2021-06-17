@@ -132,12 +132,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         for (var process : requestAcked) {
             if (!process.getProvisionedResourceSet().empty()) {
-                monitor.debug("Process " + process.getId() + " is now ongoing");
+
                 if (process.getDataRequest().getTransferType().isFinite()) {
                     process.transitionInProgress();
                 } else {
                     process.transitionStreaming();
                 }
+                monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             } else {
                 monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
             }
