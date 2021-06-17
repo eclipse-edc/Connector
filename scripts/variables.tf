@@ -36,6 +36,6 @@ variable "backend_account_key" {
 }
 
 variable "CERTIFICATE" {
-  type = string
+  type        = string
   description = "private key file for the primary azure app SP"
 }
