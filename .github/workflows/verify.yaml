@@ -9,11 +9,13 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
+        id: setup-jdk
         uses: actions/setup-java@v1
         with:
           java-version: '11'
 
       - name: Gradle Test Core
+        id: test
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
           AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
@@ -23,6 +25,7 @@ jobs:
         run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check -x :external:nifi:processors:check
 
       - name: Publish Unit Test Results
+        id: publish-results
         uses: EnricoMi/publish-unit-test-result-action@v1
         if: always()
         with:
@@ -48,6 +51,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
+        id: setup-jdk
         uses: actions/setup-java@v1
         with:
           java-version: '11'
