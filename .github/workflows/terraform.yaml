@@ -73,20 +73,20 @@ jobs:
 
       - name: Terraform Format
         id: fmt
-        run: terraform fmt -check
+        run: terraform -chdir=scripts fmt -check
 
       - name: Terraform Init
         id: init
-        run: terraform init
+        run: terraform -chdir=scripts init
 
       - name: Terraform Validate
         id: validate
-        run: terraform validate -no-color
+        run: terraform -chdir=scripts validate -no-color
 
       - name: Terraform Plan
         id: plan
         if: github.event_name == 'pull_request'
-        run: terraform plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
+        run: terraform -chdir=scripts plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
         continue-on-error: true
 
       - uses: actions/github-script@0.9.0
@@ -118,4 +118,4 @@ jobs:
 
 #      - name: Terraform Apply
 #        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#        run: terraform apply -auto-approve
+#        run: terraform -chdir=scripts apply -auto-approve

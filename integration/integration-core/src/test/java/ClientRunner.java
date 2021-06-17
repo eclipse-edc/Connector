@@ -35,7 +35,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ExtendWith(DagxExtension.class)
 @Disabled
 public class ClientRunner {
-    private static final String PROVIDER_CONNECTOR = "http://dagx-demo.westeurope.azurecontainer.io:8181";
+    private static final String PROVIDER_CONNECTOR = "http://dev-dagx.westeurope.azurecontainer.io:8181";
     private static final TokenResult US_TOKEN = TokenResult.Builder.newInstance().token("mock-us").build();
     private static final TokenResult EU_TOKEN = TokenResult.Builder.newInstance().token("mock-eu").build();
     private static final DataEntry<?> EU_ARTIFACT = DataEntry.Builder.newInstance().id("test123").build();
