@@ -98,10 +98,11 @@ jobs:
         run: terraform -chdir=scripts plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
 
 
-#      - name: Taint the connector instance
-#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#        run: terraform -chdir=scripts taint azurerm_container_group.connector-instance
+      - name: Taint the connector instance
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform -chdir=scripts taint azurerm_container_group.connector-instance
+        continue-on-error: true
 
-#      - name: Terraform Apply
-#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#        run: terraform -chdir=scripts apply -auto-approve
+      - name: Terraform Apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform -chdir=scripts apply -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}" -auto-approve
