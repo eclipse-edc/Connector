@@ -103,7 +103,9 @@ public class AwsProvisionExtension implements ServiceExtension {
             secretKey = "empty_secret_key";
         }
 
-        vault.storeSecret("aws-credential", context.getTypeManager().writeValueAsString(new AwsSecretToken(accessKey, secretKey)));
+        if (vault.resolveSecret("aws-credentials") == null) {
+            vault.storeSecret("aws-credentials", context.getTypeManager().writeValueAsString(new AwsSecretToken(accessKey, secretKey)));
+        }
         var credentials = AwsBasicCredentials.create(accessKey, secretKey);
 
         return () -> credentials;

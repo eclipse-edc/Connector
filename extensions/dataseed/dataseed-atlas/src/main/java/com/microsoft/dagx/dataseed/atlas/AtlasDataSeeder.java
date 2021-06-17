@@ -113,7 +113,7 @@ public class AtlasDataSeeder {
                     .region("us-east-1")
                     .name("s3-testimage.jpg")
                     .description("this is a file hosted in an S3 bucket")
-                    .keyname("aws-credential")
+                    .keyname("aws-credentials")
                     .policy(policyName)
                     .build());
             entityGuids.add(s3Entity1);
@@ -123,7 +123,7 @@ public class AtlasDataSeeder {
                     .region("us-east-1")
                     .name("s3-anotherimage.jpg")
                     .description("this is another file hosted in an S3 bucket")
-                    .keyname("aws-credential")
+                    .keyname("aws-credentials")
                     .policy(policyName)
                     .build());
             entityGuids.add(s3Entity2);

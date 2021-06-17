@@ -200,6 +200,12 @@ resource "azurerm_key_vault_secret" "aws-secret" {
   key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
 }
 
+resource "azurerm_key_vault_secret" "aws-credentials" {
+  key_vault_id = azurerm_key_vault.dagx-terraform-vault.id
+  name         = "aws-credentials"
+  value        = jsonencode({ "accessKeyId" = aws_iam_access_key.dagx_access_key.id, "secretAccessKey" = aws_iam_access_key.dagx_access_key.secret })
+}
+
 resource "azurerm_key_vault_secret" "blobstorekey" {
   name         = "${azurerm_storage_account.dagxblobstore.name}-key1"
   value        = azurerm_storage_account.dagxblobstore.primary_access_key
@@ -213,13 +219,13 @@ resource "azurerm_key_vault_secret" "nifi-credentials" {
 }
 
 # temporarily deploy nifi in a container as well as K8s was unstable
-resource "azurerm_container_group" "dagx-demo" {
+resource "azurerm_container_group" "connector-instance" {
   name                = "dagx-demo-continst"
   location            = azurerm_resource_group.rg.location
   resource_group_name = azurerm_resource_group.rg.name
   os_type             = "Linux"
   ip_address_type     = "public"
-  dns_name_label      = "dagx-demo"
+  dns_name_label      = "${var.resourcesuffix}-dagx"
   container {
     cpu    = 2
     image  = "beardyinc/dagx-demo:${var.SHORT_SHA}"
@@ -250,12 +256,13 @@ resource "azurerm_container_group" "dagx-demo" {
     }
   }
 }
+
 resource "azurerm_container_group" "dagx-nifi" {
   location            = azurerm_resource_group.rg.location
   name                = "dagx-nifi-continst"
   os_type             = "Linux"
   resource_group_name = azurerm_resource_group.rg.name
-  dns_name_label      = "dagx-nifi"
+  dns_name_label      = "${var.resourcesuffix}-dagx-nifi"
   container {
     cpu    = 4
     image  = "beardyinc/nifi:dagx"
@@ -299,7 +306,7 @@ module "atlas-cluster" {
   source       = "./aks-cluster"
   cluster_name = local.cluster_name_atlas
   location     = var.location
-  dns          = "dagx-atlas"
+  dns          = "${var.resourcesuffix}-dagx-atlas"
 }
 module "atlas-deployment" {
   depends_on = [
