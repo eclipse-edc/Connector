@@ -74,12 +74,6 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v1
-        with:
-          # terraform_version: 0.13.0:
-          cli_config_credentials_token: ${{ secrets.TF_API_TOKEN }}
-
       - name: Terraform Format
         id: fmt
         run: terraform -chdir=scripts fmt -check
@@ -97,12 +91,13 @@ jobs:
         if: github.event_name == 'pull_request'
         run: terraform -chdir=scripts plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
 
+#     deactivated until the GithubActions-User has correct credentials
 
-      - name: Taint the connector instance
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform -chdir=scripts taint azurerm_container_group.connector-instance
-        continue-on-error: true
-
-      - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform -chdir=scripts apply -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}" -auto-approve
+#      - name: Taint the connector instance
+#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#        run: terraform -chdir=scripts taint azurerm_container_group.connector-instance
+#        continue-on-error: true
+#
+#      - name: Terraform Apply
+#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+#        run: terraform -chdir=scripts apply -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}" -auto-approve
