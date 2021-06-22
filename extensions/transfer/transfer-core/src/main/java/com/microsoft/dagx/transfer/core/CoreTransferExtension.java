@@ -11,6 +11,7 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
+import com.microsoft.dagx.spi.transfer.TransferProcessObservable;
 import com.microsoft.dagx.spi.transfer.TransferWaitStrategy;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
@@ -84,6 +85,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
+        context.registerService(TransferProcessObservable.class, processManager);
 
         monitor.info("Initialized Core Transfer extension");
     }

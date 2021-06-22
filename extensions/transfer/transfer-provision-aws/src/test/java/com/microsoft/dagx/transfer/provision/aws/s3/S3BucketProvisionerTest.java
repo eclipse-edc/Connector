@@ -85,6 +85,12 @@ class S3BucketProvisionerTest {
             public void callback(ProvisionedDataDestinationResource resource, @Nullable SecretToken secretToken) {
                 latch.countDown();
             }
+
+            @Override
+            public void deprovisioned(ProvisionedDataDestinationResource resource, Throwable error) {
+                // noop here
+            }
+
         });
 
         provisioner.provision(S3BucketResourceDefinition.Builder.newInstance().id("test").regionId(Region.US_EAST_1.id()).bucketName("test").transferProcessId("test").build());

@@ -7,9 +7,7 @@ package com.microsoft.dagx.transfer.core.transfer;
 
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.monitor.Monitor;
-import com.microsoft.dagx.spi.transfer.TransferInitiateResponse;
-import com.microsoft.dagx.spi.transfer.TransferProcessManager;
-import com.microsoft.dagx.spi.transfer.TransferWaitStrategy;
+import com.microsoft.dagx.spi.transfer.*;
 import com.microsoft.dagx.spi.transfer.flow.DataFlowManager;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
@@ -17,8 +15,7 @@ import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.*;
 
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -26,16 +23,16 @@ import java.util.stream.Collectors;
 
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.CLIENT;
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
-import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.INITIAL;
-import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
+import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates.*;
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 
 /**
  *
  */
-public class TransferProcessManagerImpl implements TransferProcessManager {
+public class TransferProcessManagerImpl implements TransferProcessManager, TransferProcessObservable {
     private final AtomicBoolean active = new AtomicBoolean();
+    private final Map<String, List<TransferProcessListener>> listenerMap;
     private int batchSize = 5;
     private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
@@ -48,6 +45,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private StatusCheckerRegistry statusCheckerRegistry;
 
     private TransferProcessManagerImpl() {
+        listenerMap = new HashMap<>();
+    }
+
+    public Map<String, List<TransferProcessListener>> getListeners() {
+        return listenerMap;
     }
 
     public void start(TransferProcessStore processStore) {
@@ -72,6 +74,28 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     @Override
     public TransferInitiateResponse initiateProviderRequest(DataRequest dataRequest) {
         return initiateRequest(PROVIDER, dataRequest);
+    }
+
+    @Override
+    public void registerListener(String processId, TransferProcessListener listener) {
+        if (listenerMap.containsKey(processId)) {
+            final List<TransferProcessListener> list = listenerMap.get(processId);
+            if (!list.contains(listener)) {
+                list.add(listener);
+            }
+        } else {
+            final ArrayList<TransferProcessListener> list = new ArrayList<>();
+            list.add(listener);
+            listenerMap.put(processId, list);
+        }
+    }
+
+    @Override
+    public void unregister(TransferProcessListener listener) {
+        // unregister from all processes
+        listenerMap.forEach((key, value) -> value.remove(listener));
+        // clear the registration if no more listeners
+        listenerMap.entrySet().removeIf(e -> e.getValue().isEmpty());
     }
 
     private TransferInitiateResponse initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
@@ -99,7 +123,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
                 int finished = checkCompleted();
 
-                if (provisioning + provisioned + sent + finished == 0) {
+                int deprovisioning = checkDeprovisioningRequested();
+
+                if (provisioning + provisioned + sent + finished + deprovisioning == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
                 waitStrategy.success();
@@ -121,6 +147,27 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             }
         }
     }
+
+    /**
+     * Transitions all processes that are in state DEPROVISIONING_REQ and deprovisions their associated
+     * resources. Then they are moved to DEPROVISIONING
+     *
+     * @return the number of transfer processes in DEPROVISIONING_REQ
+     */
+    private int checkDeprovisioningRequested() {
+        List<TransferProcess> processesDeprovisioning = transferProcessStore.nextForState(DEPROVISIONING_REQ.code(), batchSize);
+
+        for (var process : processesDeprovisioning) {
+            process.transitionDeprovisioning();
+            transferProcessStore.update(process);
+            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+            provisionManager.deprovision(process);
+            publishDeprovisioned(process);
+        }
+
+        return processesDeprovisioning.size();
+    }
+
 
     /**
      * Transition all processes, who have provisioned resources, into the IN_PROCRESS or STREAMING status, depending on
@@ -160,28 +207,32 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         for (var process : processesInProgress.stream().filter(p -> p.getType() == CLIENT).collect(Collectors.toList())) {
 
-            //only check resources for which a checker was registered.
-            // todo: maybe error out processes with uncheckable resources??
             List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
-
-            //todo: comment this in if we want to error out uncheckable resources
-//            var resourcesWithNoChecker = resources.stream().filter(resource -> statusCheckerRegistry.resolve(resource) == null).collect(Collectors.toList());
-//            if (!resourcesWithNoChecker.isEmpty()) {
-//                final String violatingResourceClasses = resourcesWithNoChecker.stream().map(r -> r.getClass().getName()).collect(Collectors.joining(", "));
-//                monitor.severe("There is no StatusChecker for resource type " + violatingResourceClasses);
-//                process.transitionError("No StatusChecker found for a provisioned resource of type(s) " + violatingResourceClasses + ". The violating resource is part of transfer process " + process.getId());
-//                transferProcessStore.update(process);
-//                continue;
-//            }
 
             // update the process once ALL resources are completed
             if (resources.stream().allMatch(this::isComplete)) {
                 process.transitionCompleted();
                 monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
+                publishCompleted(process);
+
             }
             transferProcessStore.update(process);
         }
         return processesInProgress.size();
+    }
+
+    private void publishCompleted(TransferProcess process) {
+        final List<TransferProcessListener> transferProcessListeners = listenerMap.get(process.getId());
+        if (transferProcessListeners != null) {
+            transferProcessListeners.forEach(l -> l.completed(process));
+        }
+    }
+
+    private void publishDeprovisioned(TransferProcess process) {
+        final List<TransferProcessListener> transferProcessListeners = listenerMap.get(process.getId());
+        if (transferProcessListeners != null) {
+            transferProcessListeners.forEach(l -> l.deprovisioned(process));
+        }
     }
 
     private boolean hasChecker(ProvisionedResource provisionedResource) {

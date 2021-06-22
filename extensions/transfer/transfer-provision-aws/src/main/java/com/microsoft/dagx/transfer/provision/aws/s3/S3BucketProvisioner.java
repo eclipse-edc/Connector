@@ -67,6 +67,11 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
 
     @Override
     public ResponseStatus deprovision(S3BucketProvisionedResource provisionedResource) {
+        final S3DeprovisionPipeline pipeline = S3DeprovisionPipeline.Builder.newInstance().clientProvider(clientProvider)
+                .retryPolicy(retryPolicy)
+                .monitor(monitor)
+                .resource().build();
+        pipeline.deprovision(provisionedResource, throwable -> context.deprovisioned(provisionedResource, throwable));
         return ResponseStatus.OK;
     }
 

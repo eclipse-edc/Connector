@@ -86,12 +86,13 @@ jobs:
         id: validate
         run: terraform -chdir=scripts validate -no-color
 
-      - name: Terraform Plan
-        id: plan
-        if: github.event_name == 'pull_request'
-        run: terraform -chdir=scripts plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
+      #     deactivated until the GithubActions-User has correct credentials
+#      - name: Terraform Plan
+#        id: plan
+#        if: github.event_name == 'pull_request'
+#        run: terraform -chdir=scripts plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
 
-#     deactivated until the GithubActions-User has correct credentials
+
 
 #      - name: Taint the connector instance
 #        if: github.ref == 'refs/heads/main' && github.event_name == 'push'

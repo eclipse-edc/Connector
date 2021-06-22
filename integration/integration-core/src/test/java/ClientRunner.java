@@ -10,11 +10,16 @@ import com.microsoft.dagx.spi.iam.IdentityService;
 import com.microsoft.dagx.spi.iam.TokenResult;
 import com.microsoft.dagx.spi.message.RemoteMessageDispatcherRegistry;
 import com.microsoft.dagx.spi.system.ServiceExtension;
+import com.microsoft.dagx.spi.transfer.TransferInitiateResponse;
+import com.microsoft.dagx.spi.transfer.TransferProcessListener;
 import com.microsoft.dagx.spi.transfer.TransferProcessManager;
+import com.microsoft.dagx.spi.transfer.TransferProcessObservable;
+import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
 import com.microsoft.dagx.spi.types.domain.metadata.QueryRequest;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.DataRequest;
+import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
 import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -22,6 +27,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -44,8 +50,8 @@ public class ClientRunner {
     private CountDownLatch latch;
 
     @Test
-//    @Disabled
-    void processClientRequest_toAws(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager) throws Exception {
+    @Disabled
+    void processClientRequest_toAws(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
 
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
@@ -57,28 +63,46 @@ public class ClientRunner {
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
         var artifacts = future.get();
-        var count = 0;
+        latch = new CountDownLatch(artifacts.size());
         for (String artifact : artifacts) {
             System.out.println("processing artifact " + artifact);
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
-            var usOrEuRequest = createRequestAws("us-eu-request-" + ++count, DataEntry.Builder.newInstance().id(artifact).build());
+            var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
 
-            processManager.initiateClientRequest(usOrEuRequest);
+            final TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
+            observable.registerListener(response.getId(), new TransferProcessListener() {
+                @Override
+                public void completed(TransferProcess process) {
+                    //simulate data egress
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    process.transitionDeprovisionRequested();
+                    store.update(process);
+                }
+
+                @Override
+                public void deprovisioned(TransferProcess process) {
+                    latch.countDown();
+                }
+            });
         }
 
         // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
 //        var usRequest = createRequestAws("us-request", EU_ARTIFACT);
-
+//
 //        processManager.initiateClientRequest(usRequest);
 
 
-        latch.await(1, TimeUnit.DAYS);
+        assertThat(latch.await(5, TimeUnit.MINUTES)).isTrue();
     }
 
 
     @Test
     @Disabled
-    void processClientRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager) throws Exception {
+    void processClientRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .connectorId(PROVIDER_CONNECTOR)
@@ -89,21 +113,42 @@ public class ClientRunner {
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
         var artifacts = future.get();
+
         assertThat(artifacts).describedAs("Should have returned artifacts!").isNotEmpty();
+
+        latch = new CountDownLatch(artifacts.size());
 
         for (String artifact : artifacts) {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
-            var usOrEuRequest = createRequestAzure("us-eu-request", DataEntry.Builder.newInstance().id(artifact).build());
+            var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
 
-            processManager.initiateClientRequest(usOrEuRequest);
+            final TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
+            observable.registerListener(response.getId(), new TransferProcessListener() {
+                @Override
+                public void completed(TransferProcess process) {
+                    //simulate data egress
+                    try {
+                        Thread.sleep(2000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    process.transitionDeprovisionRequested();
+                    store.update(process);
+                }
+
+                @Override
+                public void deprovisioned(TransferProcess process) {
+                    latch.countDown();
+                }
+            });
         }
 
-//        // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
+        // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
 //        var usRequest = createRequestAzure("us-request", EU_ARTIFACT);
 //
 //        processManager.initiateClientRequest(usRequest);
 
-        latch.await(1, TimeUnit.DAYS);
+        assertThat(latch.await(5, TimeUnit.MINUTES)).isTrue();
     }
 
     @BeforeEach
@@ -136,7 +181,7 @@ public class ClientRunner {
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type(AzureBlobStoreSchema.TYPE)
                         .property(AzureBlobStoreSchema.ACCOUNT_NAME, "dagxtfblob")
-                        .property(AzureBlobStoreSchema.CONTAINER_NAME, "temp-dest-container")
+                        .property(AzureBlobStoreSchema.CONTAINER_NAME, "temp-dest-container-" + UUID.randomUUID())
                         .build())
                 .destinationType(AzureBlobStoreSchema.TYPE)
                 .build();

@@ -21,14 +21,17 @@ import java.util.function.Consumer;
 public class ProvisionContextImpl implements ProvisionContext {
     private final Consumer<ProvisionedResource> resourceCallback;
     private final BiConsumer<ProvisionedDataDestinationResource, SecretToken> destinationCallback;
+    private final BiConsumer<ProvisionedDataDestinationResource, Throwable> deprovisionCallback;
     private final TransferProcessStore processStore;
 
     public ProvisionContextImpl(TransferProcessStore processStore,
                                 Consumer<ProvisionedResource> resourceCallback,
-                                BiConsumer<ProvisionedDataDestinationResource, SecretToken> destinationCallback) {
+                                BiConsumer<ProvisionedDataDestinationResource, SecretToken> destinationCallback,
+                                BiConsumer<ProvisionedDataDestinationResource, Throwable> deprovisionCallback) {
         this.processStore = processStore;
         this.resourceCallback = resourceCallback;
         this.destinationCallback = destinationCallback;
+        this.deprovisionCallback = deprovisionCallback;
     }
 
     @Override
@@ -39,6 +42,11 @@ public class ProvisionContextImpl implements ProvisionContext {
     @Override
     public void callback(ProvisionedDataDestinationResource resource, SecretToken secretToken) {
         destinationCallback.accept(resource, secretToken);
+    }
+
+    @Override
+    public void deprovisioned(ProvisionedDataDestinationResource resource, Throwable error) {
+        deprovisionCallback.accept(resource, error);
     }
 
     @Override

@@ -60,6 +60,7 @@ class S3ProvisionPipeline {
     private ProvisionContext context;
     private int sessionDuration;
     private Monitor monitor;
+    private AsyncContext asyncContext;
 
     private S3ProvisionPipeline(RetryPolicy<Object> generalPolicy) {
         retryPolicy = generalPolicy.copy()
@@ -71,7 +72,7 @@ class S3ProvisionPipeline {
      * Performs a non-blocking provisioning operation.
      */
     public void provision() {
-        AsyncContext asyncContext = new AsyncContext();
+        asyncContext = new AsyncContext();
 
         String region = resourceDefinition.getRegionId();
 
@@ -106,6 +107,7 @@ class S3ProvisionPipeline {
     private CompletableFuture<PutRolePolicyResponse> createRolePolicy(S3BucketResourceDefinition resourceDefinition, String bucketName, AsyncContext asyncContext, CreateRoleResponse response) {
         String processId = resourceDefinition.getTransferProcessId();
         asyncContext.roleArn = response.role().arn();
+        asyncContext.roleName = response.role().roleName();
         String policyDocument = format(BUCKET_POLICY, bucketName);
         PutRolePolicyRequest policyRequest = PutRolePolicyRequest.builder().policyName(processId).roleName(response.role().roleName()).policyDocument(policyDocument).build();
         monitor.debug("S3ProvisionPipeline: attach bucket policy to role " + asyncContext.roleArn);
@@ -133,6 +135,7 @@ class S3ProvisionPipeline {
                     .resourceDefinitionId(resourceDefinition.getId())
                     .region(resourceDefinition.getRegionId())
                     .bucketName(resourceDefinition.getBucketName())
+                    .role(asyncContext.roleName)
                     .transferProcessId(transferProcessId).build();
 
             var secretToken = new AwsTemporarySecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());
@@ -152,6 +155,7 @@ class S3ProvisionPipeline {
     }
 
     private static class AsyncContext {
+        public String roleName;
         String roleArn;
     }
 

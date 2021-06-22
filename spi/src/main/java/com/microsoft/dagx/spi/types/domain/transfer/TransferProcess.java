@@ -182,12 +182,20 @@ public class TransferProcess {
     }
 
     public void transitionDeprovisioning() {
-        transition(TransferProcessStates.DEPROVISIONING, TransferProcessStates.COMPLETED, TransferProcessStates.DEPROVISIONING);
+        transition(TransferProcessStates.DEPROVISIONING, TransferProcessStates.COMPLETED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONING_REQ);
     }
 
     public void transitionDeprovisioned() {
         transition(TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONED);
     }
+
+    /**
+     * Indicates that the transfer process is completed and that it should be deprovisioned
+     */
+    public void transitionDeprovisionRequested() {
+        transition(TransferProcessStates.DEPROVISIONING_REQ, TransferProcessStates.COMPLETED, TransferProcessStates.DEPROVISIONING_REQ);
+    }
+
 
     public void transitionEnded() {
         transition(TransferProcessStates.ENDED, TransferProcessStates.DEPROVISIONED);

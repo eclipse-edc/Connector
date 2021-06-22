@@ -88,6 +88,14 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
 
     @Override
     public ResponseStatus deprovision(ObjectContainerProvisionedResource provisionedResource) {
+        Throwable throwable = null;
+        try {
+            with(retryPolicy).run(() -> blobStoreApi.deleteContainer(provisionedResource.getAccountName(), provisionedResource.getContainerName()));
+        } catch (Exception ex) {
+            throwable = ex;
+        }
+        //the sas token will expire automatically. there is no way of revoking them other than a stored access policy
+        context.deprovisioned(provisionedResource, throwable);
         return ResponseStatus.OK;
     }
 }

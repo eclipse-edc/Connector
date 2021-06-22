@@ -10,6 +10,7 @@ import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionManager;
 import com.microsoft.dagx.spi.transfer.provision.Provisioner;
+import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.*;
@@ -38,7 +39,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     public void start(TransferProcessStore processStore) {
         this.processStore = processStore;
-        var context = new ProvisionContextImpl(this.processStore, this::onResource, this::onDestinationResource);
+        var context = new ProvisionContextImpl(this.processStore, this::onResource, this::onDestinationResource, this::onDeprovisionComplete);
         provisioners.forEach(provisioner -> provisioner.initialize(context));
     }
 
@@ -64,7 +65,29 @@ public class ProvisionManagerImpl implements ProvisionManager {
     public void deprovision(TransferProcess process) {
         for (ProvisionedResource definition : process.getProvisionedResourceSet().getResources()) {
             Provisioner<?, ProvisionedResource> chosenProvisioner = getProvisioner(definition);
-            chosenProvisioner.deprovision(definition);
+            final ResponseStatus status = chosenProvisioner.deprovision(definition);
+            if (status != ResponseStatus.OK) {
+                process.transitionError("Error during deprovisioning");
+                processStore.update(process);
+            }
+        }
+    }
+
+    void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {
+        if (deprovisionError != null) {
+            monitor.severe("Deprovisioning error: ", deprovisionError);
+        } else {
+            monitor.info("Deprovisioning successfully completed.");
+
+            final TransferProcess transferProcess = processStore.find(resource.getTransferProcessId());
+            if (transferProcess != null) {
+                transferProcess.transitionDeprovisioned();
+                processStore.update(transferProcess);
+                monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
+            } else {
+                monitor.severe("ProvisionManager: no TransferProcess found for deprovisioned resource");
+            }
+
         }
     }
 
