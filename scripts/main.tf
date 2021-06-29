@@ -235,7 +235,7 @@ resource "azurerm_container_group" "connector-instance" {
   dns_name_label      = "${var.resourcesuffix}-dagx"
   container {
     cpu    = 2
-    image  = "beardyinc/dagx-demo:${var.SHORT_SHA}"
+    image  = "ghcr.io/microsoft/data-appliance-gx/dagx-demo:${var.SHORT_SHA}"
     memory = "2"
     name   = "dagx-demo"
 
@@ -272,7 +272,7 @@ resource "azurerm_container_group" "dagx-nifi" {
   dns_name_label      = "${var.resourcesuffix}-dagx-nifi"
   container {
     cpu    = 4
-    image  = "beardyinc/nifi:dagx"
+    image  = "ghcr.io/microsoft/data-appliance-gx/nifi:latest"
     memory = 4
     name   = "nifi"
 
