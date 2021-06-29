@@ -15,4 +15,6 @@ ENTRYPOINT java \
     -Ddagx.atlas.url=${ATLAS_URL} \
     -Ddagx.nifi.url=${NIFI_URL} \
     -Ddagx.nifi.flow.url=${NIFI_FLOW_URL} \
+    -Ddagx.cosmos.account.name=${COSMOS_ACCOUNT} \
+    -Ddagx.cosmos.database.name=${COSMOS_DB} \
     -Djava.security.edg=file:/dev/.urandom -jar dagx-demo-e2e.jar

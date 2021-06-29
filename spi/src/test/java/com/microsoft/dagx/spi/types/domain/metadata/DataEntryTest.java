@@ -23,11 +23,11 @@ class DataEntryTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerSubtypes(TestExtension.class);
 
-        DataEntry<DataCatalogEntry> entry = DataEntry.Builder.newInstance().id("id").catalogEntry(new TestExtension()).build();
+        DataEntry entry = DataEntry.Builder.newInstance().id("id").catalogEntry(new TestExtension()).build();
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, entry);
 
-        @SuppressWarnings("unchecked") DataEntry<DataCatalogEntry> deserialized = mapper.readValue(writer.toString(), DataEntry.class);
+        @SuppressWarnings("unchecked") DataEntry deserialized = mapper.readValue(writer.toString(), DataEntry.class);
 
         assertNotNull(deserialized);
         assertTrue(deserialized.getCatalogEntry() instanceof TestExtension);

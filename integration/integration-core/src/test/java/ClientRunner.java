@@ -31,21 +31,19 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static com.microsoft.dagx.common.Cast.cast;
 import static org.assertj.core.api.Assertions.assertThat;
 
-/**
- *
- */
 @ExtendWith(DagxExtension.class)
 @Disabled
 public class ClientRunner {
     private static final String PROVIDER_CONNECTOR = "http://dev-dagx.westeurope.azurecontainer.io:8181";
     private static final TokenResult US_TOKEN = TokenResult.Builder.newInstance().token("mock-us").build();
     private static final TokenResult EU_TOKEN = TokenResult.Builder.newInstance().token("mock-eu").build();
-    private static final DataEntry<?> EU_ARTIFACT = DataEntry.Builder.newInstance().id("test123").build();
-    private static final DataEntry<?> US_OR_EU_ARTIFACT = DataEntry.Builder.newInstance().id("test456").build();
+    private static final DataEntry EU_ARTIFACT = DataEntry.Builder.newInstance().id("test123").build();
+    private static final DataEntry US_OR_EU_ARTIFACT = DataEntry.Builder.newInstance().id("test456").build();
 
     private CountDownLatch latch;
 
@@ -63,6 +61,7 @@ public class ClientRunner {
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
         var artifacts = future.get();
+        artifacts = artifacts.stream().findAny().stream().collect(Collectors.toList());
         latch = new CountDownLatch(artifacts.size());
         for (String artifact : artifacts) {
             System.out.println("processing artifact " + artifact);
@@ -161,7 +160,7 @@ public class ClientRunner {
         extension.registerSystemExtension(ServiceExtension.class, TestExtensions.mockIamExtension(identityService));
     }
 
-    private DataRequest createRequestAws(String id, DataEntry<?> artifactId) {
+    private DataRequest createRequestAws(String id, DataEntry artifactId) {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")
@@ -171,7 +170,7 @@ public class ClientRunner {
                 .destinationType(S3BucketSchema.TYPE).build();
     }
 
-    private DataRequest createRequestAzure(String id, DataEntry<?> artifactId) {
+    private DataRequest createRequestAzure(String id, DataEntry artifactId) {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")

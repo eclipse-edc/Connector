@@ -9,7 +9,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 2.62.1"
+      version = ">= 2.65.0"
     }
     azuread = {
       source  = "hashicorp/azuread"
@@ -245,12 +245,14 @@ resource "azurerm_container_group" "connector-instance" {
     }
 
     secure_environment_variables = {
-      CLIENTID      = azuread_application.dagx-terraform-app.application_id,
-      TENANTID      = data.azurerm_client_config.current.tenant_id,
-      VAULTNAME     = azurerm_key_vault.dagx-terraform-vault.name,
-      ATLAS_URL     = "https://${module.atlas-cluster.public-ip.fqdn}"
-      NIFI_URL      = "http://${azurerm_container_group.dagx-nifi.fqdn}:8080/"
-      NIFI_FLOW_URL = "http://${azurerm_container_group.dagx-nifi.fqdn}:8888/"
+      CLIENTID       = azuread_application.dagx-terraform-app.application_id,
+      TENANTID       = data.azurerm_client_config.current.tenant_id,
+      VAULTNAME      = azurerm_key_vault.dagx-terraform-vault.name,
+      ATLAS_URL      = "https://${module.atlas-cluster.public-ip.fqdn}"
+      NIFI_URL       = "http://${azurerm_container_group.dagx-nifi.fqdn}:8080/"
+      NIFI_FLOW_URL  = "http://${azurerm_container_group.dagx-nifi.fqdn}:8888/"
+      COSMOS_ACCOUNT = azurerm_cosmosdb_account.dagx-cosmos.name
+      COSMOS_DB      = azurerm_cosmosdb_sql_database.dagx-database.name
     }
 
     volume {
@@ -262,6 +264,7 @@ resource "azurerm_container_group" "connector-instance" {
       read_only            = true
     }
   }
+  depends_on = [azurerm_cosmosdb_sql_database.dagx-database]
 }
 
 resource "azurerm_container_group" "dagx-nifi" {

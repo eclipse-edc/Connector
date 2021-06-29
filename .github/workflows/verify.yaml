@@ -22,7 +22,7 @@ jobs:
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-        run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check -x :external:nifi:processors:check
+        run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check -x :external:nifi:processors:check -x extensions:transfer:transfer-store-cosmos:check
 
       - name: Publish Unit Test Results
         id: publish-results
@@ -89,7 +89,14 @@ jobs:
         run: ./gradlew external:nifi:processors:check
 
       - name: Test Azure Vault Integration
+        if: ${{ false }} # disabled for now, because it's VERY slow
         id: azure-vault-tests
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
         run: ./gradlew extensions:security:security-azure:check
+
+      - name: Test Cosmos-based TransferProcessStore
+        id: cosmos-transferprocessstore-test
+        env:
+          COSMOS_KEY: ${{ secrets.COSMOS_DB_MASTERKEY }}
+        run: ./gradlew extensions:transfer:transfer-store-cosmos:check

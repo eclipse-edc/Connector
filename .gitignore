@@ -48,3 +48,5 @@ distributions/azure/azure.properties
 **/secrets
 kubeconfig
 **/dagx-config.properties
+
+scripts/terraform.tfvars

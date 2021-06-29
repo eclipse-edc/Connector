@@ -62,7 +62,7 @@ public class EndToEndTest {
         var artifactId = "test123";
         var connectorId = "https://test";
 
-        DataEntry<?> entry = DataEntry.Builder.newInstance().id(artifactId).build();
+        DataEntry entry = DataEntry.Builder.newInstance().id(artifactId).build();
         DataRequest request = DataRequest.Builder.newInstance().protocol("ids-rest").dataEntry(entry).connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").build();
 
         processManager.initiateClientRequest(request);
@@ -93,7 +93,7 @@ public class EndToEndTest {
         var artifactId = "test123";
         var connectorId = "https://test";
 
-        DataEntry<?> entry = DataEntry.Builder.newInstance().id(artifactId).build();
+        DataEntry entry = DataEntry.Builder.newInstance().id(artifactId).build();
         DataRequest request = DataRequest.Builder.newInstance().protocol("ids-rest").dataEntry(entry).connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").id(UUID.randomUUID().toString()).build();
 
         processManager.initiateProviderRequest(request);

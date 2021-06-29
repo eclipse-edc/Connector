@@ -73,7 +73,7 @@ public class NifiDataFlowController implements DataFlowController {
             return new DataFlowInitiateResponse(FATAL_ERROR, "NiFi vault credentials were not found");
         }
 
-        DataEntry<?> dataEntry = dataRequest.getDataEntry();
+        DataEntry dataEntry = dataRequest.getDataEntry();
         DataCatalogEntry catalog = dataEntry.getCatalogEntry();
         var sourceAddress = catalog.getAddress();
         // the "keyName" entry should always be there, regardless of the source storage system

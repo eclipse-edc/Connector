@@ -29,6 +29,7 @@ include(":extensions:transfer:transfer-demo-protocols")
 include(":extensions:transfer:transfer-provision-azure")
 include(":extensions:transfer:transfer-provision-aws")
 include(":extensions:transfer:transfer-store-memory")
+include(":extensions:transfer:transfer-store-cosmos")
 
 include(":extensions:configuration:configuration-fs")
 

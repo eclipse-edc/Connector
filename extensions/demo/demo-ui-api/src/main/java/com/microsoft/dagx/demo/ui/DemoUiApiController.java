@@ -78,7 +78,7 @@ public class DemoUiApiController {
 
     }
 
-    private DataRequest createRequest(String connector, String id, DataEntry<?> artifactId) {
+    private DataRequest createRequest(String connector, String id, DataEntry artifactId) {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")

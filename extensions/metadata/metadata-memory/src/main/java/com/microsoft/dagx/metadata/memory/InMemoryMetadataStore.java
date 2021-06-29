@@ -24,20 +24,20 @@ import static java.util.stream.Collectors.toSet;
  * An ephemeral metadata store.
  */
 public class InMemoryMetadataStore implements MetadataStore {
-    private Map<String, DataEntry<?>> cache = new ConcurrentHashMap<>();
+    private final Map<String, DataEntry> cache = new ConcurrentHashMap<>();
 
     @Override
-    public @Nullable DataEntry<?> findForId(String id) {
+    public @Nullable DataEntry findForId(String id) {
         return cache.get(id);
     }
 
     @Override
-    public void save(DataEntry<?> entry) {
+    public void save(DataEntry entry) {
         cache.put(entry.getId(), entry);
     }
 
     @Override
-    public @NotNull Collection<DataEntry<?>> queryAll(Collection<Policy> policies) {
+    public @NotNull Collection<DataEntry> queryAll(Collection<Policy> policies) {
         Set<String> policyIds = policies.stream().map(Identifiable::getUid).collect(toSet());
         return cache.values().stream().filter(entry -> policyIds.contains(entry.getPolicyId())).collect(Collectors.toList());
     }

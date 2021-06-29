@@ -125,7 +125,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
 
                 int deprovisioning = checkDeprovisioningRequested();
 
-                if (provisioning + provisioned + sent + finished + deprovisioning == 0) {
+                int deprovisioned = checkDeprovisioned();
+
+                if (provisioning + provisioned + sent + finished + deprovisioning + deprovisioned == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
                 waitStrategy.success();
@@ -148,6 +150,19 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
         }
     }
 
+
+    private int checkDeprovisioned() {
+        var deprovisionedProcesses = transferProcessStore.nextForState(DEPROVISIONED.code(), batchSize);
+
+        for (var process : deprovisionedProcesses) {
+            publishDeprovisioned(process);
+            process.transitionEnded();
+            transferProcessStore.update(process);
+            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+        }
+        return deprovisionedProcesses.size();
+    }
+
     /**
      * Transitions all processes that are in state DEPROVISIONING_REQ and deprovisions their associated
      * resources. Then they are moved to DEPROVISIONING
@@ -162,7 +177,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
             transferProcessStore.update(process);
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             provisionManager.deprovision(process);
-            publishDeprovisioned(process);
         }
 
         return processesDeprovisioning.size();
@@ -221,35 +235,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
         return processesInProgress.size();
     }
 
-    private void publishCompleted(TransferProcess process) {
-        final List<TransferProcessListener> transferProcessListeners = listenerMap.get(process.getId());
-        if (transferProcessListeners != null) {
-            transferProcessListeners.forEach(l -> l.completed(process));
-        }
-    }
-
-    private void publishDeprovisioned(TransferProcess process) {
-        final List<TransferProcessListener> transferProcessListeners = listenerMap.get(process.getId());
-        if (transferProcessListeners != null) {
-            transferProcessListeners.forEach(l -> l.deprovisioned(process));
-        }
-    }
-
-    private boolean hasChecker(ProvisionedResource provisionedResource) {
-        return provisionedResource instanceof ProvisionedDataDestinationResource && statusCheckerRegistry.resolve((ProvisionedDataDestinationResource) provisionedResource) != null;
-    }
-
-    private boolean isComplete(ProvisionedResource resource) {
-        if (!(resource instanceof ProvisionedDataDestinationResource)) {
-            return false;
-        }
-        ProvisionedDataDestinationResource dataResource = (ProvisionedDataDestinationResource) resource;
-        var checker = statusCheckerRegistry.resolve(dataResource);
-        if (checker == null) {
-            return true;
-        }
-        return checker.isComplete(dataResource);
-    }
 
     /**
      * Performs client-side or provider side provisioning for a service.
@@ -307,6 +292,36 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
             transferProcessStore.update(process);
         }
         return processes.size();
+    }
+
+    private void publishCompleted(TransferProcess process) {
+        final List<TransferProcessListener> transferProcessListeners = listenerMap.get(process.getId());
+        if (transferProcessListeners != null) {
+            transferProcessListeners.forEach(l -> l.completed(process));
+        }
+    }
+
+    private void publishDeprovisioned(TransferProcess process) {
+        final List<TransferProcessListener> transferProcessListeners = listenerMap.get(process.getId());
+        if (transferProcessListeners != null) {
+            transferProcessListeners.forEach(l -> l.deprovisioned(process));
+        }
+    }
+
+    private boolean hasChecker(ProvisionedResource provisionedResource) {
+        return provisionedResource instanceof ProvisionedDataDestinationResource && statusCheckerRegistry.resolve((ProvisionedDataDestinationResource) provisionedResource) != null;
+    }
+
+    private boolean isComplete(ProvisionedResource resource) {
+        if (!(resource instanceof ProvisionedDataDestinationResource)) {
+            return false;
+        }
+        ProvisionedDataDestinationResource dataResource = (ProvisionedDataDestinationResource) resource;
+        var checker = statusCheckerRegistry.resolve(dataResource);
+        if (checker == null) {
+            return true;
+        }
+        return checker.isComplete(dataResource);
     }
 
     public static class Builder {

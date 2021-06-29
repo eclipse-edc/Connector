@@ -45,7 +45,7 @@ public class AtlasMetadataStore implements MetadataStore {
     }
 
     @Override
-    public @Nullable DataEntry<?> findForId(String id) {
+    public @Nullable DataEntry findForId(String id) {
 
         var properties = atlasApi.getEntityById(id);
 
@@ -100,12 +100,12 @@ public class AtlasMetadataStore implements MetadataStore {
     }
 
     @Override
-    public void save(DataEntry<?> entry) {
+    public void save(DataEntry entry) {
         monitor.severe("Save not yet implemented");
     }
 
     @Override
-    public @NotNull Collection<DataEntry<?>> queryAll(Collection<Policy> policies) {
+    public @NotNull Collection<DataEntry> queryAll(Collection<Policy> policies) {
         if (policies.isEmpty()) {
             return Collections.emptyList();
         }

@@ -16,10 +16,10 @@ import static java.util.stream.Collectors.toList;
  *
  */
 public class QueryEngineImpl implements QueryEngine {
-    private PolicyRegistry policyRegistry;
-    private IdsPolicyService policyService;
-    private MetadataStore metadataStore;
-    private Monitor monitor;
+    private final PolicyRegistry policyRegistry;
+    private final IdsPolicyService policyService;
+    private final MetadataStore metadataStore;
+    private final Monitor monitor;
 
     public QueryEngineImpl(PolicyRegistry policyRegistry, IdsPolicyService policyService, MetadataStore metadataStore, Monitor monitor) {
         this.policyRegistry = policyRegistry;
@@ -29,7 +29,7 @@ public class QueryEngineImpl implements QueryEngine {
     }
 
     @Override
-    public Collection<DataEntry<?>> execute(String correlationId, ClaimToken clientToken, String connectorId, String type, String query) {
+    public Collection<DataEntry> execute(String correlationId, ClaimToken clientToken, String connectorId, String type, String query) {
         if (!"select *".equalsIgnoreCase(query)) {
             monitor.info("Invalid query: " + query);
             return Collections.emptyList();

@@ -174,7 +174,7 @@ class AtlasMetadataStoreTest {
         replay(atlasApiMock);
         replay(monitorMock);
 
-        final Collection<DataEntry<?>> entries = atlasMetadataStore.queryAll(Collections.singleton(policy));
+        final Collection<DataEntry> entries = atlasMetadataStore.queryAll(Collections.singleton(policy));
         assertThat(entries).isNotNull().isNotEmpty().doesNotContainNull();
 
         assertThat(entries).allSatisfy(this::assertAzureEntry);
@@ -232,7 +232,7 @@ class AtlasMetadataStoreTest {
                 "region", "neverland"));
     }
 
-    private void assertAzureEntry(DataEntry<?> entry) {
+    private void assertAzureEntry(DataEntry entry) {
         assertThat(entry.getCatalogEntry().getAddress().getProperties()).isNotNull()
                 .hasFieldOrPropertyWithValue("keyName", KEY_NAME)
                 .hasFieldOrPropertyWithValue("type", AzureBlobStoreSchema.TYPE)

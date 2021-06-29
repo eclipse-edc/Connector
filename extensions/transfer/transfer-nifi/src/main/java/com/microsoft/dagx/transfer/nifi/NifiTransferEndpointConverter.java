@@ -13,6 +13,7 @@ import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -44,11 +45,11 @@ public class NifiTransferEndpointConverter {
         validate(dataAddress, schema);
 
 
-        var keyName = dataAddress.getProperties().remove("keyName");
-        dataAddress.getProperties().remove("type");
+        var keyName = dataAddress.getProperties().get("keyName");
 
+        //need to duplicate the properties here, otherwise the secret would potentially be stored together with the TransferProcess
+        Map<String, String> properties = new HashMap<>(dataAddress.getProperties());
 
-        Map<String, String> properties = dataAddress.getProperties();
         String secret = vault.resolveSecret(keyName);
 
         //different endpoints might have different credentials, such as SAS token, access key id + secret, etc.

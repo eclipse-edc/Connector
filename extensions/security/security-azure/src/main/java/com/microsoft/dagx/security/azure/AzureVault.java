@@ -65,7 +65,6 @@ public class AzureVault implements Vault {
 
             key = sanitizeKey(key);
             var secret = secretClient.getSecret(key);
-            monitor.debug("Secret obtained successfully");
             return secret.getValue();
         } catch (ResourceNotFoundException ex) {
             monitor.severe("Secret not found!", ex);

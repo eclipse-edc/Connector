@@ -44,6 +44,10 @@
 
 name: 'Terraform'
 
+# on:
+#   workflow_run:
+#     workflows: [ "Build Docker Images" ]
+#     types: [ completed ]
 on:
   push:
     branches:
@@ -54,7 +58,8 @@ jobs:
   terraform:
     name: 'Terraform'
     runs-on: ubuntu-latest
-    environment: production
+    environment: dev
+
     env:
       ARM_CLIENT_ID: ${{ secrets.AZURE_AD_CIENT_ID }}
       ARM_CLIENT_SECRET: ${{ secrets.AZURE_AD_CLIENT_SECRET }}
@@ -86,19 +91,18 @@ jobs:
         id: validate
         run: terraform -chdir=scripts validate -no-color
 
-      #     deactivated until the GithubActions-User has correct credentials
-#      - name: Terraform Plan
-#        id: plan
-#        if: github.event_name == 'pull_request'
-#        run: terraform -chdir=scripts plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
+      - name: Terraform Plan
+        id: plan
+        run: terraform -chdir=scripts plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
 
 
+      - name: Taint the connector instance
+        id: taint
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform -chdir=scripts taint azurerm_container_group.connector-instance
+        continue-on-error: true
 
-#      - name: Taint the connector instance
-#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#        run: terraform -chdir=scripts taint azurerm_container_group.connector-instance
-#        continue-on-error: true
-#
-#      - name: Terraform Apply
-#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#        run: terraform -chdir=scripts apply -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}" -auto-approve
+      - name: Terraform Apply
+        id: apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform -chdir=scripts apply -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}" -auto-approve

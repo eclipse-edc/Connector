@@ -49,6 +49,8 @@ public class AtlasExtension implements ServiceExtension {
         context.registerService(AtlasApi.class, api);
         context.registerService(MetadataStore.class, new AtlasMetadataStore(api, context.getMonitor(), context.getService(SchemaRegistry.class)));
         context.getMonitor().info("Initialized Atlas API extension.");
+
+        context.getTypeManager().registerTypes(AtlasDataCatalogEntry.class);
     }
 
 
