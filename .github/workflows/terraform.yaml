@@ -99,7 +99,7 @@ jobs:
       - name: Taint the connector instance
         id: taint
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform -chdir=scripts taint azurerm_container_group.connector-instance
+        run: terraform -chdir=scripts taint module.connector-deployment.kubernetes_deployment.connector-deployment
         continue-on-error: true
 
       - name: Terraform Apply
