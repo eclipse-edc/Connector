@@ -9,15 +9,14 @@ output "primary_id_certfile" {
 output "URLs" {
   value = {
     //    nifi  = "https://${module.nifi-cluster.public-ip.fqdn}"
-    atlas = "https://${module.atlas-cluster.public-ip.fqdn}"
+    atlas     = "https://${module.atlas-cluster.public-ip.fqdn}"
+    connector = "https://${module.connector-cluster.public-ip.fqdn}"
   }
 }
 
 output "demo-connector" {
   value = {
-    connector_client_id = azurerm_container_group.connector-instance.id
-    connectur_url       = azurerm_container_group.connector-instance.fqdn
-    nifi_url            = azurerm_container_group.dagx-nifi.fqdn
+    nifi_url = azurerm_container_group.dagx-nifi.fqdn
   }
 }
 

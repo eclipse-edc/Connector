@@ -1,4 +1,3 @@
-
 variable "kubernetes_version" {
   default = "1.19"
 }
@@ -11,6 +10,6 @@ variable "location" {
   type = string
 }
 
-variable "dns" {
-  type=string
+variable "dnsPrefix" {
+  type = string
 }

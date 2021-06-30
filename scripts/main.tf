@@ -27,7 +27,7 @@ terraform {
       version = ">= 2.1.0"
       configuration_aliases = [
         helm.nifi,
-      helm.atlas]
+      helm.atlas, helm.connector]
     }
     aws = {
       source  = "hashicorp/aws"
@@ -66,6 +66,14 @@ provider "kubernetes" {
   cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.cluster_ca_certificate)
 }
 
+provider "kubernetes" {
+  alias                  = "connector"
+  host                   = data.azurerm_kubernetes_cluster.connector.kube_config.0.host
+  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.client_certificate)
+  client_key             = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.client_key)
+  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.cluster_ca_certificate)
+}
+
 //provider "helm" {
 //  alias = "nifi"
 //  kubernetes {
@@ -86,6 +94,16 @@ provider "helm" {
   }
 }
 
+provider "helm" {
+  alias = "connector"
+  kubernetes {
+    host                   = data.azurerm_kubernetes_cluster.connector.kube_config.0.host
+    client_certificate     = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.client_certificate)
+    client_key             = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.client_key)
+    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.cluster_ca_certificate)
+  }
+}
+
 //data "azurerm_kubernetes_cluster" "nifi" {
 //  depends_on = [
 //  module.nifi-cluster]
@@ -99,6 +117,13 @@ data "azurerm_kubernetes_cluster" "atlas" {
   module.atlas-cluster]
   name                = local.cluster_name_atlas
   resource_group_name = local.cluster_name_atlas
+}
+
+data "azurerm_kubernetes_cluster" "connector" {
+  depends_on = [
+  module.connector-cluster]
+  name                = local.cluster_name_connector
+  resource_group_name = local.cluster_name_connector
 }
 
 data "azurerm_client_config" "current" {}
@@ -225,48 +250,6 @@ resource "azurerm_key_vault_secret" "nifi-credentials" {
   depends_on   = [azurerm_role_assignment.current-user]
 }
 
-# temporarily deploy nifi in a container as well as K8s was unstable
-resource "azurerm_container_group" "connector-instance" {
-  name                = "dagx-demo-continst"
-  location            = azurerm_resource_group.rg.location
-  resource_group_name = azurerm_resource_group.rg.name
-  os_type             = "Linux"
-  ip_address_type     = "public"
-  dns_name_label      = "${var.resourcesuffix}-dagx"
-  container {
-    cpu    = 2
-    image  = "ghcr.io/microsoft/data-appliance-gx/dagx-demo:${var.SHORT_SHA}"
-    memory = "2"
-    name   = "dagx-demo"
-
-    ports {
-      port     = 8181
-      protocol = "TCP"
-    }
-
-    secure_environment_variables = {
-      CLIENTID       = azuread_application.dagx-terraform-app.application_id,
-      TENANTID       = data.azurerm_client_config.current.tenant_id,
-      VAULTNAME      = azurerm_key_vault.dagx-terraform-vault.name,
-      ATLAS_URL      = "https://${module.atlas-cluster.public-ip.fqdn}"
-      NIFI_URL       = "http://${azurerm_container_group.dagx-nifi.fqdn}:8080/"
-      NIFI_FLOW_URL  = "http://${azurerm_container_group.dagx-nifi.fqdn}:8888/"
-      COSMOS_ACCOUNT = azurerm_cosmosdb_account.dagx-cosmos.name
-      COSMOS_DB      = azurerm_cosmosdb_sql_database.dagx-database.name
-    }
-
-    volume {
-      mount_path           = "/cert"
-      name                 = "certificates"
-      share_name           = "certificates"
-      storage_account_key  = var.backend_account_key
-      storage_account_name = var.backend_account_name
-      read_only            = true
-    }
-  }
-  depends_on = [azurerm_cosmosdb_sql_database.dagx-database]
-}
-
 resource "azurerm_container_group" "dagx-nifi" {
   location            = azurerm_resource_group.rg.location
   name                = "dagx-nifi-continst"
@@ -316,7 +299,7 @@ module "atlas-cluster" {
   source       = "./aks-cluster"
   cluster_name = local.cluster_name_atlas
   location     = var.location
-  dns          = "${var.resourcesuffix}-dagx-atlas"
+  dnsPrefix    = "${var.resourcesuffix}-dagx-atlas"
 }
 module "atlas-deployment" {
   depends_on = [
@@ -331,5 +314,41 @@ module "atlas-deployment" {
     helm       = helm.atlas
   }
   public-ip = module.atlas-cluster.public-ip
+}
+
+module "connector-cluster" {
+  source       = "./aks-cluster"
+  cluster_name = local.cluster_name_connector
+  dnsPrefix    = "${var.resourcesuffix}-connector"
+  location     = var.location
+}
+
+module "connector-deployment" {
+  depends_on = [
+  module.connector-cluster]
+  source         = "./connector-deployment"
+  cluster_name   = local.cluster_name_connector
+  kubeconfig     = data.azurerm_kubernetes_cluster.connector.kube_config_raw
+  resourcesuffix = var.resourcesuffix
+  tenant_id      = data.azurerm_client_config.current.tenant_id
+  providers = {
+    kubernetes = kubernetes.connector
+    helm       = helm.connector
+  }
+  public-ip = module.connector-cluster.public-ip
+  container_environment = {
+    clientId      = azuread_application.dagx-terraform-app.application_id,
+    tenantId      = data.azurerm_client_config.current.tenant_id,
+    vaultName     = azurerm_key_vault.dagx-terraform-vault.name,
+    atlasUrl      = "https://${module.atlas-cluster.public-ip.fqdn}"
+    nifiUrl       = "http://${azurerm_container_group.dagx-nifi.fqdn}:8080/"
+    nifiFlowUrl   = "http://${azurerm_container_group.dagx-nifi.fqdn}:8888/"
+    cosmosAccount = azurerm_cosmosdb_account.dagx-cosmos.name
+    cosmosDb      = azurerm_cosmosdb_sql_database.dagx-database.name
+  }
+  certificate_mount_config = {
+    accountName = var.backend_account_name
+    accountKey  = var.backend_account_key
+  }
 }
 

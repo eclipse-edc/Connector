@@ -10,8 +10,9 @@ variable "aws_region" {
   type        = string
 }
 locals {
-  cluster_name_nifi  = "${var.resourcesuffix}-nifi-cluster"
-  cluster_name_atlas = "${var.resourcesuffix}-atlas-cluster"
+  cluster_name_nifi      = "${var.resourcesuffix}-nifi-cluster"
+  cluster_name_atlas     = "${var.resourcesuffix}-atlas-cluster"
+  cluster_name_connector = "${var.resourcesuffix}-connector-cluster"
 }
 
 variable "resourcesuffix" {
