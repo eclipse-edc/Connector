@@ -22,7 +22,7 @@ public class Lease {
         this(leasedBy, Instant.now().toEpochMilli(), 60);
     }
 
-    public Lease(@JsonProperty("leasedBy") String leasedBy, @JsonProperty("leasedAt") long leasedAt, @JsonProperty("leaseDurationSeconds") long leaseDurationSeconds) {
+    public Lease(@JsonProperty("leasedBy") String leasedBy, @JsonProperty("leasedAt") long leasedAt, @JsonProperty("leaseDuration") long leaseDurationSeconds) {
         this.leasedBy = leasedBy;
         this.leasedAt = leasedAt;
         leaseDuration = leaseDurationSeconds;
