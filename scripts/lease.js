@@ -57,7 +57,8 @@ function lease(processId, connectorId, shouldLease) {
     function lease(document, connectorId) {
         document.lease = {
             leasedBy: connectorId,
-            leasedAt: Date.now()
+            leasedAt: Date.now(),
+            leaseDuration: 60
         };
 
         var accept = collection.replaceDocument(document._self, document, function (err, itemReplaced) {

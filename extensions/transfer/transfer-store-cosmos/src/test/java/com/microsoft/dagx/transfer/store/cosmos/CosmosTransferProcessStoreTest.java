@@ -172,6 +172,7 @@ class CosmosTransferProcessStoreTest {
         var updatedDoc = readDocument(tp1.getId());
         assertThat(updatedDoc.getLease().getLeasedAt()).isNotEqualTo(originalTs);
         assertThat(doc.getLease().getLeasedBy()).isEqualTo(connectorId);
+        assertThat(doc.getLease().getLeaseDuration()).isEqualTo(60);
 
     }
 

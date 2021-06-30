@@ -71,8 +71,8 @@ public class TransferProcessDocument {
             lease = new Lease(connectorId);
         } else {
             var startDate = Instant.ofEpochMilli(lease.getLeasedAt());
-            var endDate = Instant.ofEpochMilli(lease.getLeasedUntil());
-            throw new IllegalStateException("This document is leased by " + lease.getLeasedBy() + "on " + startDate.toString() + " and cannot be leased again until " + endDate.toString() + "!");
+            var endDate = startDate.plusSeconds(lease.getLeaseDuration());
+            throw new IllegalStateException("This document is leased by " + lease.getLeasedBy() + "on " + startDate + " and cannot be leased again until " + endDate.toString() + "!");
         }
     }
 

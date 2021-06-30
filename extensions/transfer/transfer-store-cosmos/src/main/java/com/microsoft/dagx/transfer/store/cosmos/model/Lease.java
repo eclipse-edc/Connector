@@ -9,7 +9,6 @@ package com.microsoft.dagx.transfer.store.cosmos.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 
 public class Lease {
     @JsonProperty
@@ -17,16 +16,16 @@ public class Lease {
     @JsonProperty
     private final long leasedAt;
     @JsonProperty
-    private final long leasedUntil;
+    private final long leaseDuration;
 
     Lease(String leasedBy) {
-        this(leasedBy, Instant.now().toEpochMilli(), Instant.now().plus(60, ChronoUnit.SECONDS).toEpochMilli());
+        this(leasedBy, Instant.now().toEpochMilli(), 60);
     }
 
-    public Lease(@JsonProperty("leasedBy") String leasedBy, @JsonProperty("leasedAt") long leasedAt, @JsonProperty("leasedUntil") long leasedUntil) {
+    public Lease(@JsonProperty("leasedBy") String leasedBy, @JsonProperty("leasedAt") long leasedAt, @JsonProperty("leaseDurationSeconds") long leaseDurationSeconds) {
         this.leasedBy = leasedBy;
         this.leasedAt = leasedAt;
-        this.leasedUntil = leasedUntil;
+        leaseDuration = leaseDurationSeconds;
     }
 
     public String getLeasedBy() {
@@ -37,7 +36,7 @@ public class Lease {
         return leasedAt;
     }
 
-    public long getLeasedUntil() {
-        return leasedUntil;
+    public long getLeaseDuration() {
+        return leaseDuration;
     }
 }
