@@ -45,12 +45,12 @@ variable "container_environment" {
   })
 }
 
-variable "certificate_mount_config"{
+variable "certificate_mount_config" {
   type = object({
     accountName = string
-    accountKey  = string
+    accountKey = string
   })
-  
+
 }
 
 variable "public-ip" {
@@ -58,5 +58,12 @@ variable "public-ip" {
     ip_address = string
     fqdn = string
     domain_name_label = string
+  })
+}
+
+variable "events" {
+  type = object({
+    topic_name = string
+    topic_endpoint = string
   })
 }

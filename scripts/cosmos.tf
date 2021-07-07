@@ -1,14 +1,14 @@
 resource "azurerm_cosmosdb_account" "dagx-cosmos" {
-  location            = azurerm_resource_group.rg.location
+  location            = azurerm_resource_group.core-resourcegroup.location
   name                = "dagx-cosmos"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.core-resourcegroup.name
   offer_type          = "Standard"
   consistency_policy {
     consistency_level = "Session"
   }
   geo_location {
     failover_priority = 0
-    location          = azurerm_resource_group.rg.location
+    location          = azurerm_resource_group.core-resourcegroup.location
   }
 
 }
@@ -16,7 +16,7 @@ resource "azurerm_cosmosdb_account" "dagx-cosmos" {
 resource "azurerm_cosmosdb_sql_database" "dagx-database" {
   account_name        = azurerm_cosmosdb_account.dagx-cosmos.name
   name                = "dagx-database"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.core-resourcegroup.name
   throughput          = 400
 }
 

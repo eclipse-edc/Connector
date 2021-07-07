@@ -78,56 +78,50 @@ class TransferProcessManagerImplTest {
     @Test
     void registerListener() {
         var listener = new TestListener();
-        manager.registerListener("test-process", listener);
+        manager.registerListener(listener);
 
-        assertThat(manager.getListeners()).containsKey("test-process");
-        assertThat(manager.getListeners().get("test-process")).containsOnly(listener);
+        assertThat(manager.getListeners()).containsOnly(listener);
     }
 
     @Test
     void registerListener_processIdExists_shouldAdd() {
         var listener = new TestListener();
         var listener2 = new TestListener();
-        manager.registerListener("test-process", listener);
-        manager.registerListener("test-process", listener2);
+        manager.registerListener(listener);
+        manager.registerListener(listener2);
 
-        assertThat(manager.getListeners()).containsKey("test-process");
-        assertThat(manager.getListeners().get("test-process")).hasSize(2).containsOnly(listener, listener2);
+        assertThat(manager.getListeners()).hasSize(2).containsOnly(listener, listener2);
     }
 
     @Test
     void registerListener_processIdAndListenerExists_shouldReplace() {
         var listener = new TestListener();
-        manager.registerListener("test-process", listener);
-        manager.registerListener("test-process", listener);
+        manager.registerListener(listener);
+        manager.registerListener(listener);
 
-        assertThat(manager.getListeners()).containsKey("test-process");
-        assertThat(manager.getListeners().get("test-process")).hasSize(1).containsOnly(listener);
+        assertThat(manager.getListeners()).hasSize(1).containsOnly(listener);
     }
 
     @Test
     void unregisterListener() {
         var listener = new TestListener();
-        var pid = "test-pid";
-        manager.registerListener(pid, listener);
+        manager.registerListener(listener);
 
         manager.unregister(listener);
 
-        assertThat(manager.getListeners()).doesNotContainKey(pid);
+        assertThat(manager.getListeners()).doesNotContain(listener);
     }
 
 
     @Test
     void unregisterListener_listenerNotRegistered() {
         var listener = new TestListener();
-        var pid = "test-pid";
-        manager.registerListener(pid, listener);
+        manager.registerListener(listener);
 
         var listener2 = new TestListener();
         manager.unregister(listener2);
 
-        assertThat(manager.getListeners()).containsKey(pid);
-        assertThat(manager.getListeners().get(pid)).doesNotContain(listener2).containsOnly(listener);
+        assertThat(manager.getListeners()).doesNotContain(listener2).containsOnly(listener);
     }
 
     private static class TestListener implements TransferProcessListener {

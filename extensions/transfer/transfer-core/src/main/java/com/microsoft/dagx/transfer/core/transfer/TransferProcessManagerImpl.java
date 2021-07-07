@@ -15,10 +15,12 @@ import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 import com.microsoft.dagx.spi.types.domain.transfer.*;
 
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.microsoft.dagx.spi.types.domain.transfer.TransferProcess.Type.CLIENT;
@@ -30,9 +32,9 @@ import static java.util.UUID.randomUUID;
 /**
  *
  */
-public class TransferProcessManagerImpl implements TransferProcessManager, TransferProcessObservable {
+public class TransferProcessManagerImpl extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
-    private final Map<String, List<TransferProcessListener>> listenerMap;
+
     private int batchSize = 5;
     private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
@@ -45,12 +47,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
     private StatusCheckerRegistry statusCheckerRegistry;
 
     private TransferProcessManagerImpl() {
-        listenerMap = new HashMap<>();
+
     }
 
-    public Map<String, List<TransferProcessListener>> getListeners() {
-        return listenerMap;
-    }
 
     public void start(TransferProcessStore processStore) {
         transferProcessStore = processStore;
@@ -76,27 +75,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
         return initiateRequest(PROVIDER, dataRequest);
     }
 
-    @Override
-    public void registerListener(String processId, TransferProcessListener listener) {
-        if (listenerMap.containsKey(processId)) {
-            final List<TransferProcessListener> list = listenerMap.get(processId);
-            if (!list.contains(listener)) {
-                list.add(listener);
-            }
-        } else {
-            final ArrayList<TransferProcessListener> list = new ArrayList<>();
-            list.add(listener);
-            listenerMap.put(processId, list);
-        }
-    }
-
-    @Override
-    public void unregister(TransferProcessListener listener) {
-        // unregister from all processes
-        listenerMap.forEach((key, value) -> value.remove(listener));
-        // clear the registration if no more listeners
-        listenerMap.entrySet().removeIf(e -> e.getValue().isEmpty());
-    }
 
     private TransferInitiateResponse initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
@@ -107,6 +85,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
         String id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
         transferProcessStore.create(process);
+        invokeForEach(l -> l.created(process));
         return TransferInitiateResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.OK).build();
     }
 
@@ -155,9 +134,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
         var deprovisionedProcesses = transferProcessStore.nextForState(DEPROVISIONED.code(), batchSize);
 
         for (var process : deprovisionedProcesses) {
-            publishDeprovisioned(process);
+            invokeForEach(l -> l.deprovisioned(process));
             process.transitionEnded();
             transferProcessStore.update(process);
+            invokeForEach(l -> l.ended(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
         }
         return deprovisionedProcesses.size();
@@ -175,6 +155,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
         for (var process : processesDeprovisioning) {
             process.transitionDeprovisioning();
             transferProcessStore.update(process);
+            invokeForEach(l -> l.deprovisioning(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             provisionManager.deprovision(process);
         }
@@ -199,6 +180,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
                 } else {
                     process.transitionStreaming();
                 }
+                invokeForEach(l -> l.inProgress(process));
                 monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             } else {
                 monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
@@ -227,7 +209,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
             if (resources.stream().allMatch(this::isComplete)) {
                 process.transitionCompleted();
                 monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
-                publishCompleted(process);
+                invokeForEach(listener -> listener.completed(process));
 
             }
             transferProcessStore.update(process);
@@ -255,6 +237,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
             }
             process.transitionProvisioning(manifest);
             transferProcessStore.update(process);
+            invokeForEach(l -> l.provisioning(process));
             provisionManager.provision(process);
         }
         return processes.size();
@@ -272,21 +255,25 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
             if (CLIENT == process.getType()) {
                 process.transitionRequested();
                 transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
+                invokeForEach(l -> l.requested(process));
                 dispatcherRegistry.send(Void.class, dataRequest, process::getId);
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
                 if (ResponseStatus.ERROR_RETRY == response.getStatus()) {
                     monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
                     process.transitionProvisioned();
+                    invokeForEach(l -> l.provisioned(process));
                 } else if (ResponseStatus.FATAL_ERROR == response.getStatus()) {
                     monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), response.getError()));
                     process.transitionError(response.getError());
+                    invokeForEach(l -> l.error(process));
                 } else {
                     if (process.getDataRequest().getTransferType().isFinite()) {
                         process.transitionInProgress();
                     } else {
                         process.transitionStreaming();
                     }
+                    invokeForEach(l -> l.inProgress(process));
                 }
             }
             transferProcessStore.update(process);
@@ -294,19 +281,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
         return processes.size();
     }
 
-    private void publishCompleted(TransferProcess process) {
-        final List<TransferProcessListener> transferProcessListeners = listenerMap.get(process.getId());
-        if (transferProcessListeners != null) {
-            transferProcessListeners.forEach(l -> l.completed(process));
-        }
-    }
-
-    private void publishDeprovisioned(TransferProcess process) {
-        final List<TransferProcessListener> transferProcessListeners = listenerMap.get(process.getId());
-        if (transferProcessListeners != null) {
-            transferProcessListeners.forEach(l -> l.deprovisioned(process));
-        }
-    }
 
     private boolean hasChecker(ProvisionedResource provisionedResource) {
         return provisionedResource instanceof ProvisionedDataDestinationResource && statusCheckerRegistry.resolve((ProvisionedDataDestinationResource) provisionedResource) != null;
@@ -322,6 +296,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager, Trans
             return true;
         }
         return checker.isComplete(dataResource);
+    }
+
+    private void invokeForEach(Consumer<TransferProcessListener> action) {
+        getListeners().forEach(action);
     }
 
     public static class Builder {

@@ -69,9 +69,12 @@ public class ClientRunner {
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
 
             final TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
-            observable.registerListener(response.getId(), new TransferProcessListener() {
+            observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
+                    if (process.getId().equals(response.getId())) {
+                        return;
+                    }
                     //simulate data egress
                     try {
                         Thread.sleep(2000);
@@ -84,6 +87,9 @@ public class ClientRunner {
 
                 @Override
                 public void deprovisioned(TransferProcess process) {
+                    if (process.getId().equals(response.getId())) {
+                        return;
+                    }
                     latch.countDown();
                 }
             });
@@ -100,7 +106,7 @@ public class ClientRunner {
 
 
     @Test
-    @Disabled
+//    @Disabled
     void processClientRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
@@ -122,9 +128,12 @@ public class ClientRunner {
             var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
 
             final TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
-            observable.registerListener(response.getId(), new TransferProcessListener() {
+            observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
+                    if (process.getId().equals(response.getId())) {
+                        return;
+                    }
                     //simulate data egress
                     try {
                         Thread.sleep(2000);
@@ -137,6 +146,9 @@ public class ClientRunner {
 
                 @Override
                 public void deprovisioned(TransferProcess process) {
+                    if (process.getId().equals(response.getId())) {
+                        return;
+                    }
                     latch.countDown();
                 }
             });

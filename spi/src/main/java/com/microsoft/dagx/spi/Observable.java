@@ -6,6 +6,30 @@
 
 package com.microsoft.dagx.spi;
 
-public interface Observable<T> {
-    void unregister(T listener);
+
+import java.util.Collection;
+import java.util.concurrent.ConcurrentLinkedQueue;
+
+public abstract class Observable<T> {
+
+    private final Collection<T> listeners;
+
+    protected Observable() {
+        listeners = new ConcurrentLinkedQueue<>();
+    }
+
+    public Collection<T> getListeners() {
+        return listeners;
+    }
+
+    public void registerListener(T listener) {
+
+        if (!listeners.contains(listener)) {
+            listeners.add(listener);
+        }
+    }
+
+    public void unregister(T listener) {
+        listeners.remove(listener);
+    }
 }

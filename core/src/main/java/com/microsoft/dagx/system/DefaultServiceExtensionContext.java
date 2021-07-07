@@ -99,6 +99,15 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
+    public <T> T getService(Class<T> type, boolean isOptional) {
+        if (!isOptional) {
+            return getService(type);
+        }
+        return (T) services.get(type);
+    }
+
+    @Override
     public <T> void registerService(Class<T> type, T service) {
         services.put(type, service);
     }

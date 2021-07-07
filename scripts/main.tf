@@ -9,11 +9,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 2.65.0"
+      version = ">= 2.66.0"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = ">=1.5.0"
+      version = ">=1.6.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -32,6 +32,10 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "3.45.0"
+    }
+    http = {
+      source  = "hashicorp/http"
+      version = ">=2.1.0"
     }
   }
 }
@@ -128,7 +132,7 @@ data "azurerm_kubernetes_cluster" "connector" {
 
 data "azurerm_client_config" "current" {}
 
-resource "azurerm_resource_group" "rg" {
+resource "azurerm_resource_group" "core-resourcegroup" {
   name     = "${var.resourcesuffix}-resources"
   location = var.location
 }
@@ -157,8 +161,8 @@ resource "azuread_service_principal" "dagx-terraform-app-sp" {
 # Keyvault
 resource "azurerm_key_vault" "dagx-terraform-vault" {
   name                        = "dagx-${var.resourcesuffix}-vault"
-  location                    = azurerm_resource_group.rg.location
-  resource_group_name         = azurerm_resource_group.rg.name
+  location                    = azurerm_resource_group.core-resourcegroup.location
+  resource_group_name         = azurerm_resource_group.core-resourcegroup.name
   enabled_for_disk_encryption = false
   tenant_id                   = data.azurerm_client_config.current.tenant_id
   soft_delete_retention_days  = 7
@@ -186,8 +190,8 @@ resource "azurerm_role_assignment" "current-user" {
 #storage account
 resource "azurerm_storage_account" "dagxblobstore" {
   name                     = "dagxtfblob"
-  resource_group_name      = azurerm_resource_group.rg.name
-  location                 = azurerm_resource_group.rg.location
+  resource_group_name      = azurerm_resource_group.core-resourcegroup.name
+  location                 = azurerm_resource_group.core-resourcegroup.location
   account_tier             = "Standard"
   account_replication_type = "GRS"
   account_kind             = "BlobStorage"
@@ -251,10 +255,10 @@ resource "azurerm_key_vault_secret" "nifi-credentials" {
 }
 
 resource "azurerm_container_group" "dagx-nifi" {
-  location            = azurerm_resource_group.rg.location
+  location            = azurerm_resource_group.core-resourcegroup.location
   name                = "dagx-nifi-continst"
   os_type             = "Linux"
-  resource_group_name = azurerm_resource_group.rg.name
+  resource_group_name = azurerm_resource_group.core-resourcegroup.name
   dns_name_label      = "${var.resourcesuffix}-dagx-nifi"
   container {
     cpu    = 4
@@ -349,6 +353,10 @@ module "connector-deployment" {
   certificate_mount_config = {
     accountName = var.backend_account_name
     accountKey  = var.backend_account_key
+  }
+  events = {
+    topic_name     = azurerm_eventgrid_topic.dagx-topic.name
+    topic_endpoint = azurerm_eventgrid_topic.dagx-topic.endpoint
   }
 }
 

@@ -54,6 +54,8 @@ include(":extensions:dataseed:dataseed-nifi")
 include(":extensions:dataseed:dataseed-azure")
 include(":extensions:dataseed:dataseed-aws")
 
+include(":extensions:events:events-azure")
+
 include(":policy:policy-model")
 include(":policy:policy-engine")
 

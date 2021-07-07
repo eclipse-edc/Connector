@@ -14,6 +14,8 @@ import com.microsoft.dagx.policy.model.Policy;
 import com.microsoft.dagx.schema.DataSchema;
 import com.microsoft.dagx.schema.SchemaRegistry;
 import com.microsoft.dagx.spi.DagxException;
+import com.microsoft.dagx.spi.metadata.MetadataListener;
+import com.microsoft.dagx.spi.metadata.MetadataObservable;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.types.domain.metadata.DataEntry;
@@ -30,7 +32,7 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toSet;
 
 @SuppressWarnings("unchecked")
-public class AtlasMetadataStore implements MetadataStore {
+public class AtlasMetadataStore extends MetadataObservable implements MetadataStore {
     private static final String ATLAS_PROPERTY_KEYNAME = "keyName";
     private static final String ATLAS_PROPERTY_TYPE = "type";
     private final AtlasApi atlasApi;
@@ -46,7 +48,7 @@ public class AtlasMetadataStore implements MetadataStore {
 
     @Override
     public @Nullable DataEntry findForId(String id) {
-
+        getListeners().forEach(MetadataListener::searchInitiated);
         var properties = atlasApi.getEntityById(id);
 
         if (properties == null) {
@@ -101,11 +103,13 @@ public class AtlasMetadataStore implements MetadataStore {
 
     @Override
     public void save(DataEntry entry) {
+        getListeners().forEach(MetadataListener::metadataItemAdded);
         monitor.severe("Save not yet implemented");
     }
 
     @Override
     public @NotNull Collection<DataEntry> queryAll(Collection<Policy> policies) {
+        getListeners().forEach(MetadataListener::querySubmitted);
         if (policies.isEmpty()) {
             return Collections.emptyList();
         }

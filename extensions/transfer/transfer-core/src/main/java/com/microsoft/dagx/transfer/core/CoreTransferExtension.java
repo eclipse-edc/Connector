@@ -92,7 +92,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("dagx:statuschecker", "dagx:dispatcher", "dagx:manifestgenerator");
+        return Set.of("dagx:statuschecker", "dagx:dispatcher", "dagx:manifestgenerator", "dagx:transfer-process-manager", "dagx:transfer-process-observable");
     }
 
     @Override

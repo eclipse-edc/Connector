@@ -5,10 +5,13 @@
 
 package com.microsoft.dagx.metadata.memory;
 
+import com.microsoft.dagx.spi.metadata.MetadataObservable;
 import com.microsoft.dagx.spi.metadata.MetadataStore;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
+
+import java.util.Set;
 
 public class InMemoryServiceExtension implements ServiceExtension {
     private Monitor monitor;
@@ -19,10 +22,17 @@ public class InMemoryServiceExtension implements ServiceExtension {
     }
 
     @Override
+    public Set<String> provides() {
+        return Set.of("dagx:metadata-store-observable");
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        context.registerService(MetadataStore.class, new InMemoryMetadataStore());
+        final InMemoryMetadataStore service = new InMemoryMetadataStore();
+        context.registerService(MetadataStore.class, service);
+        context.registerService(MetadataObservable.class, service);
 
         monitor.info("Initialized In-Memory Metadata extension");
     }

@@ -50,7 +50,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
 
         monitor = context.getMonitor();
-        monitor.info("Initializing Cosmos Memory Transfer Process Store extension...");
+        monitor.info("Initializing Cosmos Transfer Process Store extension...");
 
         // configure cosmos db
         var cosmosAccountName = context.getSetting(COSMOS_ACCOUNTNAME_SETTING, null);

@@ -22,9 +22,10 @@ dependencies {
     implementation(project(":extensions:transfer:transfer-provision-azure"))
     implementation(project(":extensions:transfer:transfer-nifi"))
 
+    implementation(project(":extensions:events:events-azure"))
+
     implementation(project(":extensions:ids"))
 
-    // todo: replace with atlas - but we need this for the time being to provide catalog entries
     implementation(project(":extensions:catalog:catalog-atlas"))
     implementation(project(":extensions:dataseed"))
 

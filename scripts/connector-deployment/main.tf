@@ -1,8 +1,8 @@
 terraform {
   required_providers {
     azurerm = {
-      source = "hashicorp/azurerm"
-      version = ">= 2.62.1"
+      source  = "hashicorp/azurerm"
+      version = ">= 2.66.0"
     }
     kubernetes = {
       source = "hashicorp/kubernetes"
@@ -99,6 +99,14 @@ resource "kubernetes_deployment" "connector-deployment" {
           env {
             name = "COSMOS_DB"
             value = var.container_environment.cosmosDb
+          }
+          env{
+            name= "TOPIC_NAME"
+            value= var.events.topic_name
+          }
+          env{
+            name = "TOPIC_ENDPOINT"
+            value = var.events.topic_endpoint
           }
           port {
             container_port = 8181
