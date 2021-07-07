@@ -308,11 +308,11 @@ module "atlas-cluster" {
 module "atlas-deployment" {
   depends_on = [
   module.atlas-cluster]
-  source         = "./atlas-deployment"
-  cluster_name   = local.cluster_name_atlas
-  kubeconfig     = data.azurerm_kubernetes_cluster.atlas.kube_config_raw
-  environment = var.environment
-  tenant_id      = data.azurerm_client_config.current.tenant_id
+  source       = "./atlas-deployment"
+  cluster_name = local.cluster_name_atlas
+  kubeconfig   = data.azurerm_kubernetes_cluster.atlas.kube_config_raw
+  environment  = var.environment
+  tenant_id    = data.azurerm_client_config.current.tenant_id
   providers = {
     kubernetes = kubernetes.atlas
     helm       = helm.atlas
