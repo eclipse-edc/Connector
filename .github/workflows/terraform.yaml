@@ -93,7 +93,7 @@ jobs:
 
       - name: Terraform Plan
         id: plan
-        run: terraform -chdir=scripts plan -no-color -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
+        run: terraform -chdir=scripts plan -no-color -var "environment=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
 
 
       - name: Taint the connector instance
@@ -105,4 +105,4 @@ jobs:
       - name: Terraform Apply
         id: apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform -chdir=scripts apply -var "resourcesuffix=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}" -auto-approve
+        run: terraform -chdir=scripts apply -var "environment=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}" -auto-approve

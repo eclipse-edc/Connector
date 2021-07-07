@@ -133,13 +133,13 @@ data "azurerm_kubernetes_cluster" "connector" {
 data "azurerm_client_config" "current" {}
 
 resource "azurerm_resource_group" "core-resourcegroup" {
-  name     = "${var.resourcesuffix}-resources"
+  name     = "${var.environment}-resources"
   location = var.location
 }
 
 # App registration for the primary identity
 resource "azuread_application" "dagx-terraform-app" {
-  display_name               = "PrimaryIdentity-${var.resourcesuffix}"
+  display_name               = "PrimaryIdentity-${var.environment}"
   available_to_other_tenants = false
 }
 
@@ -160,7 +160,7 @@ resource "azuread_service_principal" "dagx-terraform-app-sp" {
 
 # Keyvault
 resource "azurerm_key_vault" "dagx-terraform-vault" {
-  name                        = "dagx-${var.resourcesuffix}-vault"
+  name                        = "dagx-${var.environment}-vault"
   location                    = azurerm_resource_group.core-resourcegroup.location
   resource_group_name         = azurerm_resource_group.core-resourcegroup.name
   enabled_for_disk_encryption = false
@@ -259,7 +259,7 @@ resource "azurerm_container_group" "dagx-nifi" {
   name                = "dagx-nifi-continst"
   os_type             = "Linux"
   resource_group_name = azurerm_resource_group.core-resourcegroup.name
-  dns_name_label      = "${var.resourcesuffix}-dagx-nifi"
+  dns_name_label      = "${var.environment}-dagx-nifi"
   container {
     cpu    = 4
     image  = "ghcr.io/microsoft/data-appliance-gx/nifi:latest"
@@ -303,7 +303,7 @@ module "atlas-cluster" {
   source       = "./aks-cluster"
   cluster_name = local.cluster_name_atlas
   location     = var.location
-  dnsPrefix    = "${var.resourcesuffix}-dagx-atlas"
+  dnsPrefix    = "${var.environment}-dagx-atlas"
 }
 module "atlas-deployment" {
   depends_on = [
@@ -311,7 +311,7 @@ module "atlas-deployment" {
   source         = "./atlas-deployment"
   cluster_name   = local.cluster_name_atlas
   kubeconfig     = data.azurerm_kubernetes_cluster.atlas.kube_config_raw
-  resourcesuffix = var.resourcesuffix
+  environment = var.environment
   tenant_id      = data.azurerm_client_config.current.tenant_id
   providers = {
     kubernetes = kubernetes.atlas
@@ -323,18 +323,18 @@ module "atlas-deployment" {
 module "connector-cluster" {
   source       = "./aks-cluster"
   cluster_name = local.cluster_name_connector
-  dnsPrefix    = "${var.resourcesuffix}-connector"
+  dnsPrefix    = "${var.environment}-connector"
   location     = var.location
 }
 
 module "connector-deployment" {
   depends_on = [
   module.connector-cluster]
-  source         = "./connector-deployment"
-  cluster_name   = local.cluster_name_connector
-  kubeconfig     = data.azurerm_kubernetes_cluster.connector.kube_config_raw
-  resourcesuffix = var.resourcesuffix
-  tenant_id      = data.azurerm_client_config.current.tenant_id
+  source       = "./connector-deployment"
+  cluster_name = local.cluster_name_connector
+  kubeconfig   = data.azurerm_kubernetes_cluster.connector.kube_config_raw
+  environment  = var.environment
+  tenant_id    = data.azurerm_client_config.current.tenant_id
   providers = {
     kubernetes = kubernetes.connector
     helm       = helm.connector

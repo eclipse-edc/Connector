@@ -41,7 +41,7 @@ resource "tls_self_signed_cert" "atlas-ingress" {
 
 resource "kubernetes_namespace" "atlas" {
   metadata {
-    name = "${var.resourcesuffix}-atlas"
+    name = "${var.environment}-atlas"
   }
 }
 

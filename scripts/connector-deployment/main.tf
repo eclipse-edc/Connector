@@ -24,7 +24,7 @@ resource "tls_private_key" "connector-ingress-key" {
 
 resource "kubernetes_namespace" "connector" {
   metadata {
-    name = "${var.resourcesuffix}-cons"
+    name = "${var.environment}-cons"
   }
 }
 
