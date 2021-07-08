@@ -24,15 +24,17 @@ class AzureEventGridPublisher implements TransferProcessListener, MetadataListen
     private final EventGridPublisherAsyncClient<EventGridEvent> client;
     private final String eventTypeTransferprocess = "dagx/transfer/transferprocess";
     private final String eventTypeMetadata = "dagx/metadata/store";
+    private final String connectorId;
 
-    public AzureEventGridPublisher(Monitor monitor, EventGridPublisherAsyncClient<EventGridEvent> client) {
+    public AzureEventGridPublisher(String connectorId, Monitor monitor, EventGridPublisherAsyncClient<EventGridEvent> client) {
+        this.connectorId = connectorId;
         this.monitor = monitor;
         this.client = client;
     }
 
     @Override
     public void created(TransferProcess process) {
-        var dto = createDto(process);
+        var dto = createTransferProcessDto(process);
         if (process.getType() == TransferProcess.Type.CLIENT) {
             sendEvent("createdClient", eventTypeTransferprocess, dto).subscribe(new LoggingSubscriber<>("Transfer process created"));
         } else {
@@ -42,46 +44,46 @@ class AzureEventGridPublisher implements TransferProcessListener, MetadataListen
 
     @Override
     public void completed(TransferProcess process) {
-        sendEvent("completed", eventTypeTransferprocess, createDto(process)).subscribe(new LoggingSubscriber<>("Transfer process completed"));
+        sendEvent("completed", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process completed"));
     }
 
 
     @Override
     public void deprovisioned(TransferProcess process) {
-        sendEvent("deprovisioned", eventTypeTransferprocess, createDto(process)).subscribe(new LoggingSubscriber<>("Transfer process resources deprovisioned"));
+        sendEvent("deprovisioned", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process resources deprovisioned"));
 
     }
 
     @Override
     public void ended(TransferProcess process) {
-        sendEvent("ended", eventTypeTransferprocess, createDto(process)).subscribe(new LoggingSubscriber<>("Transfer process ended"));
+        sendEvent("ended", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process ended"));
 
     }
 
     @Override
     public void error(TransferProcess process) {
-        sendEvent("error", eventTypeTransferprocess, createDto(process)).subscribe(new LoggingSubscriber<>("Transfer process errored!"));
+        sendEvent("error", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process errored!"));
 
     }
 
     @Override
     public void querySubmitted() {
-        sendEvent("querySubmitted", eventTypeMetadata, null).subscribe(new LoggingSubscriber<>("query submitted"));
+        sendEvent("queryReceived", eventTypeMetadata, new EventDto(connectorId)).subscribe(new LoggingSubscriber<>("query submitted"));
     }
 
     @Override
     public void searchInitiated() {
-        sendEvent("searchInitiated", eventTypeMetadata, null).subscribe(new LoggingSubscriber<>("search initiated"));
+        sendEvent("searchInitiated", eventTypeMetadata, new EventDto(connectorId)).subscribe(new LoggingSubscriber<>("search initiated"));
     }
 
     @Override
     public void metadataItemAdded() {
-        sendEvent("itemAdded", eventTypeMetadata, null).subscribe(new LoggingSubscriber<>("AzureEventGrid: metadata item added"));
+        sendEvent("itemAdded", eventTypeMetadata, new EventDto(connectorId)).subscribe(new LoggingSubscriber<>("AzureEventGrid: metadata item added"));
     }
 
     @Override
     public void metadataItemUpdated() {
-        sendEvent("itemUpdated", eventTypeMetadata, null).subscribe(new LoggingSubscriber<>("metadata item updated"));
+        sendEvent("itemUpdated", eventTypeMetadata, new EventDto(connectorId)).subscribe(new LoggingSubscriber<>("metadata item updated"));
     }
 
     private Mono<Void> sendEvent(String what, String where, Object payload) {
@@ -91,8 +93,9 @@ class AzureEventGridPublisher implements TransferProcessListener, MetadataListen
     }
 
     @NotNull
-    private TransferProcessDto createDto(TransferProcess process) {
+    private TransferProcessDto createTransferProcessDto(TransferProcess process) {
         return TransferProcessDto.Builder.newInstance()
+                .connector(connectorId)
                 .state(TransferProcessStates.from(process.getState()))
                 .requestId(process.getDataRequest().getId())
                 .type(process.getType())

@@ -25,7 +25,7 @@ import okhttp3.OkHttpClient;
 
 import java.util.Set;
 
-import static com.microsoft.dagx.ids.spi.IdsConfiguration.CONNECTOR_NAME;
+import static com.microsoft.dagx.common.settings.SettingsHelper.getConnectorId;
 
 /**
  * Implements the IDS Controller REST API.
@@ -51,7 +51,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         context.registerService(IdsDescriptorService.class, descriptorService);
 
         var identityService = context.getService(IdentityService.class);
-        var connectorName = context.getSetting(CONNECTOR_NAME, "connectorName");
+        var connectorName = getConnectorId(context);
         var dapsService = new DapsServiceImpl(connectorName, identityService);
         context.registerService(DapsService.class, dapsService);
 

@@ -23,7 +23,8 @@ import com.microsoft.dagx.transfer.store.cosmos.model.TransferProcessDocument;
 
 import java.util.ArrayList;
 import java.util.Set;
-import java.util.UUID;
+
+import static com.microsoft.dagx.common.settings.SettingsHelper.getConnectorId;
 
 /**
  * Provides an in-memory implementation of the {@link com.microsoft.dagx.spi.transfer.store.TransferProcessStore} for testing.
@@ -91,7 +92,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         var partitionKey = context.getSetting(COSMOS_PARTITION_KEY_SETTING, DEFAULT_PARTITION_KEY);
 
         // get unique connector name
-        var connectorId = context.getSetting("dagx.ids.connector.name", "dagx-connector-" + UUID.randomUUID());
+        var connectorId = getConnectorId(context);
 
         monitor.info("CosmosTransferProcessStore will use connector id '" + connectorId + "'");
         context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(container, context.getTypeManager(), partitionKey, connectorId));

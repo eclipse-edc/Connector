@@ -17,6 +17,8 @@ import com.microsoft.dagx.spi.transfer.TransferProcessObservable;
 import java.util.Objects;
 import java.util.Set;
 
+import static com.microsoft.dagx.common.settings.SettingsHelper.getConnectorId;
+
 public class AzureEventExtension implements ServiceExtension {
 
     private static final String DEFAULT_TOPIC_NAME = "connector-events";
@@ -64,7 +66,8 @@ public class AzureEventExtension implements ServiceExtension {
                 .endpoint(endpoint)
                 .buildEventGridEventPublisherAsyncClient();
 
-        final AzureEventGridPublisher publisher = new AzureEventGridPublisher(monitor, publisherClient);
+
+        final AzureEventGridPublisher publisher = new AzureEventGridPublisher(getConnectorId(context), monitor, publisherClient);
 
         var processObservable = context.getService(TransferProcessObservable.class, true);
         if (processObservable != null) {

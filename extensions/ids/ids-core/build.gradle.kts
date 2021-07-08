@@ -13,10 +13,11 @@ plugins {
 
 dependencies {
     api(project(":spi"))
+    api(project(":common"))
     api(project(":extensions:ids:ids-spi"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
-    
+
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":policy:policy-engine"))
 }

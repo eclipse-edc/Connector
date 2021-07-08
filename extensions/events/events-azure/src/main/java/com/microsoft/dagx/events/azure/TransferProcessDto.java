@@ -7,6 +7,7 @@
 package com.microsoft.dagx.events.azure;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.spi.types.domain.transfer.TransferProcess;
@@ -19,14 +20,19 @@ import com.microsoft.dagx.spi.types.domain.transfer.TransferProcessStates;
  * reasons of security.
  */
 @JsonDeserialize(builder = TransferProcessDto.Builder.class)
-public class TransferProcessDto {
+public class TransferProcessDto extends EventDto {
+    @JsonProperty("requestId")
     private String requestId;
+    @JsonProperty("transferProcessType")
     private TransferProcess.Type type;
+    @JsonProperty("transferProcessState")
     private String state;
+    @JsonProperty("transferProcessStateCode")
     private int stateCode;
 
-    private TransferProcessDto() {
+    private TransferProcessDto(String connectorId) {
 
+        super(connectorId);
     }
 
     public String getRequestId() {
@@ -45,12 +51,14 @@ public class TransferProcessDto {
         return stateCode;
     }
 
+
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private String requestId;
         private TransferProcess.Type type;
         private String state;
         private int stateCode;
+        private String connectorId;
 
         private Builder() {
         }
@@ -78,12 +86,17 @@ public class TransferProcessDto {
 
 
         public TransferProcessDto build() {
-            TransferProcessDto transferProcessDto = new TransferProcessDto();
+            TransferProcessDto transferProcessDto = new TransferProcessDto(connectorId);
             transferProcessDto.state = state;
             transferProcessDto.type = type;
             transferProcessDto.requestId = requestId;
             transferProcessDto.stateCode = stateCode;
             return transferProcessDto;
+        }
+
+        public Builder connector(String connectorId) {
+            this.connectorId = connectorId;
+            return this;
         }
     }
 }
