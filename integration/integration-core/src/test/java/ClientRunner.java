@@ -37,7 +37,7 @@ import static com.microsoft.dagx.common.Cast.cast;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(DagxExtension.class)
-//@Disabled
+@Disabled
 public class ClientRunner {
     private static final String PROVIDER_CONNECTOR = "http://localhost:8181/";
     private static final TokenResult US_TOKEN = TokenResult.Builder.newInstance().token("mock-us").build();
