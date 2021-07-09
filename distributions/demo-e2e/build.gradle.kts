@@ -31,7 +31,7 @@ dependencies {
 
     implementation(project(":extensions:security:security-azure"))
     implementation(project(":extensions:policy:policy-registry-memory"))
-    implementation(project(":extensions:iam:oauth2"))
+    implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:ids:ids-policy-mock"))
     implementation(project(":extensions:configuration:configuration-fs"))
 
