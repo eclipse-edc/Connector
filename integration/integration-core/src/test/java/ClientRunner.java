@@ -37,9 +37,9 @@ import static com.microsoft.dagx.common.Cast.cast;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(DagxExtension.class)
-@Disabled
+//@Disabled
 public class ClientRunner {
-    private static final String PROVIDER_CONNECTOR = "http://dev-connector.westeurope.cloudapp.azure.com/";
+    private static final String PROVIDER_CONNECTOR = "http://localhost:8181/";
     private static final TokenResult US_TOKEN = TokenResult.Builder.newInstance().token("mock-us").build();
     private static final TokenResult EU_TOKEN = TokenResult.Builder.newInstance().token("mock-eu").build();
     private static final DataEntry EU_ARTIFACT = DataEntry.Builder.newInstance().id("test123").build();
