@@ -11,3 +11,11 @@ plugins {
 dependencies {
     api(project(":spi"))
 }
+publishing {
+    publications {
+        create<MavenPublication>("metadata-mem") {
+            artifactId = "edc.metadata-memory"
+            from(components["java"])
+        }
+    }
+}

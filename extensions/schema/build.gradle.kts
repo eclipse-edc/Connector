@@ -13,4 +13,11 @@ dependencies {
     testImplementation(project(":distributions:junit"))
 }
 
-
+publishing {
+    publications {
+        create<MavenPublication>("schema") {
+            artifactId = "edc.schema"
+            from(components["java"])
+        }
+    }
+}

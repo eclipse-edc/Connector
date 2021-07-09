@@ -32,4 +32,11 @@ dependencies {
 
 }
 
-
+publishing {
+    publications {
+        create<MavenPublication>("web") {
+            artifactId = "edc.protocol-web"
+            from(components["java"])
+        }
+    }
+}

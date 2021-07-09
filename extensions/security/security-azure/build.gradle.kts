@@ -23,3 +23,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("security-azure") {
+            artifactId = "edc.security-azure"
+            from(components["java"])
+        }
+    }
+}

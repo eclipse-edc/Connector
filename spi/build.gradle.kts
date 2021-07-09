@@ -10,6 +10,7 @@ val jodahFailsafeVersion: String by project
 
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 dependencies {
@@ -24,3 +25,11 @@ dependencies {
     api(project(":policy:policy-model"))
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("spi") {
+            artifactId = "edc.spi"
+            from(components["java"])
+        }
+    }
+}

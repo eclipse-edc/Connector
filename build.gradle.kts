@@ -5,6 +5,7 @@
 
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 repositories {
@@ -30,7 +31,10 @@ subprojects {
 }
 
 allprojects {
+    apply(plugin = "maven-publish")
     pluginManager.withPlugin("java-library") {
+        group = "com.microsoft"
+        version = "0.0.1"
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
             api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
@@ -43,6 +47,19 @@ allprojects {
             testImplementation("org.easymock:easymock:4.2")
             testImplementation("org.assertj:assertj-core:3.19.0")
 
+        }
+
+        publishing{
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/microsoft/data-appliance-gx")
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR")
+                        password = System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
         }
 
     }
@@ -61,4 +78,13 @@ allprojects {
 
 val test by tasks.getting(Test::class) {
     useJUnitPlatform()
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("all") {
+            artifactId = "edc.all"
+            from(components["java"])
+        }
+    }
 }

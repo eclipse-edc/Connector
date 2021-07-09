@@ -17,3 +17,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("events-azure") {
+            artifactId = "edc.events-azure"
+            from(components["java"])
+        }
+    }
+}
