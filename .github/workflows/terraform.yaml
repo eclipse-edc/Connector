@@ -44,13 +44,9 @@
 
 name: 'Terraform'
 
-# on:
-#   workflow_run:
-#     workflows: [ "Build Docker Images" ]
-#     types: [ completed ]
 on:
   workflow_run:
-    workflows: [ "Build Docker Images", "Build Docker Images", "CodeQL" ]
+    workflows: [ "Build Docker Images" ]
     types:
       - completed
       #  push:
