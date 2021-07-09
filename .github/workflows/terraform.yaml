@@ -102,11 +102,11 @@ jobs:
 
       - name: Taint the connector instance
         id: taint
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        #        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform -chdir=scripts taint module.connector-deployment.kubernetes_deployment.connector-deployment
         continue-on-error: true
 
       - name: Terraform Apply
         id: apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        #        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform -chdir=scripts apply -var "environment=dev" -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}" -auto-approve
