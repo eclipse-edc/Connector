@@ -13,7 +13,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("iam-mock") {
-            artifactId = "edc.iam.mock"
+            artifactId = "edc.iam-mock"
             from(components["java"])
         }
     }

@@ -23,3 +23,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("ids-core") {
+            artifactId = "edc.ids-core"
+            from(components["java"])
+        }
+    }
+}

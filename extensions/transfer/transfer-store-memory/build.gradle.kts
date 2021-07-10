@@ -13,5 +13,11 @@ dependencies {
 
 
 }
-
-
+publishing {
+    publications {
+        create<MavenPublication>("transfer-store-memory") {
+            artifactId = "edc.transfer-store-memory"
+            from(components["java"])
+        }
+    }
+}

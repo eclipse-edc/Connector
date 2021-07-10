@@ -19,3 +19,11 @@ dependencies {
 
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("transfer-provision-azure") {
+            artifactId = "edc.transfer-provision-azure"
+            from(components["java"])
+        }
+    }
+}

@@ -17,3 +17,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("transfer-store-cosmos") {
+            artifactId = "edc.transfer-store-cosmos"
+            from(components["java"])
+        }
+    }
+}

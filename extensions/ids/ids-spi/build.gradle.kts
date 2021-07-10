@@ -22,3 +22,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("ids-spi") {
+            artifactId = "edc.ids-spi"
+            from(components["java"])
+        }
+    }
+}

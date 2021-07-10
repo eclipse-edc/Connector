@@ -16,3 +16,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("transfer-core") {
+            artifactId = "edc.transfer-core"
+            from(components["java"])
+        }
+    }
+}

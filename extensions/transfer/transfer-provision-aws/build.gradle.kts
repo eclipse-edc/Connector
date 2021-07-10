@@ -22,6 +22,11 @@ dependencies {
 
 }
 
-
-
-
+publishing {
+    publications {
+        create<MavenPublication>("transfer-provision-aws") {
+            artifactId = "edc.transfer-provision-aws"
+            from(components["java"])
+        }
+    }
+}

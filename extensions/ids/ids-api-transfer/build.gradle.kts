@@ -21,4 +21,11 @@ dependencies {
 
 }
 
-
+publishing {
+    publications {
+        create<MavenPublication>("ids-api-transfer") {
+            artifactId = "edc.ids-api-transfer"
+            from(components["java"])
+        }
+    }
+}
