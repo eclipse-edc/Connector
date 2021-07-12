@@ -43,7 +43,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     @DagxSetting
     private final static String COSMOS_PARTITION_KEY_SETTING = "dagx.cosmos.partitionkey";
     private final static String DEFAULT_PARTITION_KEY = "dagx";
-    private final static String CONTAINER_NAME = "dagx-transferprocess";
+    private final static String CONTAINER_NAME = "transferprocess";
 
     private Monitor monitor;
 
@@ -105,6 +105,11 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     @Override
     public Set<String> requires() {
         return Set.of("dagx:blobstoreapi");
+    }
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("dagx:transferprocessstore");
     }
 
     @Override
