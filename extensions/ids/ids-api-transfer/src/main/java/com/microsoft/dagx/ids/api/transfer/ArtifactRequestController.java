@@ -70,6 +70,7 @@ public class ArtifactRequestController {
     public Response request(ArtifactRequestMessage message) {
         var verificationResult = dapsService.verifyAndConvertToken(message.getSecurityToken().getTokenValue());
         if (!verificationResult.valid()) {
+            monitor.info(() -> "verification failed for request " + message.getId());
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHENTICATED).build()).build();
         }
 
@@ -93,6 +94,7 @@ public class ArtifactRequestController {
         var policyResult = policyService.evaluateRequest(clientConnectorId, correlationId, verificationResult.token(), policy);
 
         if (!policyResult.valid()) {
+            monitor.info("Policy evaluation failed");
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHORIZED).build()).build();
         }
 
@@ -101,10 +103,11 @@ public class ArtifactRequestController {
         @SuppressWarnings("unchecked") var destinationMap = (Map<String, Object>) message.getProperties().get(DESTINATION_KEY);
         var type = (String) destinationMap.get("type");
 
-        @SuppressWarnings("unchecked") var properties = (Map<String, String>) destinationMap.get("properties");
+        @SuppressWarnings("unchecked") Map<String, String> properties = (Map<String, String>) destinationMap.get("properties");
         var secretName = (String) destinationMap.get("keyName");
 
-        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(cast(properties)).keyName(secretName).build();
+        final Map<String, String> cast = cast(properties);
+        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(cast).keyName(secretName).build();
 
         var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).dataDestination(dataDestination).protocol(IDS_REST).build();
 

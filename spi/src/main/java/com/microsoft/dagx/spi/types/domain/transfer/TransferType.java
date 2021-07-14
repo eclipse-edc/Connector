@@ -6,8 +6,13 @@
 
 package com.microsoft.dagx.spi.types.domain.transfer;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import java.util.Objects;
 
+@JsonDeserialize(builder = TransferType.Builder.class)
 public class TransferType {
     private String contentType;
     private boolean isFinite = true;
@@ -20,7 +25,7 @@ public class TransferType {
         return isFinite;
     }
 
-
+    @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private String contentType = "application/octet-stream";
         private boolean isFinite = true;
@@ -28,6 +33,7 @@ public class TransferType {
         private Builder() {
         }
 
+        @JsonCreator
         public static Builder transferType() {
             return new Builder();
         }

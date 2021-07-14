@@ -49,7 +49,7 @@ allprojects {
 
         }
 
-        publishing{
+        publishing {
             repositories {
                 maven {
                     name = "GitHubPackages"
@@ -78,13 +78,4 @@ allprojects {
 
 val test by tasks.getting(Test::class) {
     useJUnitPlatform()
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("all") {
-            artifactId = "edc.all"
-            from(components["java"])
-        }
-    }
 }

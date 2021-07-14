@@ -173,7 +173,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         List<TransferProcess> requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
 
         for (var process : requestAcked) {
-            if (!process.getProvisionedResourceSet().empty()) {
+            if (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty()) {
 
                 if (process.getDataRequest().getTransferType().isFinite()) {
                     process.transitionInProgress();
