@@ -14,7 +14,8 @@ import java.util.Objects;
 
 @JsonDeserialize(builder = TransferType.Builder.class)
 public class TransferType {
-    private String contentType;
+    private static final String DEFAULT_CONTENT_TYPE = "application/octet-stream";
+    private String contentType = DEFAULT_CONTENT_TYPE;
     private boolean isFinite = true;
 
     public String getContentType() {
@@ -27,7 +28,7 @@ public class TransferType {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private String contentType = "application/octet-stream";
+        private String contentType = DEFAULT_CONTENT_TYPE;
         private boolean isFinite = true;
 
         private Builder() {
