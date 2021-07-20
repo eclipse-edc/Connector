@@ -6,8 +6,8 @@
 
 package com.microsoft.dagx.transfer.provision.azure.blob;
 
+import com.microsoft.dagx.common.azure.BlobStoreApi;
 import com.microsoft.dagx.spi.types.domain.transfer.StatusChecker;
-import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApi;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 

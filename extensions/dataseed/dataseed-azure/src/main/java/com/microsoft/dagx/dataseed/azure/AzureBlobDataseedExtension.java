@@ -6,13 +6,13 @@
 
 package com.microsoft.dagx.dataseed.azure;
 
+import com.microsoft.dagx.common.azure.BlobStoreApi;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.security.VaultResponse;
 import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.transfer.provision.azure.AzureSasToken;
-import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApi;
 
 import java.io.IOException;
 import java.io.InputStream;

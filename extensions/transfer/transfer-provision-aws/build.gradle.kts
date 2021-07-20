@@ -18,10 +18,15 @@ dependencies {
     implementation("software.amazon.awssdk:sts:${awsVersion}")
     implementation("software.amazon.awssdk:iam:${awsVersion}")
 
-    testImplementation(testFixtures(project(":common")))
+    testImplementation(testFixtures(project(":common:util")))
 
 }
 
-
-
-
+publishing {
+    publications {
+        create<MavenPublication>("transfer-provision-aws") {
+            artifactId = "edc.transfer-provision-aws"
+            from(components["java"])
+        }
+    }
+}

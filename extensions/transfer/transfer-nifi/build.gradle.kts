@@ -12,7 +12,7 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":common"))
+    api(project(":common:util"))
     api(project(":core"))
     implementation(project(":extensions:schema"))
 

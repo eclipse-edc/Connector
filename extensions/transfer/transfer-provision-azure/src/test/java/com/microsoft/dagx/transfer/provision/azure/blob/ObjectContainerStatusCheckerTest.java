@@ -6,10 +6,10 @@
 
 package com.microsoft.dagx.transfer.provision.azure.blob;
 
+import com.microsoft.dagx.common.azure.BlobStoreApiImpl;
 import com.microsoft.dagx.common.testfixtures.AbstractAzureBlobTest;
 import com.microsoft.dagx.common.testfixtures.TestUtils;
 import com.microsoft.dagx.spi.security.Vault;
-import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApiImpl;
 import net.jodah.failsafe.RetryPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

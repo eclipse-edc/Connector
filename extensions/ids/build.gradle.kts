@@ -14,6 +14,14 @@ dependencies {
     api(project(":extensions:ids:ids-core"))
     api(project(":extensions:ids:ids-api-catalog"))
     api(project(":extensions:ids:ids-api-transfer"))
+    api(project(":extensions:ids:ids-policy-mock"))
 }
 
-
+publishing {
+    publications {
+        create<MavenPublication>("ids") {
+            artifactId = "edc.ids"
+            from(components["java"])
+        }
+    }
+}

@@ -10,6 +10,8 @@ import com.microsoft.dagx.spi.system.ServiceExtension;
 import com.microsoft.dagx.spi.system.ServiceExtensionContext;
 import com.microsoft.dagx.spi.transfer.store.TransferProcessStore;
 
+import java.util.Set;
+
 /**
  * Provides an in-memory implementation of the {@link com.microsoft.dagx.spi.transfer.store.TransferProcessStore} for testing.
  */
@@ -21,6 +23,11 @@ public class InMemoryTransferProcessStoreExtension implements ServiceExtension {
         context.registerService(TransferProcessStore.class, new InMemoryTransferProcessStore());
         monitor = context.getMonitor();
         monitor.info("Initialized In-Memory Transfer Process Store extension");
+    }
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("dagx:transferprocessstore");
     }
 
     @Override

@@ -178,7 +178,7 @@ public class TransferProcess {
 
     public void transitionCompleted() {
         // clients are in REQUESTED_ACK state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
-        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK);
+        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK, TransferProcessStates.STREAMING);
     }
 
     public void transitionDeprovisioning() {
@@ -226,7 +226,7 @@ public class TransferProcess {
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
         if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
-            throw new IllegalStateException(format("Cannot transition from state %s to %s", state, end.code()));
+            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
         }
         stateCount = state == end.code() ? stateCount + 1 : 1;
         state = end.code();

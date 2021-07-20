@@ -7,6 +7,7 @@ val rsApi: String by project
 
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 dependencies {
@@ -17,3 +18,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("control-http") {
+            artifactId = "edc.control-http"
+            from(components["java"])
+        }
+    }
+}

@@ -6,6 +6,7 @@
 
 package com.microsoft.dagx.common.collection;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
@@ -27,4 +28,11 @@ public class CollectionUtil {
         return map == null || map.isEmpty();
     }
 
+    public static <T> boolean isAnyOf(T t, T... collection) {
+        if (collection == null) {
+            return false;
+        }
+
+        return Arrays.asList(collection).contains(t);
+    }
 }

@@ -7,6 +7,7 @@
 package com.microsoft.dagx.transfer.provision.azure.blob;
 
 import com.azure.storage.blob.models.BlobStorageException;
+import com.microsoft.dagx.common.azure.BlobStoreApi;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.transfer.provision.ProvisionContext;
 import com.microsoft.dagx.spi.transfer.response.ResponseStatus;
@@ -14,7 +15,6 @@ import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationRe
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ResourceDefinition;
 import com.microsoft.dagx.transfer.provision.azure.AzureSasToken;
-import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApi;
 import net.jodah.failsafe.RetryPolicy;
 import org.easymock.Capture;
 import org.easymock.MockType;

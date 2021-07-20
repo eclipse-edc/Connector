@@ -27,3 +27,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("transfer-demo-protocols") {
+            artifactId = "edc.transfer-demo-protocols"
+            from(components["java"])
+        }
+    }
+}

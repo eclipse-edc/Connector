@@ -204,7 +204,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     private TransferProcessDocument convertObject(Object databaseDocument) {
-        return typeManager.readValue(typeManager.writeValueAsBytes(databaseDocument), TransferProcessDocument.class);
+        return typeManager.readValue(typeManager.writeValueAsString(databaseDocument), TransferProcessDocument.class);
     }
 
     private void release(String processId, Object connectorId) {

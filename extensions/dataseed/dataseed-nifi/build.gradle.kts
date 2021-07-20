@@ -10,5 +10,5 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":common"))
+    implementation(project(":common:util"))
 }

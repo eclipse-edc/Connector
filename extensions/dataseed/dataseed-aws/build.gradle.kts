@@ -11,7 +11,7 @@ val awsVersion: String by project
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":common"))
+    implementation(project(":common:util"))
 
     implementation(project(":extensions:transfer:transfer-provision-aws"))
 

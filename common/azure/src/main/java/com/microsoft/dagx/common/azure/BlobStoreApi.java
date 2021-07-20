@@ -4,7 +4,7 @@
  *
  */
 
-package com.microsoft.dagx.transfer.provision.azure.provider;
+package com.microsoft.dagx.common.azure;
 
 import com.azure.storage.blob.models.BlobItem;
 

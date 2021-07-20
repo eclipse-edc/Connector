@@ -46,4 +46,13 @@ class CollectionUtilTest {
         assertThat(CollectionUtil.isNotEmpty(Collections.singletonMap("testkey", "testValue"))).isTrue();
         assertThat(CollectionUtil.isNotEmpty(Map.of("foo", "bar", "foo2", "baz"))).isTrue();
     }
+
+    @Test
+    void isAnyOf() {
+        int[] nullArray = null;
+        assertThat(CollectionUtil.isAnyOf(15, nullArray)).isFalse();
+        assertThat(CollectionUtil.isAnyOf(15, 15, 16, 17)).isTrue();
+        assertThat(CollectionUtil.isAnyOf("foobar", "foo", "bar", "baz", "foobar")).isTrue();
+        assertThat(CollectionUtil.isAnyOf("foobar", "bar", "baz")).isFalse();
+    }
 }

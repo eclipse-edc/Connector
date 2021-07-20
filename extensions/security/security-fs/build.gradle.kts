@@ -11,4 +11,11 @@ dependencies {
     api(project(":spi"))
 }
 
-
+publishing {
+    publications {
+        create<MavenPublication>("security-fs") {
+            artifactId = "edc.security-fs"
+            from(components["java"])
+        }
+    }
+}

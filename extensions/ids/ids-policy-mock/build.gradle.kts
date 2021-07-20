@@ -12,3 +12,11 @@ dependencies {
 }
 
 
+publishing {
+    publications {
+        create<MavenPublication>("ids-policy-mock") {
+            artifactId = "edc.ids-policy-mock"
+            from(components["java"])
+        }
+    }
+}

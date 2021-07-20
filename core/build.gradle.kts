@@ -7,6 +7,7 @@ val slf4jVersion: String by project
 
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 dependencies {
@@ -14,3 +15,11 @@ dependencies {
     api("org.slf4j:slf4j-api:${slf4jVersion}")
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("core") {
+            artifactId = "edc.core"
+            from(components["java"])
+        }
+    }
+}

@@ -12,4 +12,11 @@ dependencies {
     api(project(":spi"))
 }
 
-
+publishing {
+    publications {
+        create<MavenPublication>("proto-loopback") {
+            artifactId = "edc.protocol-loopback"
+            from(components["java"])
+        }
+    }
+}

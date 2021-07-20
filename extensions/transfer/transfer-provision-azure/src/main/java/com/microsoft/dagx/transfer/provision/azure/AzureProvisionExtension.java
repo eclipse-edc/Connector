@@ -5,6 +5,8 @@
 
 package com.microsoft.dagx.transfer.provision.azure;
 
+import com.microsoft.dagx.common.azure.BlobStoreApi;
+import com.microsoft.dagx.common.azure.BlobStoreApiImpl;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.Vault;
 import com.microsoft.dagx.spi.system.ServiceExtension;
@@ -14,8 +16,6 @@ import com.microsoft.dagx.spi.transfer.provision.ResourceManifestGenerator;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.transfer.StatusCheckerRegistry;
 import com.microsoft.dagx.transfer.provision.azure.blob.*;
-import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApi;
-import com.microsoft.dagx.transfer.provision.azure.provider.BlobStoreApiImpl;
 import net.jodah.failsafe.RetryPolicy;
 
 import java.util.Set;
