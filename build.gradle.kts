@@ -34,7 +34,7 @@ allprojects {
     apply(plugin = "maven-publish")
     pluginManager.withPlugin("java-library") {
         group = "com.microsoft"
-        version = "0.0.1-SNAPSHOT.1"
+        version = "0.0.1-SNAPSHOT.2"
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
             api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")

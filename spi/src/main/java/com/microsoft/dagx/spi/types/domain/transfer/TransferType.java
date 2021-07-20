@@ -7,6 +7,7 @@
 package com.microsoft.dagx.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
@@ -18,10 +19,12 @@ public class TransferType {
     private String contentType = DEFAULT_CONTENT_TYPE;
     private boolean isFinite = true;
 
+    @JsonProperty("contentType")
     public String getContentType() {
         return contentType;
     }
 
+    @JsonProperty("isFinite")
     public boolean isFinite() {
         return isFinite;
     }

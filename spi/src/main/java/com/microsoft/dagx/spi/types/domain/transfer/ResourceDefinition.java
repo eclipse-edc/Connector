@@ -5,12 +5,19 @@
 
 package com.microsoft.dagx.spi.types.domain.transfer;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.microsoft.dagx.spi.types.domain.Polymorphic;
+
 import java.util.Objects;
 
 /**
  * A resource to be provisioned to support a data transfer.
  */
-public abstract class ResourceDefinition {
+@JsonTypeName("dagx:resourcedefinition")
+@JsonDeserialize(builder = ResourceDefinition.Builder.class)
+public abstract class ResourceDefinition implements Polymorphic {
     protected String id;
     protected String transferProcessId;
 
@@ -26,6 +33,7 @@ public abstract class ResourceDefinition {
         this.transferProcessId = transferProcessId;
     }
 
+    @JsonPOJOBuilder
     @SuppressWarnings("unchecked")
     public static class Builder<RD extends ResourceDefinition, B extends Builder<RD, B>> {
         protected final RD resourceDefinition;

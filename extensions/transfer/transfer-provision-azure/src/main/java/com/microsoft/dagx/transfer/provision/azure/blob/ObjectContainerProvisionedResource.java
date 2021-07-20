@@ -8,15 +8,16 @@ package com.microsoft.dagx.transfer.provision.azure.blob;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.microsoft.dagx.schema.azure.AzureBlobStoreSchema;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import com.microsoft.dagx.spi.types.domain.transfer.ProvisionedResource;
 
-/**
- *
- */
+@JsonDeserialize(builder = ObjectContainerProvisionedResource.Builder.class)
+@JsonTypeName("dagx:objectcontainerprovisionedresource")
 public class ObjectContainerProvisionedResource extends ProvisionedDataDestinationResource {
 
     @JsonProperty
