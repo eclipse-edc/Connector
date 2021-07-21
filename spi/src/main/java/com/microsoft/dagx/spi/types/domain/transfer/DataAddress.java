@@ -77,8 +77,11 @@ public class DataAddress {
             return this;
         }
 
-        public Builder properties(Map<String, String> properties) {
-            address.properties.putAll(properties);
+        public Builder properties(Map<String, ?> properties) {
+            // ArtifactRequestMessageImpl#urifyObjects (line 176): this "feature" converts every string starting with
+            // 'http' to become a URI.
+            // Thus, sometimes the <String, String> map can contain ... you guessed it ... URIs :(
+            properties.forEach((k, v) -> address.properties.put(k, v.toString()));
             return this;
         }
 
@@ -88,7 +91,9 @@ public class DataAddress {
         }
 
         public DataAddress build() {
-            Objects.requireNonNull(address.getType(), "type");
+            if (!address.getProperties().isEmpty()) {
+                Objects.requireNonNull(address.getType(), "type");
+            }
 //            Objects.requireNonNull(address.getKeyName(), "keyName");
             return address;
         }

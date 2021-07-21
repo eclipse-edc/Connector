@@ -69,6 +69,9 @@ public class AzureVault implements Vault {
         } catch (ResourceNotFoundException ex) {
             monitor.severe("Secret not found!", ex);
             return null;
+        } catch (Exception ex) {
+            monitor.severe("Error accessing secret:", ex);
+            return null;
         }
 
     }

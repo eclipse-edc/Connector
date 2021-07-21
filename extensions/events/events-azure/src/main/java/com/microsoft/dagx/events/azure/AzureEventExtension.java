@@ -36,7 +36,7 @@ public class AzureEventExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        monitor.info("AzureEventsExtension: create event grid appender");
+        monitor.info("AzureEventExtension: create event grid appender");
         registerListeners(context);
 
         monitor.info("Initialized Azure Events Extension");
