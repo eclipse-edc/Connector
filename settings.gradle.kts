@@ -5,68 +5,60 @@
 
 rootProject.name = "dagx"
 
-include(":spi")
-include(":core")
-include(":common:util")
+// modules for common/util code
 include(":common:azure")
+include(":common:util")
 
-include(":distributions:demo")
-include(":distributions:demo-e2e")
-include(":distributions:azure")
-include(":distributions:junit")
+// EDC Core modules
+include(":edc-core:core")
+include(":edc-core:iam:iam-mock")
+include(":edc-core:iam:oauth2")
+include(":edc-core:policy:policy-engine")
+include(":edc-core:policy:policy-model")
+include(":edc-core:protocol:web")
+include(":edc-core:schema")
+include(":edc-core:spi")
+include(":edc-core:transfer")
 
-include(":extensions:schema")
+// modules for a minimal installation
+include(":minimal:configuration:configuration-fs")
+include(":minimal:control-http")
+include(":minimal:ids:ids-api-catalog")
+include(":minimal:ids:ids-api-transfer")
+include(":minimal:ids:ids-core")
+include(":minimal:ids:ids-policy-mock")
+include(":minimal:ids:ids-spi")
+include(":minimal:metadata:metadata-memory")
+include(":minimal:policy:policy-registry-memory")
+include(":minimal:runtime")
+include(":minimal:security:security-fs")
+include(":minimal:transfer:transfer-store-memory")
 
-include(":extensions:protocol:web")
-include(":extensions:protocol:protocol-loopback")
-include(":extensions:control-http")
-
-include(":extensions:metadata:metadata-memory")
-
-include(":extensions:transfer:transfer-core")
-include(":extensions:transfer:transfer-nifi")
-include(":extensions:transfer:transfer-demo-aws")
-include(":extensions:transfer:transfer-demo-protocols")
-include(":extensions:transfer:transfer-provision-azure")
-include(":extensions:transfer:transfer-provision-aws")
-include(":extensions:transfer:transfer-store-memory")
-include(":extensions:transfer:transfer-store-cosmos")
-
-include(":extensions:configuration:configuration-fs")
-
-include(":extensions:security:security-fs")
-include(":extensions:security:security-azure")
-include(":extensions:iam:oauth2")
-include(":extensions:iam:iam-mock")
-
-include(":extensions:policy:policy-registry-memory")
-
-include(":extensions:ids")
-include(":extensions:ids:ids-spi")
-include(":extensions:ids:ids-core")
-include(":extensions:ids:ids-api-catalog")
-include(":extensions:ids:ids-api-transfer")
-include(":extensions:ids:ids-policy-mock")
-
-include(":extensions:catalog:catalog-atlas")
-include(":extensions:dataseed:dataseed-atlas")
-include(":extensions:dataseed:dataseed-policy")
-include(":extensions:dataseed:dataseed-nifi")
-include(":extensions:dataseed:dataseed-azure")
-include(":extensions:dataseed:dataseed-aws")
-
-include(":extensions:events:events-azure")
-
-include(":policy:policy-model")
-include(":policy:policy-engine")
-
+// modules for cloud-provider extensions
+include(":extensions:aws:s3:provision")
+include(":extensions:aws:s3:s3-schema")
+include(":extensions:azure:blob:blob-schema")
+include(":extensions:azure:blob:provision")
+include(":extensions:azure:events")
+include(":extensions:azure:transfer-process-store-cosmos")
+include(":extensions:azure:vault")
+include(":extensions:catalog-atlas")
 include(":extensions:demo:demo-nifi")
-include(":extensions:demo:demo-ui-api")
 
-include(":integration:integration-core")
-
-include(":runtime")
-include(":client-runtime")
-include(":client")
-
+// modules for external components, such as NiFi processors
 include(":external:nifi:processors")
+
+// modules for code samples
+include(":samples:commandline:client")
+include(":samples:commandline:client-runtime")
+include(":samples:copy-file-to-s3bucket")
+include(":samples:copy-with-nifi")
+include(":samples:dataseed:dataseed-atlas")
+include(":samples:dataseed:dataseed-aws")
+include(":samples:dataseed:dataseed-azure")
+include(":samples:dataseed:dataseed-nifi")
+include(":samples:dataseed:dataseed-policy")
+include(":samples:public-rest-api")
+include(":samples:run-from-junit")
+include(":samples:streaming")
+include(":distributions:demo-e2e")

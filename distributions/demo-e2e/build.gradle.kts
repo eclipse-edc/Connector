@@ -12,28 +12,28 @@ plugins {
 
 
 dependencies {
-    implementation(project(":runtime"))
-    implementation(project(":extensions:protocol:web"))
-    implementation(project(":extensions:control-http"))
+    implementation(project(":minimal:runtime"))
+    implementation(project(":edc-core:protocol:web"))
+    implementation(project(":minimal:control-http"))
 
-    implementation(project(":extensions:transfer:transfer-core"))
-    implementation(project(":extensions:transfer:transfer-store-cosmos"))
-    implementation(project(":extensions:transfer:transfer-provision-aws"))
-    implementation(project(":extensions:transfer:transfer-provision-azure"))
-    implementation(project(":extensions:transfer:transfer-nifi"))
+    implementation(project(":edc-core:transfer"))
+    implementation(project(":extensions:azure:transfer-process-store-cosmos"))
+    implementation(project(":extensions:aws:s3:provision"))
+    implementation(project(":extensions:azure:blob:provision"))
+    implementation(project(":samples:copy-with-nifi"))
 
-    implementation(project(":extensions:events:events-azure"))
+    implementation(project(":extensions:azure:events"))
 
-    implementation(project(":extensions:ids"))
+    implementation(project(":minimal:ids"))
 
-    implementation(project(":extensions:catalog:catalog-atlas"))
-    implementation(project(":extensions:dataseed"))
+    implementation(project(":extensions:catalog-atlas"))
+    implementation(project(":samples:dataseed"))
 
-    implementation(project(":extensions:security:security-azure"))
-    implementation(project(":extensions:policy:policy-registry-memory"))
-    implementation(project(":extensions:iam:iam-mock"))
-    implementation(project(":extensions:ids:ids-policy-mock"))
-    implementation(project(":extensions:configuration:configuration-fs"))
+    implementation(project(":extensions:azure:vault"))
+    implementation(project(":minimal:policy:policy-registry-memory"))
+    implementation(project(":edc-core:iam:iam-mock"))
+    implementation(project(":minimal:ids:ids-policy-mock"))
+    implementation(project(":minimal:configuration:configuration-fs"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")

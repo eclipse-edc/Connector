@@ -21,7 +21,7 @@ import java.util.UUID;
 import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class AbstractAzureBlobTest {
+public abstract class AbstractAzureBlobTest {
 
     protected static final String accountName = "dagxblobstoreitest";
     protected static BlobServiceClient blobServiceClient;

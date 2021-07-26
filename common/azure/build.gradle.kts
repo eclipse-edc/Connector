@@ -12,9 +12,9 @@ plugins {
 val storageBlobVersion: String by project;
 
 dependencies {
-    api(project(":spi"))
+    api(project(":edc-core:spi"))
     api(project(":common:util"))
-    api("com.azure:azure-storage-blob:${storageBlobVersion}")
+    implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
 
 
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")

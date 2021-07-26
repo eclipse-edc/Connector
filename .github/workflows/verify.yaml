@@ -22,7 +22,7 @@ jobs:
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-        run: ./gradlew clean check -x :extensions:catalog:catalog-atlas:check -x :extensions:security:security-azure:check  -x :extensions:transfer:transfer-nifi:check -x :external:nifi:processors:check -x extensions:transfer:transfer-store-cosmos:check
+        run: ./gradlew clean check -x :extensions:catalog-atlas:check -x :extensions:azure:vault:check  -x :samples:copy-with-nifi:check -x :external:nifi:processors:check -x extensions:azure:transfer-process-store-cosmos:check
 
       - name: Publish Unit Test Results
         id: publish-results
@@ -63,11 +63,11 @@ jobs:
           NIFI_API_AUTH: ${{ secrets.NIFI_API_AUTH }}
           S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
           S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
-        run: ./gradlew extensions:transfer:transfer-nifi:check
+        run: ./gradlew samples:copy-with-nifi:check
 
       - name: Test Atlas Integration
         id: atlas-integration
-        run: ./gradlew extensions:catalog:catalog-atlas:check
+        run: ./gradlew extensions:catalog-atlas:check
 
 
   Cloud-Integration-Test:
@@ -93,10 +93,10 @@ jobs:
         id: azure-vault-tests
         env:
           AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
-        run: ./gradlew extensions:security:security-azure:check
+        run: ./gradlew extensions:azure:vault:check
 
       - name: Test Cosmos-based TransferProcessStore
         id: cosmos-transferprocessstore-test
         env:
           COSMOS_KEY: ${{ secrets.COSMOS_DB_MASTERKEY }}
-        run: ./gradlew extensions:transfer:transfer-store-cosmos:check
+        run: ./gradlew extensions:azure:transfer-process-store-cosmos:check
