@@ -17,7 +17,7 @@ plugins {
 dependencies {
     implementation(project(":samples:commandline:client-runtime"))
 
-    implementation(project(":edc-core:iam:oauth2"))  // required for now
+    implementation(project(":edc:iam:oauth2"))  // required for now
     implementation(project(":minimal:security:security-fs"))  // required for now
 
     implementation("org.jline:jline:${jlineVersion}")

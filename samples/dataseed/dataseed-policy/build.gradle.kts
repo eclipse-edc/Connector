@@ -9,6 +9,6 @@ plugins {
 
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     api(project(":common:util"))
 }

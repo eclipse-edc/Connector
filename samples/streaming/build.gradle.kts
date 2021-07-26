@@ -12,15 +12,15 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     implementation(project(":common:util"))
-    implementation(project(":edc-core:protocol:web"))
+    implementation(project(":edc:protocol:web"))
     implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
     implementation("jakarta.websocket:jakarta.websocket-api:${websocketVersion}")
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     // extensions needed for integration testing
-    testImplementation(project(":edc-core:transfer"))
+    testImplementation(project(":edc:transfer"))
     testImplementation(project(":minimal:transfer:transfer-store-memory"))
     testImplementation(testFixtures(project(":common:util")))
 

@@ -10,7 +10,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-security-keyvault-secrets:4.2.3")
     implementation("com.azure:azure-identity:1.2.0")

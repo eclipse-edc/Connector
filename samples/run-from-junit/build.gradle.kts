@@ -9,8 +9,8 @@ plugins {
 val storageBlobVersion: String by project;
 
 dependencies {
-    api(project(":edc-core:core"))
-    api(project(":edc-core:transfer"))
+    api(project(":edc:core"))
+    api(project(":edc:transfer"))
     api(project(":minimal:transfer:transfer-store-memory"))
 
     api(project(":extensions:aws:s3:provision"))

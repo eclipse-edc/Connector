@@ -9,7 +9,7 @@ plugins {
 
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     api(project(":minimal:ids:ids-spi"))
     api(project(":minimal:ids:ids-core"))
     api(project(":minimal:ids:ids-api-catalog"))

@@ -10,7 +10,7 @@ plugins {
 val cosmosSdkVersion: String by project
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     api(project(":common:util"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")

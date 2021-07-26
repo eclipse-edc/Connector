@@ -11,9 +11,9 @@ plugins {
 
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     api(project(":common:util"))
-    api(project(":edc-core:core"))
+    api(project(":edc:core"))
     implementation(project(":extensions:aws:s3:s3-schema"))
     implementation(project(":extensions:azure:blob:blob-schema"))
 

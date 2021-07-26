@@ -12,9 +12,9 @@ plugins {
 
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
 
-    api(project(":edc-core:policy:policy-engine"))
+    api(project(":edc:policy:policy-engine"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 

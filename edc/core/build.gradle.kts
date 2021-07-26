@@ -11,7 +11,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
 }
 

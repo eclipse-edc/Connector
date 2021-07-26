@@ -10,8 +10,8 @@ plugins {
 val eventGridSdkVersion: String by project
 
 dependencies {
-    api(project(":edc-core:spi"))
-    implementation(project(":edc-core:schema"))
+    api(project(":edc:spi"))
+    implementation(project(":edc:schema"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-messaging-eventgrid:${eventGridSdkVersion}")
 }

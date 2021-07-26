@@ -22,7 +22,7 @@ dependencies {
 
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
 
-    api(project(":edc-core:policy:policy-model"))
+    api(project(":edc:policy:policy-model"))
 }
 
 publishing {

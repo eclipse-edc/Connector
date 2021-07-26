@@ -11,7 +11,7 @@ plugins {
 
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
 }

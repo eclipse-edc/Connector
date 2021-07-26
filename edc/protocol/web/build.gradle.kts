@@ -14,7 +14,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
 
     implementation("org.eclipse.jetty:jetty-webapp:${jettyVersion}") {
         exclude("jetty-xml")

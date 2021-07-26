@@ -9,16 +9,16 @@ rootProject.name = "dagx"
 include(":common:azure")
 include(":common:util")
 
-// EDC Core modules
-include(":edc-core:core")
-include(":edc-core:iam:iam-mock")
-include(":edc-core:iam:oauth2")
-include(":edc-core:policy:policy-engine")
-include(":edc-core:policy:policy-model")
-include(":edc-core:protocol:web")
-include(":edc-core:schema")
-include(":edc-core:spi")
-include(":edc-core:transfer")
+// EDC core modules
+include(":edc:core")
+include(":edc:iam:iam-mock")
+include(":edc:iam:oauth2")
+include(":edc:policy:policy-engine")
+include(":edc:policy:policy-model")
+include(":edc:protocol:web")
+include(":edc:schema")
+include(":edc:spi")
+include(":edc:transfer")
 
 // modules for a minimal installation
 include(":minimal:configuration:configuration-fs")

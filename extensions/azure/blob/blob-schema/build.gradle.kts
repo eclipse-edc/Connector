@@ -10,8 +10,8 @@ plugins {
 val storageBlobVersion: String by project
 
 dependencies {
-    api(project(":edc-core:spi"))
-    api(project(":edc-core:schema"))
+    api(project(":edc:spi"))
+    api(project(":edc:schema"))
 
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
     testImplementation(testFixtures(project(":common:util")))

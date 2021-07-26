@@ -3,18 +3,19 @@
  * All rights reserved.
  */
 
+
 plugins {
     `java-library`
 }
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:policy:policy-model"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("schema") {
-            artifactId = "edc.schema"
+        create<MavenPublication>("policy-engine") {
+            artifactId = "edc.policy-engine"
             from(components["java"])
         }
     }

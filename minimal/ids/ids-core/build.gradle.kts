@@ -12,14 +12,14 @@ plugins {
 
 
 dependencies {
-    api(project(":edc-core:spi"))
+    api(project(":edc:spi"))
     api(project(":common:util"))
     api(project(":minimal:ids:ids-spi"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation(project(":edc-core:policy:policy-engine"))
+    implementation(project(":edc:policy:policy-engine"))
 }
 
 

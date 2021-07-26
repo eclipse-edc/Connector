@@ -13,10 +13,10 @@ plugins {
 
 dependencies {
     implementation(project(":minimal:runtime"))
-    implementation(project(":edc-core:protocol:web"))
+    implementation(project(":edc:protocol:web"))
     implementation(project(":minimal:control-http"))
 
-    implementation(project(":edc-core:transfer"))
+    implementation(project(":edc:transfer"))
     implementation(project(":extensions:azure:transfer-process-store-cosmos"))
     implementation(project(":extensions:aws:s3:provision"))
     implementation(project(":extensions:azure:blob:provision"))
@@ -31,7 +31,7 @@ dependencies {
 
     implementation(project(":extensions:azure:vault"))
     implementation(project(":minimal:policy:policy-registry-memory"))
-    implementation(project(":edc-core:iam:iam-mock"))
+    implementation(project(":edc:iam:iam-mock"))
     implementation(project(":minimal:ids:ids-policy-mock"))
     implementation(project(":minimal:configuration:configuration-fs"))
 
