@@ -7,6 +7,7 @@
 package microsoft.dagx.transfer.nifi.processors;
 
 import com.microsoft.dagx.common.testfixtures.AbstractS3Test;
+import com.microsoft.dagx.common.testfixtures.DagxExtension;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.nifi.util.MockFlowFile;
@@ -16,6 +17,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.File;
 import java.nio.file.Files;
@@ -28,6 +30,7 @@ import static com.microsoft.dagx.common.testfixtures.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@ExtendWith(DagxExtension.class)
 class FetchS3ObjectTest extends AbstractS3Test {
 
     private RetryPolicy<Object> retryPolicy;

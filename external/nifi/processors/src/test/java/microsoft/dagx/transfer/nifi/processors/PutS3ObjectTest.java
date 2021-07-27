@@ -9,10 +9,12 @@ package microsoft.dagx.transfer.nifi.processors;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.microsoft.dagx.common.testfixtures.AbstractS3Test;
+import com.microsoft.dagx.common.testfixtures.DagxExtension;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -22,6 +24,7 @@ import static com.microsoft.dagx.common.testfixtures.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@ExtendWith(DagxExtension.class)
 public class PutS3ObjectTest extends AbstractS3Test {
 
     @Test

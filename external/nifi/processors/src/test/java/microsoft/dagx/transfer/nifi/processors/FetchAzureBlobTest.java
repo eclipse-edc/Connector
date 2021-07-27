@@ -7,6 +7,7 @@
 package microsoft.dagx.transfer.nifi.processors;
 
 import com.microsoft.dagx.common.testfixtures.AbstractAzureBlobTest;
+import com.microsoft.dagx.common.testfixtures.DagxExtension;
 import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
@@ -14,6 +15,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
+import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.File;
 import java.io.IOException;
@@ -26,6 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 @EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@ExtendWith(DagxExtension.class)
 class FetchAzureBlobTest extends AbstractAzureBlobTest {
 
     private TestRunner runner;
