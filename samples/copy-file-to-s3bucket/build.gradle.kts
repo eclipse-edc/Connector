@@ -10,7 +10,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     implementation(project(":extensions:aws:s3:provision"))
     implementation(project(":extensions:aws:s3:s3-schema"))
 

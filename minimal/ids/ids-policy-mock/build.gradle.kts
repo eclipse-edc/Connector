@@ -7,7 +7,7 @@ plugins {
 
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     implementation(project(":minimal:ids:ids-spi"))
 }
 

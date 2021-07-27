@@ -1,8 +1,3 @@
-/*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
- */
-
 plugins {
     `java-library`
 }
@@ -10,14 +5,15 @@ plugins {
 val jwtVersion: String by project
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     implementation("com.auth0:java-jwt:${jwtVersion}")
 }
 
+
 publishing {
     publications {
-        create<MavenPublication>("oauth2") {
-            artifactId = "edc.iam.oauth2"
+        create<MavenPublication>("iam-mock") {
+            artifactId = "edc.iam-mock"
             from(components["java"])
         }
     }

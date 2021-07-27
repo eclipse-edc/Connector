@@ -10,7 +10,7 @@ plugins {
 val awsVersion: String by project
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     api(project(":extensions:aws:s3:s3-schema"))
 
     implementation("software.amazon.awssdk:s3:${awsVersion}")
@@ -23,8 +23,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-provision-aws") {
-            artifactId = "edc.transfer-provision-aws"
+        create<MavenPublication>("provision.aws.s3") {
+            artifactId = "edc.provision.aws.s3"
             from(components["java"])
         }
     }

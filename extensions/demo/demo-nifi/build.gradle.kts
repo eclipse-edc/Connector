@@ -9,7 +9,7 @@ plugins {
 
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     implementation(project(":extensions:aws:s3:s3-schema"))
     implementation(project(":extensions:azure:blob:blob-schema"))
     implementation(project(":minimal:metadata:metadata-memory"))

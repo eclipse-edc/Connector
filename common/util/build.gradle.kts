@@ -12,8 +12,8 @@ plugins {
 val storageBlobVersion: String by project;
 
 dependencies {
-    api(project(":edc:spi"))
-    api(project(":edc:core"))
+    api(project(":core:spi"))
+    api(project(":core:bootstrap"))
 
     testFixturesApi(platform("com.amazonaws:aws-java-sdk-bom:1.11.1018"))
     testFixturesApi("com.amazonaws:aws-java-sdk-s3")

@@ -3,23 +3,19 @@
  * All rights reserved.
  */
 
+
 plugins {
     `java-library`
 }
 
-
 dependencies {
-    api(project(":edc:spi"))
-
-    testImplementation(project(":minimal:transfer:transfer-store-memory"))
-
+    api(project(":core:policy:policy-model"))
 }
-
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-core") {
-            artifactId = "edc.transfer-core"
+        create<MavenPublication>("policy-engine") {
+            artifactId = "edc.policy-engine"
             from(components["java"])
         }
     }

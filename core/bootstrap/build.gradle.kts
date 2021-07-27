@@ -11,13 +11,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("core") {
+        create<MavenPublication>("edc.core") {
             artifactId = "edc.core"
             from(components["java"])
         }

@@ -140,7 +140,7 @@ dependencies {
     testImplementation("org.apache.nifi:nifi-mock:1.13.2")
     testImplementation("org.assertj:assertj-core:3.19.0")
 
-    testImplementation(project(":edc:spi"))
+    testImplementation(project(":core:spi"))
     testImplementation(testFixtures(project(":common:util")))
 }
 

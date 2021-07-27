@@ -9,14 +9,14 @@ plugins {
 
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
 
 
 }
 publishing {
     publications {
         create<MavenPublication>("transfer-store-memory") {
-            artifactId = "edc.transfer-store-memory"
+            artifactId = "edc.transfer-process-store.memory"
             from(components["java"])
         }
     }

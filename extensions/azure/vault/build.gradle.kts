@@ -10,7 +10,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-security-keyvault-secrets:4.2.3")
     implementation("com.azure:azure-identity:1.2.0")
@@ -25,8 +25,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("security-azure") {
-            artifactId = "edc.security-azure"
+        create<MavenPublication>("vault.azure") {
+            artifactId = "edc.vault.azure"
             from(components["java"])
         }
     }

@@ -10,8 +10,8 @@ plugins {
 val storageBlobVersion: String by project
 
 dependencies {
-    api(project(":edc:spi"))
-    api(project(":edc:schema"))
+    api(project(":core:spi"))
+    api(project(":core:schema"))
 
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
     testImplementation(testFixtures(project(":common:util")))
@@ -19,8 +19,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-provision-azure") {
-            artifactId = "edc.transfer-provision-azure"
+        create<MavenPublication>("schema.azure.blob") {
+            artifactId = "edc.schema.azure.blob"
             from(components["java"])
         }
     }

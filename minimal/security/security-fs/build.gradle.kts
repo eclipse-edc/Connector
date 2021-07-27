@@ -8,13 +8,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("security-fs") {
-            artifactId = "edc.security-fs"
+        create<MavenPublication>("vault.fs") {
+            artifactId = "edc.vault.fs"
             from(components["java"])
         }
     }

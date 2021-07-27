@@ -10,7 +10,7 @@ plugins {
 val storageBlobVersion: String by project
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     implementation(project(":common:util"))
 
     implementation(project(":extensions:azure:blob:provision"))

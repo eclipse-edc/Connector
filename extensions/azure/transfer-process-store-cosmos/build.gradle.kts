@@ -10,7 +10,7 @@ plugins {
 val cosmosSdkVersion: String by project
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     api(project(":common:util"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
@@ -19,8 +19,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-store-cosmos") {
-            artifactId = "edc.transfer-store-cosmos"
+        create<MavenPublication>("azure.cosmos.processstore") {
+            artifactId = "edc.transfer-process-store.cosmos"
             from(components["java"])
         }
     }

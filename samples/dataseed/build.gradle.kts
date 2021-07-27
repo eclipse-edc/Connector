@@ -9,7 +9,7 @@ plugins {
 
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
     api(project(":samples:dataseed:dataseed-atlas"))
     api(project(":samples:dataseed:dataseed-policy"))
     api(project(":samples:dataseed:dataseed-nifi"))

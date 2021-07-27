@@ -10,8 +10,8 @@ plugins {
 val eventGridSdkVersion: String by project
 
 dependencies {
-    api(project(":edc:spi"))
-    implementation(project(":edc:schema"))
+    api(project(":core:spi"))
+    implementation(project(":core:schema"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-messaging-eventgrid:${eventGridSdkVersion}")
 }
@@ -19,8 +19,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("events-azure") {
-            artifactId = "edc.events-azure"
+        create<MavenPublication>("azure.events") {
+            artifactId = "edc.events.azure"
             from(components["java"])
         }
     }

@@ -14,7 +14,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":edc:spi"))
+    api(project(":core:spi"))
 
     implementation("org.eclipse.jetty:jetty-webapp:${jettyVersion}") {
         exclude("jetty-xml")
@@ -34,7 +34,7 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("web") {
+        create<MavenPublication>("protocol-web") {
             artifactId = "edc.protocol-web"
             from(components["java"])
         }
