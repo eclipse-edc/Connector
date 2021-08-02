@@ -16,7 +16,7 @@ variable "kubeconfig" {
   type = string
 }
 
-variable "resourcesuffix" {
+variable "environment" {
   type = string
 }
 

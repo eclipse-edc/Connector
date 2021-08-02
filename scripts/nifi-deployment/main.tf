@@ -13,7 +13,7 @@ terraform {
 
 resource "kubernetes_namespace" "nifi" {
   metadata {
-    name = "${var.resourcesuffix}-nifi"
+    name = "${var.environment}-nifi"
   }
 }
 
@@ -80,7 +80,7 @@ resource "kubernetes_ingress" "ingress-route" {
 
 # App registration for the loadbalancer
 resource "azuread_application" "dagx-terraform-nifi-app" {
-  display_name = "Dagx-${var.resourcesuffix}-Nifi"
+  display_name = "Dagx-${var.environment}-Nifi"
   available_to_other_tenants = false
   reply_urls = [
     "https://${var.public-ip.fqdn}/nifi-api/access/oidc/callback"]

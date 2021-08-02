@@ -10,7 +10,10 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":extensions:schema"))
+    implementation(project(":extensions:aws:s3:s3-schema"))
+    implementation(project(":extensions:azure:blob:blob-schema"))
+    implementation(project(":extensions:in-memory:metadata-memory"))
+    implementation(project(":extensions:in-memory:policy-registry-memory"))
 }
 
 

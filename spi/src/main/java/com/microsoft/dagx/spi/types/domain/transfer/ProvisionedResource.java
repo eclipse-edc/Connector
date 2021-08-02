@@ -5,6 +5,10 @@
 
 package com.microsoft.dagx.spi.types.domain.transfer;
 
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.microsoft.dagx.spi.types.domain.Polymorphic;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -12,7 +16,9 @@ import java.util.Objects;
 /**
  * A provisioned resource that supports a data transfer request.
  */
-public abstract class ProvisionedResource {
+@JsonTypeName("dagx:provisionedresource")
+@JsonDeserialize(builder = ProvisionedResource.Builder.class)
+public abstract class ProvisionedResource implements Polymorphic {
     protected String id;
     protected String transferProcessId;
     protected String resourceDefinitionId;
@@ -46,6 +52,7 @@ public abstract class ProvisionedResource {
     }
 
 
+    @JsonPOJOBuilder
     @SuppressWarnings("unchecked")
     public static class Builder<PR extends ProvisionedResource, B extends Builder<PR, B>> {
         protected PR provisionedResource;

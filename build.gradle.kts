@@ -5,10 +5,11 @@
 
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 val jetBrainsAnnotationsVersion: String by project
@@ -21,7 +22,7 @@ val configFs by extra { System.getProperty("configuration.fs", "disabled") }
 subprojects {
 
     repositories {
-        jcenter()
+        mavenCentral()
         maven {
             url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
         }
@@ -30,7 +31,10 @@ subprojects {
 }
 
 allprojects {
+    apply(plugin = "maven-publish")
     pluginManager.withPlugin("java-library") {
+        group = "com.microsoft"
+        version = "0.0.1-SNAPSHOT.4"
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
             api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
@@ -43,6 +47,19 @@ allprojects {
             testImplementation("org.easymock:easymock:4.2")
             testImplementation("org.assertj:assertj-core:3.19.0")
 
+        }
+
+        publishing {
+            repositories {
+                maven {
+                    name = "GitHubPackages"
+                    url = uri("https://maven.pkg.github.com/microsoft/data-appliance-gx")
+                    credentials {
+                        username = System.getenv("GITHUB_ACTOR")
+                        password = System.getenv("GITHUB_TOKEN")
+                    }
+                }
+            }
         }
 
     }
