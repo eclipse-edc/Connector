@@ -21,16 +21,16 @@ public interface MetadataStore {
      * Returns the entry for the id or null if not found.
      */
     @Nullable
-    DataEntry<?> findForId(String id);
+    DataEntry findForId(String id);
 
     /**
      * Saves an entry to the backing store.
      */
-    void save(DataEntry<?> entry);
+    void save(DataEntry entry);
 
     /**
      * Returns all data entries that match the given set of policies
      */
     @NotNull
-    Collection<DataEntry<?>> queryAll(Collection<Policy> policies);
+    Collection<DataEntry> queryAll(Collection<Policy> policies);
 }

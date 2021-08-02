@@ -3,11 +3,11 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">=2.42"
+      version = ">= 2.66.0"
     }
     azuread = {
       source  = "hashicorp/azuread"
-      version = ">=1.4.0"
+      version = ">=1.6.0"
     }
   }
 }
@@ -21,7 +21,7 @@ resource "azurerm_resource_group" "clusterrg" {
 resource "azurerm_public_ip" "aks-cluster-public-ip" {
   resource_group_name = azurerm_kubernetes_cluster.default.node_resource_group
   location            = azurerm_resource_group.clusterrg.location
-  domain_name_label   = var.dns
+  domain_name_label   = var.dnsPrefix
   allocation_method   = "Static"
   name                = "dagxPublicIp"
   sku                 = "Standard"
@@ -32,7 +32,7 @@ resource "azurerm_kubernetes_cluster" "default" {
   location            = var.location
   resource_group_name = azurerm_resource_group.clusterrg.name
   dns_prefix          = var.cluster_name
-
+  node_resource_group = "${var.cluster_name}-node-rg"
   default_node_pool {
     name               = "agentpool"
     node_count         = 2

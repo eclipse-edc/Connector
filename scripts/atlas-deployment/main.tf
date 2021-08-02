@@ -2,7 +2,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = ">= 2.42"
+      version = ">= 2.66.0"
     }
     kubernetes = {
       source  = "hashicorp/kubernetes"
@@ -41,7 +41,7 @@ resource "tls_self_signed_cert" "atlas-ingress" {
 
 resource "kubernetes_namespace" "atlas" {
   metadata {
-    name = "${var.resourcesuffix}-atlas"
+    name = "${var.environment}-atlas"
   }
 }
 

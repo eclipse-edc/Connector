@@ -3,63 +3,62 @@
  * All rights reserved.
  */
 
-rootProject.name = "dagx"
+rootProject.name = "edc"
 
-include(":spi")
-include(":core")
-include(":common")
+// modules for common/util code
+include(":common:azure")
+include(":common:util")
 
-include(":distributions:demo")
-include(":distributions:demo-e2e")
-include(":distributions:azure")
-include(":distributions:junit")
-
-include(":extensions:schema")
-
-include(":extensions:protocol:web")
-include(":extensions:protocol:protocol-loopback")
-include(":extensions:control-http")
-
-include(":extensions:metadata:metadata-memory")
-
-include(":extensions:transfer:transfer-core")
-include(":extensions:transfer:transfer-nifi")
-include(":extensions:transfer:transfer-demo-aws")
-include(":extensions:transfer:transfer-demo-protocols")
-include(":extensions:transfer:transfer-provision-azure")
-include(":extensions:transfer:transfer-provision-aws")
-include(":extensions:transfer:transfer-store-memory")
-
-include(":extensions:configuration:configuration-fs")
-
-include(":extensions:security:security-fs")
-include(":extensions:security:security-azure")
-include(":extensions:iam:oauth2")
+// EDC core modules
+include(":core:bootstrap")
 include(":extensions:iam:iam-mock")
+include(":extensions:iam:oauth2")
+include(":core:policy:policy-engine")
+include(":core:policy:policy-model")
+include(":core:protocol:web")
+include(":core:schema")
+include(":core:transfer")
 
-include(":extensions:policy:policy-registry-memory")
+// modules that provide implementations for data ingress/egress
+include(":data-protocols:ids:ids-api-catalog")
+include(":data-protocols:ids:ids-api-transfer")
+include(":data-protocols:ids:ids-core")
+include(":data-protocols:ids:ids-policy-mock")
+include(":data-protocols:ids:ids-spi")
 
-include(":extensions:ids")
-include(":extensions:ids:ids-spi")
-include(":extensions:ids:ids-core")
-include(":extensions:ids:ids-api-catalog")
-include(":extensions:ids:ids-api-transfer")
-include(":extensions:ids:ids-policy-mock")
-
-include(":extensions:catalog:catalog-atlas")
-include(":extensions:catalog:catalog-atlas-dataseed")
-
-
-include(":policy:policy-model")
-include(":policy:policy-engine")
-
+// modules for technology- or cloud-provider extensions
+include(":extensions:aws:s3:provision")
+include(":extensions:aws:s3:s3-schema")
+include(":extensions:azure:blob:blob-schema")
+include(":extensions:azure:blob:provision")
+include(":extensions:azure:events")
+include(":extensions:azure:transfer-process-store-cosmos")
+include(":extensions:azure:vault")
+include(":extensions:atlas")
 include(":extensions:demo:demo-nifi")
-include(":extensions:demo:demo-ui-api")
-
-include(":integration:integration-core")
-
-include(":runtime")
-include(":client-runtime")
-include(":client")
-
+include(":extensions:filesystem:configuration-fs")
+include(":extensions:filesystem:vault-fs")
+include(":extensions:in-memory:metadata-memory")
+include(":extensions:in-memory:policy-registry-memory")
+include(":extensions:in-memory:transfer-store-memory")
 include(":external:nifi:processors")
+
+// modules for launchers, i.e. runnable compositions of the app
+include(":launchers:demo-e2e")
+
+// modules for code samples
+include(":samples:commandline:client")
+include(":samples:commandline:client-runtime")
+include(":samples:copy-file-to-s3bucket")
+include(":samples:copy-with-nifi")
+include(":samples:dataseed:dataseed-atlas")
+include(":samples:dataseed:dataseed-aws")
+include(":samples:dataseed:dataseed-azure")
+include(":samples:dataseed:dataseed-nifi")
+include(":samples:dataseed:dataseed-policy")
+include(":samples:public-rest-api")
+include(":samples:run-from-junit")
+include(":samples:streaming")
+
+// extension points for a connector
+include(":spi")

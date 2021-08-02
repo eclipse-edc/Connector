@@ -29,7 +29,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private String connectorId;
 
-    private DataEntry<?> dataEntry;
+    private DataEntry dataEntry;
 
     private DataAddress dataAddress;
 
@@ -84,7 +84,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     /**
      * The requested data.
      */
-    public DataEntry<?> getDataEntry() {
+    public DataEntry getDataEntry() {
         return dataEntry;
     }
 
@@ -166,7 +166,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder dataEntry(DataEntry<?> entry) {
+        public Builder dataEntry(DataEntry entry) {
             request.dataEntry = entry;
             return this;
         }

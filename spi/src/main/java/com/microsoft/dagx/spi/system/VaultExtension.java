@@ -29,4 +29,8 @@ public interface VaultExtension extends BootExtension {
      */
     CertificateResolver getCertificateResolver();
 
+    default void intializeVault(ServiceExtensionContext context) {
+    }
+
+    ;
 }

@@ -6,7 +6,6 @@
 package com.microsoft.dagx.spi.types.domain.transfer;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * Defines the states a client and provider transfer process can be in.
@@ -22,6 +21,7 @@ public enum TransferProcessStates {
     STREAMING(700),
     COMPLETED(800),
     DEPROVISIONING(900),
+    DEPROVISIONING_REQ(901),
     DEPROVISIONED(1000),
     ENDED(1100),
     ERROR(-1);
@@ -32,8 +32,8 @@ public enum TransferProcessStates {
         this.code = code;
     }
 
-    public static Optional<TransferProcessStates> from(int code) {
-        return Arrays.stream(values()).filter(tps -> tps.code == code).findFirst();
+    public static TransferProcessStates from(int code) {
+        return Arrays.stream(values()).filter(tps -> tps.code == code).findFirst().orElse(null);
     }
 
     public int code() {

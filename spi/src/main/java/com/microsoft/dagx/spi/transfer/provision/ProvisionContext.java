@@ -26,6 +26,14 @@ public interface ProvisionContext {
     void callback(ProvisionedDataDestinationResource resource, @Nullable SecretToken secretToken);
 
     /**
+     * Invoked when the deprovisioning has completed.
+     *
+     * @param resource The resource that was deprovisioned
+     * @param error    If an error happened during deprovisioning.
+     */
+    void deprovisioned(ProvisionedDataDestinationResource resource, Throwable error);
+
+    /**
      * Persists data related to a provision request.  Data will be removed after all resources have been provisioned for a transfer process.
      * <p>
      * This is intended as a facility to use for recovery. For example, infrastructure request ids can be persisted and recovered to continue processing after runtime restart.

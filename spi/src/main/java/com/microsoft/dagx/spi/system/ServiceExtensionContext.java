@@ -43,6 +43,15 @@ public interface ServiceExtensionContext {
     <T> T getService(Class<T> type);
 
     /**
+     * Returns a system service, but does not throw an exception if not found.
+     *
+     * @return null if not found
+     */
+    default <T> T getService(Class<T> type, boolean isOptional) {
+        return getService(type);
+    }
+
+    /**
      * Registers a service
      */
     default <T> void registerService(Class<T> type, T service) {

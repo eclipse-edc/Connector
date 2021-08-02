@@ -11,14 +11,12 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 /**
  * Data that is managed and can be shared by the system.
- *
- * @param <T> domain-specific extension properties.
  */
 @JsonDeserialize(builder = DataEntry.Builder.class)
-public class DataEntry<T extends DataCatalog> {
+public class DataEntry {
     private String id;
     private String policyId;
-    private T catalog;
+    private DataCatalogEntry catalogEntry;
 
     private DataEntry() {
     }
@@ -31,40 +29,40 @@ public class DataEntry<T extends DataCatalog> {
         return policyId;
     }
 
-    public T getCatalog() {
-        return catalog;
+    public DataCatalogEntry getCatalogEntry() {
+        return catalogEntry;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static class Builder<K extends DataCatalog> {
-        private final DataEntry<K> dataEntry;
+    public static class Builder {
+        private final DataEntry dataEntry;
 
         private Builder() {
-            dataEntry = new DataEntry<>();
+            dataEntry = new DataEntry();
 
         }
 
         @JsonCreator
-        public static <K extends DataCatalog> Builder<K> newInstance() {
-            return new Builder<>();
+        public static Builder newInstance() {
+            return new Builder();
         }
 
-        public Builder<K> catalog(K extensions) {
-            dataEntry.catalog = extensions;
+        public Builder catalogEntry(DataCatalogEntry extensions) {
+            dataEntry.catalogEntry = extensions;
             return this;
         }
 
-        public Builder<K> id(String id) {
+        public Builder id(String id) {
             dataEntry.id = id;
             return this;
         }
 
-        public Builder<K> policyId(String id) {
+        public Builder policyId(String id) {
             dataEntry.policyId = id;
             return this;
         }
 
-        public DataEntry<K> build() {
+        public DataEntry build() {
             return dataEntry;
         }
     }

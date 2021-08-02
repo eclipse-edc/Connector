@@ -141,7 +141,7 @@ dependencies {
     testImplementation("org.assertj:assertj-core:3.19.0")
 
     testImplementation(project(":spi"))
-    testImplementation(testFixtures(project(":common")))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 

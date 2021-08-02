@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.spi.types.domain.metadata;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.spi.types.domain.transfer.DataAddress;
@@ -22,22 +23,23 @@ class DataEntryTest {
         ObjectMapper mapper = new ObjectMapper();
         mapper.registerSubtypes(TestExtension.class);
 
-        DataEntry<DataCatalog> entry = DataEntry.Builder.newInstance().id("id").catalog(new TestExtension()).build();
+        DataEntry entry = DataEntry.Builder.newInstance().id("id").catalogEntry(new TestExtension()).build();
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, entry);
 
-        @SuppressWarnings("unchecked") DataEntry<DataCatalog> deserialized = mapper.readValue(writer.toString(), DataEntry.class);
+        @SuppressWarnings("unchecked") DataEntry deserialized = mapper.readValue(writer.toString(), DataEntry.class);
 
         assertNotNull(deserialized);
-        assertTrue(deserialized.getCatalog() instanceof TestExtension);
+        assertTrue(deserialized.getCatalogEntry() instanceof TestExtension);
         assertEquals("id", deserialized.getId());
     }
 
     @JsonTypeName("dagx:testextensions")
-    public static class TestExtension implements DataCatalog {
+    public static class TestExtension implements DataCatalogEntry {
 
         @Override
-        public DataAddress getPropertiesForEntity(String id) {
+        @JsonIgnore
+        public DataAddress getAddress() {
             return null;
         }
     }
