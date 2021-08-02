@@ -1,7 +1,6 @@
 package com.microsoft.dagx.common.annotations;
 
 import org.junit.jupiter.api.Test;
-import java.lang.annotation.Documented;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
