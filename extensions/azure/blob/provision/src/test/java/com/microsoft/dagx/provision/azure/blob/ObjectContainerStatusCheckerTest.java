@@ -6,6 +6,7 @@
 
 package com.microsoft.dagx.provision.azure.blob;
 
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.common.azure.BlobStoreApiImpl;
 import com.microsoft.dagx.common.testfixtures.AbstractAzureBlobTest;
 import com.microsoft.dagx.common.testfixtures.TestUtils;
@@ -22,7 +23,7 @@ import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.*;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
 
     private File helloTxt;

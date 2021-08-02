@@ -20,6 +20,8 @@ dependencies {
     testImplementation("com.azure.resourcemanager:azure-resourcemanager:2.1.0")
     testImplementation("com.azure:azure-identity:1.2.5")
     testImplementation("com.azure.resourcemanager:azure-resourcemanager-keyvault:2.2.0")
+    testImplementation(testFixtures(project(":common:util")))
+
 }
 
 

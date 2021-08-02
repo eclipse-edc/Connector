@@ -14,6 +14,7 @@ dependencies {
     api(project(":extensions:azure:blob:blob-schema"))
     api(project(":extensions:aws:s3:s3-schema"))
 
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

@@ -20,6 +20,8 @@ dependencies {
     testImplementation(project(":extensions:atlas"))
     testImplementation(project(":samples:dataseed"))
     testImplementation(project(":extensions:azure:blob:provision"))
+    testImplementation(testFixtures(project(":common:util")))
+
 
     // There is an incompatibility between the Amazon SDK, which internally uses httpclient 4.5.4 and
     // the Atlas Client, which is pulled in by the "atlas" extension, and which uses an earlier version

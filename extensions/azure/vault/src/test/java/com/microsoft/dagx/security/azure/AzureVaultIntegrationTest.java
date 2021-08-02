@@ -5,6 +5,7 @@
 
 package com.microsoft.dagx.security.azure;
 
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.spi.monitor.Monitor;
 import com.microsoft.dagx.spi.security.VaultResponse;
 import org.junit.jupiter.api.AfterAll;
@@ -22,7 +23,7 @@ import java.util.UUID;
 import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.*;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 public class AzureVaultIntegrationTest {
 
     private static final String id = UUID.randomUUID().toString();

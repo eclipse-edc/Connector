@@ -11,6 +11,7 @@ import com.azure.cosmos.implementation.BadRequestException;
 import com.azure.cosmos.implementation.ConflictException;
 import com.azure.cosmos.models.*;
 import com.azure.cosmos.util.CosmosPagedIterable;
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.types.TypeManager;
 import com.microsoft.dagx.spi.types.domain.metadata.DataCatalogEntry;
@@ -34,7 +35,7 @@ import static com.microsoft.dagx.transfer.store.cosmos.TestHelper.createTransfer
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 class CosmosTransferProcessStoreTest {
 
     private final static String accountName = "cosmos-itest";

@@ -6,6 +6,7 @@
 
 package com.microsoft.dagx.provision.aws.s3;
 
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.common.testfixtures.AbstractS3Test;
 import com.microsoft.dagx.provision.aws.provider.ClientProvider;
 import net.jodah.failsafe.RetryPolicy;
@@ -24,7 +25,7 @@ import static com.microsoft.dagx.common.testfixtures.TestUtils.getFileFromResour
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.*;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 class S3StatusCheckerTest extends AbstractS3Test {
 
     private static final String RESOURCE_ID = UUID.randomUUID().toString();

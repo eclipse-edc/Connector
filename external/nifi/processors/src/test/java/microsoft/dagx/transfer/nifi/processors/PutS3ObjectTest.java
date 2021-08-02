@@ -8,6 +8,7 @@ package microsoft.dagx.transfer.nifi.processors;
 
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.common.testfixtures.AbstractS3Test;
 import com.microsoft.dagx.common.testfixtures.DagxExtension;
 import org.apache.nifi.util.TestRunner;
@@ -23,7 +24,7 @@ import java.util.Map;
 import static com.microsoft.dagx.common.testfixtures.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 @ExtendWith(DagxExtension.class)
 public class PutS3ObjectTest extends AbstractS3Test {
 

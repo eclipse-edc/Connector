@@ -12,6 +12,7 @@ import com.azure.storage.blob.BlobServiceClientBuilder;
 import com.azure.storage.blob.models.BlobItem;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.microsoft.dagx.catalog.atlas.metadata.AtlasDataCatalogEntry;
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.dataseed.nifi.api.NifiApiClient;
 import com.microsoft.dagx.monitor.ConsoleMonitor;
 import com.microsoft.dagx.monitor.MonitorProvider;
@@ -59,7 +60,7 @@ import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.easymock.EasyMock.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 public class NifiDataFlowControllerTest {
 
     private static final String DEFAULT_NIFI_HOST = "http://localhost";

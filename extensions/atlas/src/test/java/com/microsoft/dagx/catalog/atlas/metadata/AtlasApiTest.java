@@ -7,6 +7,7 @@ package com.microsoft.dagx.catalog.atlas.metadata;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.microsoft.dagx.catalog.atlas.dto.*;
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.schema.SchemaAttribute;
 import com.microsoft.dagx.spi.DagxException;
 import com.microsoft.dagx.spi.types.TypeManager;
@@ -26,8 +27,9 @@ import static com.microsoft.dagx.catalog.atlas.dto.Functions.*;
 import static com.microsoft.dagx.common.ConfigurationFunctions.propOrEnv;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThatThrownBy;
+import static org.slf4j.MDC.put;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 public class AtlasApiTest {
 
     private static final String RELATION_TYPE_NAME = "dataset_policy_relation";

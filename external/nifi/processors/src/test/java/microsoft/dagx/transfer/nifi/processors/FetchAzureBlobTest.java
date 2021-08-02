@@ -6,6 +6,7 @@
 
 package microsoft.dagx.transfer.nifi.processors;
 
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.common.testfixtures.AbstractAzureBlobTest;
 import com.microsoft.dagx.common.testfixtures.DagxExtension;
 import org.apache.nifi.util.MockFlowFile;
@@ -27,7 +28,7 @@ import static com.microsoft.dagx.common.testfixtures.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 @ExtendWith(DagxExtension.class)
 class FetchAzureBlobTest extends AbstractAzureBlobTest {
 

@@ -6,6 +6,7 @@
 
 package microsoft.dagx.transfer.nifi.processors;
 
+import com.microsoft.dagx.common.annotations.IntegrationTest;
 import com.microsoft.dagx.common.testfixtures.AbstractS3Test;
 import com.microsoft.dagx.common.testfixtures.DagxExtension;
 import net.jodah.failsafe.Failsafe;
@@ -29,7 +30,7 @@ import java.util.Map;
 import static com.microsoft.dagx.common.testfixtures.TestUtils.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@EnabledIfEnvironmentVariable(named = "CI", matches = "true")
+@IntegrationTest
 @ExtendWith(DagxExtension.class)
 class FetchS3ObjectTest extends AbstractS3Test {
 
