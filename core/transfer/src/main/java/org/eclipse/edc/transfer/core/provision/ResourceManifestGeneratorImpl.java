@@ -1,0 +1,77 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
+package org.eclipse.edc.transfer.core.provision;
+
+import org.eclipse.edc.policy.model.AtomicConstraintFunction;
+import org.eclipse.edc.policy.model.Duty;
+import org.eclipse.edc.policy.model.Permission;
+import org.eclipse.edc.policy.model.Prohibition;
+import org.eclipse.edc.spi.transfer.provision.ResourceDefinitionGenerator;
+import org.eclipse.edc.spi.transfer.provision.ResourceManifestGenerator;
+import org.eclipse.edc.spi.types.domain.transfer.ResourceManifest;
+import org.eclipse.edc.spi.types.domain.transfer.TransferProcess;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Default implementation.
+ */
+public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator {
+    private List<ResourceDefinitionGenerator> clientGenerators = new ArrayList<>();
+    private List<ResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
+
+    @Override
+    public void registerClientGenerator(ResourceDefinitionGenerator generator) {
+        clientGenerators.add(generator);
+    }
+
+    @Override
+    public void registerProviderGenerator(ResourceDefinitionGenerator generator) {
+        providerGenerators.add(generator);
+    }
+
+    @Override
+    public void registerPermissionFunctions(Map<String, AtomicConstraintFunction<String, Permission, Boolean>> functions) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void registerProhibitionFunctions(Map<String, AtomicConstraintFunction<String, Prohibition, Boolean>> functions) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void registerObligationFunctions(Map<String, AtomicConstraintFunction<String, Duty, Boolean>> functions) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ResourceManifest generateClientManifest(TransferProcess process) {
+        var manifest = new ResourceManifest();
+        clientGenerators.forEach(g -> {
+            var definition = g.generate(process);
+            if (definition != null) {
+                manifest.addDefinition(definition);
+            }
+        });
+        return manifest;
+    }
+
+    @Override
+    public ResourceManifest generateProviderManifest(TransferProcess process) {
+        var manifest = new ResourceManifest();
+        providerGenerators.forEach(g -> {
+            var definition = g.generate(process);
+            if (definition != null) {
+                manifest.addDefinition(definition);
+            }
+        });
+        return manifest;
+
+    }
+}

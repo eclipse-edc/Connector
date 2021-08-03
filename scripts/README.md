@@ -49,9 +49,9 @@ characters, e.g. `test123`.
 
 The terraform project will then deploy three resource groups in Azure:
 
-- `dagx-<suffix>-resources`: This is where the key vault and the blobstore will be
-- `dagx-<suffix>-cluster`: will contain the AKS cluster
-- `MC-dagx-<suffix>-cluster_dagx-<suffix>-cluster_<region>`: will contain networking resources, virtual disks, scale
+- `edc-<suffix>-resources`: This is where the key vault and the blobstore will be
+- `edc-<suffix>-cluster`: will contain the AKS cluster
+- `MC-edc-<suffix>-cluster_edc-<suffix>-cluster_<region>`: will contain networking resources, virtual disks, scale
   sets, etc.
 
 `<suffix>` refers to a parameter that can be specified when running `terraform apply`. It simply is a name that is used
@@ -64,12 +64,12 @@ running `terraform apply -var 'region=eastus'`.
 ## Configure a DNS name (manually)
 
 At this point it is required that the DNS name for the cluster load balancer's ingress route (IP) is configured
-manually. In the resource group whos name begins with `MC-dagx-<suffix>...` there should be a public ip address, whos
+manually. In the resource group whos name begins with `MC-edc-<suffix>...` there should be a public ip address, whos
 name starts with `kubernetes_...`.
 
-Open that, open its Configuration and in the `DNS name label` field enter `dagx-<suffix>`, so for example `dagx-test123`
+Open that, open its Configuration and in the `DNS name label` field enter `edc-<suffix>`, so for example `edc-test123`
 so the resulting DNS name (=FQDN)
-should be `dagx-test123.<region>.cloudapp.azure.com`.
+should be `edc-test123.<region>.cloudapp.azure.com`.
 
 ## Re-using AKS credentials in kubernetes and helm
 

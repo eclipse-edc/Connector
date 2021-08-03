@@ -31,12 +31,12 @@ dependencies {
 // workaround for this issue: https://github.com/johnrengelman/shadow/issues/609
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "com.microsoft.dagx.client.Main"
+    mainClassName = "org.eclipse.edc.client.Main"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
-    archiveFileName.set("dagx-client.jar")
+    archiveFileName.set("edc-client.jar")
 }
 

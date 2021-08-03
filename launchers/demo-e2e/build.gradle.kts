@@ -40,11 +40,11 @@ dependencies {
 
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "com.microsoft.dagx.runtime.DagxRuntime"
+    mainClassName = "org.eclipse.edc.runtime.EdcRuntime"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
-    archiveFileName.set("dagx-demo-e2e.jar")
+    archiveFileName.set("edc-demo-e2e.jar")
 }

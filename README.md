@@ -14,9 +14,9 @@ The project requires JDK 11+. To get started:
 
 To launch the runtime and client from the root build directory, respectively:
 
-```java -jar runtime/build/libs/dagx-runtime.jar```
+```java -jar runtime/build/libs/edc-runtime.jar```
 
-```java -jar client/build/libs/dagx-client.jar```
+```java -jar client/build/libs/edc-client.jar```
 
 # Build Profiles
 
@@ -28,7 +28,7 @@ By default, no vault is configured. To build with the file system vault, enable 
 
 The runtime can then be started from the root clone directory using:
 
-``` java -Ddagx.vault=secrets/dagx-vault.properties -Ddagx.keystore=secrets/dagx-test-keystore.jks -Ddagx.keystore.password=test123 -jar runtime/build/libs/dagx-runtime.jar ```
+``` java -Dedc.vault=secrets/edc-vault.properties -Dedc.keystore=secrets/edc-test-keystore.jks -Dedc.keystore.password=test123 -jar runtime/build/libs/edc-runtime.jar ```
 
 Note the secrets directory referenced above is configured to be ignored. A test key store and vault must be added (or
 the launch command modified to point to different locations). Also, set the keystore password accordingly.

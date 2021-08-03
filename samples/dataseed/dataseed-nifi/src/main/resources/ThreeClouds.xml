@@ -595,7 +595,8 @@
                     <entry>
                         <key>HTTP Context Map</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap
+                            </identifiesControllerService>
                             <name>HTTP Context Map</name>
                         </value>
                     </entry>
@@ -650,7 +651,7 @@
             </position>
             <bundle>
                 <artifact>amazons3</artifact>
-                <group>dagx-nifi-processors.processors</group>
+                <group>edc-nifi-processors.processors</group>
                 <version>unspecified</version>
             </bundle>
             <config>
@@ -751,7 +752,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>microsoft.dagx.transfer.nifi.processors.PutS3Object</type>
+            <type>org.eclipse.edc.transfer.nifi.processors.PutS3Object</type>
         </processors>
         <processors>
             <id>2c0e3b2f-4ab1-3071-0000-000000000000</id>
@@ -778,7 +779,8 @@
                     <entry>
                         <key>HTTP Context Map</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap
+                            </identifiesControllerService>
                             <name>HTTP Context Map</name>
                         </value>
                     </entry>
@@ -850,7 +852,9 @@
                     <entry>
                         <key>storage-credentials-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <identifiesControllerService>
+                                org.apache.nifi.services.azure.storage.AzureStorageCredentialsService
+                            </identifiesControllerService>
                             <name>storage-credentials-service</name>
                         </value>
                     </entry>
@@ -881,7 +885,8 @@
                     <entry>
                         <key>proxy-configuration-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService
+                            </identifiesControllerService>
                             <name>proxy-configuration-service</name>
                         </value>
                     </entry>
@@ -1053,7 +1058,7 @@
             </position>
             <bundle>
                 <artifact>amazons3</artifact>
-                <group>dagx-nifi-processors.processors</group>
+                <group>edc-nifi-processors.processors</group>
                 <version>unspecified</version>
             </bundle>
             <config>
@@ -1154,7 +1159,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>microsoft.dagx.transfer.nifi.processors.PutS3Object</type>
+            <type>org.eclipse.edc.transfer.nifi.processors.PutS3Object</type>
         </processors>
         <processors>
             <id>46aacc35-6d27-3734-0000-000000000000</id>
@@ -1356,7 +1361,7 @@
             </position>
             <bundle>
                 <artifact>amazons3</artifact>
-                <group>dagx-nifi-processors.processors</group>
+                <group>edc-nifi-processors.processors</group>
                 <version>unspecified</version>
             </bundle>
             <config>
@@ -1457,7 +1462,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>microsoft.dagx.transfer.nifi.processors.FetchS3Object</type>
+            <type>org.eclipse.edc.transfer.nifi.processors.FetchS3Object</type>
         </processors>
         <processors>
             <id>6666a7ba-792b-3cae-0000-000000000000</id>
@@ -1580,14 +1585,16 @@
                     <entry>
                         <key>SSL Context Service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.ssl.RestrictedSSLContextService</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.ssl.RestrictedSSLContextService
+                            </identifiesControllerService>
                             <name>SSL Context Service</name>
                         </value>
                     </entry>
                     <entry>
                         <key>HTTP Context Map</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.http.HttpContextMap
+                            </identifiesControllerService>
                             <name>HTTP Context Map</name>
                         </value>
                     </entry>
@@ -1929,8 +1936,8 @@
                 <y>1024.0</y>
             </position>
             <bundle>
-                <artifact>dagx-processors</artifact>
-                <group>dagx-nifi-processors.processors</group>
+                <artifact>edc-processors</artifact>
+                <group>edc-nifi-processors.processors</group>
             </bundle>
             <config>
                 <bulletinLevel>WARN</bulletinLevel>
@@ -1964,7 +1971,8 @@
                     <entry>
                         <key>proxy-configuration-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService
+                            </identifiesControllerService>
                             <name>proxy-configuration-service</name>
                         </value>
                     </entry>
@@ -2007,7 +2015,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>microsoft.dagx.transfer.nifi.processors.FetchAzureBlob</type>
+            <type>org.eclipse.edc.transfer.nifi.processors.FetchAzureBlob</type>
         </processors>
         <processors>
             <id>905a63ec-0706-3df3-0000-000000000000</id>
@@ -2035,7 +2043,9 @@
                     <entry>
                         <key>storage-credentials-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <identifiesControllerService>
+                                org.apache.nifi.services.azure.storage.AzureStorageCredentialsService
+                            </identifiesControllerService>
                             <name>storage-credentials-service</name>
                         </value>
                     </entry>
@@ -2066,7 +2076,8 @@
                     <entry>
                         <key>proxy-configuration-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService
+                            </identifiesControllerService>
                             <name>proxy-configuration-service</name>
                         </value>
                     </entry>
@@ -2260,7 +2271,9 @@
                     <entry>
                         <key>storage-credentials-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <identifiesControllerService>
+                                org.apache.nifi.services.azure.storage.AzureStorageCredentialsService
+                            </identifiesControllerService>
                             <name>storage-credentials-service</name>
                         </value>
                     </entry>
@@ -2297,7 +2310,8 @@
                     <entry>
                         <key>proxy-configuration-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService
+                            </identifiesControllerService>
                             <name>proxy-configuration-service</name>
                         </value>
                     </entry>
@@ -2393,7 +2407,9 @@
                     </entry>
                     <entry>
                         <key>Authorization</key>
-                        <value>${http.headers.Authorization:substring(6):base64Decode():equals(${username:append(':'):append(${password})})}</value>
+                        <value>
+                            ${http.headers.Authorization:substring(6):base64Decode():equals(${username:append(':'):append(${password})})}
+                        </value>
                     </entry>
                 </properties>
                 <runDurationMillis>0</runDurationMillis>
@@ -2441,7 +2457,9 @@
                     <entry>
                         <key>storage-credentials-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <identifiesControllerService>
+                                org.apache.nifi.services.azure.storage.AzureStorageCredentialsService
+                            </identifiesControllerService>
                             <name>storage-credentials-service</name>
                         </value>
                     </entry>
@@ -2472,7 +2490,8 @@
                     <entry>
                         <key>proxy-configuration-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService
+                            </identifiesControllerService>
                             <name>proxy-configuration-service</name>
                         </value>
                     </entry>
@@ -2571,7 +2590,9 @@
                     <entry>
                         <key>storage-credentials-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.services.azure.storage.AzureStorageCredentialsService</identifiesControllerService>
+                            <identifiesControllerService>
+                                org.apache.nifi.services.azure.storage.AzureStorageCredentialsService
+                            </identifiesControllerService>
                             <name>storage-credentials-service</name>
                         </value>
                     </entry>
@@ -2602,7 +2623,8 @@
                     <entry>
                         <key>proxy-configuration-service</key>
                         <value>
-                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService</identifiesControllerService>
+                            <identifiesControllerService>org.apache.nifi.proxy.ProxyConfigurationService
+                            </identifiesControllerService>
                             <name>proxy-configuration-service</name>
                         </value>
                     </entry>

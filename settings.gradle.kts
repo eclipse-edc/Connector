@@ -6,13 +6,11 @@
 rootProject.name = "edc"
 
 // modules for common/util code
-include(":common:azure")
+
 include(":common:util")
 
 // EDC core modules
 include(":core:bootstrap")
-include(":extensions:iam:iam-mock")
-include(":extensions:iam:oauth2")
 include(":core:policy:policy-engine")
 include(":core:policy:policy-model")
 include(":core:protocol:web")
@@ -34,6 +32,7 @@ include(":extensions:azure:blob:provision")
 include(":extensions:azure:events")
 include(":extensions:azure:transfer-process-store-cosmos")
 include(":extensions:azure:vault")
+include(":extensions:azure:blob:api")
 include(":extensions:atlas")
 include(":extensions:demo:demo-nifi")
 include(":extensions:filesystem:configuration-fs")
@@ -41,7 +40,8 @@ include(":extensions:filesystem:vault-fs")
 include(":extensions:in-memory:metadata-memory")
 include(":extensions:in-memory:policy-registry-memory")
 include(":extensions:in-memory:transfer-store-memory")
-
+include(":extensions:iam:iam-mock")
+include(":extensions:iam:oauth2")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:demo-e2e")

@@ -1,6 +1,6 @@
 variable "kubernetes-namespace" {
   description = "The namespace for the kubernetes deployment"
-  default = "dagx"
+  default = "edc"
 }
 
 variable "cluster_name" {

@@ -46,3 +46,7 @@ distributions/azure/azure.properties
 
 .DS_Store
 **/secrets
+
+**/terraform.tfvars
+**/.terraform*
+launchers/demo-e2e/edc-config.properties

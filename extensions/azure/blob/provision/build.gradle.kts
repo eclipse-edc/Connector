@@ -11,7 +11,7 @@ val storageBlobVersion: String by project
 
 dependencies {
     api(project(":spi"))
-    api(project(":common:azure"))
+    api(project(":extensions:azure:blob:api"))
     api(project(":extensions:azure:blob:blob-schema"))
 
     implementation("com.azure:azure-storage-blob:${storageBlobVersion}")

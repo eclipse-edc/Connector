@@ -1,1 +1,1 @@
-com.microsoft.dagx.monitor.MonitorProvider
+org.eclipse.edc.monitor.MonitorProvider

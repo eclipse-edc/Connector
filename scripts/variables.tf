@@ -28,7 +28,7 @@ variable "SHORT_SHA" {
 variable "backend_account_name" {
   type        = string
   description = "A storage account where the Terraform state and certificates etc. are stored"
-  default     = "dagxtstate"
+  default     = "edcstate"
 }
 
 variable "backend_account_key" {
