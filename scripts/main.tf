@@ -292,7 +292,7 @@ resource "azurerm_container_group" "edc-nifi" {
 //  source       = "./aks-cluster"
 //  cluster_name = local.cluster_name_nifi
 //  location     = var.location
-//  dns          = "edc-nifi"
+//  dns          = "dataspaceconnector-nifi"
 //}
 //
 //module "nifi-deployment" {

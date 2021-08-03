@@ -16,7 +16,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("transfer-store-memory") {
-            artifactId = "edc.transfer-process-store.memory"
+            artifactId = "dataspaceconnector.transfer-process-store.memory"
             from(components["java"])
         }
     }

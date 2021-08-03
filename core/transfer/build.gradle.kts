@@ -19,7 +19,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("transfer") {
-            artifactId = "edc.transfer"
+            artifactId = "dataspaceconnector.transfer"
             from(components["java"])
         }
     }

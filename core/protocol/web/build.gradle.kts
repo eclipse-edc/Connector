@@ -35,7 +35,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("protocol-web") {
-            artifactId = "edc.protocol-web"
+            artifactId = "dataspaceconnector.protocol-web"
             from(components["java"])
         }
     }

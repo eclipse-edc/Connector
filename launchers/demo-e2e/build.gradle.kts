@@ -40,11 +40,11 @@ dependencies {
 
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.edc.runtime.EdcRuntime"
+    mainClassName = "org.eclipse.dataspaceconnector.runtime.EdcRuntime"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
-    archiveFileName.set("edc-demo-e2e.jar")
+    archiveFileName.set("dataspaceconnector-demo-e2e.jar")
 }

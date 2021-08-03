@@ -30,7 +30,7 @@ dependencies {
 //publishing {
 //    publications {
 //        create<MavenPublication>("samples.streaming") {
-//            artifactId = "edc.samples.streaming"
+//            artifactId = "dataspaceconnector.samples.streaming"
 //            from(components["java"])
 //        }
 //    }

@@ -752,7 +752,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>org.eclipse.edc.transfer.nifi.processors.PutS3Object</type>
+            <type>org.eclipse.dataspaceconnector.transfer.nifi.processors.PutS3Object</type>
         </processors>
         <processors>
             <id>2c0e3b2f-4ab1-3071-0000-000000000000</id>
@@ -1159,7 +1159,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>org.eclipse.edc.transfer.nifi.processors.PutS3Object</type>
+            <type>org.eclipse.dataspaceconnector.transfer.nifi.processors.PutS3Object</type>
         </processors>
         <processors>
             <id>46aacc35-6d27-3734-0000-000000000000</id>
@@ -1462,7 +1462,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>org.eclipse.edc.transfer.nifi.processors.FetchS3Object</type>
+            <type>org.eclipse.dataspaceconnector.transfer.nifi.processors.FetchS3Object</type>
         </processors>
         <processors>
             <id>6666a7ba-792b-3cae-0000-000000000000</id>
@@ -2015,7 +2015,7 @@
             </relationships>
             <state>RUNNING</state>
             <style/>
-            <type>org.eclipse.edc.transfer.nifi.processors.FetchAzureBlob</type>
+            <type>org.eclipse.dataspaceconnector.transfer.nifi.processors.FetchAzureBlob</type>
         </processors>
         <processors>
             <id>905a63ec-0706-3df3-0000-000000000000</id>

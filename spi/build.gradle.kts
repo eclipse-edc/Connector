@@ -28,7 +28,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("spi") {
-            artifactId = "edc.spi"
+            artifactId = "dataspaceconnector.spi"
             from(components["java"])
         }
     }

@@ -14,7 +14,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("schema") {
-            artifactId = "edc.schema"
+            artifactId = "dataspaceconnector.schema"
             from(components["java"])
         }
     }

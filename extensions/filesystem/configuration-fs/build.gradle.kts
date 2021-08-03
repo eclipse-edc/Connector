@@ -15,7 +15,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("configuration-fs") {
-            artifactId = "edc.configuration-fs"
+            artifactId = "dataspaceconnector.configuration-fs"
             from(components["java"])
         }
     }

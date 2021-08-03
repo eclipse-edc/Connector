@@ -21,7 +21,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("azure.cosmos.processstore") {
-            artifactId = "edc.transfer-process-store.cosmos"
+            artifactId = "dataspaceconnector.transfer-process-store.cosmos"
             from(components["java"])
         }
     }

@@ -20,7 +20,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("azure.events") {
-            artifactId = "edc.events.azure"
+            artifactId = "dataspaceconnector.events.azure"
             from(components["java"])
         }
     }

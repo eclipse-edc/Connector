@@ -3,7 +3,7 @@
  * All rights reserved.
  */
 
-rootProject.name = "edc"
+rootProject.name = "dataspaceconnector"
 
 // modules for common/util code
 

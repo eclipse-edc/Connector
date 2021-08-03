@@ -24,7 +24,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("provision.aws.s3") {
-            artifactId = "edc.provision.aws.s3"
+            artifactId = "dataspaceconnector.provision.aws.s3"
             from(components["java"])
         }
     }

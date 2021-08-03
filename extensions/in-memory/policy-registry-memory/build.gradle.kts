@@ -10,7 +10,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("policy-mem") {
-            artifactId = "edc.policy-registry-memory"
+            artifactId = "dataspaceconnector.policy-registry-memory"
             from(components["java"])
         }
     }

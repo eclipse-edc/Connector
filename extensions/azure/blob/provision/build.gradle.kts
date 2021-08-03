@@ -23,7 +23,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("provision.azure.blob") {
-            artifactId = "edc.provision.azure.blob"
+            artifactId = "dataspaceconnector.provision.azure.blob"
             from(components["java"])
         }
     }

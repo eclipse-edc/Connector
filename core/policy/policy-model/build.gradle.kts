@@ -13,7 +13,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("policy-model") {
-            artifactId = "edc.policy-model"
+            artifactId = "dataspaceconnector.policy-model"
             from(components["java"])
         }
     }

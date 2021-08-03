@@ -24,7 +24,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("ids-api-catalog") {
-            artifactId = "edc.ids-api-catalog"
+            artifactId = "dataspaceconnector.ids-api-catalog"
             from(components["java"])
         }
     }

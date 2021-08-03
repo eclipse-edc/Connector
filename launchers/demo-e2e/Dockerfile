@@ -2,7 +2,7 @@ FROM openjdk:11-jre-slim
 
 WORKDIR /app
 COPY ./build/libs/edc-demo-e2e.jar /app
-#COPY ./edc-config-docker.properties /app/edc-config.properties
+#COPY ./dataspaceconnector-config-docker.properties /app/dataspaceconnector-config.properties
 #COPY ./cert.pfx /cert
 
 EXPOSE 8181

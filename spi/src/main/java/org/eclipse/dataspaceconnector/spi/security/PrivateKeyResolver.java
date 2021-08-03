@@ -1,0 +1,23 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
+package org.eclipse.dataspaceconnector.spi.security;
+
+import org.jetbrains.annotations.Nullable;
+
+import java.security.interfaces.RSAPrivateKey;
+
+/**
+ * Resolves RSA private keys.
+ */
+public interface PrivateKeyResolver {
+
+    /**
+     * Returns the private key associated with the id or null if not found.
+     */
+    @Nullable
+    RSAPrivateKey resolvePrivateKey(String id);
+
+}

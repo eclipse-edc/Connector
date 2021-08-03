@@ -14,7 +14,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("metadata-mem") {
-            artifactId = "edc.metadata-memory"
+            artifactId = "dataspaceconnector.metadata-memory"
             from(components["java"])
         }
     }

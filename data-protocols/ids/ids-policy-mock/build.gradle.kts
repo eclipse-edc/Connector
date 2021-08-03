@@ -15,7 +15,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("ids-policy-mock") {
-            artifactId = "edc.ids-policy-mock"
+            artifactId = "dataspaceconnector.ids-policy-mock"
             from(components["java"])
         }
     }

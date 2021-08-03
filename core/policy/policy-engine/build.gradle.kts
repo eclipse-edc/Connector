@@ -15,7 +15,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("policy-engine") {
-            artifactId = "edc.policy-engine"
+            artifactId = "dataspaceconnector.policy-engine"
             from(components["java"])
         }
     }

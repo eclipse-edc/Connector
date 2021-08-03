@@ -20,7 +20,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("atlas.catalog") {
-            artifactId = "edc.atlas.catalog"
+            artifactId = "dataspaceconnector.atlas.catalog"
             from(components["java"])
         }
     }

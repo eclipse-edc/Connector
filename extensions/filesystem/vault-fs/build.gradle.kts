@@ -14,7 +14,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("vault.fs") {
-            artifactId = "edc.vault.fs"
+            artifactId = "dataspaceconnector.vault.fs"
             from(components["java"])
         }
     }

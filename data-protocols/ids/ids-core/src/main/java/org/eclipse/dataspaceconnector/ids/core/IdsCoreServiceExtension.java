@@ -1,0 +1,97 @@
+/*
+ * Copyright (c) Microsoft Corporation.
+ * All rights reserved.
+ */
+
+package org.eclipse.dataspaceconnector.ids.core;
+
+import org.eclipse.dataspaceconnector.ids.core.daps.DapsServiceImpl;
+import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
+import org.eclipse.dataspaceconnector.ids.core.message.DataRequestMessageSender;
+import org.eclipse.dataspaceconnector.ids.core.message.IdsRemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.ids.core.message.QueryMessageSender;
+import org.eclipse.dataspaceconnector.ids.core.policy.IdsPolicyServiceImpl;
+import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
+import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import okhttp3.OkHttpClient;
+
+import java.util.Set;
+
+import static org.eclipse.dataspaceconnector.common.settings.SettingsHelper.getConnectorId;
+
+/**
+ * Implements the IDS Controller REST API.
+ */
+public class IdsCoreServiceExtension implements ServiceExtension {
+    private Monitor monitor;
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("ids.core");
+    }
+
+    @Override
+    public Set<String> requires() {
+        return Set.of("iam", "dataspaceconnector:http-client");
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        monitor = context.getMonitor();
+
+        var descriptorService = new IdsDescriptorServiceImpl();
+        context.registerService(IdsDescriptorService.class, descriptorService);
+
+        var identityService = context.getService(IdentityService.class);
+        var connectorName = getConnectorId(context);
+        var dapsService = new DapsServiceImpl(connectorName, identityService);
+        context.registerService(DapsService.class, dapsService);
+
+        var policyService = new IdsPolicyServiceImpl();
+        context.registerService(IdsPolicyService.class, policyService);
+
+        assembleIdsDispatcher(connectorName, context, identityService);
+
+        monitor.info("Initialized IDS Core extension");
+    }
+
+    @Override
+    public void start() {
+        monitor.info("Started IDS Core extension");
+    }
+
+    @Override
+    public void shutdown() {
+        monitor.info("Shutdown IDS Core extension");
+    }
+
+    /**
+     * Assembles the IDS remote message dispatcher and its senders.
+     */
+    private void assembleIdsDispatcher(String connectorName, ServiceExtensionContext context, IdentityService identityService) {
+        var processStore = context.getService(TransferProcessStore.class);
+        var vault = context.getService(Vault.class);
+        var httpClient = context.getService(OkHttpClient.class);
+
+        var mapper = context.getTypeManager().getMapper();
+
+        var monitor = context.getMonitor();
+
+        var dispatcher = new IdsRemoteMessageDispatcher();
+
+        dispatcher.register(new QueryMessageSender(connectorName, identityService, httpClient, mapper, monitor));
+        dispatcher.register(new DataRequestMessageSender(connectorName, identityService, processStore, vault, httpClient, mapper, monitor));
+
+        var registry = context.getService(RemoteMessageDispatcherRegistry.class);
+        registry.register(dispatcher);
+    }
+
+}
