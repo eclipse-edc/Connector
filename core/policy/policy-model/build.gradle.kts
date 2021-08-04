@@ -12,8 +12,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("policy-model") {
-            artifactId = "dataspaceconnector.policy-model"
+        create<MavenPublication>("core.policy-model") {
+            artifactId = "core.policy-model"
             from(components["java"])
         }
     }

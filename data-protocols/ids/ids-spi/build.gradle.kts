@@ -24,8 +24,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ids-spi") {
-            artifactId = "dataspaceconnector.ids-spi"
+        create<MavenPublication>("data-protocols.ids-spi") {
+            artifactId = "data-protocols..ids-spi"
             from(components["java"])
         }
     }

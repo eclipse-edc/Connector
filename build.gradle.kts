@@ -33,8 +33,8 @@ subprojects {
 allprojects {
     apply(plugin = "maven-publish")
     pluginManager.withPlugin("java-library") {
-        group = "com.microsoft"
-        version = "0.0.1-SNAPSHOT.4"
+        group = "org.eclipse.dataspaceconnector"
+        version = "0.0.1-SNAPSHOT.1"
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
             api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
@@ -53,7 +53,7 @@ allprojects {
             repositories {
                 maven {
                     name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/microsoft/data-appliance-gx")
+                    url = uri("https://maven.pkg.github.com/eclipse-datasspaceconnector/dataspaceconnector")
                     credentials {
                         username = System.getenv("GITHUB_ACTOR")
                         password = System.getenv("GITHUB_TOKEN")

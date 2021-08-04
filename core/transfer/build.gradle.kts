@@ -18,8 +18,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer") {
-            artifactId = "dataspaceconnector.transfer"
+        create<MavenPublication>("core.transfer") {
+            artifactId = "core.transfer"
             from(components["java"])
         }
     }

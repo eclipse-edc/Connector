@@ -23,8 +23,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ids-api-transfer") {
-            artifactId = "dataspaceconnector.ids-api-transfer"
+        create<MavenPublication>("data-protocols.ids.api-transfer") {
+            artifactId = "data-protocols.ids-api-transfer"
             from(components["java"])
         }
     }

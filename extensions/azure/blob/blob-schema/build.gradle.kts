@@ -19,8 +19,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("schema.azure.blob") {
-            artifactId = "dataspaceconnector.schema.azure.blob"
+        create<MavenPublication>("azure.blob.schema") {
+            artifactId = "azure.blob.schema"
             from(components["java"])
         }
     }

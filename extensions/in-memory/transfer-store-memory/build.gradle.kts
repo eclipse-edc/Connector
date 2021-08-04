@@ -15,8 +15,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("transfer-store-memory") {
-            artifactId = "dataspaceconnector.transfer-process-store.memory"
+        create<MavenPublication>("in-mem.process-store") {
+            artifactId = "in-mem.process-store"
             from(components["java"])
         }
     }

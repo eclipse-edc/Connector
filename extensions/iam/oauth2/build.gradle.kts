@@ -16,8 +16,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("iam-oauth2") {
-            artifactId = "dataspaceconnector.iam-oauth2"
+        create<MavenPublication>("iam.oauth2") {
+            artifactId = "iam.oauth2"
             from(components["java"])
         }
     }

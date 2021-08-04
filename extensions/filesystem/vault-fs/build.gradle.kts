@@ -13,8 +13,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("vault.fs") {
-            artifactId = "dataspaceconnector.vault.fs"
+        create<MavenPublication>("filesystem.vault") {
+            artifactId = "filesystem.vault"
             from(components["java"])
         }
     }

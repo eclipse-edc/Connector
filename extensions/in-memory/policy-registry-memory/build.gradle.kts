@@ -9,8 +9,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("policy-mem") {
-            artifactId = "dataspaceconnector.policy-registry-memory"
+        create<MavenPublication>("in-mem.policy-registry") {
+            artifactId = "in-mem.policy-registry"
             from(components["java"])
         }
     }

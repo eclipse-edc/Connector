@@ -25,8 +25,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ids-core") {
-            artifactId = "dataspaceconnector.ids-core"
+        create<MavenPublication>("data-protocols.ids-core") {
+            artifactId = "data-protocols.ids-core"
             from(components["java"])
         }
     }

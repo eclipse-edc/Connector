@@ -17,8 +17,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("schema.aws.s3") {
-            artifactId = "dataspaceconnector.schema.aws.s3"
+        create<MavenPublication>("aws.s3.schema") {
+            artifactId = "aws.s3.schema"
         }
     }
 }

@@ -13,8 +13,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("schema") {
-            artifactId = "dataspaceconnector.schema"
+        create<MavenPublication>("core.schema") {
+            artifactId = "core.schema"
             from(components["java"])
         }
     }

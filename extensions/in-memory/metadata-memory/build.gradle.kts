@@ -13,8 +13,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("metadata-mem") {
-            artifactId = "dataspaceconnector.metadata-memory"
+        create<MavenPublication>("in-mem.metadata") {
+            artifactId = "in-mem.metadata"
             from(components["java"])
         }
     }
