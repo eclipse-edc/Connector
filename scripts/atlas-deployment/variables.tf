@@ -1,11 +1,11 @@
 variable "kubernetes-namespace" {
   description = "The namespace for the kubernetes deployment"
-  default     = "dagx"
+  default = "edc"
 }
 
 variable "chart-dir" {
   description = "The directory where the local atlas helm chart is located"
-  default     = "atlas-chart"
+  default = "atlas-chart"
 }
 
 variable "cluster_name" {
@@ -16,12 +16,12 @@ variable "kubeconfig" {
   type = string
 }
 
-variable "resourcesuffix" {
+variable "environment" {
   type = string
 }
 
 variable "location" {
-  type    = string
+  type = string
   default = "westeurope"
 }
 
@@ -30,7 +30,7 @@ variable "tenant_id" {
 }
 
 variable "atlas_service_name" {
-  type    = string
+  type = string
   default = "atlas"
 }
 
@@ -42,5 +42,6 @@ variable "public-ip" {
   type = object({
     ip_address = string
     fqdn = string
-    domain_name_label = string })
+    domain_name_label = string
+  })
 }

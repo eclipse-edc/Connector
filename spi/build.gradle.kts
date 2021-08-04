@@ -10,6 +10,7 @@ val jodahFailsafeVersion: String by project
 
 plugins {
     `java-library`
+    `maven-publish`
 }
 
 dependencies {
@@ -21,6 +22,14 @@ dependencies {
 
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
 
-    api(project(":policy:policy-model"))
+    api(project(":core:policy:policy-model"))
 }
 
+publishing {
+    publications {
+        create<MavenPublication>("spi") {
+            artifactId = "spi"
+            from(components["java"])
+        }
+    }
+}

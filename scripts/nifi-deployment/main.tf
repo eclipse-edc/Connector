@@ -13,33 +13,33 @@ terraform {
 
 resource "kubernetes_namespace" "nifi" {
   metadata {
-    name = "${var.resourcesuffix}-nifi"
+    name = "${var.environment}-nifi"
   }
 }
 
 # the ingress + ingress route for the nifi cluster
 resource "helm_release" "ingress-controller" {
-  chart      = "ingress-nginx"
-  name       = "nifi-ingress-controller"
-  namespace  = kubernetes_namespace.nifi.metadata[0].name
+  chart = "ingress-nginx"
+  name = "nifi-ingress-controller"
+  namespace = kubernetes_namespace.nifi.metadata[0].name
   repository = "https://kubernetes.github.io/ingress-nginx"
 
   set {
-    name  = "controller.replicaCount"
+    name = "controller.replicaCount"
     value = "2"
   }
   set {
-    name  = "controller.service.loadBalancerIP"
+    name = "controller.service.loadBalancerIP"
     value = var.public-ip.ip_address
   }
   set {
-    name  = "controller.service.annotations.service.beta.kubernetes.io/azure-dns-label-name"
+    name = "controller.service.annotations.service.beta.kubernetes.io/azure-dns-label-name"
     value = var.public-ip.domain_name_label
   }
 }
 resource "kubernetes_ingress" "ingress-route" {
   metadata {
-    name      = "nifi-ingress"
+    name = "nifi-ingress"
     namespace = kubernetes_namespace.nifi.metadata[0].name
     annotations = {
       "kubernetes.io/ingress.class": "nginx"
@@ -71,16 +71,16 @@ resource "kubernetes_ingress" "ingress-route" {
         }
       }
     }
-//    tls {
-//      hosts       = [var.public-ip.fqdn]
-//      secret_name = kubernetes_secret.atlas-ingress-tls.metadata[0].name
-//    }
+    //    tls {
+    //      hosts       = [var.public-ip.fqdn]
+    //      secret_name = kubernetes_secret.atlas-ingress-tls.metadata[0].name
+    //    }
   }
 }
 
 # App registration for the loadbalancer
-resource "azuread_application" "dagx-terraform-nifi-app" {
-  display_name = "Dagx-${var.resourcesuffix}-Nifi"
+resource "azuread_application" "edc-terraform-nifi-app" {
+  display_name = "EDC-${var.environment}-Nifi"
   available_to_other_tenants = false
   reply_urls = [
     "https://${var.public-ip.fqdn}/nifi-api/access/oidc/callback"]
@@ -92,14 +92,14 @@ resource "random_password" "password" {
   override_special = "_%@"
 }
 
-resource "azuread_application_password" "dagx-terraform-nifi-app-secret" {
-  application_object_id = azuread_application.dagx-terraform-nifi-app.id
+resource "azuread_application_password" "edc-terraform-nifi-app-secret" {
+  application_object_id = azuread_application.edc-terraform-nifi-app.id
   end_date = "2099-01-01T01:02:03Z"
   value = random_password.password.result
 }
 
-resource "azuread_service_principal" "dagx-terraform-nifi-app-sp" {
-  application_id = azuread_application.dagx-terraform-nifi-app.application_id
+resource "azuread_service_principal" "edc-terraform-nifi-app-sp" {
+  application_id = azuread_application.edc-terraform-nifi-app.application_id
   app_role_assignment_required = false
   tags = [
     "terraform"]
@@ -115,11 +115,11 @@ resource "helm_release" "nifi" {
   cleanup_on_fail = true
   set {
     name = "nifi.authentication.openid.clientId"
-    value = azuread_application.dagx-terraform-nifi-app.application_id
+    value = azuread_application.edc-terraform-nifi-app.application_id
   }
   set {
     name = "nifi.authentication.openid.clientSecret"
-    value = azuread_application_password.dagx-terraform-nifi-app-secret.value
+    value = azuread_application_password.edc-terraform-nifi-app-secret.value
   }
   set {
     name = "nifi.authentication.openid.discoveryUrl"
@@ -137,10 +137,10 @@ resource "helm_release" "nifi" {
     name = "resources.requests.memory"
     value = "1Gi"
   }
-//  set {
-//    name = "ingress.enabled"
-//    value = false
-//  }
+  //  set {
+  //    name = "ingress.enabled"
+  //    value = false
+  //  }
   set {
     name = "nifi.properties.webProxyHost"
     value = var.public-ip.fqdn
