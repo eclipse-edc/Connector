@@ -5,30 +5,42 @@
 
 package org.eclipse.dataspaceconnector.transfer.nifi;
 
+import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.policy.model.*;
 import org.eclipse.dataspaceconnector.schema.SchemaRegistry;
+import org.eclipse.dataspaceconnector.schema.azure.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
 
+import java.util.List;
 import java.util.Set;
 
+import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
+
 public class NifiTransferExtension implements ServiceExtension {
+    public static final String USE_EU_POLICY = "use-eu";
+    public static final String USE_US_OR_EU_POLICY = "use-us-eu";
     @EdcSetting
     private static final String URL_SETTING = "edc.nifi.url";
+    @EdcSetting
     private static final String URL_SETTING_FLOW = "edc.nifi.flow.url";
-
     private static final String DEFAULT_NIFI_URL = "http://localhost:8080";
     private static final String DEFAULT_NIFI_FLOW_URL = "http://localhost:8888";
     private static final String PROVIDES_NIFI = "nifi";
-
     private Monitor monitor;
+    private ServiceExtensionContext context;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        this.context = context;
         monitor = context.getMonitor();
 
         registerConverters(context);
@@ -57,7 +69,9 @@ public class NifiTransferExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        monitor.info("Started Nifi Transfer extension");
+        saveDataEntries();
+        savePolicies();
+        monitor.info("Started Transfer Demo extension");
     }
 
     @Override
@@ -79,6 +93,40 @@ public class NifiTransferExtension implements ServiceExtension {
 
         NifiDataFlowController manager = new NifiDataFlowController(configuration, context.getTypeManager(), context.getMonitor(), context.getService(Vault.class), httpClient, converter);
         dataFlowManager.register(manager);
+    }
+
+    private void saveDataEntries() {
+        MetadataStore metadataStore = context.getService(MetadataStore.class);
+
+        GenericDataCatalogEntry sourceFileCatalog = GenericDataCatalogEntry.Builder.newInstance()
+                .property(AzureBlobStoreSchema.ACCOUNT_NAME, "edcdemogpstorage")
+                .property(AzureBlobStoreSchema.CONTAINER_NAME, "src-container")
+                .property(AzureBlobStoreSchema.BLOB_NAME, "IMG_1971.jpg")
+                .property("keyName", "lili.jpg")
+                .property("type", AzureBlobStoreSchema.TYPE)
+                .build();
+
+        DataEntry entry1 = DataEntry.Builder.newInstance().id("test123").policyId(USE_EU_POLICY).catalogEntry(sourceFileCatalog).build();
+        metadataStore.save(entry1);
+
+        DataEntry entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalogEntry(sourceFileCatalog).build();
+        metadataStore.save(entry2);
+    }
+
+    private void savePolicies() {
+        PolicyRegistry policyRegistry = context.getService(PolicyRegistry.class);
+
+        LiteralExpression spatialExpression = new LiteralExpression("ids:absoluteSpatialPosition");
+        var euConstraint = AtomicConstraint.Builder.newInstance().leftExpression(spatialExpression).operator(IN).rightExpression(new LiteralExpression("eu")).build();
+        var euUsePermission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("idsc:USE").build()).constraint(euConstraint).build();
+        var euPolicy = Policy.Builder.newInstance().id(USE_EU_POLICY).permission(euUsePermission).build();
+        policyRegistry.registerPolicy(euPolicy);
+
+        var usConstraint = AtomicConstraint.Builder.newInstance().leftExpression(spatialExpression).operator(IN).rightExpression(new LiteralExpression("us")).build();
+        var usOrEuConstrain = OrConstraint.Builder.newInstance().constraints(List.of(euConstraint, usConstraint)).build();
+        var usOrEuPermission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("idsc:USE").build()).constraint(usOrEuConstrain).build();
+        var usOrEuPolicy = Policy.Builder.newInstance().id(USE_US_OR_EU_POLICY).permission(usOrEuPermission).build();
+        policyRegistry.registerPolicy(usOrEuPolicy);
     }
 
 }
