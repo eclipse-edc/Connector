@@ -1,15 +1,23 @@
 /*
- * Copyright (c) Microsoft Corporation.
- *  All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.common.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
-import net.jodah.failsafe.RetryPolicy;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,9 +28,9 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.*;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
 
 @IntegrationTest
 class S3StatusCheckerTest extends AbstractS3Test {

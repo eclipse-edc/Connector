@@ -1,33 +1,26 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.policy.engine;
 
-import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
-import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
-import org.eclipse.dataspaceconnector.policy.model.AtomicConstraintFunction;
-import org.eclipse.dataspaceconnector.policy.model.Constraint;
-import org.eclipse.dataspaceconnector.policy.model.Duty;
-import org.eclipse.dataspaceconnector.policy.model.Expression;
-import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
-import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
-import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.policy.model.Rule;
-import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
+import org.eclipse.dataspaceconnector.policy.model.*;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Evaluates a policy.
- *
+ * <p>
  * A policy evaluator is used to build evaluation engines that perform tasks such as verifying if a {@link Policy} is satisfied by a client system presenting signed credentials.
  * Implementation-specific functionality is contributed by registering {@link AtomicConstraintFunction}s using {@link Builder#permissionFunction(String, AtomicConstraintFunction)},
  * {@link Builder#prohibitionFunction(String, AtomicConstraintFunction)}, and  {@link Builder#dutyFunction(String, AtomicConstraintFunction)}.
@@ -35,11 +28,14 @@ import java.util.Objects;
 public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Boolean>, Constraint.Visitor<Boolean>, Expression.Visitor<Object> {
     private Rule ruleContext; // the current rule being evaluated or null
 
-    private List<RuleProblem> ruleProblems = new ArrayList<>();
+    private final List<RuleProblem> ruleProblems = new ArrayList<>();
 
-    private Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> permissionFunctions = new HashMap<>();
-    private Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> dutyFunctions = new HashMap<>();
-    private Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> prohibitionFunctions = new HashMap<>();
+    private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> permissionFunctions = new HashMap<>();
+    private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> dutyFunctions = new HashMap<>();
+    private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> prohibitionFunctions = new HashMap<>();
+
+    private PolicyEvaluator() {
+    }
 
     public PolicyEvaluationResult evaluate(Policy policy) {
         return policy.accept(this) ? new PolicyEvaluationResult() : new PolicyEvaluationResult(ruleProblems);
@@ -120,13 +116,10 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         if (leftRawValue instanceof String) {
             AtomicConstraintFunction<Object, Rule, Boolean> function;
             if (ruleContext instanceof Permission) {
-                //noinspection unchecked
                 function = (AtomicConstraintFunction<Object, Rule, Boolean>) permissionFunctions.get(leftRawValue);
             } else if (ruleContext instanceof Prohibition) {
-                //noinspection unchecked
                 function = (AtomicConstraintFunction<Object, Rule, Boolean>) prohibitionFunctions.get(leftRawValue);
             } else {
-                //noinspection unchecked
                 function = (AtomicConstraintFunction<Object, Rule, Boolean>) dutyFunctions.get(leftRawValue);
             }
             if (function != null) {
@@ -179,11 +172,12 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
         return valid;
     }
 
-    private PolicyEvaluator() {
-    }
-
     public static class Builder {
-        private PolicyEvaluator evaluator;
+        private final PolicyEvaluator evaluator;
+
+        private Builder() {
+            evaluator = new PolicyEvaluator();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -206,10 +200,6 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
         public PolicyEvaluator build() {
             return evaluator;
-        }
-
-        private Builder() {
-            evaluator = new PolicyEvaluator();
         }
     }
 

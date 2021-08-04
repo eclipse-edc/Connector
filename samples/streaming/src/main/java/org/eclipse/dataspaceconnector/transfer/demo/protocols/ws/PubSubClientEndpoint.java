@@ -1,15 +1,24 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.websocket.*;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.DataMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.PubSubMessage;
-import jakarta.websocket.ClientEndpoint;
-import jakarta.websocket.CloseReason;
-import jakarta.websocket.OnClose;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.Session;
 
 import java.io.IOException;
 import java.nio.channels.ClosedChannelException;
@@ -19,9 +28,9 @@ import java.nio.channels.ClosedChannelException;
  */
 @ClientEndpoint
 public class PubSubClientEndpoint {
-    private ObjectMapper objectMapper;
-    private Monitor monitor;
-    private PubSubConsumer consumer;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
+    private final PubSubConsumer consumer;
 
     public PubSubClientEndpoint(ObjectMapper objectMapper, Monitor monitor, PubSubConsumer consumer) {
         this.objectMapper = objectMapper;
@@ -46,7 +55,7 @@ public class PubSubClientEndpoint {
 
     @OnError
     public void error(Throwable e) {
-        if (e instanceof ClosedChannelException){
+        if (e instanceof ClosedChannelException) {
             // ignore
             return;
         }

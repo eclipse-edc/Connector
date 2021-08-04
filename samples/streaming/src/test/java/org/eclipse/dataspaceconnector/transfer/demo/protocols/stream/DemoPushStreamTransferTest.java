@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -15,11 +29,8 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
-import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.DESTINATION_NAME;
-import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.ENDPOINT_ADDRESS;
-import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.PUSH_STREAM_HTTP;
-import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.PUSH_STREAM_WS;
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.*;
 
 /**
  * Demonstrates an-end-to-end push stream transfer.
@@ -30,8 +41,8 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
      * Perform a push stream flow over Web Sockets using the loopback protocol.
      *
      * @param processManager the injected process manager
-     * @param topicManager the injected destination manager
-     * @param monitor the injected runtime monitor
+     * @param topicManager   the injected destination manager
+     * @param monitor        the injected runtime monitor
      */
     @Test
     void verifyWsPushStreamFlow(TransferProcessManager processManager, TopicManager topicManager, StreamPublisherRegistry registry, Monitor monitor) throws InterruptedException {
@@ -67,8 +78,8 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
      * Perform a push stream flow over HTTP using the loopback protocol.
      *
      * @param processManager the injected process manager
-     * @param topicManager the injected destination manager
-     * @param monitor the injected runtime monitor
+     * @param topicManager   the injected destination manager
+     * @param monitor        the injected runtime monitor
      */
     @Test
     void verifyHttpPushStreamFlow(TransferProcessManager processManager, TopicManager topicManager, StreamPublisherRegistry registry, Monitor monitor) throws InterruptedException {
@@ -102,7 +113,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
 
     private static class TestStreamPublisher implements StreamPublisher {
         private StreamContext context;
-        private CountDownLatch requestLatch;
+        private final CountDownLatch requestLatch;
 
         public TestStreamPublisher(CountDownLatch requestLatch) {
             this.requestLatch = requestLatch;

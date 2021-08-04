@@ -1,14 +1,24 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.AbstractQueuedProvisioner;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.ConnectionResult;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamObserver;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.Subscription;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.SubscriptionResult;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.*;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;
@@ -21,10 +31,10 @@ import java.util.function.Consumer;
  * Implements simple, in-memory topics with pub/sub semantics.
  */
 public class DemoTopicManager extends AbstractQueuedProvisioner implements TopicManager {
-    private Monitor monitor;
+    private final Monitor monitor;
 
-    private Map<String, TopicContainer> containerCache = new ConcurrentHashMap<>();
-    private Map<String, StreamObserver> observers = new ConcurrentHashMap<>();
+    private final Map<String, TopicContainer> containerCache = new ConcurrentHashMap<>();
+    private final Map<String, StreamObserver> observers = new ConcurrentHashMap<>();
 
     public DemoTopicManager(Monitor monitor) {
         this.monitor = monitor;

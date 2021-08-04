@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.client.command.assembly;
@@ -24,22 +33,7 @@ import static org.jline.builtins.Completers.TreeCompleter.node;
  * Bootstraps the {@link CommandExecutor}s.
  */
 public class RootAssemblyFactory {
-    public static class Assembly {
-        private Map<String, CommandExecutor> executors;
-        private Completer completer;
-
-        public Assembly(Map<String, CommandExecutor> executors, Completer completer) {
-            this.executors = executors;
-            this.completer = completer;
-        }
-
-        public Map<String, CommandExecutor> getExecutors() {
-            return executors;
-        }
-
-        public Completer getCompleter() {
-            return completer;
-        }
+    private RootAssemblyFactory() {
     }
 
     public static Assembly create() {
@@ -67,6 +61,21 @@ public class RootAssemblyFactory {
         nodes.add(node("ping"));
     }
 
-    private RootAssemblyFactory() {
+    public static class Assembly {
+        private final Map<String, CommandExecutor> executors;
+        private final Completer completer;
+
+        public Assembly(Map<String, CommandExecutor> executors, Completer completer) {
+            this.executors = executors;
+            this.completer = completer;
+        }
+
+        public Map<String, CommandExecutor> getExecutors() {
+            return executors;
+        }
+
+        public Completer getCompleter() {
+            return completer;
+        }
     }
 }

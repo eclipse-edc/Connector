@@ -1,6 +1,14 @@
 /*
- * Copyright (c) Microsoft Corporation.
- *  All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
@@ -61,8 +69,8 @@ public class FetchAzureBlob extends AbstractProcessor {
     }
 
     @Override
-    protected void init(final ProcessorInitializationContext context) {
-        final List<PropertyDescriptor> descriptors = new ArrayList<>(Properties.FetchAzureBlob.Properties);
+    protected void init(ProcessorInitializationContext context) {
+        List<PropertyDescriptor> descriptors = new ArrayList<>(Properties.FetchAzureBlob.Properties);
 
         propertyDescriptors = Collections.unmodifiableList(descriptors);
         relationships = Properties.FetchAzureBlob.Relationships;
@@ -75,12 +83,12 @@ public class FetchAzureBlob extends AbstractProcessor {
         if (flowFile == null) {
             return;
         }
-        final long startNanos = System.nanoTime();
+        long startNanos = System.nanoTime();
 
-        final String containerName = context.getProperty(Properties.CONTAINER).evaluateAttributeExpressions(flowFile).getValue();
-        final String blobNamesJsonArray = context.getProperty(Properties.OBJECT_KEYS).evaluateAttributeExpressions(flowFile).getValue();
-        final String sasToken = context.getProperty(Properties.SAS_TOKEN).evaluateAttributeExpressions(flowFile).getValue();
-        final String accountName = context.getProperty(Properties.ACCOUNT_NAME).evaluateAttributeExpressions(flowFile).getValue();
+        String containerName = context.getProperty(Properties.CONTAINER).evaluateAttributeExpressions(flowFile).getValue();
+        String blobNamesJsonArray = context.getProperty(Properties.OBJECT_KEYS).evaluateAttributeExpressions(flowFile).getValue();
+        String sasToken = context.getProperty(Properties.SAS_TOKEN).evaluateAttributeExpressions(flowFile).getValue();
+        String accountName = context.getProperty(Properties.ACCOUNT_NAME).evaluateAttributeExpressions(flowFile).getValue();
 
 
         BlobServiceClient blobServiceClient = new BlobServiceClientBuilder()
@@ -89,7 +97,7 @@ public class FetchAzureBlob extends AbstractProcessor {
                 .addPolicy(new TimeoutPolicy(Duration.ofSeconds(5)))
                 .buildClient();
 
-        final BlobContainerClient blobContainerClient = blobServiceClient
+        BlobContainerClient blobContainerClient = blobServiceClient
                 .getBlobContainerClient(containerName);
 
         if (!blobContainerClient.exists()) {
@@ -105,7 +113,7 @@ public class FetchAzureBlob extends AbstractProcessor {
             names = blobContainerClient.listBlobs().stream().map(BlobItem::getName).collect(Collectors.toList());
         } else {
             try {
-                names = new ObjectMapper().readValue(blobNamesJsonArray, new TypeReference<List<String>>() {
+                names = new ObjectMapper().readValue(blobNamesJsonArray, new TypeReference<>() {
                 });
             } catch (JsonProcessingException e) {
                 getLogger().info("Could not interpret file names as JSON list - interpreting as single file name.");
@@ -119,7 +127,7 @@ public class FetchAzureBlob extends AbstractProcessor {
             try {
 
                 BlobClient blob = blobContainerClient.getBlobClient(blobName);
-                final Map<String, String> attributes = new HashMap<>();
+                Map<String, String> attributes = new HashMap<>();
 
                 attributes.put("filename", blobName);
 
@@ -140,7 +148,7 @@ public class FetchAzureBlob extends AbstractProcessor {
                 }
 
                 session.transfer(ff, Properties.REL_SUCCESS);
-                final long transferMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+                long transferMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
                 session.getProvenanceReporter().fetch(ff, blob.getBlobUrl(), transferMillis);
 
             } catch (IllegalArgumentException | BlobStorageException | ProcessException e) {

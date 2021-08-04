@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.policy.model;
@@ -19,16 +28,12 @@ public enum PolicyType {
     @JsonProperty("@policytype")
     private String type;
 
-    public String getType() {
-        return type;
-    }
-
     PolicyType(@JsonProperty("@policytype") String type) {
         this.type = type;
     }
 
     @JsonCreator
-    public static PolicyType fromObject(final Map<String, Object> object) {
+    public static PolicyType fromObject(Map<String, Object> object) {
         if (SET.type.equals(object.get("@policytype"))) {
             return SET;
         } else if (OFFER.type.equals(object.get("@policytype"))) {
@@ -37,5 +42,9 @@ public enum PolicyType {
             return CONTRACT;
         }
         throw new IllegalArgumentException("Invalid policy type");
+    }
+
+    public String getType() {
+        return type;
     }
 }

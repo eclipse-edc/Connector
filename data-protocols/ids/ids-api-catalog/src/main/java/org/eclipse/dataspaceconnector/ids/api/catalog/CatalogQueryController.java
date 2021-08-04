@@ -1,7 +1,19 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.api.catalog;
 
-import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import de.fraunhofer.iais.eis.QueryMessage;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
 import jakarta.ws.rs.Consumes;
@@ -10,6 +22,8 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
+import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 
 import static de.fraunhofer.iais.eis.RejectionReason.MALFORMED_MESSAGE;
 import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
@@ -22,8 +36,8 @@ import static java.util.stream.Collectors.toList;
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/ids")
 public class CatalogQueryController {
-    private QueryEngine queryEngine;
-    private DapsService dapsService;
+    private final QueryEngine queryEngine;
+    private final DapsService dapsService;
 
     public CatalogQueryController(QueryEngine queryEngine, DapsService dapsService) {
         this.queryEngine = queryEngine;

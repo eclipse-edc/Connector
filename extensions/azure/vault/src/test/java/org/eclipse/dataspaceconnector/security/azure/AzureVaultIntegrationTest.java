@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.security.azure;
@@ -33,6 +42,14 @@ public class AzureVaultIntegrationTest {
     private static final String secretKey4 = "testkey4" + id;
     private static AzureVault azureVault;
 
+    @AfterAll
+    static void verifyAzureResourceGroup() {
+        azureVault.deleteSecret(secretKey1);
+        azureVault.deleteSecret(secretKey2);
+        azureVault.deleteSecret(secretKey3);
+        azureVault.deleteSecret(secretKey4);
+    }
+
     @BeforeEach
     public void setupAzure() throws IOException, URISyntaxException {
         var resStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("azurecredentials.properties");
@@ -47,14 +64,6 @@ public class AzureVaultIntegrationTest {
 
         azureVault = AzureVault.authenticateWithCertificate(new LoggerMonitor(), clientId, tenantId, certPath, vaultName);
 
-    }
-
-    @AfterAll
-    static void verifyAzureResourceGroup() {
-        azureVault.deleteSecret(secretKey1);
-        azureVault.deleteSecret(secretKey2);
-        azureVault.deleteSecret(secretKey3);
-        azureVault.deleteSecret(secretKey4);
     }
 
     @Test

@@ -1,6 +1,21 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.common.http.loopback.LoopbackDispatcher;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -24,7 +39,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.*;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.PubSubServerEndpoint;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WebSocketFactory;
 import org.eclipse.dataspaceconnector.web.transport.JettyService;
-import okhttp3.OkHttpClient;
 
 import java.util.Set;
 

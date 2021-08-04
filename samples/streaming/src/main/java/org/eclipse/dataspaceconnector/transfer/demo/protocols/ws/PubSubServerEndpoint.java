@@ -1,6 +1,25 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.Session;
+import jakarta.websocket.server.ServerEndpoint;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.Subscription;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.DataMessage;
@@ -8,11 +27,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.PublishMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.SubscribeMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.DemoTopicManager;
-import jakarta.websocket.CloseReason;
-import jakarta.websocket.OnError;
-import jakarta.websocket.OnMessage;
-import jakarta.websocket.Session;
-import jakarta.websocket.server.ServerEndpoint;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,9 +44,9 @@ public class PubSubServerEndpoint {
     private static final CloseReason UNSUBSCRIBE_REASON = new CloseReason(NORMAL_CLOSURE, "unsubscribe");
     private static final CloseReason NOT_AUTHORIZED_REASON = new CloseReason(VIOLATED_POLICY, "not authorized");
 
-    private DemoTopicManager topicManager;
-    private ObjectMapper objectMapper;
-    private Monitor monitor;
+    private final DemoTopicManager topicManager;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
     private Subscription subscription;
 
     public PubSubServerEndpoint(DemoTopicManager topicManager, ObjectMapper objectMapper, Monitor monitor) {
@@ -90,7 +104,7 @@ public class PubSubServerEndpoint {
 
     @OnError
     public void onWebSocketError(Throwable e) {
-        if (e instanceof ClosedChannelException){
+        if (e instanceof ClosedChannelException) {
             // ignore
             return;
         }

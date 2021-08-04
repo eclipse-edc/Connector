@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.policy.model;
@@ -8,35 +17,26 @@ package org.eclipse.dataspaceconnector.policy.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by {@link PolicyType}.
  */
 public class Policy extends Identifiable {
 
-    public interface Visitor<R> {
-        R visitPolicy(Policy policy);
-    }
-
-    private List<Permission> permissions = new ArrayList<>();
-    private List<Prohibition> prohibitions = new ArrayList<>();
-    private List<Duty> obligations = new ArrayList<>();
+    private final List<Permission> permissions = new ArrayList<>();
+    private final List<Prohibition> prohibitions = new ArrayList<>();
+    private final List<Duty> obligations = new ArrayList<>();
     private String inheritsFrom;
-
     private String assigner;
     private String assignee;
-
     private String target;
-
     @JsonProperty("@type")
     private PolicyType type = PolicyType.SET;
+    private final Map<String, Object> extensibleProperties = new HashMap<>();
 
-    private Map<String, Object> extensibleProperties = new HashMap<>();
+    private Policy() {
+    }
 
     public List<Permission> getPermissions() {
         return permissions;
@@ -84,11 +84,16 @@ public class Policy extends Identifiable {
         return "Policy: " + uid;
     }
 
-    private Policy() {
+    public interface Visitor<R> {
+        R visitPolicy(Policy policy);
     }
 
     public static class Builder {
-        private Policy policy;
+        private final Policy policy;
+
+        private Builder() {
+            policy = new Policy();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -98,7 +103,6 @@ public class Policy extends Identifiable {
             policy.uid = id;
             return this;
         }
-
 
         public Builder prohibition(Prohibition prohibition) {
             policy.prohibitions.add(prohibition);
@@ -170,10 +174,6 @@ public class Policy extends Identifiable {
                 policy.uid = UUID.randomUUID().toString();
             }
             return policy;
-        }
-
-        private Builder() {
-            policy = new Policy();
         }
     }
 }

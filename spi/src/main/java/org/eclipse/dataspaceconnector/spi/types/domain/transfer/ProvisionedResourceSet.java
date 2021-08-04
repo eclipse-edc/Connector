@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
@@ -20,10 +29,15 @@ import java.util.List;
 public class ProvisionedResourceSet {
     private String transferProcessId;
 
-    private List<ProvisionedResource> resources = new ArrayList<>();
+    private final List<ProvisionedResource> resources = new ArrayList<>();
 
     public String getTransferProcessId() {
         return transferProcessId;
+    }
+
+    void setTransferProcessId(String transferProcessId) {
+        this.transferProcessId = transferProcessId;
+        resources.forEach(r -> r.setTransferProcessId(transferProcessId));
     }
 
     public List<ProvisionedResource> getResources() {
@@ -41,14 +55,13 @@ public class ProvisionedResourceSet {
         return resources.isEmpty();
     }
 
-    void setTransferProcessId(String transferProcessId) {
-        this.transferProcessId = transferProcessId;
-        resources.forEach(r -> r.setTransferProcessId(transferProcessId));
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private ProvisionedResourceSet resourceSet;
+        private final ProvisionedResourceSet resourceSet;
+
+        private Builder() {
+            resourceSet = new ProvisionedResourceSet();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -66,10 +79,6 @@ public class ProvisionedResourceSet {
 
         public ProvisionedResourceSet build() {
             return resourceSet;
-        }
-
-        private Builder() {
-            resourceSet = new ProvisionedResourceSet();
         }
 
     }

@@ -1,24 +1,32 @@
 /*
- * Copyright (c) Microsoft Corporation.
- *  All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.catalog.atlas.metadata;
 
+import org.easymock.Capture;
 import org.eclipse.dataspaceconnector.catalog.atlas.dto.AtlasEntity;
 import org.eclipse.dataspaceconnector.catalog.atlas.dto.AtlasEntityHeader;
 import org.eclipse.dataspaceconnector.catalog.atlas.dto.AtlasErrorCode;
 import org.eclipse.dataspaceconnector.catalog.atlas.dto.AtlasSearchResult;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.schema.SchemaRegistry;
-import org.eclipse.dataspaceconnector.schema.azure.*;
-import org.eclipse.dataspaceconnector.schema.s3.*;
+import org.eclipse.dataspaceconnector.schema.azure.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.schema.policy.PolicySchema;
+import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
-import org.easymock.Capture;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,10 +56,10 @@ class AtlasMetadataStoreTest {
     @Test
     void findForId() {
 
-        final String entityId = UUID.randomUUID().toString();
+        String entityId = UUID.randomUUID().toString();
         AtlasSearchResult searchResult = createSearchResult(entityId, AzureBlobStoreSchema.TYPE);
 
-        final AtlasEntity entity = createAzureEntity(testEntityName);
+        AtlasEntity entity = createAzureEntity(testEntityName);
 
         expect(atlasApiMock.getEntityById(testEntityName)).andReturn(null);
         expect(atlasApiMock.dslSearchWithParams("from DataSet where name = '" + testEntityName + "'", 100, 0)).andReturn(searchResult);
@@ -74,17 +82,17 @@ class AtlasMetadataStoreTest {
 
     @Test
     void findForId_multipleResults() {
-        final String azureId = UUID.randomUUID().toString();
-        final String s3Id = UUID.randomUUID().toString();
+        String azureId = UUID.randomUUID().toString();
+        String s3Id = UUID.randomUUID().toString();
         AtlasSearchResult searchResult = new AtlasSearchResult();
-        final AtlasEntityHeader header = new AtlasEntityHeader(AzureBlobStoreSchema.TYPE, azureId, new HashMap<>());
+        AtlasEntityHeader header = new AtlasEntityHeader(AzureBlobStoreSchema.TYPE, azureId, new HashMap<>());
         header.setStatus(AtlasEntity.Status.ACTIVE);
-        final AtlasEntityHeader header2 = new AtlasEntityHeader(S3BucketSchema.TYPE, s3Id, new HashMap<>());
+        AtlasEntityHeader header2 = new AtlasEntityHeader(S3BucketSchema.TYPE, s3Id, new HashMap<>());
         searchResult.addEntity(header);
         searchResult.addEntity(header2);
 
-        final AtlasEntity azureEntity = createAzureEntity(testEntityName);
-        final AtlasEntity s3Entity = createS3Entity(testEntityName);
+        AtlasEntity azureEntity = createAzureEntity(testEntityName);
+        AtlasEntity s3Entity = createS3Entity(testEntityName);
 
         expect(atlasApiMock.getEntityById(testEntityName)).andReturn(null);
         expect(atlasApiMock.dslSearchWithParams("from DataSet where name = '" + testEntityName + "'", 100, 0)).andReturn(searchResult);
@@ -152,14 +160,14 @@ class AtlasMetadataStoreTest {
         var policy = Policy.Builder.newInstance().id("test-policy").build();
         var policyEntity = new AtlasEntity(PolicySchema.TYPE);
         policyEntity.setAttribute("policyId", "test-policy");
-        final ArrayList<Map<String, String>> relationshipEntityProps = new ArrayList<>();
+        ArrayList<Map<String, String>> relationshipEntityProps = new ArrayList<>();
         String entityGuid = UUID.randomUUID().toString();
         relationshipEntityProps.add(Map.of("guid", entityGuid));
         policyEntity.setRelationshipAttribute("itsEntity", relationshipEntityProps);
 
         // arrange: prepare searchresult
         var searchResult = new AtlasSearchResult();
-        final AtlasEntityHeader header = new AtlasEntityHeader();
+        AtlasEntityHeader header = new AtlasEntityHeader();
         String policyGuid = UUID.randomUUID().toString();
         header.setGuid(policyGuid);
         searchResult.addEntity(header);
@@ -174,7 +182,7 @@ class AtlasMetadataStoreTest {
         replay(atlasApiMock);
         replay(monitorMock);
 
-        final Collection<DataEntry> entries = atlasMetadataStore.queryAll(Collections.singleton(policy));
+        Collection<DataEntry> entries = atlasMetadataStore.queryAll(Collections.singleton(policy));
         assertThat(entries).isNotNull().isNotEmpty().doesNotContainNull();
 
         assertThat(entries).allSatisfy(this::assertAzureEntry);
@@ -208,7 +216,7 @@ class AtlasMetadataStoreTest {
     @NotNull
     private AtlasSearchResult createSearchResult(String entityId, String type) {
         AtlasSearchResult searchResult = new AtlasSearchResult();
-        final AtlasEntityHeader header = new AtlasEntityHeader(type, entityId, new HashMap<>());
+        AtlasEntityHeader header = new AtlasEntityHeader(type, entityId, new HashMap<>());
         header.setStatus(AtlasEntity.Status.ACTIVE);
         searchResult.addEntity(header);
         return searchResult;

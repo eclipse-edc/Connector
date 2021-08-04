@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.transfer.core.flow;
@@ -21,7 +30,7 @@ import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatu
  * The default data flow manager.
  */
 public class DataFlowManagerImpl implements DataFlowManager {
-    private List<DataFlowController> controllers = new ArrayList<>();
+    private final List<DataFlowController> controllers = new ArrayList<>();
 
     @Override
     public void register(DataFlowController controller) {
@@ -32,7 +41,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
     public @NotNull DataFlowInitiateResponse initiate(DataRequest dataRequest) {
         DataFlowController executor = getExecutor(dataRequest);
         if (executor == null) {
-            return new DataFlowInitiateResponse(FATAL_ERROR,"Unable to process data request. No data flow controller found: " + dataRequest.getId());
+            return new DataFlowInitiateResponse(FATAL_ERROR, "Unable to process data request. No data flow controller found: " + dataRequest.getId());
         }
         return executor.initiateFlow(dataRequest);
     }

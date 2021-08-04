@@ -1,19 +1,20 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.ids.core.policy;
 
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsOfferDutyFunction;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsOfferPermissionFunction;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsOfferPolicyContext;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsOfferProhibitionFunction;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsRequestDutyFunction;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsRequestPermissionFunction;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsRequestPolicyContext;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsRequestProhibitionFunction;
+import org.eclipse.dataspaceconnector.ids.spi.policy.*;
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluationResult;
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -26,16 +27,15 @@ import java.util.Map;
  * Default implementation.
  */
 public class IdsPolicyServiceImpl implements IdsPolicyService {
-    private Map<String, IdsRequestDutyFunction> requestDutyFunctions = new HashMap<>();
-    private Map<String, IdsRequestPermissionFunction> requestPermissionFunctions = new HashMap<>();
-    private Map<String, IdsRequestProhibitionFunction> requestProhibitionFunctions = new HashMap<>();
+    private final Map<String, IdsRequestDutyFunction> requestDutyFunctions = new HashMap<>();
+    private final Map<String, IdsRequestPermissionFunction> requestPermissionFunctions = new HashMap<>();
+    private final Map<String, IdsRequestProhibitionFunction> requestProhibitionFunctions = new HashMap<>();
 
-    private Map<String, IdsOfferDutyFunction> offerDutyFunctions = new HashMap<>();
-    private Map<String, IdsOfferPermissionFunction> offerPermissionFunctions = new HashMap<>();
-    private Map<String, IdsOfferProhibitionFunction> offerProhibitionFunctions = new HashMap<>();
+    private final Map<String, IdsOfferDutyFunction> offerDutyFunctions = new HashMap<>();
+    private final Map<String, IdsOfferPermissionFunction> offerPermissionFunctions = new HashMap<>();
+    private final Map<String, IdsOfferProhibitionFunction> offerProhibitionFunctions = new HashMap<>();
 
     @Override
-    @SuppressWarnings("DuplicatedCode")
     public PolicyEvaluationResult evaluateRequest(String clientConnectorId, String correlationId, ClaimToken clientToken, Policy policy) {
         var context = new IdsRequestPolicyContext(clientConnectorId, correlationId, clientToken);
 
@@ -50,7 +50,6 @@ public class IdsPolicyServiceImpl implements IdsPolicyService {
     }
 
     @Override
-    @SuppressWarnings("DuplicatedCode")
     public PolicyEvaluationResult evaluateOffer(String providerConnectorId, String processId, Policy policy) {
         var context = new IdsOfferPolicyContext(providerConnectorId, processId);
 

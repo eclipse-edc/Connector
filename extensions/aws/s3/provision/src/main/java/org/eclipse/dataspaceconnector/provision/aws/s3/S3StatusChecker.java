@@ -1,15 +1,23 @@
 /*
- * Copyright (c) Microsoft Corporation.
- *  All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
-import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;

@@ -1,15 +1,24 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.http;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.HeaderParam;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -24,12 +33,12 @@ import java.util.function.Consumer;
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/demo/pubsub")
 public class PubSubHttpEndpoint {
-    private TopicManager topicManager;
+    private final TopicManager topicManager;
 
-    private AtomicBoolean active = new AtomicBoolean();
+    private final AtomicBoolean active = new AtomicBoolean();
 
-    private ExecutorService executorService;
-    private LinkedBlockingQueue<QueueEntry> queue = new LinkedBlockingQueue<>();
+    private final ExecutorService executorService;
+    private final LinkedBlockingQueue<QueueEntry> queue = new LinkedBlockingQueue<>();
 
     public PubSubHttpEndpoint(TopicManager topicManager) {
         this.topicManager = topicManager;
@@ -66,6 +75,15 @@ public class PubSubHttpEndpoint {
         }
     }
 
+    private void run() {
+        while (active.get()) {
+            var entry = queue.poll();
+            if (entry != null) {
+                entry.connection.accept(entry.data);
+            }
+        }
+    }
+
     private static class QueueEntry {
         Consumer<byte[]> connection;
         byte[] data;
@@ -73,15 +91,6 @@ public class PubSubHttpEndpoint {
         public QueueEntry(Consumer<byte[]> connection, byte[] data) {
             this.connection = connection;
             this.data = data;
-        }
-    }
-
-    private void run() {
-        while (active.get()) {
-            var entry = queue.poll();
-            if (entry != null) {
-                entry.connection.accept(entry.data);
-            }
         }
     }
 

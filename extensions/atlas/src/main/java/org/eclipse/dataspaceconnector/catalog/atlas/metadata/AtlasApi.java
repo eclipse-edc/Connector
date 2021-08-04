@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.catalog.atlas.metadata;
@@ -46,7 +55,7 @@ public interface AtlasApi {
      *                       especially required ones.
      * @return an AtlasTypeDef that contains the new type definition.
      * @throws EdcException if the custom type has an invalid attribute (e.g. invalid type), or if an invalid attempt was made to
-     *                                              alter a required attribute, or if a required attribute was added.
+     *                      alter a required attribute, or if a required attribute was added.
      */
     AtlasTypesDef createCustomTypes(String typeName, Set<String> superTypeNames, List<? extends SchemaAttribute> attributes);
 
@@ -66,7 +75,7 @@ public interface AtlasApi {
      * @param name             The relationship type name
      * @return An object containing information about that relation.
      * @throws EdcException if either the source or target entities do not exist, or a relationship type with the given name does not exist,
-     *                                              or that particular relationship already exists
+     *                      or that particular relationship already exists
      */
     AtlasRelationship createRelationship(String sourceEntityGuid, String targetEntityGuid, String name);
 

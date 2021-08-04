@@ -1,16 +1,25 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.catalog.atlas.metadata;
 
+import okhttp3.*;
 import org.eclipse.dataspaceconnector.catalog.atlas.dto.*;
 import org.eclipse.dataspaceconnector.schema.RelationshipSchema;
 import org.eclipse.dataspaceconnector.schema.SchemaAttribute;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import okhttp3.*;
 
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSocketFactory;
@@ -46,7 +55,7 @@ public class AtlasApiImpl implements AtlasApi {
     @Override
     public AtlasTypesDef createClassifications(String... classificationName) {
         var defs = Arrays.stream(classificationName).map(name ->
-                createTraitTypeDef(name, Collections.emptySet()))
+                        createTraitTypeDef(name, Collections.emptySet()))
                 .collect(Collectors.toList());
 
         var typedef = new AtlasTypesDef();
@@ -132,7 +141,7 @@ public class AtlasApiImpl implements AtlasApi {
         var urlBuilder = Objects.requireNonNull(HttpUrl.parse(createAtlasUrl(ENTITY_API + "/bulk"))).newBuilder();
 
         entityGuids.forEach(guid -> urlBuilder.addQueryParameter("guid", guid));
-        final var url = urlBuilder.build();
+        var url = urlBuilder.build();
 
         var rq = new Request.Builder().url(url)
                 .delete()
@@ -218,7 +227,7 @@ public class AtlasApiImpl implements AtlasApi {
                 }
                 throw new EdcException(response.body() != null ? Objects.requireNonNull(response.body()).string() : "getting entity by ID failed");
             }
-            final String json = Objects.requireNonNull(response.body()).string();
+            String json = Objects.requireNonNull(response.body()).string();
             return typeManager.readValue(json, AtlasEntity.AtlasEntityWithExtInfo.class);
 
         } catch (IOException e) {
@@ -284,7 +293,7 @@ public class AtlasApiImpl implements AtlasApi {
         try (var response = httpClient.newCall(rq).execute()) {
             if (!response.isSuccessful() && response.body() != null) {
 
-                final AtlasErrorCode atlasErrorCode = typeManager.readValue(response.body().string(), AtlasErrorCode.class);
+                AtlasErrorCode atlasErrorCode = typeManager.readValue(response.body().string(), AtlasErrorCode.class);
                 throw new AtlasQueryException(atlasErrorCode);
 
 //                throw new EdcException(response.body() != null ? Objects.requireNonNull(response.body()).string() : "executing a DSL query failed");
@@ -400,15 +409,15 @@ public class AtlasApiImpl implements AtlasApi {
                     return new X509Certificate[]{};
                 }
             };
-            final TrustManager[] trustAllCerts = new TrustManager[]{
+            TrustManager[] trustAllCerts = new TrustManager[]{
                     x509TrustManager
             };
 
             // Install the all-trusting trust manager
-            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            SSLContext sslContext = SSLContext.getInstance("SSL");
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             // Create an ssl socket factory with our all-trusting manager
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
 
             return httpClient.newBuilder()

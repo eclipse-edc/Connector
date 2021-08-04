@@ -1,8 +1,22 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.ws;
 
-import org.eclipse.dataspaceconnector.web.transport.JettyService;
 import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.server.ServerEndpointConfig;
+import org.eclipse.dataspaceconnector.web.transport.JettyService;
 import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,7 +41,7 @@ public class WebSocketFactory {
     }
 
     @NotNull
-    private ServerEndpointConfig endpointFactory(Class<?> endpointClass, Supplier<Object>  endpointSupplier) {
+    private ServerEndpointConfig endpointFactory(Class<?> endpointClass, Supplier<Object> endpointSupplier) {
         var endpointAnnotation = endpointClass.getAnnotation(ServerEndpoint.class);
         return ServerEndpointConfig.Builder.create(endpointClass, endpointAnnotation.value())
                 .configurator(new ServerEndpointConfig.Configurator() {

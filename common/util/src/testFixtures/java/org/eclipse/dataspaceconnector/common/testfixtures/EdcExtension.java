@@ -1,10 +1,20 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.common.testfixtures;
 
+import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -15,7 +25,6 @@ import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.system.ExtensionLoader;
 import org.eclipse.dataspaceconnector.system.ServiceLocator;
 import org.eclipse.dataspaceconnector.system.ServiceLocatorImpl;
-import okhttp3.Interceptor;
 import org.junit.jupiter.api.extension.*;
 
 import java.util.ArrayList;
@@ -97,7 +106,6 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
         if (type.equals(EdcExtension.class)) {
             return true;
         } else if (type instanceof Class) {
-            //noinspection unchecked,rawtypes,rawtypes
             return context.hasService((Class) type);
         }
         return false;
@@ -109,7 +117,6 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
         if (type.equals(EdcExtension.class)) {
             return this;
         } else if (type instanceof Class) {
-            //noinspection unchecked,rawtypes,rawtypes
             return context.getService((Class) type);
         }
         return null;

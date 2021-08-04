@@ -1,14 +1,28 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.PublishMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.UnSubscribeMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.StreamSession;
-import jakarta.websocket.ContainerProvider;
-import jakarta.websocket.Session;
-import jakarta.websocket.WebSocketContainer;
 import org.eclipse.jetty.util.component.LifeCycle;
 
 import java.io.IOException;
@@ -19,10 +33,9 @@ import java.nio.ByteBuffer;
  * A session for publishing data over a web socket to a destination endpoint.
  */
 public class WsPushStreamSession implements StreamSession {
-    private ObjectMapper objectMapper;
-    private Monitor monitor;
-
     private final URI uri;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
     private String topicName;
     private String topicToken;
     private Session session;

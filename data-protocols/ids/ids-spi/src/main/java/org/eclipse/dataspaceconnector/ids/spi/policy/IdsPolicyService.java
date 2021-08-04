@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.ids.spi.policy;
@@ -11,7 +20,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 
 /**
  * Evaluates IDS policies.
- *
+ * <p>
  * Policy evaluation is performed by a provider connector when a client connector requests an artifact using {@link #evaluateRequest(String, String, ClaimToken, Policy)} and
  * when a client connector receives an offer from a provider using {@link #evaluateOffer(String, String, Policy)}.
  */
@@ -21,9 +30,9 @@ public interface IdsPolicyService {
      * Evaluates a request made by a client for an an artifact.
      *
      * @param clientConnectorId the id of the connector making the request
-     * @param correlationId an identifier that can be used to retrieve additional information about the request such as a pre-payment or pre-authorization receipt
-     * @param clientToken the client's validated security token
-     * @param policy the policy attached to the artifact
+     * @param correlationId     an identifier that can be used to retrieve additional information about the request such as a pre-payment or pre-authorization receipt
+     * @param clientToken       the client's validated security token
+     * @param policy            the policy attached to the artifact
      */
     PolicyEvaluationResult evaluateRequest(String clientConnectorId, String correlationId, ClaimToken clientToken, Policy policy);
 

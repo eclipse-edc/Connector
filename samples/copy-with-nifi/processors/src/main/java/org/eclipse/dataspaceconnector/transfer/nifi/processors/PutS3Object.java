@@ -1,6 +1,14 @@
 /*
- * Copyright (c) Microsoft Corporation.
- *  All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
@@ -88,14 +96,14 @@ public class PutS3Object extends AbstractProcessor {
             return;
         }
 
-        final long startNanos = System.nanoTime();
+        long startNanos = System.nanoTime();
 
-        final String bucket = context.getProperty(Properties.BUCKET).evaluateAttributeExpressions(flowFile).getValue();
-        final String key = context.getProperty(Properties.OBJECT_KEYS).evaluateAttributeExpressions(flowFile).getValue();
-        final String region = context.getProperty(Properties.REGION).evaluateAttributeExpressions(flowFile).getValue();
-        final String accessKeyId = context.getProperty(Properties.ACCESS_KEY_ID).evaluateAttributeExpressions(flowFile).getValue();
-        final String secretKey = context.getProperty(Properties.SECRET_ACCESS_KEY).evaluateAttributeExpressions(flowFile).getValue();
-        final String sessionToken = context.getProperty(Properties.SESSION_TOKEN).evaluateAttributeExpressions(flowFile).getValue();
+        String bucket = context.getProperty(Properties.BUCKET).evaluateAttributeExpressions(flowFile).getValue();
+        String key = context.getProperty(Properties.OBJECT_KEYS).evaluateAttributeExpressions(flowFile).getValue();
+        String region = context.getProperty(Properties.REGION).evaluateAttributeExpressions(flowFile).getValue();
+        String accessKeyId = context.getProperty(Properties.ACCESS_KEY_ID).evaluateAttributeExpressions(flowFile).getValue();
+        String secretKey = context.getProperty(Properties.SECRET_ACCESS_KEY).evaluateAttributeExpressions(flowFile).getValue();
+        String sessionToken = context.getProperty(Properties.SESSION_TOKEN).evaluateAttributeExpressions(flowFile).getValue();
 
         AWSCredentials credentials = sessionToken != null
                 ? new BasicSessionCredentials(accessKeyId, secretKey, sessionToken)
@@ -106,16 +114,16 @@ public class PutS3Object extends AbstractProcessor {
                 .withRegion(region)
                 .build();
 
-        final FlowFile ff = flowFile;
-        final Map<String, String> attributes = new HashMap<>();
-        final String ffFilename = ff.getAttributes().get(CoreAttributes.FILENAME.key());
+        FlowFile ff = flowFile;
+        Map<String, String> attributes = new HashMap<>();
+        String ffFilename = ff.getAttributes().get(CoreAttributes.FILENAME.key());
         attributes.put(S3_BUCKET_KEY, bucket);
         attributes.put(S3_OBJECT_KEY, key);
 
         try {
             session.read(flowFile, rawIn -> {
 
-                final ObjectMetadata objectMetadata = new ObjectMetadata();
+                ObjectMetadata objectMetadata = new ObjectMetadata();
                 objectMetadata.setContentLength(ff.getSize());
 //                final String contentType = context.getProperty(CONTENT_TYPE).evaluateAttributeExpressions(ff).getValue();
 //                if (contentType != null) {
@@ -146,10 +154,10 @@ public class PutS3Object extends AbstractProcessor {
 //                if (expirationRule != null) {
 //                    objectMetadata.setExpirationTimeRuleId(expirationRule);
 //                }
-                final Map<String, String> userMetadata = new HashMap<>();
-                for (final Map.Entry<PropertyDescriptor, String> entry : context.getProperties().entrySet()) {
+                Map<String, String> userMetadata = new HashMap<>();
+                for (Map.Entry<PropertyDescriptor, String> entry : context.getProperties().entrySet()) {
                     if (entry.getKey().isDynamic()) {
-                        final String value = context.getProperty(
+                        String value = context.getProperty(
                                 entry.getKey()).evaluateAttributeExpressions(ff).getValue();
                         userMetadata.put(entry.getKey().getName(), value);
                     }
@@ -159,10 +167,10 @@ public class PutS3Object extends AbstractProcessor {
                     objectMetadata.setUserMetadata(userMetadata);
                 }
 
-                final PutObjectRequest request = new PutObjectRequest(bucket, key, rawIn, objectMetadata);
+                PutObjectRequest request = new PutObjectRequest(bucket, key, rawIn, objectMetadata);
 
                 try {
-                    final PutObjectResult result = s3Client.putObject(request);
+                    PutObjectResult result = s3Client.putObject(request);
                     if (result.getVersionId() != null) {
                         attributes.put(S3_VERSION_ATTR_KEY, result.getVersionId());
                     }
@@ -197,12 +205,12 @@ public class PutS3Object extends AbstractProcessor {
             }
             session.transfer(flowFile, Properties.REL_SUCCESS);
 
-            final URL url = s3Client.getUrl(bucket, key);
-            final long millis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+            URL url = s3Client.getUrl(bucket, key);
+            long millis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
             session.getProvenanceReporter().send(flowFile, url.toString(), millis);
 
             getLogger().info("Successfully put {} to Amazon S3 in {} milliseconds", ff, millis);
-        } catch (final ProcessException | AmazonClientException pe) {
+        } catch (ProcessException | AmazonClientException pe) {
             if (pe.getMessage().contains(S3_PROCESS_UNSCHEDULED_MESSAGE)) {
                 getLogger().info(pe.getMessage());
                 session.rollback();

@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.object;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -16,6 +30,9 @@ public class ObjectStorageMessage {
     private String key;
     private byte[] data;
 
+    private ObjectStorageMessage() {
+    }
+
     public String getContainerName() {
         return containerName;
     }
@@ -32,12 +49,13 @@ public class ObjectStorageMessage {
         return data;
     }
 
-    private ObjectStorageMessage() {
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private ObjectStorageMessage message;
+        private final ObjectStorageMessage message;
+
+        private Builder() {
+            message = new ObjectStorageMessage();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -70,10 +88,6 @@ public class ObjectStorageMessage {
             Objects.requireNonNull(message.key);
             Objects.requireNonNull(message.data);
             return message;
-        }
-
-        private Builder() {
-            message = new ObjectStorageMessage();
         }
     }
 

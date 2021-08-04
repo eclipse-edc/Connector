@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.iam.oauth2.impl;
@@ -21,9 +30,9 @@ import static java.lang.String.format;
  * Shim from a {@link PrivateKeyResolver} and {@link CertificateResolver} to a {@link RSAKeyProvider} required by the JWT signer.
  */
 public class PairedProviderWrapper implements RSAKeyProvider {
-    private PrivateKeyResolver privateKeyResolver;
-    private CertificateResolver certificateResolver;
-    private String privateKeyId;
+    private final PrivateKeyResolver privateKeyResolver;
+    private final CertificateResolver certificateResolver;
+    private final String privateKeyId;
 
     public PairedProviderWrapper(PrivateKeyResolver privateKeyResolver, CertificateResolver certificateResolver, String privateKeyId) {
         this.privateKeyResolver = privateKeyResolver;

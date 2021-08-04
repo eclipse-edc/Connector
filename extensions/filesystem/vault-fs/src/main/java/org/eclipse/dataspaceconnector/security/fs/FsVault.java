@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.security.fs;
@@ -24,16 +33,16 @@ import java.util.concurrent.atomic.AtomicReference;
  * Implements a vault backed by a properties file.
  */
 public class FsVault implements Vault {
-    private AtomicReference<Map<String, String>> secrets;
-    private Path vaultFile;
-    private boolean persistent;
+    private final AtomicReference<Map<String, String>> secrets;
+    private final Path vaultFile;
+    private final boolean persistent;
 
     public FsVault(Path vaultFile, boolean persistent) {
         this.persistent = persistent;
         secrets = new AtomicReference<>(new HashMap<>());
 
         this.vaultFile = vaultFile;
-        try (final InputStream is = Files.newInputStream(vaultFile)) {
+        try (InputStream is = Files.newInputStream(vaultFile)) {
             var properties = new Properties();
             properties.load(is);
             for (String name : properties.stringPropertyNames()) {
@@ -45,7 +54,8 @@ public class FsVault implements Vault {
     }
 
     @Override
-    public @Nullable String resolveSecret(String key) {
+    public @Nullable
+    String resolveSecret(String key) {
         return secrets.get().get(key);
     }
 

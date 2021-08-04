@@ -1,10 +1,20 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.transfer.nifi;
 
+import okhttp3.*;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -15,7 +25,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataCatalogEntry
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 
 import javax.net.ssl.SSLContext;
@@ -28,9 +37,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.cert.X509Certificate;
 import java.util.Map;
 
+import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.FATAL_ERROR;
-import static java.lang.String.format;
 
 public class NifiDataFlowController implements DataFlowController {
     public static final String NIFI_CREDENTIALS = "nifi.credentials";
@@ -108,7 +117,7 @@ public class NifiDataFlowController implements DataFlowController {
                 return emptyBodyError(dataRequest);
             }
 
-            @SuppressWarnings("unchecked") Map<String, Object> values = typeManager.readValue(message, Map.class);
+            Map<String, Object> values = typeManager.readValue(message, Map.class);
 
             return DataFlowInitiateResponse.OK;
         } catch (IOException e) {
@@ -161,15 +170,15 @@ public class NifiDataFlowController implements DataFlowController {
                     return new X509Certificate[]{};
                 }
             };
-            final TrustManager[] trustAllCerts = new TrustManager[]{
+            TrustManager[] trustAllCerts = new TrustManager[]{
                     x509TrustManager
             };
 
             // Install the all-trusting trust manager
-            final SSLContext sslContext = SSLContext.getInstance("SSL");
+            SSLContext sslContext = SSLContext.getInstance("SSL");
             sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
             // Create an ssl socket factory with our all-trusting manager
-            final SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
 
 
             return httpClient.newBuilder()

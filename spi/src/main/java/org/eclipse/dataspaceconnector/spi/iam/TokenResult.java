@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.spi.iam;
@@ -13,6 +22,9 @@ public class TokenResult {
     private String token;
     private String error;
     private long expiresIn;
+
+    private TokenResult() {
+    }
 
     /**
      * Returns true if the flow was successful.
@@ -42,11 +54,12 @@ public class TokenResult {
         return error;
     }
 
-    private TokenResult() {
-    }
-
     public static class Builder {
-        private TokenResult result;
+        private final TokenResult result;
+
+        private Builder() {
+            result = new TokenResult();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -70,10 +83,6 @@ public class TokenResult {
 
         public TokenResult build() {
             return result;
-        }
-
-        private Builder() {
-            result = new TokenResult();
         }
     }
 }

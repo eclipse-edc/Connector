@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.transfer.core.provision;
@@ -22,8 +31,8 @@ import java.util.Map;
  * Default implementation.
  */
 public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator {
-    private List<ResourceDefinitionGenerator> clientGenerators = new ArrayList<>();
-    private List<ResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
+    private final List<ResourceDefinitionGenerator> clientGenerators = new ArrayList<>();
+    private final List<ResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
 
     @Override
     public void registerClientGenerator(ResourceDefinitionGenerator generator) {

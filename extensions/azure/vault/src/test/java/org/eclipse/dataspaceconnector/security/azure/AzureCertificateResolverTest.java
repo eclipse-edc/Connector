@@ -1,14 +1,23 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.security.azure;
 
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockExtension;
 import org.easymock.Mock;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -17,26 +26,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(EasyMockExtension.class)
 class AzureCertificateResolverTest {
-
-    @Mock
-    Vault vault;
-
-    private AzureCertificateResolver certificateResolver;
-
-    @Test
-    void verifyResolution() {
-        EasyMock.expect(vault.resolveSecret("test")).andReturn(TEST);
-        EasyMock.replay(vault);
-
-        assertNotNull(certificateResolver.resolveCertificate("test"));
-        EasyMock.verify(vault);
-    }
-
-    @BeforeEach
-    void setUp() {
-        certificateResolver = new AzureCertificateResolver(vault);
-    }
-
 
     static String TEST = "-----BEGIN CERTIFICATE-----" +
             "MIICVjCCAb8CAg37MA0GCSqGSIb3DQEBBQUAMIGbMQswCQYDVQQGEwJKUDEOMAwG" +
@@ -53,5 +42,22 @@ class AzureCertificateResolverTest {
             "jC9UeuErhaA/zzWi8ewMTFZW/WshOrm3fNvcMrMLKtH534JKvcdMg6qIdjTFINIr" +
             "evnAhf0cwULaebn+lMs8Pdl7y37+sfluVok=" +
             "-----END CERTIFICATE-----";
+    @Mock
+    Vault vault;
+    private AzureCertificateResolver certificateResolver;
+
+    @Test
+    void verifyResolution() {
+        EasyMock.expect(vault.resolveSecret("test")).andReturn(TEST);
+        EasyMock.replay(vault);
+
+        assertNotNull(certificateResolver.resolveCertificate("test"));
+        EasyMock.verify(vault);
+    }
+
+    @BeforeEach
+    void setUp() {
+        certificateResolver = new AzureCertificateResolver(vault);
+    }
 
 }

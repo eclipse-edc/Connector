@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.object;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -11,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class ObjectStorageFlowController implements DataFlowController {
-    private ObjectMapper objectMapper;
-    private Monitor monitor;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
 
     public ObjectStorageFlowController(ObjectMapper objectMapper, Monitor monitor) {
         this.objectMapper = objectMapper;

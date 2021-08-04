@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.ids.core.message;
@@ -18,8 +27,8 @@ import java.util.function.Function;
  * Shim from OK HTTP to the future returned by the ids dispatcher.
  */
 class FutureCallback<T> implements Callback {
-    private CompletableFuture<T> future;
-    private Function<Response, T> handler;
+    private final CompletableFuture<T> future;
+    private final Function<Response, T> handler;
 
     public FutureCallback(CompletableFuture<T> future, Function<Response, T> handler) {
         this.future = future;

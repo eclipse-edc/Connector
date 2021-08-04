@@ -1,6 +1,14 @@
 /*
- * Copyright (c) Microsoft Corporation.
- *  All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
@@ -28,7 +36,7 @@ public class EntityMutationResponse {
     public EntityMutationResponse() {
     }
 
-    public EntityMutationResponse(final Map<EntityMutations.EntityOperation, List<AtlasEntityHeader>> mutatedEntities) {
+    public EntityMutationResponse(Map<EntityMutations.EntityOperation, List<AtlasEntityHeader>> mutatedEntities) {
         this.mutatedEntities = mutatedEntities;
     }
 
@@ -36,7 +44,7 @@ public class EntityMutationResponse {
         return mutatedEntities;
     }
 
-    public void setMutatedEntities(final Map<EntityMutations.EntityOperation, List<AtlasEntityHeader>> mutatedEntities) {
+    public void setMutatedEntities(Map<EntityMutations.EntityOperation, List<AtlasEntityHeader>> mutatedEntities) {
         this.mutatedEntities = mutatedEntities;
     }
 
@@ -111,7 +119,7 @@ public class EntityMutationResponse {
 
     @JsonIgnore
     public AtlasEntityHeader getFirstEntityCreated() {
-        final List<AtlasEntityHeader> entitiesByOperation = getEntitiesByOperation(EntityMutations.EntityOperation.CREATE);
+        List<AtlasEntityHeader> entitiesByOperation = getEntitiesByOperation(EntityMutations.EntityOperation.CREATE);
         if (entitiesByOperation != null && entitiesByOperation.size() > 0) {
             return entitiesByOperation.get(0);
         }
@@ -121,7 +129,7 @@ public class EntityMutationResponse {
 
     @JsonIgnore
     public AtlasEntityHeader getFirstEntityUpdated() {
-        final List<AtlasEntityHeader> entitiesByOperation = getEntitiesByOperation(EntityMutations.EntityOperation.UPDATE);
+        List<AtlasEntityHeader> entitiesByOperation = getEntitiesByOperation(EntityMutations.EntityOperation.UPDATE);
 
         if (entitiesByOperation != null && entitiesByOperation.size() > 0) {
             return entitiesByOperation.get(0);
@@ -132,7 +140,7 @@ public class EntityMutationResponse {
 
     @JsonIgnore
     public AtlasEntityHeader getFirstEntityPartialUpdated() {
-        final List<AtlasEntityHeader> entitiesByOperation = getEntitiesByOperation(EntityMutations.EntityOperation.PARTIAL_UPDATE);
+        List<AtlasEntityHeader> entitiesByOperation = getEntitiesByOperation(EntityMutations.EntityOperation.PARTIAL_UPDATE);
         if (entitiesByOperation != null && entitiesByOperation.size() > 0) {
             return entitiesByOperation.get(0);
         }

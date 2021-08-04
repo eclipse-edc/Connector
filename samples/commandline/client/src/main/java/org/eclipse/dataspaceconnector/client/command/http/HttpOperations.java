@@ -1,16 +1,25 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.client.command.http;
 
-import org.eclipse.dataspaceconnector.client.command.CommandResult;
-import org.eclipse.dataspaceconnector.client.command.ExecutionContext;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.client.command.CommandResult;
+import org.eclipse.dataspaceconnector.client.command.ExecutionContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -22,6 +31,9 @@ import static org.eclipse.dataspaceconnector.client.common.Output.error;
  *
  */
 public class HttpOperations {
+
+    private HttpOperations() {
+    }
 
     public static CommandResult executePost(String path, Object payload, ExecutionContext context) {
         Request request = new Request.Builder().url(context.getEndpointUrl() + path).post(context.write(payload)).build();
@@ -69,8 +81,5 @@ public class HttpOperations {
             context.getTerminal().writer().println("Response: " + message);
         }
         return new CommandResult(message);
-    }
-
-    private HttpOperations() {
     }
 }

@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.security.fs;
@@ -20,11 +29,11 @@ import java.util.Map;
  * Resolves an RSA private key from a JKS keystore.
  */
 public class FsPrivateKeyResolver implements PrivateKeyResolver {
-    private Map<String, RSAPrivateKey> privateKeyCache = new HashMap<>();
+    private final Map<String, RSAPrivateKey> privateKeyCache = new HashMap<>();
 
     /**
      * Constructor.
-     *
+     * <p>
      * Caches the private keys for performance.
      *
      * @param password the keystore password. Individual key passwords are not supported.

@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.common.http.loopback;
 
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
@@ -14,8 +28,8 @@ import java.util.concurrent.CompletableFuture;
  * Performs a loopback to the local runtime.
  */
 public class LoopbackDispatcher implements RemoteMessageDispatcher {
-    private TransferProcessManager processManager;
-    private Monitor monitor;
+    private final TransferProcessManager processManager;
+    private final Monitor monitor;
 
     public LoopbackDispatcher(TransferProcessManager processManager, Monitor monitor) {
         this.processManager = processManager;
@@ -28,7 +42,6 @@ public class LoopbackDispatcher implements RemoteMessageDispatcher {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
         var future = new CompletableFuture<>();
         if (message instanceof QueryRequest) {

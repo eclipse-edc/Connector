@@ -1,17 +1,25 @@
 /*
- * Copyright (c) Microsoft Corporation.
- *  All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.dataseed.nifi;
 
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.dataseed.nifi.api.NifiApiClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import okhttp3.OkHttpClient;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,7 +56,7 @@ public class NifiDataSeedExtension implements ServiceExtension {
     public void start() {
         monitor.info("Starting Nifi data seeding");
         if (nifiApiClient != null) {
-            final String processGroup = getProcessGroup();
+            String processGroup = getProcessGroup();
 
             try {
                 var templateid = nifiApiClient.uploadTemplate(processGroup, getTemplateFile());

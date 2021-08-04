@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -16,6 +30,10 @@ public class SubscribeMessage extends PubSubMessage {
     private String topicName;
     private String accessToken;
 
+    private SubscribeMessage() {
+        super(Protocol.SUBSCRIBE);
+    }
+
     public String getTopicName() {
         return topicName;
     }
@@ -24,13 +42,13 @@ public class SubscribeMessage extends PubSubMessage {
         return accessToken;
     }
 
-    private SubscribeMessage() {
-        super(Protocol.SUBSCRIBE);
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private SubscribeMessage message;
+        private final SubscribeMessage message;
+
+        private Builder() {
+            message = new SubscribeMessage();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -51,10 +69,6 @@ public class SubscribeMessage extends PubSubMessage {
             Objects.requireNonNull(message.topicName);
             Objects.requireNonNull(message.accessToken);
             return message;
-        }
-
-        private Builder() {
-            message = new SubscribeMessage();
         }
 
     }

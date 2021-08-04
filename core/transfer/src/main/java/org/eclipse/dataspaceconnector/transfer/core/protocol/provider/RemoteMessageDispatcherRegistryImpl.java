@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.transfer.core.protocol.provider;
@@ -21,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
  *
  */
 public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatcherRegistry {
-    private Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
+    private final Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
 
     @Override
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {

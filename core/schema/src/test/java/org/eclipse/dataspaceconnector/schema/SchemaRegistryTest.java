@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.schema;
@@ -33,26 +42,25 @@ public class SchemaRegistryTest {
     }
 
 
-
     @Test
-    void registerSchema(){
+    void registerSchema() {
         var id = "testschema";
         schemaRegistry.register(createSchema(id));
         assertThat(schemaRegistry.hasSchema(id)).isTrue();
     }
 
     @Test
-    void registerSchema_alreadyExists_shouldReplace(){
+    void registerSchema_alreadyExists_shouldReplace() {
         var id = "testschema";
         schemaRegistry.register(createSchema(id));
 
-        var newSchema= createSchema(id);
+        var newSchema = createSchema(id);
         schemaRegistry.register(newSchema);
         assertThat(schemaRegistry.getSchemas()).containsOnly(newSchema);
     }
 
     @Test
-    void hasSchema_exists(){
+    void hasSchema_exists() {
         var id = "testschema";
         Schema schema = createSchema(id);
         schemaRegistry.register(schema);
@@ -61,7 +69,7 @@ public class SchemaRegistryTest {
     }
 
     @Test
-    void hasSchema_notExist(){
+    void hasSchema_notExist() {
         var id = "testschema";
         Schema schema = createSchema(id);
         schemaRegistry.register(schema);

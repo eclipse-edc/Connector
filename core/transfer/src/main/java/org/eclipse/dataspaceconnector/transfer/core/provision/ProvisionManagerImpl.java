@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.transfer.core.provision;
@@ -65,7 +74,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
     public void deprovision(TransferProcess process) {
         for (ProvisionedResource definition : process.getProvisionedResourceSet().getResources()) {
             Provisioner<?, ProvisionedResource> chosenProvisioner = getProvisioner(definition);
-            final ResponseStatus status = chosenProvisioner.deprovision(definition);
+            ResponseStatus status = chosenProvisioner.deprovision(definition);
             if (status != ResponseStatus.OK) {
                 process.transitionError("Error during deprovisioning");
                 processStore.update(process);
@@ -79,7 +88,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
         } else {
             monitor.info("Deprovisioning successfully completed.");
 
-            final TransferProcess transferProcess = processStore.find(resource.getTransferProcessId());
+            TransferProcess transferProcess = processStore.find(resource.getTransferProcessId());
             if (transferProcess != null) {
                 transferProcess.transitionDeprovisioned();
                 processStore.update(transferProcess);
@@ -153,7 +162,6 @@ public class ProvisionManagerImpl implements ProvisionManager {
         Provisioner<ResourceDefinition, ?> provisioner = null;
         for (Provisioner<?, ?> candidate : provisioners) {
             if (candidate.canProvision(definition)) {
-                //noinspection unchecked
                 provisioner = (Provisioner<ResourceDefinition, ?>) candidate;
                 break;
             }
@@ -169,7 +177,6 @@ public class ProvisionManagerImpl implements ProvisionManager {
         Provisioner<?, ProvisionedResource> provisioner = null;
         for (Provisioner<?, ?> candidate : provisioners) {
             if (candidate.canDeprovision(provisionedResource)) {
-                //noinspection unchecked
                 provisioner = (Provisioner<?, ProvisionedResource>) candidate;
                 break;
             }
