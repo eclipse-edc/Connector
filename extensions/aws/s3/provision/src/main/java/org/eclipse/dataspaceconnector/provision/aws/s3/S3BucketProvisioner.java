@@ -7,13 +7,14 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
@@ -21,7 +22,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import net.jodah.failsafe.RetryPolicy;
 
 /**
  * Asynchronously provisions S3 buckets.
@@ -76,7 +76,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
 
     @Override
     public ResponseStatus deprovision(S3BucketProvisionedResource provisionedResource) {
-        final S3DeprovisionPipeline pipeline = S3DeprovisionPipeline.Builder.newInstance().clientProvider(clientProvider)
+        S3DeprovisionPipeline pipeline = S3DeprovisionPipeline.Builder.newInstance().clientProvider(clientProvider)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor)
                 .resource().build();

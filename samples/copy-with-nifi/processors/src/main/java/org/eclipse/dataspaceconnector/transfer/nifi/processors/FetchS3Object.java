@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -78,8 +78,8 @@ public class FetchS3Object extends AbstractProcessor {
     }
 
     @Override
-    protected void init(final ProcessorInitializationContext context) {
-        final List<PropertyDescriptor> descriptors = new ArrayList<>(Properties.FetchS3.Properties);
+    protected void init(ProcessorInitializationContext context) {
+        List<PropertyDescriptor> descriptors = new ArrayList<>(Properties.FetchS3.Properties);
 
         this.descriptors = Collections.unmodifiableList(descriptors);
         relationships = Properties.FetchS3.Relationships;
@@ -96,19 +96,19 @@ public class FetchS3Object extends AbstractProcessor {
     }
 
     @Override
-    public void onTrigger(final ProcessContext context, final ProcessSession session) throws ProcessException {
+    public void onTrigger(ProcessContext context, ProcessSession session) throws ProcessException {
         FlowFile flowFile = session.get();
         if (flowFile == null) {
             return;
         }
-        final long startNanos = System.nanoTime();
+        long startNanos = System.nanoTime();
 
-        final String bucket = context.getProperty(Properties.BUCKET).evaluateAttributeExpressions(flowFile).getValue();
-        final String objectKeyJsonArray = context.getProperty(Properties.OBJECT_KEYS).evaluateAttributeExpressions(flowFile).getValue();
-        final String region = context.getProperty(Properties.REGION).evaluateAttributeExpressions(flowFile).getValue();
-        final String accessKeyId = context.getProperty(Properties.ACCESS_KEY_ID).evaluateAttributeExpressions(flowFile).getValue();
-        final String secretKey = context.getProperty(Properties.SECRET_ACCESS_KEY).evaluateAttributeExpressions(flowFile).getValue();
-        final String sessionToken = context.getProperty(Properties.SESSION_TOKEN).evaluateAttributeExpressions(flowFile).getValue();
+        String bucket = context.getProperty(Properties.BUCKET).evaluateAttributeExpressions(flowFile).getValue();
+        String objectKeyJsonArray = context.getProperty(Properties.OBJECT_KEYS).evaluateAttributeExpressions(flowFile).getValue();
+        String region = context.getProperty(Properties.REGION).evaluateAttributeExpressions(flowFile).getValue();
+        String accessKeyId = context.getProperty(Properties.ACCESS_KEY_ID).evaluateAttributeExpressions(flowFile).getValue();
+        String secretKey = context.getProperty(Properties.SECRET_ACCESS_KEY).evaluateAttributeExpressions(flowFile).getValue();
+        String sessionToken = context.getProperty(Properties.SESSION_TOKEN).evaluateAttributeExpressions(flowFile).getValue();
 
         AWSCredentials credentials = sessionToken != null
                 ? new BasicSessionCredentials(accessKeyId, secretKey, sessionToken)
@@ -126,7 +126,7 @@ public class FetchS3Object extends AbstractProcessor {
             names = s3Client.listObjects(bucket).getObjectSummaries().stream().map(S3ObjectSummary::getKey).collect(Collectors.toList());
         } else {
             try {
-                names = new ObjectMapper().readValue(objectKeyJsonArray, new TypeReference<List<String>>() {
+                names = new ObjectMapper().readValue(objectKeyJsonArray, new TypeReference<>() {
                 });
             } catch (JsonProcessingException e) {
                 getLogger().info("Could not interpret file names as JSON list - interpreting as single file name.");
@@ -139,9 +139,9 @@ public class FetchS3Object extends AbstractProcessor {
 
             FlowFile ff = session.clone(flowFile);
             GetObjectRequest request = new GetObjectRequest(bucket, objectKey);
-            final Map<String, String> attributes = new HashMap<>();
+            Map<String, String> attributes = new HashMap<>();
 
-            try (final S3Object s3Object = s3Client.getObject(request)) {
+            try (S3Object s3Object = s3Client.getObject(request)) {
                 if (s3Object == null) {
                     throw new IOException("AWS refused to execute this request.");
                 }
@@ -151,7 +151,7 @@ public class FetchS3Object extends AbstractProcessor {
                 ObjectMetadata metadata = s3Object.getObjectMetadata();
 
                 if (metadata.getContentDisposition() != null) {
-                    final String contentDisposition = metadata.getContentDisposition();
+                    String contentDisposition = metadata.getContentDisposition();
 
                     if (contentDisposition.equals("inline") || contentDisposition.startsWith("attachment; filename=")) {
                         setFilePathAttributes(attributes, objectKey);
@@ -197,7 +197,7 @@ public class FetchS3Object extends AbstractProcessor {
             }
 
             session.transfer(ff, Properties.REL_SUCCESS);
-            final long transferMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
+            long transferMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startNanos);
             getLogger().info("Successfully retrieved S3 Object for {} in {} millis; routing to success", ff, transferMillis);
             session.getProvenanceReporter().fetch(ff, "http://" + bucket + ".amazonaws.com/" + objectKey, transferMillis);
         }
@@ -205,7 +205,7 @@ public class FetchS3Object extends AbstractProcessor {
     }
 
     protected void setFilePathAttributes(Map<String, String> attributes, String filePathName) {
-        final int lastSlash = filePathName.lastIndexOf("/");
+        int lastSlash = filePathName.lastIndexOf("/");
         if (lastSlash > -1 && lastSlash < filePathName.length() - 1) {
             attributes.put(CoreAttributes.PATH.key(), filePathName.substring(0, lastSlash));
             attributes.put(CoreAttributes.ABSOLUTE_PATH.key(), filePathName);

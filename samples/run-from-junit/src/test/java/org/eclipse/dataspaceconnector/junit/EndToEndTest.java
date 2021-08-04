@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.junit;/*
  * All rights reserved.
  */
 
+import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.common.testfixtures.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -34,7 +35,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;

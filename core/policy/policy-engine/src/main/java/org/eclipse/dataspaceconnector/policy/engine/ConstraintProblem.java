@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -20,8 +20,8 @@ import org.eclipse.dataspaceconnector.policy.model.Constraint;
  * A problem encountered during evaluation or processing of a constraint such as an unsatisfied constraint.
  */
 public class ConstraintProblem {
-    private String description;
-    private Constraint constraint;
+    private final String description;
+    private final Constraint constraint;
 
     public ConstraintProblem(String description, Constraint constraint) {
         this.description = description;

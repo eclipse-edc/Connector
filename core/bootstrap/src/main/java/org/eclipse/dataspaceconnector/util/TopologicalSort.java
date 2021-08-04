@@ -7,33 +7,24 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 package org.eclipse.dataspaceconnector.util;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.TreeSet;
+import java.util.*;
 
 /**
  * Performs a topological sort of a set of dependencies.
  */
 public class TopologicalSort<T> {
-    private Map<T, Set<T>> dependencies = new HashMap<>();
+    private final Map<T, Set<T>> dependencies = new HashMap<>();
 
     /**
      * Add a dependency to be considered in the sort.
      *
-     * @param dependent The dependent item will be sorted after all its dependencies
+     * @param dependent  The dependent item will be sorted after all its dependencies
      * @param dependency The dependency item, will be sorted before its dependent item
      */
     public void addDependency(T dependent, T dependency) {
@@ -64,9 +55,9 @@ public class TopologicalSort<T> {
     /**
      * Visit an item to be sorted.
      *
-     * @param item the item to be visited
-     * @param visited the items already visited
-     * @param sorted the sorted items
+     * @param item       the item to be visited
+     * @param visited    the items already visited
+     * @param sorted     the sorted items
      * @param comparator comparator used to sort dependencies
      */
     private void visit(T item, Set<T> visited, List<T> sorted, Comparator<T> comparator) {
@@ -107,8 +98,9 @@ public class TopologicalSort<T> {
 
         InitialOrderComparator(Collection<T> initial) {
             int i = 0;
-            for (T t : initial)
+            for (T t : initial) {
                 indexes.put(t, i++);
+            }
         }
 
         @Override

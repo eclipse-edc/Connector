@@ -7,19 +7,19 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.system;
 
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.easymock.MockType;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

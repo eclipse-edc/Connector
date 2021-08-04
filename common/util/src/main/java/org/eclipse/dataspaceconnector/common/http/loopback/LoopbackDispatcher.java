@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -28,8 +28,8 @@ import java.util.concurrent.CompletableFuture;
  * Performs a loopback to the local runtime.
  */
 public class LoopbackDispatcher implements RemoteMessageDispatcher {
-    private TransferProcessManager processManager;
-    private Monitor monitor;
+    private final TransferProcessManager processManager;
+    private final Monitor monitor;
 
     public LoopbackDispatcher(TransferProcessManager processManager, Monitor monitor) {
         this.processManager = processManager;
@@ -42,7 +42,6 @@ public class LoopbackDispatcher implements RemoteMessageDispatcher {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
         var future = new CompletableFuture<>();
         if (message instanceof QueryRequest) {

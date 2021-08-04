@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -23,10 +23,11 @@ import static org.eclipse.dataspaceconnector.client.command.http.HttpOperations.
 public class AzureVaultDelSecretRequestExecutor implements CommandExecutor {
     @Override
     public CommandResult execute(ExecutionContext context) {
-        if(context.getParams().size()<1)
+        if (context.getParams().size() < 1) {
             throw new IllegalArgumentException("Needs exactly 1 key, but found none!");
+        }
         var key = context.getParams().get(0);
 
-        return executeDelete("/api/vault?key="+key, null, context);
+        return executeDelete("/api/vault?key=" + key, null, context);
     }
 }

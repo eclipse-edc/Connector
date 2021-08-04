@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -24,7 +24,7 @@ public class BlobStorageSchemaExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        var sr= context.getService(SchemaRegistry.class);
+        var sr = context.getService(SchemaRegistry.class);
         sr.register(new AzureBlobStoreSchema());
         sr.register(new AzureBlobHasPolicyRelationshipSchema());
 

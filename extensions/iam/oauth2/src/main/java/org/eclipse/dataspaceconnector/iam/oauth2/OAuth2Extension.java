@@ -7,13 +7,14 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.iam.oauth2;
 
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.IdentityProviderKeyResolver;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.OAuth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.OAuth2ServiceImpl;
@@ -23,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import okhttp3.OkHttpClient;
 
 import java.util.Set;
 import java.util.concurrent.Executors;

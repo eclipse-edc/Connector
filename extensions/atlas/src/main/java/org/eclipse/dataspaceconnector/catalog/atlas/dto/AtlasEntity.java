@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -388,7 +388,7 @@ public class AtlasEntity extends AtlasStruct implements Serializable {
         return meanings;
     }
 
-    public void setMeanings(final List<AtlasTermAssignmentHeader> meanings) {
+    public void setMeanings(List<AtlasTermAssignmentHeader> meanings) {
         this.meanings = meanings;
     }
 

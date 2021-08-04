@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -19,10 +19,10 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.schema.azure.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
-import org.eclipse.dataspaceconnector.schema.azure.*;
 
 @JsonDeserialize(builder = ObjectContainerProvisionedResource.Builder.class)
 @JsonTypeName("dataspaceconnector:objectcontainerprovisionedresource")

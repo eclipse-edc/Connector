@@ -7,18 +7,18 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.client.command.ids;
 
+import de.fraunhofer.iais.eis.DescriptionRequestMessage;
+import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import org.eclipse.dataspaceconnector.client.command.CommandExecutor;
 import org.eclipse.dataspaceconnector.client.command.CommandResult;
 import org.eclipse.dataspaceconnector.client.command.ExecutionContext;
-import de.fraunhofer.iais.eis.DescriptionRequestMessage;
-import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 
 import static org.eclipse.dataspaceconnector.client.command.http.HttpOperations.executePost;
 

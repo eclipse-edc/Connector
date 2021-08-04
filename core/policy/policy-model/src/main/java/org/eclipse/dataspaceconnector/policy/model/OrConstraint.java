@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -21,6 +21,9 @@ import static java.util.stream.Collectors.joining;
  */
 public class OrConstraint extends MultiplicityConstraint {
 
+    private OrConstraint() {
+    }
+
     @Override
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitOrConstraint(this);
@@ -31,10 +34,11 @@ public class OrConstraint extends MultiplicityConstraint {
         return "Or constraint: [" + constraints.stream().map(Object::toString).collect(joining(",")) + "]";
     }
 
-    private OrConstraint() {
-    }
-
     public static class Builder extends MultiplicityConstraint.Builder<OrConstraint, Builder> {
+
+        private Builder() {
+            constraint = new OrConstraint();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -42,10 +46,6 @@ public class OrConstraint extends MultiplicityConstraint {
 
         public OrConstraint build() {
             return constraint;
-        }
-
-        private Builder() {
-            constraint = new OrConstraint();
         }
     }
 

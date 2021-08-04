@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -25,15 +25,15 @@ import org.jetbrains.annotations.NotNull;
  * Implements push-style streaming. The client runtime provisions a topic which the provider runtime publishes to.
  */
 public class PushStreamFlowController implements DataFlowController {
-    private StreamPublisherRegistry publisherRegistry;
+    private final StreamPublisherRegistry publisherRegistry;
 
     public PushStreamFlowController(StreamPublisherRegistry registry) {
-        this.publisherRegistry = registry;
+        publisherRegistry = registry;
     }
 
     @Override
     public boolean canHandle(DataRequest dataRequest) {
-        return DemoProtocols.PUSH_STREAM_WS.equals(dataRequest.getDestinationType()) ||  DemoProtocols.PUSH_STREAM_HTTP.equals(dataRequest.getDestinationType()) ;
+        return DemoProtocols.PUSH_STREAM_WS.equals(dataRequest.getDestinationType()) || DemoProtocols.PUSH_STREAM_HTTP.equals(dataRequest.getDestinationType());
     }
 
     @Override

@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -23,12 +23,12 @@ import org.eclipse.dataspaceconnector.policy.model.Operator;
  */
 public class PolicyTestFunctions {
 
+    private PolicyTestFunctions() {
+    }
+
     public static AtomicConstraint createLiteralAtomicConstraint(String value1, String value2) {
         LiteralExpression left = new LiteralExpression(value1);
         LiteralExpression right = new LiteralExpression(value2);
         return AtomicConstraint.Builder.newInstance().leftExpression(left).operator(Operator.EQ).rightExpression(right).build();
-    }
-
-    private PolicyTestFunctions() {
     }
 }

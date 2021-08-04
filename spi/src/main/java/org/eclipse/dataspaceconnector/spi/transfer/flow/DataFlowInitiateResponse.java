@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -22,11 +22,11 @@ import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 public class DataFlowInitiateResponse {
     public static DataFlowInitiateResponse OK = new DataFlowInitiateResponse();
 
-    private ResponseStatus status;
+    private final ResponseStatus status;
     private String error;
 
     private DataFlowInitiateResponse() {
-        this.status = ResponseStatus.OK;
+        status = ResponseStatus.OK;
     }
 
     public DataFlowInitiateResponse(ResponseStatus status, String error) {

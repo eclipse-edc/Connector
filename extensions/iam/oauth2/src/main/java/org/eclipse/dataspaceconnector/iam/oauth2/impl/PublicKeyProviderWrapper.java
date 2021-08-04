@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -23,7 +23,7 @@ import java.security.interfaces.RSAPublicKey;
  * Shim from an {@link PublicKeyResolver} to a {@link RSAKeyProvider} required by the JWT verifier.
  */
 public class PublicKeyProviderWrapper implements RSAKeyProvider {
-    private PublicKeyResolver resolver;
+    private final PublicKeyResolver resolver;
 
     public PublicKeyProviderWrapper(PublicKeyResolver resolver) {
         this.resolver = resolver;

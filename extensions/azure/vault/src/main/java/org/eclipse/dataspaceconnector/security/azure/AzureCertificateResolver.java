@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -30,7 +30,7 @@ import java.util.Base64;
 public class AzureCertificateResolver implements CertificateResolver {
     private static final String HEADER = "-----BEGIN CERTIFICATE-----";
     private static final String FOOTER = "-----END CERTIFICATE-----";
-    private Vault vault;
+    private final Vault vault;
 
     public AzureCertificateResolver(Vault vault) {
         this.vault = vault;

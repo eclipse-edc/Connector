@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -21,6 +21,9 @@ import static java.util.stream.Collectors.joining;
  */
 public class AndConstraint extends MultiplicityConstraint {
 
+    private AndConstraint() {
+    }
+
     @Override
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitAndConstraint(this);
@@ -31,10 +34,11 @@ public class AndConstraint extends MultiplicityConstraint {
         return "And constraint: [" + constraints.stream().map(Object::toString).collect(joining(",")) + "]";
     }
 
-    private AndConstraint() {
-    }
-
     public static class Builder extends MultiplicityConstraint.Builder<AndConstraint, Builder> {
+
+        private Builder() {
+            constraint = new AndConstraint();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -42,10 +46,6 @@ public class AndConstraint extends MultiplicityConstraint {
 
         public AndConstraint build() {
             return constraint;
-        }
-
-        private Builder() {
-            constraint = new AndConstraint();
         }
     }
 }

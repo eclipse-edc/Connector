@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -42,6 +42,14 @@ public class AzureVaultIntegrationTest {
     private static final String secretKey4 = "testkey4" + id;
     private static AzureVault azureVault;
 
+    @AfterAll
+    static void verifyAzureResourceGroup() {
+        azureVault.deleteSecret(secretKey1);
+        azureVault.deleteSecret(secretKey2);
+        azureVault.deleteSecret(secretKey3);
+        azureVault.deleteSecret(secretKey4);
+    }
+
     @BeforeEach
     public void setupAzure() throws IOException, URISyntaxException {
         var resStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("azurecredentials.properties");
@@ -56,14 +64,6 @@ public class AzureVaultIntegrationTest {
 
         azureVault = AzureVault.authenticateWithCertificate(new LoggerMonitor(), clientId, tenantId, certPath, vaultName);
 
-    }
-
-    @AfterAll
-    static void verifyAzureResourceGroup() {
-        azureVault.deleteSecret(secretKey1);
-        azureVault.deleteSecret(secretKey2);
-        azureVault.deleteSecret(secretKey3);
-        azureVault.deleteSecret(secretKey4);
     }
 
     @Test

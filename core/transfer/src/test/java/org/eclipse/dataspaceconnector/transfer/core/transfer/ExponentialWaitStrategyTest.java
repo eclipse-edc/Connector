@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -27,12 +27,12 @@ class ExponentialWaitStrategyTest {
     void verifyBackoff() {
         ExponentialWaitStrategy strategy = new ExponentialWaitStrategy(5000);
 
-       assertEquals(5000, strategy.retryInMillis());
-       assertEquals(10000, strategy.retryInMillis());
+        assertEquals(5000, strategy.retryInMillis());
+        assertEquals(10000, strategy.retryInMillis());
 
-       strategy.success(); // reset
-        
-       assertEquals(5000, strategy.retryInMillis());
+        strategy.success(); // reset
+
+        assertEquals(5000, strategy.retryInMillis());
 
     }
 }

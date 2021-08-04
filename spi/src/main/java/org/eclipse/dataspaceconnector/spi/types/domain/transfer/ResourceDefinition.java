@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -43,7 +43,6 @@ public abstract class ResourceDefinition implements Polymorphic {
     }
 
     @JsonPOJOBuilder
-    @SuppressWarnings("unchecked")
     public static class Builder<RD extends ResourceDefinition, B extends Builder<RD, B>> {
         protected final RD resourceDefinition;
 

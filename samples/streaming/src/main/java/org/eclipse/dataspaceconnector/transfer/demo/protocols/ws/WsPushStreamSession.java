@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -15,14 +15,14 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.websocket.ContainerProvider;
+import jakarta.websocket.Session;
+import jakarta.websocket.WebSocketContainer;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.PublishMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.UnSubscribeMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.StreamSession;
-import jakarta.websocket.ContainerProvider;
-import jakarta.websocket.Session;
-import jakarta.websocket.WebSocketContainer;
 import org.eclipse.jetty.util.component.LifeCycle;
 
 import java.io.IOException;
@@ -33,10 +33,9 @@ import java.nio.ByteBuffer;
  * A session for publishing data over a web socket to a destination endpoint.
  */
 public class WsPushStreamSession implements StreamSession {
-    private ObjectMapper objectMapper;
-    private Monitor monitor;
-
     private final URI uri;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
     private String topicName;
     private String topicToken;
     private Session session;

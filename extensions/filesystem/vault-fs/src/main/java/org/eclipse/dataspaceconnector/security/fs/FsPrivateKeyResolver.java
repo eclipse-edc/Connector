@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -29,11 +29,11 @@ import java.util.Map;
  * Resolves an RSA private key from a JKS keystore.
  */
 public class FsPrivateKeyResolver implements PrivateKeyResolver {
-    private Map<String, RSAPrivateKey> privateKeyCache = new HashMap<>();
+    private final Map<String, RSAPrivateKey> privateKeyCache = new HashMap<>();
 
     /**
      * Constructor.
-     *
+     * <p>
      * Caches the private keys for performance.
      *
      * @param password the keystore password. Individual key passwords are not supported.

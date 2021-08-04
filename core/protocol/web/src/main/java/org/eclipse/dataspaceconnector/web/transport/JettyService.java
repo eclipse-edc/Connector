@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -40,8 +40,8 @@ public class JettyService {
     private final JettyConfiguration configuration;
     private final Monitor monitor;
     private final KeyStore keyStore;
-    private Server server;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
+    private Server server;
 
     public JettyService(JettyConfiguration configuration, Monitor monitor) {
         this(configuration, null, monitor);

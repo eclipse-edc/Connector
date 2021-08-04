@@ -7,17 +7,17 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.security.azure;
 
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.easymock.EasyMock;
 import org.easymock.EasyMockExtension;
 import org.easymock.Mock;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -30,6 +30,10 @@ public class SubscribeMessage extends PubSubMessage {
     private String topicName;
     private String accessToken;
 
+    private SubscribeMessage() {
+        super(Protocol.SUBSCRIBE);
+    }
+
     public String getTopicName() {
         return topicName;
     }
@@ -38,13 +42,13 @@ public class SubscribeMessage extends PubSubMessage {
         return accessToken;
     }
 
-    private SubscribeMessage() {
-        super(Protocol.SUBSCRIBE);
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private SubscribeMessage message;
+        private final SubscribeMessage message;
+
+        private Builder() {
+            message = new SubscribeMessage();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -65,10 +69,6 @@ public class SubscribeMessage extends PubSubMessage {
             Objects.requireNonNull(message.topicName);
             Objects.requireNonNull(message.accessToken);
             return message;
-        }
-
-        private Builder() {
-            message = new SubscribeMessage();
         }
 
     }

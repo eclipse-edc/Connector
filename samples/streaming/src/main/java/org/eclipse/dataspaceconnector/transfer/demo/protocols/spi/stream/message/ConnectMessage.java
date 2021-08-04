@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -31,7 +31,11 @@ public class ConnectMessage extends PubSubMessage {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private ConnectMessage message;
+        private final ConnectMessage message;
+
+        private Builder() {
+            message = new ConnectMessage();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -40,10 +44,6 @@ public class ConnectMessage extends PubSubMessage {
 
         public ConnectMessage build() {
             return message;
-        }
-
-        private Builder() {
-            message = new ConnectMessage();
         }
 
     }

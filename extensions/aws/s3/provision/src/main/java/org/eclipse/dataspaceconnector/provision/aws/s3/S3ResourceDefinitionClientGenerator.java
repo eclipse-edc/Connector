@@ -7,14 +7,14 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
-import org.eclipse.dataspaceconnector.schema.s3.*;
+import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;

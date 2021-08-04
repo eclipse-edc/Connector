@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -22,7 +22,7 @@ import java.util.List;
  * The result of policy evaluation. If all rules are satisfied, the result will be valid.
  */
 public class PolicyEvaluationResult {
-    private List<RuleProblem> problems;
+    private final List<RuleProblem> problems;
 
     public PolicyEvaluationResult() {
         problems = Collections.emptyList();

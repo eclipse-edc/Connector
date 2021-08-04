@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -33,16 +33,16 @@ public class Prohibition extends Rule {
 
     public static class Builder extends Rule.Builder<Prohibition, Builder> {
 
+        private Builder() {
+            rule = new Prohibition();
+        }
+
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Prohibition build(){
+        public Prohibition build() {
             return rule;
-        }
-
-        private Builder() {
-            rule = new Prohibition();
         }
     }
 }

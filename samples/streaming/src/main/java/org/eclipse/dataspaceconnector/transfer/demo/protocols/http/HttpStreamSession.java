@@ -7,19 +7,19 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.http;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.StreamSession;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.StreamSession;
 
 import java.io.IOException;
 import java.net.URL;
@@ -28,9 +28,9 @@ import java.net.URL;
  * Publishes to an HTTP endpoint.
  */
 public class HttpStreamSession implements StreamSession {
-    private URL endpointURL;
-    private String destinationToken;
-    private OkHttpClient httpClient;
+    private final URL endpointURL;
+    private final String destinationToken;
+    private final OkHttpClient httpClient;
 
     public HttpStreamSession(URL endpointURL, String destinationToken, OkHttpClient httpClient) {
         this.endpointURL = endpointURL;

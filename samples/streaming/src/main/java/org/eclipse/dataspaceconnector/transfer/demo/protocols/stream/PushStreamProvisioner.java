@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicMa
  * Provisions a topic that receives data from a provider runtime.
  */
 public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefinition, PushStreamProvisionedResourceDefinition> {
-    private TopicManager topicManager;
+    private final TopicManager topicManager;
 
     private ProvisionContext context;
 

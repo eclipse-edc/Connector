@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.dataseed.atlas;
 
 import org.eclipse.dataspaceconnector.catalog.atlas.metadata.AtlasCustomTypeAttribute;
-import org.eclipse.dataspaceconnector.schema.s3.*;
+import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 
 import java.util.HashMap;
 import java.util.Map;

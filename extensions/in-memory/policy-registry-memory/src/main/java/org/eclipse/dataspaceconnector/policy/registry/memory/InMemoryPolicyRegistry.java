@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -25,11 +25,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An in-memory, threadsafe policy registry.
- *
+ * <p>
  * This implementation is intended for testing purposes only.
  */
 public class InMemoryPolicyRegistry implements PolicyRegistry {
-    private Map<String, Policy> cache = new ConcurrentHashMap<>();
+    private final Map<String, Policy> cache = new ConcurrentHashMap<>();
 
     @Override
     public @Nullable Policy resolvePolicy(String id) {

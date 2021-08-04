@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -33,22 +33,7 @@ import static org.jline.builtins.Completers.TreeCompleter.node;
  * Bootstraps the {@link CommandExecutor}s.
  */
 public class RootAssemblyFactory {
-    public static class Assembly {
-        private Map<String, CommandExecutor> executors;
-        private Completer completer;
-
-        public Assembly(Map<String, CommandExecutor> executors, Completer completer) {
-            this.executors = executors;
-            this.completer = completer;
-        }
-
-        public Map<String, CommandExecutor> getExecutors() {
-            return executors;
-        }
-
-        public Completer getCompleter() {
-            return completer;
-        }
+    private RootAssemblyFactory() {
     }
 
     public static Assembly create() {
@@ -76,6 +61,21 @@ public class RootAssemblyFactory {
         nodes.add(node("ping"));
     }
 
-    private RootAssemblyFactory() {
+    public static class Assembly {
+        private final Map<String, CommandExecutor> executors;
+        private final Completer completer;
+
+        public Assembly(Map<String, CommandExecutor> executors, Completer completer) {
+            this.executors = executors;
+            this.completer = completer;
+        }
+
+        public Map<String, CommandExecutor> getExecutors() {
+            return executors;
+        }
+
+        public Completer getCompleter() {
+            return completer;
+        }
     }
 }

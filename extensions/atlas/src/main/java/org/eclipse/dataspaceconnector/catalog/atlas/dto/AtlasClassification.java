@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -155,7 +155,7 @@ public class AtlasClassification extends AtlasStruct implements Serializable {
 
     @Override
     public String toString() {
-        final StringBuilder sb = new StringBuilder("AtlasClassification{");
+        StringBuilder sb = new StringBuilder("AtlasClassification{");
         super.toString(sb);
         sb.append("entityGuid='").append(entityGuid).append('\'');
         sb.append(", entityStatus=").append(entityStatus);

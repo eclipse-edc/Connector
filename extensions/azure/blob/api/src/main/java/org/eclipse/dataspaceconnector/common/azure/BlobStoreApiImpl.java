@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -73,7 +73,7 @@ public class BlobStoreApiImpl implements BlobStoreApi {
 
     @Override
     public void putBlob(String accountName, String containerName, String blobName, byte[] data) {
-        final BlobServiceClient blobServiceClient = getBlobServiceClient(accountName);
+        BlobServiceClient blobServiceClient = getBlobServiceClient(accountName);
         blobServiceClient.getBlobContainerClient(containerName).getBlobClient(blobName).upload(BinaryData.fromBytes(data), true);
     }
 

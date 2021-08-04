@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -56,7 +56,7 @@ public class AtlasObjectId implements Serializable {
         this(null, typeName, uniqueAttributes);
     }
 
-    public AtlasObjectId(String typeName, final String attrName, final Object attrValue) {
+    public AtlasObjectId(String typeName, String attrName, Object attrValue) {
         this(null, typeName, new HashMap<>() {{
             put(attrName, attrValue);
         }});

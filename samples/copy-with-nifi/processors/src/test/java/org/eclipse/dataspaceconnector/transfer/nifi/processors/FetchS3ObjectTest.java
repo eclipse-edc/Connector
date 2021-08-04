@@ -7,21 +7,21 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.transfer.nifi.processors;
 
-import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.common.testfixtures.AbstractS3Test;
-import org.eclipse.dataspaceconnector.common.testfixtures.EdcExtension;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
+import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.common.testfixtures.AbstractS3Test;
+import org.eclipse.dataspaceconnector.common.testfixtures.EdcExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

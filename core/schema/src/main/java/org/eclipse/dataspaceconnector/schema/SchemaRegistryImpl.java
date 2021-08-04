@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -27,17 +27,17 @@ public class SchemaRegistryImpl implements SchemaRegistry {
     }
 
     @Override
-    public void register(Schema schema){
+    public void register(Schema schema) {
         schemas.put(schema.getName(), schema);
     }
 
     @Override
-    public Schema getSchema(String identifier){
+    public Schema getSchema(String identifier) {
         return schemas.get(identifier);
     }
 
     @Override
-    public boolean hasSchema(String identifier){
+    public boolean hasSchema(String identifier) {
         return schemas.containsKey(identifier);
     }
 

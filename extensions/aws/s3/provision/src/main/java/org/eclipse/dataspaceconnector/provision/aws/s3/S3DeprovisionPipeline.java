@@ -7,17 +7,17 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
-import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.DeleteRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.DeleteRoleRequest;
@@ -43,10 +43,10 @@ public class S3DeprovisionPipeline {
         var s3Client = clientProvider.clientFor(S3AsyncClient.class, resource.getRegion());
         var iamClient = clientProvider.clientFor(IamAsyncClient.class, resource.getRegion());
 
-        final String bucketName = resource.getBucketName();
+        String bucketName = resource.getBucketName();
 
         monitor.info("S3 Deprovisioning: list bucket contents");
-        final String role = resource.getRole();
+        String role = resource.getRole();
         s3Client.listObjectsV2(listBucket(bucketName))
                 .thenCompose(listObjectsResponse -> {
                     //todo: collect identifiers into a single request using the stream api

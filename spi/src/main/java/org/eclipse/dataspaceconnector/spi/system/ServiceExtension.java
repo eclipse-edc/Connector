@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -19,15 +19,10 @@ import java.util.Set;
 
 /**
  * Contributes services used by the runtime.
- *
+ * <p>
  * Service extensions are started after system boostrap.
  */
 public interface ServiceExtension extends SystemExtension {
-
-    /**
-     * Defines the load sequence for extensions.
-     */
-    enum LoadPhase {PRIMORDIAL, DEFAULT}
 
     /**
      * Returns the list of features provided by this extension.
@@ -67,4 +62,9 @@ public interface ServiceExtension extends SystemExtension {
      */
     default void shutdown() {
     }
+
+    /**
+     * Defines the load sequence for extensions.
+     */
+    enum LoadPhase {PRIMORDIAL, DEFAULT}
 }

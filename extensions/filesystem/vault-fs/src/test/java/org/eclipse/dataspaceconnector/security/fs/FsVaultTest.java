@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -35,7 +35,7 @@ class FsVaultTest {
 
     @BeforeEach
     void setUp() throws URISyntaxException {
-        @SuppressWarnings("ConstantConditions") var uri = getClass().getClassLoader().getResource(TEST_VAULT).toURI();
+        var uri = getClass().getClassLoader().getResource(TEST_VAULT).toURI();
         vault = new FsVault(Paths.get(uri), false);
     }
 }

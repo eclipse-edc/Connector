@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -55,7 +55,7 @@ public interface AtlasApi {
      *                       especially required ones.
      * @return an AtlasTypeDef that contains the new type definition.
      * @throws EdcException if the custom type has an invalid attribute (e.g. invalid type), or if an invalid attempt was made to
-     *                                              alter a required attribute, or if a required attribute was added.
+     *                      alter a required attribute, or if a required attribute was added.
      */
     AtlasTypesDef createCustomTypes(String typeName, Set<String> superTypeNames, List<? extends SchemaAttribute> attributes);
 
@@ -75,7 +75,7 @@ public interface AtlasApi {
      * @param name             The relationship type name
      * @return An object containing information about that relation.
      * @throws EdcException if either the source or target entities do not exist, or a relationship type with the given name does not exist,
-     *                                              or that particular relationship already exists
+     *                      or that particular relationship already exists
      */
     AtlasRelationship createRelationship(String sourceEntityGuid, String targetEntityGuid, String name);
 

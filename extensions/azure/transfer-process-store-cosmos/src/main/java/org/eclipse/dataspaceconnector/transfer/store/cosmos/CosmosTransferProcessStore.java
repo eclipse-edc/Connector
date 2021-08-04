@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -20,13 +20,13 @@ import com.azure.cosmos.CosmosStoredProcedure;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.implementation.RequestRateTooLargeException;
 import com.azure.cosmos.models.*;
+import net.jodah.failsafe.Fallback;
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProcessDocument;
-import net.jodah.failsafe.Fallback;
-import net.jodah.failsafe.RetryPolicy;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -79,7 +79,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         try {
             // we need to read the TransferProcessDocument as Object, because no custom JSON deserialization can be registered
             // with the CosmosDB SDK, so it would not know about subtypes, etc.
-            final CosmosItemResponse<Object> response = with(retryPolicy).get(() -> container.readItem(id, new PartitionKey(partitionKey), options, Object.class));
+            CosmosItemResponse<Object> response = with(retryPolicy).get(() -> container.readItem(id, new PartitionKey(partitionKey), options, Object.class));
             var obj = response.getItem();
 
             return convertObject(obj).getWrappedInstance();
@@ -114,7 +114,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         options.setPartitionKey(new PartitionKey(partitionKey));
 
         var rawJson = with(Fallback.of((String) null), retryPolicy).get(() -> {
-            final CosmosStoredProcedureResponse response = sproc.execute(params, options);
+            CosmosStoredProcedureResponse response = sproc.execute(params, options);
             return response.getResponseAsString();
         });
 
@@ -125,7 +125,6 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         //now we need to convert to a list, convert each element in that list to json, and convert that back to a TransferProcessDocument
         var l = typeManager.readValue(rawJson, List.class);
 
-        //noinspection unchecked
         return (List<TransferProcess>) l.stream().map(typeManager::writeValueAsString)
                 .map(json -> typeManager.readValue(json.toString(), TransferProcessDocument.class))
                 .map(tp -> ((TransferProcessDocument) tp).getWrappedInstance())
@@ -144,7 +143,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         //todo: configure indexing
         var document = TransferProcessDocument.from(process, partitionKey);
         try {
-            final var response = with(retryPolicy).get(() -> container.createItem(document, new PartitionKey(partitionKey), options));
+            var response = with(retryPolicy).get(() -> container.createItem(document, new PartitionKey(partitionKey), options));
             handleResponse(response);
         } catch (CosmosException cme) {
             throw new EdcException(cme);
@@ -156,7 +155,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         var document = TransferProcessDocument.from(process, partitionKey);
         try {
             lease(process.getId(), getConnectorId());
-            final var response = with(retryPolicy).get(() -> container.upsertItem(document, new PartitionKey(partitionKey), new CosmosItemRequestOptions()));
+            var response = with(retryPolicy).get(() -> container.upsertItem(document, new PartitionKey(partitionKey), new CosmosItemRequestOptions()));
             handleResponse(response);
             release(process.getId(), getConnectorId());
         } catch (CosmosException cme) {
@@ -205,7 +204,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     private void handleResponse(CosmosItemResponse<?> response) {
-        final int code = response.getStatusCode();
+        int code = response.getStatusCode();
         if (code < 200 || code >= 300) {
             throw new EdcException("Error during CosmosDB interaction: " + code);
         }

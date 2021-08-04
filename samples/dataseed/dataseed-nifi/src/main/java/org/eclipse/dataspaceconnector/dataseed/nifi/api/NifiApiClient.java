@@ -7,16 +7,16 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.dataseed.nifi.api;
 
+import okhttp3.*;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import okhttp3.*;
 
 import java.io.File;
 import java.io.IOException;

@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -32,6 +32,9 @@ public class QueryRequest implements RemoteMessage {
     private String queryLanguage;
     private String query;
 
+    private QueryRequest() {
+    }
+
     @Override
     public String getProtocol() {
         return protocol;
@@ -45,11 +48,8 @@ public class QueryRequest implements RemoteMessage {
         return query;
     }
 
-    private QueryRequest() {
-    }
-
     public String getConnectorId() {
-       return connectorId;
+        return connectorId;
     }
 
     public String getConnectorAddress() {
@@ -58,7 +58,11 @@ public class QueryRequest implements RemoteMessage {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private QueryRequest queryRequest;
+        private final QueryRequest queryRequest;
+
+        private Builder() {
+            queryRequest = new QueryRequest();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -97,10 +101,6 @@ public class QueryRequest implements RemoteMessage {
             Objects.requireNonNull(queryRequest.query, "query");
             Objects.requireNonNull(queryRequest.connectorAddress, "connectorAddress");
             return queryRequest;
-        }
-
-        private Builder() {
-            queryRequest = new QueryRequest();
         }
     }
 }

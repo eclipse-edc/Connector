@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -20,8 +20,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  */
 public class DataDestination {
-    private String destinationName;
-    private String accessToken;
+    private final String destinationName;
+    private final String accessToken;
 
     public DataDestination(@JsonProperty("destinationName") String destinationName, @JsonProperty("accessToken") String accessToken) {
         this.destinationName = destinationName;

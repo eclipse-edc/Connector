@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -23,7 +23,7 @@ public interface AtomicConstraintFunction<RIGHT_VALUE, RULE_TYPE extends Rule, R
     /**
      * Performs the evaluation.
      *
-     * @param operator the operation
+     * @param operator   the operation
      * @param rightValue the right-side expression for the constraint
      */
     RESULT evaluate(Operator operator, RIGHT_VALUE rightValue, RULE_TYPE rule);

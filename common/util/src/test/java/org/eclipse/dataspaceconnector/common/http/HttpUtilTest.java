@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -45,7 +45,7 @@ class HttpUtilTest {
     void addBasicAuth_verifyAuthorizationHeader() throws IOException {
         var newClient = HttpUtil.addBasicAuth(okHttpClient, "somuser", "somepwd");
 
-        final Response response = new Response.Builder()
+        Response response = new Response.Builder()
                 .code(200)
                 .protocol(Protocol.HTTP_2)
                 .message("yey, it works")

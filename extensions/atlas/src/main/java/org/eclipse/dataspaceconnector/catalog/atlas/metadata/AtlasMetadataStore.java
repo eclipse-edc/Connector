@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -39,7 +39,6 @@ import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toSet;
 
-@SuppressWarnings("unchecked")
 public class AtlasMetadataStore extends MetadataObservable implements MetadataStore {
     private static final String ATLAS_PROPERTY_KEYNAME = "keyName";
     private static final String ATLAS_PROPERTY_TYPE = "type";
@@ -61,14 +60,14 @@ public class AtlasMetadataStore extends MetadataObservable implements MetadataSt
 
         if (properties == null) {
 
-            final AtlasSearchResult searchResult = atlasApi.dslSearchWithParams("from DataSet where name = '" + id + "'", QUERY_RESULT_LIMIT, 0);
+            AtlasSearchResult searchResult = atlasApi.dslSearchWithParams("from DataSet where name = '" + id + "'", QUERY_RESULT_LIMIT, 0);
 
             if (searchResult == null || searchResult.getEntities() == null) {
                 monitor.info("AtlasMetaDataStore: no Atlas entities with name " + id + " were found.");
                 return null;
             }
 
-            final List<AtlasEntity.AtlasEntityWithExtInfo> entityWithExtInfos = searchResult.getEntities().stream()
+            List<AtlasEntity.AtlasEntityWithExtInfo> entityWithExtInfos = searchResult.getEntities().stream()
                     .filter(entityHeader -> entityHeader.getStatus() == AtlasEntity.Status.ACTIVE)
                     .map(entityHeader -> atlasApi.getEntityById(entityHeader.getGuid()))
                     .collect(Collectors.toList());
@@ -83,7 +82,7 @@ public class AtlasMetadataStore extends MetadataObservable implements MetadataSt
             properties = entityWithExtInfos.stream().findFirst().orElse(null);
         }
 
-        final AtlasEntity entity = properties.getEntity();
+        AtlasEntity entity = properties.getEntity();
         if (entity == null) {
             monitor.info("AtlasMetadataStore: no DataEntry found for ID " + id);
             return null;

@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -66,10 +66,8 @@ public class AtlasRelationshipDef extends AtlasStructDef implements java.io.Seri
     private static final long serialVersionUID = 1L;
     private AtlasRelationshipDef.RelationshipCategory relationshipCategory;
 
-    ;
     private String relationshipLabel;
 
-    ;
     private AtlasRelationshipDef.PropagateTags propagateTags;
     private AtlasRelationshipEndDef endDef1;
     private AtlasRelationshipEndDef endDef2;

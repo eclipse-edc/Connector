@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -20,12 +20,13 @@ import java.util.Map;
  *
  */
 public class ParentExecutor implements CommandExecutor {
-    private Map<String, CommandExecutor> childExecutors;
+    private final Map<String, CommandExecutor> childExecutors;
 
     public ParentExecutor(Map<String, CommandExecutor> childExecutors) {
         this.childExecutors = childExecutors;
     }
 
+    @Override
     public CommandResult execute(ExecutionContext context) {
         if (context.getParams().isEmpty()) {
             return new CommandResult(true, "No sub-command specified");

@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -418,7 +418,7 @@ public class AtlasRelationship extends AtlasStruct implements Serializable {
 
         @Override
         public String toString() {
-            final StringBuilder sb = new StringBuilder("AtlasRelationshipWithExtInfo{");
+            StringBuilder sb = new StringBuilder("AtlasRelationshipWithExtInfo{");
             sb.append("relationship=").append(relationship);
             sb.append(", referredEntities=").append(referredEntities);
             sb.append('}');

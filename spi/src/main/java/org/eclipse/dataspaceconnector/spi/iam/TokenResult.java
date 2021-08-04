@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -22,6 +22,9 @@ public class TokenResult {
     private String token;
     private String error;
     private long expiresIn;
+
+    private TokenResult() {
+    }
 
     /**
      * Returns true if the flow was successful.
@@ -51,11 +54,12 @@ public class TokenResult {
         return error;
     }
 
-    private TokenResult() {
-    }
-
     public static class Builder {
-        private TokenResult result;
+        private final TokenResult result;
+
+        private Builder() {
+            result = new TokenResult();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -79,10 +83,6 @@ public class TokenResult {
 
         public TokenResult build() {
             return result;
-        }
-
-        private Builder() {
-            result = new TokenResult();
         }
     }
 }

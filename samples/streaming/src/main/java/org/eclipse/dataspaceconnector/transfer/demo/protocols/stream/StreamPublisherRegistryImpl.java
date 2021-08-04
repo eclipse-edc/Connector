@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -15,13 +15,13 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisher;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
-import okhttp3.OkHttpClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,12 +30,12 @@ import java.util.List;
  *
  */
 public class StreamPublisherRegistryImpl implements StreamPublisherRegistry {
-    private Vault vault;
-    private OkHttpClient httpClient;
-    private ObjectMapper objectMapper;
-    private Monitor monitor;
+    private final Vault vault;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
 
-    private List<StreamPublisher> publishers = new ArrayList<>();
+    private final List<StreamPublisher> publishers = new ArrayList<>();
 
     public StreamPublisherRegistryImpl(Vault vault, OkHttpClient httpClient, ObjectMapper objectMapper, Monitor monitor) {
         this.vault = vault;

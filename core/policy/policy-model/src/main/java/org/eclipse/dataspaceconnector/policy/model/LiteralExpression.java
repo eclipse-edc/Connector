@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -18,7 +18,7 @@ package org.eclipse.dataspaceconnector.policy.model;
  * A literal value used as an expression.
  */
 public class LiteralExpression extends Expression {
-    private String value;
+    private final String value;
 
     public LiteralExpression(String value) {
         this.value = value;

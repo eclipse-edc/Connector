@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -21,32 +21,32 @@ public class Action {
     String includedIn;
     Constraint constraint;
 
+    private Action() {
+    }
+
     public String getType() {
         return type;
     }
 
-    private Action() {
-    }
-
     public static class Builder {
-        private Action action;
+        private final Action action;
+
+        private Builder() {
+            action = new Action();
+        }
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         public Builder type(String type) {
-            this.action.type = type;
+            action.type = type;
             return this;
         }
 
         public Action build() {
             Objects.requireNonNull(action.type, "type");
             return action;
-        }
-
-        private Builder() {
-            action = new Action();
         }
     }
 

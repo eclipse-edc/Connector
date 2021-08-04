@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -20,16 +20,8 @@ package org.eclipse.dataspaceconnector.spi.security;
 public class VaultResponse {
     public static final VaultResponse OK = new VaultResponse();
 
-    private boolean success;
+    private final boolean success;
     private String error;
-
-    public boolean success() {
-        return success;
-    }
-
-    public String error() {
-        return error;
-    }
 
     public VaultResponse(String error) {
         success = false;
@@ -38,5 +30,13 @@ public class VaultResponse {
 
     public VaultResponse() {
         success = true;
+    }
+
+    public boolean success() {
+        return success;
+    }
+
+    public String error() {
+        return error;
     }
 }

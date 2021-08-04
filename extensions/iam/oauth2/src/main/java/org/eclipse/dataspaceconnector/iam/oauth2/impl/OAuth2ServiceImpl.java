@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -21,17 +21,12 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
+import okhttp3.*;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -58,10 +53,10 @@ public class OAuth2ServiceImpl implements IdentityService {
     private static final String ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
     private static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
 
-    private OAuth2Configuration configuration;
+    private final OAuth2Configuration configuration;
 
-    private RSAKeyProvider credentialProvider;
-    private JWTVerifier verifier;
+    private final RSAKeyProvider credentialProvider;
+    private final JWTVerifier verifier;
 
     public OAuth2ServiceImpl(OAuth2Configuration configuration) {
         this.configuration = configuration;
@@ -99,7 +94,7 @@ public class OAuth2ServiceImpl implements IdentityService {
             }
 
             String responsePayload = responseBody.string();
-            @SuppressWarnings("unchecked") LinkedHashMap<String, Object> deserialized = configuration.getObjectMapper().readValue(responsePayload, LinkedHashMap.class);
+            LinkedHashMap<String, Object> deserialized = configuration.getObjectMapper().readValue(responsePayload, LinkedHashMap.class);
             String token = (String) deserialized.get("access_token");
             long expiresIn = ((Integer) deserialized.get("expires_in")).longValue();
             return TokenResult.Builder.newInstance().token(token).expiresIn(expiresIn).build();

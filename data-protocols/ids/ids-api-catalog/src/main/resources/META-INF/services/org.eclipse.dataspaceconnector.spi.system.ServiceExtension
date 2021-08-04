@@ -7,7 +7,7 @@
 #
 #  SPDX-License-Identifier: Apache-2.0
 #
-#  Contributors: 1
+#  Contributors:
 #       Microsoft Corporation - initial API and implementation
 #
 #

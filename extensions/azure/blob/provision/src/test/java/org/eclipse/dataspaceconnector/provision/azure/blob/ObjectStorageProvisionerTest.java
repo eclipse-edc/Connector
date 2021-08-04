@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -15,6 +15,9 @@
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
 import com.azure.storage.blob.models.BlobStorageException;
+import net.jodah.failsafe.RetryPolicy;
+import org.easymock.Capture;
+import org.easymock.MockType;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.provision.azure.AzureSasToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -23,9 +26,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import net.jodah.failsafe.RetryPolicy;
-import org.easymock.Capture;
-import org.easymock.MockType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

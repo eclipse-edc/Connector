@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -20,11 +20,7 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestina
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.object.ObjectStorage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.object.ObjectStorageObserver;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,10 +28,10 @@ import java.util.concurrent.ConcurrentHashMap;
  *
  */
 public class DemoObjectStorage extends AbstractQueuedProvisioner implements ObjectStorage {
-    private Monitor monitor;
+    private final Monitor monitor;
 
-    private Map<String, ObjectContainer> containers = new ConcurrentHashMap<>();
-    private List<ObjectStorageObserver> observers = new ArrayList<>();
+    private final Map<String, ObjectContainer> containers = new ConcurrentHashMap<>();
+    private final List<ObjectStorageObserver> observers = new ArrayList<>();
 
     public DemoObjectStorage(Monitor monitor) {
         this.monitor = monitor;

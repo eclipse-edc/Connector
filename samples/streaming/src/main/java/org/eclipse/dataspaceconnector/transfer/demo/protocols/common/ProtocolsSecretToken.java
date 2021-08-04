@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -24,7 +24,7 @@ import java.util.Map;
  *
  */
 @JsonTypeName("dataspaceconnector:protocolssecrettoken")
-public class ProtocolsSecretToken implements SecretToken{
+public class ProtocolsSecretToken implements SecretToken {
     private final String token;
 
     public ProtocolsSecretToken(@JsonProperty("token") String token) {

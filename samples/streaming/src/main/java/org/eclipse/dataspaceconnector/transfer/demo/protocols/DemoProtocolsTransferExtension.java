@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.common.http.loopback.LoopbackDispatcher;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -38,7 +39,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.*;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.PubSubServerEndpoint;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WebSocketFactory;
 import org.eclipse.dataspaceconnector.web.transport.JettyService;
-import okhttp3.OkHttpClient;
 
 import java.util.Set;
 

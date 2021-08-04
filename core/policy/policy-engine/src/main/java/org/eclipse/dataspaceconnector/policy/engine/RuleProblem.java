@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -30,7 +30,10 @@ import java.util.List;
 public class RuleProblem {
     private Rule rule;
     private String description;
-    private List<ConstraintProblem> constraintProblems = new ArrayList<>();
+    private final List<ConstraintProblem> constraintProblems = new ArrayList<>();
+
+    private RuleProblem() {
+    }
 
     /**
      * Returns the rule associated with the problem.
@@ -56,7 +59,11 @@ public class RuleProblem {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private RuleProblem ruleProblem;
+        private final RuleProblem ruleProblem;
+
+        private Builder() {
+            ruleProblem = new RuleProblem();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -79,19 +86,12 @@ public class RuleProblem {
         }
 
         public Builder constraintProblem(ConstraintProblem problem) {
-            this.ruleProblem.constraintProblems.add(problem);
+            ruleProblem.constraintProblems.add(problem);
             return this;
         }
 
         public RuleProblem build() {
             return ruleProblem;
         }
-
-        private Builder() {
-            ruleProblem = new RuleProblem();
-        }
-    }
-
-    private RuleProblem() {
     }
 }

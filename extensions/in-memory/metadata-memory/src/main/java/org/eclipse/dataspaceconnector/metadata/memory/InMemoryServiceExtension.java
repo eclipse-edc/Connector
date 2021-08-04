@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -39,7 +39,7 @@ public class InMemoryServiceExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        final InMemoryMetadataStore service = new InMemoryMetadataStore();
+        InMemoryMetadataStore service = new InMemoryMetadataStore();
         context.registerService(MetadataStore.class, service);
         context.registerService(MetadataObservable.class, service);
 

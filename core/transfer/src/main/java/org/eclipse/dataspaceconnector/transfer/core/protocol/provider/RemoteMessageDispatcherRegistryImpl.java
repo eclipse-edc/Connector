@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -30,7 +30,7 @@ import java.util.concurrent.CompletableFuture;
  *
  */
 public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatcherRegistry {
-    private Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
+    private final Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
 
     @Override
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {

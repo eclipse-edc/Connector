@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -19,7 +19,6 @@ package org.eclipse.dataspaceconnector.common;
  */
 public class Cast {
 
-    @SuppressWarnings("unchecked")
     public static <T> T cast(Object type) {
         return (T) type;
     }

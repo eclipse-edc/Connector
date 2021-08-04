@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -116,11 +116,11 @@ class InMemoryTransferProcessStoreTest {
     @Test
     void verifyOrderingByTimestamp() {
         for (int i = 0; i < 100; i++) {
-            final TransferProcess process = createProcess("test-process-" + i);
+            TransferProcess process = createProcess("test-process-" + i);
             store.create(process);
         }
 
-        final List<TransferProcess> processes = store.nextForState(TransferProcessStates.INITIAL.code(), 50);
+        List<TransferProcess> processes = store.nextForState(TransferProcessStates.INITIAL.code(), 50);
 
         assertThat(processes).hasSize(50);
         assertThat(processes).allMatch(p -> p.getStateTimestamp() > 0);
@@ -129,7 +129,7 @@ class InMemoryTransferProcessStoreTest {
     @Test
     void verifyNextForState_avoidsStarvation() throws InterruptedException {
         for (int i = 0; i < 10; i++) {
-            final TransferProcess process = createProcess("test-process-" + i);
+            TransferProcess process = createProcess("test-process-" + i);
             store.create(process);
         }
 
@@ -141,7 +141,7 @@ class InMemoryTransferProcessStoreTest {
     }
 
     private TransferProcess createProcess(String name) {
-        final DataRequest mock = niceMock(DataRequest.class);
+        DataRequest mock = niceMock(DataRequest.class);
         replay(mock);
         return TransferProcess.Builder.newInstance()
                 .type(TransferProcess.Type.CLIENT)

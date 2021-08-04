@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -16,9 +16,9 @@ package org.eclipse.dataspaceconnector.client.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.client.runtime.EdcConnectorClientRuntime;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
+import org.eclipse.dataspaceconnector.client.runtime.EdcConnectorClientRuntime;
 import org.jline.terminal.Terminal;
 
 import java.util.List;
@@ -33,6 +33,9 @@ public class ExecutionContext {
     private List<String> params;
     private Terminal terminal;
     private String endpointUrl;
+
+    private ExecutionContext() {
+    }
 
     public RequestBody write(Object value) {
         try {
@@ -74,11 +77,12 @@ public class ExecutionContext {
         return runtime.getService(type);
     }
 
-    private ExecutionContext() {
-    }
-
     public static class Builder {
-        private ExecutionContext context;
+        private final ExecutionContext context;
+
+        private Builder() {
+            context = new ExecutionContext();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -106,10 +110,6 @@ public class ExecutionContext {
 
         public ExecutionContext build() {
             return context;
-        }
-
-        private Builder() {
-            context = new ExecutionContext();
         }
     }
 }

@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -25,8 +25,8 @@ import org.jetbrains.annotations.NotNull;
  *
  */
 public class ObjectStorageFlowController implements DataFlowController {
-    private ObjectMapper objectMapper;
-    private Monitor monitor;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
 
     public ObjectStorageFlowController(ObjectMapper objectMapper, Monitor monitor) {
         this.objectMapper = objectMapper;

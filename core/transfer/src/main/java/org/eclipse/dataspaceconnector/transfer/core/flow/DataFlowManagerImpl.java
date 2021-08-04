@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -30,7 +30,7 @@ import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatu
  * The default data flow manager.
  */
 public class DataFlowManagerImpl implements DataFlowManager {
-    private List<DataFlowController> controllers = new ArrayList<>();
+    private final List<DataFlowController> controllers = new ArrayList<>();
 
     @Override
     public void register(DataFlowController controller) {
@@ -41,7 +41,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
     public @NotNull DataFlowInitiateResponse initiate(DataRequest dataRequest) {
         DataFlowController executor = getExecutor(dataRequest);
         if (executor == null) {
-            return new DataFlowInitiateResponse(FATAL_ERROR,"Unable to process data request. No data flow controller found: " + dataRequest.getId());
+            return new DataFlowInitiateResponse(FATAL_ERROR, "Unable to process data request. No data flow controller found: " + dataRequest.getId());
         }
         return executor.initiateFlow(dataRequest);
     }

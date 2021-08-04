@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -30,13 +30,11 @@ public abstract class MultiplicityConstraint extends Constraint {
     protected abstract static class Builder<T extends MultiplicityConstraint, B extends Builder<T, B>> {
         protected T constraint;
 
-        @SuppressWarnings("unchecked")
         public B constraint(Constraint constraint) {
             this.constraint.constraints.add(constraint);
             return (B) this;
         }
 
-        @SuppressWarnings("unchecked")
         public B constraints(List<Constraint> constraints) {
             constraint.constraints.addAll(constraints);
             return (B) this;

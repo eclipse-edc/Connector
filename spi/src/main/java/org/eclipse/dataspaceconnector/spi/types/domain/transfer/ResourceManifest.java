@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -30,7 +30,7 @@ import java.util.Objects;
 @JsonDeserialize(builder = ResourceManifest.Builder.class)
 public class ResourceManifest {
     private String transferProcessId;
-    private List<ResourceDefinition> definitions = new ArrayList<>();
+    private final List<ResourceDefinition> definitions = new ArrayList<>();
 
     @NotNull
     public List<ResourceDefinition> getDefinitions() {
@@ -56,7 +56,11 @@ public class ResourceManifest {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private ResourceManifest manifest;
+        private final ResourceManifest manifest;
+
+        private Builder() {
+            manifest = new ResourceManifest();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -69,10 +73,6 @@ public class ResourceManifest {
 
         public ResourceManifest build() {
             return manifest;
-        }
-
-        private Builder() {
-            manifest = new ResourceManifest();
         }
     }
 }

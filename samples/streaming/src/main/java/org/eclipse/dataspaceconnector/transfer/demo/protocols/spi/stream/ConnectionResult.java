@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -20,9 +20,19 @@ import java.util.function.Consumer;
  * Result of a connect operation.
  */
 public class ConnectionResult {
-    private boolean success;
+    private final boolean success;
     private String error;
     private Consumer<byte[]> consumer;
+
+    public ConnectionResult(Consumer<byte[]> consumer) {
+        this.consumer = consumer;
+        success = true;
+    }
+
+    public ConnectionResult(String error) {
+        success = false;
+        this.error = error;
+    }
 
     /**
      * Returns true if the connection was successful.
@@ -43,16 +53,6 @@ public class ConnectionResult {
      */
     public Consumer<byte[]> getConsumer() {
         return consumer;
-    }
-
-    public ConnectionResult(Consumer<byte[]> consumer) {
-        this.consumer = consumer;
-        success = true;
-    }
-
-    public ConnectionResult(String error) {
-        success = false;
-        this.error = error;
     }
 
 

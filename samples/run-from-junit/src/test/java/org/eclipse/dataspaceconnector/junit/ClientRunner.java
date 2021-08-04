@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.junit;/*
  * All rights reserved.
  */
 
+import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.common.testfixtures.EdcExtension;
 import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -33,7 +34,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -46,8 +46,8 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.common.Cast.cast;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.common.Cast.cast;
 
 @ExtendWith(EdcExtension.class)
 @Disabled
@@ -81,7 +81,7 @@ public class ClientRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
 
-            final TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
+            TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
@@ -140,7 +140,7 @@ public class ClientRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
 
-            final TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
+            TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {

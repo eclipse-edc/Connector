@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -26,8 +26,8 @@ public class MultiplexingMonitor implements Monitor {
     public MultiplexingMonitor() {
     }
 
-    public MultiplexingMonitor(List<Monitor> monitors){
-        internalMonitors= monitors;
+    public MultiplexingMonitor(List<Monitor> monitors) {
+        internalMonitors = monitors;
     }
 
     @Override

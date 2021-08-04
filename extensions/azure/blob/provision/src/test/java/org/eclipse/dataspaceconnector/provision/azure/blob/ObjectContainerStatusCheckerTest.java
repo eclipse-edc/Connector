@@ -7,28 +7,28 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.common.testfixtures.AbstractAzureBlobTest;
 import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import net.jodah.failsafe.RetryPolicy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.UUID;
 
-import static org.eclipse.dataspaceconnector.common.ConfigurationFunctions.propOrEnv;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.*;
+import static org.eclipse.dataspaceconnector.common.ConfigurationFunctions.propOrEnv;
 
 @IntegrationTest
 class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
@@ -40,7 +40,7 @@ class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
     void setUp() {
         RetryPolicy<Object> policy = new RetryPolicy<>().withMaxRetries(1);
         helloTxt = TestUtils.getFileFromResourceName("hello.txt");
-        final Vault vault = mock(Vault.class);
+        Vault vault = mock(Vault.class);
         var accountKey = propOrEnv("AZ_STORAGE_KEY", null);
         assertThat(accountKey).describedAs("Azure Storage Account Key cannot be null!").isNotNull();
 

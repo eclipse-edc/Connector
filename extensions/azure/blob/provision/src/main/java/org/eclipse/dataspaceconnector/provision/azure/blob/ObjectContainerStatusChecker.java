@@ -7,17 +7,17 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
-import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 
 public class ObjectContainerStatusChecker implements StatusChecker<ObjectContainerProvisionedResource> {
     private final BlobStoreApi blobStoreApi;

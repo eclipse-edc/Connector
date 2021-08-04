@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -22,7 +23,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.ProtocolsSe
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.http.HttpStreamSession;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamContext;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WsPushStreamSession;
-import okhttp3.OkHttpClient;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
@@ -34,10 +34,10 @@ import static java.lang.String.format;
  * Implements a push stream context that can create WebSocket-based and HTTP-based sessions.
  */
 public class PushStreamContext implements StreamContext {
-    private Vault vault;
-    private OkHttpClient httpClient;
-    private ObjectMapper objectMapper;
-    private Monitor monitor;
+    private final Vault vault;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
 
     public PushStreamContext(Vault vault, OkHttpClient httpClient, ObjectMapper objectMapper, Monitor monitor) {
         this.vault = vault;

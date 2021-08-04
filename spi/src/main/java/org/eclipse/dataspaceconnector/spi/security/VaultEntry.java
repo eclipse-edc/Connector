@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -18,7 +18,7 @@ public class VaultEntry {
     private String key;
     private String value;
 
-    public VaultEntry(){
+    public VaultEntry() {
         //only used for serialization/deserialization
     }
 
@@ -31,12 +31,12 @@ public class VaultEntry {
         return key;
     }
 
-    public String getValue() {
-        return value;
-    }
-
     public void setKey(String key) {
         this.key = key;
+    }
+
+    public String getValue() {
+        return value;
     }
 
     public void setValue(String value) {

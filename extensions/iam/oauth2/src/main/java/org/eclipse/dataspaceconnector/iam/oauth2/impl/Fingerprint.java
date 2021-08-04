@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -25,6 +25,9 @@ import java.util.Base64;
  */
 public class Fingerprint {
     private static final char[] HEX_CODES = {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
+
+    private Fingerprint() {
+    }
 
     /**
      * Produces a SHA1 fingerprint of the given bytes using HEX encoding. Used for the x5t claim in a JWT.
@@ -55,8 +58,5 @@ public class Fingerprint {
         } catch (NoSuchAlgorithmException e) {
             throw new EdcException(e);
         }
-    }
-
-    private Fingerprint() {
     }
 }

@@ -7,7 +7,7 @@
  *
  *  SPDX-License-Identifier: Apache-2.0
  *
- *  Contributors: 1
+ *  Contributors:
  *       Microsoft Corporation - initial API and implementation
  *
  */
@@ -29,7 +29,7 @@ public interface DataFlowController {
 
     /**
      * Initiate a data flow.
-     *
+     * <p>
      * Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, set
      * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#ERROR_RETRY} in the response. If an exception occurs and re-tries should not be re-attempted, set
      * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#FATAL_ERROR} in the response.
