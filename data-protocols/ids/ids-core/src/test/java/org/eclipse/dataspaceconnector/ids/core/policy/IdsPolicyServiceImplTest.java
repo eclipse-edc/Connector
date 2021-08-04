@@ -1,26 +1,28 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors: 1
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.ids.core.policy;
 
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyActions;
-import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
-import org.eclipse.dataspaceconnector.policy.model.Duty;
-import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
-import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.*;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyActions.COMPENSATE_ACTION;
 import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyActions.USE_ACTION;
-import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions.ABS_SPATIAL_POSITION;
-import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions.ABS_SPATIAL_POSITION_EXPRESSION;
-import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions.PAY_AMOUNT;
-import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions.PAY_AMOUNT_EXPRESSION;
+import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions.*;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;

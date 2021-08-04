@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors: 1
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.ids.spi.domain.iam;
@@ -17,7 +26,7 @@ import static org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues.CONTEX
 
 /**
  * Token format as specified by IDS.
- *
+ * <p>
  * .cf https://industrialdataspace.jiveon.com/docs/DOC-2524
  */
 @JsonDeserialize(builder = DynamicAttributeToken.Builder.class)
@@ -28,7 +37,6 @@ public class DynamicAttributeToken {
     @JsonProperty("@context")
     private String context = CONTEXT;
 
-    @SuppressWarnings("FieldCanBeLocal")
     @JsonProperty("@type")
     private String type = "ids:DynamicAttributeToken";
 
@@ -40,6 +48,9 @@ public class DynamicAttributeToken {
 
     @JsonProperty("ids:tokenFormat")
     private TokenFormat tokenFormat = TokenFormat.JWT;
+
+    private DynamicAttributeToken() {
+    }
 
     public String getType() {
         return type;
@@ -61,12 +72,13 @@ public class DynamicAttributeToken {
         return tokenFormat;
     }
 
-    private DynamicAttributeToken() {
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private DynamicAttributeToken token;
+        private final DynamicAttributeToken token;
+
+        private Builder() {
+            token = new DynamicAttributeToken();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -86,7 +98,7 @@ public class DynamicAttributeToken {
         }
 
         public Builder relativeId(String id) {
-            token.id = ID_BASE+id;
+            token.id = ID_BASE + id;
             return this;
         }
 
@@ -113,10 +125,6 @@ public class DynamicAttributeToken {
             Objects.requireNonNull(token.tokenValue, "Property 'tokenValue' must be specified");
             Objects.requireNonNull(token.tokenFormat, "Property 'tokenFormat' must be specified");
             return token;
-        }
-
-        private Builder() {
-            token = new DynamicAttributeToken();
         }
     }
 

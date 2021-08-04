@@ -1,21 +1,24 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors: 1
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.web.transport;
 
+import jakarta.servlet.Servlet;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import jakarta.servlet.Servlet;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.HttpConfiguration;
-import org.eclipse.jetty.server.HttpConnectionFactory;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.ServerConnector;
-import org.eclipse.jetty.server.SslConnectionFactory;
+import org.eclipse.jetty.server.*;
 import org.eclipse.jetty.server.handler.ContextHandlerCollection;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
@@ -35,11 +38,10 @@ public class JettyService {
 
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private final JettyConfiguration configuration;
-    private KeyStore keyStore;
     private final Monitor monitor;
-
+    private final KeyStore keyStore;
     private Server server;
-    private Map<String, ServletContextHandler> handlers = new HashMap<>();
+    private final Map<String, ServletContextHandler> handlers = new HashMap<>();
 
     public JettyService(JettyConfiguration configuration, Monitor monitor) {
         this(configuration, null, monitor);
@@ -122,7 +124,7 @@ public class JettyService {
     }
 
     public void registerHandler(ServletContextHandler handler) {
-        handlers.put( handler.getContextPath(), handler);
+        handlers.put(handler.getContextPath(), handler);
     }
 
     private ServletContextHandler getOrCreate(String contextPath) {

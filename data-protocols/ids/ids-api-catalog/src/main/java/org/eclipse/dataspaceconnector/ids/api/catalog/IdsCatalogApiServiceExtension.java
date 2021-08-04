@@ -1,10 +1,21 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors: 1
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.catalog;
 
+import de.fraunhofer.iais.eis.DescriptionRequestMessageImpl;
+import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
@@ -14,8 +25,6 @@ import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import de.fraunhofer.iais.eis.DescriptionRequestMessageImpl;
-import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 
 import java.util.Set;
 

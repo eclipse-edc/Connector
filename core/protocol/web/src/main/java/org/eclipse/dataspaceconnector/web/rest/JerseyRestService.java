@@ -1,6 +1,15 @@
 /*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors: 1
+ *       Microsoft Corporation - initial API and implementation
+ *
  */
 
 package org.eclipse.dataspaceconnector.web.rest;
@@ -23,11 +32,11 @@ import static java.util.stream.Collectors.toSet;
 public class JerseyRestService implements WebService {
     private static final String API_PATH = "/api/*";
 
-    private JettyService jettyService;
-    private TypeManager typeManager;
-    private Monitor monitor;
+    private final JettyService jettyService;
+    private final TypeManager typeManager;
+    private final Monitor monitor;
 
-    private Set<Object> controllers = new HashSet<>();
+    private final Set<Object> controllers = new HashSet<>();
 
     public JerseyRestService(JettyService jettyService, TypeManager typeManager, Monitor monitor) {
         this.jettyService = jettyService;
@@ -72,7 +81,6 @@ public class JerseyRestService implements WebService {
 
         @Override
         protected void configure() {
-            //noinspection unchecked
             controllers.forEach(c -> bind(c).to((Class<? super Object>) c.getClass()));
         }
     }
