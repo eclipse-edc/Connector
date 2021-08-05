@@ -22,13 +22,19 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.util.TopologicalSort;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.spi.system.ServiceExtension.LoadPhase.DEFAULT;
-import static org.eclipse.dataspaceconnector.spi.system.ServiceExtension.LoadPhase.PRIMORDIAL;
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toCollection;
+import static org.eclipse.dataspaceconnector.spi.system.ServiceExtension.LoadPhase.DEFAULT;
+import static org.eclipse.dataspaceconnector.spi.system.ServiceExtension.LoadPhase.PRIMORDIAL;
 
 /**
  * Base service extension context.
@@ -42,6 +48,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final ServiceLocator serviceLocator;
     private List<ConfigurationExtension> configurationExtensions;
+    private String connectorId;
 
     public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor) {
         this(typeManager, monitor, new ServiceLocatorImpl());
@@ -59,6 +66,11 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     public void initialize() {
         configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
         configurationExtensions.forEach(ext -> ext.initialize(monitor));
+        connectorId = getSetting("dataspaceconnector.connector.name", "edc-" + UUID.randomUUID());
+    }
+
+    public String getConnectorId() {
+        return connectorId;
     }
 
     @Override

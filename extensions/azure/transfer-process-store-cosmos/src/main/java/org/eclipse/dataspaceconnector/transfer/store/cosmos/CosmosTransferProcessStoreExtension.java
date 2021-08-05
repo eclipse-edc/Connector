@@ -32,8 +32,6 @@ import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProces
 import java.util.ArrayList;
 import java.util.Set;
 
-import static org.eclipse.dataspaceconnector.common.settings.SettingsHelper.getConnectorId;
-
 /**
  * Provides an in-memory implementation of the {@link org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore} for testing.
  */
@@ -100,7 +98,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         var partitionKey = context.getSetting(CosmosTransferProcessStoreExtension.COSMOS_PARTITION_KEY_SETTING, CosmosTransferProcessStoreExtension.DEFAULT_PARTITION_KEY);
 
         // get unique connector name
-        var connectorId = getConnectorId(context);
+        var connectorId = context.getConnectorId();
 
         monitor.info("CosmosTransferProcessStore will use connector id '" + connectorId + "'");
         context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(container, context.getTypeManager(), partitionKey, connectorId));

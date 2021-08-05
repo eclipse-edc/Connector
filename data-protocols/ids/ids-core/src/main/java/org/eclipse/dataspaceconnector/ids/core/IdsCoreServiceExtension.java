@@ -34,8 +34,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.Set;
 
-import static org.eclipse.dataspaceconnector.common.settings.SettingsHelper.getConnectorId;
-
 /**
  * Implements the IDS Controller REST API.
  */
@@ -60,7 +58,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         context.registerService(IdsDescriptorService.class, descriptorService);
 
         var identityService = context.getService(IdentityService.class);
-        var connectorName = getConnectorId(context);
+        var connectorName = context.getConnectorId();
         var dapsService = new DapsServiceImpl(connectorName, identityService);
         context.registerService(DapsService.class, dapsService);
 
