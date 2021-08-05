@@ -70,6 +70,8 @@ which will launch a docker container based on the previously built image.
 
 # Setup Azure resources
 
+*NB: This section is currently out-of-date and will be revised shortly*
+
 A working connector instance will use several resources on Azure, all of which can be easily deployed using a so-called
 "genesis script" located at `./scripts/genesis.sh`. Most Azure resources are grouped together in so-called "resource
 groups" which makes management quite easy. The Genesis Script will take care of provisioning the most essential
