@@ -22,7 +22,6 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":common:util"))
     implementation(project(":core:protocol:web"))
     implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
     implementation("jakarta.websocket:jakarta.websocket-api:${websocketVersion}")
