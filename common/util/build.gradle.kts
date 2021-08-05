@@ -18,13 +18,10 @@ plugins {
     `maven-publish`
 }
 
-val storageBlobVersion: String by project;
 
 dependencies {
     api(project(":spi"))
     api(project(":core:bootstrap"))
-
-    testFixturesApi("com.azure:azure-storage-blob:${storageBlobVersion}")
 
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")

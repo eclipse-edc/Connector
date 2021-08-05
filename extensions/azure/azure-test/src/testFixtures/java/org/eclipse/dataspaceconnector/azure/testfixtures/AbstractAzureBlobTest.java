@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.testfixtures;
+package org.eclipse.dataspaceconnector.azure.testfixtures;
 
 import com.azure.core.credential.AzureSasCredential;
 import com.azure.storage.blob.BlobContainerClient;
