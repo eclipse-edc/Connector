@@ -55,6 +55,7 @@ include(":extensions:iam:oauth2")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:demo-e2e")
+include(":launchers:junit")
 
 // modules for code samples
 include(":samples:commandline:client")

@@ -21,6 +21,8 @@ plugins {
 
 
 dependencies {
+    api(project(":core:bootstrap"))
+
     implementation(project(":core:protocol:web"))
 
     implementation(project(":core:transfer"))

@@ -20,14 +20,18 @@ plugins {
 
 
 dependencies {
+    api(project(":spi"))
+
+    api(project(":core:bootstrap"))
+
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("common.util") {
-            artifactId = "dataspaceconnector.common.util"
+        create<MavenPublication>("junit.launcher") {
+            artifactId = "dataspaceconnector.junit.launcher"
             from(components["java"])
         }
     }

@@ -30,7 +30,7 @@ dependencies {
     // extensions needed for integration testing
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":launchers:junit")))
 
 }
 

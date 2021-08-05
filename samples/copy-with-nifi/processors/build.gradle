@@ -13,7 +13,9 @@
  */
 
 apply plugin: 'java-library'
+apply plugin: 'java-test-fixtures'
 apply plugin: NarPlugin
+
 
 enum NarManifestEntry {
     NAR_GROUP("Nar-Group"),
@@ -149,8 +151,10 @@ dependencies {
     testImplementation("org.apache.nifi:nifi-mock:1.13.2")
     testImplementation("org.assertj:assertj-core:3.19.0")
 
+
     testImplementation(project(":spi"))
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":extensions:azure:azure-test")))
     testImplementation(testFixtures(project(":extensions:aws:aws-test")))
 }

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.testfixtures;
+package org.eclipse.dataspaceconnector.junit.launcher;
 
 import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
@@ -25,7 +25,12 @@ import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.system.ExtensionLoader;
 import org.eclipse.dataspaceconnector.system.ServiceLocator;
 import org.eclipse.dataspaceconnector.system.ServiceLocatorImpl;
-import org.junit.jupiter.api.extension.*;
+import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
+import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.ParameterContext;
+import org.junit.jupiter.api.extension.ParameterResolutionException;
+import org.junit.jupiter.api.extension.ParameterResolver;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -106,7 +111,7 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
         if (type.equals(EdcExtension.class)) {
             return true;
         } else if (type instanceof Class) {
-            return context.hasService((Class) type);
+            return context.hasService(cast(type));
         }
         return false;
     }
@@ -117,7 +122,7 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
         if (type.equals(EdcExtension.class)) {
             return this;
         } else if (type instanceof Class) {
-            return context.getService((Class) type);
+            return context.getService(cast(type));
         }
         return null;
     }
