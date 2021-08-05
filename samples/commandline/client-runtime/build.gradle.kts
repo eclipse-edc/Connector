@@ -16,6 +16,7 @@
 val securityType: String by rootProject.extra
 val iamType: String by rootProject.extra
 val configFs: String by rootProject.extra
+val jupiterVersion: String by project
 
 plugins {
     `java-library`
@@ -24,8 +25,8 @@ plugins {
 dependencies {
     api(project(":core:bootstrap"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
 
     println("Using security type: ${securityType}")
 

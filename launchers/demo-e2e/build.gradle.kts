@@ -19,6 +19,7 @@ plugins {
     id("com.bmuschko.docker-remote-api") version "6.7.0"
 }
 
+val jupiterVersion: String by project
 
 dependencies {
     api(project(":core:bootstrap"))
@@ -44,8 +45,8 @@ dependencies {
     implementation(project(":data-protocols:ids:ids-policy-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
 
 }
 

@@ -27,6 +27,7 @@ val jacksonVersion: String by project
 val securityType by extra { System.getProperty("security.type", "default") }
 val iamType by extra { System.getProperty("iam.type", "disabled") }
 val configFs by extra { System.getProperty("configuration.fs", "disabled") }
+val jupiterVersion: String by project
 
 subprojects {
 
@@ -51,8 +52,8 @@ allprojects {
             api("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
             api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
 
-            testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
-            testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
+            testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+            testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.easymock:easymock:4.2")
             testImplementation("org.assertj:assertj-core:3.19.0")
 

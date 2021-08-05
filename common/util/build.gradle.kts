@@ -18,10 +18,11 @@ plugins {
     `maven-publish`
 }
 
+val jupiterVersion: String by project
 
 dependencies {
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
+    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
 }
 
 publishing {
