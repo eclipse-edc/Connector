@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.http;
+package org.eclipse.dataspaceconnector.catalog.atlas.metadata;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Protocol;

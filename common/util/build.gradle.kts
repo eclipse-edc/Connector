@@ -21,6 +21,7 @@ plugins {
 
 dependencies {
     api(project(":spi"))
+
     api(project(":core:bootstrap"))
 
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
