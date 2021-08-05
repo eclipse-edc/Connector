@@ -37,7 +37,6 @@ import java.util.Map;
 
 import static de.fraunhofer.iais.eis.RejectionReason.*;
 import static java.util.UUID.randomUUID;
-import static org.eclipse.dataspaceconnector.common.Cast.cast;
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
 
 /**
@@ -109,14 +108,13 @@ public class ArtifactRequestController {
 
 
         // TODO this needs to be deserialized from the artifact request message
-        var destinationMap = (Map<String, Object>) message.getProperties().get(ArtifactRequestController.DESTINATION_KEY);
+        @SuppressWarnings("unchecked") var destinationMap = (Map<String, Object>) message.getProperties().get(ArtifactRequestController.DESTINATION_KEY);
         var type = (String) destinationMap.get("type");
 
-        Map<String, String> properties = (Map<String, String>) destinationMap.get("properties");
+        @SuppressWarnings("unchecked") Map<String, String> properties = (Map<String, String>) destinationMap.get("properties");
         var secretName = (String) destinationMap.get("keyName");
 
-        Map<String, String> cast = cast(properties);
-        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(cast).keyName(secretName).build();
+        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(properties).keyName(secretName).build();
 
         var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).dataDestination(dataDestination).protocol(IDS_REST).build();
 

@@ -27,7 +27,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
 
-import static org.eclipse.dataspaceconnector.common.ConfigurationFunctions.propOrEnv;
+import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**

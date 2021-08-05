@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common;
+package org.eclipse.dataspaceconnector.common.configuration;
 
 /**
  * Common configuration functions used by extensions.

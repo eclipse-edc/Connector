@@ -26,7 +26,7 @@ import java.io.File;
 import java.util.Objects;
 import java.util.UUID;
 
-import static org.eclipse.dataspaceconnector.common.ConfigurationFunctions.propOrEnv;
+import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class AbstractAzureBlobTest {

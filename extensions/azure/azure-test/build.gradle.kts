@@ -26,6 +26,8 @@ dependencies {
 
     testFixturesApi("com.azure:azure-storage-blob:${storageBlobVersion}")
 
+    testFixturesImplementation(project(":common:util"))
+
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
 

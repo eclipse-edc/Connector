@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.security.fs;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 
-import static org.eclipse.dataspaceconnector.common.ConfigurationFunctions.propOrEnv;
+import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 public final class FsConfiguration {
 

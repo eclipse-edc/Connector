@@ -30,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
-import static org.eclipse.dataspaceconnector.common.ConfigurationFunctions.propOrEnv;
+import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 @IntegrationTest
 class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {

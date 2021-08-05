@@ -47,7 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.Cast.cast;
+import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 @ExtendWith(EdcExtension.class)
 @Disabled

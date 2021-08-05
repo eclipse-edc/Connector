@@ -29,7 +29,7 @@ import java.util.Map;
 import java.util.Properties;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.common.ConfigurationFunctions.propOrEnv;
+import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 /**
  * Sources configuration values from a properties file.

@@ -23,6 +23,8 @@ val awsVersion: String by project
 dependencies {
     api(project(":spi"))
 
+    testFixturesImplementation(project(":common:util"))
+
     testFixturesApi(platform("com.amazonaws:aws-java-sdk-bom:1.11.1018"))
     testFixturesApi("com.amazonaws:aws-java-sdk-s3")
 

@@ -36,7 +36,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-import static org.eclipse.dataspaceconnector.common.Cast.cast;
+import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
  * A JUnit extension for running an embedded DA-GX runtime as part of a test fixture.
