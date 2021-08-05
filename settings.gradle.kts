@@ -36,6 +36,7 @@ include(":data-protocols:ids:ids-spi")
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws:s3:provision")
 include(":extensions:aws:s3:s3-schema")
+include(":extensions:aws:aws-test")
 include(":extensions:azure:blob:blob-schema")
 include(":extensions:azure:blob:provision")
 include(":extensions:azure:events")

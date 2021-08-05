@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.common.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,7 +29,9 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.replay;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
 
 @IntegrationTest

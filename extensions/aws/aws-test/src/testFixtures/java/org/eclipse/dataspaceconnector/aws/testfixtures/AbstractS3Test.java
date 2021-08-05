@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.testfixtures;
+package org.eclipse.dataspaceconnector.aws.testfixtures;
 
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;

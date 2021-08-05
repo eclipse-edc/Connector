@@ -14,27 +14,27 @@
 
 plugins {
     `java-library`
+    `java-test-fixtures`
+    `maven-publish`
 }
 
 val awsVersion: String by project
 
 dependencies {
     api(project(":spi"))
-    api(project(":extensions:aws:s3:s3-schema"))
 
-    implementation("software.amazon.awssdk:s3:${awsVersion}")
-    implementation("software.amazon.awssdk:sts:${awsVersion}")
-    implementation("software.amazon.awssdk:iam:${awsVersion}")
+    testFixturesApi(platform("com.amazonaws:aws-java-sdk-bom:1.11.1018"))
+    testFixturesApi("com.amazonaws:aws-java-sdk-s3")
 
-    testImplementation(testFixtures(project(":common:util")))
-    testImplementation(testFixtures(project(":extensions:aws:aws-test")))
+    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
+    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
 
 }
 
 publishing {
     publications {
         create<MavenPublication>("aws.s3.provision") {
-            artifactId = "aws.s3.provision"
+            artifactId = "aws.test"
             from(components["java"])
         }
     }

@@ -24,8 +24,6 @@ dependencies {
     api(project(":spi"))
     api(project(":core:bootstrap"))
 
-    testFixturesApi(platform("com.amazonaws:aws-java-sdk-bom:1.11.1018"))
-    testFixturesApi("com.amazonaws:aws-java-sdk-s3")
     testFixturesApi("com.azure:azure-storage-blob:${storageBlobVersion}")
 
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")

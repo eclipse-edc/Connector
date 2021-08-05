@@ -19,8 +19,8 @@ import net.jodah.failsafe.RetryPolicy;
 import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
+import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.common.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.common.testfixtures.EdcExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,7 +35,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.*;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.SAMPLE_FILE_RESOURCE_NAME;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getResourcePath;
 
 @IntegrationTest
 @ExtendWith(EdcExtension.class)
