@@ -81,6 +81,7 @@ public class JerseyRestService implements WebService {
 
         @Override
         protected void configure() {
+            //noinspection unchecked
             controllers.forEach(c -> bind(c).to((Class<? super Object>) c.getClass()));
         }
     }
