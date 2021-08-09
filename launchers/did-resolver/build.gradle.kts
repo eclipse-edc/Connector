@@ -16,17 +16,9 @@ dependencies {
     implementation(project(":core:protocol:web"))
 
 //    implementation(project(":core:transfer"))
-//    implementation(project(":extensions:azure:transfer-process-store-cosmos"))
-//    implementation(project(":extensions:aws:s3:provision"))
-//    implementation(project(":extensions:azure:blob:provision"))
-//    implementation(project(":samples:copy-with-nifi:transfer"))
-//
-//    implementation(project(":extensions:azure:events"))
+    implementation(project(":extensions:azure:events"))
 //
 //    implementation(project(":data-protocols:ids"))
-//
-//    implementation(project(":extensions:atlas"))
-//    implementation(project(":samples:dataseed"))
 //
 //    implementation(project(":extensions:azure:vault"))
 //    implementation(project(":extensions:in-memory:policy-registry-memory"))
@@ -42,7 +34,7 @@ dependencies {
 
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.did.ResolverRuntime"
+    mainClassName = "org.eclipse.dataspaceconnector.did.ServiceRegistrationRuntime"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
