@@ -11,9 +11,12 @@ import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.iam.ion.dto.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.iam.ion.dto.ServiceDescriptor;
+import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
+import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidResolveResponse;
 import org.eclipse.dataspaceconnector.iam.ion.model.AnchorRequest;
 import org.eclipse.dataspaceconnector.iam.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.iam.ion.util.SortingNodeFactory;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -27,13 +30,15 @@ public class IonClientImpl implements IonClient {
 
     private final static String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0/identifiers/";
     private final String resolutionEndpoint;
+    private final TypeManager typeManager;
 
-    public IonClientImpl() {
-        this(DEFAULT_RESOLUTION_ENDPOINT);
+    public IonClientImpl(TypeManager typeManager) {
+        this(DEFAULT_RESOLUTION_ENDPOINT, typeManager);
     }
 
-    public IonClientImpl(String resolutionEndpoint) {
+    public IonClientImpl(String resolutionEndpoint, TypeManager typeManager) {
         this.resolutionEndpoint = resolutionEndpoint;
+        this.typeManager = typeManager;
     }
 
     @Override
@@ -156,7 +161,7 @@ public class IonClientImpl implements IonClient {
     }
 
     @Override
-    public Did resolve(String didUri) {
+    public DidDocument resolve(String didUri) {
         var rq = new Request.Builder()
                 .get()
                 .url(resolutionEndpoint + didUri)
@@ -165,8 +170,8 @@ public class IonClientImpl implements IonClient {
         try (var response = getOkHttpClient().newCall(rq).execute()) {
             if (response.isSuccessful()) {
                 var body = response.body().string();
-                System.out.println(body);
-                return null;
+                DidResolveResponse didResolveResponse = typeManager.readValue(body, DidResolveResponse.class);
+                return didResolveResponse.getDidDocument();
             }
             throw new IonRequestException("resolving the DID URI was unsuccessful: code = " + response.code() + " content= " + response.body().string());
         } catch (Exception ex) {
