@@ -1,3 +1,23 @@
+//
+//  Code based on TopologicalSort from Eclipse Jetty licensed under Apache 2.0 (https://www.eclipse.org/jetty/).
+//
+//  Original license notice:
+//
+//  ========================================================================
+//  Copyright (c) 1995-2018 Mort Bay Consulting Pty. Ltd.
+//  ------------------------------------------------------------------------
+//  All rights reserved. This program and the accompanying materials
+//  are made available under the terms of the Eclipse Public License v1.0
+//  and Apache License v2.0 which accompanies this distribution.
+//
+//      The Eclipse Public License is available at
+//      http://www.eclipse.org/legal/epl-v10.html
+//
+//      The Apache License v2.0 is available at
+//      http://www.opensource.org/licenses/apache2.0.php
+//
+//  You may elect to redistribute this code under either of these licenses.
+//  ========================================================================
 /*
  *  Copyright (c) 2020, 1995-2021 Microsoft Corporation
  *
@@ -13,10 +33,19 @@
  */
 package org.eclipse.dataspaceconnector.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
- * Performs a topological sort of a set of dependencies.
+ * Topologically sorts a set of dependencies.
  */
 public class TopologicalSort<T> {
     private final Map<T, Set<T>> dependencies = new HashMap<>();
@@ -24,7 +53,7 @@ public class TopologicalSort<T> {
     /**
      * Add a dependency to be considered in the sort.
      *
-     * @param dependent  The dependent item will be sorted after all its dependencies
+     * @param dependent The dependent item will be sorted after all its dependencies
      * @param dependency The dependency item, will be sorted before its dependent item
      */
     public void addDependency(T dependent, T dependency) {
@@ -55,9 +84,9 @@ public class TopologicalSort<T> {
     /**
      * Visit an item to be sorted.
      *
-     * @param item       the item to be visited
-     * @param visited    the items already visited
-     * @param sorted     the sorted items
+     * @param item the item to be visited
+     * @param visited the items already visited
+     * @param sorted the sorted items
      * @param comparator comparator used to sort dependencies
      */
     private void visit(T item, Set<T> visited, List<T> sorted, Comparator<T> comparator) {

@@ -22,7 +22,6 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":common:util"))
     implementation(project(":core:protocol:web"))
     implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
     implementation("jakarta.websocket:jakarta.websocket-api:${websocketVersion}")
@@ -31,7 +30,7 @@ dependencies {
     // extensions needed for integration testing
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":launchers:junit")))
 
 }
 

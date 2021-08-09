@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.common.http.loopback.LoopbackDispatcher;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.dispatcher.LoopbackDispatcher;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;

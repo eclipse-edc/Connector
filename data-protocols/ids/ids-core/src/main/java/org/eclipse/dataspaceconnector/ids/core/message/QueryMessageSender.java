@@ -33,7 +33,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-import static org.eclipse.dataspaceconnector.common.Cast.cast;
+import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
 
 /**
@@ -46,16 +46,16 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
     private final OkHttpClient httpClient;
     private final ObjectMapper mapper;
     private final Monitor monitor;
-    private final URI connectorName;
+    private final URI connectorId;
 
     private final IdentityService identityService;
 
-    public QueryMessageSender(String connectorName,
+    public QueryMessageSender(String connectorId,
                               IdentityService identityService,
                               OkHttpClient httpClient,
                               ObjectMapper mapper,
                               Monitor monitor) {
-        this.connectorName = URI.create(connectorName);
+        this.connectorId = URI.create(connectorId);
         this.identityService = identityService;
         this.httpClient = httpClient;
         this.mapper = mapper;
@@ -79,7 +79,7 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
                 // FIXME handle timezone issue ._issued_(gregorianNow())
                 ._modelVersion_(VERSION)
                 ._securityToken_(token)
-                ._issuerConnector_(connectorName)
+                ._issuerConnector_(this.connectorId)
 //                ._queryLanguage_(queryRequest.getQueryLanguage())  // TODO report that this type should not be an Enum
                 .build();
         queryMessage.setProperty("query", queryRequest.getQuery());

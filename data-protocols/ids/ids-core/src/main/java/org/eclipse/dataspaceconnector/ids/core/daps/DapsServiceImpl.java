@@ -23,11 +23,11 @@ import org.jetbrains.annotations.Nullable;
  * A DAPS implementation that delegates to the underlying {@link IdentityService}.
  */
 public class DapsServiceImpl implements DapsService {
-    private final String connectorName;
+    private final String connectorId;
     private final IdentityService identityService;
 
-    public DapsServiceImpl(String connectorName, IdentityService identityService) {
-        this.connectorName = connectorName;
+    public DapsServiceImpl(String connectorId, IdentityService identityService) {
+        this.connectorId = connectorId;
         this.identityService = identityService;
     }
 
@@ -37,6 +37,6 @@ public class DapsServiceImpl implements DapsService {
             return new VerificationResult("No token provided");
         }
 
-        return identityService.verifyJwtToken(token, connectorName);
+        return identityService.verifyJwtToken(token, connectorId);
     }
 }

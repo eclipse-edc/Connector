@@ -34,8 +34,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.Set;
 
-import static org.eclipse.dataspaceconnector.common.settings.SettingsHelper.getConnectorId;
-
 /**
  * Implements the IDS Controller REST API.
  */
@@ -60,14 +58,14 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         context.registerService(IdsDescriptorService.class, descriptorService);
 
         var identityService = context.getService(IdentityService.class);
-        var connectorName = getConnectorId(context);
-        var dapsService = new DapsServiceImpl(connectorName, identityService);
+        var connectorId = context.getConnectorId();
+        var dapsService = new DapsServiceImpl(connectorId, identityService);
         context.registerService(DapsService.class, dapsService);
 
         var policyService = new IdsPolicyServiceImpl();
         context.registerService(IdsPolicyService.class, policyService);
 
-        assembleIdsDispatcher(connectorName, context, identityService);
+        assembleIdsDispatcher(connectorId, context, identityService);
 
         monitor.info("Initialized IDS Core extension");
     }
@@ -85,7 +83,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     /**
      * Assembles the IDS remote message dispatcher and its senders.
      */
-    private void assembleIdsDispatcher(String connectorName, ServiceExtensionContext context, IdentityService identityService) {
+    private void assembleIdsDispatcher(String connectorId, ServiceExtensionContext context, IdentityService identityService) {
         var processStore = context.getService(TransferProcessStore.class);
         var vault = context.getService(Vault.class);
         var httpClient = context.getService(OkHttpClient.class);
@@ -96,8 +94,8 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         var dispatcher = new IdsRemoteMessageDispatcher();
 
-        dispatcher.register(new QueryMessageSender(connectorName, identityService, httpClient, mapper, monitor));
-        dispatcher.register(new DataRequestMessageSender(connectorName, identityService, processStore, vault, httpClient, mapper, monitor));
+        dispatcher.register(new QueryMessageSender(connectorId, identityService, httpClient, mapper, monitor));
+        dispatcher.register(new DataRequestMessageSender(connectorId, identityService, processStore, vault, httpClient, mapper, monitor));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(dispatcher);

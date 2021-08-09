@@ -30,8 +30,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-import static org.eclipse.dataspaceconnector.common.Cast.cast;
-
 /**
  *
  */
@@ -63,7 +61,7 @@ public class DemoUiApiController {
                     .query("select *")
                     .protocol("ids-rest").build();
 
-            CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
+            @SuppressWarnings({"unchecked", "rawtypes"}) CompletableFuture<List<String>> future = (CompletableFuture) dispatcherRegistry.send(List.class, query, () -> null);
 
             var artifacts = future.get();
             return Response.ok().entity(artifacts).build();

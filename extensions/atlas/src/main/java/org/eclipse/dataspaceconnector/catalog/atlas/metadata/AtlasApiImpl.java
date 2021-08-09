@@ -33,7 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static org.eclipse.dataspaceconnector.catalog.atlas.dto.Functions.*;
-import static org.eclipse.dataspaceconnector.common.http.HttpUtil.addBasicAuth;
+import static org.eclipse.dataspaceconnector.catalog.atlas.metadata.HttpUtil.addBasicAuth;
 
 
 public class AtlasApiImpl implements AtlasApi {

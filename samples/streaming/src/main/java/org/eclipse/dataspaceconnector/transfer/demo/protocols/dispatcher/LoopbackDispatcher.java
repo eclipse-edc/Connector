@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.http.loopback;
+package org.eclipse.dataspaceconnector.transfer.demo.protocols.dispatcher;
 
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
@@ -58,6 +58,7 @@ public class LoopbackDispatcher implements RemoteMessageDispatcher {
 
             processManager.initiateProviderRequest(requestCopy);
         }
+        //noinspection unchecked
         return (CompletableFuture<T>) future;
     }
 }

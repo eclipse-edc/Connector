@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.fixture;
 
-import org.eclipse.dataspaceconnector.common.testfixtures.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;

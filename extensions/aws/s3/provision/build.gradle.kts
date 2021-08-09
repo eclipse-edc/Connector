@@ -27,6 +27,7 @@ dependencies {
     implementation("software.amazon.awssdk:iam:${awsVersion}")
 
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation(testFixtures(project(":extensions:aws:aws-test")))
 
 }
 

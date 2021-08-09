@@ -25,8 +25,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 import java.util.Objects;
 import java.util.Set;
 
-import static org.eclipse.dataspaceconnector.common.settings.SettingsHelper.getConnectorId;
-
 public class AzureEventExtension implements ServiceExtension {
 
     private static final String DEFAULT_TOPIC_NAME = "connector-events";
@@ -75,7 +73,7 @@ public class AzureEventExtension implements ServiceExtension {
                 .buildEventGridEventPublisherAsyncClient();
 
 
-        AzureEventGridPublisher publisher = new AzureEventGridPublisher(getConnectorId(context), monitor, publisherClient);
+        AzureEventGridPublisher publisher = new AzureEventGridPublisher(context.getConnectorId(), monitor, publisherClient);
 
         var processObservable = context.getService(TransferProcessObservable.class, true);
         if (processObservable != null) {

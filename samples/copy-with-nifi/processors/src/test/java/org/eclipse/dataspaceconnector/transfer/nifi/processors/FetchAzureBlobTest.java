@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.transfer.nifi.processors;
 import org.apache.nifi.util.MockFlowFile;
 import org.apache.nifi.util.TestRunner;
 import org.apache.nifi.util.TestRunners;
+import org.eclipse.dataspaceconnector.azure.testfixtures.AbstractAzureBlobTest;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.common.testfixtures.AbstractAzureBlobTest;
-import org.eclipse.dataspaceconnector.common.testfixtures.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -33,7 +33,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.*;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.SAMPLE_FILE_RESOURCE_NAME;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getResourcePath;
 
 @IntegrationTest
 @ExtendWith(EdcExtension.class)

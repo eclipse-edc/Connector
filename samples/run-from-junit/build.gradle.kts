@@ -15,7 +15,9 @@
 plugins {
     `java-library`
 }
+
 val storageBlobVersion: String by project;
+val jupiterVersion: String by project
 
 dependencies {
     api(project(":core:bootstrap"))
@@ -31,9 +33,9 @@ dependencies {
     testImplementation(project(":extensions:azure:vault"))
     testImplementation("com.azure:azure-storage-blob:${storageBlobVersion}")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
-    testImplementation(testFixtures(project(":common:util")))
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testImplementation(testFixtures(project(":launchers:junit")))
 
 
 }

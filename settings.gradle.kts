@@ -36,9 +36,11 @@ include(":data-protocols:ids:ids-spi")
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws:s3:provision")
 include(":extensions:aws:s3:s3-schema")
+include(":extensions:aws:aws-test")
 include(":extensions:azure:blob:blob-schema")
 include(":extensions:azure:blob:provision")
 include(":extensions:azure:events")
+include(":extensions:azure:azure-test")
 include(":extensions:azure:transfer-process-store-cosmos")
 include(":extensions:azure:vault")
 include(":extensions:azure:blob:api")
@@ -53,6 +55,7 @@ include(":extensions:iam:oauth2")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:demo-e2e")
+include(":launchers:junit")
 
 // modules for code samples
 include(":samples:commandline:client")

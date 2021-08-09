@@ -27,6 +27,12 @@ import java.util.List;
 public interface ServiceExtensionContext {
 
     /**
+     * Fetches the unique ID of the connector. If the {@code dataspaceconnector.connector.name} config value has been set, that value is returned; otherwise  a random
+     * name is chosen.
+     */
+    public String getConnectorId();
+
+    /**
      * Returns the system monitor.
      */
     Monitor getMonitor();
