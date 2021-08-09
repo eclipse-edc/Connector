@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.core;
+package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;

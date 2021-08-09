@@ -34,6 +34,7 @@ import org.eclipse.dataspaceconnector.transfer.core.protocol.provider.RemoteMess
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 
 import java.util.Set;
