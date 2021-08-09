@@ -30,4 +30,9 @@ public class InMemoryDidDocumentStore implements ObjectStore<DidDocument> {
     public void save(DidDocument didDocument) {
         inMemoryMap.put(didDocument.getId(), didDocument);
     }
+
+    @Override
+    public DidDocument getLatest() {
+        return inMemoryMap.entrySet().stream().sorted().findFirst().map(Map.Entry::getValue).orElse(null);
+    }
 }
