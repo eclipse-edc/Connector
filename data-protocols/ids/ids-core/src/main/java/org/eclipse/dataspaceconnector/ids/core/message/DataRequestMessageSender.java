@@ -43,21 +43,21 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
     private final Monitor monitor;
-    private final URI connectorName;
+    private final URI connectorId;
     private final IdentityService identityService;
     private final TransferProcessStore transferProcessStore;
     private final Vault vault;
     private final OkHttpClient httpClient;
     private final ObjectMapper mapper;
 
-    public DataRequestMessageSender(String connectorName,
+    public DataRequestMessageSender(String connectorId,
                                     IdentityService identityService,
                                     TransferProcessStore transferProcessStore,
                                     Vault vault,
                                     OkHttpClient httpClient,
                                     ObjectMapper mapper,
                                     Monitor monitor) {
-        this.connectorName = URI.create(connectorName);
+        this.connectorId = URI.create(connectorId);
         this.identityService = identityService;
         this.transferProcessStore = transferProcessStore;
         this.vault = vault;
@@ -83,7 +83,7 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
                 // FIXME handle timezone issue ._issued_(gregorianNow())
                 ._modelVersion_(DataRequestMessageSender.VERSION)
                 ._securityToken_(token)
-                ._issuerConnector_(connectorName)
+                ._issuerConnector_(this.connectorId)
                 ._requestedArtifact_(URI.create(dataRequest.getDataEntry().getId()))
                 .build();
         artifactMessage.setProperty("dataspaceconnector-data-destination", dataRequest.getDataDestination());
