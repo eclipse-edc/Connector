@@ -110,7 +110,7 @@ public class JettyService {
 
     public void registerServlet(String contextPath, String path, Servlet servlet) {
         ServletHolder servletHolder = new ServletHolder(Source.EMBEDDED);
-        servletHolder.setName("DA-GX");
+        servletHolder.setName("EDC");
         servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
 

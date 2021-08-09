@@ -39,9 +39,9 @@ import java.util.List;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
- * A JUnit extension for running an embedded DA-GX runtime as part of a test fixture.
+ * A JUnit extension for running an embedded EDC runtime as part of a test fixture.
  * <p>
- * This extension attaches a DA-GX runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
+ * This extension attaches a EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
 public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();

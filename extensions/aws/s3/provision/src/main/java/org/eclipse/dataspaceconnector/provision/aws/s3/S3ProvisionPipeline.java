@@ -107,7 +107,7 @@ class S3ProvisionPipeline {
         String userArn = response.user().arn();
         CreateRoleRequest.Builder roleBuilder = CreateRoleRequest.builder();
         Tag tag = Tag.builder().key("dataspaceconnector:process").value(resourceDefinition.getTransferProcessId()).build();
-        roleBuilder.roleName(resourceDefinition.getTransferProcessId()).description("DA-GX transfer process role")
+        roleBuilder.roleName(resourceDefinition.getTransferProcessId()).description("EDC transfer process role")
                 .assumeRolePolicyDocument(format(ASSUME_ROLE_TRUST, userArn)).maxSessionDuration(sessionDuration).tags(tag);
         monitor.debug("S3ProvisionPipeline: create role for user" + userArn);
         return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).createRole(roleBuilder.build());
