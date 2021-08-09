@@ -53,9 +53,11 @@ include(":extensions:in-memory:transfer-store-memory")
 include(":extensions:iam:iam-mock")
 include(":extensions:iam:oauth2")
 
+
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
 include(":launchers:demo-e2e")
+include(":launchers:did-resolver")
 include(":launchers:junit")
 
 // modules for code samples
@@ -72,6 +74,9 @@ include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
 include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
+
+// all implementations during/regarding the GaiaX Hackathon should go here:
+include(":samples:gaiax-hackathon-1:ion")
 
 // extension points for a connector
 include(":spi")
