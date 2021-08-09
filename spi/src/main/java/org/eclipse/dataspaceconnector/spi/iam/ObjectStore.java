@@ -8,4 +8,6 @@ public interface ObjectStore<T> {
     List<T> getAfter(String continuationToken);
 
     void save(T didDocument);
+
+    T getLatest();
 }

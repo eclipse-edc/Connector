@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.samples.identity;
 
+import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
@@ -62,7 +63,8 @@ public class RegistrationServiceExtension implements ServiceExtension {
         webService.registerController(regSrv);
 
         // create the crawler that periodically browses ION for new DIDs
-        var ionCrawler = new IonCrawler(context.getMonitor(), didDocumentStore);
+        var ionClient = new IonClientImpl(context.getTypeManager());
+        var ionCrawler = new IonCrawler(context.getMonitor(), didDocumentStore, ionClient);
         context.registerService(Crawler.class, ionCrawler);
 
         context.getMonitor().info("RegistrationService ready to go");
