@@ -103,6 +103,7 @@ include(":samples:other:custom-runtime")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
 include(":samples:gaiax-hackathon-1:identity:ion")
+include(":samples:gaiax-hackathon-1:identity:registration-service")
 
 // extension points for a connector
 include(":spi")
