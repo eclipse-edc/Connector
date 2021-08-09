@@ -80,7 +80,6 @@ include(":extensions:catalog:catalog-service")
 include(":extensions:transfer-functions:transfer-functions-spi")
 include(":extensions:transfer-functions:transfer-functions-core")
 
-
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
 include(":launchers:junit")
