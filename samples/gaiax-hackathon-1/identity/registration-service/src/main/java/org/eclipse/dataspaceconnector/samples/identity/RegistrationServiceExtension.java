@@ -14,9 +14,11 @@
 
 package org.eclipse.dataspaceconnector.samples.identity;
 
+import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.DidDocumentStore;
+import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
+import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.quartz.*;
@@ -48,11 +50,16 @@ public class RegistrationServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
-        var didDocumentStore = context.getService(DidDocumentStore.class);
+        var didDocumentStore = (ObjectStore<DidDocument>) context.getService(ObjectStore.class);
+
 
         // create the registration service, which offers a REST API
         var regSrv = new RegistrationServiceImpl(context.getMonitor(), didDocumentStore);
         context.registerService(RegistrationService.class, regSrv);
+
+        // register the service as REST controller
+        var webService = context.getService(WebService.class);
+        webService.registerController(regSrv);
 
         // create the crawler that periodically browses ION for new DIDs
         var ionCrawler = new IonCrawler(context.getMonitor(), didDocumentStore);

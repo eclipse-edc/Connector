@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.iam.ion;
 
 import org.eclipse.dataspaceconnector.iam.ion.dto.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.iam.ion.dto.ServiceDescriptor;
+import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.model.AnchorRequest;
 
 import java.util.List;
@@ -14,5 +15,5 @@ public interface IonClient {
 
     void submit(AnchorRequest request);
 
-    Did resolve(String identifier);
+    DidDocument resolve(String identifier);
 }
