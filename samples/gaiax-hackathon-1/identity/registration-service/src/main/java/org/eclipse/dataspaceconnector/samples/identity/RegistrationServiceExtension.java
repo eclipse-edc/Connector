@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.samples.identity;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.iam.DidDocumentStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -40,19 +41,22 @@ public class RegistrationServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return ServiceExtension.super.requires();
+        return Set.of("edc:did-documentstore");
     }
 
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
-        var regSrv = new RegistrationServiceImpl(context.getMonitor());
+        var didDocumentStore = context.getService(DidDocumentStore.class);
+
+        // create the registration service, which offers a REST API
+        var regSrv = new RegistrationServiceImpl(context.getMonitor(), didDocumentStore);
         context.registerService(RegistrationService.class, regSrv);
 
-        var ionCrawler = new IonCrawler(context.getMonitor());
+        // create the crawler that periodically browses ION for new DIDs
+        var ionCrawler = new IonCrawler(context.getMonitor(), didDocumentStore);
         context.registerService(Crawler.class, ionCrawler);
-
 
         context.getMonitor().info("RegistrationService ready to go");
     }

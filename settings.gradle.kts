@@ -78,6 +78,7 @@ include(":samples:demo-contract-framework")
 // all implementations during/regarding the GaiaX Hackathon should go here:
 include(":samples:gaiax-hackathon-1:identity:ion")
 include(":samples:gaiax-hackathon-1:identity:registration-service")
+include(":samples:gaiax-hackathon-1:identity:did-document-store-inmem")
 
 // extension points for a connector
 include(":spi")
