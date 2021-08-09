@@ -16,13 +16,3 @@ dependencies {
     implementation("io.github.erdtman:java-json-canonicalization:1.1")
     implementation("org.bouncycastle:bcprov-jdk15on:1.69") // for argon2id
 }
-
-
-publishing {
-    publications {
-        create<MavenPublication>("iam.iam-mock") {
-            artifactId = "iam.iam-mock"
-            from(components["java"])
-        }
-    }
-}
