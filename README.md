@@ -3,6 +3,8 @@
 > The Eclipse DataspaceConnector project is intended as lightweight component to enable sovereign data sharing and policy
 > handling.
 
+_Note: items marked with [TBW] indicate that the respective documentation is yet to be written_
+
 ## Built with
 
 One of the guiding principles in developing the connector is simplicity and keeping a small footprint with as little
@@ -24,26 +26,84 @@ cd DataSpaceConnector ```
 ./gradlew clean build
 ```
 
-That will build the connector and run tests.
+That will build the connector and run unit tests.
 
 ## Run your first connector
 
-In order to get up and running
+Connectors can be started using the concept of "launchers", which are essentially compositions of modules defined as
+gradle build files. There is a `basic` launcher, which launches a simple connector that has no cloud-based extensions
+whatsoever.
+
+In a shell run
+
+```shell
+./gradlew :launchers:basic:shadowJar
+java -jar launchers/basic/build/libs/dataspaceconnector-basic.jar
+```
+
+Once it says `"Dataspace Connector ready"` the connector is up and running.
+
+More information about the extension concept can be found here [TBW].
+
+More information about shadowJar can be found [here](https://github.com/johnrengelman/shadow).
 
 # Directory structure
 
-The runtime can be configured with custom modules be enabling various build profiles.
+### `spi`
 
-By default, no vault is configured. To build with the file system vault, enable the security profile:
+This is the primary extension point for the connector. It contains all necessary interfaces that need to be implemented
+as well as essential model classes and enums. Basically, the `spi` modules defines the extent to what users can
+customize and extend the code.
 
-```./gradlew -Dsecurity.type=fs clean shadowJar ```
+### `core`
 
-The runtime can then be started from the root clone directory using:
+Contains all absolutely essential building that is necessary to run a connector such as `TransferProcessManager`,
+`ProvisionManager`, `DataFlowManager`, various model classes, the protocol engine and the policy piece. While it is
+possible to build a connector with just the code from the edc module, it will have very limited capabilities to
+communicate and to interact with a data space.
 
-``` java -Dedc.vault=secrets/edc-vault.properties -Dedc.keystore=secrets/edc-test-keystore.jks -Dedc.keystore.password=test123 -jar runtime/build/libs/edc-runtime.jar ```
+### `extensions`
 
-Note the secrets directory referenced above is configured to be ignored. A test key store and vault must be added (or
-the launch command modified to point to different locations). Also, set the keystore password accordingly.
+This contains code that extends the connector's core functionality with technology- or cloud-provider-specific code. For
+example a transfer process store based on Azure CosmosDB, a secure vault based on Azure KeyVault, etc. This is where
+technology- and cloud-specific implementations should go.
+
+If someone where to create a configuration service based on Postgres, then the implementation should go into
+the `extensions/database/configuration-postgres` module.
+
+### `launchers`
+
+Launchers are essentially connector packages that are runnable. What modules get included in the build (and thus: what
+capabilities a connector has) is defined by the `build.gradle.kts` file inside the launcher subdirectory. That's also
+where a Java class containing a `main` method should go. We will call that class a "runtime" and in order for the
+connector to become operational the `runtime` needs to perform several important tasks. For an example take a look at
+[this runtime](launchers/basic/src/main/java/org/eclipse/dataspaceconnector/runtime/ConnectorRuntime.java)
+
+### `data-protocols`
+
+Contains implementations for communication protocols a connector might use, such as IDS.
+
+### `samples`
+
+This is similar to the extensions module, but focuses more on showing specific use cases rather than technology
+extensions. For example, it shows how to run a connector from a unit test in order to try out functionality quickly or
+how to implement an outward-facing REST API for a connector.
+
+### `common`
+
+Contains utility code such as collection utils, string utils and helper classes.
+
+### `scripts`
+
+Contains several scripts to deploy a connector in an AKS cluster on Microsoft Azure using Terraform.
+
+## Roadmap
+
+- Contract negotiation: two connectors negotiate the conditions under which the exchange data
+- (Distributed) identity: every connector within a data space can verify the identity and integrity of every other
+  connector.
+- Catalog services: A cataloging service will be implemented that provides an index of what data is being offered and by
+  which connector.
 
 ## Contributing
 
