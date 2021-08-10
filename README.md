@@ -1,24 +1,36 @@
-# Project
+# About The Project
 
-> The Data Appliance GX project is intended as a proving ground for GAIA-X and data transfer techologies.
+> The Eclipse DataspaceConnector project is intended as lightweight component to enable sovereign data sharing and policy
+> handling.
+
+## Built with
+
+One of the guiding principles in developing the connector is simplicity and keeping a small footprint with as little
+external dependencies as possible. We do not want to force any third-party dependencies onto our users, so we aim to
+avoid big frameworks like [Apache Commons](https://commons.apache.org/), [Google Guava](https://github.com/google/guava)
+or the [Spring framework](https://spring.io/). The connector is a plain Java application built with Gradle.
 
 # Getting Started
 
+## Checkout and build code
+
 The project requires JDK 11+. To get started:
 
-``` git clone https://github.com/microsoft/Data-Appliance-GX ```
+``` shell 
+git clone git@github.com:eclipse-dataspaceconnector/DataSpaceConnector.git
 
-``` cd Data-Appliance-GX ```
+cd DataSpaceConnector ```
 
-```./gradlew clean shadowJar```
+./gradlew clean build
+```
 
-To launch the runtime and client from the root build directory, respectively:
+That will build the connector and run tests.
 
-```java -jar runtime/build/libs/edc-runtime.jar```
+## Run your first connector
 
-```java -jar client/build/libs/edc-client.jar```
+In order to get up and running
 
-# Build Profiles
+# Directory structure
 
 The runtime can be configured with custom modules be enabling various build profiles.
 
@@ -32,74 +44,6 @@ The runtime can then be started from the root clone directory using:
 
 Note the secrets directory referenced above is configured to be ignored. A test key store and vault must be added (or
 the launch command modified to point to different locations). Also, set the keystore password accordingly.
-
-# A word on launchers
-
-The code base is organized in many different modules, some of which are grouped together using so-called "feature
-bundles". For example, accessing IDS requires a total of 4 modules, which are grouped together in the `ids` feature
-bundle. So developers wanting to use that feature only need to reference `ids` instead all of the 4 modules
-individually. This allows for a flexible and easy composition of the runtime. We'll call those compositions "
-launchers".
-
-A distribution basically is a Gradle module that - in its simplest form - consists only of a `build.gradle.kts` file
-which declares its dependencies and how the distribution is assembled, e.g. in a `*.jar` file, as a native binary, as
-docker image etc. It may also contain further assets like configuration files. An example of this is shown in
-the `launchers/demo` folder.
-
-# Building and running with Docker
-
-We suggest that all docker interaction be done with a Gradle plugin, because it makes it very easy to encapsulate
-complex docker commands. An example of its usage can be seen in `launchers/demo/build.gradle.kts`
-
-The docker image is built with
-
-```shell
-./gradlew clean buildDemo
-```
-
-which will assemble a JAR file that contains all required modules for the "Demo" configuration (i.e. file-based config
-and vaults). It will also generate a `Dockerfile` in `build/docker` and build an image based upon it.
-
-The container can then be built and started with
-
-```shell
-./gradlew startDemo
-```
-
-which will launch a docker container based on the previously built image.
-
-# Setup Azure resources
-
-*NB: This section is currently out-of-date and will be revised shortly*
-
-A working connector instance will use several resources on Azure, all of which can be easily deployed using a so-called
-"genesis script" located at `./scripts/genesis.sh`. Most Azure resources are grouped together in so-called "resource
-groups" which makes management quite easy. The Genesis Script will take care of provisioning the most essential
-resources and put them in a resource group:
-
-- KeyVault
-- Blob Store Account
-- an AKS cluster
-- two app registrations / service principals
-
-App registrations are used to authenticate apps against Azure AD and are secured with certificates, so before
-provisioning any resources, the Genesis Script will generate a certificate (interactively) and upload it to the app
-registrations.
-
-The script requires Azure CLI (`az`) and `jq` (a JSON processor) and you need to be logged in to Azure CLI. Once that's
-done, simply `cd scripts` and invoke
-
-```bash
-./genesis.sh <optional-prefix>
-```
-
-the `<optional-prefix>` is not necessary, but if specified it should be a string without special characters, as it is
-used as resource suffix in the Azure resources. If omitted, the current Posix timestamp is used.
-
-After having completed its work, which could take >10mins, the scripts can automatically cleanup resources, please
-observe the cli output.
-
-_Note that the Genesis Script does not deploy any applications such as Nifi, this is handled in a second stage!_
 
 ## Contributing
 

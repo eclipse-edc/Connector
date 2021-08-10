@@ -25,12 +25,7 @@ import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.system.ExtensionLoader;
 import org.eclipse.dataspaceconnector.system.ServiceLocator;
 import org.eclipse.dataspaceconnector.system.ServiceLocatorImpl;
-import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
-import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
-import org.junit.jupiter.api.extension.ExtensionContext;
-import org.junit.jupiter.api.extension.ParameterContext;
-import org.junit.jupiter.api.extension.ParameterResolutionException;
-import org.junit.jupiter.api.extension.ParameterResolver;
+import org.junit.jupiter.api.extension.*;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;

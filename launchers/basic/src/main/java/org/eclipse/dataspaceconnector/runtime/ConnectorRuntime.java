@@ -28,7 +28,7 @@ import static org.eclipse.dataspaceconnector.system.ExtensionLoader.*;
 /**
  * Main entrypoint for the default runtime.
  */
-public class EdcRuntime {
+public class ConnectorRuntime {
 
     public static void main(String... arg) {
         TypeManager typeManager = new TypeManager();
