@@ -1,16 +1,21 @@
 # About The Project
 
-> The Eclipse DataspaceConnector project is intended as lightweight component to enable sovereign data sharing and policy
-> handling.
+> The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will implement the International Data Spaces standard (IDS) as well as relevant protocols associated with the GAIA-X project. The connector is designed in an extensible way so that it can support alternative protocols and integrate in various ecosystems.
+
+Please also refer to:
+
+- The [Eclipse Project Homepage](https://projects.eclipse.org/proposals/eclipse-dataspace-connector)
+- [International Data Spaces](https://www.internationaldataspaces.org)
+- The [GAIA-X](https://www.data-infrastructure.eu) project
 
 _Note: items marked with [TBW] indicate that the respective documentation is yet to be written_
 
 ## Built with
 
-One of the guiding principles in developing the connector is simplicity and keeping a small footprint with as little
-external dependencies as possible. We do not want to force any third-party dependencies onto our users, so we aim to
-avoid big frameworks like [Apache Commons](https://commons.apache.org/), [Google Guava](https://github.com/google/guava)
-or the [Spring framework](https://spring.io/). The connector is a plain Java application built with Gradle.
+One of the guiding principles in developing the connector is simplicity and keeping the core small and efficient with as
+little external dependencies as possible to avoid version conflicts. We do not want to force any third-party
+dependencies onto our users, so we aim to avoid any of the big frameworks. The connector is a plain Java application
+built with Gradle.
 
 # Getting Started
 
@@ -30,8 +35,8 @@ That will build the connector and run unit tests.
 
 ## Run your first connector
 
-Connectors can be started using the concept of "launchers", which are essentially compositions of modules defined as
-gradle build files. There is a `basic` launcher, which launches a simple connector that has no cloud-based extensions
+Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined
+as gradle build files. There is a `basic` launcher, which launches a simple connector that has no cloud-based extensions
 whatsoever.
 
 In a shell run
@@ -59,7 +64,7 @@ customize and extend the code.
 
 Contains all absolutely essential building that is necessary to run a connector such as `TransferProcessManager`,
 `ProvisionManager`, `DataFlowManager`, various model classes, the protocol engine and the policy piece. While it is
-possible to build a connector with just the code from the edc module, it will have very limited capabilities to
+possible to build a connector with just the code from the `core` module, it will have very limited capabilities to
 communicate and to interact with a data space.
 
 ### `extensions`
@@ -106,6 +111,7 @@ Contains several scripts to deploy a connector in an AKS cluster on Microsoft Az
   which connector.
 
 ## Contributing
+
 Please find the contributing guidelines here [TBW]
 
 ## Trademarks
