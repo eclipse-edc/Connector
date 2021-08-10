@@ -68,7 +68,7 @@ This contains code that extends the connector's core functionality with technolo
 example a transfer process store based on Azure CosmosDB, a secure vault based on Azure KeyVault, etc. This is where
 technology- and cloud-specific implementations should go.
 
-If someone where to create a configuration service based on Postgres, then the implementation should go into
+If someone were to create a configuration service based on Postgres, then the implementation should go into
 the `extensions/database/configuration-postgres` module.
 
 ### `launchers`
