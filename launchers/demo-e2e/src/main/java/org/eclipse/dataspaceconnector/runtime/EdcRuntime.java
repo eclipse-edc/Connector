@@ -53,7 +53,7 @@ public class EdcRuntime {
             monitor.severe("Error booting runtime", e);
             System.exit(-1);  // stop the process
         }
-        monitor.info("DA-GX ready");
+        monitor.info("EDC ready");
 
     }
 
@@ -62,7 +62,7 @@ public class EdcRuntime {
         while (iter.hasPrevious()) {
             iter.previous().shutdown();
         }
-        monitor.info("DA-GX shutdown complete");
+        monitor.info("EDC shutdown complete");
     }
 
 

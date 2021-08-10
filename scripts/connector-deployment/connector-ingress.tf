@@ -13,7 +13,7 @@
 //  early_renewal_hours   = 12
 //  subject {
 //    common_name  = var.public-ip.fqdn
-//    organization = "Gaia-X Data Appliance"
+//    organization = Eclipse Dataspace Connector
 //  }
 //  dns_names = [
 //    var.public-ip.fqdn]

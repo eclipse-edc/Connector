@@ -66,7 +66,7 @@ resource "kubernetes_deployment" "connector-deployment" {
       spec {
         container {
           name = "connector"
-          image = "ghcr.io/microsoft/data-appliance-gx/dagx-demo:latest"
+          image = "<ADD_IMAGE_NAME_HERE>"
           image_pull_policy = "Always"
           env {
             name = "CLIENTID"
