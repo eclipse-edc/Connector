@@ -11,6 +11,7 @@ plugins {
 
 
 dependencies {
+    implementation(project(":core:bootstrap"))
     implementation(project(":common:util"))
     implementation(project(":core:protocol:web"))
 //    implementation(project(":extensions:azure:events"))
