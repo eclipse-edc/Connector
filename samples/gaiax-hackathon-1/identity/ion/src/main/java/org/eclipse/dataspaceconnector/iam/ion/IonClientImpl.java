@@ -13,7 +13,7 @@ import org.eclipse.dataspaceconnector.iam.ion.dto.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.iam.ion.dto.ServiceDescriptor;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidResolveResponse;
-import org.eclipse.dataspaceconnector.iam.ion.model.AnchorRequest;
+import org.eclipse.dataspaceconnector.iam.ion.model.IonRequest;
 import org.eclipse.dataspaceconnector.iam.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.iam.ion.util.SortingNodeFactory;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -28,16 +28,18 @@ import java.util.Objects;
 
 public class IonClientImpl implements IonClient {
 
-    private final static String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0/identifiers/";
-    private final String resolutionEndpoint;
+    private final static String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";
+    private final static String IDENTIFIERS_PATH = "/identifiers";
+    private final static String OPERATIONS_PATH = "/operations";
+    private final String ionUrl;
     private final TypeManager typeManager;
 
     public IonClientImpl(TypeManager typeManager) {
         this(DEFAULT_RESOLUTION_ENDPOINT, typeManager);
     }
 
-    public IonClientImpl(String resolutionEndpoint, TypeManager typeManager) {
-        this.resolutionEndpoint = resolutionEndpoint;
+    public IonClientImpl(String ionEndpoint, TypeManager typeManager) {
+        ionUrl = ionEndpoint;
         this.typeManager = typeManager;
     }
 
@@ -52,8 +54,70 @@ public class IonClientImpl implements IonClient {
     }
 
     @Override
-    public void submit(AnchorRequest anchorRequest) {
-        System.out.println("Getting challenge from " + anchorRequest.getChallengeEndpoint());
+    public DidDocument submit(IonRequest request) {
+        var requestBodyJson = typeManager.writeValueAsString(request);
+
+        MediaType json = MediaType.get("application/json; charset=utf-8");
+        RequestBody okHttpRequestbody = RequestBody.create(requestBodyJson, json);
+        var solutionRequest = new Request.Builder()
+                .url(ionUrl + OPERATIONS_PATH)
+                .post(okHttpRequestbody)
+                .header("Content-Type", "application/json")
+                .build();
+
+        var client = getOkHttpClient();
+
+        try (var solutionResponse = client.newCall(solutionRequest).execute()) {
+
+            String responseBodyJson = solutionResponse.body().string();
+            if (solutionResponse.isSuccessful()) {
+                var didResponse = typeManager.readValue(responseBodyJson, DidResolveResponse.class);
+                return didResponse.getDidDocument();
+            } else {
+                if (solutionResponse.code() >= 500) {
+                    throw new IonRequestException("Unexpected 5xx response " + responseBodyJson);
+                } else if (solutionResponse.code() >= 400) {
+                    //means bad request, should retry
+                    throw new IonRequestException("Bad Request, please retry with another challenge");
+                } else if (solutionResponse.code() >= 300) {
+                    throw new IonRequestException("Unexpected 3xx response: " + solutionResponse.message());
+                }
+                throw new IonRequestException("Unexpected response: " + solutionResponse.code() + ", " + responseBodyJson);
+            }
+
+        } catch (Exception ex) {
+            throw new IonException(ex);
+        }
+    }
+
+    @Override
+    public DidDocument resolve(String didUri) {
+        var rq = new Request.Builder()
+                .get()
+                .url(ionUrl + IDENTIFIERS_PATH + "/" + didUri)
+                .build();
+
+        try (var response = getOkHttpClient().newCall(rq).execute()) {
+            if (response.isSuccessful()) {
+                var body = response.body().string();
+                DidResolveResponse didResolveResponse = typeManager.readValue(body, DidResolveResponse.class);
+                return didResolveResponse.getDidDocument();
+            }
+            throw new IonRequestException("resolving the DID URI was unsuccessful: code = " + response.code() + " content= " + response.body().string());
+        } catch (Exception ex) {
+            throw new IonRequestException(ex);
+        }
+    }
+
+    @NotNull
+    private OkHttpClient getOkHttpClient() {
+        var client = new OkHttpClient.Builder()
+                .build();
+        return client;
+    }
+
+    public void submitWithChallengeResponse(IonRequest request, String challengeEndpoint, String solutionEndpoint) {
+        System.out.println("Getting challenge from " + challengeEndpoint);
 
         OkHttpClient client = getOkHttpClient();
         ObjectMapper objectMapper = JsonMapper.builder()
@@ -61,7 +125,7 @@ public class IonClientImpl implements IonClient {
                 .build();
 
         var rq = new Request.Builder().get()
-                .url(anchorRequest.getChallengeEndpoint())
+                .url(challengeEndpoint)
                 .build();
         String challengeNonce;
         String largestAllowedHash;
@@ -87,7 +151,7 @@ public class IonClientImpl implements IonClient {
         // https://mkyong.com/java/java-password-hashing-with-argon2/
         var startTime = new Date();
 
-        String requestBodyJson = JsonCanonicalizer.canonicalizeAsString(anchorRequest.getRequestBody());
+        String requestBodyJson = JsonCanonicalizer.canonicalizeAsString(request);
 
         String answerHashString;
         String answerNonce, answerNonceHex;
@@ -128,7 +192,7 @@ public class IonClientImpl implements IonClient {
         MediaType json = MediaType.get("application/json; charset=utf-8");
         RequestBody okHttpRequestbody = RequestBody.create(requestBodyJson, json);
         var solutionRequest = new Request.Builder()
-                .url(anchorRequest.getSolutionEndpoint())
+                .url(solutionEndpoint)
                 .post(okHttpRequestbody)
                 .header("Challenge-Nonce", challengeNonce)
                 .header("Answer-Nonce", answerNonce)
@@ -158,32 +222,6 @@ public class IonClientImpl implements IonClient {
         } catch (Exception ex) {
             throw new IonException(ex);
         }
-    }
-
-    @Override
-    public DidDocument resolve(String didUri) {
-        var rq = new Request.Builder()
-                .get()
-                .url(resolutionEndpoint + didUri)
-                .build();
-
-        try (var response = getOkHttpClient().newCall(rq).execute()) {
-            if (response.isSuccessful()) {
-                var body = response.body().string();
-                DidResolveResponse didResolveResponse = typeManager.readValue(body, DidResolveResponse.class);
-                return didResolveResponse.getDidDocument();
-            }
-            throw new IonRequestException("resolving the DID URI was unsuccessful: code = " + response.code() + " content= " + response.body().string());
-        } catch (Exception ex) {
-            throw new IonRequestException(ex);
-        }
-    }
-
-    @NotNull
-    private OkHttpClient getOkHttpClient() {
-        var client = new OkHttpClient.Builder()
-                .build();
-        return client;
     }
 
     private String createNonce() {
