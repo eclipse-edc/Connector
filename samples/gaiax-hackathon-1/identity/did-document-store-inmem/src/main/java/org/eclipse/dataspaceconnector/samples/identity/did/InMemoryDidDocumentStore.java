@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.samples.identity.did;
 
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
-import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
+import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -9,7 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class InMemoryDidDocumentStore implements ObjectStore<DidDocument> {
+public class InMemoryDidDocumentStore implements DidStore {
 
     private final List<Entity<DidDocument>> memoryDb;
 
