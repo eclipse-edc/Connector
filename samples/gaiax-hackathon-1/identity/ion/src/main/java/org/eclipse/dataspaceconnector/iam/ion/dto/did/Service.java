@@ -7,6 +7,16 @@ public class Service {
     String type;
     String serviceEndpoint;
 
+    public Service() {
+
+    }
+
+    public Service(String id, String type, String serviceEndpoint) {
+        this.id = id;
+        this.type = type;
+        this.serviceEndpoint = serviceEndpoint;
+    }
+
     @JsonProperty("id")
     public String getId() {
         return id;
