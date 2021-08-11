@@ -8,6 +8,16 @@ public class PublicKeyJwk {
     String x;
     String y;
 
+    public PublicKeyJwk() {
+    }
+
+    public PublicKeyJwk(String crv, String kty, String x, String y) {
+        this.crv = crv;
+        this.kty = kty;
+        this.x = x;
+        this.y = y;
+    }
+
     @JsonProperty("crv")
     public String getCrv() {
         return crv;
