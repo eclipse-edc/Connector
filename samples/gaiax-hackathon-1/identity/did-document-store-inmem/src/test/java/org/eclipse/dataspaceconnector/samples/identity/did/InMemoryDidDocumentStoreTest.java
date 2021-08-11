@@ -58,11 +58,52 @@ class InMemoryDidDocumentStoreTest {
     }
 
     @Test
-    void save() {
+    void getAfter_whenEmpty() {
+        assertThat(store.getAfter("nonexist")).isNotNull().isEmpty();
     }
 
     @Test
-    void getLatest() {
+    void getAfter_whenNotExist() {
+        store.save(createDidDocument());
+        store.save(createDidDocument());
+        store.save(createDidDocument());
+
+        assertThat(store.getAfter("notexist")).isNotNull().isEmpty();
+    }
+
+    @Test
+    void save() {
+        var did = createDidDocument();
+        store.save(did);
+
+        assertThat(store.getAll(100)).hasSize(1).containsOnly(did);
+    }
+
+    @Test
+    void save_alreadyExists() {
+        var did = createDidDocument();
+        assertThat(store.save(did)).isTrue();
+        assertThat(store.save(did)).isFalse();
+
+        assertThat(store.getAll(100)).hasSize(1).containsOnly(did);
+    }
+
+    @Test
+    void getLatest() throws InterruptedException {
+        var did1 = createDidDocument();
+        var did2 = createDidDocument();
+        var did3 = createDidDocument();
+        var did4 = createDidDocument();
+
+        store.save(did1);
+        Thread.sleep(10);
+        store.save(did2);
+        Thread.sleep(10);
+        store.save(did3);
+        Thread.sleep(10);
+        store.save(did4);
+
+        assertThat(store.getLatest()).isEqualTo(did4);
     }
 
     private DidDocument createDidDocument() {

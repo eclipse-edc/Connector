@@ -6,7 +6,6 @@ import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,16 +36,17 @@ public class InMemoryDidDocumentStore implements ObjectStore<DidDocument> {
     }
 
     @Override
-    public void save(DidDocument didDocument) {
-        memoryDb.add(new Entity<>(didDocument));
+    public boolean save(DidDocument didDocument) {
+        if (memoryDb.stream().noneMatch(e -> e.getPayload().equals(didDocument))) {
+            memoryDb.add(new Entity<>(didDocument));
+            return true;
+        }
+        return false;
     }
 
     @Override
     public DidDocument getLatest() {
-        return memoryDb.stream()
-                .min(Comparator.comparing(Entity::getCreateTime))
-                .map(Entity::getPayload)
-                .orElse(null);
+        return memoryDb.get(memoryDb.size() - 1).getPayload();
     }
 
     private static class Entity<T> implements Comparable<Entity<T>> {
