@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -27,7 +28,6 @@ import org.quartz.impl.StdSchedulerFactory;
 
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.Executors;
 
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -51,7 +51,7 @@ public class RegistrationServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
-        var didDocumentStore = (ObjectStore<DidDocument>) context.getService(ObjectStore.class);
+        var didDocumentStore = (DidStore) context.getService(ObjectStore.class);
 
 
         // create the registration service, which offers a REST API
@@ -64,20 +64,18 @@ public class RegistrationServiceExtension implements ServiceExtension {
 
         // create the crawler that periodically browses ION for new DIDs
         var ionClient = new IonClientImpl(context.getTypeManager());
-        var ionCrawler = new IonCrawler(context.getMonitor(), didDocumentStore, ionClient);
-        context.registerService(Crawler.class, ionCrawler);
 
         context.getMonitor().info("RegistrationService ready to go");
     }
 
     @Override
     public void start() {
-        Crawler service = context.getService(Crawler.class);
+        DidStore didStore = (DidStore) context.getService(ObjectStore.class);
         try {
             quartzScheduler = StdSchedulerFactory.getDefaultScheduler();
             quartzScheduler.start();
 
-            scheduleCrawler(quartzScheduler, service);
+            scheduleCrawler(quartzScheduler, didStore, context.getMonitor());
         } catch (SchedulerException e) {
             throw new EdcException(e);
         }
@@ -96,9 +94,9 @@ public class RegistrationServiceExtension implements ServiceExtension {
 
     }
 
-    private void scheduleCrawler(Scheduler scheduler, Crawler service) throws SchedulerException {
+    private void scheduleCrawler(Scheduler scheduler, ObjectStore<DidDocument> objectStore, Monitor monitor) throws SchedulerException {
         JobDetail job = newJob(CrawlerJob.class)
-                .setJobData(new JobDataMap(Map.of("CRAWLER", service)))
+                .setJobData(new JobDataMap(Map.of("STORE", objectStore, "MONITOR", monitor)))
                 .withIdentity("ion-crawler-job", "ion")
                 .build();
         Trigger trigger = newTrigger()
@@ -110,13 +108,4 @@ public class RegistrationServiceExtension implements ServiceExtension {
         scheduler.scheduleJob(job, trigger);
     }
 
-    // has to be "public", otherwise quartz won't be able to access is
-    public static class CrawlerJob implements Job {
-        @Override
-        public void execute(JobExecutionContext context) {
-            Crawler crawler = (Crawler) context.getJobDetail().getJobDataMap().get("CRAWLER");
-            Executors.newSingleThreadExecutor()
-                    .submit(crawler);
-        }
-    }
 }
