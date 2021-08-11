@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.samples.identity;
 
+import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
@@ -11,6 +12,6 @@ public class CrawlerJob implements Job {
         var store = (DidStore) context.getJobDetail().getJobDataMap().get("STORE");
         var monitor = (Monitor) context.getJobDetail().getJobDataMap().get("MONITOR");
 
-        monitor.info("Crawling ION to obtain new DIDs");
+        monitor.info("CrawlerJob: browsing ION to obtain new DIDs");
     }
 }
