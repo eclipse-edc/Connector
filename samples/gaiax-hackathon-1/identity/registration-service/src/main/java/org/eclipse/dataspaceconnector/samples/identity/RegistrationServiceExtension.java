@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.samples.identity;
 
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
+import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
