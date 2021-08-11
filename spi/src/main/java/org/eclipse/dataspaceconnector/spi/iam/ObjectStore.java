@@ -7,7 +7,7 @@ public interface ObjectStore<T> {
 
     List<T> getAfter(String continuationToken);
 
-    void save(T didDocument);
+    boolean save(T didDocument);
 
     T getLatest();
 }
