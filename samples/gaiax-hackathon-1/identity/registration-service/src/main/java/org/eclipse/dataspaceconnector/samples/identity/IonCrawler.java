@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
-class IonCrawler implements Crawler {
+class IonCrawler implements Runnable {
     private final Monitor monitor;
     private final ObjectStore<DidDocument> didDocumentStore;
     private final IonClient ionClient;
