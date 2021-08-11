@@ -72,7 +72,7 @@ include(":extensions:catalog:catalog-service")
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
 include(":launchers:demo-e2e")
-include(":launchers:did-resolver")
+include(":launchers:registration-service-app")
 include(":launchers:junit")
 include(":services:registration-service-app")
 include(":launchers:simple-provider")
