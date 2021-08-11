@@ -60,6 +60,10 @@ public class DidDocument {
         this.authentication = authentication;
     }
 
+    @Override
+    public String toString() {
+        return getId();
+    }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
