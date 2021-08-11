@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -35,6 +36,8 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 public class RegistrationServiceExtension implements ServiceExtension {
+    @EdcSetting
+    private static final String EDC_SETTING_CRAWLER_INTERVAL_MIN = "edc.ion.crawler.interval-minutes";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
 
@@ -76,11 +79,14 @@ public class RegistrationServiceExtension implements ServiceExtension {
             quartzScheduler = StdSchedulerFactory.getDefaultScheduler();
             quartzScheduler.start();
 
-            scheduleCrawler(quartzScheduler, didStore, context.getMonitor());
+            var minutes = Integer.parseInt(context.getSetting(EDC_SETTING_CRAWLER_INTERVAL_MIN, "30"));
+
+            scheduleCrawler(minutes, didStore, context.getMonitor());
+            context.getMonitor().info("Started periodic crawling of the ION database every " + minutes + " minutes");
+
         } catch (SchedulerException e) {
             throw new EdcException(e);
         }
-        context.getMonitor().info("Started periodic crawling of the ION database");
     }
 
     @Override
@@ -95,7 +101,7 @@ public class RegistrationServiceExtension implements ServiceExtension {
 
     }
 
-    private void scheduleCrawler(Scheduler scheduler, ObjectStore<DidDocument> objectStore, Monitor monitor) throws SchedulerException {
+    private void scheduleCrawler(int intervalMinutes, ObjectStore<DidDocument> objectStore, Monitor monitor) throws SchedulerException {
         JobDetail job = newJob(CrawlerJob.class)
                 .setJobData(new JobDataMap(Map.of("STORE", objectStore, "MONITOR", monitor)))
                 .withIdentity("ion-crawler-job", "ion")
@@ -103,10 +109,10 @@ public class RegistrationServiceExtension implements ServiceExtension {
         Trigger trigger = newTrigger()
                 .withIdentity("ion-crawler-trigger", "ion")
                 .startNow()
-                .withSchedule(simpleSchedule().withIntervalInMinutes(30).repeatForever())
+                .withSchedule(simpleSchedule().withIntervalInMinutes(intervalMinutes).repeatForever())
                 .build();
 
-        scheduler.scheduleJob(job, trigger);
+        quartzScheduler.scheduleJob(job, trigger);
     }
 
 }
