@@ -4,7 +4,7 @@
 
 Please also refer to:
 
-- The [Eclipse Project Homepage](https://projects.eclipse.org/proposals/eclipse-dataspace-connector)
+- The [Eclipse Project Homepage](https://projects.eclipse.org/projects/technology.dataspaceconnector)
 - [International Data Spaces](https://www.internationaldataspaces.org)
 - The [GAIA-X](https://www.data-infrastructure.eu) project
 
