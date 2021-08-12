@@ -17,10 +17,12 @@ package org.eclipse.dataspaceconnector.samples.identity.registrationservice.craw
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
+import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.quartz.*;
@@ -69,7 +71,7 @@ public class IonCrawlerExtension implements ServiceExtension {
 
             var minutes = Integer.parseInt(context.getSetting(EDC_SETTING_CRAWLER_INTERVAL_MIN, "30"));
 
-            scheduleCrawler(minutes, didStore, context.getMonitor());
+            scheduleCrawler(minutes, didStore, context.getMonitor(), context.getService(Vault.class));
             context.getMonitor().info("ION Crawler Extension started");
             context.getMonitor().info("Started periodic crawling of the ION database every " + minutes + " minutes");
 
@@ -91,9 +93,14 @@ public class IonCrawlerExtension implements ServiceExtension {
 
     }
 
-    private void scheduleCrawler(int intervalMinutes, ObjectStore<DidDocument> objectStore, Monitor monitor) throws SchedulerException {
+    private void scheduleCrawler(int intervalMinutes, ObjectStore<DidDocument> objectStore, Monitor monitor, Vault vault) throws SchedulerException {
+
+        var publisher = new CrawlerEventPublisher(vault);
+
         JobDetail job = newJob(CrawlerJob.class)
-                .setJobData(new JobDataMap(Map.of("STORE", objectStore, "MONITOR", monitor)))
+                .setJobData(new JobDataMap(Map.of("STORE", objectStore,
+                        "MONITOR", monitor,
+                        "PUBLISHER", publisher)))
                 .withIdentity("ion-crawler-job", "ion")
                 .build();
         Trigger trigger = newTrigger()
