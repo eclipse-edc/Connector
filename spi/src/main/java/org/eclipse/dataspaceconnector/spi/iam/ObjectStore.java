@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.spi.iam;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface ObjectStore<T> {
@@ -7,7 +8,9 @@ public interface ObjectStore<T> {
 
     List<T> getAfter(String continuationToken);
 
-    boolean save(T didDocument);
+    boolean save(T entity);
 
     T getLatest();
+
+    void saveAll(Collection<T> entities);
 }
