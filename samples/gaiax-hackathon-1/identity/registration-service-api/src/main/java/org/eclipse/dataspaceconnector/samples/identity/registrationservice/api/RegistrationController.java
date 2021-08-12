@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.samples.identity;
+package org.eclipse.dataspaceconnector.samples.identity.registrationservice.api;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
