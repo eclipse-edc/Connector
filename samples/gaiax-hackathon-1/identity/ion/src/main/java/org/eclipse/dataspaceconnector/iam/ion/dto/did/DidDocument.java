@@ -4,7 +4,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import com.nimbusds.jose.jwk.ECKey;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @JsonDeserialize(builder = DidDocument.Builder.class)
@@ -74,6 +76,8 @@ public class DidDocument {
         List<String> authentication;
 
         private Builder() {
+            context = new ArrayList<>();
+            context.add("https://w3id.org/did-resolution/v1");
         }
 
         @JsonCreator
@@ -98,6 +102,18 @@ public class DidDocument {
 
         public Builder verificationMethod(List<VerificationMethod> verificationMethod) {
             this.verificationMethod = verificationMethod;
+            return this;
+        }
+
+        public Builder verificationMethod(String id, String type, ECKey publicKey) {
+            if (verificationMethod == null) {
+                verificationMethod = new ArrayList<>();
+            }
+            verificationMethod.add(VerificationMethod.Builder.create()
+                    .id(id)
+                    .type(type)
+                    .publicKeyJwk(new PublicKeyJwk(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
+                    .build());
             return this;
         }
 

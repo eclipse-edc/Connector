@@ -106,6 +106,12 @@ class InMemoryDidDocumentStoreTest {
         assertThat(store.getLatest()).isEqualTo(did4);
     }
 
+    @Test
+    void getLatest_whenNoneExist() {
+
+        assertThat(store.getLatest()).isNull();
+    }
+
     private DidDocument createDidDocument() {
         Random random = new SecureRandom();
         byte[] r = new byte[32]; //Means 2048 bit
