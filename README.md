@@ -1,6 +1,6 @@
 # About The Project
 
-> The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will implement the International Data Spaces standard (IDS) as well as relevant protocols associated with the GAIA-X project. The connector is designed in an extensible way so that it can support alternative protocols and integrate in various ecosystems.
+> The Eclipse Dataspace Connector provides a framework for sovereign, inter-organizational data exchange. It will implement the International Data Spaces standard (IDS) as well as relevant protocols associated with GAIA-X. The connector is designed in an extensible way in order to support alternative protocols and integrate in various ecosystems.
 
 Please also refer to:
 
