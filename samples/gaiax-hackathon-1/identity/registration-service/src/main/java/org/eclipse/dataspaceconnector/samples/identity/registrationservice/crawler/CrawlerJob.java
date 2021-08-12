@@ -5,6 +5,7 @@ import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
+import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.Nullable;
 import org.quartz.Job;
@@ -22,6 +23,8 @@ public class CrawlerJob implements Job {
     public void execute(JobExecutionContext context) {
         var store = (DidStore) context.getJobDetail().getJobDataMap().get("STORE");
         var monitor = (Monitor) context.getJobDetail().getJobDataMap().get("MONITOR");
+        var publisher = (CrawlerEventPublisher) context.getJobDetail().getJobDataMap().get("PUBLISHER");
+
 
         // get latest did document to obtain continuation token
         var latestDocument = store.getLatest();
@@ -32,6 +35,10 @@ public class CrawlerJob implements Job {
         monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
         var newDids = getNewDidsFromIon(continuationToken);
         monitor.info("CrawlerJob: found " + newDids.size() + " new dids on ION");
+
+        if (newDids.size() > 0) {
+            publisher.discoveryFinished(newDids.size());
+        }
 
         store.saveAll(newDids);
 
