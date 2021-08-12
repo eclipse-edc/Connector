@@ -14,7 +14,7 @@ dependencies {
     implementation(project(":core:bootstrap"))
     implementation(project(":common:util"))
     implementation(project(":core:protocol:web"))
-//    implementation(project(":extensions:azure:events"))
+    implementation(project(":extensions:azure:events-config"))
     implementation(project(":samples:gaiax-hackathon-1:identity:ion-core"))
     implementation(project(":samples:gaiax-hackathon-1:identity:registration-service"))
     implementation(project(":samples:gaiax-hackathon-1:identity:did-document-store-inmem"))
