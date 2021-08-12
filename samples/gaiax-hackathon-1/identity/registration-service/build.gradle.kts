@@ -9,9 +9,13 @@ val rsApi: String by project
 dependencies {
     api(project(":spi"))
     implementation(project(":common:util"))
+    implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:azure:events-config"))
+    implementation(project(":extensions:azure:vault"))
     implementation(project(":samples:gaiax-hackathon-1:identity:ion-core"))
-    implementation("org.quartz-scheduler:quartz:2.3.0")
 
+
+    // third party
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
+    implementation("org.quartz-scheduler:quartz:2.3.0")
 }
