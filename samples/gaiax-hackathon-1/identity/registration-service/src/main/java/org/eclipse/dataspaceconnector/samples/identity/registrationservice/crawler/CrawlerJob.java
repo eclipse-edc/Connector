@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.samples.identity;
+package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import com.nimbusds.jose.jwk.ECKey;
 import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
