@@ -57,7 +57,6 @@ include(":extensions:iam:oauth2")
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
 include(":launchers:demo-e2e")
-include(":launchers:registration-service-app")
 include(":launchers:junit")
 
 // modules for code samples
@@ -80,6 +79,7 @@ include(":samples:gaiax-hackathon-1:identity:ion-core")
 include(":samples:gaiax-hackathon-1:identity:registration-service")
 include(":samples:gaiax-hackathon-1:identity:did-document-store-inmem")
 include(":samples:gaiax-hackathon-1:identity:registration-service-api")
+include(":samples:gaiax-hackathon-1:identity:launchers:registration-service-app")
 
 // extension points for a connector
 include(":spi")
