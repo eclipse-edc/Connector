@@ -106,11 +106,7 @@ Contains several scripts to deploy a connector in an AKS cluster on Microsoft Az
 
 ## Roadmap
 
-- Contract negotiation: two connectors negotiate the conditions under which the exchange data
-- (Distributed) identity: every connector within a data space can verify the identity and integrity of every other
-  connector.
-- Catalog services: A cataloging service will be implemented that provides an index of what data is being offered and by
-  which connector.
+[TBW]
 
 ## Contributing
 
