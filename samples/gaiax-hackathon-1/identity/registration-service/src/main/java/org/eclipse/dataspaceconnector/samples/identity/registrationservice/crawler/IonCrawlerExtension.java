@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
+import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
@@ -95,7 +96,7 @@ public class IonCrawlerExtension implements ServiceExtension {
 
     private void scheduleCrawler(int intervalMinutes, ObjectStore<DidDocument> objectStore, Monitor monitor, Vault vault) throws SchedulerException {
 
-        var publisher = new CrawlerEventPublisher(vault);
+        var publisher = new CrawlerEventPublisher(vault, new AzureEventGridConfig(context));
 
         JobDetail job = newJob(CrawlerJob.class)
                 .setJobData(new JobDataMap(Map.of("STORE", objectStore,
@@ -106,7 +107,7 @@ public class IonCrawlerExtension implements ServiceExtension {
         Trigger trigger = newTrigger()
                 .withIdentity("ion-crawler-trigger", "ion")
                 .startNow()
-                .withSchedule(simpleSchedule().withIntervalInSeconds(intervalMinutes).repeatForever())
+                .withSchedule(simpleSchedule().withIntervalInMinutes(intervalMinutes).repeatForever())
                 .build();
 
         quartzScheduler.scheduleJob(job, trigger);

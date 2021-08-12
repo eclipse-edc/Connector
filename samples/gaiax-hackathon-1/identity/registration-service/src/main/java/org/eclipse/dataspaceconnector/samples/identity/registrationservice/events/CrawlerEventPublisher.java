@@ -13,9 +13,8 @@ import java.util.Objects;
 public class CrawlerEventPublisher {
     private final EventGridPublisherAsyncClient<EventGridEvent> client;
 
-    public CrawlerEventPublisher(Vault vault) {
+    public CrawlerEventPublisher(Vault vault, AzureEventGridConfig config) {
 
-        var config = AzureEventGridConfig.getDefault();
         var topicName = config.getTopic();
         var endpoint = config.getEndpoint(topicName);
         client = new EventGridPublisherClientBuilder()
