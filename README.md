@@ -14,8 +14,9 @@ _Note: items marked with [TBW] indicate that the respective documentation is yet
 
 One of the guiding principles in developing the connector is simplicity and keeping the core small and efficient with as
 little external dependencies as possible to avoid version conflicts. We do not want to force any third-party
-dependencies onto our users, so we aim to avoid any of the big frameworks. The connector is a plain Java application
-built with Gradle.
+dependencies onto our users, so we aim to avoid any of the big frameworks. Of course, if you want to use them, you still
+can add them to your extensions (see: [TBW]). The connector is a plain Java application built with Gradle, but it can be
+embedded into any form ob application deployment.
 
 # Getting Started
 
@@ -81,7 +82,8 @@ the `extensions/database/configuration-postgres` module.
 Launchers are essentially connector packages that are runnable. What modules get included in the build (and thus: what
 capabilities a connector has) is defined by the `build.gradle.kts` file inside the launcher subdirectory. That's also
 where a Java class containing a `main` method should go. We will call that class a "runtime" and in order for the
-connector to become operational the `runtime` needs to perform several important tasks. For an example take a look at
+connector to become operational the `runtime` needs to perform several important tasks (="bootstrapping"). For an
+example take a look at
 [this runtime](launchers/basic/src/main/java/org/eclipse/dataspaceconnector/runtime/ConnectorRuntime.java)
 
 ### `data-protocols`
