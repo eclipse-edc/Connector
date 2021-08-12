@@ -5,6 +5,7 @@ import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,9 +37,9 @@ public class InMemoryDidDocumentStore implements DidStore {
     }
 
     @Override
-    public boolean save(DidDocument didDocument) {
-        if (memoryDb.stream().noneMatch(e -> e.getPayload().equals(didDocument))) {
-            memoryDb.add(new Entity<>(didDocument));
+    public boolean save(DidDocument entity) {
+        if (memoryDb.stream().noneMatch(e -> e.getPayload().equals(entity))) {
+            memoryDb.add(new Entity<>(entity));
             return true;
         }
         return false;
@@ -46,7 +47,17 @@ public class InMemoryDidDocumentStore implements DidStore {
 
     @Override
     public DidDocument getLatest() {
+        if (memoryDb.isEmpty()) {
+            return null;
+        }
+
         return memoryDb.get(memoryDb.size() - 1).getPayload();
+    }
+
+    @Override
+    public void saveAll(Collection<DidDocument> entities) {
+        // to transaction handling is required here
+        entities.forEach(this::save);
     }
 
     private static class Entity<T> implements Comparable<Entity<T>> {

@@ -109,7 +109,7 @@ public class RegistrationServiceExtension implements ServiceExtension {
         Trigger trigger = newTrigger()
                 .withIdentity("ion-crawler-trigger", "ion")
                 .startNow()
-                .withSchedule(simpleSchedule().withIntervalInMinutes(intervalMinutes).repeatForever())
+                .withSchedule(simpleSchedule().withIntervalInSeconds(intervalMinutes).repeatForever())
                 .build();
 
         quartzScheduler.scheduleJob(job, trigger);
