@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.samples.identity;
+package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
@@ -20,9 +20,7 @@ import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
-import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.quartz.*;
@@ -35,7 +33,7 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-public class RegistrationServiceExtension implements ServiceExtension {
+public class IonCrawlerExtension implements ServiceExtension {
     @EdcSetting
     private static final String EDC_SETTING_CRAWLER_INTERVAL_MIN = "edc.ion.crawler.interval-minutes";
     private ServiceExtensionContext context;
@@ -55,21 +53,11 @@ public class RegistrationServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
-        var didDocumentStore = (DidStore) context.getService(ObjectStore.class);
-
-
-        // create the registration service, which offers a REST API
-        var regSrv = new RegistrationController(context.getMonitor(), didDocumentStore);
-        context.registerService(RegistrationService.class, regSrv);
-
-        // register the service as REST controller
-        var webService = context.getService(WebService.class);
-        webService.registerController(regSrv);
 
         // create the crawler that periodically browses ION for new DIDs
         var ionClient = new IonClientImpl(context.getTypeManager());
 
-        context.getMonitor().info("RegistrationService ready to go");
+        context.getMonitor().info("ION Crawler Extension initialized");
     }
 
     @Override
@@ -82,6 +70,7 @@ public class RegistrationServiceExtension implements ServiceExtension {
             var minutes = Integer.parseInt(context.getSetting(EDC_SETTING_CRAWLER_INTERVAL_MIN, "30"));
 
             scheduleCrawler(minutes, didStore, context.getMonitor());
+            context.getMonitor().info("ION Crawler Extension started");
             context.getMonitor().info("Started periodic crawling of the ION database every " + minutes + " minutes");
 
         } catch (SchedulerException e) {
@@ -95,6 +84,7 @@ public class RegistrationServiceExtension implements ServiceExtension {
             context.getMonitor().info("Stopping ION crawler");
             quartzScheduler.shutdown();
             context.getMonitor().info("Stopped ION crawler");
+            context.getMonitor().info("ION Crawler Extension shutdown");
         } catch (SchedulerException e) {
             throw new EdcException(e);
         }
