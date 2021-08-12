@@ -1,0 +1,17 @@
+
+Insert this at the beginning of each PlantUML file to keep the style consistent.
+
+---
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+!define WarningColor Business
+!define LeadColor Technology

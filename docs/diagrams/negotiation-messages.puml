@@ -1,0 +1,30 @@
+@startuml
+autonumber
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+!define WarningColor Business
+!define LeadColor Technology
+
+
+participant Consumer #ConsumerColor
+participant Provider #ProviderColor
+
+Consumer -> Provider ++ : Contract Request Message
+    return Request In Process Message
+
+Provider -> Consumer ++ : Contract Agreement Message
+    return Message Processed Notification
+
+Consumer -> Provider ++ : Contract Agreement Message
+    return Message Processed Notification
+
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+!define WarningColor Business
+!define LeadColor Technology
+
+legend right
+ <back:#lightblue>Backed by EDC-Extension</back>
+end legend
+
+participant Consumer as "Consumer" #ConsumerColor
+
+box EDC Provider #ProviderColor
+    participant IDS as "IDS Services\n(Controller, Dispatcher, ...)"
+    participant Service as "Contract Offer Service"
+    participant Framework as "Contract Offer Framework" #lightblue
+    participant AssetIndex as "AssetIndex (MetadataStorage)" #lightblue
+end box
+
+alt by Connector URI
+    Consumer -> IDS ++: Description Request Message
+else by Resource URI
+    Consumer -> IDS: Description Request Message
+end
+
+IDS --> Consumer: Request In Process Message
+
+IDS -> Service --++: query frameworks  matching condition
+    Service -> Framework : query all matching offers
+    Service -> AssetIndex : query all matching assets
+return send offers (with assets/contracts)
+
+activate IDS
+IDS -> Consumer --: Description Response Message
+
+@enduml
