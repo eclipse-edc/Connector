@@ -49,8 +49,8 @@ class TransferProcessTest {
     }
 
     @Test
-    void verifyClientTransitions() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CLIENT).build();
+    void verifyConsumerTransitions() {
+        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CONSUMER).build();
 
         // test illegal transition
         assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));

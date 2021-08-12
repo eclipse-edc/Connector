@@ -21,20 +21,20 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 /**
  * Evaluates IDS policies.
  * <p>
- * Policy evaluation is performed by a provider connector when a client connector requests an artifact using {@link #evaluateRequest(String, String, ClaimToken, Policy)} and
- * when a client connector receives an offer from a provider using {@link #evaluateOffer(String, String, Policy)}.
+ * Policy evaluation is performed by a provider connector when a consumer connector requests an artifact using {@link #evaluateRequest(String, String, ClaimToken, Policy)} and
+ * when a consumer connector receives an offer from a provider using {@link #evaluateOffer(String, String, Policy)}.
  */
 public interface IdsPolicyService {
 
     /**
-     * Evaluates a request made by a client for an an artifact.
+     * Evaluates a request made by a client for an artifact.
      *
-     * @param clientConnectorId the id of the connector making the request
+     * @param consumerConnectorId the id of the connector making the request
      * @param correlationId     an identifier that can be used to retrieve additional information about the request such as a pre-payment or pre-authorization receipt
      * @param clientToken       the client's validated security token
      * @param policy            the policy attached to the artifact
      */
-    PolicyEvaluationResult evaluateRequest(String clientConnectorId, String correlationId, ClaimToken clientToken, Policy policy);
+    PolicyEvaluationResult evaluateRequest(String consumerConnectorId, String correlationId, ClaimToken clientToken, Policy policy);
 
     PolicyEvaluationResult evaluateOffer(String providerConnectorId, String processId, Policy policy);
 

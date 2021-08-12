@@ -144,7 +144,7 @@ class InMemoryTransferProcessStoreTest {
         DataRequest mock = niceMock(DataRequest.class);
         replay(mock);
         return TransferProcess.Builder.newInstance()
-                .type(TransferProcess.Type.CLIENT)
+                .type(TransferProcess.Type.CONSUMER)
                 .id(name)
                 .stateTimestamp(0)
                 .state(TransferProcessStates.UNSAVED.code())

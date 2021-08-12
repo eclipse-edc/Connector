@@ -23,7 +23,7 @@ import org.jetbrains.annotations.Nullable;
 
 import static java.util.UUID.randomUUID;
 
-public class ObjectStorageDefinitionClientGenerator implements ResourceDefinitionGenerator {
+public class ObjectStorageDefinitionConsumerGenerator implements ResourceDefinitionGenerator {
     @Override
     public @Nullable ResourceDefinition generate(TransferProcess process) {
         var request = process.getDataRequest();

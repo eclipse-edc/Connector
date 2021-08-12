@@ -72,7 +72,7 @@ class DemoProtocolsTransferExtensionTest {
                         .property(DemoProtocols.DESTINATION_NAME, destinationName).build())
                 .connectorId("test").build();
 
-        processManager.initiateClientRequest(dataRequest);
+        processManager.initiateConsumerRequest(dataRequest);
 
         latch.await(1, TimeUnit.MINUTES);
     }

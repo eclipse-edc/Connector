@@ -29,14 +29,14 @@ import java.util.regex.Pattern;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ObjectStorageDefinitionClientGeneratorTest {
+class ObjectStorageDefinitionConsumerGeneratorTest {
 
     private final Pattern regexPattern = Pattern.compile("([a-f0-9]{8}(-[a-f0-9]{4}){4}[a-f0-9]{8})");
-    private ObjectStorageDefinitionClientGenerator generator;
+    private ObjectStorageDefinitionConsumerGenerator generator;
 
     @BeforeEach
     void setUp() {
-        generator = new ObjectStorageDefinitionClientGenerator();
+        generator = new ObjectStorageDefinitionConsumerGenerator();
     }
 
     @Test

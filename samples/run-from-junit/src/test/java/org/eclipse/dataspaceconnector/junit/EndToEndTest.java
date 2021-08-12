@@ -54,7 +54,7 @@ public class EndToEndTest {
 
     @Test
     @Disabled
-    void processClientRequest(TransferProcessManager processManager, RemoteMessageDispatcherRegistry dispatcherRegistry) throws InterruptedException {
+    void processConsumerRequest(TransferProcessManager processManager, RemoteMessageDispatcherRegistry dispatcherRegistry) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
 
         RemoteMessageDispatcher dispatcher = EasyMock.createMock(RemoteMessageDispatcher.class);
@@ -79,7 +79,7 @@ public class EndToEndTest {
         DataEntry entry = DataEntry.Builder.newInstance().id(artifactId).build();
         DataRequest request = DataRequest.Builder.newInstance().protocol("ids-rest").dataEntry(entry).connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").build();
 
-        processManager.initiateClientRequest(request);
+        processManager.initiateConsumerRequest(request);
 
         latch.await(1, TimeUnit.MINUTES);
 

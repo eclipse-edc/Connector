@@ -42,7 +42,7 @@ class IdsPolicyServiceImplTest {
             if (duty.getParentPermission() != null && !IdsPolicyActions.USE.equals(duty.getParentPermission().getAction().getType())) {
                 return true;
             }
-            return context.getClientConnectorId().equals("connectorThatPaid");
+            return context.getConsumerConnectorId().equals("connectorThatPaid");
         });
 
         var amountToPay = new LiteralExpression("25.00");

@@ -43,8 +43,8 @@ class AzureEventGridPublisher implements TransferProcessListener, MetadataListen
     @Override
     public void created(TransferProcess process) {
         var dto = createTransferProcessDto(process);
-        if (process.getType() == TransferProcess.Type.CLIENT) {
-            sendEvent("createdClient", eventTypeTransferprocess, dto).subscribe(new LoggingSubscriber<>("Transfer process created"));
+        if (process.getType() == TransferProcess.Type.CONSUMER) {
+            sendEvent("createdConsumer", eventTypeTransferprocess, dto).subscribe(new LoggingSubscriber<>("Transfer process created"));
         } else {
             sendEvent("createdProvider", eventTypeTransferprocess, dto).subscribe(new LoggingSubscriber<>("Transfer process created"));
         }

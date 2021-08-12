@@ -47,7 +47,7 @@ class TransferProcessDocumentSerializationTest {
         assertThat(s).contains("\"partitionKey\":\"test-process\""); //should use the process id as partition key
         assertThat(s).contains("\"id\":\"test-process\"");
         assertThat(s).contains("\"id\":\"test-process\"");
-        assertThat(s).contains("\"type\":\"CLIENT\"");
+        assertThat(s).contains("\"type\":\"CONSUMER\"");
         assertThat(s).contains("\"errorDetail\":null");
         assertThat(s).contains("\"destinationType\":\"Test Address Type\"");
         assertThat(s).contains("\"keyName\":\"Test Key Name\"");
@@ -60,7 +60,7 @@ class TransferProcessDocumentSerializationTest {
     void testDeserialization() {
         var transferProcess = TransferProcess.Builder.newInstance()
                 .id("test-process")
-                .type(TransferProcess.Type.CLIENT)
+                .type(TransferProcess.Type.CONSUMER)
                 .dataRequest(createDataRequest())
                 .resourceManifest(createManifest())
                 .build();

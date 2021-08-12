@@ -48,7 +48,7 @@ public class TestHelper {
         return TransferProcess.Builder.newInstance()
                 .id(processId)
                 .state(state.code())
-                .type(TransferProcess.Type.CLIENT)
+                .type(TransferProcess.Type.CONSUMER)
                 .dataRequest(createDataRequest())
                 .resourceManifest(createManifest())
                 .build();

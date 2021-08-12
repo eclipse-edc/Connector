@@ -62,7 +62,7 @@ public class ClientRunner {
 
     @Test
     @Disabled
-    void processClientRequest_toAws(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
+    void processConsumerRequest_toAws(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
 
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
@@ -81,7 +81,7 @@ public class ClientRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
 
-            TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
+            TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
@@ -120,7 +120,7 @@ public class ClientRunner {
 
     @Test
 //    @Disabled
-    void processClientRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
+    void processConsumerRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .connectorId(PROVIDER_CONNECTOR)
@@ -140,7 +140,7 @@ public class ClientRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
 
-            TransferInitiateResponse response = processManager.initiateClientRequest(usOrEuRequest);
+            TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {

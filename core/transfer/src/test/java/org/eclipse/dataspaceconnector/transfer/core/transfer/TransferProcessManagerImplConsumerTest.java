@@ -385,7 +385,7 @@ class TransferProcessManagerImplConsumerTest {
                 .state(inState.code())
                 .id("test-process-" + processId)
                 .provisionedResourceSet(new ProvisionedResourceSet())
-                .type(TransferProcess.Type.CLIENT)
+                .type(TransferProcess.Type.CONSUMER)
                 .dataRequest(mock)
                 .build();
     }

@@ -24,9 +24,9 @@ import software.amazon.awssdk.regions.Region;
 import static java.util.UUID.randomUUID;
 
 /**
- * Generates S3 buckets on the client (requesting connector) that serve as data destinations.
+ * Generates S3 buckets on the consumer (requesting connector) that serve as data destinations.
  */
-public class S3ResourceDefinitionClientGenerator implements ResourceDefinitionGenerator {
+public class S3ResourceDefinitionConsumerGenerator implements ResourceDefinitionGenerator {
 
     @Override
     public ResourceDefinition generate(TransferProcess process) {
