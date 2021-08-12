@@ -23,9 +23,10 @@ public class RegistrationController implements RegistrationService {
         this.didDocumentStore = didDocumentStore;
     }
 
+
     @GET
-    @Path("{paginationOffset}")
-    public Response getDids(@PathParam("paginationOffset") String offset) {
+    @Path("/dids")
+    public Response getDids(@QueryParam("since") String offset) {
         monitor.info("Fetching all DIDs");
         List<DidDocument> allDids;
         if (StringUtils.isNullOrBlank(offset)) {
