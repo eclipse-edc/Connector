@@ -92,9 +92,9 @@ Contains implementations for communication protocols a connector might use, such
 
 ### `samples`
 
-This is similar to the extensions module, but focuses more on showing specific use cases rather than technology
-extensions. For example, it shows how to run a connector from a unit test in order to try out functionality quickly or
-how to implement an outward-facing REST API for a connector.
+Contains code that demonstrates how the connector can be used in various scenarios. For example, it shows how to run a
+connector from a unit test in order to try out functionality quickly or how to implement an outward-facing REST API for
+a connector.
 
 ### `common`
 
