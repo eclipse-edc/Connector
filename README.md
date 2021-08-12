@@ -16,7 +16,7 @@ One of the guiding principles in developing the connector is simplicity and keep
 little external dependencies as possible to avoid version conflicts. We do not want to force any third-party
 dependencies onto our users, so we aim to avoid any of the big frameworks. Of course, if you want to use them, you still
 can add them to your extensions (see: [TBW]). The connector is a plain Java application built with Gradle, but it can be
-embedded into any form ob application deployment.
+embedded into any form of application deployment.
 
 # Getting Started
 
