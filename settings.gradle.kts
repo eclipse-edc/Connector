@@ -105,6 +105,7 @@ include(":samples:other:custom-runtime")
 include(":samples:gaiax-hackathon-1:identity:ion-core")
 include(":samples:gaiax-hackathon-1:identity:registration-service")
 include(":samples:gaiax-hackathon-1:identity:did-document-store-inmem")
+include(":samples:gaiax-hackathon-1:identity:registration-service-api")
 
 // extension points for a connector
 include(":spi")
