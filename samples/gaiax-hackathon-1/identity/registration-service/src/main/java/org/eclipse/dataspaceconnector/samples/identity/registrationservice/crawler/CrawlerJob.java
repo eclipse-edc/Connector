@@ -1,5 +1,7 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.nimbusds.jose.jwk.ECKey;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -17,6 +19,7 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -32,7 +35,7 @@ public class CrawlerJob implements Job {
         var cc = (CrawlerContext) jobDataMap.get(CrawlerContext.KEY);
 
         if (cc.getIonHost() != null) {
-            ionApiUrl = cc.getIonHost().toString();
+            ionApiUrl = cc.getIonHost();
         }
 
 
@@ -45,7 +48,7 @@ public class CrawlerJob implements Job {
         var monitor = cc.getMonitor();
         monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
 
-        var newDids = cc.isRandomize() ? getRandomizedDid(continuationToken) : getDidsSince(continuationToken, cc.getDidTypes());
+        var newDids = cc.isRandomize() ? getRandomizedDid() : getDidsSince(continuationToken, cc.getDidTypes());
         monitor.info("CrawlerJob: found " + newDids.size() + " new dids on ION");
 
         if (newDids.size() > 0) {
@@ -74,7 +77,16 @@ public class CrawlerJob implements Job {
         try (var response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 var json = Objects.requireNonNull(response.body()).string();
-                return new ArrayList<>();
+                var om = new ObjectMapper();
+                var tr = new TypeReference<List<DidEntry>>() {
+                };
+                var list = om.readValue(json, tr);
+
+                return list.stream()
+                        .map(de -> DidDocument.Builder.create()
+                                .id(de.getDidSuffix())
+                                .build())
+                        .collect(Collectors.toList());
             } else {
                 throw new IonRequestException(format("Could not get DIDs: error=%s, message=%s", response.code(), response.body().string()));
             }
@@ -87,7 +99,7 @@ public class CrawlerJob implements Job {
         return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
     }
 
-    private List<DidDocument> getRandomizedDid(@Nullable String continuationToken) {
+    private List<DidDocument> getRandomizedDid() {
 
 
         // TODO: once the query API for Ion is in place, we need to actually query it
