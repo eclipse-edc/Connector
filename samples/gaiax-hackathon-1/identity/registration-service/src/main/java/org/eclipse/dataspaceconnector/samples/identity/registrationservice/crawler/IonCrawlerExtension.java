@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.samples.identity.registrationservice.event
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -39,6 +38,8 @@ import static org.quartz.TriggerBuilder.newTrigger;
 public class IonCrawlerExtension implements ServiceExtension {
     @EdcSetting
     private static final String EDC_SETTING_CRAWLER_INTERVAL_MIN = "edc.ion.crawler.interval-minutes";
+    @EdcSetting
+    private static final String ION_URL_SETTING = "edc.ion.crawler.ion.url";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
 
@@ -72,7 +73,7 @@ public class IonCrawlerExtension implements ServiceExtension {
 
             var minutes = Integer.parseInt(context.getSetting(EDC_SETTING_CRAWLER_INTERVAL_MIN, "30"));
 
-            scheduleCrawler(minutes, didStore, context.getMonitor(), context.getService(Vault.class));
+            scheduleCrawler(minutes, didStore, context);
             context.getMonitor().info("ION Crawler Extension started");
             context.getMonitor().info("Started periodic crawling of the ION database every " + minutes + " minutes");
 
@@ -94,14 +95,20 @@ public class IonCrawlerExtension implements ServiceExtension {
 
     }
 
-    private void scheduleCrawler(int intervalMinutes, ObjectStore<DidDocument> objectStore, Monitor monitor, Vault vault) throws SchedulerException {
+    private void scheduleCrawler(int intervalMinutes, ObjectStore<DidDocument> objectStore, ServiceExtensionContext context) throws SchedulerException {
 
-        var publisher = new CrawlerEventPublisher(vault, new AzureEventGridConfig(context));
+        var publisher = new CrawlerEventPublisher(context.getService(Vault.class), new AzureEventGridConfig(context));
+
+        var crawlerConfig = CrawlerContext.Builder.create()
+                .didStore(objectStore)
+                .ionHost(context.getSetting(ION_URL_SETTING, "http://23.97.144.59:3000/"))
+                .monitor(context.getMonitor())
+                .publisher(publisher)
+                .didTypes(new String[]{"DiscoveryService"})
+                .build();
 
         JobDetail job = newJob(CrawlerJob.class)
-                .setJobData(new JobDataMap(Map.of("STORE", objectStore,
-                        "MONITOR", monitor,
-                        "PUBLISHER", publisher)))
+                .setJobData(new JobDataMap(Map.of(CrawlerContext.KEY, crawlerConfig)))
                 .withIdentity("ion-crawler-job", "ion")
                 .build();
         Trigger trigger = newTrigger()
