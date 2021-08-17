@@ -19,6 +19,7 @@ rootProject.name = "dataspaceconnector"
 include(":common:util")
 
 // EDC core modules
+include(":core")
 include(":core:bootstrap")
 include(":core:policy:policy-engine")
 include(":core:policy:policy-model")
@@ -76,11 +77,13 @@ include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
+include(":samples:gaiax-hackathon-1:identity:transfer")
 include(":samples:gaiax-hackathon-1:identity:ion-core")
 include(":samples:gaiax-hackathon-1:identity:registration-service")
 include(":samples:gaiax-hackathon-1:identity:did-document-store-inmem")
 include(":samples:gaiax-hackathon-1:identity:registration-service-api")
 include(":samples:gaiax-hackathon-1:identity:launchers:registration-service-app")
+include(":samples:gaiax-hackathon-1:identity:launchers:simple-provider")
 
 // extension points for a connector
 include(":spi")
