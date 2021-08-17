@@ -188,54 +188,51 @@ resource "azurerm_container_group" "gx-registration-service" {
   }
 }
 
-# german consumer
-//resource "azurerm_container_group" "consumer-de" {
-//  name = "edc-demo-consumer-de"
-//  location = azurerm_resource_group.core-resourcegroup.location
-//  resource_group_name = azurerm_resource_group.core-resourcegroup.name
-//  os_type = "Linux"
-//  ip_address_type = "public"
-//  dns_name_label = "${var.environment}-consumer-de"
-//  image_registry_credential {
-//    password = var.docker_repo_password
-//    server = var.docker_repo_url
-//    username = var.docker_repo_username
-//  }
-//  container {
-//    cpu = 2
-//    image = "${var.docker_repo_url}/microsoft/edc-connector-demo/edc-demo-consumer:latest"
-//    memory = "2"
-//    name = "consumer-de"
-//
-//    ports {
-//      port = 8181
-//      protocol = "TCP"
-//    }
-//
-//    secure_environment_variables = {
-//      CLIENTID = azuread_application.demo-app-id.application_id,
-//      TENANTID = data.azurerm_client_config.current.tenant_id,
-//      VAULTNAME = azurerm_key_vault.main-vault.name,
-//      CONNECTOR_NAME = "connector-de"
-//      // currently uses the in-mem process store
-//      TOPIC_NAME = azurerm_eventgrid_topic.control-topic.name
-//      TOPIC_ENDPOINT = azurerm_eventgrid_topic.control-topic.endpoint
-//    }
-//
-//    volume {
-//      mount_path = "/cert"
-//      name = "certificates"
-//      share_name = "certificates"
-//      storage_account_key = var.backend_account_key
-//      storage_account_name = var.backend_account_name
-//      read_only = true
-//    }
-//  }
-//}
+# connector that acts as data provider
+resource "azurerm_container_group" "gx-provider" {
+  name = "gaiax-provider"
+  location = azurerm_resource_group.core-resourcegroup.location
+  resource_group_name = azurerm_resource_group.core-resourcegroup.name
+  os_type = "Linux"
+  ip_address_type = "public"
+  dns_name_label = "${var.environment}-provider"
+  //  image_registry_credential {
+  //    password = var.docker_repo_password
+  //    server = var.docker_repo_url
+  //    username = var.docker_repo_username
+  //  }
+  container {
+    cpu = 2
+    //    image = "${var.docker_repo_url}/microsoft/edc-connector-demo/edc-demo-consumer:latest"
+    image = "beardyinc/gx-provider:latest"
+    memory = "2"
+    name = "gx-reg-svc"
 
-## KEYVAULT SECRETS
+    ports {
+      port = 8181
+      protocol = "TCP"
+    }
 
-# KeyVault secrets
+    environment_variables = {
+      CLIENTID = azuread_application.demo-app-id.application_id,
+      TENANTID = data.azurerm_client_config.current.tenant_id,
+      VAULTNAME = azurerm_key_vault.main-vault.name,
+      CONNECTOR_NAME = "gx-provider"
+      TOPIC_NAME = azurerm_eventgrid_topic.control-topic.name
+      TOPIC_ENDPOINT = azurerm_eventgrid_topic.control-topic.endpoint
+    }
+
+    volume {
+      mount_path = "/cert"
+      name = "certificates"
+      share_name = "certificates"
+      storage_account_key = var.backend_account_key
+      storage_account_name = var.backend_account_name
+      read_only = true
+    }
+  }
+}
+
 resource "azurerm_key_vault_secret" "blobstorekey" {
   name = "${azurerm_storage_account.main-blobstore.name}-key1"
   value = azurerm_storage_account.main-blobstore.primary_access_key
