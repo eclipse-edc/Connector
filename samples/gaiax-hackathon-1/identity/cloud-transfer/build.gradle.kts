@@ -10,5 +10,6 @@ dependencies {
     implementation(project(":common:util"))
 
     implementation(project(":extensions:aws:s3:provision"))
+    implementation(project(":extensions:azure:blob:api"))
 
 }
