@@ -44,7 +44,8 @@ public class CrawlerJob implements Job {
 
         var monitor = cc.getMonitor();
         monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
-        var newDids = getDidsSince(continuationToken, cc.getDidTypes());
+
+        var newDids = cc.isRandomize() ? getRandomizedDid(continuationToken) : getDidsSince(continuationToken, cc.getDidTypes());
         monitor.info("CrawlerJob: found " + newDids.size() + " new dids on ION");
 
         if (newDids.size() > 0) {
