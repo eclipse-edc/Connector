@@ -11,16 +11,26 @@ plugins {
 
 
 dependencies {
-    implementation(project(":spi"))
-    implementation(project(":core"))
+    implementation(project(":core:protocol:web"))
     implementation(project(":core:transfer"))
-    implementation(project(":common:util"))
+    implementation(project(":core:bootstrap"))
+    implementation(project(":core:policy:policy-model"))
+    implementation(project(":core:policy:policy-engine"))
+    implementation(project(":core:schema"))
 
-    implementation(project(":extensions:azure:vault"))
-    implementation(project(":extensions:filesystem:configuration-fs"))
+
+
     implementation(project(":extensions:in-memory:transfer-store-memory"))
+    implementation(project(":extensions:azure:vault"))
+    implementation(project(":extensions:in-memory:policy-registry-memory"))
+    implementation(project(":extensions:in-memory:metadata-memory"))
+    implementation(project(":extensions:iam:iam-mock"))
+    implementation(project(":extensions:filesystem:configuration-fs"))
 
-    implementation(project(":samples:gaiax-hackathon-1:identity:transfer"))
+    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:ids:ids-policy-mock"))
+
+    implementation(project(":samples:gaiax-hackathon-1:identity:cloud-transfer"))
 
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")

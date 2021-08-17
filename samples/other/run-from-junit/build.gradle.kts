@@ -25,7 +25,6 @@ dependencies {
     api(project(":extensions:in-memory:transfer-store-memory"))
 
     api(project(":extensions:aws:s3:provision"))
-    api(project(":extensions:azure:blob:provision"))
 
     api(project(":data-protocols:ids:ids-core"))
 

@@ -113,9 +113,62 @@ public class ConsumerRunner {
         assertThat(latch.await(5, TimeUnit.MINUTES)).isTrue();
     }
 
+    @Test
+    @Disabled
+    void copyFromAzureBlobToAws(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
+
+        var query = QueryRequest.Builder.newInstance()
+                .connectorAddress(PROVIDER_CONNECTOR)
+                .connectorId(PROVIDER_CONNECTOR)
+                .queryLanguage("dataspaceconnector")
+                .query("select *")
+                .protocol("ids-rest").build();
+
+        CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
+
+        var artifacts = future.get();
+        artifacts = artifacts.stream().findAny().stream().collect(Collectors.toList());
+//        latch = new CountDownLatch(artifacts.size());
+//        for (String artifact : artifacts) {
+        final var artifact = "azure.png";
+        System.out.println("processing artifact " + artifact);
+        // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
+        var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
+
+        TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
+        observable.registerListener(new TransferProcessListener() {
+            @Override
+            public void completed(TransferProcess process) {
+                if (process.getId().equals(response.getId())) {
+                    return;
+                }
+                //simulate data egress
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                process.transitionDeprovisionRequested();
+                store.update(process);
+            }
+
+            @Override
+            public void deprovisioned(TransferProcess process) {
+                if (process.getId().equals(response.getId())) {
+                    return;
+                }
+                latch.countDown();
+            }
+        });
+//        }
+
+        assertThat(latch.await(5, TimeUnit.MINUTES)).isTrue();
+    }
+
 
     @Test
-    void processConsumerRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
+    @Disabled
+    void processClientRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .connectorId(PROVIDER_CONNECTOR)
