@@ -101,7 +101,7 @@ include(":samples:other:custom-runtime")
 
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
-include(":samples:gaiax-hackathon-1:identity:transfer")
+include(":samples:gaiax-hackathon-1:identity:cloud-transfer")
 include(":samples:gaiax-hackathon-1:identity:ion-core")
 include(":samples:gaiax-hackathon-1:identity:registration-service")
 include(":samples:gaiax-hackathon-1:identity:did-document-store-inmem")
