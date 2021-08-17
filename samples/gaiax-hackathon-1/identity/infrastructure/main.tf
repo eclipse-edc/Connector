@@ -142,7 +142,7 @@ resource "azurerm_storage_account" "main-blobstore" {
   //allows for blobs, queues, fileshares, etc.
 }
 
-# french consumer
+# registration service = ion crawler
 resource "azurerm_container_group" "gx-registration-service" {
   name = "gaiax-registration-service"
   location = azurerm_resource_group.core-resourcegroup.location
