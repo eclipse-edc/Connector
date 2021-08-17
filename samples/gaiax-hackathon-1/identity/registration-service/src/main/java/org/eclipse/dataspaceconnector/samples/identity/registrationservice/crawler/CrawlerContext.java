@@ -13,6 +13,7 @@ public class CrawlerContext {
     private CrawlerEventPublisher publisher;
     private String ionHost;
     private String[] didTypes;
+    private boolean randomize = false;
 
     public DidStore getDidStore() {
         return didStore;
@@ -34,12 +35,17 @@ public class CrawlerContext {
         return didTypes;
     }
 
+    public boolean isRandomize() {
+        return randomize;
+    }
+
     public static final class Builder {
         private ObjectStore<DidDocument> didStore;
         private Monitor monitor;
         private CrawlerEventPublisher publisher;
         private String ionHost;
         private String[] didTypes;
+        private boolean randomize;
 
         private Builder() {
         }
@@ -68,6 +74,11 @@ public class CrawlerContext {
             return this;
         }
 
+        public Builder randomize(boolean randomize) {
+            this.randomize = randomize;
+            return this;
+        }
+
         public Builder didTypes(String[] didTypes) {
             this.didTypes = didTypes;
             return this;
@@ -80,6 +91,7 @@ public class CrawlerContext {
             crawlerConfig.publisher = publisher;
             crawlerConfig.didStore = (DidStore) didStore;
             crawlerConfig.monitor = monitor;
+            crawlerConfig.randomize = randomize;
             return crawlerConfig;
         }
     }
