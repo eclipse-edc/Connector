@@ -37,22 +37,22 @@ public class AzureVaultExtension implements VaultExtension {
     public void intializeVault(ServiceExtensionContext context) {
         String clientId = context.getSetting("edc.vault.clientid", null);
         if (isNullOrEmpty(clientId)) {
-            throw new AzureVaultException("'dataspaceconnector.vault.clientid' must be supplied but was null!");
+            throw new AzureVaultException("'edc.vault.clientid' must be supplied but was null!");
         }
 
         String tenantId = context.getSetting("edc.vault.tenantid", null);
         if (isNullOrEmpty(tenantId)) {
-            throw new AzureVaultException("'dataspaceconnector.vault.tenantid' must be supplied but was null!");
+            throw new AzureVaultException("'edc.vault.tenantid' must be supplied but was null!");
         }
 
         String certPath = context.getSetting("edc.vault.certificate", null);
         if (isNullOrEmpty(certPath)) {
-            throw new AzureVaultException("'dataspaceconnector.vault.certificate' must be supplied but was null!");
+            throw new AzureVaultException("'edc.vault.certificate' must be supplied but was null!");
         }
 
         String keyVaultName = context.getSetting("edc.vault.name", null);
         if (isNullOrEmpty(keyVaultName)) {
-            throw new AzureVaultException("'dataspaceconnector.vault.name' must be supplied but was null!");
+            throw new AzureVaultException("'edc.vault.name' must be supplied but was null!");
         }
 
         vault = AzureVault.authenticateWithCertificate(context.getMonitor(), clientId, tenantId, certPath, keyVaultName);

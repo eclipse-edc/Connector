@@ -9,7 +9,7 @@ terraform {
   required_providers {
     azurerm = {
       source = "hashicorp/azurerm"
-      version = ">= 2.68.0"
+      version = ">= 2.72.0"
     }
     azuread = {
       source = "hashicorp/azuread"
@@ -143,49 +143,50 @@ resource "azurerm_storage_account" "main-blobstore" {
 }
 
 # french consumer
-//resource "azurerm_container_group" "consumer-fr" {
-//  name = "edc-demo-consumer-fr"
-//  location = azurerm_resource_group.core-resourcegroup.location
-//  resource_group_name = azurerm_resource_group.core-resourcegroup.name
-//  os_type = "Linux"
-//  ip_address_type = "public"
-//  dns_name_label = "${var.environment}-consumer-fr"
-//  image_registry_credential {
-//    password = var.docker_repo_password
-//    server = var.docker_repo_url
-//    username = var.docker_repo_username
-//  }
-//  container {
-//    cpu = 2
-//    image = "${var.docker_repo_url}/microsoft/edc-connector-demo/edc-demo-consumer:latest"
-//    memory = "2"
-//    name = "consumer-fr"
-//
-//    ports {
-//      port = 8181
-//      protocol = "TCP"
-//    }
-//
-//    secure_environment_variables = {
-//      CLIENTID = azuread_application.demo-app-id.application_id,
-//      TENANTID = data.azurerm_client_config.current.tenant_id,
-//      VAULTNAME = azurerm_key_vault.main-vault.name,
-//      CONNECTOR_NAME = "connector-fr"
-//      // currently uses the in-mem process store
-//      TOPIC_NAME = azurerm_eventgrid_topic.control-topic.name
-//      TOPIC_ENDPOINT = azurerm_eventgrid_topic.control-topic.endpoint
-//    }
-//
-//    volume {
-//      mount_path = "/cert"
-//      name = "certificates"
-//      share_name = "certificates"
-//      storage_account_key = var.backend_account_key
-//      storage_account_name = var.backend_account_name
-//      read_only = true
-//    }
-//  }
-//}
+resource "azurerm_container_group" "gx-registration-service" {
+  name = "gaiax-registration-service"
+  location = azurerm_resource_group.core-resourcegroup.location
+  resource_group_name = azurerm_resource_group.core-resourcegroup.name
+  os_type = "Linux"
+  ip_address_type = "public"
+  dns_name_label = "${var.environment}-reg-svc"
+  //  image_registry_credential {
+  //    password = var.docker_repo_password
+  //    server = var.docker_repo_url
+  //    username = var.docker_repo_username
+  //  }
+  container {
+    cpu = 2
+    //    image = "${var.docker_repo_url}/microsoft/edc-connector-demo/edc-demo-consumer:latest"
+    image = "beardyinc/gx-reg-svc:latest"
+    memory = "2"
+    name = "gx-reg-svc"
+
+    ports {
+      port = 8181
+      protocol = "TCP"
+    }
+
+    environment_variables = {
+      CLIENTID = azuread_application.demo-app-id.application_id,
+      TENANTID = data.azurerm_client_config.current.tenant_id,
+      VAULTNAME = azurerm_key_vault.main-vault.name,
+      CONNECTOR_NAME = "gx-reg-svc"
+      TOPIC_NAME = azurerm_eventgrid_topic.control-topic.name
+      TOPIC_ENDPOINT = azurerm_eventgrid_topic.control-topic.endpoint
+      ION_URL = "http://23.97.144.59:3000/"
+    }
+
+    volume {
+      mount_path = "/cert"
+      name = "certificates"
+      share_name = "certificates"
+      storage_account_key = var.backend_account_key
+      storage_account_name = var.backend_account_name
+      read_only = true
+    }
+  }
+}
 
 # german consumer
 //resource "azurerm_container_group" "consumer-de" {
