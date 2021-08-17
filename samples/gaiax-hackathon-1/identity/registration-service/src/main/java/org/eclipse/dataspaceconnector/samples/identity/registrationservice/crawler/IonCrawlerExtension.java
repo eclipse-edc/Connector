@@ -40,6 +40,8 @@ public class IonCrawlerExtension implements ServiceExtension {
     private static final String EDC_SETTING_CRAWLER_INTERVAL_MIN = "edc.ion.crawler.interval-minutes";
     @EdcSetting
     private static final String ION_URL_SETTING = "edc.ion.crawler.ion.url";
+    @EdcSetting
+    private static final String ION_RANDOMIZE_DID_DOCUMENTS = "edc.ion.crawler.randomize";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
 
@@ -104,6 +106,7 @@ public class IonCrawlerExtension implements ServiceExtension {
                 .ionHost(context.getSetting(ION_URL_SETTING, "http://23.97.144.59:3000/"))
                 .monitor(context.getMonitor())
                 .publisher(publisher)
+                .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS, "false")))
                 .didTypes(new String[]{"DiscoveryService"})
                 .build();
 
