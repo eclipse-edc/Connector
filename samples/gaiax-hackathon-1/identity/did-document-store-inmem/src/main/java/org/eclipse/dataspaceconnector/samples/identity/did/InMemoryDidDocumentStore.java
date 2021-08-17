@@ -38,7 +38,7 @@ public class InMemoryDidDocumentStore implements DidStore {
 
     @Override
     public boolean save(DidDocument entity) {
-        if (memoryDb.stream().noneMatch(e -> e.getPayload().equals(entity))) {
+        if (memoryDb.stream().noneMatch(e -> e.getPayload().getId().equals(entity.getId()))) {
             memoryDb.add(new Entity<>(entity));
             return true;
         }
