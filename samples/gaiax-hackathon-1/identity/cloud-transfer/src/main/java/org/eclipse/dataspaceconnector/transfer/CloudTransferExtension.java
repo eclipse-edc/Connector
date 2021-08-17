@@ -21,7 +21,7 @@ public class CloudTransferExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
-        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor());
+        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager());
         dataFlowMgr.register(flowController);
 
 
@@ -35,13 +35,13 @@ public class CloudTransferExtension implements ServiceExtension {
 
         GenericDataCatalogEntry sourceFileCatalog = GenericDataCatalogEntry.Builder.newInstance()
                 .property("type", "AzureStorage")
+                .property("account", "gaiaxhackathongpstorage")
+                .property("container", "hackathon-src-container")
+                .property("blobname", "azure.png")
                 .build();
 
         DataEntry entry1 = DataEntry.Builder.newInstance().id("azure.png").policyId(USE_US_OR_EU_POLICY).catalogEntry(sourceFileCatalog).build();
         metadataStore.save(entry1);
-
-        DataEntry entry2 = DataEntry.Builder.newInstance().id("test456").policyId(USE_US_OR_EU_POLICY).catalogEntry(sourceFileCatalog).build();
-        metadataStore.save(entry2);
     }
 
     private void savePolicies(ServiceExtensionContext context) {
