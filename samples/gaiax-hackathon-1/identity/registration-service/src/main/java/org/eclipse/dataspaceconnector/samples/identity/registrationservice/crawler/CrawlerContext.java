@@ -12,7 +12,7 @@ public class CrawlerContext {
     private Monitor monitor;
     private CrawlerEventPublisher publisher;
     private String ionHost;
-    private String[] didTypes;
+    private String didTypes;
     private boolean randomize = false;
 
     public DidStore getDidStore() {
@@ -31,7 +31,7 @@ public class CrawlerContext {
         return ionHost;
     }
 
-    public String[] getDidTypes() {
+    public String getDidTypes() {
         return didTypes;
     }
 
@@ -44,7 +44,7 @@ public class CrawlerContext {
         private Monitor monitor;
         private CrawlerEventPublisher publisher;
         private String ionHost;
-        private String[] didTypes;
+        private String didTypes;
         private boolean randomize;
 
         private Builder() {
@@ -79,7 +79,7 @@ public class CrawlerContext {
             return this;
         }
 
-        public Builder didTypes(String[] didTypes) {
+        public Builder didTypes(String didTypes) {
             this.didTypes = didTypes;
             return this;
         }

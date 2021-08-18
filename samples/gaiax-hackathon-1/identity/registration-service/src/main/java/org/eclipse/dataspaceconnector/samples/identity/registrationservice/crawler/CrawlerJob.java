@@ -27,6 +27,7 @@ import static java.lang.String.format;
 public class CrawlerJob implements Job {
 
     private static final String IDENTIFIERS_PATH = "identifiers";
+    private static final String DIDS_PATH = "dids";
     private String ionApiUrl = "http://23.97.144.59:3000/";
 
     @Override
@@ -59,15 +60,15 @@ public class CrawlerJob implements Job {
 
     }
 
-    private List<DidDocument> getDidsSince(@Nullable String continuationToken, String... types) {
+    private List<DidDocument> getDidsSince(@Nullable String continuationToken, String type) {
         var client = createClient();
 
         var url = HttpUrl.parse(ionApiUrl)
                 .newBuilder()
-                .addPathSegment(IDENTIFIERS_PATH)
-                .addQueryParameter("since", continuationToken); //doesn't matter if its null or empty
+                .addPathSegment(DIDS_PATH)
+                .addQueryParameter("type", type)
+                .addQueryParameter("limit", "50"); //go a maximum of 50 transactions back
 
-        Arrays.stream(types).forEach(t -> url.addQueryParameter("type", t));
 
         var request = new Request.Builder()
                 .url(url.build().url())
@@ -78,13 +79,13 @@ public class CrawlerJob implements Job {
             if (response.isSuccessful()) {
                 var json = Objects.requireNonNull(response.body()).string();
                 var om = new ObjectMapper();
-                var tr = new TypeReference<List<DidEntry>>() {
+                var tr = new TypeReference<List<String>>() {
                 };
                 var list = om.readValue(json, tr);
 
                 return list.stream()
-                        .map(de -> DidDocument.Builder.create()
-                                .id(de.getDidSuffix())
+                        .map(didSuffix -> DidDocument.Builder.create()
+                                .id(didSuffix)
                                 .build())
                         .collect(Collectors.toList());
             } else {
