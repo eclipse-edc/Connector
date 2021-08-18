@@ -49,7 +49,7 @@ public class CrawlerJob implements Job {
         var monitor = cc.getMonitor();
         monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
 
-        var newDids = cc.isRandomize() ? getRandomizedDid() : getDidsSince(continuationToken, cc.getDidTypes());
+        var newDids = cc.isRandomize() ? getRandomizedDid() : resolveDids(continuationToken, cc);
         monitor.info("CrawlerJob: found " + newDids.size() + " new dids on ION");
 
         if (newDids.size() > 0) {
@@ -60,7 +60,16 @@ public class CrawlerJob implements Job {
 
     }
 
-    private List<DidDocument> getDidsSince(@Nullable String continuationToken, String type) {
+    private List<DidDocument> resolveDids(String continuationToken, CrawlerContext context) {
+        return getDidSuffixesForType(continuationToken, context.getDidTypes())
+                .stream()
+                .map(didSuffix -> resolveDid(didSuffix, context))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+    }
+
+    private List<String> getDidSuffixesForType(@Nullable String continuationToken,String type) {
         var client = createClient();
 
         var url = HttpUrl.parse(ionApiUrl)
@@ -81,18 +90,20 @@ public class CrawlerJob implements Job {
                 var om = new ObjectMapper();
                 var tr = new TypeReference<List<String>>() {
                 };
-                var list = om.readValue(json, tr);
-
-                return list.stream()
-                        .map(didSuffix -> DidDocument.Builder.create()
-                                .id(didSuffix)
-                                .build())
-                        .collect(Collectors.toList());
+                return om.readValue(json, tr);
             } else {
                 throw new IonRequestException(format("Could not get DIDs: error=%s, message=%s", response.code(), response.body().string()));
             }
         } catch (IOException e) {
             throw new IonRequestException(e);
+        }
+    }
+
+    private DidDocument resolveDid(String didSuffix, CrawlerContext context) {
+        try {
+            return context.getIonClient().resolve(didSuffix);
+        } catch (IonRequestException ex) {
+            return null;
         }
     }
 

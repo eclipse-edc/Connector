@@ -35,6 +35,13 @@ class IonClientImplTest {
     }
 
     @Test
+    void resolve_againstOfficialUrl() {
+        client = new IonClientImpl(new TypeManager());
+        var result = client.resolve("did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+        assertThat(result).isNotNull();
+    }
+
+    @Test
     void resolve_notFound() {
         assertThatThrownBy(() -> client.resolve("did:ion:test:notexist")).isInstanceOf(IonRequestException.class)
                 .hasMessageContaining("404");
