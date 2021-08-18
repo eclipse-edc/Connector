@@ -27,12 +27,12 @@ dependencies {
     implementation(project(":extensions:in-memory:metadata-memory"))
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:aws:s3:provision"))
 
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:gaiax-hackathon-1:identity:control-rest"))
-//    implementation(project(":samples:gaiax-hackathon-1:identity:catalog-service"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")

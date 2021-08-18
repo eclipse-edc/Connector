@@ -33,15 +33,33 @@ public class CloudTransferExtension implements ServiceExtension {
     private void registerDataEntries(ServiceExtensionContext context) {
         var metadataStore = context.getService(MetadataStore.class);
 
-        GenericDataCatalogEntry sourceFileCatalog = GenericDataCatalogEntry.Builder.newInstance()
+        GenericDataCatalogEntry file1 = GenericDataCatalogEntry.Builder.newInstance()
                 .property("type", "AzureStorage")
                 .property("account", "gaiaxhackathongpstorage")
                 .property("container", "hackathon-src-container")
                 .property("blobname", "azure.png")
                 .build();
 
-        DataEntry entry1 = DataEntry.Builder.newInstance().id("azure.png").policyId(USE_US_OR_EU_POLICY).catalogEntry(sourceFileCatalog).build();
+        GenericDataCatalogEntry file3 = GenericDataCatalogEntry.Builder.newInstance()
+                .property("type", "AzureStorage")
+                .property("account", "gaiaxhackathongpstorage")
+                .property("container", "hackathon-src-container")
+                .property("blobname", "doc1.txt")
+                .build();
+
+        GenericDataCatalogEntry file2 = GenericDataCatalogEntry.Builder.newInstance()
+                .property("type", "AzureStorage")
+                .property("account", "gaiaxhackathongpstorage")
+                .property("container", "hackathon-src-container")
+                .property("blobname", "pinup.webp")
+                .build();
+
+        DataEntry entry1 = DataEntry.Builder.newInstance().id("azure.png").policyId(USE_US_OR_EU_POLICY).catalogEntry(file1).build();
+        DataEntry entry2 = DataEntry.Builder.newInstance().id("pinup.webp").policyId(USE_US_OR_EU_POLICY).catalogEntry(file2).build();
+        DataEntry entry3 = DataEntry.Builder.newInstance().id("doc1.txt").policyId(USE_US_OR_EU_POLICY).catalogEntry(file3).build();
         metadataStore.save(entry1);
+        metadataStore.save(entry2);
+        metadataStore.save(entry3);
     }
 
     private void savePolicies(ServiceExtensionContext context) {
