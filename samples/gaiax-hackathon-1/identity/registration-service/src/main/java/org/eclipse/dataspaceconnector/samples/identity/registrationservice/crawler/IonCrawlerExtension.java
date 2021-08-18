@@ -107,7 +107,7 @@ public class IonCrawlerExtension implements ServiceExtension {
                 .monitor(context.getMonitor())
                 .publisher(publisher)
                 .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS, "false")))
-                .didTypes(new String[]{"DiscoveryService"})
+                .didTypes("Z3hp") //Z3hp is base64 for "gxi", which is GaiaX-Identity
                 .build();
 
         JobDetail job = newJob(CrawlerJob.class)
