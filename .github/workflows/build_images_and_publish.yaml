@@ -75,6 +75,9 @@ jobs:
       ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
       ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
       TF_VAR_CERTIFICATE: ${{ secrets.PRIMARY_APP_ID_CERT }}
+      AWS_DEFAULT_REGION: "us-east-1"
+      AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
     runs-on: ubuntu-latest
     environment: edc-demo
 
@@ -107,7 +110,7 @@ jobs:
         continue-on-error: true
 
       - name: Terraform Taint Registration Service
-        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure taint azurerm_container_group.gx-reg-svc
+        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure taint azurerm_container_group.gx-registration-service
         continue-on-error: true
 
         # On push to main, build or change infrastructure according to Terraform configuration files
