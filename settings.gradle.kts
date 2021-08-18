@@ -82,8 +82,11 @@ include(":samples:gaiax-hackathon-1:identity:ion-core")
 include(":samples:gaiax-hackathon-1:identity:registration-service")
 include(":samples:gaiax-hackathon-1:identity:did-document-store-inmem")
 include(":samples:gaiax-hackathon-1:identity:registration-service-api")
+include(":samples:gaiax-hackathon-1:identity:control-rest")
+include(":samples:gaiax-hackathon-1:identity:catalog-service")
 include(":samples:gaiax-hackathon-1:identity:launchers:registration-service-app")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-provider")
+include(":samples:gaiax-hackathon-1:identity:launchers:simple-consumer")
 
 // extension points for a connector
 include(":spi")
