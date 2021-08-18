@@ -20,7 +20,7 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
       - name: Gradle Build
-        run: ./gradlew clean build
+        run: ./gradlew clean shadowJar
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
