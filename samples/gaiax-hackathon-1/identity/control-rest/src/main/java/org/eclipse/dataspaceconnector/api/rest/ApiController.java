@@ -95,7 +95,8 @@ public class ApiController {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         try {
-            if (CollectionUtil.isAnyOf(process.getState(), TransferProcessStates.DEPROVISIONED.code(),
+            if (CollectionUtil.isAnyOf(process.getState(),
+                    TransferProcessStates.DEPROVISIONED.code(),
                     TransferProcessStates.DEPROVISIONING_REQ.code(),
                     TransferProcessStates.DEPROVISIONING.code(),
                     TransferProcessStates.ENDED.code()
