@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
+import org.eclipse.dataspaceconnector.iam.ion.IonClient;
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
@@ -108,6 +109,7 @@ public class IonCrawlerExtension implements ServiceExtension {
                 .publisher(publisher)
                 .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS, "false")))
                 .didTypes("Z3hp") //Z3hp is base64 for "gxi", which is GaiaX-Identity
+                .ionClient(new IonClientImpl(context.getTypeManager()))
                 .build();
 
         JobDetail job = newJob(CrawlerJob.class)
