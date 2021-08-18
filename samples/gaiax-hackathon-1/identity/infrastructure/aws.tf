@@ -5,8 +5,8 @@ provider "aws" {
 
 
 resource "aws_iam_user" "hackathon-user" {
-  name = "hackathon-user"
-  path = "/"
+  name          = "hackathon-user"
+  path          = "/"
   force_destroy = true
 }
 
@@ -16,12 +16,12 @@ resource "aws_iam_access_key" "gx_access_key" {
 }
 
 resource "aws_iam_user_policy_attachment" "gx-s3fullaccess" {
-  user = aws_iam_user.hackathon-user.name
+  user       = aws_iam_user.hackathon-user.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonS3FullAccess"
 }
 
 resource "aws_iam_user_policy_attachment" "gx-iamfullaccess" {
-  user = aws_iam_user.hackathon-user.name
+  user       = aws_iam_user.hackathon-user.name
   policy_arn = "arn:aws:iam::aws:policy/IAMFullAccess"
 }
 
@@ -34,6 +34,6 @@ output "new_user" {
   sensitive = true
   value = {
     secret = aws_iam_access_key.gx_access_key.secret
-    id = aws_iam_access_key.gx_access_key.id
+    id     = aws_iam_access_key.gx_access_key.id
   }
 }
