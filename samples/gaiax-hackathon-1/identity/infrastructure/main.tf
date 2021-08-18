@@ -150,15 +150,15 @@ resource "azurerm_container_group" "gx-registration-service" {
   os_type             = "Linux"
   ip_address_type     = "public"
   dns_name_label      = "${var.environment}-reg-svc"
-  //  image_registry_credential {
-  //    password = var.docker_repo_password
-  //    server = var.docker_repo_url
-  //    username = var.docker_repo_username
-  //  }
+  image_registry_credential {
+    password = var.docker_repo_password
+    server   = var.docker_repo_url
+    username = var.docker_repo_username
+  }
   container {
-    cpu = 2
-    //    image = "${var.docker_repo_url}/microsoft/edc-connector-demo/edc-demo-consumer:latest"
-    image  = "beardyinc/gx-reg-svc:latest"
+    cpu   = 2
+    image = "${var.docker_repo_url}/beardyinc/dataspaceconnector/gx-reg-svc:latest"
+    //    image  = "beardyinc/gx-reg-svc:latest"
     memory = "2"
     name   = "gx-reg-svc"
 
@@ -196,15 +196,15 @@ resource "azurerm_container_group" "gx-provider" {
   os_type             = "Linux"
   ip_address_type     = "public"
   dns_name_label      = "${var.environment}-provider"
-  //  image_registry_credential {
-  //    password = var.docker_repo_password
-  //    server = var.docker_repo_url
-  //    username = var.docker_repo_username
-  //  }
+  image_registry_credential {
+    password = var.docker_repo_password
+    server   = var.docker_repo_url
+    username = var.docker_repo_username
+  }
   container {
-    cpu = 2
-    //    image = "${var.docker_repo_url}/microsoft/edc-connector-demo/edc-demo-consumer:latest"
-    image  = "beardyinc/gx-provider:latest"
+    cpu   = 2
+    image = "${var.docker_repo_url}/beardyinc/dataspaceconnector/gx-provider:latest"
+    //    image  = "beardyinc/gx-provider:latest"
     memory = "2"
     name   = "gx-provider"
 
@@ -241,15 +241,15 @@ resource "azurerm_container_group" "gx-consumer" {
   os_type             = "Linux"
   ip_address_type     = "public"
   dns_name_label      = "${var.environment}-consumer"
-  //  image_registry_credential {
-  //    password = var.docker_repo_password
-  //    server = var.docker_repo_url
-  //    username = var.docker_repo_username
-  //  }
+  image_registry_credential {
+    password = var.docker_repo_password
+    server   = var.docker_repo_url
+    username = var.docker_repo_username
+  }
   container {
-    cpu = 2
-    //    image = "${var.docker_repo_url}/microsoft/edc-connector-demo/edc-demo-consumer:latest"
-    image  = "beardyinc/gx-consumer:latest"
+    cpu   = 2
+    image = "${var.docker_repo_url}/beardyinc/dataspaceconnector/gx-consumer:latest"
+    //    image  = "beardyinc/gx-consumer:latest"
     memory = "2"
     name   = "gx-consumer"
 
