@@ -6,6 +6,7 @@ import com.nimbusds.jose.jwk.ECKey;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.eclipse.dataspaceconnector.iam.ion.IonClient;
 import org.eclipse.dataspaceconnector.iam.ion.IonRequestException;
 import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
@@ -63,7 +64,7 @@ public class CrawlerJob implements Job {
     private List<DidDocument> resolveDids(String continuationToken, CrawlerContext context) {
         return getDidSuffixesForType(continuationToken, context.getDidTypes())
                 .stream()
-                .map(didSuffix -> resolveDid(didSuffix, context))
+                .map(didSuffix -> resolveDid(didSuffix, context.getIonClient()))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
 
@@ -99,9 +100,9 @@ public class CrawlerJob implements Job {
         }
     }
 
-    private DidDocument resolveDid(String didSuffix, CrawlerContext context) {
+    private DidDocument resolveDid(String didSuffix, IonClient ionClient) {
         try {
-            return context.getIonClient().resolve(didSuffix);
+            return ionClient.resolve(didSuffix);
         } catch (IonRequestException ex) {
             return null;
         }
