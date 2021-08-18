@@ -65,58 +65,53 @@ jobs:
           cache-to: type=inline
           tags: ghcr.io/beardyinc/dataspaceconnector/gx-reg-svc:latest
 
-#  terraform:
-#    name: 'Deploy'
-#    needs: build
-#
-#    env:
-#      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
-#      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
-#      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
-#      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
-#      TF_VAR_CERTIFICATE: ${{ secrets.PRIMARY_APP_ID_CERT }}
-#    runs-on: ubuntu-latest
-#    environment: edc-demo
-#
-#    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
-#    defaults:
-#      run:
-#        shell: bash
-#
-#    steps:
-#      # Checkout the repository to the GitHub Actions runner
-#      - name: Checkout
-#        uses: actions/checkout@v2
-#
-#      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
-#      - name: Terraform Init
-#        run: terraform -chdir=scripts init
-#
-#      # Checks that all Terraform configuration files adhere to a canonical format
-#      - name: Terraform Format
-#        run: terraform -chdir=scripts fmt -check
-#        continue-on-error: true
-#
-#      # Marks all deployed apps as "tainted", thereby forcing them to be replaced
-#      - name: Terraform Taint Provider
-#        run: terraform -chdir=scripts taint module.provider-bmw-deployment.kubernetes_deployment.connector-deployment
-#        continue-on-error: true
-#
-#      - name: Terraform Taint French Consumer
-#        run: terraform -chdir=scripts taint azurerm_container_group.consumer-fr
-#        continue-on-error: true
-#
-#      - name: Terraform Taint German Consumer
-#        run: terraform -chdir=scripts taint azurerm_container_group.consumer-de
-#        continue-on-error: true
-#
-#      # Generates an execution plan for Terraform
-#      - name: Terraform Plan
-#        if: github.ref != 'refs/heads/main' && github.event_name == 'push'
-#        run: terraform -chdir=scripts plan -var "environment=edc-demo" -var "docker_repo_username=${{ github.repository_owner}}" -var "docker_repo_password=${{ secrets.GITHUB_TOKEN }}"  -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
-#
-#        # On push to main, build or change infrastructure according to Terraform configuration files
-#        # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
-#      - name: Terraform Apply
-#        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-#        run: terraform -chdir=scripts apply -auto-approve -var "environment=edc-demo" -var "docker_repo_username=${{ github.repository_owner}}" -var "docker_repo_password=${{ secrets.GITHUB_TOKEN }}"  -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
+  terraform:
+    name: 'Deploy'
+    needs: build
+
+    env:
+      ARM_CLIENT_ID: ${{ secrets.ARM_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.ARM_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.ARM_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.ARM_TENANT_ID }}
+      TF_VAR_CERTIFICATE: ${{ secrets.PRIMARY_APP_ID_CERT }}
+    runs-on: ubuntu-latest
+    environment: edc-demo
+
+    # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      # Checkout the repository to the GitHub Actions runner
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
+      - name: Terraform Init
+        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure init
+
+      # Checks that all Terraform configuration files adhere to a canonical format
+      - name: Terraform Format
+        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure fmt -check
+        continue-on-error: true
+
+      # Marks all deployed apps as "tainted", thereby forcing them to be replaced
+      - name: Terraform Taint Provider
+        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure taint azurerm_container_group.gx-provider
+        continue-on-error: true
+
+      - name: Terraform Taint Consumer
+        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure taint azurerm_container_group.gx-consumer
+        continue-on-error: true
+
+      - name: Terraform Taint Registration Service
+        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure taint azurerm_container_group.gx-reg-svc
+        continue-on-error: true
+
+        # On push to main, build or change infrastructure according to Terraform configuration files
+        # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
+      - name: Terraform Apply
+        #        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure apply -auto-approve -var "environment=gaiax-hackathon" -var "docker_repo_username=${{ github.repository_owner}}" -var "docker_repo_password=${{ secrets.GITHUB_TOKEN }}"  -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
