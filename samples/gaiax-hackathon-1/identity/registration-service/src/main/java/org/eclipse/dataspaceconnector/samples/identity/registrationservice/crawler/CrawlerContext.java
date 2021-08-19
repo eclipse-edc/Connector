@@ -7,6 +7,10 @@ import org.eclipse.dataspaceconnector.samples.identity.registrationservice.event
 import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
+/**
+ * Stores parameters (such as the DID Type) and necessary objects (such as the IonClient or the DidStore)
+ * for the crawler, so it is essentially a Holder which is passed through to the {@link  CrawlerJob} by Quartz
+ */
 public class CrawlerContext {
     public static final String KEY = "edc:ion-crawler:config";
     private DidStore didStore;
