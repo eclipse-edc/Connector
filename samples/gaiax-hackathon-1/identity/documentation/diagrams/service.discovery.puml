@@ -1,0 +1,25 @@
+@startuml
+participant "Client Connector" as cc
+participant "Provider Connector Identity Hub" as pcih
+participant "Registry Service" as rs
+participant "ION Network" as ion
+
+rs->ion: Observe (Poll)
+ion-->rs: Update
+== Service Discovery ==
+cc->rs: Query entries
+rs-->cc
+|||
+|||
+cc->ion : Resolve DID
+note right of ion
+ DID contains public key,
+ Identity Hub URL,
+ and Connector URL
+end note
+ion-->cc:  DID
+==Self Description Retrieval==
+cc->pcih: Request self-description
+pcih-->cc:
+
+@enduml
