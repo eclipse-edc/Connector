@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.iam.ion.IonClient;
-import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
@@ -38,7 +37,7 @@ public class CrawlerContext {
         return didTypes;
     }
 
-    public boolean isRandomize() {
+    public boolean shouldRandomize() {
         return randomize;
     }
 
@@ -92,8 +91,8 @@ public class CrawlerContext {
             return this;
         }
 
-        public Builder ionClient(IonClient client){
-            this.ionClient= client;
+        public Builder ionClient(IonClient client) {
+            ionClient = client;
             return this;
         }
 
@@ -105,7 +104,7 @@ public class CrawlerContext {
             crawlerConfig.didStore = (DidStore) didStore;
             crawlerConfig.monitor = monitor;
             crawlerConfig.randomize = randomize;
-            crawlerConfig.ionClient= ionClient;
+            crawlerConfig.ionClient = ionClient;
             return crawlerConfig;
         }
     }
