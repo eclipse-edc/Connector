@@ -11,7 +11,6 @@ import org.eclipse.dataspaceconnector.iam.ion.IonRequestException;
 import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
-import org.jetbrains.annotations.Nullable;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -30,9 +29,8 @@ import static java.lang.String.format;
 // has to be "public", otherwise quartz won't be able to access is
 public class CrawlerJob implements Job {
 
-    private static final String IDENTIFIERS_PATH = "identifiers";
     private static final String DIDS_PATH = "dids";
-    private String ionApiUrl = "http://23.97.144.59:3000/";
+    private String ionApiUrl;
 
     @Override
     public void execute(JobExecutionContext context) {
@@ -40,22 +38,21 @@ public class CrawlerJob implements Job {
         var cc = (CrawlerContext) jobDataMap.get(CrawlerContext.KEY);
 
         ionApiUrl = Objects.requireNonNull(cc.getIonHost(), "ION Node URL cannot be null!");
-
-        // get latest did document to obtain continuation token
-        var latestDocument = cc.getDidStore().getLatest();
-
-
-        var continuationToken = latestDocument != null ? latestDocument.getId() : null;
-
         var monitor = cc.getMonitor();
-        monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
+
+        // get latest did document to obtain continuation token. At this time the continuation token is NOT used
+//        var latestDocument = cc.getDidStore().getLatest();
+//        var continuationToken = latestDocument != null ? latestDocument.getId() : null;
+//        monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
+
+        monitor.info("CrawlerJob: browsing ION to obtain GaiaX DIDs");
 
         List<DidDocument> newDids;
         var start = Instant.now();
         if (cc.shouldRandomize()) {
             newDids = getRandomizedDid();
         } else {
-            var newDidFutures = getDidDocumentsFromBlockchainAsync(continuationToken, cc);
+            var newDidFutures = getDidDocumentsFromBlockchainAsync(cc);
 
             newDids = newDidFutures.parallelStream()
                     .map(CompletableFuture::join)
@@ -76,14 +73,21 @@ public class CrawlerJob implements Job {
 
     }
 
-    private List<CompletableFuture<DidDocument>> getDidDocumentsFromBlockchainAsync(String continuationToken, CrawlerContext context) {
-        return getDidSuffixesForType(continuationToken, context.getDidTypes())
+    private List<CompletableFuture<DidDocument>> getDidDocumentsFromBlockchainAsync(CrawlerContext context) {
+        return getDidSuffixesForType(context.getDidTypes())
                 .stream()
                 .map(didSuffix -> resolveDidAsync(didSuffix, context.getIonClient()))
                 .collect(Collectors.toList());
     }
 
-    private List<String> getDidSuffixesForType(@Nullable String continuationToken, String type) {
+    /**
+     * queries the ION Core API that maps Bitcoin transactions to IPFS CoreIndexFiles which have a "type" field equal to
+     * the {@code type} parameter and returns the resulting DID suffixes (=IDs).
+     *
+     * @param type The type to look up. Should be "Z3hp" for GaiaX
+     * @return A list of DID IDs in the form {@code did:ion:.....}
+     */
+    private List<String> getDidSuffixesForType(String type) {
         var client = createClient();
 
         var url = HttpUrl.parse(ionApiUrl)
@@ -113,16 +117,30 @@ public class CrawlerJob implements Job {
         }
     }
 
-    private DidDocument resolveDid(String didSuffix, IonClient ionClient) {
+    /**
+     * Attempts to resolve a DID from ION
+     *
+     * @param didId     The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
+     * @param ionClient An ION implementation
+     * @return A {@link DidDocument} if found, {@code null} otherwise
+     */
+    private DidDocument resolveDid(String didId, IonClient ionClient) {
         try {
-            return ionClient.resolve(didSuffix);
+            return ionClient.resolve(didId);
         } catch (IonRequestException ex) {
             return null;
         }
     }
 
-    private CompletableFuture<DidDocument> resolveDidAsync(String didSuffix, IonClient ionClient) {
-        return CompletableFuture.supplyAsync(() -> resolveDid(didSuffix, ionClient));
+    /**
+     * Attempts to resolve a DID from ION asynchronously. Basically a wrapper around {@link CrawlerJob#resolveDid(String, IonClient)}
+     *
+     * @param didId     The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
+     * @param ionClient An ION implementation
+     * @return A {@code CompletableFuture<DidDocument>} if found, {@code null} otherwise
+     */
+    private CompletableFuture<DidDocument> resolveDidAsync(String didId, IonClient ionClient) {
+        return CompletableFuture.supplyAsync(() -> resolveDid(didId, ionClient));
     }
 
     private OkHttpClient createClient() {
