@@ -14,7 +14,6 @@
 package org.eclipse.dataspaceconnector.iam.did.service;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.iam.did.service.impl.DistributedIdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
