@@ -18,7 +18,10 @@ import org.quartz.JobExecutionContext;
 
 import java.io.IOException;
 import java.security.SecureRandom;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
@@ -36,10 +39,7 @@ public class CrawlerJob implements Job {
         JobDataMap jobDataMap = context.getJobDetail().getJobDataMap();
         var cc = (CrawlerContext) jobDataMap.get(CrawlerContext.KEY);
 
-        if (cc.getIonHost() != null) {
-            ionApiUrl = cc.getIonHost();
-        }
-
+        ionApiUrl = Objects.requireNonNull(cc.getIonHost(), "ION Node URL cannot be null!");
 
         // get latest did document to obtain continuation token
         var latestDocument = cc.getDidStore().getLatest();
@@ -50,8 +50,22 @@ public class CrawlerJob implements Job {
         var monitor = cc.getMonitor();
         monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
 
-        var newDids = cc.isRandomize() ? getRandomizedDid() : resolveDids(continuationToken, cc);
-        monitor.info("CrawlerJob: found " + newDids.size() + " new dids on ION");
+        List<DidDocument> newDids;
+        var start = Instant.now();
+        if (cc.shouldRandomize()) {
+            newDids = getRandomizedDid();
+        } else {
+            var newDidFutures = getDidDocumentsFromBlockchainAsync(continuationToken, cc);
+
+            newDids = newDidFutures.parallelStream()
+                    .map(CompletableFuture::join)
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+        }
+        monitor.info("CrawlerJob: found " + newDids.size() + " new dids on ION, took " + (Duration.between(start, Instant.now()).toString()
+                .substring(2)
+                .replaceAll("(\\d[HMS])(?!$)", "$1 ")
+                .toLowerCase()));
 
         if (newDids.size() > 0) {
             cc.getPublisher().discoveryFinished(newDids.size());
@@ -59,18 +73,17 @@ public class CrawlerJob implements Job {
 
         cc.getDidStore().saveAll(newDids);
 
+
     }
 
-    private List<DidDocument> resolveDids(String continuationToken, CrawlerContext context) {
+    private List<CompletableFuture<DidDocument>> getDidDocumentsFromBlockchainAsync(String continuationToken, CrawlerContext context) {
         return getDidSuffixesForType(continuationToken, context.getDidTypes())
                 .stream()
-                .map(didSuffix -> resolveDid(didSuffix, context.getIonClient()))
-                .filter(Objects::nonNull)
+                .map(didSuffix -> resolveDidAsync(didSuffix, context.getIonClient()))
                 .collect(Collectors.toList());
-
     }
 
-    private List<String> getDidSuffixesForType(@Nullable String continuationToken,String type) {
+    private List<String> getDidSuffixesForType(@Nullable String continuationToken, String type) {
         var client = createClient();
 
         var url = HttpUrl.parse(ionApiUrl)
@@ -106,6 +119,10 @@ public class CrawlerJob implements Job {
         } catch (IonRequestException ex) {
             return null;
         }
+    }
+
+    private CompletableFuture<DidDocument> resolveDidAsync(String didSuffix, IonClient ionClient) {
+        return CompletableFuture.supplyAsync(() -> resolveDid(didSuffix, ionClient));
     }
 
     private OkHttpClient createClient() {
