@@ -1,0 +1,26 @@
+@startuml
+
+participant "Client Connector" as cc
+participant "Client Hub" as ch
+participant "Provider Connector" as pc
+participant "Revocation List" as rl
+participant "ION Network" as ion
+
+cc->ch : Authorize PC for VC query
+cc->pc : Data request with JWT
+pc->ion : Resolve DID
+note right of ion
+ DID contains public key,
+ Identity Hub URL,
+ and Connector URL
+end note
+ion-->pc:  DID containing public key and identity Hub URL
+pc->pc: Validate JWT
+pc->ch: Request VCs with access token
+ch->pc: VCs
+pc->pc: Validate signed VCs
+pc->rl: Check revocation list
+rl-->pc
+pc-->cc: Data response
+
+@enduml
