@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
-import org.eclipse.dataspaceconnector.iam.ion.IonClient;
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
@@ -36,13 +35,15 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-public class IonCrawlerExtension implements ServiceExtension {
+public class CrawlerExtension implements ServiceExtension {
     @EdcSetting
-    private static final String EDC_SETTING_CRAWLER_INTERVAL_MIN = "edc.ion.crawler.interval-minutes";
+    private static final String CRAWLER_INTERVAL_MIN_SETTING = "edc.ion.crawler.interval-minutes";
     @EdcSetting
     private static final String ION_URL_SETTING = "edc.ion.crawler.ion.url";
     @EdcSetting
-    private static final String ION_RANDOMIZE_DID_DOCUMENTS = "edc.ion.crawler.randomize";
+    private static final String ION_RANDOMIZE_DID_DOCUMENTS_SETTING = "edc.ion.crawler.randomize";
+    @EdcSetting
+    private static final String ION_GAIAX_TYPE_SETTING = "Z3hp";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
 
@@ -74,7 +75,7 @@ public class IonCrawlerExtension implements ServiceExtension {
             quartzScheduler = StdSchedulerFactory.getDefaultScheduler();
             quartzScheduler.start();
 
-            var minutes = Integer.parseInt(context.getSetting(EDC_SETTING_CRAWLER_INTERVAL_MIN, "30"));
+            var minutes = Integer.parseInt(context.getSetting(CRAWLER_INTERVAL_MIN_SETTING, "30"));
 
             scheduleCrawler(minutes, didStore, context);
             context.getMonitor().info("ION Crawler Extension started");
@@ -107,9 +108,9 @@ public class IonCrawlerExtension implements ServiceExtension {
                 .ionHost(context.getSetting(ION_URL_SETTING, "http://23.97.144.59:3000/"))
                 .monitor(context.getMonitor())
                 .publisher(publisher)
-                .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS, "false")))
-                .didTypes("Z3hp") //Z3hp is base64 for "gxi", which is GaiaX-Identity
-                .ionClient(new IonClientImpl(context.getTypeManager()))
+                .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS_SETTING, "false")))
+                .didTypes(context.getSetting(ION_GAIAX_TYPE_SETTING, "Z3hp")) //Z3hp is base64 for "gxi", which is GaiaX-Identity type
+                .ionClient(new IonClientImpl(context.getTypeManager())) //can be null if randomize = true
                 .build();
 
         JobDetail job = newJob(CrawlerJob.class)
