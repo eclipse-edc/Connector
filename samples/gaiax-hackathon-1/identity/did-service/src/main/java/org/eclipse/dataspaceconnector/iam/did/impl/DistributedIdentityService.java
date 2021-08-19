@@ -17,14 +17,17 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 
 /**
  * Implements and identity service backed by an EDC service registry.
  */
 public class DistributedIdentityService implements IdentityService {
+    private Vault vault;
     private OkHttpClient httpClient;
 
-    public DistributedIdentityService(OkHttpClient httpClient) {
+    public DistributedIdentityService(Vault vault, OkHttpClient httpClient) {
+        this.vault = vault;
         this.httpClient = httpClient;
     }
 
