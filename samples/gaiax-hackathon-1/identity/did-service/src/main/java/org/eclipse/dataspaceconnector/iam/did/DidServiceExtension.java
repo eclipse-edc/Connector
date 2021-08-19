@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.iam.did;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.impl.DistributedIdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -34,8 +35,9 @@ public class DidServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var httpClient = context.getService(OkHttpClient.class);
+        var vault = context.getService(Vault.class);
 
-        var identityService = new DistributedIdentityService(httpClient);
+        var identityService = new DistributedIdentityService(vault, httpClient);
 
         context.registerService(IdentityService.class, identityService);
 
