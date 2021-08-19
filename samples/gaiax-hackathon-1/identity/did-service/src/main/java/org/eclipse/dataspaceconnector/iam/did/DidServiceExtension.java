@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.util.Set;
 
@@ -26,6 +27,7 @@ import java.util.Set;
  *
  */
 public class DidServiceExtension implements ServiceExtension {
+    private static final String RESOLVER_URL = "http://23.97.144.59:3000/identifiers/";
 
     @Override
     public Set<String> provides() {
@@ -36,8 +38,9 @@ public class DidServiceExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var httpClient = context.getService(OkHttpClient.class);
         var vault = context.getService(Vault.class);
+        var typeManager = context.getService(TypeManager.class);
 
-        var identityService = new DistributedIdentityService(vault, httpClient);
+        var identityService = new DistributedIdentityService(RESOLVER_URL, vault, httpClient, typeManager);
 
         context.registerService(IdentityService.class, identityService);
 
