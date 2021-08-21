@@ -70,7 +70,7 @@ public class DistributedIdentityService implements IdentityService {
     }
 
     private boolean validateToken(String token, Map<String, Object> did) {
-        // TODO implement by verifying the token assertion aginst the public key contained in the DID
+        // TODO implement by verifying the token assertion against the public key contained in the DID
         return true;
     }
 
