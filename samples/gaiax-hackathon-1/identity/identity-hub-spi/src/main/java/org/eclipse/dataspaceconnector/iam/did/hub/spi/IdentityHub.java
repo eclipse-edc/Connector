@@ -19,7 +19,7 @@ package org.eclipse.dataspaceconnector.iam.did.hub.spi;
 public interface IdentityHub {
 
     /**
-     * Writes a commit JWE to the hub and returns either a success response encoded as a JWE or an plaintext error message.
+     * Writes a commit JWE to the hub and returns either a success response encoded as a JWE or a plaintext error message.
      */
     String write(String commitJwe);
 
