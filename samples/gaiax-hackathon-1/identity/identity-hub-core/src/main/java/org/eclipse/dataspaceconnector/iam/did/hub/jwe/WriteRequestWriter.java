@@ -40,7 +40,7 @@ import static com.nimbusds.jose.EncryptionMethod.A256GCM;
 import static com.nimbusds.jose.JWEAlgorithm.RSA_OAEP_256;
 
 /**
- * Creates a JWE contining a commit {@link WriteRequest}.
+ * Creates a JWE containing a commit {@link WriteRequest}.
  */
 public class WriteRequestWriter extends AbstractJweWriter<WriteRequestWriter> {
 
