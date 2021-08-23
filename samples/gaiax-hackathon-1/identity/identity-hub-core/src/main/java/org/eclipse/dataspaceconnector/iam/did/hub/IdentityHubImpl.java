@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestReader;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHubStore;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.CommitQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.CommitQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.ObjectQueryRequest;
@@ -31,7 +30,6 @@ import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
 /**
  * Default identity hub implementation.
@@ -65,8 +63,8 @@ public class IdentityHubImpl implements IdentityHub {
         // TODO implement permissions
         var query = new GenericJweReader().mapper(objectMapper).privateKey(privateKey.get()).jwe(jwe).readType(CommitQueryRequest.class);
         var commits = store.query(query.getQuery());
-        var commitIds = commits.stream().map(Commit::getObjectId).collect(Collectors.toList());
-        var response = CommitQueryResponse.Builder.newInstance().commits(commitIds).build();
+        // TODO serialize commits as JWEs as per DIF spec
+        var response = CommitQueryResponse.Builder.newInstance().commits(new ArrayList<>(commits)).build();
         return writeResponse(response, query.getIss());
     }
 

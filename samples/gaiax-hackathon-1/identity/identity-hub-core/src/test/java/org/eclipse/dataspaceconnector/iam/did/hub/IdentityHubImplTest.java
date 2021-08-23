@@ -88,11 +88,11 @@ class IdentityHubImplTest {
 
     @Test
     void verifyObjectQuery() {
-        var commit = HubObject.Builder.newInstance().type("Foo").id("123").createdBy("test").sub("quux").build();
+        var hubObject = HubObject.Builder.newInstance().type("Foo").id("123").createdBy("test").sub("quux").build();
 
         var query = ObjectQuery.Builder.newInstance().type("Foo").build();
         var request = ObjectQueryRequest.Builder.newInstance().query(query).iss("123").aud("aud").sub("sub").build();
-        EasyMock.expect(store.query(EasyMock.isA(ObjectQuery.class))).andReturn(List.of(commit));
+        EasyMock.expect(store.query(EasyMock.isA(ObjectQuery.class))).andReturn(List.of(hubObject));
         EasyMock.replay(store);
 
         var jwe = new GenericJweWriter()

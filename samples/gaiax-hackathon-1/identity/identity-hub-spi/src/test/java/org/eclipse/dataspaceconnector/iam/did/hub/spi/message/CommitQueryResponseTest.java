@@ -26,7 +26,9 @@ class CommitQueryResponseTest {
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        var serialized = mapper.writeValueAsString(CommitQueryResponse.Builder.newInstance().developerMessage("developer").commit("123").build());
+        var commit = Commit.Builder.newInstance().context("foo").type("foo").objectId("123").iss("baz").sub("quux").payload("payload").alg("RSA256").kid("kid").build();
+
+        var serialized = mapper.writeValueAsString(CommitQueryResponse.Builder.newInstance().developerMessage("developer").commit(commit).build());
         var deserialized = mapper.readValue(serialized, CommitQueryResponse.class);
         Assertions.assertNotNull(deserialized);
         Assertions.assertEquals("developer", deserialized.getDeveloperMessage());

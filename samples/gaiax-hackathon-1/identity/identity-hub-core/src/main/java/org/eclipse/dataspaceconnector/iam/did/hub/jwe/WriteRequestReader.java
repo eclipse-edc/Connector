@@ -35,10 +35,10 @@ public class WriteRequestReader extends AbstractJweReader<WriteRequestReader> {
     private Predicate<JWSObject> verifier;
 
     public Commit readCommit() {
-        Objects.requireNonNull(jwe);
-        Objects.requireNonNull(privateKey);
-        Objects.requireNonNull(mapper);
-        Objects.requireNonNull(verifier);
+        Objects.requireNonNull(jwe, "jwe");
+        Objects.requireNonNull(privateKey, "privateKey");
+        Objects.requireNonNull(mapper, "mapper");
+        Objects.requireNonNull(verifier, "verifier");
         try {
             var parsedJwe = JWEObject.parse(jwe);
             parsedJwe.decrypt(new RSADecrypter(privateKey));
