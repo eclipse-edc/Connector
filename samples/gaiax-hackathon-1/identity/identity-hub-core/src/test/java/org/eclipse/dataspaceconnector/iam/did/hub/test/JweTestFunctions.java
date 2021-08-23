@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
+package org.eclipse.dataspaceconnector.iam.did.hub.test;
 
 import com.nimbusds.jose.jwk.RSAKey;
 
@@ -8,7 +8,7 @@ import java.security.KeyStore;
 /**
  *
  */
-class JweTestFunctions {
+public class JweTestFunctions {
     private static final String TEST_KEYSTORE = "edc-test-keystore.jks";
     private static final String PASSWORD = "test123";
 

@@ -15,14 +15,23 @@ package org.eclipse.dataspaceconnector.iam.did.hub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
+import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestReader;
+import org.eclipse.dataspaceconnector.iam.did.hub.spi.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHubStore;
+import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.CommitQueryRequest;
+import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.CommitQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.ObjectQueryRequest;
+import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.ObjectQueryResponse;
+import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.WriteResponse;
 
 import java.security.interfaces.RSAPrivateKey;
+import java.security.interfaces.RSAPublicKey;
+import java.util.ArrayList;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Default identity hub implementation.
@@ -30,11 +39,13 @@ import java.util.function.Supplier;
 public class IdentityHubImpl implements IdentityHub {
     private IdentityHubStore store;
     private Supplier<RSAPrivateKey> privateKey;
+    private DidPublicKeyResolver publicKeyResolver;
     private ObjectMapper objectMapper;
 
-    public IdentityHubImpl(IdentityHubStore store, Supplier<RSAPrivateKey> privateKey, ObjectMapper objectMapper) {
+    public IdentityHubImpl(IdentityHubStore store, Supplier<RSAPrivateKey> privateKey, DidPublicKeyResolver resolver, ObjectMapper objectMapper) {
         this.store = store;
         this.privateKey = privateKey;
+        this.publicKeyResolver = resolver;
         this.objectMapper = objectMapper;
     }
 
@@ -44,25 +55,36 @@ public class IdentityHubImpl implements IdentityHub {
         // TODO implement verification
         var commit = new WriteRequestReader().mapper(objectMapper).privateKey(privateKey.get()).verifier((jwso) -> true).jwe(jwe).readCommit();
         store.write(commit);
-        // TODO write JWE using ISS public key
-        return null;
+
+        var response = WriteResponse.Builder.newInstance().revision(commit.getObjectId()).build();
+        return writeResponse(response, commit.getIss());
     }
 
     @Override
     public String queryCommits(String jwe) {
         // TODO implement permissions
         var query = new GenericJweReader().mapper(objectMapper).privateKey(privateKey.get()).jwe(jwe).readType(CommitQueryRequest.class);
-        var response = store.query(query.getQuery());
-        // TODO write JWE using ISS public key
-        return null;
+        var commits = store.query(query.getQuery());
+        var commitIds = commits.stream().map(Commit::getObjectId).collect(Collectors.toList());
+        var response = CommitQueryResponse.Builder.newInstance().commits(commitIds).build();
+        return writeResponse(response, query.getIss());
     }
 
     @Override
     public String queryObjects(String jwe) {
         // TODO implement permissions
         var query = new GenericJweReader().mapper(objectMapper).privateKey(privateKey.get()).jwe(jwe).readType(ObjectQueryRequest.class);
-        var response = store.query(query.getQuery());
-        // TODO write JWE using ISS public key
-        return null;
+        var hubObjects = store.query(query.getQuery());
+
+        var response = ObjectQueryResponse.Builder.newInstance().objects(new ArrayList<>(hubObjects)).build();
+        return writeResponse(response, query.getIss());
+    }
+
+    /**
+     * writes a response JWE using the public key of the ISS sender
+     */
+    private String writeResponse(Object response, String iss) {
+        var recipientPublicKey = publicKeyResolver.resolvePublicKey(iss);
+        return new GenericJweWriter().objectMapper(objectMapper).privateKey(privateKey.get()).publicKey((RSAPublicKey) recipientPublicKey).payload(response).buildJwe();
     }
 }
