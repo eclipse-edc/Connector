@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.eclipse.dataspaceconnector.iam.did.hub.jwe.JweTestFunctions.loadAndGetKey;
+import static org.eclipse.dataspaceconnector.iam.did.hub.test.JweTestFunctions.loadAndGetKey;
 
 /**
  *

@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.hub;
 
+import org.eclipse.dataspaceconnector.iam.did.hub.spi.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHubStore;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -44,7 +45,10 @@ public class CoreIdentityHubExtension implements ServiceExtension {
 
         var objectMapper = context.getTypeManager().getMapper();
 
-        var hub = new IdentityHubImpl(hubStore, () -> privateKeyResolver.resolvePrivateKey(privateKeyAlias), objectMapper);
+        // TODO: implement a resolver
+        DidPublicKeyResolver publicKeyResolver = (did) -> null;
+
+        var hub = new IdentityHubImpl(hubStore, () -> privateKeyResolver.resolvePrivateKey(privateKeyAlias), publicKeyResolver, objectMapper);
         context.registerService(IdentityHub.class, hub);
 
         var controller = new IdentityHubController(hub);
