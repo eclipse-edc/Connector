@@ -28,9 +28,9 @@ import java.util.Objects;
 public class GenericJweReader extends AbstractJweReader<GenericJweReader> {
 
     public <T> T readType(Class<T> payloadType) {
-        Objects.requireNonNull(jwe);
-        Objects.requireNonNull(privateKey);
-        Objects.requireNonNull(mapper);
+        Objects.requireNonNull(jwe, "jwe");
+        Objects.requireNonNull(privateKey, "privateKey");
+        Objects.requireNonNull(mapper, "mapper");
         try {
             var parsedJwe = JWEObject.parse(jwe);
             parsedJwe.decrypt(new RSADecrypter(privateKey));

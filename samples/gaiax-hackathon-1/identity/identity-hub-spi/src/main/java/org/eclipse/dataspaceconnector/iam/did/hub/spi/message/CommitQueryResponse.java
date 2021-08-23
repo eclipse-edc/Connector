@@ -30,7 +30,7 @@ public class CommitQueryResponse extends HubMessage {
     private String developerMessage;
     private String skipToken;
 
-    private List<String> commits = new ArrayList<>();
+    private List<Commit> commits = new ArrayList<>();
 
     private CommitQueryResponse() {
     }
@@ -40,7 +40,7 @@ public class CommitQueryResponse extends HubMessage {
         return developerMessage;
     }
 
-    public List<String> getCommits() {
+    public List<Commit> getCommits() {
         return commits;
     }
 
@@ -62,12 +62,12 @@ public class CommitQueryResponse extends HubMessage {
             return this;
         }
 
-        public Builder commits(List<String> commits) {
+        public Builder commits(List<Commit> commits) {
             this.response.commits.addAll(commits);
             return this;
         }
 
-        public Builder commit(String commit) {
+        public Builder commit(Commit commit) {
             this.response.commits.add(commit);
             return this;
         }
