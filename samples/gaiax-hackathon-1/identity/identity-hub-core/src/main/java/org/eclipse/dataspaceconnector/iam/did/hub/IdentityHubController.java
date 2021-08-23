@@ -18,11 +18,10 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHub;
 
 /**
- * Binds the identity hub to a HTTP REST endpoint.
+ * Binds the identity hub to an HTTP REST endpoint.
  */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -41,8 +40,14 @@ public class IdentityHubController {
     }
 
     @POST
-    @Path("query")
-    public Response query(String jwe) {
-        return Response.ok().build();
+    @Path("query-commits")
+    public String queryCommits(String jwe) {
+        return hub.queryCommits(jwe);
+    }
+
+    @POST
+    @Path("query-objects")
+    public String queryObjects(String jwe) {
+        return hub.queryObjects(jwe);
     }
 }
