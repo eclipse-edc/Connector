@@ -15,7 +15,6 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteResponse;
-import org.eclipse.dataspaceconnector.iam.did.hub.test.JweTestFunctions;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -114,7 +113,7 @@ class IdentityHubImplTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        var keys = JweTestFunctions.loadAndGetKey();
+        var keys = TemporaryKeyLoader.loadKeys();
         privateKey = keys.toRSAPrivateKey();
         publicKey = keys.toRSAPublicKey();
         store = EasyMock.createMock(IdentityHubStore.class);
