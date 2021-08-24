@@ -6,7 +6,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.eclipse.dataspaceconnector.iam.did.hub.test.JweTestFunctions.loadAndGetKey;
+import static org.eclipse.dataspaceconnector.iam.did.hub.TemporaryKeyLoader.loadKeys;
+
 
 /**
  *
@@ -15,7 +16,7 @@ class WriteRequestWriterReaderTest {
 
     @Test
     void verifyWriteRead() throws Exception {
-        var key = loadAndGetKey();
+        var key = loadKeys();
         var privateKey = key.toRSAPrivateKey();
         var publicKey = key.toRSAPublicKey();
 

@@ -13,6 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.service;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -41,8 +43,10 @@ public class DidServiceExtension implements ServiceExtension {
         var vault = context.getService(Vault.class);
 
         var didResolver = context.getService(DidResolver.class);
+        var hubClient = context.getService(IdentityHubClient.class);
+        var publicKeyResolver = context.getService(DidPublicKeyResolver.class);
 
-        var identityService = new DistributedIdentityService(didResolver, vault);
+        var identityService = new DistributedIdentityService(hubClient, didResolver, publicKeyResolver, context.getMonitor());
 
         context.registerService(IdentityService.class, identityService);
 

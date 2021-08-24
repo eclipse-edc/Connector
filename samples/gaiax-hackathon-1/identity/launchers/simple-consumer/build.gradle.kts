@@ -25,7 +25,6 @@ dependencies {
     implementation(project(":extensions:azure:vault"))
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:metadata-memory"))
-    implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:aws:s3:provision"))
 

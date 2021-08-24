@@ -23,10 +23,10 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestWriter;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
+import static org.eclipse.dataspaceconnector.iam.did.hub.TemporaryKeyLoader.loadKeys;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_WRITE_COMMIT_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.PRODUCER_WRITE_COMMIT_URL;
-import static org.eclipse.dataspaceconnector.iam.did.hub.test.JweTestFunctions.loadAndGetKey;
+import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
 
 /**
  * Tools for writing verified credentials. To enable set the ENV variable {@code GAIA-X-LOCAL-HACKATHON} to true.
@@ -57,7 +57,7 @@ public class VerificationTool {
     private Response getResponse(GaiaXCredential credential, String url) throws Exception {
         var objectMapper = new ObjectMapper();
 
-        var keys = loadAndGetKey();
+        var keys = loadKeys();
 
         var jwe = new WriteRequestWriter()
                 .privateKey(keys.toRSAPrivateKey())
