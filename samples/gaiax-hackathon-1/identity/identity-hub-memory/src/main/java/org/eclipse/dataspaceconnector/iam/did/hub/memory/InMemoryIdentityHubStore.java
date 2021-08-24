@@ -13,11 +13,11 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.hub.memory;
 
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHubStore;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.Commit;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.CommitQuery;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.HubObject;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.ObjectQuery;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.HubObject;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
 
 import java.util.ArrayList;
 import java.util.Collection;

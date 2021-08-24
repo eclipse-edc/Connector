@@ -23,11 +23,11 @@ import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
 import com.nimbusds.jose.crypto.RSAEncrypter;
 import com.nimbusds.jose.crypto.RSASSASigner;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.Commit;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.CommitHeader;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.InterfaceType;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.JsonCommitObject;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.WriteRequest;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitHeader;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.InterfaceType;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.JsonCommitObject;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteRequest;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.time.ZoneOffset;
