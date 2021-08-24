@@ -13,12 +13,12 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.resolver;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -30,7 +30,7 @@ import java.util.Map;
 public class DidResolverImpl implements DidResolver {
     private String didResolverUrl;
     private OkHttpClient httpClient;
-    private TypeManager typeManager;
+    private ObjectMapper objectMapper;
 
     public LinkedHashMap<String, Object> resolveDid(String didKey) {
         var request = new Request.Builder().url(didResolverUrl + didKey).get().build();
@@ -41,15 +41,15 @@ public class DidResolverImpl implements DidResolver {
                 throw new EdcException("Null response returned from DID resolver service");
             }
             //noinspection unchecked
-            return (LinkedHashMap<String, Object>) typeManager.readValue(responseBody.string(), Map.class);
+            return (LinkedHashMap<String, Object>) objectMapper.readValue(responseBody.string(), Map.class);
         } catch (IOException e) {
             throw new EdcException(e);
         }
     }
 
-    public DidResolverImpl(String didResolverUrl, OkHttpClient httpClient, TypeManager typeManager) {
+    public DidResolverImpl(String didResolverUrl, OkHttpClient httpClient, ObjectMapper objectMapper) {
         this.didResolverUrl = didResolverUrl;
         this.httpClient = httpClient;
-        this.typeManager = typeManager;
+        this.objectMapper = objectMapper;
     }
 }

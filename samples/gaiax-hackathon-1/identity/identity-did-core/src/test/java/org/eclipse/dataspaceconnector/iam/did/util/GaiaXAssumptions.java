@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.iam.did.hub.gaiax;
+package org.eclipse.dataspaceconnector.iam.did.util;
 
 import org.junit.jupiter.api.Assumptions;
 
