@@ -11,10 +11,12 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.iam.did.hub;
+package org.eclipse.dataspaceconnector.iam.did;
 
 import com.nimbusds.jose.JOSEException;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
+import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolver.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolver.DidResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
@@ -39,7 +41,7 @@ import static org.eclipse.dataspaceconnector.iam.did.hub.TemporaryKeyLoader.load
 /**
  *
  */
-public class CoreIdentityHubExtension implements ServiceExtension {
+public class IdentityDidCoreHubExtension implements ServiceExtension {
     private static final String RESOLVER_URL = "http://23.97.144.59:3000/identifiers/";
 
     @EdcSetting
@@ -74,10 +76,10 @@ public class CoreIdentityHubExtension implements ServiceExtension {
 
         var httpClient = context.getService(OkHttpClient.class);
         var typeManager = context.getService(TypeManager.class);
-        var didResolver = new DidResolverImpl(RESOLVER_URL, httpClient, typeManager);
+        var didResolver = new DidResolverImpl(RESOLVER_URL, httpClient, typeManager.getMapper());
         context.registerService(DidResolver.class,didResolver);
 
-        context.getMonitor().info("Initialized Core Identity Hub extension");
+        context.getMonitor().info("Initialized Identity Did Core extension");
     }
 
     // TODO: TEMPORARY local key management to be replaced by vault storage
