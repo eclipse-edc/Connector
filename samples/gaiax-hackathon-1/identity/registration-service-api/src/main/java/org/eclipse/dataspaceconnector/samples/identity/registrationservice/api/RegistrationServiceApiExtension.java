@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.api;
 
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
-import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -20,7 +19,7 @@ public class RegistrationServiceApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        var didDocumentStore = (DidStore) context.getService(ObjectStore.class);
+        var didDocumentStore = context.getService(DidStore.class);
 
         // create the registration service, which offers a REST API
         var regSrv = new RegistrationController(context.getMonitor(), didDocumentStore);

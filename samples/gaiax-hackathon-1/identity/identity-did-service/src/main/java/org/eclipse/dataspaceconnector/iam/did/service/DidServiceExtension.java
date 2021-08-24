@@ -32,6 +32,11 @@ public class DidServiceExtension implements ServiceExtension {
     }
 
     @Override
+    public Set<String> requires() {
+        return Set.of("identity-did-core");
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         var vault = context.getService(Vault.class);
 
