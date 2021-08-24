@@ -4,5 +4,5 @@ plugins {
 
 
 dependencies {
-    api(project(":samples:gaiax-hackathon-1:identity:identity-hub-spi"))
+    api(project(":samples:gaiax-hackathon-1:identity:identity-did-spi"))
 }

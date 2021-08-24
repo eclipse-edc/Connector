@@ -18,7 +18,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.IdentityHub;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 
 /**
  * Binds the identity hub to an HTTP REST endpoint.

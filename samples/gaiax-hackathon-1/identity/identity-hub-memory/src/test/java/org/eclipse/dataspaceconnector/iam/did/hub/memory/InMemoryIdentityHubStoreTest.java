@@ -13,9 +13,9 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.hub.memory;
 
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.Commit;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.CommitQuery;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.ObjectQuery;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
