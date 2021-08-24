@@ -18,10 +18,10 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.crypto.RSADecrypter;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.Commit;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.CommitStrategy;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.InterfaceType;
-import org.eclipse.dataspaceconnector.iam.did.hub.spi.message.WriteRequest;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitStrategy;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.InterfaceType;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteRequest;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.text.ParseException;
