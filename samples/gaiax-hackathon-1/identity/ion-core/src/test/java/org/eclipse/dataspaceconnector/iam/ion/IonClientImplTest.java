@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.iam.ion;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.ion.dto.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.iam.ion.dto.ServiceDescriptor;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,7 +24,7 @@ class IonClientImplTest {
 
     @BeforeEach
     void setup() {
-        client = new IonClientImpl(ionApiUrl, new TypeManager());
+        client = new IonClientImpl(ionApiUrl, new ObjectMapper());
     }
 
     @Test
@@ -36,7 +36,7 @@ class IonClientImplTest {
 
     @Test
     void resolve_againstOfficialUrl() {
-        client = new IonClientImpl(new TypeManager());
+        client = new IonClientImpl(new ObjectMapper());
         var result = client.resolve("did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
         assertThat(result).isNotNull();
     }

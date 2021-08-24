@@ -35,7 +35,7 @@ dependencies {
     implementation(project(":samples:gaiax-hackathon-1:identity:control-rest"))
     implementation(project(":samples:gaiax-hackathon-1:identity:identity-did-service"))
     implementation(project(":samples:gaiax-hackathon-1:identity:identity-did-spi"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:identity-hub-core"))
+    implementation(project(":samples:gaiax-hackathon-1:identity:identity-did-core"))
     implementation(project(":samples:gaiax-hackathon-1:identity:identity-hub-memory"))
 
 
