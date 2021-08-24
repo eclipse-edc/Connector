@@ -1,8 +1,6 @@
 package org.eclipse.dataspaceconnector.iam.ion;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
-
-public class IonException extends EdcException {
+public class IonException extends RuntimeException {
     public IonException(String message) {
         super(message);
     }

@@ -1,11 +1,15 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.api;
 
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
-import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
+import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
@@ -16,9 +20,9 @@ import java.util.List;
 @Path("/identity")
 public class RegistrationController implements RegistrationService {
     private final Monitor monitor;
-    private final ObjectStore<DidDocument> didDocumentStore;
+    private final DidStore didDocumentStore;
 
-    public RegistrationController(Monitor monitor, ObjectStore<DidDocument> didDocumentStore) {
+    public RegistrationController(Monitor monitor, DidStore didDocumentStore) {
         this.monitor = monitor;
         this.didDocumentStore = didDocumentStore;
     }

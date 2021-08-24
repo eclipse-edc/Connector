@@ -3,11 +3,11 @@ plugins {
 }
 
 val jwtVersion: String by project
-
+val okHttpVersion: String by project
 
 dependencies {
-    api(project(":spi"))
-    implementation(project(":common:util"))
+
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("com.auth0:java-jwt:${jwtVersion}")
     implementation("com.github.multiformats:java-multihash:1.2.0")
 

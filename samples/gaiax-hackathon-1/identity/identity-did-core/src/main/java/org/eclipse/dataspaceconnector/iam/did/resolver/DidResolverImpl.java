@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.iam.did.hub;
+package org.eclipse.dataspaceconnector.iam.did.resolver;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;

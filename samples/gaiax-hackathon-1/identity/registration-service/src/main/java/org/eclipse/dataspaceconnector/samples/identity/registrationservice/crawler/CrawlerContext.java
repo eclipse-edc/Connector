@@ -1,10 +1,8 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.iam.ion.IonClient;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
-import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 /**
@@ -50,7 +48,7 @@ public class CrawlerContext {
     }
 
     public static final class Builder {
-        private ObjectStore<DidDocument> didStore;
+        private DidStore didStore;
         private Monitor monitor;
         private CrawlerEventPublisher publisher;
         private String ionHost;
@@ -65,7 +63,7 @@ public class CrawlerContext {
             return new Builder();
         }
 
-        public Builder didStore(ObjectStore<DidDocument> didStore) {
+        public Builder didStore(DidStore didStore) {
             this.didStore = didStore;
             return this;
         }

@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.iam.ion;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import okhttp3.MediaType;
@@ -8,7 +9,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
-import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.iam.ion.dto.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.iam.ion.dto.ServiceDescriptor;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
@@ -16,7 +16,7 @@ import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidResolveResponse;
 import org.eclipse.dataspaceconnector.iam.ion.model.IonRequest;
 import org.eclipse.dataspaceconnector.iam.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.iam.ion.util.SortingNodeFactory;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.iam.ion.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -32,13 +32,13 @@ public class IonClientImpl implements IonClient {
     private final static String IDENTIFIERS_PATH = "/identifiers";
     private final static String OPERATIONS_PATH = "/operations";
     private final String ionUrl;
-    private final TypeManager typeManager;
+    private final ObjectMapper typeManager;
 
-    public IonClientImpl(TypeManager typeManager) {
+    public IonClientImpl(ObjectMapper typeManager) {
         this(DEFAULT_RESOLUTION_ENDPOINT, typeManager);
     }
 
-    public IonClientImpl(String ionEndpoint, TypeManager typeManager) {
+    public IonClientImpl(String ionEndpoint, ObjectMapper typeManager) {
         ionUrl = ionEndpoint;
         this.typeManager = typeManager;
     }
@@ -55,7 +55,12 @@ public class IonClientImpl implements IonClient {
 
     @Override
     public DidDocument submit(IonRequest request) {
-        var requestBodyJson = typeManager.writeValueAsString(request);
+        String requestBodyJson;
+        try {
+            requestBodyJson = typeManager.writeValueAsString(request);
+        } catch (JsonProcessingException ex) {
+            throw new IonException(ex);
+        }
 
         MediaType json = MediaType.get("application/json; charset=utf-8");
         RequestBody okHttpRequestbody = RequestBody.create(requestBodyJson, json);
@@ -68,8 +73,7 @@ public class IonClientImpl implements IonClient {
         var client = getOkHttpClient();
 
         try (var solutionResponse = client.newCall(solutionRequest).execute()) {
-
-            String responseBodyJson = solutionResponse.body().string();
+            @SuppressWarnings("ConstantConditions") String responseBodyJson = solutionResponse.body().string();
             if (solutionResponse.isSuccessful()) {
                 var didResponse = typeManager.readValue(responseBodyJson, DidResolveResponse.class);
                 return didResponse.getDidDocument();
@@ -99,7 +103,7 @@ public class IonClientImpl implements IonClient {
 
         try (var response = getOkHttpClient().newCall(rq).execute()) {
             if (response.isSuccessful()) {
-                var body = response.body().string();
+                @SuppressWarnings("ConstantConditions") var body = response.body().string();
                 DidResolveResponse didResolveResponse = typeManager.readValue(body, DidResolveResponse.class);
                 return didResolveResponse.getDidDocument();
             }
@@ -111,9 +115,7 @@ public class IonClientImpl implements IonClient {
 
     @NotNull
     private OkHttpClient getOkHttpClient() {
-        var client = new OkHttpClient.Builder()
-                .build();
-        return client;
+        return new OkHttpClient.Builder().build();
     }
 
     public void submitWithChallengeResponse(IonRequest request, String challengeEndpoint, String solutionEndpoint) {
@@ -203,13 +205,14 @@ public class IonClientImpl implements IonClient {
 
             if (solutionResponse.isSuccessful()) {
                 System.out.println("Successfully submitted the anchor request");
-                var body = solutionResponse.body().string();
+                @SuppressWarnings("ConstantConditions") var body = solutionResponse.body().string();
                 var message = solutionResponse.message();
 
                 System.out.println("Message: " + message);
                 System.out.println("Body: " + body);
             } else {
                 if (solutionResponse.code() >= 500) {
+                    //noinspection ConstantConditions
                     throw new IonRequestException("Unexpected 5xx response " + solutionResponse.body().string());
                 } else if (solutionResponse.code() >= 400) {
                     //means bad request, should retry
