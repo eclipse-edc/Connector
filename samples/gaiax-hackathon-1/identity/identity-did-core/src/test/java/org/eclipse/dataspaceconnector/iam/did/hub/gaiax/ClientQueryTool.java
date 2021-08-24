@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
-import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaXAssumptions.assumptions;
+import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_COMMIT_QUERY_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_OBJECT_QUERY_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.test.JweTestFunctions.loadAndGetKey;
