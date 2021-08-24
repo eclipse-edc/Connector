@@ -15,11 +15,13 @@ package org.eclipse.dataspaceconnector.iam.did;
 
 import com.nimbusds.jose.JOSEException;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolver.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolver.DidResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
@@ -77,7 +79,10 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
         var httpClient = context.getService(OkHttpClient.class);
         var typeManager = context.getService(TypeManager.class);
         var didResolver = new DidResolverImpl(RESOLVER_URL, httpClient, typeManager.getMapper());
-        context.registerService(DidResolver.class,didResolver);
+        context.registerService(DidResolver.class, didResolver);
+
+        var hubClient = new IdentityHubClientImpl(resolverPair.privateKeyResolver, httpClient, objectMapper);
+        context.registerService(IdentityHubClient.class, hubClient);
 
         context.getMonitor().info("Initialized Identity Did Core extension");
     }

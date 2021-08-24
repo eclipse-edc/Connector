@@ -35,10 +35,10 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 
+import static org.eclipse.dataspaceconnector.iam.did.hub.TemporaryKeyLoader.loadKeys;
 import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_COMMIT_QUERY_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_OBJECT_QUERY_URL;
-import static org.eclipse.dataspaceconnector.iam.did.hub.test.JweTestFunctions.loadAndGetKey;
 
 /**
  *
@@ -47,8 +47,8 @@ public class ClientQueryTool {
     private ObjectMapper objectMapper = new ObjectMapper();
     private RSAKey keys;
 
-    public ClientQueryTool() throws Exception {
-        keys = loadAndGetKey();
+    public ClientQueryTool() {
+        keys = loadKeys();
     }
 
     @Test
@@ -68,9 +68,9 @@ public class ClientQueryTool {
                 .payload(queryRequest)
                 .buildJwe();
 
-        var ObjectQueryResponse = executeQuery(ObjectQueryResponse.class, objectRequestJwe, CONSUMER_OBJECT_QUERY_URL);
+        var objectQueryResponse = executeQuery(ObjectQueryResponse.class, objectRequestJwe, CONSUMER_OBJECT_QUERY_URL);
 
-        ObjectQueryResponse.getObjects().forEach(hubObject -> {
+        objectQueryResponse.getObjects().forEach(hubObject -> {
             var commitQuery = CommitQuery.Builder.newInstance().objectId(hubObject.getId()).build();
             var commitQueryRequest = CommitQueryRequest.Builder.newInstance().query(commitQuery).iss("123").aud("aud").sub("sub").build();
 
