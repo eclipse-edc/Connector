@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.iam.did.hub;
+package org.eclipse.dataspaceconnector.iam.did.resolver;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
 

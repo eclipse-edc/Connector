@@ -16,16 +16,18 @@ package org.eclipse.dataspaceconnector.samples.identity.registrationservice.craw
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.quartz.*;
+import org.quartz.JobDataMap;
+import org.quartz.JobDetail;
+import org.quartz.Scheduler;
+import org.quartz.SchedulerException;
+import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 
 import java.util.Map;
@@ -63,14 +65,14 @@ public class CrawlerExtension implements ServiceExtension {
         this.context = context;
 
         // create the crawler that periodically browses ION for new DIDs
-        var ionClient = new IonClientImpl(context.getTypeManager());
+        var ionClient = new IonClientImpl(context.getTypeManager().getMapper());
 
         context.getMonitor().info("ION Crawler Extension initialized");
     }
 
     @Override
     public void start() {
-        DidStore didStore = (DidStore) context.getService(ObjectStore.class);
+        DidStore didStore = context.getService(DidStore.class);
         try {
             quartzScheduler = StdSchedulerFactory.getDefaultScheduler();
             quartzScheduler.start();
@@ -99,7 +101,7 @@ public class CrawlerExtension implements ServiceExtension {
 
     }
 
-    private void scheduleCrawler(int intervalMinutes, ObjectStore<DidDocument> objectStore, ServiceExtensionContext context) throws SchedulerException {
+    private void scheduleCrawler(int intervalMinutes, DidStore objectStore, ServiceExtensionContext context) throws SchedulerException {
 
         var publisher = new CrawlerEventPublisher(context.getService(Vault.class), new AzureEventGridConfig(context));
 
@@ -110,7 +112,7 @@ public class CrawlerExtension implements ServiceExtension {
                 .publisher(publisher)
                 .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS_SETTING, "false")))
                 .didTypes(context.getSetting(ION_GAIAX_TYPE_SETTING, "Z3hp")) //Z3hp is base64 for "gxi", which is GaiaX-Identity type
-                .ionClient(new IonClientImpl(context.getTypeManager())) //can be null if randomize = true
+                .ionClient(new IonClientImpl(context.getTypeManager().getMapper())) //can be null if randomize = true
                 .build();
 
         JobDetail job = newJob(CrawlerJob.class)

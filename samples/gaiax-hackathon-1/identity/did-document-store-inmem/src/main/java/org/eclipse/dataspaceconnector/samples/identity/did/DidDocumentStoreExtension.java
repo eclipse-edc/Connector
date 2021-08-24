@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.samples.identity.did;
 
-import org.eclipse.dataspaceconnector.spi.iam.ObjectStore;
+import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -15,6 +15,6 @@ public class DidDocumentStoreExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var store = new InMemoryDidDocumentStore();
-        context.registerService(ObjectStore.class, store);
+        context.registerService(DidStore.class, store);
     }
 }
