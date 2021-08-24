@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestWriter;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
-import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaXAssumptions.assumptions;
+import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_WRITE_COMMIT_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.PRODUCER_WRITE_COMMIT_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.test.JweTestFunctions.loadAndGetKey;
