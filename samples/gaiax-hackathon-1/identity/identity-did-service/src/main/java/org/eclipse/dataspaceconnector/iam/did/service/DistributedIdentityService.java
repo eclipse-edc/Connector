@@ -20,9 +20,8 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
+import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
+import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -34,34 +33,30 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
-import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import static java.lang.String.format;
 
 /**
  * Implements and identity service backed by an EDC service registry.
  */
 public class DistributedIdentityService implements IdentityService {
     private String did;
-    private IdentityHubClient hubClient;
+    private CredentialsVerifier credentialsVerifier;
     private DidResolver didResolver;
     private DidPublicKeyResolver publicKeyResolver;
     private PrivateKeyResolver privateKeyResolver;
     private Monitor monitor;
 
     public DistributedIdentityService(String did,
-                                      IdentityHubClient hubClient,
+                                      CredentialsVerifier credentialsVerifier,
                                       DidResolver didResolver,
                                       DidPublicKeyResolver publicKeyResolver,
                                       PrivateKeyResolver privateKeyResolver,
                                       Monitor monitor) {
         this.did = did;
-        this.hubClient = hubClient;
+        this.credentialsVerifier = credentialsVerifier;
         this.didResolver = didResolver;
         this.publicKeyResolver = publicKeyResolver;
         this.privateKeyResolver = privateKeyResolver;
@@ -104,9 +99,12 @@ public class DistributedIdentityService implements IdentityService {
             if (!validateToken(jwt, did)) {
                 return new VerificationResult("Invalid token");
             }
-            var credentials = resolveCredentials(did);
+            var credentialsResult = resolveCredentials(did);
+            if (!credentialsResult.success()) {
+                return new VerificationResult(credentialsResult.error());
+            }
             var tokenBuilder = ClaimToken.Builder.newInstance();
-            var claimToken = tokenBuilder.claims(credentials).build();
+            var claimToken = tokenBuilder.claims(credentialsResult.getValidatedCredentials()).build();
             return new VerificationResult(claimToken);
         } catch (ParseException e) {
             monitor.info("Error parsing JWT", e);
@@ -114,34 +112,20 @@ public class DistributedIdentityService implements IdentityService {
         }
     }
 
-    private Map<String, String> resolveCredentials(Map<String, Object> didDocument) {
-        var query = ObjectQuery.Builder.newInstance().context("GAIA-X").type("RegistrationCredentials").build();
-        var queryRequest = ObjectQueryRequest.Builder.newInstance().query(query).iss("123").aud("aud").sub("sub").build();
-
+    private CredentialsResult resolveCredentials(Map<String, Object> didDocument) {
         // TODO HACKATHON-1 resolve the Hub URL from the Hub's did
         var hubBaseUrl = resolveHubUrl(didDocument);
         if (hubBaseUrl == null) {
-            monitor.info("Hub URL not found in DID");
-            return Collections.emptyMap();
+            return new CredentialsResult("Hub URL not found in DID");
         }
         if (!hubBaseUrl.endsWith("/")) {
             hubBaseUrl += "/";
         }
         var publicKey = publicKeyResolver.resolvePublicKey(null);// TODO HACKATHON-1 this needs to resolve the public key of the Hub DID
         if (publicKey == null) {
-            monitor.info("Unable to resolve DID public key");
-            return Collections.emptyMap();
+            return new CredentialsResult("Unable to resolve DID public key");
         }
-        var credentials = hubClient.queryCredentials(queryRequest, hubBaseUrl, publicKey);
-        if (credentials.isError()) {
-            monitor.info(format("Error resolving credentials not found for: %s", credentials.getError()));
-            return Collections.emptyMap();
-        }
-
-        // only support String credentials; filter out others
-        var map = new HashMap<String, String>();
-        credentials.getResponse().entrySet().stream().filter(entry -> entry.getValue() instanceof String).forEach(entry -> map.put(entry.getKey(), (String) entry.getValue()));
-        return map;
+        return credentialsVerifier.verifyCredentials(hubBaseUrl, publicKey);
     }
 
     private boolean validateToken(SignedJWT jwt, Map<String, Object> didDocument) {

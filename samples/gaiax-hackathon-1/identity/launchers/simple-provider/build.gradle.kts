@@ -36,7 +36,7 @@ dependencies {
     implementation(project(":samples:gaiax-hackathon-1:identity:identity-did-spi"))
     implementation(project(":samples:gaiax-hackathon-1:identity:identity-did-core"))
     implementation(project(":samples:gaiax-hackathon-1:identity:identity-hub-memory"))
-
+    implementation(project(":samples:gaiax-hackathon-1:identity:identity-gaiax-verifier"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")

@@ -11,4 +11,6 @@ dependencies {
     implementation("com.nimbusds:nimbus-jose-jwt:8.20.1")
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
+    testImplementation(testFixtures(project(":samples:gaiax-hackathon-1:identity:identity-common-test")))
 }
