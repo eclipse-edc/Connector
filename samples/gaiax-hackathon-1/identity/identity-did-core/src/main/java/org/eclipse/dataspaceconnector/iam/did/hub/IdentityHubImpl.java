@@ -13,18 +13,21 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.hub;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestReader;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryResponse;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ErrorResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteResponse;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
@@ -49,8 +52,8 @@ public class IdentityHubImpl implements IdentityHub {
 
     @Override
     public String write(String jwe) {
-        // TODO implement permissions
-        // TODO implement verification
+        // TODO HACKATHON-1 implement permissions
+        // TODO HACKATHON-1 implement verification
         var commit = new WriteRequestReader().mapper(objectMapper).privateKey(privateKey.get()).verifier((jwso) -> true).jwe(jwe).readCommit();
         store.write(commit);
 
@@ -60,17 +63,17 @@ public class IdentityHubImpl implements IdentityHub {
 
     @Override
     public String queryCommits(String jwe) {
-        // TODO implement permissions
+        // TODO HACKATHON-1 implement permissions
         var query = new GenericJweReader().mapper(objectMapper).privateKey(privateKey.get()).jwe(jwe).readType(CommitQueryRequest.class);
         var commits = store.query(query.getQuery());
-        // TODO serialize commits as JWEs as per DIF spec
+        // TODO HACKATHON-1 serialize commits as JWEs as per DIF spec
         var response = CommitQueryResponse.Builder.newInstance().commits(new ArrayList<>(commits)).build();
         return writeResponse(response, query.getIss());
     }
 
     @Override
     public String queryObjects(String jwe) {
-        // TODO implement permissions
+        // TODO HACKATHON-1 implement permissions
         var query = new GenericJweReader().mapper(objectMapper).privateKey(privateKey.get()).jwe(jwe).readType(ObjectQueryRequest.class);
         var hubObjects = store.query(query.getQuery());
 
@@ -83,6 +86,14 @@ public class IdentityHubImpl implements IdentityHub {
      */
     private String writeResponse(Object response, String iss) {
         var recipientPublicKey = publicKeyResolver.resolvePublicKey(iss);
+        if (recipientPublicKey == null) {
+            try {
+                return objectMapper.writeValueAsString(new ErrorResponse("500", "Unable to resolve recipient public key"));
+            } catch (JsonProcessingException e) {
+                throw new EdcException(e);
+            }
+        }
+
         return new GenericJweWriter().objectMapper(objectMapper).privateKey(privateKey.get()).publicKey((RSAPublicKey) recipientPublicKey).payload(response).buildJwe();
     }
 }
