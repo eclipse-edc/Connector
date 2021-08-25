@@ -16,8 +16,9 @@ package org.eclipse.dataspaceconnector.iam.did.service;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -27,6 +28,9 @@ import java.util.Set;
  *
  */
 public class DidServiceExtension implements ServiceExtension {
+    // TODO HACKATHON-1 Configure the connector did in local and cloud deployments
+    @EdcSetting
+    private static final String DID_KEY = "edc.did";
 
     @Override
     public Set<String> provides() {
@@ -40,13 +44,15 @@ public class DidServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var vault = context.getService(Vault.class);
-
+        var did = context.getSetting(DID_KEY, null);
+        if (did == null) {
+            context.getMonitor().info("DID was not set, defaulting to: " + "did:ion:123abc");
+        }
         var didResolver = context.getService(DidResolver.class);
         var hubClient = context.getService(IdentityHubClient.class);
         var publicKeyResolver = context.getService(DidPublicKeyResolver.class);
-
-        var identityService = new DistributedIdentityService(hubClient, didResolver, publicKeyResolver, context.getMonitor());
+        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
+        var identityService = new DistributedIdentityService(did, hubClient, didResolver, publicKeyResolver, privateKeyResolver, context.getMonitor());
 
         context.registerService(IdentityService.class, identityService);
 
