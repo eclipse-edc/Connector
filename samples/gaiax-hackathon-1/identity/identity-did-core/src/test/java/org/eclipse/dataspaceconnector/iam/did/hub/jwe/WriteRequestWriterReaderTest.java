@@ -1,12 +1,12 @@
 package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.eclipse.dataspaceconnector.iam.did.hub.TemporaryKeyLoader.loadKeys;
 
 
 /**
@@ -16,7 +16,7 @@ class WriteRequestWriterReaderTest {
 
     @Test
     void verifyWriteRead() throws Exception {
-        var key = loadKeys();
+        var key = TemporaryKeyLoader.loadKeys();
         var privateKey = key.toRSAPrivateKey();
         var publicKey = key.toRSAPublicKey();
 

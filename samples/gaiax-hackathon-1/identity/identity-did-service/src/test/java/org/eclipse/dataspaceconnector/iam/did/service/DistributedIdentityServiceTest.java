@@ -21,17 +21,15 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
-import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.ClientResponse;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
+import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
+import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
@@ -46,7 +44,6 @@ class DistributedIdentityServiceTest {
     private DistributedIdentityService identityService;
     private RSAPrivateKey privateKey;
     private RSAPublicKey publicKey;
-    private IdentityHubClient hubClient;
 
     @Test
     void verifyResolveHubUrl() throws JsonProcessingException {
@@ -81,20 +78,17 @@ class DistributedIdentityServiceTest {
 
         var token = jwt.serialize();
 
-        EasyMock.expect(hubClient.queryCredentials(EasyMock.isA(ObjectQueryRequest.class), EasyMock.isA(String.class), EasyMock.isA(PublicKey.class))).andReturn(new ClientResponse<>(Map.of("region", "EU")));
-        EasyMock.replay(hubClient);
-
         var result = identityService.verifyJwtToken(token, "Foo");
 
         Assertions.assertTrue(result.valid());
         Assertions.assertEquals("EU", result.token().getClaims().get("region"));
-        EasyMock.verify(hubClient);
     }
 
     @BeforeEach
     void setUp() {
         privateKey = TemporaryKeyLoader.loadPrivateKey();
         publicKey = TemporaryKeyLoader.loadPublicKey();
+
         DidResolver didResolver = d -> {
             try {
                 //noinspection unchecked
@@ -103,8 +97,9 @@ class DistributedIdentityServiceTest {
                 throw new AssertionError(e);
             }
         };
-        hubClient = EasyMock.createMock(IdentityHubClient.class);
-        identityService = new DistributedIdentityService("did:ion:123abc", hubClient, didResolver, d -> publicKey, k -> privateKey, new Monitor() {
+
+        CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "EU"));
+        identityService = new DistributedIdentityService("did:ion:123abc", verifier, didResolver, d -> publicKey, k -> privateKey, new Monitor() {
         });
 
     }

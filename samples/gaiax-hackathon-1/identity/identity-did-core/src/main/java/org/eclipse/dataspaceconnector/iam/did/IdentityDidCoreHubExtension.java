@@ -38,7 +38,7 @@ import java.security.interfaces.RSAPrivateKey;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static org.eclipse.dataspaceconnector.iam.did.hub.TemporaryKeyLoader.loadKeys;
+import static org.eclipse.dataspaceconnector.iam.did.keys.TemporaryKeyLoader.loadKeys;
 
 /**
  *
