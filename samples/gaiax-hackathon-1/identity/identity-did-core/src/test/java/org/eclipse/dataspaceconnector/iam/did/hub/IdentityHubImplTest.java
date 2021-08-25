@@ -15,6 +15,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteResponse;
+import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -58,7 +59,6 @@ class IdentityHubImplTest {
         Assertions.assertNotNull(response.getRevisions().get(0));
     }
 
-
     @Test
     void verifyCommitQuery() {
         var commit = Commit.Builder.newInstance().context("foo").type("foo").objectId("123").iss("baz").sub("quux").payload("payload").alg("RSA256").kid("kid").build();
@@ -84,7 +84,6 @@ class IdentityHubImplTest {
         Assertions.assertNotNull(response.getCommits().get(0));
     }
 
-
     @Test
     void verifyObjectQuery() {
         var hubObject = HubObject.Builder.newInstance().type("Foo").id("123").createdBy("test").sub("quux").build();
@@ -109,7 +108,6 @@ class IdentityHubImplTest {
 
         Assertions.assertNotNull(response.getObjects().get(0));
     }
-
 
     @BeforeEach
     void setUp() throws Exception {

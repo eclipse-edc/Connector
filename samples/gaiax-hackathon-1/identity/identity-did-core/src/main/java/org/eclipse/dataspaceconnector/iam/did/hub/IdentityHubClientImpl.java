@@ -94,7 +94,6 @@ public class IdentityHubClientImpl implements IdentityHubClient {
 
     }
 
-
     protected <M extends HubMessage> M executeQuery(Class<M> type, String jwe, String url) {
         var requestBody = RequestBody.create(jwe, MediaType.get("application/json"));
         var request = new Request.Builder().url(url).post(requestBody).build();
