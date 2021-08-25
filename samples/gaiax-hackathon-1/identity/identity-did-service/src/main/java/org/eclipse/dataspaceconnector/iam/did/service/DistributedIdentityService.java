@@ -86,7 +86,7 @@ public class DistributedIdentityService implements IdentityService {
             return TokenResult.Builder.newInstance().token(token).expiresIn(expiration).build();
         } catch (JOSEException e) {
             monitor.severe("Error creating JWT", e);
-            return TokenResult.Builder.newInstance().error("error creating JWT").build();
+            return TokenResult.Builder.newInstance().error("Error creating JWT").build();
         }
     }
 
