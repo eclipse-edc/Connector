@@ -24,7 +24,11 @@ import java.util.Map;
 public interface IdentityHubClient {
 
     /**
-     * Queries credentials from the hib.
+     * Queries credentials from the hub.
+     *
+     * @param query the credential query
+     * @param hubUrl the base hub URL
+     * @param publicKey the foreign hub's public key resolved from its DID
      */
     ClientResponse<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String hubUrl, PublicKey publicKey);
 

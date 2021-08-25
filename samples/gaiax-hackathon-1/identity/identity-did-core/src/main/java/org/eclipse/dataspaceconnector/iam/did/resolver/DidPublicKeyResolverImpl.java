@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
 import java.security.PublicKey;
 
 /**
- *
+ * TODO HACKATHON-1 This implementation needs to resolve the key by resolving the DID and loading the public key contained in the DID document.
  */
 public class DidPublicKeyResolverImpl implements DidPublicKeyResolver {
     private PublicKey publicKey;
