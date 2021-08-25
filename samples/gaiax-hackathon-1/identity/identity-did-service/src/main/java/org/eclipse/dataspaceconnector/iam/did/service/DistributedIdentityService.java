@@ -39,7 +39,7 @@ import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Implements and identity service backed by an EDC service registry.
+ * Implements an identity service backed by an EDC service registry.
  */
 public class DistributedIdentityService implements IdentityService {
     private String did;
