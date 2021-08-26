@@ -44,6 +44,9 @@ import static org.eclipse.dataspaceconnector.iam.did.keys.TemporaryKeyLoader.loa
  *
  */
 public class IdentityDidCoreHubExtension implements ServiceExtension {
+    @EdcSetting
+    private static final String RESOLVER_URL_KEY = "dataspaceconnector.did.resolver.url";
+
     private static final String RESOLVER_URL = "http://23.97.144.59:3000/identifiers/";
 
     @EdcSetting
@@ -78,7 +81,10 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
 
         var httpClient = context.getService(OkHttpClient.class);
         var typeManager = context.getService(TypeManager.class);
-        var didResolver = new DidResolverImpl(RESOLVER_URL, httpClient, typeManager.getMapper());
+
+        var activeResolverUrl = context.getSetting(RESOLVER_URL_KEY, RESOLVER_URL);
+
+        var didResolver = new DidResolverImpl(activeResolverUrl, httpClient, typeManager.getMapper());
         context.registerService(DidResolver.class, didResolver);
 
         var hubClient = new IdentityHubClientImpl(resolverPair.privateKeyResolver, httpClient, objectMapper);
@@ -98,8 +104,12 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
             RSAPrivateKey privateKey = keys.toRSAPrivateKey();
 
             var privateKeyAlias = context.getSetting(PRIVATE_KEY_ALIAS, "privateKeyAlias");
+            // TODO HACKATHON-1 use correct resolver when key loading implemented
             // var privateKeyResolver = context.getService(PrivateKeyResolver.class);
             PrivateKeyResolver delegateResolver = id -> privateKey;
+
+            // TODO HACKATHON-1 remove temporary override key resolver
+            context.registerService(PrivateKeyResolver.class, delegateResolver);
 
             Supplier<RSAPrivateKey> privateKeyResolver = () -> delegateResolver.resolvePrivateKey(privateKeyAlias);
 

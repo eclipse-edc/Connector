@@ -81,7 +81,7 @@ class DistributedIdentityServiceTest {
         var result = identityService.verifyJwtToken(token, "Foo");
 
         Assertions.assertTrue(result.valid());
-        Assertions.assertEquals("EU", result.token().getClaims().get("region"));
+        Assertions.assertEquals("eu", result.token().getClaims().get("region"));
     }
 
     @BeforeEach
@@ -98,7 +98,7 @@ class DistributedIdentityServiceTest {
             }
         };
 
-        CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "EU"));
+        CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "eu"));
         identityService = new DistributedIdentityService("did:ion:123abc", verifier, didResolver, d -> publicKey, k -> privateKey, new Monitor() {
         });
 

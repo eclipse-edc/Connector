@@ -12,7 +12,7 @@ ENTRYPOINT java \
     -Dedc.vault.tenantid=${TENANTID} \
     -Dedc.vault.certificate=/cert/cert.pfx \
     -Dedc.vault.name=${VAULTNAME} \
-    -Dedc.ids.connector.name=${CONNECTOR_NAME} \
+    -Ddataspaceconnector.connector.name=${CONNECTOR_NAME} \
     -Dedc.events.topic.name=${TOPIC_NAME} \
     -Dedc.events.topic.endpoint=${TOPIC_ENDPOINT} \
     -Djava.security.edg=file:/dev/.urandom -jar provider.jar

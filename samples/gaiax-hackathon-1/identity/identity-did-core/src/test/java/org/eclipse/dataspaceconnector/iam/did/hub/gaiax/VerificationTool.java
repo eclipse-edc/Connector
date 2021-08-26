@@ -36,7 +36,7 @@ public class VerificationTool {
     @Test
     public void writeConsumerCredentials() throws Exception {
         assumptions();
-        var credential = GaiaXCredential.Builder.newInstance().companyId("Consumer").geography("EU").build();
+        var credential = GaiaXCredential.Builder.newInstance().companyId("Consumer").region("eu").build();
 
         Response response = getResponse(credential, CONSUMER_WRITE_COMMIT_URL);
 
@@ -46,7 +46,7 @@ public class VerificationTool {
     @Test
     public void writeProducerCredentials() throws Exception {
         assumptions();
-        var credential = GaiaXCredential.Builder.newInstance().companyId("Producer").geography("EU").build();
+        var credential = GaiaXCredential.Builder.newInstance().companyId("Producer").region("eu").build();
         Response response = getResponse(credential, PRODUCER_WRITE_COMMIT_URL);
 
         System.out.println("Write producer response: " + response.code());
