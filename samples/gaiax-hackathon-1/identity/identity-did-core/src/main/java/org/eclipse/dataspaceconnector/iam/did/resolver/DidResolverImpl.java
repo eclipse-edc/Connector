@@ -49,6 +49,9 @@ public class DidResolverImpl implements DidResolver {
     }
 
     public DidResolverImpl(String didResolverUrl, OkHttpClient httpClient, ObjectMapper objectMapper) {
+        if (!didResolverUrl.endsWith("/")) {
+            didResolverUrl += "/";
+        }
         this.didResolverUrl = didResolverUrl;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;

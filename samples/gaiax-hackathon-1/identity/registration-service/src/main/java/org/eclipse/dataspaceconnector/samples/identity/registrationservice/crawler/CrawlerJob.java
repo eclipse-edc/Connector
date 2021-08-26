@@ -11,6 +11,7 @@ import org.eclipse.dataspaceconnector.iam.ion.IonRequestException;
 import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
+import org.eclipse.dataspaceconnector.iam.ion.dto.did.ServiceEndpoint;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -19,7 +20,11 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -163,10 +168,13 @@ public class CrawlerJob implements Job {
             random.nextBytes(r);
             String s = Base64.getUrlEncoder().encodeToString(r);
 
-            var randomDocument = DidDocument.Builder.create()
+            var serviceEndpoint = new ServiceEndpoint("someschema","SomeEndpoint", List.of("https://test.service.com"));
+            var service = new Service("#domain-1", "LinkedDomains", serviceEndpoint);
+
+            var randomDocument = DidDocument.Builder.newInstance()
                     .id("did:ion:" + s)
                     .authentication(Collections.singletonList("#key-1"))
-                    .service(Collections.singletonList(new Service("#domain-1", "LinkedDomains", "https://test.service.com")))
+                    .services(List.of(service))
                     .verificationMethod("#key-1", "EcdsaSecp256k1VerificationKey2019", (ECKey) KeyPairFactory.generateKeyPair().getPublicKey())
                     .build();
 

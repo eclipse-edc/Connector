@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.samples.identity.registrationservice.craw
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
+import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
+import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
+import org.eclipse.dataspaceconnector.iam.ion.dto.did.ServiceEndpoint;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -30,6 +33,7 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -38,6 +42,9 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 public class CrawlerExtension implements ServiceExtension {
+    @EdcSetting
+    private static final String LOAD_SAMPLE_DATA = "edc.ion.crawler.sample.data";
+
     @EdcSetting
     private static final String CRAWLER_INTERVAL_MIN_SETTING = "edc.ion.crawler.interval-minutes";
     @EdcSetting
@@ -73,6 +80,9 @@ public class CrawlerExtension implements ServiceExtension {
     @Override
     public void start() {
         DidStore didStore = context.getService(DidStore.class);
+        if (Boolean.parseBoolean(context.getSetting(LOAD_SAMPLE_DATA, "false"))) {
+            registerSampleDids(didStore);
+        }
         try {
             quartzScheduler = StdSchedulerFactory.getDefaultScheduler();
             quartzScheduler.start();
@@ -98,7 +108,6 @@ public class CrawlerExtension implements ServiceExtension {
         } catch (SchedulerException e) {
             throw new EdcException(e);
         }
-
     }
 
     private void scheduleCrawler(int intervalMinutes, DidStore objectStore, ServiceExtensionContext context) throws SchedulerException {
@@ -126,6 +135,20 @@ public class CrawlerExtension implements ServiceExtension {
                 .build();
 
         quartzScheduler.scheduleJob(job, trigger);
+    }
+
+    // TODO HACKATHON-1 remove when DIDs registered
+    private void registerSampleDids(DidStore didStore) {
+        context.getMonitor().info("Registering consumer test DID");
+        var hubEndpoint = new ServiceEndpoint("schema.identity.foundation/hub", "UserServiceEndpoint", List.of("http://localhost:9191/api/identity-hub"));
+        var hubService = new Service("IdentityHub", "IdentityHub", hubEndpoint);
+
+        var catalogEndpoint = new ServiceEndpoint("gaiax/catalog", "UserServiceEndpoint", List.of("http://localhost:9191/api/catalog"));
+        var catalogService = new Service("GaiaXCatalog", "GaiaXCatalog", catalogEndpoint);
+
+        var didDocument = DidDocument.Builder.newInstance().id("did:ion:123consumer").services(List.of(hubService, catalogService)).build();
+
+        didStore.saveAll(List.of(didDocument));
     }
 
 }

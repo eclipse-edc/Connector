@@ -99,10 +99,12 @@ public class DistributedIdentityService implements IdentityService {
             if (!validateToken(jwt, did)) {
                 return new VerificationResult("Invalid token");
             }
+
             var credentialsResult = resolveCredentials(did);
             if (!credentialsResult.success()) {
                 return new VerificationResult(credentialsResult.error());
             }
+
             var tokenBuilder = ClaimToken.Builder.newInstance();
             var claimToken = tokenBuilder.claims(credentialsResult.getValidatedCredentials()).build();
             return new VerificationResult(claimToken);
@@ -154,11 +156,7 @@ public class DistributedIdentityService implements IdentityService {
      */
     @SuppressWarnings({"ConditionCoveredByFurtherCondition", "rawtypes", "unchecked"})
     String resolveHubUrl(Map<String, Object> did) {
-        var document = did.get("document");
-        if (document == null || !(document instanceof Map)) {
-            return null;
-        }
-        var services = ((Map) document).get("service");
+        var services = did.get("services");
         if (services == null || !(services instanceof List)) {
             return null;
         }

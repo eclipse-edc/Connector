@@ -8,11 +8,9 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.Set;
-import java.util.UUID;
 
 
 public class RestApiExtension implements ServiceExtension {
-
 
     @Override
     public Set<String> requires() {
@@ -29,13 +27,10 @@ public class RestApiExtension implements ServiceExtension {
         var processStore = context.getService(TransferProcessStore.class);
         var catalogService = context.getService(CatalogService.class);
 
-        ApiController controller = new ApiController(getConnectorId(context), monitor, transferProcessManager, processStore, catalogService);
+        ApiController controller = new ApiController(context.getConnectorId(), monitor, transferProcessManager, processStore, catalogService);
         webService.registerController(controller);
 
         monitor.info("Initialized RestApiExtension");
     }
 
-    private String getConnectorId(ServiceExtensionContext context) {
-        return context.getSetting("edc.ids.connector.name", "edc-connector-" + UUID.randomUUID());
-    }
 }
