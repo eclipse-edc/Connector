@@ -13,7 +13,7 @@ ENTRYPOINT java \
     -Dedc.vault.certificate=/cert/cert.pfx \
     -Dedc.vault.name=${VAULTNAME} \
     -Dedc.events.topic.name=${TOPIC_NAME} \
-    -Dedc.ids.connector.name=${CONNECTOR_NAME} \
+    -Ddataspaceconnector.connector.name=${CONNECTOR_NAME} \
     -Dedc.events.topic.endpoint=${TOPIC_ENDPOINT} \
     -Dedc.ion.crawler.ion.url=${ION_URL} \
     -Dedc.ion.crawler.randomize=false \

@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.samples.identity.registrationservice.api;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
@@ -27,7 +28,6 @@ public class RegistrationController implements RegistrationService {
         this.didDocumentStore = didDocumentStore;
     }
 
-
     @GET
     @Path("/dids")
     public Response getDids(@QueryParam("since") String offset) {
@@ -40,6 +40,12 @@ public class RegistrationController implements RegistrationService {
         }
 
         return Response.ok(allDids).build();
+    }
+
+    @GET
+    @Path("/dids/{did}")
+    public DidDocument getDid(@PathParam("did") String did) {
+        return didDocumentStore.forId(did);
     }
 
     private List<DidDocument> getDidsWithOffset(String offset) {

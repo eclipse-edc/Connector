@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.iam.did.service;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -28,9 +27,6 @@ import java.util.Set;
  *
  */
 public class DidServiceExtension implements ServiceExtension {
-    // TODO HACKATHON-1 Configure the connector did in local and cloud deployments
-    @EdcSetting
-    private static final String DID_KEY = "edc.did";
 
     @Override
     public Set<String> provides() {
@@ -44,13 +40,11 @@ public class DidServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var did = context.getSetting(DID_KEY, null);
+        var did = context.getConnectorId();
         var monitor = context.getMonitor();
-        if (did == null) {
-            monitor.info("DID was not set, defaulting to: " + "did:ion:123abc");
-        }
         var didResolver = context.getService(DidResolver.class);
         var publicKeyResolver = context.getService(DidPublicKeyResolver.class);
+
         var privateKeyResolver = context.getService(PrivateKeyResolver.class);
 
         var credentialsVerifier = context.getService(CredentialsVerifier.class);
