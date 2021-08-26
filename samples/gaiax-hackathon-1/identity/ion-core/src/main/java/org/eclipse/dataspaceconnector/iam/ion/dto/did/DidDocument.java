@@ -1,7 +1,19 @@
+/*
+ *  Copyright (c) 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
 package org.eclipse.dataspaceconnector.iam.ion.dto.did;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.nimbusds.jose.jwk.ECKey;
@@ -12,12 +24,11 @@ import java.util.List;
 @JsonDeserialize(builder = DidDocument.Builder.class)
 public class DidDocument {
     String id;
-    List<Object> context;
-    List<Service> service;
-    List<VerificationMethod> verificationMethod;
-    List<String> authentication;
+    String context = "https://w3id.org/did-resolution/v1";
+    List<Service> services = new ArrayList<>();
+    List<VerificationMethod> verificationMethod = new ArrayList<>();
+    List<String> authentication = new ArrayList<>();
 
-    @JsonProperty("id")
     public String getId() {
         return id;
     }
@@ -26,40 +37,20 @@ public class DidDocument {
         this.id = id;
     }
 
-    @JsonProperty("@context")
-    public List<Object> getContext() {
+    public String getContext() {
         return context;
     }
 
-    public void setContext(List<Object> context) {
-        this.context = context;
+    public List<Service> getServices() {
+        return services;
     }
 
-    @JsonProperty("service")
-    public List<Service> getService() {
-        return service;
-    }
-
-    public void setService(List<Service> service) {
-        this.service = service;
-    }
-
-    @JsonProperty("verificationMethod")
     public List<VerificationMethod> getVerificationMethod() {
         return verificationMethod;
     }
 
-    public void setVerificationMethod(List<VerificationMethod> verificationMethod) {
-        this.verificationMethod = verificationMethod;
-    }
-
-    @JsonProperty("authentication")
     public List<String> getAuthentication() {
         return authentication;
-    }
-
-    public void setAuthentication(List<String> authentication) {
-        this.authentication = authentication;
     }
 
     @Override
@@ -69,47 +60,40 @@ public class DidDocument {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        String id;
-        List<Object> context;
-        List<Service> service;
-        List<VerificationMethod> verificationMethod;
-        List<String> authentication;
-
-        private Builder() {
-            context = new ArrayList<>();
-            context.add("https://w3id.org/did-resolution/v1");
-        }
+        private DidDocument document;
 
         @JsonCreator
-        public static Builder create() {
+        public static Builder newInstance() {
             return new Builder();
         }
 
         public Builder id(String id) {
-            this.id = id;
+            this.document.id = id;
             return this;
         }
 
-        public Builder context(List<Object> context) {
-            this.context = context;
+        public Builder context(String context) {
+            this.document.context = context;
             return this;
         }
 
-        public Builder service(List<Service> service) {
-            this.service = service;
+        public Builder services(List<Service> services) {
+            this.document.services.addAll(services);
+            return this;
+        }
+
+        public Builder service(Service service) {
+            this.document.services.add(service);
             return this;
         }
 
         public Builder verificationMethod(List<VerificationMethod> verificationMethod) {
-            this.verificationMethod = verificationMethod;
+            this.document.verificationMethod = verificationMethod;
             return this;
         }
 
         public Builder verificationMethod(String id, String type, ECKey publicKey) {
-            if (verificationMethod == null) {
-                verificationMethod = new ArrayList<>();
-            }
-            verificationMethod.add(VerificationMethod.Builder.create()
+            document.verificationMethod.add(VerificationMethod.Builder.create()
                     .id(id)
                     .type(type)
                     .publicKeyJwk(new PublicKeyJwk(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
@@ -118,18 +102,16 @@ public class DidDocument {
         }
 
         public Builder authentication(List<String> authentication) {
-            this.authentication = authentication;
+            this.document.authentication = authentication;
             return this;
         }
 
+        private Builder() {
+            document = new DidDocument();
+        }
+
         public DidDocument build() {
-            DidDocument didDocument = new DidDocument();
-            didDocument.setId(id);
-            didDocument.setContext(context);
-            didDocument.setService(service);
-            didDocument.setVerificationMethod(verificationMethod);
-            didDocument.setAuthentication(authentication);
-            return didDocument;
+            return document;
         }
     }
 }

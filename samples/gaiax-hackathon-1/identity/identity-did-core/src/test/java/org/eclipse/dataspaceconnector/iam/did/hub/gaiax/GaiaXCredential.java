@@ -22,11 +22,11 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
  */
 @JsonDeserialize(builder = GaiaXCredential.Builder.class)
 public class GaiaXCredential {
-    private String geography;
+    private String region;
     private String companyId;
 
-    public String getGeography() {
-        return geography;
+    public String getRegion() {
+        return region;
     }
 
     public String getCompanyId() {
@@ -42,8 +42,8 @@ public class GaiaXCredential {
             return new Builder();
         }
 
-        public Builder geography(String geography) {
-            credential.geography = geography;
+        public Builder region(String region) {
+            credential.region = region;
             return this;
         }
 

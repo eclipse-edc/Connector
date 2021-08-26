@@ -2,12 +2,13 @@ package org.eclipse.dataspaceconnector.samples.identity.did;
 
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
+import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Collectors;
 
 public class InMemoryDidDocumentStore implements DidStore {
@@ -15,7 +16,7 @@ public class InMemoryDidDocumentStore implements DidStore {
     private final List<Entity<DidDocument>> memoryDb;
 
     public InMemoryDidDocumentStore() {
-        memoryDb = new ArrayList<>();
+        memoryDb = new CopyOnWriteArrayList<>();
     }
 
     @Override
@@ -33,7 +34,6 @@ public class InMemoryDidDocumentStore implements DidStore {
                 .dropWhile(e -> !e.getPayload().getId().equals(continuationToken))
                 .map(Entity::getPayload)
                 .collect(Collectors.toList());
-
     }
 
     @Override
@@ -58,6 +58,14 @@ public class InMemoryDidDocumentStore implements DidStore {
     public void saveAll(Collection<DidDocument> entities) {
         // to transaction handling is required here
         entities.forEach(this::save);
+    }
+
+    @Override
+    @Nullable
+    public DidDocument forId(String did) {
+        // TODO this can be much more efficient
+        var result = memoryDb.stream().filter(d -> did.equals(d.payload.getId())).findFirst();
+        return result.map(didDocumentEntity -> didDocumentEntity.payload).orElse(null);
     }
 
     private static class Entity<T> implements Comparable<Entity<T>> {
