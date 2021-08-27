@@ -137,7 +137,7 @@ public class CrawlerExtension implements ServiceExtension {
         quartzScheduler.scheduleJob(job, trigger);
     }
 
-    // TODO HACKATHON-1 remove when DIDs registered
+    // TODO HACKATHON-1 TASK 1 remove when DIDs registered
     private void registerSampleDids(DidStore didStore) {
         context.getMonitor().info("Registering consumer test DID");
         var hubEndpoint = new ServiceEndpoint("schema.identity.foundation/hub", "UserServiceEndpoint", List.of("http://localhost:9191/api/identity-hub"));

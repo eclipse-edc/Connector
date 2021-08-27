@@ -30,6 +30,7 @@ import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assum
 
 /**
  * Tools for writing verified credentials. To enable set the ENV variable {@code GAIA-X-LOCAL-HACKATHON} to true.
+ * TODO HACKATHON-1 TASK 1: Java-based example
  */
 public class VerificationTool {
 

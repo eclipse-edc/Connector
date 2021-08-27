@@ -115,7 +115,7 @@ public class DistributedIdentityService implements IdentityService {
     }
 
     private CredentialsResult resolveCredentials(Map<String, Object> didDocument) {
-        // TODO HACKATHON-1 resolve the Hub URL from the Hub's did
+        // TODO HACKATHON-1 TASK 6B resolve the Hub URL from the Hub's did
         var hubBaseUrl = resolveHubUrl(didDocument);
         if (hubBaseUrl == null) {
             return new CredentialsResult("Hub URL not found in DID");
@@ -132,7 +132,7 @@ public class DistributedIdentityService implements IdentityService {
 
     private boolean validateToken(SignedJWT jwt, Map<String, Object> didDocument) {
         try {
-            // TODO TODO HACKATHON-1 implement by verifying the token assertion against the public key contained in the DID, NOT the key from  publicKeyResolver.resolvePublicKey()
+            // TODO HACKATHON-1 TASK 6B implement by verifying the token assertion against the public key contained in the DID, NOT the key from  publicKeyResolver.resolvePublicKey()
             // This will involve loading the Key from didDocument
             var publicKey = (RSAPublicKey) publicKeyResolver.resolvePublicKey("");   // this needs to be replaced
             if (publicKey == null) {
@@ -150,7 +150,7 @@ public class DistributedIdentityService implements IdentityService {
     /**
      * Returns the location of the Hub endpoint.
      *
-     * TODO HACKATHON-1
+     * TODO HACKATHON-1 TASK 6B
      * The current implementation assumes the Hub endpoint is encoded in the client connector DID. We need to support the case where only the Hub did is referenced
      * in the current connector DID. This will involve resolving the Hub did and obtaining the endpoint address.
      */
