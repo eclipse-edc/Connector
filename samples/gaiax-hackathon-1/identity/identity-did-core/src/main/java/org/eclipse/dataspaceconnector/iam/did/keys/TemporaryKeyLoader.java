@@ -27,7 +27,7 @@ import static java.lang.String.format;
 /**
  * Temporary key loader until DID key management is implemented.
  *
- * TODO HACKATHON-1 Usage of these functions in main code needs to be removed. Test usage should eventually be moved to common/util/testFixtures.
+ * TODO HACKATHON-1 TASK 6A Usage of these functions in main code needs to be removed.
  */
 public class TemporaryKeyLoader {
     private static final String TEST_KEYSTORE = "edc-test-keystore.jks";

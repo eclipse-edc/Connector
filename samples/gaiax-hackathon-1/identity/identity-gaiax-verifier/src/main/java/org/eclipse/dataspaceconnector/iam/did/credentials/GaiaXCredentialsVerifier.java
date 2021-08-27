@@ -24,6 +24,7 @@ import java.util.HashMap;
 
 /**
  * Implements a sample credentials validator that checks for signed registration credentials.
+ * TODO HACKATHON-1 TASK 8 enhance this implementation
  */
 public class GaiaXCredentialsVerifier implements CredentialsVerifier {
     private IdentityHubClient hubClient;
