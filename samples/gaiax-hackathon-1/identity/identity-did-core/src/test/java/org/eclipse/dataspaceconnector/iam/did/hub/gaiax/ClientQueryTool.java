@@ -41,7 +41,7 @@ import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CO
 import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
 
 /**
- *
+ * TODO HACKATHON-1 TASK 1: Java-based query example
  */
 public class ClientQueryTool {
     private ObjectMapper objectMapper = new ObjectMapper();
