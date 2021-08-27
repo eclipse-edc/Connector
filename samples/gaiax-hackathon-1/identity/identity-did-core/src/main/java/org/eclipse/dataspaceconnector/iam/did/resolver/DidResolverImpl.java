@@ -25,7 +25,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * TODO HACKATHON-1
+ * TODO HACKATHON-1 TASK 7
  * Resolves a DID. Currently, this implementation resolves against an ION endpoint. This could be enhanced to delegate to different DID method resolvers.
  */
 public class DidResolverImpl implements DidResolver {
