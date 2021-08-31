@@ -168,13 +168,12 @@ public class CrawlerJob implements Job {
             String s = Base64.getUrlEncoder().encodeToString(r);
 
             // Resolve ION/IdentityHub discrepancy
-            // var serviceEndpoint = new ServiceEndpoint("someschema","SomeEndpoint", List.of("https://test.service.com"));
             var service = new Service("#domain-1", "LinkedDomains", "https://test.service.com");
 
             var randomDocument = DidDocument.Builder.newInstance()
                     .id("did:ion:" + s)
                     .authentication(Collections.singletonList("#key-1"))
-                    .services(List.of(service))
+                    .service(List.of(service))
                     .verificationMethod("#key-1", "EcdsaSecp256k1VerificationKey2019", (ECKey) KeyPairFactory.generateKeyPair().getPublicKey())
                     .build();
 

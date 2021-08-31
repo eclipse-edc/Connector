@@ -14,18 +14,21 @@
 package org.eclipse.dataspaceconnector.iam.ion.dto.did;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import com.nimbusds.jose.jwk.ECKey;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @JsonDeserialize(builder = DidDocument.Builder.class)
-public class DidDocument {
+public class    DidDocument {
     String id;
-    String context = "https://w3id.org/did-resolution/v1";
-    List<Service> services = new ArrayList<>();
+    @JsonProperty("@context")
+    List<Object> context = Collections.singletonList("https://w3id.org/did-resolution/v1");
+    List<Service> service = new ArrayList<>();
     List<VerificationMethod> verificationMethod = new ArrayList<>();
     List<String> authentication = new ArrayList<>();
 
@@ -37,12 +40,12 @@ public class DidDocument {
         this.id = id;
     }
 
-    public String getContext() {
+    public List<Object> getContext() {
         return context;
     }
 
-    public List<Service> getServices() {
-        return services;
+    public List<Service> getService() {
+        return service;
     }
 
     public List<VerificationMethod> getVerificationMethod() {
@@ -72,20 +75,17 @@ public class DidDocument {
             return this;
         }
 
-        public Builder context(String context) {
+        @JsonProperty("@context")
+        public Builder context(List<Object> context) {
             this.document.context = context;
             return this;
         }
 
-        public Builder services(List<Service> services) {
-            this.document.services.addAll(services);
+        public Builder service(List<Service> services) {
+            this.document.service.addAll(services);
             return this;
         }
 
-        public Builder service(Service service) {
-            this.document.services.add(service);
-            return this;
-        }
 
         public Builder verificationMethod(List<VerificationMethod> verificationMethod) {
             this.document.verificationMethod = verificationMethod;

@@ -141,14 +141,12 @@ public class CrawlerExtension implements ServiceExtension {
         context.getMonitor().info("Registering consumer test DID");
 
         // Resolve ION/IdentityHub discrepancy
-        // var hubEndpoint = new ServiceEndpoint("schema.identity.foundation/hub", "UserServiceEndpoint", List.of("http://localhost:9191/api/identity-hub"));
         var hubService = new Service("IdentityHub", "IdentityHub", "http://localhost:9191/api/identity-hub");
 
         // Resolve ION/IdentityHub discrepancy
-        // var catalogEndpoint = new ServiceEndpoint("gaiax/catalog", "UserServiceEndpoint", List.of("http://localhost:9191/api/catalog"));
         var catalogService = new Service("GaiaXCatalog", "GaiaXCatalog", "http://localhost:9191/api/catalog");
 
-        var didDocument = DidDocument.Builder.newInstance().id("did:ion:123consumer").services(List.of(hubService, catalogService)).build();
+        var didDocument = DidDocument.Builder.newInstance().id("did:ion:123consumer").service(List.of(hubService, catalogService)).build();
 
         didStore.saveAll(List.of(didDocument));
     }
