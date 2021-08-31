@@ -23,7 +23,7 @@ dependencies {
 
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     // TODO HACKATHON-1 TASK 6A Commented out until private keys placed in Azure Vault
-    // implementation(project(":extensions:azure:vault"))
+    implementation(project(":extensions:azure:vault"))
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:metadata-memory"))
     implementation(project(":extensions:filesystem:configuration-fs"))
