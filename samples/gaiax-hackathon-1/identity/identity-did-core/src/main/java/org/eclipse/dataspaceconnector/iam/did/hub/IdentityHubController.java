@@ -18,7 +18,12 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
+
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * Binds the identity hub to an HTTP REST endpoint.
@@ -31,6 +36,15 @@ public class IdentityHubController {
 
     public IdentityHubController(IdentityHub hub) {
         this.hub = hub;
+    }
+
+    @POST
+    @Path("collections-commit")
+    public Response writeCommit(Map<String, String> credential) {
+        var objectId = UUID.randomUUID().toString();
+        var commit = Commit.Builder.newInstance().type("RegistrationCredentials").context("GAIA-X").iss("test").sub("test").objectId(objectId).payload(credential).build();
+        hub.write(commit);
+        return Response.ok().build();
     }
 
     @POST
