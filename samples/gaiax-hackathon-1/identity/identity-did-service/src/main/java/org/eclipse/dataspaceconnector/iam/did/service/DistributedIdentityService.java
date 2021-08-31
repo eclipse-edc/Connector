@@ -154,7 +154,7 @@ public class DistributedIdentityService implements IdentityService {
      * The current implementation assumes the Hub endpoint is encoded in the client connector DID. We need to support the case where only the Hub did is referenced
      * in the current connector DID. This will involve resolving the Hub did and obtaining the endpoint address.
      */
-    @SuppressWarnings({"ConditionCoveredByFurtherCondition", "rawtypes", "unchecked"})
+    @SuppressWarnings({"ConditionCoveredByFurtherCondition", "rawtypes"})
     String resolveHubUrl(Map<String, Object> did) {
         var services = did.get("services");
         if (services == null || !(services instanceof List)) {
@@ -170,19 +170,23 @@ public class DistributedIdentityService implements IdentityService {
             if (!"IdentityHub".equals(type)) {
                 continue;
             }
-            var serviceEndpoint = serviceMap.get("serviceEndpoint");
-            if (!(serviceEndpoint instanceof Map)) {
-                continue;
-            }
-            var locations = ((Map) serviceEndpoint).get("locations");
-            if (!(locations instanceof List)) {
-                continue;
-            }
-            var locationsList = (List<String>) locations;
-            if (((List<?>) locations).isEmpty()) {
-                continue;
-            }
-            return locationsList.get(0);
+            return (String) serviceMap.get("serviceEndpoint");
+
+// Resolve ION/IdentityHub discrepancy
+
+//            if (!(serviceEndpoint instanceof Map)) {
+//                continue;
+//            }
+//            var locations = ((Map) serviceEndpoint).get("locations");
+//            if (!(locations instanceof List)) {
+//                continue;
+//            }
+//            var locationsList = (List<String>) locations;
+//            if (((List<?>) locations).isEmpty()) {
+//                continue;
+//            }
+//            return locationsList.get(0);
+// End Resolve ION/IdentityHub discrepancy
 
         }
         return null;

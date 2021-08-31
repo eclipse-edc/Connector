@@ -5,7 +5,6 @@ import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.PublicKeyJwk;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.ServiceEndpoint;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.VerificationMethod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,7 +12,6 @@ import org.junit.jupiter.api.Test;
 import java.security.SecureRandom;
 import java.util.Base64;
 import java.util.Collections;
-import java.util.List;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -119,8 +117,10 @@ class InMemoryDidDocumentStoreTest {
         byte[] r = new byte[32]; //Means 2048 bit
         random.nextBytes(r);
         String s = Base64.getEncoder().encodeToString(r);
-        var serviceEndpoint = new ServiceEndpoint("someschema","SomeEndpoint", List.of("https://test.service.com"));
-        var service = new Service("#domain-1", "LinkedDomains", serviceEndpoint);
+
+        // Resolve ION/IdentityHub discrepancy
+        // var serviceEndpoint = new ServiceEndpoint("someschema","SomeEndpoint", List.of("https://test.service.com"));
+        var service = new Service("#domain-1", "LinkedDomains", "https://test.service.com");
         return DidDocument.Builder.newInstance()
                 .id("did:ion:" + s)
                 .authentication(Collections.singletonList("#key-1"))
