@@ -5,13 +5,13 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class Service {
     String id;
     String type;
-    ServiceEndpoint serviceEndpoint;
+    String serviceEndpoint;
 
     public Service() {
 
     }
 
-    public Service(String id, String type, ServiceEndpoint serviceEndpoint) {
+    public Service(String id, String type, String serviceEndpoint) {
         this.id = id;
         this.type = type;
         this.serviceEndpoint = serviceEndpoint;
@@ -36,11 +36,11 @@ public class Service {
     }
 
     @JsonProperty("serviceEndpoint")
-    public ServiceEndpoint getServiceEndpoint() {
+    public String getServiceEndpoint() {
         return serviceEndpoint;
     }
 
-    public void setServiceEndpoint(ServiceEndpoint serviceEndpoint) {
+    public void setServiceEndpoint(String serviceEndpoint) {
         this.serviceEndpoint = serviceEndpoint;
     }
 }

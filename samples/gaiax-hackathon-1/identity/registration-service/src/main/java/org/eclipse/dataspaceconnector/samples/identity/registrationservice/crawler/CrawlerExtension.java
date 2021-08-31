@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
 import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.ServiceEndpoint;
 import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -140,11 +139,14 @@ public class CrawlerExtension implements ServiceExtension {
     // TODO HACKATHON-1 TASK 1 remove when DIDs registered
     private void registerSampleDids(DidStore didStore) {
         context.getMonitor().info("Registering consumer test DID");
-        var hubEndpoint = new ServiceEndpoint("schema.identity.foundation/hub", "UserServiceEndpoint", List.of("http://localhost:9191/api/identity-hub"));
-        var hubService = new Service("IdentityHub", "IdentityHub", hubEndpoint);
 
-        var catalogEndpoint = new ServiceEndpoint("gaiax/catalog", "UserServiceEndpoint", List.of("http://localhost:9191/api/catalog"));
-        var catalogService = new Service("GaiaXCatalog", "GaiaXCatalog", catalogEndpoint);
+        // Resolve ION/IdentityHub discrepancy
+        // var hubEndpoint = new ServiceEndpoint("schema.identity.foundation/hub", "UserServiceEndpoint", List.of("http://localhost:9191/api/identity-hub"));
+        var hubService = new Service("IdentityHub", "IdentityHub", "http://localhost:9191/api/identity-hub");
+
+        // Resolve ION/IdentityHub discrepancy
+        // var catalogEndpoint = new ServiceEndpoint("gaiax/catalog", "UserServiceEndpoint", List.of("http://localhost:9191/api/catalog"));
+        var catalogService = new Service("GaiaXCatalog", "GaiaXCatalog", "http://localhost:9191/api/catalog");
 
         var didDocument = DidDocument.Builder.newInstance().id("did:ion:123consumer").services(List.of(hubService, catalogService)).build();
 
