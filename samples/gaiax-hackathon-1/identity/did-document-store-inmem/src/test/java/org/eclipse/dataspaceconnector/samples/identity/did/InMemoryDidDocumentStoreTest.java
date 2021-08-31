@@ -119,12 +119,11 @@ class InMemoryDidDocumentStoreTest {
         String s = Base64.getEncoder().encodeToString(r);
 
         // Resolve ION/IdentityHub discrepancy
-        // var serviceEndpoint = new ServiceEndpoint("someschema","SomeEndpoint", List.of("https://test.service.com"));
         var service = new Service("#domain-1", "LinkedDomains", "https://test.service.com");
         return DidDocument.Builder.newInstance()
                 .id("did:ion:" + s)
                 .authentication(Collections.singletonList("#key-1"))
-                .services(Collections.singletonList(service))
+                .service(Collections.singletonList(service))
                 .verificationMethod(Collections.singletonList(createVerificationMethod()))
                 .build();
     }

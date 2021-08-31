@@ -6,6 +6,7 @@ import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.ion.dto.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.iam.ion.dto.ServiceDescriptor;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -17,14 +18,14 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @IntegrationTest
 class IonClientImplTest {
 
-    private static final String didUrlToResolve = "did:ion:test:EiClWZ1MnE8PHjH6y4e4nCKgtKnI1DK1foZiP61I86b6pw";
-    private static final String ionApiUrl = "http://23.97.144.59:3000";
+    private static final String didUrlToResolve = "did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA";
+
 
     private IonClientImpl client;
 
     @BeforeEach
     void setup() {
-        client = new IonClientImpl(ionApiUrl, new ObjectMapper());
+        client = new IonClientImpl(new ObjectMapper());
     }
 
     @Test
@@ -34,16 +35,10 @@ class IonClientImplTest {
         assertThat(result.getId()).isEqualTo(didUrlToResolve);
     }
 
-    @Test
-    void resolve_againstOfficialUrl() {
-        client = new IonClientImpl(new ObjectMapper());
-        var result = client.resolve("did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
-        assertThat(result).isNotNull();
-    }
 
     @Test
     void resolve_notFound() {
-        assertThatThrownBy(() -> client.resolve("did:ion:test:notexist")).isInstanceOf(IonRequestException.class)
+        assertThatThrownBy(() -> client.resolve("did:ion:notexist")).isInstanceOf(IonRequestException.class)
                 .hasMessageContaining("404");
     }
 
@@ -54,6 +49,7 @@ class IonClientImplTest {
     }
 
     @Test
+    @Disabled
     void submitAnchorRequest() {
         var pair = KeyPairFactory.generateKeyPair();
         var pkd = PublicKeyDescriptor.Builder.create()
