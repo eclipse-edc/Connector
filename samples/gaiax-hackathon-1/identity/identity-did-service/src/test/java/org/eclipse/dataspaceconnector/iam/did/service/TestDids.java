@@ -38,7 +38,7 @@ public interface TestDids {
     String HUB_URL_DID = "{\n" +
             "    \"id\": \"did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA\",\n" +
             "    \"@context\":  \"https://www.w3.org/ns/did/v1\",\n" +
-            "    \"services\": [\n" +
+            "    \"service\": [\n" +
             "      {\n" +
             "        \"id\": \"IdentityHub\",\n" +
             "        \"type\": \"IdentityHub\",\n" +

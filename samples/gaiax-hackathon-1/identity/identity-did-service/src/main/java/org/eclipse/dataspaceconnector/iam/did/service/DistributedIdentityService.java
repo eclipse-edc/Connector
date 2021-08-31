@@ -156,7 +156,7 @@ public class DistributedIdentityService implements IdentityService {
      */
     @SuppressWarnings({"ConditionCoveredByFurtherCondition", "rawtypes"})
     String resolveHubUrl(Map<String, Object> did) {
-        var services = did.get("services");
+        var services = did.get("service");
         if (services == null || !(services instanceof List)) {
             return null;
         }
