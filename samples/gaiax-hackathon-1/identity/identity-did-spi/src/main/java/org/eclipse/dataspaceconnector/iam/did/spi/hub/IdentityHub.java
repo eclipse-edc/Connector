@@ -13,6 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.hub;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
+
 /**
  * Implements a Distributed Identity Foundation Identity Hub as described by {@code https://identity.foundation/identity-hub/spec/}.
  */
@@ -22,6 +24,12 @@ public interface IdentityHub {
      * Writes a commit JWE to the hub and returns either a success response encoded as a JWE or a plaintext error message.
      */
     String write(String commitJwe);
+
+    /**
+     * Workaround for Hackathon .NET client
+     */
+    @Deprecated
+    void write(Commit commit);
 
     /**
      * Returns the commit history for an object as a JWE.

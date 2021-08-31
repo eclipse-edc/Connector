@@ -24,6 +24,7 @@ import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
+import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_WRITE_COMMIT_TEMP_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_WRITE_COMMIT_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.PRODUCER_WRITE_COMMIT_URL;
 import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
@@ -33,6 +34,25 @@ import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assum
  * TODO HACKATHON-1 TASK 1: Java-based example
  */
 public class VerificationTool {
+    private ObjectMapper objectMapper = new ObjectMapper();
+
+    @Test
+    @Deprecated
+    public void writeConsumerCredentialsDirect() throws Exception {
+        assumptions();
+        var credential = GaiaXCredential.Builder.newInstance().companyId("Consumer").region("eu").build();
+
+        var serializedCredential = objectMapper.writeValueAsString(credential);
+        System.out.println("Serialized credential: " + serializedCredential);
+
+        var requestBody = RequestBody.create(serializedCredential, MediaType.get("application/json"));
+        var request = new Request.Builder().url(CONSUMER_WRITE_COMMIT_TEMP_URL).post(requestBody).build();
+
+        var httpClient = new OkHttpClient.Builder().build();
+        var response = httpClient.newCall(request).execute();
+
+        System.out.println("Write consumer response: " + response.code());
+    }
 
     @Test
     public void writeConsumerCredentials() throws Exception {
@@ -56,7 +76,7 @@ public class VerificationTool {
 
     @NotNull
     private Response getResponse(GaiaXCredential credential, String url) throws Exception {
-        var objectMapper = new ObjectMapper();
+
 
         var keys = TemporaryKeyLoader.loadKeys();
 

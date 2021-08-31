@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestReader;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ErrorResponse;
@@ -48,6 +49,11 @@ public class IdentityHubImpl implements IdentityHub {
         this.privateKey = privateKey;
         this.publicKeyResolver = resolver;
         this.objectMapper = objectMapper;
+    }
+
+    @Override
+    public void write(Commit commit) {
+        store.write(commit);
     }
 
     @Override
