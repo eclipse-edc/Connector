@@ -19,8 +19,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 /**
  *
  */
@@ -29,8 +27,10 @@ class DidDocumentTest {
 
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
-        var serviceEndpoint = new ServiceEndpoint("someschema", "SomeEndpoint", List.of("https://test.service.com"));
-        var service = new Service("#domain-1", "LinkedDomains", serviceEndpoint);
+
+        // Resolve ION/IdentityHub discrepancy
+        // var serviceEndpoint = new ServiceEndpoint("someschema", "SomeEndpoint", List.of("https://test.service.com"));
+        var service = new Service("#domain-1", "LinkedDomains", "https://test.service.com");
         var document = DidDocument.Builder.newInstance().id("did:ion:123").service(service).build();
         var serialized = objectMapper.writeValueAsString(document);
         var deserialized = objectMapper.readValue(serialized, DidDocument.class);

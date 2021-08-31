@@ -11,7 +11,6 @@ import org.eclipse.dataspaceconnector.iam.ion.IonRequestException;
 import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
 import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.ServiceEndpoint;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -168,8 +167,9 @@ public class CrawlerJob implements Job {
             random.nextBytes(r);
             String s = Base64.getUrlEncoder().encodeToString(r);
 
-            var serviceEndpoint = new ServiceEndpoint("someschema","SomeEndpoint", List.of("https://test.service.com"));
-            var service = new Service("#domain-1", "LinkedDomains", serviceEndpoint);
+            // Resolve ION/IdentityHub discrepancy
+            // var serviceEndpoint = new ServiceEndpoint("someschema","SomeEndpoint", List.of("https://test.service.com"));
+            var service = new Service("#domain-1", "LinkedDomains", "https://test.service.com");
 
             var randomDocument = DidDocument.Builder.newInstance()
                     .id("did:ion:" + s)
