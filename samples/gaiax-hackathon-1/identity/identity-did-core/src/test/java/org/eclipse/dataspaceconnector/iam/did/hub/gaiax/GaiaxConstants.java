@@ -18,6 +18,9 @@ package org.eclipse.dataspaceconnector.iam.did.hub.gaiax;
  */
 public interface GaiaxConstants {
 
+    @Deprecated
+    String CONSUMER_WRITE_COMMIT_TEMP_URL = "http://localhost:9191/api/identity-hub/collections-commit";
+
     String CONSUMER_WRITE_COMMIT_URL = "http://localhost:9191/api/identity-hub/collections";
 
     String PRODUCER_WRITE_COMMIT_URL = "http://localhost:8181/api/identity-hub/collections";
