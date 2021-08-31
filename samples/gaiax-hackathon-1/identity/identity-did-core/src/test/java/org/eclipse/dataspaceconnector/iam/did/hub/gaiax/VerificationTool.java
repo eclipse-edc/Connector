@@ -56,7 +56,7 @@ public class VerificationTool {
 
     @Test
     public void writeConsumerCredentials() throws Exception {
-        assumptions();
+      //  assumptions();
         var credential = GaiaXCredential.Builder.newInstance().companyId("Consumer").region("eu").build();
 
         Response response = getResponse(credential, CONSUMER_WRITE_COMMIT_URL);
