@@ -4,7 +4,7 @@ terraform {
     resource_group_name  = "edc-infrastructure"
     storage_account_name = "edcstate"
     container_name       = "terraform-state-hackathon"
-    key                  = "terraform.state"
+    key                  = "terraform-paul.state"
   }
   required_providers {
     azurerm = {
