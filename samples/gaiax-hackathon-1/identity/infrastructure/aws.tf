@@ -5,7 +5,7 @@ provider "aws" {
 
 
 resource "aws_iam_user" "hackathon-user" {
-  name          = "hackathon-user"
+  name          = "hackathon-user-paul"
   path          = "/"
   force_destroy = true
 }
