@@ -59,7 +59,7 @@ to classify issues and improve findability.
 ### Submit a Pull Request
 
 In addition to the contribution guideline made available in the [Eclipse project handbook](https://www.eclipse.org/projects/handbook/#contributing)
-we would appreciate if your Pull Request applies to the following points:
+we would appreciate if your pull request applies to the following points:
 
 * Always apply the following copyright header to specific files in your work, attach the following boilerplate
   declaration, replacing the fields enclosed by curly brackets "{}" with your own identifying information. (Don't
