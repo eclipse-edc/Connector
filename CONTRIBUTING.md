@@ -61,8 +61,7 @@ to classify issues and improve findability.
 In addition to the contribution guideline made available in the [Eclipse project handbook](https://www.eclipse.org/projects/handbook/#contributing)
 we would appreciate if your pull request applies to the following points:
 
-* Always apply the following copyright header to specific files in your work, attach the following boilerplate
-  declaration, replacing the fields enclosed by curly brackets "{}" with your own identifying information. (Don't
+* Always apply the following copyright header to specific files in your work replacing the fields enclosed by curly brackets "{}" with your own identifying information. (Don't
   include the curly brackets!) Enclose the text in the appropriate comment syntax for the file format.
 
     ```text
