@@ -113,7 +113,7 @@ we would appreciate if your pull request applies to the following points:
 
     * _Intellectual Property Validation_ verifying the [Eclipse CLA](#eclipse-contributor-agreement) has been signed as
       well as commits have been signed-off and
-    * _Continuous Integration_ performing various test proving functional integrity and alignment with our coding
+    * _Continuous Integration_ performing various test
       conventions.
 
 ### Contact Us
