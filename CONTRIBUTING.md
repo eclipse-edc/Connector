@@ -88,11 +88,8 @@ we would appreciate if your pull request applies to the following points:
 
   All committers, and all commits, are bound to
   the [Developer Certificate of Origin.](https://www.eclipse.org/legal/DCO.php)
-  As such, all parties involved in a contribution must have valid ECAs and commits must
-  include [valid "Signed-off-by" entries](https://wiki.eclipse.org/Development_Resources/Contributing_via_Git). Commits
-  can be signed off by included the `-s` attribute in your commit message, for
-  example, `git commit -s -am 'Interesting Commit Message.`
-
+  As such, all parties involved in a contribution must have valid ECAs. Additionally commits can
+  include a ["Signed-off-by" entry](https://wiki.eclipse.org/Development_Resources/Contributing_via_Git). 
 * We prefer small changes and short living branches. Please do not combine independent things in one pull request.
 
 
