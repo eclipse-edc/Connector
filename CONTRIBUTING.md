@@ -50,7 +50,6 @@ the project feel free to create a new issue at our projects corresponding
 
 Before doing so please consider searching for potentially suitable 
 [existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen). 
-There might already have been someone who already had the same idea or issue. Your input there is always valuable.
 
 We also
 use [Github's default label set](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels)
