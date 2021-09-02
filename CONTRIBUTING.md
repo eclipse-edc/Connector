@@ -97,7 +97,6 @@ we would appreciate if your pull request applies to the following points:
 
 * We prefer small changes and short living branches. Please do not combine independent things in one pull request.
 
-* Prefix the branch you're submitting with an issue number, e.g. `725-add-new-feature`.
 
 * Excessive branching and merging can make git history confusing. With that in mind please
 
