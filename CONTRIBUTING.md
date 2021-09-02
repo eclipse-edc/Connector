@@ -38,7 +38,7 @@ Be sure to use the same email address in your Eclipse Account that you intend to
 
 ### Discuss
 
-If you feel there is a bug or issue contribute to discussions in
+If you feel there is a bug or an issue contribute to discussions in
 [existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen)
 otherwise [create a new issue](#create-an-issue).
 
