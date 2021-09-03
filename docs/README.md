@@ -1,5 +1,5 @@
 **Please note**
-### Note: work in progress
+### Work in progress
 All content reflects the current state of discussion, not final decisions.
 
 ---
