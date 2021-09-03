@@ -15,21 +15,17 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
-import org.eclipse.dataspaceconnector.iam.ion.IonClientImpl;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
-import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
+import org.eclipse.dataspaceconnector.ion.IonClientImpl;
+import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.ion.model.did.resolution.Service;
+import org.eclipse.dataspaceconnector.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.quartz.JobDataMap;
-import org.quartz.JobDetail;
-import org.quartz.Scheduler;
-import org.quartz.SchedulerException;
-import org.quartz.Trigger;
+import org.quartz.*;
 import org.quartz.impl.StdSchedulerFactory;
 
 import java.util.List;

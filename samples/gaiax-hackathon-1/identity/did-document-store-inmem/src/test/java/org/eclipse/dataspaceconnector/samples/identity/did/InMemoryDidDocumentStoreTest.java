@@ -1,11 +1,11 @@
 package org.eclipse.dataspaceconnector.samples.identity.did;
 
 import com.nimbusds.jose.jwk.ECKey;
-import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.DidDocument;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.PublicKeyJwk;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.Service;
-import org.eclipse.dataspaceconnector.iam.ion.dto.did.VerificationMethod;
+import org.eclipse.dataspaceconnector.ion.crypto.KeyPairFactory;
+import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.ion.model.did.resolution.PublicKeyJwk;
+import org.eclipse.dataspaceconnector.ion.model.did.resolution.Service;
+import org.eclipse.dataspaceconnector.ion.model.did.resolution.VerificationMethod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

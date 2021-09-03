@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.api;
 
-import org.eclipse.dataspaceconnector.iam.ion.spi.DidStore;
+import org.eclipse.dataspaceconnector.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;

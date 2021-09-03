@@ -2,9 +2,11 @@ package org.eclipse.dataspaceconnector.iam.ion;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.iam.ion.crypto.KeyPairFactory;
-import org.eclipse.dataspaceconnector.iam.ion.dto.PublicKeyDescriptor;
-import org.eclipse.dataspaceconnector.iam.ion.dto.ServiceDescriptor;
+import org.eclipse.dataspaceconnector.ion.IonClientImpl;
+import org.eclipse.dataspaceconnector.ion.IonRequestException;
+import org.eclipse.dataspaceconnector.ion.crypto.KeyPairFactory;
+import org.eclipse.dataspaceconnector.ion.model.PublicKeyDescriptor;
+import org.eclipse.dataspaceconnector.ion.model.ServiceDescriptor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
