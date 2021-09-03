@@ -6,6 +6,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * A DID store is intended to persistently save DIDs (or rather: {@link DidDocument} objects) within a connector.
+ */
 public interface DidStore {
 
     List<DidDocument> getAll(int limit);

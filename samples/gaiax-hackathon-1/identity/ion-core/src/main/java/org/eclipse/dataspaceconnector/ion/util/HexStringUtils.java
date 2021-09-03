@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.ion.util;
 
 import java.math.BigInteger;
 
+/**
+ * Various helper methods around string-binary-hex conversions
+ */
 public class HexStringUtils {
 
     /**

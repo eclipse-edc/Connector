@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.ion.model;
 
+/*
+ * Interface for all ION requests (create, update, deactivate, recover)
+ */
 public abstract class IonRequest {
 
     private final String type;
