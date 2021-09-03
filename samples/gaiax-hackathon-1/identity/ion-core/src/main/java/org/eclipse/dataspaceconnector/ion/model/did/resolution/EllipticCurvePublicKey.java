@@ -2,16 +2,19 @@ package org.eclipse.dataspaceconnector.ion.model.did.resolution;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-public class PublicKeyJwk {
+/**
+ * Public part of an Elliptic Curve key
+ */
+public class EllipticCurvePublicKey {
     String crv;
     String kty;
     String x;
     String y;
 
-    public PublicKeyJwk() {
+    public EllipticCurvePublicKey() {
     }
 
-    public PublicKeyJwk(String crv, String kty, String x, String y) {
+    public EllipticCurvePublicKey(String crv, String kty, String x, String y) {
         this.crv = crv;
         this.kty = kty;
         this.x = x;

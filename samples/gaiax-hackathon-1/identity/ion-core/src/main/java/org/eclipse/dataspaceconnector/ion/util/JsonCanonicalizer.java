@@ -6,6 +6,9 @@ import org.eclipse.dataspaceconnector.ion.IonException;
 
 import java.io.IOException;
 
+/**
+ * Generates "canonical" JSON according to JCS (https://tools.ietf.org/id/draft-rundgren-json-canonicalization-scheme-05.html)
+ */
 public class JsonCanonicalizer {
     private static final ObjectMapper mapper;
 

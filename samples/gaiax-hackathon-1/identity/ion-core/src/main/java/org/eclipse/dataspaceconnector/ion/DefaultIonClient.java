@@ -24,6 +24,9 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
 
+/**
+ * Standard implementation of the {@link IonClient} interface that can resolve DIDs from ION and submit anchor requests to id.
+ */
 public class DefaultIonClient implements IonClient {
 
     private final static String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";

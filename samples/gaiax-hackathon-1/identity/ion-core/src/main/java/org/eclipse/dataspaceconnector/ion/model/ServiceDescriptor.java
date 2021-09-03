@@ -18,6 +18,9 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
+/**
+ * Wrapper object for the "services" part of a DID create request.
+ */
 @JsonDeserialize(builder = ServiceDescriptor.Builder.class)
 public class ServiceDescriptor {
     private String id;

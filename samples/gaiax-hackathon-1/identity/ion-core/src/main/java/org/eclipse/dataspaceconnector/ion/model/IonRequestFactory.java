@@ -9,8 +9,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
+/**
+ * Factory class that creates requests for all 4 operations that can be sent to ION
+ */
 public class IonRequestFactory {
-
 
     private static void validateDidDocumentKeys(List<PublicKeyDescriptor> didDocumentKeys) {
         if (didDocumentKeys == null) {

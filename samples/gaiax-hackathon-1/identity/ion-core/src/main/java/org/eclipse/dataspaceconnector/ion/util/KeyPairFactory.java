@@ -27,6 +27,9 @@ import java.security.interfaces.ECPrivateKey;
 import java.security.interfaces.ECPublicKey;
 import java.security.spec.ECGenParameterSpec;
 
+/**
+ * Convenience class that generates an Elliptic Curve Keypair according to the SECP256K1 spec.
+ */
 public class KeyPairFactory {
 
     public static JwkKeyPair generateKeyPair() {
