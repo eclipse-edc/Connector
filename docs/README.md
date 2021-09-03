@@ -1,6 +1,6 @@
 **Please note**
-### This document reflects work in progress
-All content reflects the current state of discussion, not final discussions.
+### Note: work in progress
+All content reflects the current state of discussion, not final decisions.
 
 ---
 
