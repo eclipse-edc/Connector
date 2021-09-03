@@ -36,8 +36,8 @@ public class IdsPolicyServiceImpl implements IdsPolicyService {
     private final Map<String, IdsOfferProhibitionFunction> offerProhibitionFunctions = new HashMap<>();
 
     @Override
-    public PolicyEvaluationResult evaluateRequest(String consumerConnectorId, String correlationId, ClaimToken clientToken, Policy policy) {
-        var context = new IdsRequestPolicyContext(consumerConnectorId, correlationId, clientToken);
+    public PolicyEvaluationResult evaluateRequest(String consumerConnectorId, String correlationId, ClaimToken consumerToken, Policy policy) {
+        var context = new IdsRequestPolicyContext(consumerConnectorId, correlationId, consumerToken);
 
         var evalBuilder = PolicyEvaluator.Builder.newInstance();
 

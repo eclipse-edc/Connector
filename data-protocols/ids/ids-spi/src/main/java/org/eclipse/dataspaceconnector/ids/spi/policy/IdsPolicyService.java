@@ -30,11 +30,11 @@ public interface IdsPolicyService {
      * Evaluates a request made by a client for an artifact.
      *
      * @param consumerConnectorId the id of the connector making the request
-     * @param correlationId     an identifier that can be used to retrieve additional information about the request such as a pre-payment or pre-authorization receipt
-     * @param clientToken       the client's validated security token
-     * @param policy            the policy attached to the artifact
+     * @param correlationId       an identifier that can be used to retrieve additional information about the request such as a pre-payment or pre-authorization receipt
+     * @param consumerToken       the consumer's validated security token
+     * @param policy              the policy attached to the artifact
      */
-    PolicyEvaluationResult evaluateRequest(String consumerConnectorId, String correlationId, ClaimToken clientToken, Policy policy);
+    PolicyEvaluationResult evaluateRequest(String consumerConnectorId, String correlationId, ClaimToken consumerToken, Policy policy);
 
     PolicyEvaluationResult evaluateOffer(String providerConnectorId, String processId, Policy policy);
 
