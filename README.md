@@ -18,6 +18,8 @@ dependencies onto our users, so we aim to avoid any of the big frameworks. Of co
 can add them to your extensions (see: [TBW]). The connector is a plain Java application built with Gradle, but it can be
 embedded into any form of application deployment.
 
+For detailed information about the project, please have a look at our [Documentation](/docs/README.md).
+
 # Getting Started
 
 ## Checkout and build code
