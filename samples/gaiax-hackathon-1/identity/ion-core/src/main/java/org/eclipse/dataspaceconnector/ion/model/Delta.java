@@ -6,6 +6,9 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * Delta object as per sidetree spec
+ */
 @JsonPropertyOrder(alphabetic = true)
 public class Delta {
     private final String updateCommitment;

@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * When a DID URL gets resolved from ION, this object represents the JSON that is returned.
+ */
 @JsonDeserialize(builder = DidDocument.Builder.class)
 public class DidDocument {
     String id;
@@ -99,7 +102,7 @@ public class DidDocument {
             document.verificationMethod.add(VerificationMethod.Builder.create()
                     .id(id)
                     .type(type)
-                    .publicKeyJwk(new PublicKeyJwk(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
+                    .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
                     .build());
             return this;
         }

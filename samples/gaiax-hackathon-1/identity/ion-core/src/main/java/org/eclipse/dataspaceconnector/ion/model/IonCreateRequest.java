@@ -5,6 +5,12 @@ import org.eclipse.dataspaceconnector.ion.util.MultihashHelper;
 
 import java.util.Base64;
 
+/**
+ * Contains the necessary data to issue a CREATE request to ION.
+ *
+ * @see IonRequestFactory
+ * @see org.eclipse.dataspaceconnector.ion.spi.IonClient#submit(IonRequest)
+ */
 public class IonCreateRequest extends IonRequest {
     private final SuffixData suffixData;
     private final Delta delta;
