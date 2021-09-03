@@ -51,6 +51,8 @@ class TransferProcessManagerImplConsumerTest {
         DataFlowManager dataFlowManager = mock(DataFlowManager.class);
         dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
         ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
+        expect(manifestGenerator.generateClientManifest(anyObject(TransferProcess.class))).andReturn(new ResourceManifest()).anyTimes();
+        replay(manifestGenerator);
 
         statusCheckerRegistry = mock(StatusCheckerRegistry.class);
 
@@ -379,6 +381,7 @@ class TransferProcessManagerImplConsumerTest {
 
         DataRequest mock = niceMock(DataRequest.class);
         expect(mock.getTransferType()).andReturn(type).anyTimes();
+        expect(mock.isManagedResources()).andReturn(true).anyTimes();
         expect(mock.getId()).andReturn(processId).anyTimes();
         replay(mock);
         return TransferProcess.Builder.newInstance()

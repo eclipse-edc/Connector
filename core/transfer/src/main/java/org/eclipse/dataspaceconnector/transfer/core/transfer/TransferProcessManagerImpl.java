@@ -32,11 +32,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.*;
-import static java.lang.String.format;
-import static java.util.UUID.randomUUID;
 
 /**
  *
@@ -182,7 +182,8 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         List<TransferProcess> requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
 
         for (var process : requestAcked) {
-            if (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty()) {
+            // process must either have a non-empty list of provisioned resources, or not have managed resources at all.
+            if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
 
                 if (process.getDataRequest().getTransferType().isFinite()) {
                     process.transitionInProgress();
@@ -212,14 +213,20 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
 
         for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(Collectors.toList())) {
 
-            List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
+            if (process.getDataRequest().isManagedResources()) {
+                List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
 
-            // update the process once ALL resources are completed
-            if (resources.stream().allMatch(this::isComplete)) {
+                // update the process once ALL resources are completed
+                if (resources.stream().allMatch(this::isComplete)) {
+                    process.transitionCompleted();
+                    monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
+                    invokeForEach(listener -> listener.completed(process));
+                }
+            } else {
+                //no managed resources, just update
                 process.transitionCompleted();
                 monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
                 invokeForEach(listener -> listener.completed(process));
-
             }
             transferProcessStore.update(process);
         }
