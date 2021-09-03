@@ -12,7 +12,7 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:azure:events-config"))
     implementation(project(":extensions:azure:vault"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:ion-core"))
+    implementation(project(":data-protocols:ion:ion-core"))
 
 
     // third party
