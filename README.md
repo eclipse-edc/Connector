@@ -2,6 +2,8 @@
 
 > The Data Appliance GX project is intended as a proving ground for GAIA-X and data transfer techologies.
 
+For detailed information about the project, please have a look at our [Documentation](/docs/README.md).
+
 # Getting Started
 
 The project requires JDK 11+. To get started:
