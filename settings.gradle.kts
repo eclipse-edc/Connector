@@ -104,7 +104,6 @@ include(":samples:other:custom-runtime")
 include(":samples:gaiax-hackathon-1:identity:cloud-transfer")
 
 include(":samples:gaiax-hackathon-1:identity:registration-service")
-include(":samples:gaiax-hackathon-1:identity:did-document-store-inmem")
 include(":samples:gaiax-hackathon-1:identity:identity-did-service")
 include(":samples:gaiax-hackathon-1:identity:registration-service-api")
 include(":samples:gaiax-hackathon-1:identity:control-rest")
