@@ -174,7 +174,7 @@ resource "azurerm_container_group" "gx-registration-service" {
       CONNECTOR_NAME = "gx-reg-svc"
       TOPIC_NAME     = azurerm_eventgrid_topic.control-topic.name
       TOPIC_ENDPOINT = azurerm_eventgrid_topic.control-topic.endpoint
-      ION_URL        = "http://23.97.144.59:3000/"
+      ION_URL        = "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/"
     }
 
     volume {

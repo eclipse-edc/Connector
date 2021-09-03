@@ -47,7 +47,7 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
     @EdcSetting
     private static final String RESOLVER_URL_KEY = "dataspaceconnector.did.resolver.url";
 
-    private static final String RESOLVER_URL = "http://23.97.144.59:3000/identifiers/";
+    private static final String RESOLVER_URL = "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/identifiers/";
 
     @EdcSetting
     private static final String PRIVATE_KEY_ALIAS = "dataspaceconnector.did.private.key.alias";
