@@ -115,7 +115,7 @@ public class CrawlerExtension implements ServiceExtension {
 
         var crawlerConfig = CrawlerContext.Builder.create()
                 .didStore(objectStore)
-                .ionHost(context.getSetting(ION_URL_SETTING, "http://23.97.144.59:3000/"))
+                .ionHost(context.getSetting(ION_URL_SETTING, "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/"))
                 .monitor(context.getMonitor())
                 .publisher(publisher)
                 .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS_SETTING, "false")))
