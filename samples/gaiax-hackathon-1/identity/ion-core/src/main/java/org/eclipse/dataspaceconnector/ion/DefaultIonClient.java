@@ -10,23 +10,21 @@ import okhttp3.RequestBody;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.eclipse.dataspaceconnector.ion.model.IonRequest;
-import org.eclipse.dataspaceconnector.ion.model.PublicKeyDescriptor;
-import org.eclipse.dataspaceconnector.ion.model.ServiceDescriptor;
 import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidResolveResponse;
+import org.eclipse.dataspaceconnector.ion.spi.IonClient;
+import org.eclipse.dataspaceconnector.ion.util.HexStringUtils;
 import org.eclipse.dataspaceconnector.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.ion.util.SortingNodeFactory;
-import org.eclipse.dataspaceconnector.ion.util.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Date;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class IonClientImpl implements IonClient {
+public class DefaultIonClient implements IonClient {
 
     private final static String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";
     private final static String IDENTIFIERS_PATH = "/identifiers";
@@ -34,23 +32,13 @@ public class IonClientImpl implements IonClient {
     private final String ionUrl;
     private final ObjectMapper typeManager;
 
-    public IonClientImpl(ObjectMapper typeManager) {
+    public DefaultIonClient(ObjectMapper typeManager) {
         this(DEFAULT_RESOLUTION_ENDPOINT, typeManager);
     }
 
-    public IonClientImpl(String ionEndpoint, ObjectMapper typeManager) {
+    public DefaultIonClient(String ionEndpoint, ObjectMapper typeManager) {
         ionUrl = ionEndpoint;
         this.typeManager = typeManager;
-    }
-
-    @Override
-    public Did createDid(PublicKeyDescriptor documentPublicKey, List<ServiceDescriptor> serviceDescriptors) {
-        return new DidImpl(documentPublicKey, serviceDescriptors, "mainnet");
-    }
-
-    @Override
-    public Did createDid(PublicKeyDescriptor documentPublicKey, List<ServiceDescriptor> serviceDescriptors, String network) {
-        return new DidImpl(documentPublicKey, serviceDescriptors, network);
     }
 
     @Override
@@ -153,7 +141,7 @@ public class IonClientImpl implements IonClient {
         String answerHashString;
         String answerNonce, answerNonceHex;
 
-        byte[] salt = StringUtils.encodeToHexBytes(challengeNonce);
+        byte[] salt = HexStringUtils.encodeToHexBytes(challengeNonce);
 
 
         do {
@@ -167,7 +155,7 @@ public class IonClientImpl implements IonClient {
             generator.init(parameters);
 
             answerNonce = createNonce();
-            answerNonceHex = StringUtils.encodeToHex(answerNonce);
+            answerNonceHex = HexStringUtils.encodeToHex(answerNonce);
 
             String password = answerNonceHex + requestBodyJson;
 
@@ -175,11 +163,11 @@ public class IonClientImpl implements IonClient {
             var answerHash = new byte[hashLen];
             generator.generateBytes(password.getBytes(), answerHash);
 
-            answerHashString = StringUtils.bytesToHexString(answerHash);
+            answerHashString = HexStringUtils.bytesToHexString(answerHash);
             System.out.println("Answer Hash:     " + answerHashString);
             System.out.println("Largest Allowed: " + largestAllowedHash);
             System.out.println("***********************************************************");
-        } while (StringUtils.compareHex(answerHashString, largestAllowedHash) > 0 && new Date().getTime() - startTime.getTime() < validDuration);
+        } while (HexStringUtils.compareHex(answerHashString, largestAllowedHash) > 0 && new Date().getTime() - startTime.getTime() < validDuration);
 
 
         if (new Date().getTime() - startTime.getTime() > validDuration) {
@@ -242,7 +230,7 @@ public class IonClientImpl implements IonClient {
 
         var randomString = String.join("", chars);
         var bytes = randomString.getBytes(StandardCharsets.UTF_8);
-        return StringUtils.bytesToHexString(bytes);
+        return HexStringUtils.bytesToHexString(bytes);
     }
 
 

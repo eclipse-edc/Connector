@@ -10,12 +10,35 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class IonRequestFactory {
+
+
+    private static void validateDidDocumentKeys(List<PublicKeyDescriptor> didDocumentKeys) {
+        if (didDocumentKeys == null) {
+            return;
+        }
+
+        //make sure IDs are unique
+        if (!didDocumentKeys.stream().map(PublicKeyDescriptor::getId).allMatch(new HashSet<>()::add)) {
+            throw new IonException("All public key IDs in the DID document must be unique!");
+        }
+
+        //make sure all public key purposes are unique
+        var purposesValid = didDocumentKeys.stream().map(PublicKeyDescriptor::getPurposes)
+                .allMatch(IonRequestFactory::validateKeyPurposes);
+
+        if (!purposesValid) {
+            throw new IonException("Public key purposes are not unique in on of the key descriptors!");
+        }
+    }
+
+    private static boolean validateKeyPurposes(String[] purposes) {
+        return Arrays.stream(purposes).allMatch(new HashSet<>()::add);
+    }
+
     @NotNull
-    public static IonRequest createCreateRequest(JWK recoveryKey, JWK updateKey, Map<String, Object> document) {
+    public static IonCreateRequest createCreateRequest(JWK recoveryKey, JWK updateKey, Map<String, Object> document) {
 
         List<PublicKeyDescriptor> didDocumentKeys = (List<PublicKeyDescriptor>) document.get("publicKeys");
-        var services = document.get("services");
-
         InputValidator.validateEs256kOperationKey(recoveryKey, "public");
         InputValidator.validateEs256kOperationKey(updateKey, "public");
 
@@ -40,30 +63,6 @@ public class IonRequestFactory {
             ex.printStackTrace();
             throw new IonException(ex);
         }
-    }
-
-
-    private static void validateDidDocumentKeys(List<PublicKeyDescriptor> didDocumentKeys) {
-        if (didDocumentKeys == null) {
-            return;
-        }
-
-        //make sure IDs are unique
-        if (!didDocumentKeys.stream().map(PublicKeyDescriptor::getId).allMatch(new HashSet<>()::add)) {
-            throw new IonException("All public key IDs in the DID document must be unique!");
-        }
-
-        //make sure all public key purposes are unique
-        var purposesValid = didDocumentKeys.stream().map(PublicKeyDescriptor::getPurposes)
-                .allMatch(IonRequestFactory::validateKeyPurposes);
-
-        if (!purposesValid) {
-            throw new IonException("Public key purposes are not unique in on of the key descriptors!");
-        }
-    }
-
-    private static boolean validateKeyPurposes(String[] purposes) {
-        return Arrays.stream(purposes).allMatch(new HashSet<>()::add);
     }
 
     public static IonRequest createUpdateRequest() {
