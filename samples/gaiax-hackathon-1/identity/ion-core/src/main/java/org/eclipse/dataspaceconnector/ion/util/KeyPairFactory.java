@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ion.crypto;
+package org.eclipse.dataspaceconnector.ion.util;
 
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
