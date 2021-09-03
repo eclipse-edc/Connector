@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":data-protocols:ion-core"))
+    api(project(":data-protocols:ion:ion-core"))
 }
 
 publishing {

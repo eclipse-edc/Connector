@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.ion;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.ion.model.IonRequestFactory;
 import org.eclipse.dataspaceconnector.ion.model.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.ion.model.ServiceDescriptor;
@@ -16,7 +15,6 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-@IntegrationTest
 class IonClientImplTest {
 
     private static final String didUrlToResolve = "did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA";

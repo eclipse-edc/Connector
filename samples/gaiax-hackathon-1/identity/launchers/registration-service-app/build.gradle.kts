@@ -18,7 +18,7 @@ dependencies {
     implementation(project(":data-protocols:ion:ion-core"))
     implementation(project(":samples:gaiax-hackathon-1:identity:registration-service"))
     implementation(project(":samples:gaiax-hackathon-1:identity:registration-service-api"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:did-document-store-inmem"))
+    implementation(project(":extensions:in-memory:did-document-store-inmem"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
