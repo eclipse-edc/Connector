@@ -34,6 +34,7 @@ include(":data-protocols:ids:ids-api-transfer")
 include(":data-protocols:ids:ids-core")
 include(":data-protocols:ids:ids-policy-mock")
 include(":data-protocols:ids:ids-spi")
+include(":data-protocols:ion:ion-core")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws:s3:provision")
@@ -78,7 +79,7 @@ include(":samples:demo-contract-framework")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
 include(":samples:gaiax-hackathon-1:identity:cloud-transfer")
-include(":samples:gaiax-hackathon-1:identity:ion-core")
+
 include(":samples:gaiax-hackathon-1:identity:registration-service")
 include(":samples:gaiax-hackathon-1:identity:did-document-store-inmem")
 include(":samples:gaiax-hackathon-1:identity:identity-did-service")
