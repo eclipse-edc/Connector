@@ -1,5 +1,8 @@
 package org.eclipse.dataspaceconnector.ion;
 
+/**
+ * Any other ION-related error occurred.
+ */
 public class IonException extends RuntimeException {
     public IonException(String message) {
         super(message);

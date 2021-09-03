@@ -21,6 +21,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 
+/**
+ * Convenience class that generates Multihashes (https://github.com/multiformats/multihash) based on SHA256
+ */
 public class MultihashHelper {
 
     private static final int SHA256_HASH_CODE = 18;

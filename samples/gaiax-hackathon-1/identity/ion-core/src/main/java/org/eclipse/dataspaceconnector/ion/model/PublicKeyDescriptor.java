@@ -20,6 +20,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Map;
 
+/**
+ * Wrapper object for the "publicKey" part of a DID create-request, that contains additional information such as the type of public key, its purposes and
+ * an ID.
+ */
 @JsonDeserialize(builder = PublicKeyDescriptor.Builder.class)
 public class PublicKeyDescriptor {
     private String id;

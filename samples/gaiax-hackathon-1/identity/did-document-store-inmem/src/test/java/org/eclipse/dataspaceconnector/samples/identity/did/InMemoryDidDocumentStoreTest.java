@@ -2,7 +2,7 @@ package org.eclipse.dataspaceconnector.samples.identity.did;
 
 import com.nimbusds.jose.jwk.ECKey;
 import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.PublicKeyJwk;
+import org.eclipse.dataspaceconnector.ion.model.did.resolution.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.ion.model.did.resolution.Service;
 import org.eclipse.dataspaceconnector.ion.model.did.resolution.VerificationMethod;
 import org.eclipse.dataspaceconnector.ion.util.KeyPairFactory;
@@ -134,7 +134,7 @@ class InMemoryDidDocumentStoreTest {
                 .controller("")
                 .id("#key-1")
                 .type("EcdsaSecp256k1VerificationKey2019")
-                .publicKeyJwk(new PublicKeyJwk(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
+                .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
                 .build();
     }
 }

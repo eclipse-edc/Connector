@@ -2,6 +2,10 @@ package org.eclipse.dataspaceconnector.ion.model.did.resolution;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+/**
+ * POJO representation of the JSON response that ION returns after a resolve request.
+ * Consists of a context string, a {@link DidDocument} object and a {@link DidDocumentMetadata} object.
+ */
 public class DidResolveResponse {
     String context;
     DidDocument didDocument;

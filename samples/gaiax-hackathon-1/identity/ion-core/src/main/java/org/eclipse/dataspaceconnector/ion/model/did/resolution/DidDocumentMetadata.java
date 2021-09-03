@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
+/**
+ * Part of the {@link DidResolveResponse}
+ */
 public class DidDocumentMetadata {
     Method method;
     List<String> equivalentId;
