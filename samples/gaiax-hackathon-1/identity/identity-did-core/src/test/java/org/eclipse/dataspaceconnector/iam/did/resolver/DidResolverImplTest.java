@@ -11,7 +11,7 @@ import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assum
  *
  */
 class DidResolverImplTest {
-    private static final String RESOLVER_URL = "http://23.97.144.59:3000/identifiers/";
+    private static final String RESOLVER_URL = "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/identifiers/";
 
     @Test
     void verifyResolution() {
