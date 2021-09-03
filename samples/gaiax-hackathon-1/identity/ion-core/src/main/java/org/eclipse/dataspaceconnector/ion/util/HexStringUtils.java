@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.ion.util;
 
 import java.math.BigInteger;
 
-public class StringUtils {
+public class HexStringUtils {
 
     /**
      * converts a byte array to its hexadecimal representation

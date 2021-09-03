@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
-import org.eclipse.dataspaceconnector.ion.IonClientImpl;
+import org.eclipse.dataspaceconnector.ion.DefaultIonClient;
 import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.ion.model.did.resolution.Service;
 import org.eclipse.dataspaceconnector.ion.spi.DidStore;
@@ -67,7 +67,7 @@ public class CrawlerExtension implements ServiceExtension {
         this.context = context;
 
         // create the crawler that periodically browses ION for new DIDs
-        var ionClient = new IonClientImpl(context.getTypeManager().getMapper());
+        var ionClient = new DefaultIonClient(context.getTypeManager().getMapper());
 
         context.getMonitor().info("ION Crawler Extension initialized");
     }
@@ -116,7 +116,7 @@ public class CrawlerExtension implements ServiceExtension {
                 .publisher(publisher)
                 .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS_SETTING, "false")))
                 .didTypes(context.getSetting(ION_GAIAX_TYPE_SETTING, "Z3hp")) //Z3hp is base64 for "gxi", which is GaiaX-Identity type
-                .ionClient(new IonClientImpl(context.getTypeManager().getMapper())) //can be null if randomize = true
+                .ionClient(new DefaultIonClient(context.getTypeManager().getMapper())) //can be null if randomize = true
                 .build();
 
         JobDetail job = newJob(CrawlerJob.class)

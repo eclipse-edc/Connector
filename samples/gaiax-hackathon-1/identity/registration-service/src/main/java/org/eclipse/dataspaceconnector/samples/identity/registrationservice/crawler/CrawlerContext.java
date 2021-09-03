@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
-import org.eclipse.dataspaceconnector.ion.IonClient;
 import org.eclipse.dataspaceconnector.ion.spi.DidStore;
+import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
