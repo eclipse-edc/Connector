@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - gaiax-hackathon/*
-  pull_request:
 
 jobs:
   build:
