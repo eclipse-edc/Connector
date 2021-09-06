@@ -71,6 +71,8 @@ include(":launchers:basic")
 include(":launchers:demo-e2e")
 include(":launchers:junit")
 include(":launchers:registration-service-app")
+include(":launchers:simple-provider")
+include(":launchers:simple-consumer")
 
 // modules for code samples
 include(":samples:other:commandline:consumer")
@@ -91,8 +93,7 @@ include(":samples:identity-gaiax-verifier")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
 include(":samples:gaiax-hackathon-1:identity:control-rest")
-include(":samples:gaiax-hackathon-1:identity:launchers:simple-provider")
-include(":samples:gaiax-hackathon-1:identity:launchers:simple-consumer")
+
 
 // extension points for a connector
 include(":spi")
