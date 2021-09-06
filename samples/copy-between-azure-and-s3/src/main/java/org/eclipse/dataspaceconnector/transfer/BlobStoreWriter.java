@@ -11,6 +11,6 @@ class BlobStoreWriter implements DataWriter {
 
     @Override
     public void write(DataAddress destination, String name, byte[] data, String secretToken) {
-
+        throw new UnsupportedOperationException("this operation is not yet implemented!");
     }
 }
