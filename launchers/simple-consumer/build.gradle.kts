@@ -32,7 +32,7 @@ dependencies {
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
-    implementation(project(":samples:gaiax-hackathon-1:identity:control-rest"))
+    implementation(project(":extensions:api:control-rest"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-service"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-core"))

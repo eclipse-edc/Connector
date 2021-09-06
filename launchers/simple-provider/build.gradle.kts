@@ -34,7 +34,7 @@ dependencies {
 
     implementation(project(":samples:copy-between-azure-and-s3"))
 
-    implementation(project(":samples:gaiax-hackathon-1:identity:control-rest"))
+    implementation(project(":extensions:api:control-rest"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-service"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
