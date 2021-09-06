@@ -39,7 +39,7 @@ dependencies {
     implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
     implementation(project(":extensions:in-memory:identity-hub-memory"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:identity-gaiax-verifier"))
+    implementation(project(":samples:identity-gaiax-verifier"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
