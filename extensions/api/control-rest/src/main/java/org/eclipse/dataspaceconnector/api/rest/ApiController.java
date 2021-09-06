@@ -63,7 +63,7 @@ public class ApiController {
         }
         request = request.copy(UUID.randomUUID().toString()); //assign random ID
         monitor.info("Received new data request, ID = " + request.getId());
-        var response = transferProcessManager.initiateClientRequest(request);
+        var response = transferProcessManager.initiateConsumerRequest(request);
         monitor.info("Created new transfer process, ID = " + response.getId());
 
         ResponseStatus status = response.getStatus();
