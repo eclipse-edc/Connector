@@ -103,16 +103,11 @@ include(":samples:other:custom-runtime")
 // all implementations during/regarding the GaiaX Hackathon should go here:
 include(":samples:gaiax-hackathon-1:identity:cloud-transfer")
 
-include(":samples:gaiax-hackathon-1:identity:registration-service")
-include(":samples:gaiax-hackathon-1:identity:identity-did-service")
-include(":samples:gaiax-hackathon-1:identity:registration-service-api")
 include(":samples:gaiax-hackathon-1:identity:control-rest")
 include(":samples:gaiax-hackathon-1:identity:catalog-service")
-include(":samples:gaiax-hackathon-1:identity:identity-did-spi")
-include(":samples:gaiax-hackathon-1:identity:identity-did-core")
-include(":samples:gaiax-hackathon-1:identity:identity-hub-memory")
-include(":samples:gaiax-hackathon-1:identity:identity-gaiax-verifier")
-include(":samples:gaiax-hackathon-1:identity:identity-common-test")
+
+include(":samples:identity-gaiax-verifier")
+
 include(":samples:gaiax-hackathon-1:identity:launchers:registration-service-app")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-provider")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-consumer")
