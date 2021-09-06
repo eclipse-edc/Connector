@@ -69,6 +69,7 @@ include(":extensions:iam:distributed-identity:identity-common-test")
 include(":launchers:basic")
 include(":launchers:demo-e2e")
 include(":launchers:junit")
+include(":launchers:registration-service-app")
 
 // modules for code samples
 include(":samples:other:commandline:consumer")
@@ -84,16 +85,12 @@ include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
 include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
+include(":samples:identity-gaiax-verifier")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
 include(":samples:gaiax-hackathon-1:identity:cloud-transfer")
-
 include(":samples:gaiax-hackathon-1:identity:control-rest")
 include(":samples:gaiax-hackathon-1:identity:catalog-service")
-
-include(":samples:identity-gaiax-verifier")
-
-include(":samples:gaiax-hackathon-1:identity:launchers:registration-service-app")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-provider")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-consumer")
 
