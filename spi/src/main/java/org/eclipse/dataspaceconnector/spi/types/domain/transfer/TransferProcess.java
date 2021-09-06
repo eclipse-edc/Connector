@@ -32,11 +32,11 @@ import static java.util.stream.Collectors.toSet;
 /**
  * Represents a data transfer process.
  * <p>
- * A data transfer process exists on both the client and provider connector; it is a representation of the data sharing transaction from the perspective of each endpoint. The data
- * transfer process is modeled as a "loosely" coordinated state machine on each connector. The state transitions are symmetric on the client and provider with the exception that
- * the client process has two additional states for request/request ack.
+ * A data transfer process exists on both the consumer and provider connector; it is a representation of the data sharing transaction from the perspective of each endpoint. The data
+ * transfer process is modeled as a "loosely" coordinated state machine on each connector. The state transitions are symmetric on the consumer and provider with the exception that
+ * the consumer process has two additional states for request/request ack.
  * <p>
- * The client transitions are:
+ * The consumer transitions are:
  *
  * </pre>
  * {@link TransferProcessStates#INITIAL} ->
@@ -70,7 +70,7 @@ import static java.util.stream.Collectors.toSet;
 public class TransferProcess {
 
     private String id;
-    private Type type = Type.CLIENT;
+    private Type type = Type.CONSUMER;
     private int state;
     private int stateCount = TransferProcessStates.UNSAVED.code();
     private long stateTimestamp;
@@ -166,8 +166,8 @@ public class TransferProcess {
     }
 
     public void transitionInProgress() {
-        if (type == Type.CLIENT) {
-            // the client must first transition to the request/ack states before in progress
+        if (type == Type.CONSUMER) {
+            // the consumer must first transition to the request/ack states before in progress
             transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK);
         } else {
             // the provider transitions from provisioned to in progress directly
@@ -176,8 +176,8 @@ public class TransferProcess {
     }
 
     public void transitionStreaming() {
-        if (type == Type.CLIENT) {
-            // the client must first transition to the request/ack states before in progress
+        if (type == Type.CONSUMER) {
+            // the consumer must first transition to the request/ack states before in progress
             transition(TransferProcessStates.STREAMING, TransferProcessStates.REQUESTED_ACK);
         } else {
             // the provider transitions from provisioned to in progress directly
@@ -186,7 +186,7 @@ public class TransferProcess {
     }
 
     public void transitionCompleted() {
-        // clients are in REQUESTED_ACK state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
+        // consumers are in REQUESTED_ACK state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
         transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK, TransferProcessStates.STREAMING);
     }
 
@@ -273,7 +273,7 @@ public class TransferProcess {
     }
 
     public enum Type {
-        CLIENT, PROVIDER
+        CONSUMER, PROVIDER
     }
 
     @JsonPOJOBuilder(withPrefix = "")

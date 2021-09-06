@@ -134,7 +134,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
 
         var wsEndpointAddress = context.getSetting(WS_PUBSUB_ENDPOINT, DEFAULT_WS_PUBSUB_ENDPOINT);
         var httpEndpointAddress = context.getSetting(HTTP_PUBSUB_ENDPOINT, DEFAULT_HTTP_PUBSUB_ENDPOINT);
-        manifestGenerator.registerClientGenerator(new PushStreamResourceGenerator(wsEndpointAddress, httpEndpointAddress));
+        manifestGenerator.registerConsumerGenerator(new PushStreamResourceGenerator(wsEndpointAddress, httpEndpointAddress));
     }
 
     private void registerProvisioners(TopicManager topicManager, ServiceExtensionContext context) {

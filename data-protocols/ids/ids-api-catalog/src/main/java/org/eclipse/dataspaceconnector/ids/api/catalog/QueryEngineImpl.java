@@ -43,13 +43,13 @@ public class QueryEngineImpl implements QueryEngine {
     }
 
     @Override
-    public Collection<DataEntry> execute(String correlationId, ClaimToken clientToken, String connectorId, String type, String query) {
+    public Collection<DataEntry> execute(String correlationId, ClaimToken consumerToken, String connectorId, String type, String query) {
         if (!"select *".equalsIgnoreCase(query)) {
             monitor.info("Invalid query: " + query);
             return Collections.emptyList();
         }
-        // evaluate the policies the client satisfies
-        var policies = policyRegistry.allPolicies().stream().filter(p -> policyService.evaluateRequest(connectorId, correlationId, clientToken, p).valid()).collect(toList());
+        // evaluate the policies the consumer satisfies
+        var policies = policyRegistry.allPolicies().stream().filter(p -> policyService.evaluateRequest(connectorId, correlationId, consumerToken, p).valid()).collect(toList());
 
         // execute the query and return the results
         return metadataStore.queryAll(policies);

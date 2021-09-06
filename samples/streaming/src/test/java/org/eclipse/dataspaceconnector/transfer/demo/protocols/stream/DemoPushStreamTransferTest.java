@@ -68,7 +68,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
                 .dataDestination(destinationWs)
                 .connectorId("test").build();
 
-        processManager.initiateClientRequest(dataRequestWs);
+        processManager.initiateConsumerRequest(dataRequestWs);
 
         requestLatch.await(1, MINUTES);
         receiveLatch.await(1, MINUTES);
@@ -105,7 +105,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
                 .dataDestination(destinationHttp)
                 .connectorId("test").build();
 
-        processManager.initiateClientRequest(dataRequestHttp);
+        processManager.initiateConsumerRequest(dataRequestHttp);
 
         requestLatch.await(1, MINUTES);
         receiveLatch.await(1, MINUTES);

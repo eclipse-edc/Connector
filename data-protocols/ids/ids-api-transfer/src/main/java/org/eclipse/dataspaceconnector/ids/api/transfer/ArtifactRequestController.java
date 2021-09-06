@@ -97,9 +97,9 @@ public class ArtifactRequestController {
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new RejectionMessageBuilder()._rejectionReason_(TEMPORARILY_NOT_AVAILABLE).build()).build();
         }
 
-        var clientConnectorId = message.getIssuerConnector().toString();
+        var consumerConnectorId = message.getIssuerConnector().toString();
         var correlationId = message.getId().toString();
-        var policyResult = policyService.evaluateRequest(clientConnectorId, correlationId, verificationResult.token(), policy);
+        var policyResult = policyService.evaluateRequest(consumerConnectorId, correlationId, verificationResult.token(), policy);
 
         if (!policyResult.valid()) {
             monitor.info("Policy evaluation failed");

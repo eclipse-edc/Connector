@@ -62,7 +62,7 @@ public class AwsProvisionExtension implements ServiceExtension {
 
         // register the generator
         var manifestGenerator = context.getService(ResourceManifestGenerator.class);
-        manifestGenerator.registerClientGenerator(new S3ResourceDefinitionClientGenerator());
+        manifestGenerator.registerConsumerGenerator(new S3ResourceDefinitionConsumerGenerator());
 
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
         statusCheckerReg.register(S3BucketProvisionedResource.class, new S3StatusChecker(clientProvider, retryPolicy));

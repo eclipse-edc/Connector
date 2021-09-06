@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.spi.policy;
 
 /**
- * IDS policy context for client-side offer evaluation functions.
+ * IDS policy context for consumer-side offer evaluation functions.
  */
 public class IdsOfferPolicyContext {
     private final String processId;

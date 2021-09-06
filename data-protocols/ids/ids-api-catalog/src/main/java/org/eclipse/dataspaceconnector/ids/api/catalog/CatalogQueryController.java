@@ -30,7 +30,7 @@ import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
 import static java.util.stream.Collectors.toList;
 
 /**
- * Handles incoming client data catalog queries.
+ * Handles incoming consumer data catalog queries.
  */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -66,9 +66,9 @@ public class CatalogQueryController {
 
         var correlationId = message.getId().toString();
 
-        var clientToken = verificationResult.token();
+        var consumerToken = verificationResult.token();
 
-        var results = queryEngine.execute(correlationId, clientToken, connectorId, language, query);
+        var results = queryEngine.execute(correlationId, consumerToken, connectorId, language, query);
         return Response.ok(results.stream().map(DataEntry::getId).collect(toList())).build();
     }
 }

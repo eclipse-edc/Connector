@@ -31,12 +31,12 @@ import java.util.Map;
  * Default implementation.
  */
 public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator {
-    private final List<ResourceDefinitionGenerator> clientGenerators = new ArrayList<>();
+    private final List<ResourceDefinitionGenerator> consumerGenerators = new ArrayList<>();
     private final List<ResourceDefinitionGenerator> providerGenerators = new ArrayList<>();
 
     @Override
-    public void registerClientGenerator(ResourceDefinitionGenerator generator) {
-        clientGenerators.add(generator);
+    public void registerConsumerGenerator(ResourceDefinitionGenerator generator) {
+        consumerGenerators.add(generator);
     }
 
     @Override
@@ -60,9 +60,9 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
     }
 
     @Override
-    public ResourceManifest generateClientManifest(TransferProcess process) {
+    public ResourceManifest generateConsumerManifest(TransferProcess process) {
         var manifest = new ResourceManifest();
-        clientGenerators.forEach(g -> {
+        consumerGenerators.forEach(g -> {
             var definition = g.generate(process);
             if (definition != null) {
                 manifest.addDefinition(definition);

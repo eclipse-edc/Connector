@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CLIENT;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.*;
 
@@ -75,8 +75,8 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     }
 
     @Override
-    public TransferInitiateResponse initiateClientRequest(DataRequest dataRequest) {
-        return initiateRequest(CLIENT, dataRequest);
+    public TransferInitiateResponse initiateConsumerRequest(DataRequest dataRequest) {
+        return initiateRequest(CONSUMER, dataRequest);
     }
 
     @Override
@@ -195,7 +195,6 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             } else {
                 monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
             }
-
             transferProcessStore.update(process);
         }
 
@@ -209,10 +208,10 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
      */
     private int checkCompleted() {
 
-        //deal with all the client processes
+        //deal with all the consumer processes
         List<TransferProcess> processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
 
-        for (var process : processesInProgress.stream().filter(p -> p.getType() == CLIENT).collect(Collectors.toList())) {
+        for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(Collectors.toList())) {
 
             if (process.getDataRequest().isManagedResources()) {
                 List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
@@ -236,9 +235,9 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
 
 
     /**
-     * Performs client-side or provider side provisioning for a service.
+     * Performs consumer-side or provider side provisioning for a service.
      * <p>
-     * On a client, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
+     * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
      * map involve preprocessing data or other operations.
      */
     private int provisionInitialProcesses() {
@@ -246,9 +245,9 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
             ResourceManifest manifest;
-            if (process.getType() == CLIENT) {
+            if (process.getType() == CONSUMER) {
                 // if resources are managed by this connector, generate the manifest; otherwise create an empty one
-                manifest = dataRequest.isManagedResources() ? manifestGenerator.generateClientManifest(process) : ResourceManifest.Builder.newInstance().build();
+                manifest = dataRequest.isManagedResources() ? manifestGenerator.generateConsumerManifest(process) : ResourceManifest.Builder.newInstance().build();
             } else {
                 manifest = manifestGenerator.generateProviderManifest(process);
             }
@@ -261,7 +260,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     }
 
     /**
-     * On a client, sends provisioned requests to the provider connector. On the provider, sends provisioned requests to the data flow manager.
+     * On a consumer, sends provisioned requests to the provider connector. On the provider, sends provisioned requests to the data flow manager.
      *
      * @return the number of requests processed
      */
@@ -269,7 +268,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         List<TransferProcess> processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
-            if (CLIENT == process.getType()) {
+            if (CONSUMER == process.getType()) {
                 process.transitionRequested();
                 transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
                 invokeForEach(l -> l.requested(process));

@@ -51,7 +51,7 @@ class TransferProcessManagerImplConsumerTest {
         DataFlowManager dataFlowManager = mock(DataFlowManager.class);
         dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
         ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
-        expect(manifestGenerator.generateClientManifest(anyObject(TransferProcess.class))).andReturn(new ResourceManifest()).anyTimes();
+        expect(manifestGenerator.generateConsumerManifest(anyObject(TransferProcess.class))).andReturn(new ResourceManifest()).anyTimes();
         replay(manifestGenerator);
 
         statusCheckerRegistry = mock(StatusCheckerRegistry.class);
@@ -388,7 +388,7 @@ class TransferProcessManagerImplConsumerTest {
                 .state(inState.code())
                 .id("test-process-" + processId)
                 .provisionedResourceSet(new ProvisionedResourceSet())
-                .type(TransferProcess.Type.CLIENT)
+                .type(TransferProcess.Type.CONSUMER)
                 .dataRequest(mock)
                 .build();
     }

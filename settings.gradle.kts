@@ -59,8 +59,8 @@ include(":launchers:demo-e2e")
 include(":launchers:junit")
 
 // modules for code samples
-include(":samples:commandline:client")
-include(":samples:commandline:client-runtime")
+include(":samples:commandline:consumer")
+include(":samples:commandline:consumer-runtime")
 include(":samples:copy-file-to-s3bucket")
 include(":samples:copy-with-nifi:transfer")
 include(":samples:copy-with-nifi:processors")

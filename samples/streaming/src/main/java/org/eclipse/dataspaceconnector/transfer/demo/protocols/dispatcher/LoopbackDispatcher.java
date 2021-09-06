@@ -51,7 +51,7 @@ public class LoopbackDispatcher implements RemoteMessageDispatcher {
 
             var originalRequest = (DataRequest) message;
 
-            // create a different id since the runtime will have a client process registered with the same id
+            // create a different id since the runtime will have a consumer process registered with the same id
             var requestCopy = originalRequest.copy(originalRequest.getId() + "-provider");
 
             monitor.info("Received loopback data request: " + requestCopy.getId());

@@ -42,8 +42,8 @@ class PolicyEvaluatorScenarioTest {
     }
 
     /**
-     * Atomic constraint function models the case where an asset is used by a client only authorized in the EU, and there is a permission that requires the
-     * client to be authorized in both the EU and US.
+     * Atomic constraint function models the case where an asset is used by a consumer only authorized in the EU, and there is a permission that requires the
+     * consumer to be authorized in both the EU and US.
      */
     @Test
     void geospatialPermissionInTwoRegionsConstraint() {

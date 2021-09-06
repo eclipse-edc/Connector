@@ -33,9 +33,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 public interface TransferProcessManager {
 
     /**
-     * Initiates a data transfer process on the client.
+     * Initiates a data transfer process on the consumer.
      */
-    TransferInitiateResponse initiateClientRequest(DataRequest dataRequest);
+    TransferInitiateResponse initiateConsumerRequest(DataRequest dataRequest);
 
     /**
      * Initiates a data transfer process on the provider.

@@ -80,7 +80,7 @@ public class DemoUiApiController {
         var artifact = (String) request.get("artifact");
         var usRequest = createRequest(connector, UUID.randomUUID().toString(), DataEntry.Builder.newInstance().id(artifact).build());
 
-        processManager.initiateClientRequest(usRequest);
+        processManager.initiateConsumerRequest(usRequest);
         return Response.ok().build();
 
     }

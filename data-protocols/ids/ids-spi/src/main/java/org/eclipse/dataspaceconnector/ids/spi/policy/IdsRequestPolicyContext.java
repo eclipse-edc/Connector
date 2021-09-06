@@ -21,17 +21,17 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
  */
 public class IdsRequestPolicyContext {
     private final String correlationId;
-    private final String clientConnectorId;
+    private final String consumerConnectorId;
     private final ClaimToken claimToken;
 
-    public IdsRequestPolicyContext(String clientConnectorId, String correlationId, ClaimToken claimToken) {
-        this.clientConnectorId = clientConnectorId;
+    public IdsRequestPolicyContext(String consumerConnectorId, String correlationId, ClaimToken claimToken) {
+        this.consumerConnectorId = consumerConnectorId;
         this.correlationId = correlationId;
         this.claimToken = claimToken;
     }
 
-    public String getClientConnectorId() {
-        return clientConnectorId;
+    public String getConsumerConnectorId() {
+        return consumerConnectorId;
     }
 
     public String getCorrelationId() {

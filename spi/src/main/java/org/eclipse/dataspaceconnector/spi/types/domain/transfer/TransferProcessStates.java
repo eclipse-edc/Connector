@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 import java.util.Arrays;
 
 /**
- * Defines the states a client and provider transfer process can be in.
+ * Defines the states a consumer and provider transfer process can be in.
  */
 public enum TransferProcessStates {
     UNSAVED(0),

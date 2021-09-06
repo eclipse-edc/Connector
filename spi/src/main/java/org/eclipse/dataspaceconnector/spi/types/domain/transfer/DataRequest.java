@@ -51,7 +51,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     /**
-     * The unique request id. Request ids are provided by the originating client and must be unique.
+     * The unique request id. Request ids are provided by the originating consumer and must be unique.
      */
     public String getId() {
         return id;
@@ -105,7 +105,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     /**
-     * The target address the data is to be sent to. Set by the request originator, e.g., the client connector.
+     * The target address the data is to be sent to. Set by the request originator, e.g., the consumer connector.
      */
     public DataAddress getDataDestination() {
         return dataAddress;
