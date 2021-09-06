@@ -32,7 +32,7 @@ dependencies {
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
-    implementation(project(":samples:gaiax-hackathon-1:identity:cloud-transfer"))
+    implementation(project(":samples:copy-between-azure-and-s3"))
 
     implementation(project(":samples:gaiax-hackathon-1:identity:control-rest"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-service"))

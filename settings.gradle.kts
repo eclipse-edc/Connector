@@ -64,6 +64,7 @@ include(":extensions:iam:distributed-identity:identity-did-service")
 include(":extensions:iam:distributed-identity:registration-service")
 include(":extensions:iam:distributed-identity:registration-service-api")
 include(":extensions:iam:distributed-identity:identity-common-test")
+include(":extensions:catalog:catalog-service")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
@@ -75,6 +76,7 @@ include(":launchers:registration-service-app")
 include(":samples:other:commandline:consumer")
 include(":samples:other:commandline:consumer-runtime")
 include(":samples:other:copy-file-to-s3bucket")
+include(":samples:other:copy-between-azure-and-s3")
 include(":samples:other:dataseed:dataseed-aws")
 include(":samples:other:dataseed:dataseed-azure")
 include(":samples:other:dataseed:dataseed-policy")
@@ -88,9 +90,7 @@ include(":samples:demo-contract-framework")
 include(":samples:identity-gaiax-verifier")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
-include(":samples:gaiax-hackathon-1:identity:cloud-transfer")
 include(":samples:gaiax-hackathon-1:identity:control-rest")
-include(":samples:gaiax-hackathon-1:identity:catalog-service")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-provider")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-consumer")
 

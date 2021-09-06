@@ -15,7 +15,7 @@ dependencies {
     implementation(project(":extensions:in-memory:metadata-memory"))
     implementation(project(":core:protocol:web"))
 
-    implementation(project(":samples:gaiax-hackathon-1:identity:catalog-service"))
+    implementation(project(":extensions:catalog:catalog-service"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
 }
