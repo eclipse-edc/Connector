@@ -75,3 +75,6 @@ include(":samples:streaming")
 
 // extension points for a connector
 include(":spi")
+
+// numbered samples for the onboarding experience
+include(":samples:01-basic-connector")
