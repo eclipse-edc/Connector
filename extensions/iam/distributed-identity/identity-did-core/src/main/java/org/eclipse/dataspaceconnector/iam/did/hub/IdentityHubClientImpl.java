@@ -22,12 +22,7 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.ClientResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryResponse;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.HubMessage;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.*;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.io.IOException;
@@ -41,9 +36,9 @@ import java.util.function.Supplier;
  *
  */
 public class IdentityHubClientImpl implements IdentityHubClient {
-    private OkHttpClient httpClient;
-    private ObjectMapper objectMapper;
-    private Supplier<RSAPrivateKey> privateKeyResolver;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final Supplier<RSAPrivateKey> privateKeyResolver;
 
     public IdentityHubClientImpl(Supplier<RSAPrivateKey> privateKeyResolver, OkHttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
@@ -51,6 +46,7 @@ public class IdentityHubClientImpl implements IdentityHubClient {
         this.privateKeyResolver = privateKeyResolver;
     }
 
+    @Override
     public ClientResponse<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String baseHubUrl, PublicKey publicKey) {
         var privateKey = privateKeyResolver.get();
         var objectRequestJwe = new GenericJweWriter()
@@ -89,7 +85,6 @@ public class IdentityHubClientImpl implements IdentityHubClient {
         }
 
         var commit = commitQueryResponse.getCommits().get(0);
-        //noinspection unchecked
         return new ClientResponse<>((Map<String, Object>) commit.getPayload());
 
     }

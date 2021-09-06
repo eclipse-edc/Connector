@@ -33,10 +33,10 @@ dependencies {
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:gaiax-hackathon-1:identity:control-rest"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:identity-did-service"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:identity-did-spi"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:identity-did-core"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:identity-hub-memory"))
+    implementation(project(":extensions:iam:distributed-identity:identity-did-service"))
+    implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
+    implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
+    implementation(project(":extensions:in-memory:identity-hub-memory"))
     implementation(project(":samples:gaiax-hackathon-1:identity:identity-gaiax-verifier"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
