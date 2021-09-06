@@ -12,5 +12,5 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    testImplementation(testFixtures(project(":samples:gaiax-hackathon-1:identity:identity-common-test")))
+    testImplementation(testFixtures(project(":extensions:iam:distributed-identity:identity-common-test")))
 }

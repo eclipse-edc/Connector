@@ -22,7 +22,7 @@ public class RegistrationServiceApiExtension implements ServiceExtension {
         var didDocumentStore = context.getService(DidStore.class);
 
         // create the registration service, which offers a REST API
-        var regSrv = new RegistrationController(context.getMonitor(), didDocumentStore);
+        var regSrv = new RegistrationServiceController(context.getMonitor(), didDocumentStore);
         context.registerService(RegistrationService.class, regSrv);
 
         // register the service as REST controller

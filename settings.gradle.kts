@@ -61,6 +61,9 @@ include(":extensions:iam:distributed-identity")
 include(":extensions:iam:distributed-identity:identity-did-spi")
 include(":extensions:iam:distributed-identity:identity-did-core")
 include(":extensions:iam:distributed-identity:identity-did-service")
+include(":extensions:iam:distributed-identity:registration-service")
+include(":extensions:iam:distributed-identity:registration-service-api")
+include(":extensions:iam:distributed-identity:identity-common-test")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
@@ -84,13 +87,12 @@ include(":samples:demo-contract-framework")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
 include(":samples:gaiax-hackathon-1:identity:cloud-transfer")
-include(":samples:gaiax-hackathon-1:identity:registration-service")
-include(":samples:gaiax-hackathon-1:identity:registration-service-api")
+
 include(":samples:gaiax-hackathon-1:identity:control-rest")
 include(":samples:gaiax-hackathon-1:identity:catalog-service")
 
 include(":samples:identity-gaiax-verifier")
-include(":samples:gaiax-hackathon-1:identity:identity-common-test")
+
 include(":samples:gaiax-hackathon-1:identity:launchers:registration-service-app")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-provider")
 include(":samples:gaiax-hackathon-1:identity:launchers:simple-consumer")

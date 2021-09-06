@@ -14,11 +14,11 @@ import java.util.List;
 @Consumes(MediaType.APPLICATION_JSON)
 @Produces(MediaType.APPLICATION_JSON)
 @Path("/identity")
-public class RegistrationController implements RegistrationService {
+public class RegistrationServiceController implements RegistrationService {
     private final Monitor monitor;
     private final DidStore didDocumentStore;
 
-    public RegistrationController(Monitor monitor, DidStore didDocumentStore) {
+    public RegistrationServiceController(Monitor monitor, DidStore didDocumentStore) {
         this.monitor = monitor;
         this.didDocumentStore = didDocumentStore;
     }
