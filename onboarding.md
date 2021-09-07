@@ -410,7 +410,8 @@ can instruct the consumer to request a file from our provider.
 ### Perform a file transfer
 
 Quick recap: we have a provider, that can handle file transfers (due to its dependency against the `transfer-file`
-module), and a consumer, that can accept REST request (due to its dependency against the `api` module).
+module), and a consumer, that can accept REST request (due to its dependency against the `api` module). They can talk to
+each other because both include the IDS modules in their build config.
 
 So all that's left is to start them both and initiate a file transfer!
 
