@@ -299,9 +299,31 @@ _The contents of this chapter are in `samples/03-configuration`._
 
 ## Implement a simple file transfer
 
-Now this is a big one. We'll actually create two connectors, a consumer and a provider, talking to each other via IDS.
-The consumer will initiate a file transfer and the provider will fulfill that request and copy a file to the desired
-location.
+Now this is a big one:
+
+- We'll create an additional connector, so that in the end we have two connectors, a consumer and a provider.
+- The connectors will talk to each other via IDS, and the consumer will expose a REST API so that external systems (e.g.
+  users) can interact with them.
+- The consumer will initiate a file transfer and the provider will fulfill that request and copy a file to the desired
+  location.
+- Both connectors will run locally on the development machine
+
+Also, in order to keep things organized, the code in this example has been separated into several Java modules:
+
+- `launchers/[consumer|provider]`: this is where the "main" classes reside for both the consumer and the provider
+  connector
+- `api`: contains the REST API extension (previously named `HealthApiExtension`)
+- `transfer-file`: contains all the code necessary for the file transfer
+
+### Create the "consumer" connector
+
+### Create the "provider" connector
+
+### Add IDS modules
+
+### Create a control REST API
+
+### Perform a file transfer
 
 _The contents of this chapter are in `samples/04-file-transfer`._
 
