@@ -27,17 +27,13 @@ skinparam shadowing false
 !define WarningColor Business
 !define LeadColor Technology
 
-legend right
- <back:#lightblue>Backed by EDC-Extension</back>
-end legend
-
 participant Consumer as "Consumer" #ConsumerColor
 
 box EDC Provider #ProviderColor
     participant IDS as "IDS Services\n(Controller, Dispatcher, ...)"
     participant Service as "Contract Offer Service"
-    participant Framework as "Contract Offer Framework" #lightblue
-    participant AssetIndex as "AssetIndex (MetadataStorage)" #lightblue
+    participant Framework as "Contract Offer Framework"
+    participant AssetIndex as "AssetIndex"
 end box
 
 alt by Connector URI

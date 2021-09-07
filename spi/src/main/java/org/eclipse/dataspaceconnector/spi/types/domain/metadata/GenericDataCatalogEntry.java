@@ -20,8 +20,10 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -40,7 +42,7 @@ public class GenericDataCatalogEntry implements DataCatalogEntry {
     public DataAddress getAddress() {
         return DataAddress.Builder.newInstance()
                 //convert a Map of String-Object to String-String
-                .properties(getProperties().entrySet()
+                .properties(Optional.ofNullable(getProperties()).orElseGet(Collections::emptyMap).entrySet()
                         .stream()
                         .collect(Collectors.toMap(Map.Entry::getKey,
                                 e -> e.getValue().toString())))

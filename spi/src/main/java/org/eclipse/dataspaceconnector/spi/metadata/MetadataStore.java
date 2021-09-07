@@ -23,7 +23,10 @@ import java.util.Collection;
 
 /**
  * Delegates to a metadata storage system for the persistence and management of data entries.
+ *
  */
+@Deprecated
+// TODO MetadataStore is replaced by AssetIndex
 public interface MetadataStore {
 
     /**
