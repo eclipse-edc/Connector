@@ -22,5 +22,5 @@ val rsApi: String by project
 dependencies {
     api(project(":spi"))
 
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

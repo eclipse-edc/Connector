@@ -95,7 +95,7 @@ public class DataAddress {
         }
 
         public Builder keyName(String keyName) {
-            address.getProperties().put(KEYNAME, Objects.requireNonNull(keyName));
+            address.getProperties().put(KEYNAME, keyName);
             return this;
         }
 

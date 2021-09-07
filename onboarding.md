@@ -315,9 +315,12 @@ Also, in order to keep things organized, the code in this example has been separ
 - `api`: contains the REST API extension (previously named `HealthApiExtension`)
 - `transfer-file`: contains all the code necessary for the file transfer
 
-### Create the "consumer" connector
-
 ### Create the "provider" connector
+
+The provider is the one "owning" the file. That means, the consumer sends a request to the provider (over IDS), who then
+in turn initiates the file transfer.
+
+### Create the "consumer" connector
 
 ### Add IDS modules
 
