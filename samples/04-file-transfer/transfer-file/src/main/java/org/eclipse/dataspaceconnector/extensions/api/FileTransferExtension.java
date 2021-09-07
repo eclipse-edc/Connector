@@ -50,7 +50,7 @@ public class FileTransferExtension implements ServiceExtension {
 
         GenericDataCatalogEntry file1 = GenericDataCatalogEntry.Builder.newInstance()
                 .property("type", "File")
-                .property("path", "/data/documents/")
+                .property("path", "/home/paul/Documents/")
                 .property("filename", "test-document.txt")
                 .build();
 

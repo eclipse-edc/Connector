@@ -38,7 +38,8 @@ public class ConsumerApiController {
 
     @POST
     @Path("file/{filename}")
-    public Response startTransfer(@PathParam("filename") String filename, @QueryParam("connectorAddress") String connectorAddress) {
+    public Response startTransfer(@PathParam("filename") String filename, @QueryParam("connectorAddress") String connectorAddress,
+                                  @QueryParam("destination") String destinationPath) {
 
         monitor.info(format("Received request for file %s against provider %s", filename, connectorAddress));
 
@@ -56,7 +57,7 @@ public class ConsumerApiController {
                         .build())
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type("File")
-                        .property("path", "/home/paul/Documents")
+                        .property("path", destinationPath)
                         .build())
                 .managedResources(false)
                 .build();

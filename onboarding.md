@@ -310,7 +310,7 @@ Now this is a big one:
 
 Also, in order to keep things organized, the code in this example has been separated into several Java modules:
 
-- `launchers/[consumer|provider]`: this is where the "main" classes reside for both the consumer and the provider
+- `[consumer|provider]`: this is where the "main" classes and configs reside for both the consumer and the provider
   connector
 - `api`: contains the REST API extension (previously named `HealthApiExtension`)
 - `transfer-file`: contains all the code necessary for the file transfer
