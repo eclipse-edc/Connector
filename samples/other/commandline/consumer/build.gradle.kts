@@ -24,7 +24,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":samples:commandline:consumer-runtime"))
+    implementation(project(":samples:other:commandline:consumer-runtime"))
 
     implementation(project(":extensions:iam:oauth2"))  // required for now
     implementation(project(":extensions:filesystem:vault-fs"))  // required for now

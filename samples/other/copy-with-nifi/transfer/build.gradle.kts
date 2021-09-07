@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":extensions:azure:blob:blob-schema"))
 
     testImplementation(project(":extensions:atlas"))
-    testImplementation(project(":samples:dataseed"))
+    testImplementation(project(":samples:other:dataseed"))
     testImplementation(project(":extensions:azure:blob:provision"))
     testImplementation(testFixtures(project(":common:util")))
 

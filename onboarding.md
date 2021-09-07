@@ -295,7 +295,15 @@ There are a few things worth mentioning here:
 - it's better to pass the config value directly into the business logic than passing the
   entire `ServiceExtensionContext`
 
+_The contents of this chapter are in `samples/03-configuration`._
+
 ## Implement a simple file transfer
+
+Now this is a big one. We'll actually create two connectors, a consumer and a provider, talking to each other via IDS.
+The consumer will initiate a file transfer and the provider will fulfill that request and copy a file to the desired
+location.
+
+_The contents of this chapter are in `samples/04-file-transfer`._
 
 ## Improve the file transfer
 
