@@ -431,6 +431,8 @@ port `8181`. Open another terminal window (or any REST client of your choice) an
 curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/&destination=/path/on/yourmachine"
 ```
 
+> **Please adjust the `destination` to match your local dev machine!**
+
 - the last path item, `test-document`, matches the ID of the `GenericDataCatalogEntry` that we created earlier in
   `FileTransferExtension.java`, thus referencing the _data source_
 - the first query parameter (`connectorAddress`) is the address of the provider connector
