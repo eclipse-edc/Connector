@@ -19,12 +19,16 @@ plugins {
 }
 
 val jupiterVersion: String by project
+val rsApi: String by project
 
 dependencies {
     implementation(project(":core:bootstrap"))
     implementation(project(":core:transfer"))
     implementation(project(":core:protocol:web"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
+    implementation(project(":extensions:filesystem:configuration-fs"))
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
@@ -38,5 +42,5 @@ application {
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
-    archiveFileName.set("basic-connector.jar")
+    archiveFileName.set("filsystem-config-connector.jar")
 }

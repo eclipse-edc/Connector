@@ -26,7 +26,6 @@ dependencies {
     implementation(project(":core:transfer"))
     implementation(project(":core:protocol:web"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
-    implementation(project(":extensions:filesystem:configuration-fs"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

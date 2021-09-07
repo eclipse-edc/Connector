@@ -79,3 +79,4 @@ include(":spi")
 // numbered samples for the onboarding experience
 include(":samples:01-basic-connector")
 include(":samples:02-health-endpoint")
+include(":samples:03-configuration")
