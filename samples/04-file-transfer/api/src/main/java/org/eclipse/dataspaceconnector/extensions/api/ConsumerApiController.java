@@ -38,8 +38,8 @@ public class ConsumerApiController {
 
     @POST
     @Path("file/{filename}")
-    public Response startTransfer(@PathParam("filename") String filename, @QueryParam("connectorAddress") String connectorAddress,
-                                  @QueryParam("destination") String destinationPath) {
+    public Response initiateTransfer(@PathParam("filename") String filename, @QueryParam("connectorAddress") String connectorAddress,
+                                     @QueryParam("destination") String destinationPath) {
 
         monitor.info(format("Received request for file %s against provider %s", filename, connectorAddress));
 
@@ -47,24 +47,22 @@ public class ConsumerApiController {
         Objects.requireNonNull(connectorAddress, "connectorAddress");
 
         var dataRequest = DataRequest.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .connectorAddress(connectorAddress)
-                .protocol("ids-rest")
+                .id(UUID.randomUUID().toString()) //this is not relevant, thus can be random
+                .connectorAddress(connectorAddress) //the address of the provider connector
+                .protocol("ids-rest") //must be ids-rest
                 .connectorId("consumer")
-                .dataEntry(DataEntry.Builder.newInstance()
+                .dataEntry(DataEntry.Builder.newInstance() //the data entry is the source asset
                         .id(filename)
                         .policyId("use-eu")
                         .build())
                 .dataDestination(DataAddress.Builder.newInstance()
-                        .type("File")
-                        .property("path", destinationPath)
+                        .type("File") //the provider uses this to select the correct DataFlowController
+                        .property("path", destinationPath) //where we want the file to be stored
                         .build())
-                .managedResources(false)
+                .managedResources(false) //we do not need any provisioning
                 .build();
 
         var response = processManager.initiateConsumerRequest(dataRequest);
-
         return response.getStatus() != ResponseStatus.OK ? Response.status(400).build() : Response.ok(response.getId()).build();
-
     }
 }
