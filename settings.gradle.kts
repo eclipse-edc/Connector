@@ -85,3 +85,8 @@ include(":samples:04-file-transfer:consumer")
 include(":samples:04-file-transfer:provider")
 include(":samples:04-file-transfer:api")
 include(":samples:04-file-transfer:transfer-file")
+
+include(":samples:05-file-transfer-cloud:consumer")
+include(":samples:05-file-transfer-cloud:provider")
+include(":samples:05-file-transfer-cloud:api")
+include(":samples:05-file-transfer-cloud:transfer-file")
