@@ -33,10 +33,12 @@ dependencies {
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:metadata-memory"))
+    implementation(project(":extensions:azure:vault"))
+
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
-    implementation(project(":samples:04-file-transfer:transfer-file"))
+    implementation(project(":samples:05-file-transfer-cloud:transfer-file"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

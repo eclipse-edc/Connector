@@ -13,7 +13,8 @@ We'll assume that you've just checked out the EDC code base and have Java 11 ins
 Eclipse Dataspace Connector is built using Java 11, so we'll assume you have that installed as well. If not, please
 download and install JDK 11 for your OS.
 
-Command examples in this document will use the `bash` syntax, but any other shell should be fine as well.
+Command examples in this document will use the `bash` syntax and use Unix-style paths, but any other shell should be
+fine as well. If you're using Windows you either need to adapt the paths or use WSL2.
 
 ## Run a basic connector
 
@@ -551,6 +552,9 @@ Currently, we have implementations to _provision_ S3 buckets and Azure Storage a
 code to transfer data from Azure Storage to S3 (and not vice-versa). Check out the `*Reader.java` and `*Writer.java`
 classes in the `transfer-file` module.
 
+In the `api` module the `ConsumerApiController.java` has also been upgraded quite a bit. It now exposes endpoints to
+start, check and deprovision transfer requests.
+
 ### Bringing it all together
 
 While we have deployed several cloud resources in the previous chapter, the connectors themselves still run locally.
@@ -563,12 +567,25 @@ java -Ddataspaceconnector.fs.config=samples/05-file-transfer-cloud/consumer/conf
 java -Ddataspaceconnector.fs.config=samples/05-file-transfer-cloud/provider/config.properties -jar samples/05-file-transfer-cloud/provider/build/libs/provider.jar
 ```
 
-once the connectors are up and running, we can make use of a new API endpoint
+Once the connectors are up and running, we can initiate a data transfer by executing:
 
-## Advanced topics
+```bash
+curl -X POST -H "Content-Type: application/json" -d @samples/05-file-transfer-cloud/datarequest.json "http://localhost:9191/api/datarequest"
+```
 
-### Docker builds
+like before that'll return a UUID. Using that UUID we can then query the status of the transfer process by executing:
 
-### Cloud-based `Vault` implementations
+```bash
+curl -X GET "http://localhost:9191/api/datarequest/<UUID>/state
+```
 
-### Deployment with `terraform`
+which will return one of
+the [TransferProcessStates](spi/src/main/java/org/eclipse/dataspaceconnector/spi/types/domain/transfer/TransferProcessStates.java)
+enum values. Once the transfer process has reached the `COMPLETED` state, we can deprovision it using
+
+```bash
+curl -X DELETE http://localhost:9191/api/datarequest/<UUID>
+```
+
+Deprovisioning is not necessary per se, but it will do some cleanup, delete the temporary AWS role and the S3 bucket, so
+it's generally advisable to do it.

@@ -33,10 +33,13 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:in-memory:metadata-memory"))
+    implementation(project(":extensions:azure:vault"))
+    implementation(project(":extensions:aws:s3:provision"))
+    
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
-    implementation(project(":samples:04-file-transfer:api"))
+    implementation(project(":samples:05-file-transfer-cloud:api"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

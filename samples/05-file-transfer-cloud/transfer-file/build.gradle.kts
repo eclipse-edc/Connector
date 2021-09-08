@@ -22,7 +22,7 @@ val rsApi: String by project
 dependencies {
     api(project(":spi"))
 
-    implementation(project(":extensions:aws:s3:provision"))
+    api(project(":extensions:aws:s3:provision"))
     implementation(project(":extensions:azure:blob:api"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
