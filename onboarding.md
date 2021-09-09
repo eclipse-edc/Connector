@@ -367,7 +367,7 @@ between file name and id, it is by no means mandatory.
 Please also note that the registering of Policies is omitted from this document for clarity.
 
 The `FileTransferExtension` also registers a `FileTransferFlowController`, which is basically a glorified `cp` process
-with some additional checking Please note that the provider connector does *not* add the `api` module, so that means
+with some additional checking please note that the provider connector does *not* add the `api` module, so that means
 that no REST API is offered by the provider!
 In order to make use of the `FileTransferExtension`, we simply must add the correct dependency to the provider's build
 file:
