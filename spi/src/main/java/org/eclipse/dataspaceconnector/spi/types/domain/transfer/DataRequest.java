@@ -40,7 +40,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private DataEntry dataEntry;
 
-    private DataAddress dataAddress;
+    private DataAddress dataDestination;
 
     private boolean managedResources = true;
 
@@ -101,14 +101,14 @@ public class DataRequest implements RemoteMessage, Polymorphic {
      * The type of destination the requested data should be routed to.
      */
     public String getDestinationType() {
-        return dataAddress != null ? dataAddress.getType() : null;
+        return dataDestination != null ? dataDestination.getType() : null;
     }
 
     /**
      * The target address the data is to be sent to. Set by the request originator, e.g., the consumer connector.
      */
     public DataAddress getDataDestination() {
-        return dataAddress;
+        return dataDestination;
     }
 
     public boolean isManagedResources() {
@@ -123,14 +123,14 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .protocol(protocol)
                 .connectorId(connectorId)
                 .dataEntry(dataEntry)    // shallow copy, may need to revisit
-                .dataAddress(dataAddress)
+                .dataAddress(dataDestination)
                 .transferType(transferType)
                 .managedResources(managedResources)
                 .build();
     }
 
     public void updateDestination(DataAddress dataAddress) {
-        this.dataAddress = dataAddress;
+        dataDestination = dataAddress;
     }
 
     public TransferType getTransferType() {
@@ -181,17 +181,17 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         }
 
         public Builder destinationType(String type) {
-            if (request.dataAddress == null) {
-                request.dataAddress = DataAddress.Builder.newInstance()
+            if (request.dataDestination == null) {
+                request.dataDestination = DataAddress.Builder.newInstance()
                         .type(type).build();
             } else {
-                request.dataAddress.setType(type);
+                request.dataDestination.setType(type);
             }
             return this;
         }
 
         public Builder dataDestination(DataAddress destination) {
-            request.dataAddress = destination;
+            request.dataDestination = destination;
             return this;
         }
 
@@ -200,22 +200,21 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
+        public DataRequest build() {
+            if (request.dataDestination == null && request.getDestinationType() == null) {
+                throw new IllegalArgumentException("A data destination or type must be specified");
+            }
+            return request;
+        }
 
         private Builder dataAddress(DataAddress dataAddress) {
-            request.dataAddress = dataAddress;
+            request.dataDestination = dataAddress;
             return this;
         }
 
         private Builder transferType(TransferType transferType) {
             request.transferType = transferType;
             return this;
-        }
-
-        public DataRequest build() {
-            if (request.dataAddress == null && request.getDestinationType() == null) {
-                throw new IllegalArgumentException("A data destination or type must be specified");
-            }
-            return request;
         }
 
     }

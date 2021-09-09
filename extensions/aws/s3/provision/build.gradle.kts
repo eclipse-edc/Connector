@@ -22,9 +22,9 @@ dependencies {
     api(project(":spi"))
     api(project(":extensions:aws:s3:s3-schema"))
 
-    implementation("software.amazon.awssdk:s3:${awsVersion}")
-    implementation("software.amazon.awssdk:sts:${awsVersion}")
-    implementation("software.amazon.awssdk:iam:${awsVersion}")
+    api("software.amazon.awssdk:s3:${awsVersion}")
+    api("software.amazon.awssdk:sts:${awsVersion}")
+    api("software.amazon.awssdk:iam:${awsVersion}")
 
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":extensions:aws:aws-test")))

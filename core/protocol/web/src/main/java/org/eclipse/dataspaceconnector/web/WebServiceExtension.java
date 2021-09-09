@@ -22,6 +22,8 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.web.rest.JerseyRestService;
 import org.eclipse.dataspaceconnector.web.transport.JettyService;
 
+import java.util.Set;
+
 import static org.eclipse.dataspaceconnector.spi.system.ServiceExtension.LoadPhase.PRIMORDIAL;
 
 /**
@@ -52,6 +54,11 @@ public class WebServiceExtension implements ServiceExtension {
         context.registerService(WebService.class, jerseyRestService);
 
         monitor.info("Initialized Web extension");
+    }
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("edc:webservice");
     }
 
     @Override

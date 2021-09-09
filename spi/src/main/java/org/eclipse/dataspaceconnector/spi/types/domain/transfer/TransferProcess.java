@@ -187,7 +187,7 @@ public class TransferProcess {
 
     public void transitionCompleted() {
         // consumers are in REQUESTED_ACK state after sending a request to the provider, they can directly transition to COMPLETED when the transfer is complete
-        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK, TransferProcessStates.STREAMING);
+        transition(TransferProcessStates.COMPLETED, TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK, TransferProcessStates.STREAMING, TransferProcessStates.COMPLETED);
     }
 
     public void transitionDeprovisioning() {
@@ -233,15 +233,6 @@ public class TransferProcess {
         return new Builder(copy());
     }
 
-    private void transition(TransferProcessStates end, TransferProcessStates... starts) {
-        if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
-            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
-        }
-        stateCount = state == end.code() ? stateCount + 1 : 1;
-        state = end.code();
-        updateStateTimestamp();
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -270,6 +261,15 @@ public class TransferProcess {
                 ", state=" + TransferProcessStates.from(state) +
                 ", stateTimestamp=" + Instant.ofEpochMilli(stateTimestamp) +
                 '}';
+    }
+
+    private void transition(TransferProcessStates end, TransferProcessStates... starts) {
+        if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
+            throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
+        }
+        stateCount = state == end.code() ? stateCount + 1 : 1;
+        state = end.code();
+        updateStateTimestamp();
     }
 
     public enum Type {

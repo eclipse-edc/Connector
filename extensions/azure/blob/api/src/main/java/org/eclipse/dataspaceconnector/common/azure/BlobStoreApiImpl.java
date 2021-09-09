@@ -87,6 +87,12 @@ public class BlobStoreApiImpl implements BlobStoreApi {
         return getBlobServiceClient(accountName).generateAccountSas(vals);
     }
 
+    @Override
+    public byte[] getBlob(String account, String container, String blobName) {
+        var client = getBlobServiceClient(account);
+        return client.getBlobContainerClient(container).getBlobClient(blobName).downloadContent().toBytes();
+    }
+
     private BlobServiceClient getBlobServiceClient(String accountName) {
         Objects.requireNonNull(accountName, "accountName");
 

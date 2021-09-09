@@ -7,6 +7,7 @@ Please also refer to:
 - The [Eclipse Project Homepage](https://projects.eclipse.org/projects/technology.dataspaceconnector)
 - [International Data Spaces](https://www.internationaldataspaces.org)
 - The [GAIA-X](https://gaia-x.eu) project
+- The [Onboarding Guide](onboarding.md)
 
 _Note: items marked with [TBW] indicate that the respective documentation is yet to be written_
 
