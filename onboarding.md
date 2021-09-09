@@ -21,22 +21,22 @@ Please simply follow the following links to the respective samples.
 > _Please note that the entire Eclipse Dataspace Connector is under heavy development, so things are likely to change significantly
 > in the future. Be sure to check back regularly to stay updated!_
 
-## [Run a simple connector](samples/01-basic-connector/README.md)
+## [Example 1: Run a simple connector](samples/01-basic-connector/README.md)
 
 > _The complete sample code for this chapter is in `samples/01-basic-connector/`._
 
-## [Write your first extension](samples/02-health-endpoint/README.md)
+## [Example 2: Write your first extension](samples/02-health-endpoint/README.md)
 
 > _The complete sample code for this chapter is in `samples/02-health-endpoint`._
 
-## [Use the file-system based configuration](samples/03-configuration/README.md)
+## [Example 3: Use the file-system based configuration](samples/03-configuration/README.md)
 
 > _The complete sample code for this chapter is in `samples/03-configuration`._
 
-## [Implement a simple file transfer](samples/04-file-transfer/README.md)
+## [Example 4: Implement a simple file transfer](samples/04-file-transfer/README.md)
 
 > _The complete sample code for this chapter is in `samples/04-file-transfer`._
 
-## [Improve the file transfer](samples/05-file-transfer-cloud/README.md)
+## [Example 5: Improve the file transfer](samples/05-file-transfer-cloud/README.md)
 
 > _The complete sample code for this chapter is in `samples/05-file-transfer-cloud`._
