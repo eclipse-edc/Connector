@@ -88,7 +88,7 @@ An _extension_ typically consists of two things:
 
 1. a class implementing the `ServiceExtension` interface.
 2. a plugin file in the `src/main/resources/META-INF/services` directory. This file **must** be named exactly as the
-   interface's fully qualified class-name and it **must** contains the fully-qualified name of the implementing class (
+   interface's fully qualified class-name and it **must** contain the fully-qualified name of the implementing class (
    =plugin class).
 
 Therefore we require an extension class, which we'll name `HealthEndpointExtension`:
