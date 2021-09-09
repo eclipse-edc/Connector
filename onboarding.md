@@ -53,8 +53,8 @@ artifact resides at the path mentioned above. Also, we assume usage of the Gradl
 installation._
 
 The keen-eyed reader may have noticed that the `:core:protocol:web` dependency is not strictly speaking _necessary_, but
-removing it will cause the application to terminate right after it has started. The dependency causes the application to
-be kept running due to an embedded Jetty being started.
+we've added it because we will make use of it in the next chapter. The dependency causes the application to be kept
+running due to an embedded Jetty being started.
 
 If everything works out fine you should see command-line output similar to this:
 
