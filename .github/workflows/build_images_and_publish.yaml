@@ -7,6 +7,7 @@ on:
 
 jobs:
   build:
+    if: ${{ github.repository == 'beardyinc/DataSpaceConnector' }} # do not run on upstream for now
     name: 'Build Docker images'
     runs-on: ubuntu-latest
     steps:
@@ -37,7 +38,7 @@ jobs:
       - name: Build and push Consumer
         uses: docker/build-push-action@v2
         with:
-          context: samples/gaiax-hackathon-1/identity/launchers/simple-consumer
+          context: launchers/simple-consumer
           pull: true
           push: true
           platforms: linux/amd64
@@ -47,7 +48,7 @@ jobs:
       - name: Build and push Provider
         uses: docker/build-push-action@v2
         with:
-          context: samples/gaiax-hackathon-1/identity/launchers/simple-provider
+          context: launchers/simple-provider
           pull: true
           push: true
           platforms: linux/amd64
@@ -57,7 +58,7 @@ jobs:
       - name: Build and push Registry Service
         uses: docker/build-push-action@v2
         with:
-          context: samples/gaiax-hackathon-1/identity/launchers/registration-service-app
+          context: launchers/registration-service-app
           pull: true
           push: true
           platforms: linux/amd64
@@ -65,6 +66,7 @@ jobs:
           tags: ghcr.io/beardyinc/dataspaceconnector/gx-reg-svc:latest
 
   terraform:
+    if: ${{ github.repository == 'beardyinc/DataSpaceConnector' }} # do not run on upstream for now
     name: 'Deploy'
     needs: build
 
@@ -78,7 +80,7 @@ jobs:
       AWS_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
     runs-on: ubuntu-latest
-    environment: gaiax-hackathon
+    environment: ion-demo
 
     # Use the Bash shell regardless whether the GitHub Actions runner is ubuntu-latest, macos-latest, or windows-latest
     defaults:
@@ -92,28 +94,28 @@ jobs:
 
       # Initialize a new or existing Terraform working directory by creating initial files, loading any remote state, downloading modules, etc.
       - name: Terraform Init
-        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure init
+        run: terraform -chdir=deployment/ion-demo/terraform init
 
       # Checks that all Terraform configuration files adhere to a canonical format
       - name: Terraform Format
-        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure fmt -check
+        run: terraform -chdir=deployment/ion-demo/terraform fmt -check
         continue-on-error: true
 
       # Marks all deployed apps as "tainted", thereby forcing them to be replaced
       - name: Terraform Taint Provider
-        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure taint azurerm_container_group.gx-provider
+        run: terraform -chdir=deployment/ion-demo/terraform taint azurerm_container_group.provider-connector
         continue-on-error: true
 
       - name: Terraform Taint Consumer
-        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure taint azurerm_container_group.gx-consumer
+        run: terraform -chdir=deployment/ion-demo/terraform taint azurerm_container_group.consumer-connector
         continue-on-error: true
 
       - name: Terraform Taint Registration Service
-        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure taint azurerm_container_group.gx-registration-service
+        run: terraform -chdir=deployment/ion-demo/terraform taint azurerm_container_group.registration-service
         continue-on-error: true
 
         # On push to main, build or change infrastructure according to Terraform configuration files
         # Note: It is recommended to set up a required "strict" status check in your repository for "Terraform Cloud". See the documentation on "strict" required status checks for more information: https://help.github.com/en/github/administering-a-repository/types-of-required-status-checks
       - name: Terraform Apply
         #        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-        run: terraform -chdir=samples/gaiax-hackathon-1/identity/infrastructure apply -auto-approve -var "environment=gx-hack-paul" -var "docker_repo_username=${{ github.repository_owner}}" -var "docker_repo_password=${{ secrets.GITHUB_TOKEN }}"  -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
+        run: terraform -chdir=deployment/ion-demo/terraform apply -auto-approve -var "environment=ion-demo" -var "docker_repo_username=${{ github.repository_owner}}" -var "docker_repo_password=${{ secrets.GITHUB_TOKEN }}"  -var "backend_account_key=${{ secrets.TF_BACKEND_KEY }}"
