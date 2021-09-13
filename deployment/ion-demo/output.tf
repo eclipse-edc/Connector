@@ -18,6 +18,10 @@ output "rev-svc-url" {
   value = "${azurerm_container_group.registration-service.dns_name_label}.${var.location}azureconainer.io"
 }
 
+output "vault-name" {
+  value= "${azurerm_key_vault.main-vault.name}"
+}
+
 //output "URLs" {
 //  value = {
 //    provider    = "https://${module.provider-cluster-bmw.public-ip.fqdn}"
