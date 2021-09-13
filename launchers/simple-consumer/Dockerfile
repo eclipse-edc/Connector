@@ -2,8 +2,6 @@ FROM openjdk:11-jre-slim
 
 WORKDIR /app
 COPY ./build/libs/consumer.jar /app
-#COPY ./dagx-config-docker.properties /app/dagx-config.properties
-#COPY ./cert.pfx /cert
 
 EXPOSE 8181
 
