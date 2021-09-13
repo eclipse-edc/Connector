@@ -9,19 +9,17 @@ variable "aws_region" {
   default     = "us-east-1"
   type        = string
 }
-locals {
-  provider_cluster_name = "${var.environment}-bmw-cluster"
+
+variable "aws_user"{
+  description = "name of the AWS user being created"
+  default = "ion-demo-aws-user"
+  type=string
 }
 
 variable "environment" {
   description = "identifying string that is used in all azure resources"
 }
 
-variable "SHORT_SHA" {
-  type        = string
-  description = "short commit SHA of the current HEAD"
-  default     = "latest"
-}
 
 variable "backend_account_name" {
   type        = string
@@ -42,9 +40,11 @@ variable "CERTIFICATE" {
 variable "docker_repo_password" {
   type = string
 }
+
 variable "docker_repo_username" {
   type = string
 }
+
 variable "docker_repo_url" {
   type    = string
   default = "ghcr.io"

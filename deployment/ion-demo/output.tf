@@ -7,15 +7,15 @@ output "primary_id_certfile" {
 }
 
 output "provider-url" {
-  value = "${azurerm_container_group.gx-provider.dns_name_label}.${var.location}azureconainer.io"
+  value = "${azurerm_container_group.provider-connector.dns_name_label}.${var.location}azureconainer.io"
 }
 
 output "consumer-url" {
-  value = "${azurerm_container_group.gx-consumer.dns_name_label}.${var.location}azureconainer.io"
+  value = "${azurerm_container_group.consumer-connector.dns_name_label}.${var.location}azureconainer.io"
 }
 
 output "rev-svc-url" {
-  value = "${azurerm_container_group.gx-registration-service.dns_name_label}.${var.location}azureconainer.io"
+  value = "${azurerm_container_group.registration-service.dns_name_label}.${var.location}azureconainer.io"
 }
 
 //output "URLs" {
