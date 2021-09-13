@@ -3,7 +3,7 @@ name: 'Build Images and Publish'
 on:
   push:
     branches:
-      - gaiax-hackathon/*
+      - feature/*
 
 jobs:
   build:
