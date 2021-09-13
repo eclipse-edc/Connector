@@ -35,6 +35,7 @@ jobs:
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # BUILD CONSUMER IMAGE
       - name: Build and push Consumer
         uses: docker/build-push-action@v2
         with:
@@ -45,6 +46,7 @@ jobs:
           cache-to: type=inline
           tags: ghcr.io/beardyinc/dataspaceconnector/gx-consumer:latest
 
+      # BUILD PROVIDER IMAGE
       - name: Build and push Provider
         uses: docker/build-push-action@v2
         with:
@@ -55,6 +57,7 @@ jobs:
           cache-to: type=inline
           tags: ghcr.io/beardyinc/dataspaceconnector/gx-provider:latest
 
+      # BUILD REGISTRATION SERVICE IMAGE
       - name: Build and push Registry Service
         uses: docker/build-push-action@v2
         with:
