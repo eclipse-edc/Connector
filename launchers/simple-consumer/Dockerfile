@@ -1,7 +1,7 @@
 FROM openjdk:11-jre-slim
 
 WORKDIR /app
-COPY ./build/libs/provider.jar /app
+COPY launchers/simple-consumer/build/libs/consumer.jar /app
 
 EXPOSE 8181
 
@@ -13,4 +13,4 @@ ENTRYPOINT java \
     -Ddataspaceconnector.connector.name=${CONNECTOR_NAME} \
     -Dedc.events.topic.name=${TOPIC_NAME} \
     -Dedc.events.topic.endpoint=${TOPIC_ENDPOINT} \
-    -Djava.security.edg=file:/dev/.urandom -jar provider.jar
+    -Djava.security.edg=file:/dev/.urandom -jar consumer.jar
