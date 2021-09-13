@@ -1,7 +1,7 @@
 FROM openjdk:11-jre-slim
 
 WORKDIR /app
-COPY launchers/simple-consumer/build/libs/consumer.jar /app
+COPY ./build/libs/consumer.jar /app
 
 EXPOSE 8181
 

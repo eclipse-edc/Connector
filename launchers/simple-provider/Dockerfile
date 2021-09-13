@@ -1,7 +1,7 @@
 FROM openjdk:11-jre-slim
 
 WORKDIR /app
-COPY launchers/simple-provider/build/libs/provider.jar /app
+COPY ./build/libs/provider.jar /app
 EXPOSE 8181
 
 ENTRYPOINT java \
