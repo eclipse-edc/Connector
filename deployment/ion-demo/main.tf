@@ -15,14 +15,6 @@ terraform {
       source  = "hashicorp/azuread"
       version = "1.6.0"
     }
-    kubernetes = {
-      source  = "hashicorp/kubernetes"
-      version = ">=2.0.3"
-    }
-    helm = {
-      source  = "hashicorp/helm"
-      version = ">= 2.1.0"
-    }
     aws = {
       source  = "hashicorp/aws"
       version = "3.45.0"
@@ -312,49 +304,3 @@ resource "azurerm_key_vault_secret" "aws-credentials" {
   depends_on = [
   azurerm_role_assignment.current-user]
 }
-
-## CLUSTER DEPLOYMENTS
-//data "azurerm_kubernetes_cluster" "provider-cluster-bmw" {
-//  depends_on = [
-//  module.provider-cluster-bmw]
-//  name                = local.provider_cluster_name
-//  resource_group_name = local.provider_cluster_name
-//}
-//module "provider-cluster-bmw" {
-//  source       = "./aks-cluster"
-//  cluster_name = local.provider_cluster_name
-//  dnsPrefix    = "${var.environment}-bmw"
-//  location     = var.location
-//}
-//module "provider-bmw-deployment" {
-//  depends_on = [
-//  module.provider-cluster-bmw]
-//  source       = "./connector-deployment"
-//  cluster_name = local.provider_cluster_name
-//  kubeconfig   = data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config_raw
-//  environment  = var.environment
-//  tenant_id    = data.azurerm_client_config.current.tenant_id
-//  providers = {
-//    kubernetes = kubernetes.connector
-//    helm       = helm.connector
-//  }
-//  public-ip = module.provider-cluster-bmw.public-ip
-//  container_environment = {
-//    clientId      = azuread_application.demo-app-id.application_id,
-//    tenantId      = data.azurerm_client_config.current.tenant_id,
-//    vaultName     = azurerm_key_vault.main-vault.name
-//    cosmosAccount = azurerm_cosmosdb_account.demo-cosmos-account.name
-//    cosmosDb      = module.provider-tps.database_name
-//  }
-//  certificate_mount_config = {
-//    accountName = var.backend_account_name
-//    accountKey  = var.backend_account_key
-//  }
-//  events = {
-//    topic_name     = azurerm_eventgrid_topic.control-topic.name
-//    topic_endpoint = azurerm_eventgrid_topic.control-topic.endpoint
-//  }
-//  docker_repo_password = var.docker_repo_password
-//  docker_repo_username = var.docker_repo_username
-//}
-
