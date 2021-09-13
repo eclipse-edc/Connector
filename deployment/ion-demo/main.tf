@@ -37,23 +37,6 @@ provider "azurerm" {
 provider "azuread" {
   # Configuration options
 }
-//provider "kubernetes" {
-//  alias                  = "connector"
-//  host                   = data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config.0.host
-//  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config.0.client_certificate)
-//  client_key             = base64decode(data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config.0.client_key)
-//  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config.0.cluster_ca_certificate)
-//}
-//provider "helm" {
-//  alias = "connector"
-//  kubernetes {
-//    host                   = data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config.0.host
-//    client_certificate     = base64decode(data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config.0.client_certificate)
-//    client_key             = base64decode(data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config.0.client_key)
-//    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.provider-cluster-bmw.kube_config.0.cluster_ca_certificate)
-//  }
-//}
-
 
 data "azurerm_client_config" "current" {}
 data "azurerm_subscription" "primary" {}
@@ -62,9 +45,6 @@ data "azurerm_subscription" "primary" {}
 resource "azurerm_resource_group" "core-resourcegroup" {
   name     = "${var.environment}-resources"
   location = var.location
-  tags = {
-    "Environment" : "Hackathon"
-  }
 }
 
 # App registration for the primary identity
@@ -116,26 +96,16 @@ resource "azurerm_role_assignment" "primary-id-arm" {
   role_definition_name = "Contributor"
 }
 
-#Role assignment so that the currently logged in user may access the vault, needed to add secrets
+# Role assignment so that the currently logged in user may access the vault, needed to add secrets
 resource "azurerm_role_assignment" "current-user" {
   scope                = azurerm_key_vault.main-vault.id
   role_definition_name = "Key Vault Secrets Officer"
   principal_id         = data.azurerm_client_config.current.object_id
 }
 
-#storage account
-resource "azurerm_storage_account" "main-blobstore" {
-  name                     = "${replace(var.environment, "-", "")}gpstorage"
-  resource_group_name      = azurerm_resource_group.core-resourcegroup.name
-  location                 = azurerm_resource_group.core-resourcegroup.location
-  account_tier             = "Standard"
-  account_replication_type = "GRS"
-  account_kind             = "StorageV2"
-  //allows for blobs, queues, fileshares, etc.
-}
 
 # registration service = ion crawler
-resource "azurerm_container_group" "gx-registration-service" {
+resource "azurerm_container_group" "registration-service" {
   name                = "gaiax-registration-service"
   location            = azurerm_resource_group.core-resourcegroup.location
   resource_group_name = azurerm_resource_group.core-resourcegroup.name
@@ -181,7 +151,7 @@ resource "azurerm_container_group" "gx-registration-service" {
 }
 
 # connector that acts as data provider
-resource "azurerm_container_group" "gx-provider" {
+resource "azurerm_container_group" "provider-connector" {
   name                = "gaiax-provider"
   location            = azurerm_resource_group.core-resourcegroup.location
   resource_group_name = azurerm_resource_group.core-resourcegroup.name
@@ -226,7 +196,7 @@ resource "azurerm_container_group" "gx-provider" {
 }
 
 # connector that acts as data consumer
-resource "azurerm_container_group" "gx-consumer" {
+resource "azurerm_container_group" "consumer-connector" {
   name                = "gaiax-consumer"
   location            = azurerm_resource_group.core-resourcegroup.location
   resource_group_name = azurerm_resource_group.core-resourcegroup.name
@@ -270,14 +240,8 @@ resource "azurerm_container_group" "gx-consumer" {
   }
 }
 
-resource "azurerm_key_vault_secret" "blobstorekey" {
-  name         = "${azurerm_storage_account.main-blobstore.name}-key1"
-  value        = azurerm_storage_account.main-blobstore.primary_access_key
-  key_vault_id = azurerm_key_vault.main-vault.id
-  depends_on = [
-  azurerm_role_assignment.current-user]
-}
 
+# vault secrets
 resource "azurerm_key_vault_secret" "aws-keyid" {
   name         = "dataspaceconnector-aws-access-key"
   value        = aws_iam_access_key.gx_access_key.id
@@ -303,4 +267,12 @@ resource "azurerm_key_vault_secret" "aws-credentials" {
   })
   depends_on = [
   azurerm_role_assignment.current-user]
+}
+
+resource "azurerm_key_vault_secret" "blobstorekey" {
+  name         = "${azurerm_storage_account.main-blobstore.name}-key1"
+  value        = azurerm_storage_account.main-blobstore.primary_access_key
+  key_vault_id = azurerm_key_vault.main-vault.id
+  depends_on = [
+    azurerm_role_assignment.current-user]
 }
