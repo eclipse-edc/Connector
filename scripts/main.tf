@@ -18,17 +18,10 @@ terraform {
     kubernetes = {
       source = "hashicorp/kubernetes"
       version = ">=2.0.3"
-      configuration_aliases = [
-        kubernetes.nifi,
-        kubernetes.atlas]
     }
     helm = {
       source = "hashicorp/helm"
       version = ">= 2.1.0"
-      configuration_aliases = [
-        helm.nifi,
-        helm.atlas,
-        helm.connector]
     }
     aws = {
       source = "hashicorp/aws"
@@ -55,48 +48,12 @@ provider "azuread" {
   # Configuration options
 }
 
-//provider "kubernetes" {
-//  alias                  = "nifi"
-//  host                   = data.azurerm_kubernetes_cluster.nifi.kube_config.0.host
-//  client_certificate     = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_certificate)
-//  client_key             = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_key)
-//  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.cluster_ca_certificate)
-//}
-
-provider "kubernetes" {
-  alias = "atlas"
-  host = data.azurerm_kubernetes_cluster.atlas.kube_config.0.host
-  client_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.client_certificate)
-  client_key = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.client_key)
-  cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.cluster_ca_certificate)
-}
-
 provider "kubernetes" {
   alias = "connector"
   host = data.azurerm_kubernetes_cluster.connector.kube_config.0.host
   client_certificate = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.client_certificate)
   client_key = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.client_key)
   cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.cluster_ca_certificate)
-}
-
-//provider "helm" {
-//  alias = "nifi"
-//  kubernetes {
-//    host                   = data.azurerm_kubernetes_cluster.nifi.kube_config.0.host
-//    client_certificate     = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_certificate)
-//    client_key             = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.client_key)
-//    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.nifi.kube_config.0.cluster_ca_certificate)
-//  }
-//}
-
-provider "helm" {
-  alias = "atlas"
-  kubernetes {
-    host = data.azurerm_kubernetes_cluster.atlas.kube_config.0.host
-    client_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.client_certificate)
-    client_key = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.client_key)
-    cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.atlas.kube_config.0.cluster_ca_certificate)
-  }
 }
 
 provider "helm" {
@@ -107,21 +64,6 @@ provider "helm" {
     client_key = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.client_key)
     cluster_ca_certificate = base64decode(data.azurerm_kubernetes_cluster.connector.kube_config.0.cluster_ca_certificate)
   }
-}
-
-//data "azurerm_kubernetes_cluster" "nifi" {
-//  depends_on = [
-//  module.nifi-cluster]
-//  # refresh cluster state before reading
-//  name                = local.cluster_name_nifi
-//  resource_group_name = local.cluster_name_nifi
-//}
-
-data "azurerm_kubernetes_cluster" "atlas" {
-  depends_on = [
-    module.atlas-cluster]
-  name = local.cluster_name_atlas
-  resource_group_name = local.cluster_name_atlas
 }
 
 data "azurerm_kubernetes_cluster" "connector" {
@@ -206,22 +148,6 @@ resource "azurerm_storage_container" "src-container" {
 }
 
 ## KEYVAULT SECRETS
-resource "azurerm_key_vault_secret" "atlas-user" {
-  name = "atlas-username"
-  value = "admin"
-  key_vault_id = azurerm_key_vault.edc-primary-vault.id
-  depends_on = [
-    azurerm_role_assignment.current-user]
-}
-
-resource "azurerm_key_vault_secret" "atlas-password" {
-  name = "atlas-password"
-  value = "admin"
-  key_vault_id = azurerm_key_vault.edc-primary-vault.id
-  depends_on = [
-    azurerm_role_assignment.current-user]
-}
-
 resource "azurerm_key_vault_secret" "aws-keyid" {
   name = "edc-aws-access-key"
   value = aws_iam_access_key.edc_access_key.id
@@ -257,80 +183,6 @@ resource "azurerm_key_vault_secret" "blobstorekey" {
     azurerm_role_assignment.current-user]
 }
 
-resource "azurerm_key_vault_secret" "nifi-credentials" {
-  name = "nifi-credentials"
-  value = "Basic dGVzdHVzZXJAZ2FpYXguY29tOmdYcHdkIzIwMiE="
-  key_vault_id = azurerm_key_vault.edc-primary-vault.id
-  depends_on = [
-    azurerm_role_assignment.current-user]
-}
-
-resource "azurerm_container_group" "edc-nifi" {
-  location = azurerm_resource_group.core-resourcegroup.location
-  name = "edc-nifi-continst"
-  os_type = "Linux"
-  resource_group_name = azurerm_resource_group.core-resourcegroup.name
-  dns_name_label = "${var.environment}-edc-nifi"
-  container {
-    cpu = 4
-    image = "ghcr.io/microsoft/data-appliance-gx/nifi:latest"
-    memory = 4
-    name = "nifi"
-
-    ports {
-      port = 8080
-      protocol = "TCP"
-    }
-    ports {
-      port = 8888
-      protocol = "TCP"
-    }
-  }
-}
-
-//module "nifi-cluster" {
-//  source       = "./aks-cluster"
-//  cluster_name = local.cluster_name_nifi
-//  location     = var.location
-//  dns          = "dataspaceconnector-nifi"
-//}
-//
-//module "nifi-deployment" {
-//  depends_on = [
-//  module.nifi-cluster]
-//  source         = "./nifi-deployment"
-//  cluster_name   = local.cluster_name_nifi
-//  kubeconfig     = data.azurerm_kubernetes_cluster.nifi.kube_config_raw
-//  resourcesuffix = var.resourcesuffix
-//  tenant_id      = data.azurerm_client_config.current.tenant_id
-//  providers = {
-//    kubernetes = kubernetes.nifi
-//    helm       = helm.nifi
-//  }
-//  public-ip = module.nifi-cluster.public-ip
-//}
-
-module "atlas-cluster" {
-  source = "./aks-cluster"
-  cluster_name = local.cluster_name_atlas
-  location = var.location
-  dnsPrefix = "${var.environment}-edc-atlas"
-}
-module "atlas-deployment" {
-  depends_on = [
-    module.atlas-cluster]
-  source = "./atlas-deployment"
-  cluster_name = local.cluster_name_atlas
-  kubeconfig = data.azurerm_kubernetes_cluster.atlas.kube_config_raw
-  environment = var.environment
-  tenant_id = data.azurerm_client_config.current.tenant_id
-  providers = {
-    kubernetes = kubernetes.atlas
-    helm = helm.atlas
-  }
-  public-ip = module.atlas-cluster.public-ip
-}
-
 module "connector-cluster" {
   source = "./aks-cluster"
   cluster_name = local.cluster_name_connector
@@ -355,9 +207,6 @@ module "connector-deployment" {
     clientId = azuread_application.edc-primary-app.application_id,
     tenantId = data.azurerm_client_config.current.tenant_id,
     vaultName = azurerm_key_vault.edc-primary-vault.name,
-    atlasUrl = "https://${module.atlas-cluster.public-ip.fqdn}"
-    nifiUrl = "http://${azurerm_container_group.edc-nifi.fqdn}:8080/"
-    nifiFlowUrl = "http://${azurerm_container_group.edc-nifi.fqdn}:8888/"
     cosmosAccount = azurerm_cosmosdb_account.edc-cosmos.name
     cosmosDb = azurerm_cosmosdb_sql_database.edc-database.name
   }

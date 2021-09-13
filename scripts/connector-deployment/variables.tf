@@ -37,9 +37,6 @@ variable "container_environment" {
     clientId = string
     tenantId = string
     vaultName = string
-    atlasUrl = string
-    nifiUrl = string
-    nifiFlowUrl = string
     cosmosAccount = string
     cosmosDb = string
   })

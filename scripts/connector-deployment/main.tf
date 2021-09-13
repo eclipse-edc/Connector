@@ -81,18 +81,6 @@ resource "kubernetes_deployment" "connector-deployment" {
             value = var.container_environment.vaultName
           }
           env {
-            name = "ATLAS_URL"
-            value = var.container_environment.atlasUrl
-          }
-          env {
-            name = "NIFI_URL"
-            value = var.container_environment.nifiUrl
-          }
-          env {
-            name = "NIFI_FLOW_URL"
-            value = var.container_environment.nifiFlowUrl
-          }
-          env {
             name = "COSMOS_ACCOUNT"
             value = var.container_environment.cosmosAccount
           }

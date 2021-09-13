@@ -30,13 +30,11 @@ dependencies {
     implementation(project(":extensions:azure:transfer-process-store-cosmos"))
     implementation(project(":extensions:aws:s3:provision"))
     implementation(project(":extensions:azure:blob:provision"))
-    implementation(project(":samples:other:copy-with-nifi:transfer"))
 
     implementation(project(":extensions:azure:events"))
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":extensions:atlas"))
     implementation(project(":samples:other:dataseed"))
 
     implementation(project(":extensions:azure:vault"))
