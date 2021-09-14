@@ -115,7 +115,6 @@ public class ConsumerRunner {
 
 
     @Test
-        // @Disabled
     void processConsumerRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
