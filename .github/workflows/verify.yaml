@@ -21,6 +21,7 @@ jobs:
           tool_name: 'checkstyle'
           checkstyle_version: '9.0'
           reporter: 'github-check'
+          filter_mode: 'nofilter'
 
 
       - name: Gradle Test Core
