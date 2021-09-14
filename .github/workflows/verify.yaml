@@ -13,6 +13,15 @@ jobs:
         with:
           java-version: '11'
 
+      - name: Run Checkstyle
+        uses: nikitasavinov/checkstyle-action@0.4.0
+        with:
+          checkstyle_config: resources/edc-checkstyle.xml
+          level: warning
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: 'checkstyle'
+          checkstyle_version: '9.0'
+
       - name: Gradle Test Core
         env:
           INTEGRATION_TEST: false
