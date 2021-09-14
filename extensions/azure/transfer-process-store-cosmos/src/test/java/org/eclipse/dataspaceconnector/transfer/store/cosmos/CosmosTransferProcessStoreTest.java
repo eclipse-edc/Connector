@@ -45,9 +45,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 @IntegrationTest
 class CosmosTransferProcessStoreTest {
 
-    private final static String accountName = "cosmos-itest";
-    private final static String databaseName = "connector-itest";
-    private final static String containerName = "CosmosTransferProcessStoreTest";
+    private static final String accountName = "cosmos-itest";
+    private static final String databaseName = "connector-itest";
+    private static final String containerName = "CosmosTransferProcessStoreTest";
     private static CosmosContainer container;
     private static CosmosDatabase database;
     private final String partitionKey = "testpartition";

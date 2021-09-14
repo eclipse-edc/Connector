@@ -26,7 +26,7 @@ public class AzureVaultGetSecretRequestExecutor implements CommandExecutor {
         var key = context.getParams().stream().findFirst();
 
         if (key.isPresent()) {
-            return executeGet("/api/vault?key="+key.get(), context);
+            return executeGet("/api/vault?key=" + key.get(), context);
         }
 
         throw new IllegalArgumentException("needs at least one parameter!");

@@ -15,7 +15,12 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.ws;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.websocket.*;
+import jakarta.websocket.ClientEndpoint;
+import jakarta.websocket.CloseReason;
+import jakarta.websocket.OnClose;
+import jakarta.websocket.OnError;
+import jakarta.websocket.OnMessage;
+import jakarta.websocket.Session;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.DataMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.PubSubMessage;

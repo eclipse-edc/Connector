@@ -20,7 +20,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
@@ -30,7 +36,6 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * An in-memory, threadsafe process store.
- * <p>
  * This implementation is intended for testing purposes only.
  */
 public class InMemoryTransferProcessStore implements TransferProcessStore {

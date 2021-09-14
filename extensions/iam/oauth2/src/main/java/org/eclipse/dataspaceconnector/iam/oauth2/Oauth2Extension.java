@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.iam.oauth2;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.IdentityProviderKeyResolver;
-import org.eclipse.dataspaceconnector.iam.oauth2.impl.OAuth2Configuration;
-import org.eclipse.dataspaceconnector.iam.oauth2.impl.OAuth2ServiceImpl;
+import org.eclipse.dataspaceconnector.iam.oauth2.impl.Oauth2Configuration;
+import org.eclipse.dataspaceconnector.iam.oauth2.impl.Oauth2ServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
@@ -33,7 +33,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Provides OAuth2 client credentials flow support.
  */
-public class OAuth2Extension implements ServiceExtension {
+public class Oauth2Extension implements ServiceExtension {
 
     @EdcSetting
     private static final String PROVIDER_JWKS_URL = "dataspaceconnector.oauth.provider.jwks.url";
@@ -82,7 +82,7 @@ public class OAuth2Extension implements ServiceExtension {
         keyRefreshInterval = Integer.parseInt(context.getSetting(PROVIDER_JWKS_REFRESH, "5"));
 
         // setup the OAuth2 service
-        OAuth2Configuration.Builder configBuilder = OAuth2Configuration.Builder.newInstance();
+        Oauth2Configuration.Builder configBuilder = Oauth2Configuration.Builder.newInstance();
 
         configBuilder.identityProviderKeyResolver(providerKeyResolver);
 
@@ -109,11 +109,11 @@ public class OAuth2Extension implements ServiceExtension {
 
         configBuilder.objectMapper(context.getTypeManager().getMapper());
 
-        OAuth2Configuration configuration = configBuilder.build();
+        Oauth2Configuration configuration = configBuilder.build();
 
-        IdentityService oAuth2Service = new OAuth2ServiceImpl(configuration);
+        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration);
 
-        context.registerService(IdentityService.class, oAuth2Service);
+        context.registerService(IdentityService.class, oauth2Service);
 
         context.getMonitor().info("Initialized OAuth2 extension");
     }

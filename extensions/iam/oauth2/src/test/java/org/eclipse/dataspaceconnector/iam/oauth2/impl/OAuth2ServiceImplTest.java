@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class OAuth2ServiceImplTest {
-    private OAuth2ServiceImpl authService;
+    private Oauth2ServiceImpl authService;
     private DecodedJWT jwt;
 
     @Test
@@ -89,6 +89,6 @@ class OAuth2ServiceImplTest {
     @BeforeEach
     void setUp() {
         jwt = EasyMock.createMock(DecodedJWT.class);
-        authService = new OAuth2ServiceImpl(OAuth2Configuration.Builder.newInstance().build());
+        authService = new Oauth2ServiceImpl(Oauth2Configuration.Builder.newInstance().build());
     }
 }

@@ -16,9 +16,6 @@ package org.eclipse.dataspaceconnector.spi.transfer;
 
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 
-/**
- *
- */
 public class TransferInitiateResponse {
     private String id;
     private String error;

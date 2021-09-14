@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.iam.oauth2.OAuth2Extension
+org.eclipse.dataspaceconnector.iam.oauth2.Oauth2Extension

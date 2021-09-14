@@ -60,27 +60,6 @@ public class MonitorProvider implements SLF4JServiceProvider {
     private static class MonitorLogger extends AbstractLogger {
 
         @Override
-        protected void handleNormalizedLoggingCall(Level level, Marker marker, String msg, Object[] arguments, Throwable throwable) {
-            switch (level) {
-                case ERROR:
-                    INSTANCE.severe(msg, throwable);
-                    break;
-                case WARN:
-                case INFO:
-                    INSTANCE.info(msg, throwable);
-                    break;
-                case DEBUG:
-                    INSTANCE.debug(msg, throwable);
-                    break;
-            }
-        }
-
-        @Override
-        protected String getFullyQualifiedCallerName() {
-            return null;
-        }
-
-        @Override
         public boolean isTraceEnabled() {
             return false;
         }
@@ -128,6 +107,27 @@ public class MonitorProvider implements SLF4JServiceProvider {
         @Override
         public boolean isErrorEnabled(Marker marker) {
             return true;
+        }
+
+        @Override
+        protected String getFullyQualifiedCallerName() {
+            return null;
+        }
+
+        @Override
+        protected void handleNormalizedLoggingCall(Level level, Marker marker, String msg, Object[] arguments, Throwable throwable) {
+            switch (level) {
+                case ERROR:
+                    INSTANCE.severe(msg, throwable);
+                    break;
+                default:
+                case INFO:
+                    INSTANCE.info(msg, throwable);
+                    break;
+                case DEBUG:
+                    INSTANCE.debug(msg, throwable);
+                    break;
+            }
         }
     }
 }

@@ -28,7 +28,10 @@ import java.nio.file.Paths;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
 
-import static org.eclipse.dataspaceconnector.security.fs.FsConfiguration.*;
+import static org.eclipse.dataspaceconnector.security.fs.FsConfiguration.KEYSTORE_LOCATION;
+import static org.eclipse.dataspaceconnector.security.fs.FsConfiguration.KEYSTORE_PASSWORD;
+import static org.eclipse.dataspaceconnector.security.fs.FsConfiguration.PERSISTENT_VAULT;
+import static org.eclipse.dataspaceconnector.security.fs.FsConfiguration.VAULT_LOCATION;
 
 /**
  * Bootstraps the file system-based vault extension.

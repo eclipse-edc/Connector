@@ -21,9 +21,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 
-/**
- *
- */
 public class DemoUiApiExtension implements ServiceExtension {
     private Monitor monitor;
 

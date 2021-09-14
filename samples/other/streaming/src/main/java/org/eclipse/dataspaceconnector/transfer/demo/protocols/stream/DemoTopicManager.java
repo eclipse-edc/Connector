@@ -18,7 +18,11 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.AbstractQueuedProvisioner;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.*;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.ConnectionResult;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamObserver;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.Subscription;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.SubscriptionResult;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Map;

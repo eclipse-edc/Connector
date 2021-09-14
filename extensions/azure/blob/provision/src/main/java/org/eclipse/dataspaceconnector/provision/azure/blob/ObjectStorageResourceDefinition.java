@@ -18,9 +18,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefiniti
 
 import java.util.Objects;
 
-/**
- *
- */
 public class ObjectStorageResourceDefinition extends ResourceDefinition {
 
     private String containerName;

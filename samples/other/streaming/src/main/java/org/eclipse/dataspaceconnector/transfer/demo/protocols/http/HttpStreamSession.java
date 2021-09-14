@@ -28,12 +28,12 @@ import java.net.URL;
  * Publishes to an HTTP endpoint.
  */
 public class HttpStreamSession implements StreamSession {
-    private final URL endpointURL;
+    private final URL endpointUrl;
     private final String destinationToken;
     private final OkHttpClient httpClient;
 
-    public HttpStreamSession(URL endpointURL, String destinationToken, OkHttpClient httpClient) {
-        this.endpointURL = endpointURL;
+    public HttpStreamSession(URL endpointUrl, String destinationToken, OkHttpClient httpClient) {
+        this.endpointUrl = endpointUrl;
         this.destinationToken = destinationToken;
         this.httpClient = httpClient;
     }
@@ -43,7 +43,7 @@ public class HttpStreamSession implements StreamSession {
         try {
             var body = RequestBody.create(data, MediaType.get("application/json"));
             Request request = new Request.Builder()
-                    .url(endpointURL)
+                    .url(endpointUrl)
                     .addHeader("Content-Type", "application/json")
                     .addHeader("X-Authorization", destinationToken)
                     .post(body)

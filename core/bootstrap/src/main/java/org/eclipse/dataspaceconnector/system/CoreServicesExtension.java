@@ -67,11 +67,11 @@ public class CoreServicesExtension implements ServiceExtension {
 
     private void addHttpClient(ServiceExtensionContext context) {
         OkHttpClient.Builder builder = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS);
-//        if (interceptors != null) {
-//            for (Interceptor interceptor : interceptors) {
-//                builder.addInterceptor(interceptor);
-//            }
-//        }
+        //        if (interceptors != null) {
+        //           for (Interceptor interceptor : interceptors) {
+        //                builder.addInterceptor(interceptor);
+        //            }
+        //        }
         var client = builder.build();
 
         context.registerService(OkHttpClient.class, client);

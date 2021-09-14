@@ -26,8 +26,7 @@ import java.util.Base64;
 
 /**
  * Resolves RSA private keys stored as Base 64-encoded text against a vault.
- * <p>
- * Keys must be PEM encoded in PKCS8 format. The key may be stored with or without PEM headers and footers.
+ * <p>Keys must be PEM encoded in PKCS8 format. The key may be stored with or without PEM headers and footers.</p>
  */
 public class AzurePrivateKeyResolver implements PrivateKeyResolver {
     private static final String PEM_HEADER = "-----BEGIN PRIVATE KEY-----";

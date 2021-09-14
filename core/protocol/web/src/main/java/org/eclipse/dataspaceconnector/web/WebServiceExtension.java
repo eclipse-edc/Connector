@@ -28,13 +28,18 @@ import static org.eclipse.dataspaceconnector.spi.system.ServiceExtension.LoadPha
 
 /**
  * Provides HTTP transport and REST binding services.
- * <p>
+ * <br/>
  * TODO create keystore to support HTTPS
  */
 public class WebServiceExtension implements ServiceExtension {
     private Monitor monitor;
     private JettyService jettyService;
     private JerseyRestService jerseyRestService;
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("edc:webservice");
+    }
 
     @Override
     public LoadPhase phase() {
@@ -54,11 +59,6 @@ public class WebServiceExtension implements ServiceExtension {
         context.registerService(WebService.class, jerseyRestService);
 
         monitor.info("Initialized Web extension");
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:webservice");
     }
 
     @Override

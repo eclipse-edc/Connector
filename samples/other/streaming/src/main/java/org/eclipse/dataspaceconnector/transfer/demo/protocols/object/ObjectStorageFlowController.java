@@ -21,9 +21,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
-/**
- *
- */
 public class ObjectStorageFlowController implements DataFlowController {
     private final ObjectMapper objectMapper;
     private final Monitor monitor;

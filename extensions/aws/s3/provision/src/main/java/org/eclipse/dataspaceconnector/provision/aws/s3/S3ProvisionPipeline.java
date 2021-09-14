@@ -22,7 +22,12 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
-import software.amazon.awssdk.services.iam.model.*;
+import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
+import software.amazon.awssdk.services.iam.model.CreateRoleResponse;
+import software.amazon.awssdk.services.iam.model.GetUserResponse;
+import software.amazon.awssdk.services.iam.model.PutRolePolicyRequest;
+import software.amazon.awssdk.services.iam.model.PutRolePolicyResponse;
+import software.amazon.awssdk.services.iam.model.Tag;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
@@ -159,7 +164,13 @@ class S3ProvisionPipeline {
         var exceptionToLog = exception.getCause() != null ? exception.getCause() : exception;
         String resourceId = resourceDefinition.getId();
         String errorMessage = exceptionToLog.getMessage();
-        S3BucketProvisionedResource erroredResource = S3BucketProvisionedResource.Builder.newInstance().id(bucketName).transferProcessId(resourceDefinition.getTransferProcessId()).resourceDefinitionId(resourceId).error(true).errorMessage(errorMessage).build();
+        S3BucketProvisionedResource erroredResource = S3BucketProvisionedResource.Builder.newInstance()
+                .id(bucketName)
+                .transferProcessId(resourceDefinition.getTransferProcessId())
+                .resourceDefinitionId(resourceId)
+                .error(true)
+                .errorMessage(errorMessage)
+                .build();
         context.callback(erroredResource, null);
     }
 

@@ -14,25 +14,38 @@
 
 package org.eclipse.dataspaceconnector.policy.engine;
 
-import org.eclipse.dataspaceconnector.policy.model.*;
+import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraintFunction;
+import org.eclipse.dataspaceconnector.policy.model.Constraint;
+import org.eclipse.dataspaceconnector.policy.model.Duty;
+import org.eclipse.dataspaceconnector.policy.model.Expression;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.policy.model.Rule;
+import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 /**
  * Evaluates a policy.
- * <p>
  * A policy evaluator is used to build evaluation engines that perform tasks such as verifying if a {@link Policy} is satisfied by a client system presenting signed credentials.
  * Implementation-specific functionality is contributed by registering {@link AtomicConstraintFunction}s using {@link Builder#permissionFunction(String, AtomicConstraintFunction)},
  * {@link Builder#prohibitionFunction(String, AtomicConstraintFunction)}, and  {@link Builder#dutyFunction(String, AtomicConstraintFunction)}.
  */
 public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Boolean>, Constraint.Visitor<Boolean>, Expression.Visitor<Object> {
-    private Rule ruleContext; // the current rule being evaluated or null
-
     private final List<RuleProblem> ruleProblems = new ArrayList<>();
-
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> permissionFunctions = new HashMap<>();
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> dutyFunctions = new HashMap<>();
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> prohibitionFunctions = new HashMap<>();
+    private Rule ruleContext; // the current rule being evaluated or null
 
     private PolicyEvaluator() {
     }
@@ -142,6 +155,8 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
             case LT:
                 break;
             case LEQ:
+                break;
+            default:
                 break;
         }
         return null;

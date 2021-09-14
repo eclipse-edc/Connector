@@ -20,7 +20,15 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.CreateBucketRequest;
+import com.amazonaws.services.s3.model.DeleteBucketRequest;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public abstract class AbstractS3Test {
 
-    protected final static String region = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
+    protected static final String region = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
     // Adding REGION to bucket prevents errors of
     //      "A conflicting conditional operation is currently in progress against this resource."
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
@@ -53,14 +61,14 @@ public abstract class AbstractS3Test {
         createBucket(bucketName);
     }
 
-    @NotNull
-    protected String createBucketName() {
-        return "test-bucket-" + System.currentTimeMillis() + "-" + region;
-    }
-
     @AfterEach
     void cleanup() {
         deleteBucket(bucketName);
+    }
+
+    @NotNull
+    protected String createBucketName() {
+        return "test-bucket-" + System.currentTimeMillis() + "-" + region;
     }
 
     protected @NotNull AWSCredentials getCredentials() {
@@ -100,7 +108,7 @@ public abstract class AbstractS3Test {
                 }
 
                 if (objectListing.isTruncated()) {
-                    objectListing = client.listNextBatchOfObjects(objectListing);/**/
+                    objectListing = client.listNextBatchOfObjects(objectListing);
                 } else {
                     break;
                 }

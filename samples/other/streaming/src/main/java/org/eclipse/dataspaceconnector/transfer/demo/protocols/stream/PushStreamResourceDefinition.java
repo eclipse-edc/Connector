@@ -35,6 +35,10 @@ public class PushStreamResourceDefinition extends ResourceDefinition {
 
     public static class Builder extends ResourceDefinition.Builder<PushStreamResourceDefinition, Builder> {
 
+        private Builder() {
+            super(new PushStreamResourceDefinition());
+        }
+
         public static Builder newInstance() {
             return new Builder();
         }
@@ -49,13 +53,11 @@ public class PushStreamResourceDefinition extends ResourceDefinition {
             return this;
         }
 
+        @Override
         public void verify() {
             super.verify();
             Objects.requireNonNull(resourceDefinition.endpointAddress, "endpointAddress");
             Objects.requireNonNull(resourceDefinition.topicName, "topicName");
-        }
-        private Builder() {
-            super(new PushStreamResourceDefinition());
         }
     }
 

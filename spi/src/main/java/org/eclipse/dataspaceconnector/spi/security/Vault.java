@@ -33,13 +33,14 @@ public interface Vault {
     /**
      * Saves a secret.
      *
-     * @param key the secret key
+     * @param key   the secret key
      * @param value the serialized secret value
      */
     VaultResponse storeSecret(String key, String value);
 
     /**
      * Deletes a secret. Depending on the vault implementation, this might mean a soft delete, or no be even permissible.
+     *
      * @param key the secret's key
      */
     VaultResponse deleteSecret(String key);

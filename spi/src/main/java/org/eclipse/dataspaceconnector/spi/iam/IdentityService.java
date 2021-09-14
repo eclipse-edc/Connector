@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.iam;
 
 /**
  * Obtains client security tokens from an identity provider.
- * <p>
  * Providers may implement different authorization protocols such as OAuth2.
  */
 public interface IdentityService {

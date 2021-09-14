@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.dispatcher.LoopbackDispatcher;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -28,14 +27,24 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.dispatcher.LoopbackDispatcher;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.http.PubSubHttpEndpoint;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.object.DemoObjectStorage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.object.ObjectStorageFlowController;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.object.ObjectStorageMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.*;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.*;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.ConnectMessage;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.DataMessage;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.PubSubMessage;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.PublishMessage;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.SubscribeMessage;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.UnSubscribeMessage;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.DemoTopicManager;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.PushStreamFlowController;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.PushStreamProvisioner;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.PushStreamResourceGenerator;
+import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.StreamPublisherRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.PubSubServerEndpoint;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WebSocketFactory;
 import org.eclipse.dataspaceconnector.web.transport.JettyService;
@@ -44,15 +53,10 @@ import java.util.Set;
 
 /**
  * An extension that demonstrates data transfers and supports three flow types:
- * <p>
  * (1) Object storage
- * <p>
  * (2) Push-style streaming using pub/sub topics
- * <p>
  * (3) Pull-style streaming using pub/sub topics
- * <p>
  * Integration testing
- * <p>
  * The JUnit test for this class demonstrates how to perform extension integration testing using and embedded runtime.
  */
 public class DemoProtocolsTransferExtension implements ServiceExtension {

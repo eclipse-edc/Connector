@@ -35,7 +35,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 import java.util.Map;
 
-import static de.fraunhofer.iais.eis.RejectionReason.*;
+import static de.fraunhofer.iais.eis.RejectionReason.BAD_PARAMETERS;
+import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
+import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHORIZED;
+import static de.fraunhofer.iais.eis.RejectionReason.NOT_FOUND;
+import static de.fraunhofer.iais.eis.RejectionReason.TEMPORARILY_NOT_AVAILABLE;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
 
@@ -108,10 +112,10 @@ public class ArtifactRequestController {
 
 
         // TODO this needs to be deserialized from the artifact request message
-        @SuppressWarnings("unchecked") var destinationMap = (Map<String, Object>) message.getProperties().get(ArtifactRequestController.DESTINATION_KEY);
+        var destinationMap = (Map<String, Object>) message.getProperties().get(ArtifactRequestController.DESTINATION_KEY);
         var type = (String) destinationMap.get("type");
 
-        @SuppressWarnings("unchecked") Map<String, String> properties = (Map<String, String>) destinationMap.get("properties");
+        Map<String, String> properties = (Map<String, String>) destinationMap.get("properties");
         var secretName = (String) destinationMap.get("keyName");
 
         var dataDestination = DataAddress.Builder.newInstance().type(type).properties(properties).keyName(secretName).build();

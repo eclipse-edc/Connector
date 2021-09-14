@@ -26,9 +26,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamP
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- */
 public class StreamPublisherRegistryImpl implements StreamPublisherRegistry {
     private final Vault vault;
     private final OkHttpClient httpClient;

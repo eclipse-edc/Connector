@@ -38,7 +38,7 @@ import static org.easymock.EasyMock.*;
 class TransferProcessManagerImplConsumerTest {
 
     private static final long TIMEOUT = 5;
-    private final static int TRANSFER_MANAGER_BATCHSIZE = 10;
+    private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
     private TransferProcessManagerImpl transferProcessManager;
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;

@@ -19,7 +19,12 @@ import com.azure.cosmos.CosmosException;
 import com.azure.cosmos.CosmosStoredProcedure;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.implementation.RequestRateTooLargeException;
-import com.azure.cosmos.models.*;
+import com.azure.cosmos.models.CosmosItemRequestOptions;
+import com.azure.cosmos.models.CosmosItemResponse;
+import com.azure.cosmos.models.CosmosQueryRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureResponse;
+import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.Fallback;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -31,7 +36,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static net.jodah.failsafe.Failsafe.with;
@@ -39,8 +48,8 @@ import static net.jodah.failsafe.Failsafe.with;
 public class CosmosTransferProcessStore implements TransferProcessStore {
 
 
-    private final static String nextForStateSProcName = "nextForState";
-    private final static String leaseSProcName = "lease";
+    private static final String nextForStateSProcName = "nextForState";
+    private static final String leaseSProcName = "lease";
     private final CosmosContainer container;
     private final CosmosQueryRequestOptions tracingOptions;
     private final TypeManager typeManager;

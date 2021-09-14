@@ -22,7 +22,11 @@ import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.DeleteRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.DeleteRoleRequest;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.Delete;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
+import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 
 import java.util.function.Consumer;
 import java.util.stream.Collectors;

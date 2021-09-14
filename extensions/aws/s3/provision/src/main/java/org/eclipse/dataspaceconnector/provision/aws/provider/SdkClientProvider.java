@@ -36,12 +36,13 @@ import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import static org.eclipse.dataspaceconnector.provision.aws.provider.SdkClientBuilders.*;
+import static org.eclipse.dataspaceconnector.provision.aws.provider.SdkClientBuilders.buildIamClient;
+import static org.eclipse.dataspaceconnector.provision.aws.provider.SdkClientBuilders.buildS3Client;
+import static org.eclipse.dataspaceconnector.provision.aws.provider.SdkClientBuilders.buildStsClient;
 
 
 /**
  * Provides reusable SDK clients that are configured to connect to specific regions and endpoints. Clients share a common thread pool.
- *
  * The clients are immutable and created when an instance is built. When finished with the provider, {@link #shutdown()} must be called to release resources.
  */
 public class SdkClientProvider implements ClientProvider {
@@ -55,6 +56,10 @@ public class SdkClientProvider implements ClientProvider {
 
     private AwsCredentialsProvider credentialsProvider;
 
+    private SdkClientProvider() {
+    }
+
+    @Override
     public <T extends SdkClient> T clientFor(Class<T> type, String key) {
         if (type.isAssignableFrom(S3AsyncClient.class)) {
             S3AsyncClient client = s3Cache.get(key);
@@ -88,15 +93,16 @@ public class SdkClientProvider implements ClientProvider {
         return type.cast(client);
     }
 
-    private SdkClientProvider() {
-    }
-
     public static class Builder {
         private int threadPoolSize = 50; // default thread pool
         private Set<String> regions = DEFAULT_REGIONS;
         private Set<String> endpoints = Collections.emptySet();
 
-        private SdkClientProvider provider;
+        private final SdkClientProvider provider;
+
+        private Builder() {
+            provider = new SdkClientProvider();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -118,7 +124,7 @@ public class SdkClientProvider implements ClientProvider {
         }
 
         public Builder threadPoolSize(int size) {
-            this.threadPoolSize = size;
+            threadPoolSize = size;
             return this;
         }
 
@@ -156,10 +162,6 @@ public class SdkClientProvider implements ClientProvider {
             regions.forEach(region -> cache.put(region, buildStsClient(b -> b.region(Region.of(region)), provider.executor, provider.credentialsProvider)));
             endpoints.forEach(endpoint -> cache.put(endpoint, buildStsClient(b -> b.endpointOverride(URI.create(endpoint)), provider.executor, provider.credentialsProvider)));
             provider.stsCache = Collections.unmodifiableMap(cache);
-        }
-
-        private Builder() {
-            provider = new SdkClientProvider();
         }
     }
 

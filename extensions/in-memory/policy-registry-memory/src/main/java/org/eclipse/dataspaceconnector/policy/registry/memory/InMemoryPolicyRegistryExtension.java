@@ -20,9 +20,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Set;
 
-/**
- *
- */
 public class InMemoryPolicyRegistryExtension implements ServiceExtension {
 
     @Override

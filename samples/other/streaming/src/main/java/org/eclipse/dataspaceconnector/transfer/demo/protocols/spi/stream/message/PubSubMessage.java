@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
 
 /**
  * The base message for the streaming demo pub/sub protocol.
- * <p>
  * This class demonstrates the use of polymorphic JSON deserialization. Subclasses are registered with the type manager so that they canbe automatically deserialized.
  */
 public abstract class PubSubMessage implements Polymorphic {

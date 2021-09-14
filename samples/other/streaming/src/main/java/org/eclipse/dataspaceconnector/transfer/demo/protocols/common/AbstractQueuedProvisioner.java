@@ -26,7 +26,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Implements async resource provisioning.
- *
  * This simulates the asynchronous nature of provisioning cloud storage and data topics.
  */
 public abstract class AbstractQueuedProvisioner {
@@ -35,12 +34,12 @@ public abstract class AbstractQueuedProvisioner {
 
     private long provisionWait = 100;
 
-    private ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private final ExecutorService executorService = Executors.newSingleThreadExecutor();
 
-    private BlockingQueue<QueueEntry> queue = new LinkedBlockingQueue<>(10000);
+    private final BlockingQueue<QueueEntry> queue = new LinkedBlockingQueue<>(10000);
 
     public void setProvisionWait(long milliseconds) {
-        this.provisionWait = milliseconds;
+        provisionWait = milliseconds;
     }
 
     public void start() {
@@ -75,7 +74,6 @@ public abstract class AbstractQueuedProvisioner {
                 if (entry != null) {
                     onEntry(entry);
                 }
-                //noinspection BusyWait
                 Thread.sleep(provisionWait); // simulate async behavior
             } catch (InterruptedException e) {
                 Thread.interrupted();
@@ -85,8 +83,13 @@ public abstract class AbstractQueuedProvisioner {
     }
 
     protected static class QueueEntry {
-        private String destinationName;
-        private CompletableFuture<DataDestination> future;
+        private final String destinationName;
+        private final CompletableFuture<DataDestination> future;
+
+        public QueueEntry(String destinationName, CompletableFuture<DataDestination> future) {
+            this.destinationName = destinationName;
+            this.future = future;
+        }
 
         public String getDestinationName() {
             return destinationName;
@@ -94,11 +97,6 @@ public abstract class AbstractQueuedProvisioner {
 
         public CompletableFuture<DataDestination> getFuture() {
             return future;
-        }
-
-        public QueueEntry(String destinationName, CompletableFuture<DataDestination> future) {
-            this.destinationName = destinationName;
-            this.future = future;
         }
     }
 }

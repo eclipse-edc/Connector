@@ -44,7 +44,6 @@ public interface ProvisionContext {
 
     /**
      * Persists data related to a provision request.  Data will be removed after all resources have been provisioned for a transfer process.
-     * <p>
      * This is intended as a facility to use for recovery. For example, infrastructure request ids can be persisted and recovered to continue processing after runtime restart.
      */
     default void create(String processId, String resourceDefinitionId, Object data) {

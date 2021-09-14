@@ -21,9 +21,6 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 
 import java.time.Instant;
 
-/**
- *
- */
 public class MockIdentityService implements IdentityService {
     private final String region;
 
@@ -45,7 +42,8 @@ public class MockIdentityService implements IdentityService {
                 return new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "us").build());
             case "mock-an":
                 return new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "an").build());
+            default:
+                return new VerificationResult("Unknown test token format");
         }
-        return new VerificationResult("Unknown test token format");
     }
 }

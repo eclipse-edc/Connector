@@ -20,9 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
-/**
- *
- */
 @JsonDeserialize(builder = ObjectStorageMessage.Builder.class)
 public class ObjectStorageMessage {
     private String containerName;

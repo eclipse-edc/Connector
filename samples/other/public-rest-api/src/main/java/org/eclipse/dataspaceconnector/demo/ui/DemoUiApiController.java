@@ -14,15 +14,20 @@
 
 package org.eclipse.dataspaceconnector.demo.ui;
 
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 import java.util.Map;
@@ -30,9 +35,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-/**
- *
- */
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/demo-ui")
@@ -61,7 +63,7 @@ public class DemoUiApiController {
                     .query("select *")
                     .protocol("ids-rest").build();
 
-            @SuppressWarnings({"unchecked", "rawtypes"}) CompletableFuture<List<String>> future = (CompletableFuture) dispatcherRegistry.send(List.class, query, () -> null);
+            CompletableFuture<List<String>> future = (CompletableFuture) dispatcherRegistry.send(List.class, query, () -> null);
 
             var artifacts = future.get();
             return Response.ok().entity(artifacts).build();
