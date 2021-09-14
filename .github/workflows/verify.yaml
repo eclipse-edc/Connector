@@ -11,7 +11,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '11'
-          
+
       - name: Run Checkstyle
         uses: nikitasavinov/checkstyle-action@0.4.0
         with:
@@ -20,6 +20,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: 'checkstyle'
           checkstyle_version: '9.0'
+          reporter: 'github-check'
 
   Unit-Test:
     runs-on: ubuntu-latest
