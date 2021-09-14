@@ -48,8 +48,8 @@ import static net.jodah.failsafe.Failsafe.with;
 public class CosmosTransferProcessStore implements TransferProcessStore {
 
 
-    private static final String nextForStateSProcName = "nextForState";
-    private static final String leaseSProcName = "lease";
+    private static final String NEXT_FOR_STATE_S_PROC_NAME = "nextForState";
+    private static final String LEASE_S_PROC_NAME = "lease";
     private final CosmosContainer container;
     private final CosmosQueryRequestOptions tracingOptions;
     private final TypeManager typeManager;
@@ -117,7 +117,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
         tracingOptions.setMaxBufferedItemCount(max);
 
-        var sproc = getStoredProcedure(nextForStateSProcName);
+        var sproc = getStoredProcedure(NEXT_FOR_STATE_S_PROC_NAME);
         List<Object> params = Arrays.asList(state, max, getConnectorId());
         var options = new CosmosStoredProcedureRequestOptions();
         options.setPartitionKey(new PartitionKey(partitionKey));
@@ -232,7 +232,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     private void writeLease(String processId, Object connectorId, boolean writeLease) {
-        var sproc = getStoredProcedure(leaseSProcName);
+        var sproc = getStoredProcedure(LEASE_S_PROC_NAME);
         List<Object> args = Arrays.asList(processId, connectorId, writeLease);
         var options = new CosmosStoredProcedureRequestOptions();
         options.setPartitionKey(new PartitionKey(partitionKey));

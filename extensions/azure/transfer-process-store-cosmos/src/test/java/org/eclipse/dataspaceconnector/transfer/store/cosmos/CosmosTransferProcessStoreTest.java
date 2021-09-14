@@ -60,9 +60,9 @@ import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.cr
 @IntegrationTest
 class CosmosTransferProcessStoreTest {
 
-    private static final String accountName = "cosmos-itest";
-    private static final String databaseName = "connector-itest";
-    private static final String containerName = "CosmosTransferProcessStoreTest";
+    private static final String ACCOUNT_NAME = "cosmos-itest";
+    private static final String DATABASE_NAME = "connector-itest";
+    private static final String CONTAINER_NAME = "CosmosTransferProcessStoreTest";
     private static CosmosContainer container;
     private static CosmosDatabase database;
     private final String partitionKey = "testpartition";
@@ -79,10 +79,10 @@ class CosmosTransferProcessStoreTest {
                     .key(key)
                     .preferredRegions(Collections.singletonList("westeurope"))
                     .consistencyLevel(ConsistencyLevel.SESSION)
-                    .endpoint("https://" + accountName + ".documents.azure.com:443/")
+                    .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
                     .buildClient();
 
-            CosmosDatabaseResponse response = client.createDatabaseIfNotExists(databaseName);
+            CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
             database = client.getDatabase(response.getProperties().getId());
         }
     }
@@ -90,7 +90,7 @@ class CosmosTransferProcessStoreTest {
     @BeforeEach
     void setUp() {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
-        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
+        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(CONTAINER_NAME, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         uploadStoredProcedure(container, "nextForState");
         uploadStoredProcedure(container, "lease");

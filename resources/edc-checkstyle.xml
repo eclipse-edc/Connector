@@ -211,6 +211,10 @@
       <message key="name.invalidPattern"
              value="Pattern variable name ''{0}'' must match pattern ''{1}''."/>
     </module>
+    <module name="ConstantName">
+      <property name="format" value="(^[A-Z]{1}[A-Z_0-9]+)$"/>
+      <message key="name.invalidPattern" value="Constant ''{0}'' must be UPPER_CASE, i.e. match pattern ''{1}''."/>
+    </module>
     <module name="ClassTypeParameterName">
       <property name="format" value="(^[A-Z_]+[0-9]*)$"/>
       <message key="name.invalidPattern"

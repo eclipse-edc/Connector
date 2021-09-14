@@ -43,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public abstract class AbstractS3Test {
 
-    protected static final String region = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
+    protected static final String REGION = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
     // Adding REGION to bucket prevents errors of
     //      "A conflicting conditional operation is currently in progress against this resource."
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
@@ -57,7 +57,7 @@ public abstract class AbstractS3Test {
     public void setupClient() {
         bucketName = createBucketName();
         credentials = getCredentials();
-        client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
+        client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(REGION).build();
         createBucket(bucketName);
     }
 
@@ -68,7 +68,7 @@ public abstract class AbstractS3Test {
 
     @NotNull
     protected String createBucketName() {
-        return "test-bucket-" + System.currentTimeMillis() + "-" + region;
+        return "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
     }
 
     protected @NotNull AWSCredentials getCredentials() {
@@ -83,9 +83,9 @@ public abstract class AbstractS3Test {
             fail("Bucket " + bucketName + " exists. Choose a different bucket name to continue test");
         }
 
-        CreateBucketRequest request = AbstractS3Test.region.contains("east")
+        CreateBucketRequest request = AbstractS3Test.REGION.contains("east")
                 ? new CreateBucketRequest(bucketName) // See https://github.com/boto/boto3/issues/125
-                : new CreateBucketRequest(bucketName, AbstractS3Test.region);
+                : new CreateBucketRequest(bucketName, AbstractS3Test.REGION);
         client.createBucket(request);
 
         if (!client.doesBucketExistV2(bucketName)) {

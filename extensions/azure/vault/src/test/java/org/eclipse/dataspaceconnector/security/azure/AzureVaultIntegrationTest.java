@@ -39,19 +39,19 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @IntegrationTest
 public class AzureVaultIntegrationTest {
 
-    private static final String id = UUID.randomUUID().toString();
-    private static final String secretKey1 = "testkey1" + id;
-    private static final String secretKey2 = "testkey2" + id;
-    private static final String secretKey3 = "testkey3" + id;
-    private static final String secretKey4 = "testkey4" + id;
+    private static final String ID = UUID.randomUUID().toString();
+    private static final String SECRET_KEY_1 = "testkey1" + ID;
+    private static final String SECRET_KEY_2 = "testkey2" + ID;
+    private static final String SECRET_KEY_3 = "testkey3" + ID;
+    private static final String SECRET_KEY_4 = "testkey4" + ID;
     private static AzureVault azureVault;
 
     @AfterAll
     static void verifyAzureResourceGroup() {
-        azureVault.deleteSecret(secretKey1);
-        azureVault.deleteSecret(secretKey2);
-        azureVault.deleteSecret(secretKey3);
-        azureVault.deleteSecret(secretKey4);
+        azureVault.deleteSecret(SECRET_KEY_1);
+        azureVault.deleteSecret(SECRET_KEY_2);
+        azureVault.deleteSecret(SECRET_KEY_3);
+        azureVault.deleteSecret(SECRET_KEY_4);
     }
 
     @BeforeEach
@@ -73,18 +73,18 @@ public class AzureVaultIntegrationTest {
     @Test
     void storeSecret() {
 
-        VaultResponse vaultResponse = azureVault.storeSecret(secretKey1, "testvalue");
+        VaultResponse vaultResponse = azureVault.storeSecret(SECRET_KEY_1, "testvalue");
 
         assertTrue(vaultResponse.success());
-        assertEquals("testvalue", azureVault.resolveSecret(secretKey1));
+        assertEquals("testvalue", azureVault.resolveSecret(SECRET_KEY_1));
     }
 
     @Test
     void storeSecret_overwrites() {
-        azureVault.storeSecret(secretKey2, "value1");
-        azureVault.storeSecret(secretKey2, "value2");
+        azureVault.storeSecret(SECRET_KEY_2, "value1");
+        azureVault.storeSecret(SECRET_KEY_2, "value2");
 
-        assertEquals("value2", azureVault.resolveSecret(secretKey2));
+        assertEquals("value2", azureVault.resolveSecret(SECRET_KEY_2));
     }
 
     @Test
@@ -94,9 +94,9 @@ public class AzureVaultIntegrationTest {
 
     @Test
     void resolveSecret() {
-        assertTrue(azureVault.storeSecret(secretKey3, "someVal").success());
+        assertTrue(azureVault.storeSecret(SECRET_KEY_3, "someVal").success());
 
-        assertEquals("someVal", azureVault.resolveSecret(secretKey3));
+        assertEquals("someVal", azureVault.resolveSecret(SECRET_KEY_3));
     }
 
     @Test
@@ -108,9 +108,9 @@ public class AzureVaultIntegrationTest {
 
     @Test
     void delete() {
-        azureVault.storeSecret(secretKey4, "someval");
+        azureVault.storeSecret(SECRET_KEY_4, "someval");
 
-        VaultResponse vr = azureVault.deleteSecret(secretKey4);
+        VaultResponse vr = azureVault.deleteSecret(SECRET_KEY_4);
         assertTrue(vr.success());
         assertNull(vr.error());
     }
