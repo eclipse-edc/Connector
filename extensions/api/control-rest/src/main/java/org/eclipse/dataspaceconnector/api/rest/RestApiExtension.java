@@ -30,7 +30,7 @@ public class RestApiExtension implements ServiceExtension {
         ApiController controller = new ApiController(context.getConnectorId(), monitor, transferProcessManager, processStore, catalogService);
         webService.registerController(controller);
 
-        monitor.info("Initialized RestApiExtension");
+        monitor.info("Initialized REST API Extension");
     }
 
 }
