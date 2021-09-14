@@ -15,7 +15,7 @@ jobs:
       - name: Run Checkstyle
         uses: nikitasavinov/checkstyle-action@0.4.0
         with:
-          checkstyle_config: resources/edc-checkstyle.xml
+          checkstyle_config: resources/edc-checkstyle-config.xml
           level: info
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: 'checkstyle'
