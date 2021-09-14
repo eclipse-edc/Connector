@@ -1,9 +1,9 @@
-name: Unit Tests
+name: Verify Code (Style, Tests)
 
 on: [ push, pull_request ]
 
 jobs:
-  Check_Code_Style:
+  Checkstyle:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -24,7 +24,7 @@ jobs:
 
   Unit-Test:
     runs-on: ubuntu-latest
-
+    needs: Checkstyle
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
