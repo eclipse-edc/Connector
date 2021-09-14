@@ -15,6 +15,7 @@
 plugins {
     `java-library`
     `maven-publish`
+    checkstyle
 }
 
 repositories {
@@ -42,6 +43,13 @@ subprojects {
 
 allprojects {
     apply(plugin = "maven-publish")
+    apply(plugin = "checkstyle")
+
+    checkstyle {
+        toolVersion = "9.0"
+        configFile = rootProject.file("resources/edc-checkstyle-config.xml")
+    }
+
     pluginManager.withPlugin("java-library") {
         group = "org.eclipse.dataspaceconnector"
         version = "0.0.1-SNAPSHOT.1"
@@ -82,6 +90,13 @@ allprojects {
             events("passed", "skipped", "failed")
             showStackTraces = true
             exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+        }
+    }
+    tasks.withType<Checkstyle> {
+        reports {
+            // lets not generate any reports because that is done from within the Github Actions workflow
+            html.required.set(false)
+            xml.required.set(false)
         }
     }
 }

@@ -19,12 +19,13 @@ recommended. We might enable this in the future, such that at least interfaces a
 
 ## Running Checkstyle
 
-Checkstyle is available as an IDE plugin for many modern IDEs and it can run either on-demand or continuously in the
-background:
+Checkstyle can be run in different ways: implicitly we run it through the `checkstyle` Gradle Plugin
+during `gradle build`. That will cause the build to fail if any violations are found. But in order to get better
+usability and on-the-fly reporting, Checkstyle is also available as IDE plugins for many modern IDEs, and it can run
+either on-demand or continuously in the background:
 
 - [IntelliJ IDEA plugin [recommended]](https://plugins.jetbrains.com/plugin/1065-checkstyle-idea)
 - [Eclipse IDE [recommended]](https://checkstyle.org/eclipse-cs/#!/)
-- [running from commandline](https://checkstyle.sourceforge.io/cmdline.html)
 
 ### Checkstyle as PR validation
 
@@ -37,6 +38,8 @@ It is therefore **highly** recommended running Checkstyle locally as well.
 
 If you **do not wish** to run Checkstyle on you local machine, that's fine, but be prepared to get your PRs rejected
 simply because of a stupid naming or formatting error.
+
+> _Note: we do not use the Checkstyle Gradle Plugin on Github Actions because violations would cause builds to fail. For now, we only want to log warnings._
 
 ## [Recommended] IntelliJ Code Style Configuration
 

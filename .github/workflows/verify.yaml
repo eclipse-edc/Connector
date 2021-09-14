@@ -12,6 +12,7 @@ jobs:
         with:
           java-version: '11'
 
+      # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
       - name: Run Checkstyle
         uses: nikitasavinov/checkstyle-action@0.4.0
         with:
@@ -27,5 +28,6 @@ jobs:
       - name: Gradle Test Core
         env:
           INTEGRATION_TEST: false
-        run: ./gradlew clean check
+        # checkstyle would also run as part of the `check` task
+        run: ./gradlew clean check -x checkstyleMain -x checkstyleTest
 
