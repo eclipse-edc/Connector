@@ -106,9 +106,8 @@ public class ConsumerRunner {
         }
 
         // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
-//        var usRequest = createRequestAws("us-request", EU_ARTIFACT);
-//
-//        processManager.initiateConsumerRequest(usRequest);
+        // var usRequest = createRequestAws("us-request", EU_ARTIFACT);
+        // processManager.initiateConsumerRequest(usRequest);
 
 
         assertThat(latch.await(5, TimeUnit.MINUTES)).isTrue();
@@ -116,7 +115,7 @@ public class ConsumerRunner {
 
 
     @Test
-//    @Disabled
+        // @Disabled
     void processConsumerRequest_toAzureStorage(RemoteMessageDispatcherRegistry dispatcherRegistry, TransferProcessManager processManager, TransferProcessObservable observable, TransferProcessStore store) throws Exception {
         var query = QueryRequest.Builder.newInstance()
                 .connectorAddress(PROVIDER_CONNECTOR)
@@ -165,9 +164,9 @@ public class ConsumerRunner {
         }
 
         // Initiate a request as a U.S.-based connector for an EU-restricted artifact (will be denied)
-//        var usRequest = createRequestAzure("us-request", EU_ARTIFACT);
-//
-//        processManager.initiateConsumerRequest(usRequest);
+        //        var usRequest = createRequestAzure("us-request", EU_ARTIFACT);
+        //
+        //        processManager.initiateConsumerRequest(usRequest);
 
         assertThat(latch.await(5, TimeUnit.MINUTES)).isTrue();
     }

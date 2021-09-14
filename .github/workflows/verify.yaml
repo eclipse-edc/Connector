@@ -16,7 +16,7 @@ jobs:
         uses: nikitasavinov/checkstyle-action@0.4.0
         with:
           checkstyle_config: resources/edc-checkstyle.xml
-          level: warning
+          level: info
           github_token: ${{ secrets.GITHUB_TOKEN }}
           tool_name: 'checkstyle'
           checkstyle_version: '9.0'

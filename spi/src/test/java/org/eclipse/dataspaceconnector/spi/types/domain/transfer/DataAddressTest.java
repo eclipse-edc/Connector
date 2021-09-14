@@ -15,9 +15,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- *
- */
 class DataAddressTest {
 
     @Test
@@ -40,10 +37,6 @@ class DataAddressTest {
 
     @Test
     void verifyThrowsException() {
-
-//        assertThatThrownBy(() -> DataAddress.Builder.newInstance()
-//                .type("sometype")
-//                .property("foo", "bar").build()).isInstanceOf(NullPointerException.class).hasMessageContaining("keyName");
 
         assertThatThrownBy(() -> DataAddress.Builder.newInstance()
                 .keyName("somekey")

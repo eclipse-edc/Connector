@@ -20,7 +20,15 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.*;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -33,7 +41,16 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.anyInt;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.eq;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.niceMock;
+import static org.easymock.EasyMock.partialMockBuilder;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 class TransferProcessManagerImplConsumerTest {
 
@@ -122,7 +139,7 @@ class TransferProcessManagerImplConsumerTest {
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.singletonList(process));
         processStoreMock.update(process);
         expectLastCall().times(1);
-        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();//ignore any subsequent calls
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes(); //ignore any subsequent calls
         replay(processStoreMock);
 
         //act
@@ -155,7 +172,7 @@ class TransferProcessManagerImplConsumerTest {
             cdl.countDown();
             return null;
         }).times(1);
-        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();//ignore any subsequent calls
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes(); //ignore any subsequent calls
         replay(processStoreMock);
 
 
@@ -191,7 +208,7 @@ class TransferProcessManagerImplConsumerTest {
             cdl.countDown();
             return null;
         }).times(1);
-        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();//ignore any subsequent calls
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes(); //ignore any subsequent calls
         replay(processStoreMock);
 
 
@@ -362,7 +379,6 @@ class TransferProcessManagerImplConsumerTest {
         //assert
         assertThat(processesToProvision.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(provisionManager);
-//        verify(waitStrategyMock);
         assertThat(processes).describedAs("All transfer processes should be in PROVISIONING state").allSatisfy(p -> {
             var id = p.getId();
             var storedProcess = inMemoryProcessStore.find(id);
@@ -399,13 +415,13 @@ class TransferProcessManagerImplConsumerTest {
         }
 
         @Override
-        public String getResourceName() {
-            return "test-resource";
+        public DataAddress createDataDestination() {
+            return null;
         }
 
         @Override
-        public DataAddress createDataDestination() {
-            return null;
+        public String getResourceName() {
+            return "test-resource";
         }
     }
 }

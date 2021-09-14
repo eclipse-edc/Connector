@@ -24,8 +24,8 @@ public class JwkKey {
     private String use;
     private String kid;
     private String x5t;
-    private String n;
-    private String e;
+    private String nn;
+    private String ee;
     private List<String> x5c;
     private String issuer;
 
@@ -62,19 +62,19 @@ public class JwkKey {
     }
 
     public String getN() {
-        return n;
+        return nn;
     }
 
     public void setN(String n) {
-        this.n = n;
+        nn = n;
     }
 
     public String getE() {
-        return e;
+        return ee;
     }
 
     public void setE(String e) {
-        this.e = e;
+        ee = e;
     }
 
     public List<String> getX5c() {

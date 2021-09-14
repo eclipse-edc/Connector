@@ -14,7 +14,11 @@
 
 package org.eclipse.dataspaceconnector.transfer.store.memory;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.*;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,11 +29,12 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNotSame;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- *
- */
 class InMemoryTransferProcessStoreTest {
     private InMemoryTransferProcessStore store;
 
@@ -140,6 +145,11 @@ class InMemoryTransferProcessStoreTest {
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
 
+    @BeforeEach
+    void setUp() {
+        store = new InMemoryTransferProcessStore();
+    }
+
     private TransferProcess createProcess(String name) {
         DataRequest mock = niceMock(DataRequest.class);
         replay(mock);
@@ -151,11 +161,5 @@ class InMemoryTransferProcessStoreTest {
                 .provisionedResourceSet(new ProvisionedResourceSet())
                 .dataRequest(mock)
                 .build();
-    }
-
-
-    @BeforeEach
-    void setUp() {
-        store = new InMemoryTransferProcessStore();
     }
 }

@@ -22,9 +22,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.function.Consumer;
 
-/**
- *
- */
 class DemoTopicManagerTest {
     private DemoTopicManager topicManager;
 

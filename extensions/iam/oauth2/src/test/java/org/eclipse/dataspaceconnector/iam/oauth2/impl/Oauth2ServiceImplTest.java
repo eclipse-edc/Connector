@@ -26,7 +26,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class OAuth2ServiceImplTest {
+class Oauth2ServiceImplTest {
     private Oauth2ServiceImpl authService;
     private DecodedJWT jwt;
 

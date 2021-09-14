@@ -29,7 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Base class for end-to-end demo protocol testing.
  */
 @ExtendWith(EdcExtension.class)
-abstract public class AbstractDemoTransferTest {
+public abstract class AbstractDemoTransferTest {
 
     /**
      * Fixture that obtains a reference to the runtime.
@@ -46,7 +46,7 @@ abstract public class AbstractDemoTransferTest {
     }
 
     protected static class MockVault implements Vault {
-        private Map<String, String> secrets = new ConcurrentHashMap<>();
+        private final Map<String, String> secrets = new ConcurrentHashMap<>();
 
         @Override
         public @Nullable String resolveSecret(String key) {

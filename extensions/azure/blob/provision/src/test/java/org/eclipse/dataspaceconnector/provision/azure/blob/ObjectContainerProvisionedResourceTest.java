@@ -67,7 +67,9 @@ class ObjectContainerProvisionedResourceTest {
 
     @Test
     void verifyDeserialization() {
-        final String json = "{\"id\":\"test-id\",\"edctype\":\"dataspaceconnector:objectcontainerprovisionedresource\", \"transferProcessId\":\"test-process-id\",\"resourceDefinitionId\":\"test-resdef-id\",\"error\":false,\"errorMessage\":null,\"accountName\":\"test-account\",\"containerName\":\"test-container\",\"resourceName\":\"test-container\"}";
+        final String json = "{\"id\":\"test-id\",\"edctype\":\"dataspaceconnector:objectcontainerprovisionedresource\", " +
+                "\"transferProcessId\":\"test-process-id\",\"resourceDefinitionId\":\"test-resdef-id\",\"error\":false,\"errorMessage\":null," +
+                "\"accountName\":\"test-account\",\"containerName\":\"test-container\",\"resourceName\":\"test-container\"}";
         var typeManager = new TypeManager();
         typeManager.registerTypes(ObjectContainerProvisionedResource.class);
 

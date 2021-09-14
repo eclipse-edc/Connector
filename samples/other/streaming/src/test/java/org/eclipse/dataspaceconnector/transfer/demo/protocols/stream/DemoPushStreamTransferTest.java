@@ -30,7 +30,10 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
-import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.*;
+import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.DESTINATION_NAME;
+import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.ENDPOINT_ADDRESS;
+import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.PUSH_STREAM_HTTP;
+import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.PUSH_STREAM_WS;
 
 /**
  * Demonstrates an-end-to-end push stream transfer.
@@ -112,8 +115,8 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
     }
 
     private static class TestStreamPublisher implements StreamPublisher {
-        private StreamContext context;
         private final CountDownLatch requestLatch;
+        private StreamContext context;
 
         public TestStreamPublisher(CountDownLatch requestLatch) {
             this.requestLatch = requestLatch;

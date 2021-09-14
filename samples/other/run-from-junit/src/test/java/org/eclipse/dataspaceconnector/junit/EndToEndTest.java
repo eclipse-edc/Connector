@@ -12,10 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.junit;/*
- * Copyright (c) Microsoft Corporation.
- * All rights reserved.
- */
+package org.eclipse.dataspaceconnector.junit;
 
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
@@ -46,9 +43,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-/**
- *
- */
 @ExtendWith(EdcExtension.class)
 public class EndToEndTest {
 
