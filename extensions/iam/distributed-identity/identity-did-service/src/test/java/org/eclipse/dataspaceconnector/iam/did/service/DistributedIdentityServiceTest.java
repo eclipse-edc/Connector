@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
@@ -47,7 +48,7 @@ class DistributedIdentityServiceTest {
 
     @Test
     void verifyResolveHubUrl() throws JsonProcessingException {
-        @SuppressWarnings("unchecked") var url = identityService.resolveHubUrl(new ObjectMapper().readValue(TestDids.HUB_URL_DID, Map.class));
+        var url = identityService.resolveHubUrl(new ObjectMapper().readValue(TestDids.HUB_URL_DID, Map.class));
         Assertions.assertEquals("https://myhub.com", url);
     }
 
@@ -85,14 +86,16 @@ class DistributedIdentityServiceTest {
     }
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         privateKey = TemporaryKeyLoader.loadPrivateKey();
         publicKey = TemporaryKeyLoader.loadPublicKey();
 
+        var didJSon = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
+        var hubUrlDid = new String(didJSon.readAllBytes(), StandardCharsets.UTF_8);
+
         DidResolver didResolver = d -> {
             try {
-                //noinspection unchecked
-                return new ObjectMapper().readValue(TestDids.HUB_URL_DID, LinkedHashMap.class);
+                return new ObjectMapper().readValue(hubUrlDid, LinkedHashMap.class);
             } catch (JsonProcessingException e) {
                 throw new AssertionError(e);
             }

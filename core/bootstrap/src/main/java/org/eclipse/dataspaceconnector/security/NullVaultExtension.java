@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * A vault extension stub.
+ * A vault extension fallback that gets loaded if no other implementation of the {@link VaultExtension} was found.
  */
 public class NullVaultExtension implements VaultExtension {
     @Override

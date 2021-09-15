@@ -5,6 +5,10 @@ plugins {
 val jwtVersion: String by project
 val okHttpVersion: String by project
 
+repositories {
+    mavenCentral()
+}
+
 dependencies {
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")

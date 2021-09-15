@@ -15,6 +15,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.S3Exception;
 
+import java.io.InputStream;
 import java.time.temporal.ChronoUnit;
 
 class S3BucketWriter implements DataWriter {
@@ -32,7 +33,7 @@ class S3BucketWriter implements DataWriter {
     }
 
     @Override
-    public void write(DataAddress destination, String name, byte[] data, String secretToken) {
+    public void write(DataAddress destination, String name, InputStream data, String secretToken) {
 //        if (!(secretToken instanceof AwsSecretToken)) {
 //            throw new IllegalArgumentException("Can only handle AwsSecretTokens!");
 //        }
@@ -53,7 +54,7 @@ class S3BucketWriter implements DataWriter {
 
             try {
                 monitor.debug("Data request: begin transfer...");
-                var response = Failsafe.with(retryPolicy).get(() -> s3.putObject(request, RequestBody.fromBytes(data)));
+                var response = Failsafe.with(retryPolicy).get(() -> s3.putObject(request, RequestBody.fromBytes(data.readAllBytes())));
                 var response2 = Failsafe.with(retryPolicy).get(() -> s3.putObject(completionMarker, RequestBody.empty()));
                 monitor.debug("Data request done.");
                 etag = response.eTag();

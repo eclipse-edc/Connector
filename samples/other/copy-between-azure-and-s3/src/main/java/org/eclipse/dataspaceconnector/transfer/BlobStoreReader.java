@@ -3,6 +3,8 @@ package org.eclipse.dataspaceconnector.transfer;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
+import java.io.ByteArrayInputStream;
+
 class BlobStoreReader implements DataReader {
     private final BlobStoreApi blobStoreApi;
 
@@ -11,10 +13,10 @@ class BlobStoreReader implements DataReader {
     }
 
     @Override
-    public byte[] read(DataAddress source) {
+    public ByteArrayInputStream read(DataAddress source) {
         var account = source.getProperty("account");
         var container = source.getProperty("container");
         var blobName = source.getProperty("blobname");
-        return blobStoreApi.getBlob(account, container, blobName);
+        return new ByteArrayInputStream(blobStoreApi.getBlob(account, container, blobName));
     }
 }
