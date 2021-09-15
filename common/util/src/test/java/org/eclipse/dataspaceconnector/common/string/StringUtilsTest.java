@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.common.string;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 
 class StringUtilsTest {
 
@@ -63,6 +62,13 @@ class StringUtilsTest {
 
     }
 
+    @Test
+    void toStringTest() { //cannot be named "toString()"
+        assertThat(StringUtils.toString("")).isEqualTo("");
+        assertThat(StringUtils.toString(23)).isEqualTo("23");
+        assertThat(StringUtils.toString(null)).isEqualTo(null);
+        assertThat(StringUtils.toString(new Object())).contains("java.lang.Object@");
+    }
     @Test
     void encodeToHexBytes() {
 
@@ -114,14 +120,6 @@ class StringUtilsTest {
         var expectedOutput = "d976ed16229ede02e2c4343f73ea13c2e623c3c07e7a8f4cb11e7e5c65d720390bf1881769395040e8e0c87c9d5819d413885f04e5cd045d434c5cbe811353dafb8a8488c9447a852a9c57d821534cbb74431fa797472648e43dd7f8d99822b7720744418d0885e2c7c16f4c8bc1ef686b9531aba3050eec5afd67ac7bb928761cb54128adccd1c0245f2a7a13166bdbb061680c6584091304f6a5186d311799df1bd3bbecdc5646b18d333";
 
         assertThat(StringUtils.encodeToHex(input)).isEqualTo(expectedOutput);
-    }
-
-    @Test
-    void toStringTest() { //cannot be named "toString()"
-        assertThat(StringUtils.toString("")).isEqualTo("");
-        assertThat(StringUtils.toString(23)).isEqualTo("23");
-        assertThat(StringUtils.toString(null)).isEqualTo(null);
-        assertThat(StringUtils.toString(new Object())).contains("java.lang.Object@");
     }
 
 }
