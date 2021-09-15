@@ -12,9 +12,6 @@ ENTRYPOINT java \
     -Dedc.vault.tenantid=${TENANTID} \
     -Dedc.vault.certificate=/cert/cert.pfx \
     -Dedc.vault.name=${VAULTNAME} \
-    -Dedc.atlas.url=${ATLAS_URL} \
-    -Dedc.nifi.url=${NIFI_URL} \
-    -Dedc.nifi.flow.url=${NIFI_FLOW_URL} \
     -Dedc.cosmos.account.name=${COSMOS_ACCOUNT} \
     -Dedc.cosmos.database.name=${COSMOS_DB} \
     -Dedc.events.topic.name=${TOPIC_NAME} \
