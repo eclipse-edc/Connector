@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.common.string;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.in;
 
 class StringUtilsTest {
 
@@ -63,5 +62,12 @@ class StringUtilsTest {
 
     }
 
+    @Test
+    void toStringTest() { //cannot be named "toString()"
+        assertThat(StringUtils.toString("")).isEqualTo("");
+        assertThat(StringUtils.toString(23)).isEqualTo("23");
+        assertThat(StringUtils.toString(null)).isEqualTo(null);
+        assertThat(StringUtils.toString(new Object())).contains("java.lang.Object@");
+    }
 
 }

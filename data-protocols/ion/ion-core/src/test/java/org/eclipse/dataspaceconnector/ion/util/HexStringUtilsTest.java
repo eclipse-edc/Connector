@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 /**
  *
  */
-class StringUtilsTest {
+class HexStringUtilsTest {
     @Test
     void encodeToHexBytes() {
 
