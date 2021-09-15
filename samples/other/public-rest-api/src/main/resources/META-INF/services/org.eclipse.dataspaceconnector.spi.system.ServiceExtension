@@ -12,5 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.demo.ui.DemoUiApiExtension
-
+org.eclipse.dataspaceconnector.demo.api.rest.DemoApiExtension

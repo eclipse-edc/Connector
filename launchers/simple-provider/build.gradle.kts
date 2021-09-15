@@ -34,7 +34,7 @@ dependencies {
 
     implementation(project(":samples:other:copy-between-azure-and-s3"))
 
-    implementation(project(":extensions:api:control-rest"))
+    implementation(project(":samples:other:public-rest-api"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-service"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-core"))

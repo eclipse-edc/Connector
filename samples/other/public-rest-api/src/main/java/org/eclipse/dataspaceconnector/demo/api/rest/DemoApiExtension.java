@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.api.rest;
+package org.eclipse.dataspaceconnector.demo.api.rest;
 
 import org.eclipse.dataspaceconnector.metadata.catalog.CatalogService;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -10,7 +10,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import java.util.Set;
 
 
-public class RestApiExtension implements ServiceExtension {
+public class DemoApiExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
@@ -27,7 +27,7 @@ public class RestApiExtension implements ServiceExtension {
         var processStore = context.getService(TransferProcessStore.class);
         var catalogService = context.getService(CatalogService.class);
 
-        ApiController controller = new ApiController(context.getConnectorId(), monitor, transferProcessManager, processStore, catalogService);
+        var controller = new DemoApiController(context.getConnectorId(), monitor, transferProcessManager, processStore, catalogService);
         webService.registerController(controller);
 
         monitor.info("Initialized REST API Extension");

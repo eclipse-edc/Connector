@@ -1,6 +1,13 @@
-package org.eclipse.dataspaceconnector.api.rest;
+package org.eclipse.dataspaceconnector.demo.api.rest;
 
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.common.collection.CollectionUtil;
@@ -16,17 +23,17 @@ import org.jetbrains.annotations.NotNull;
 import java.util.HashMap;
 import java.util.UUID;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
-public class ApiController {
+public class DemoApiController {
     private final Monitor monitor;
     private final TransferProcessManager transferProcessManager;
     private final TransferProcessStore processStore;
     private final String connectorName;
     private final CatalogService catalogService;
 
-    public ApiController(String connectorName, Monitor monitor, TransferProcessManager transferProcessManager, TransferProcessStore processStore, CatalogService catalogService) {
+    public DemoApiController(String connectorName, Monitor monitor, TransferProcessManager transferProcessManager, TransferProcessStore processStore, CatalogService catalogService) {
         this.connectorName = connectorName;
         this.monitor = monitor;
         this.transferProcessManager = transferProcessManager;

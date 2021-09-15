@@ -37,7 +37,6 @@ include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ion:ion-core")
 
 // modules for technology- or cloud-provider extensions
-include(":extensions:api:control-rest")
 include(":extensions:aws:s3:provision")
 include(":extensions:aws:s3:s3-schema")
 include(":extensions:aws:aws-test")

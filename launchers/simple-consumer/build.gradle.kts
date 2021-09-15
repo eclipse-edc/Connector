@@ -32,12 +32,14 @@ dependencies {
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
-    implementation(project(":extensions:api:control-rest"))
+
     implementation(project(":extensions:iam:distributed-identity:identity-did-service"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
     implementation(project(":extensions:in-memory:identity-hub-memory"))
     implementation(project(":samples:other:identity-gaiax-verifier"))
+
+    implementation(project(":samples:other:public-rest-api"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.5.2")
