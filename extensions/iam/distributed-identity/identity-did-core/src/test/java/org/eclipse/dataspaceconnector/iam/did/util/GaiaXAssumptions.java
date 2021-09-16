@@ -15,9 +15,7 @@ package org.eclipse.dataspaceconnector.iam.did.util;
 
 import org.junit.jupiter.api.Assumptions;
 
-/**
- *
- */
+
 public class GaiaXAssumptions {
 
     public static void assumptions() {
