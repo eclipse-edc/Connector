@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ion.util;
 
-import io.ipfs.multihash.Multihash;
 import org.eclipse.dataspaceconnector.ion.IonException;
 
 import java.security.MessageDigest;
