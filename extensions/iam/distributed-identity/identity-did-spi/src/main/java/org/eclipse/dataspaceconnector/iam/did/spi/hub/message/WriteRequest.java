@@ -19,9 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 
-/**
- *
- */
+
 @JsonTypeName("WriteRequest")
 @JsonDeserialize(builder = WriteRequest.Builder.class)
 public class WriteRequest extends AbstractHubRequest {

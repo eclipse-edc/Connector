@@ -13,9 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.service;
 
-/**
- *
- */
+
 public interface TestDids {
 
 // Resolve ION/IdentityHub discrepancy

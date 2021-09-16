@@ -13,9 +13,7 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
-/**
- *
- */
+
 class GaiaXCredentialsVerifierTest {
     private IdentityHubClient hubClient;
     private GaiaXCredentialsVerifier credentialsVerifier;

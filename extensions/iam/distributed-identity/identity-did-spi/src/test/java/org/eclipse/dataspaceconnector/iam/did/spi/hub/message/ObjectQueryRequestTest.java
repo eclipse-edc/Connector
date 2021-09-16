@@ -20,9 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.eclipse.dataspaceconnector.iam.did.spi.hub.message.InterfaceType.Actions;
 
-/**
- *
- */
+
 class ObjectQueryRequestTest {
 
     @Test

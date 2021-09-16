@@ -21,9 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
-/**
- *
- */
+
 @JsonDeserialize(builder = Commit.Builder.class)
 public class Commit {
     public enum Operation {

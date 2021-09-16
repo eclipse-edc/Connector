@@ -13,9 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.hub.message;
 
-/**
- *
- */
+
 interface HubMessageConstants {
     String SCHEMA = "https://schema.identity.foundation/0.1";
 }

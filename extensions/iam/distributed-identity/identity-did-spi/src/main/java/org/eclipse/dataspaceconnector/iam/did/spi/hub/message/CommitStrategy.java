@@ -13,9 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.hub.message;
 
-/**
- *
- */
+
 public enum CommitStrategy {
     basic
 }

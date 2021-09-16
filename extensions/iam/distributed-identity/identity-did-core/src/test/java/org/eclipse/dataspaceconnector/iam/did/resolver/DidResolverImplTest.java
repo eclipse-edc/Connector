@@ -7,9 +7,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
 
-/**
- *
- */
+
 class DidResolverImplTest {
     private static final String RESOLVER_URL = "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/identifiers/";
 

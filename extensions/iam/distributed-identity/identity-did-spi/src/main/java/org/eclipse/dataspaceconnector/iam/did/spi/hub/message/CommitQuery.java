@@ -23,9 +23,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Objects;
 
-/**
- *
- */
+
 @JsonTypeName(QueryTypes.COMMIT)
 @JsonDeserialize(builder = CommitQuery.Builder.class)
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")

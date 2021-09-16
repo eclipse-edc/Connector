@@ -21,9 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- */
+
 @JsonTypeName("ObjectQueryResponse")
 @JsonDeserialize(builder = ObjectQueryResponse.Builder.class)
 public class ObjectQueryResponse extends HubMessage {

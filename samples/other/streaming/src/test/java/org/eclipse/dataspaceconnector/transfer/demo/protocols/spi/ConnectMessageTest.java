@@ -23,6 +23,7 @@ import java.io.StringWriter;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+
 class ConnectMessageTest {
 
     @Test

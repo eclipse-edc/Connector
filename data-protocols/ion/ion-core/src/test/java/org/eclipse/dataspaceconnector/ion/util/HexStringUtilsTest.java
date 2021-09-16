@@ -3,9 +3,7 @@ package org.eclipse.dataspaceconnector.ion.util;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-/**
- *
- */
+
 class HexStringUtilsTest {
     @Test
     void encodeToHexBytes() {

@@ -21,9 +21,7 @@ import java.security.KeyStore;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 
-/**
- *
- */
+
 public class TemporaryKeyLoader {
     private static final String TEST_KEYSTORE = "edc-test-keystore.jks";
     private static final String PASSWORD = "test123";

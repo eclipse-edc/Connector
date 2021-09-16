@@ -15,9 +15,7 @@ package org.eclipse.dataspaceconnector.iam.did.spi.hub.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- *
- */
+
 public class CommitHeader {
     @JsonProperty("rev")
     private String rev;

@@ -40,9 +40,7 @@ import java.util.function.Supplier;
 
 import static org.eclipse.dataspaceconnector.iam.did.keys.TemporaryKeyLoader.loadKeys;
 
-/**
- *
- */
+
 public class IdentityDidCoreHubExtension implements ServiceExtension {
     @EdcSetting
     private static final String RESOLVER_URL_KEY = "dataspaceconnector.did.resolver.url";

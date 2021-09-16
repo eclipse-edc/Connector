@@ -20,9 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- */
+
 @JsonTypeName("WriteResponse")
 @JsonDeserialize(builder = WriteResponse.Builder.class)
 public class WriteResponse extends HubMessage {

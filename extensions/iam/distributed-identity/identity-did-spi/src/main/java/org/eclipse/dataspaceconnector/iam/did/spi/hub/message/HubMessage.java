@@ -18,9 +18,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-/**
- *
- */
+
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
 @JsonIgnoreProperties(value = {"@context"}, allowGetters = true)
 public class HubMessage {

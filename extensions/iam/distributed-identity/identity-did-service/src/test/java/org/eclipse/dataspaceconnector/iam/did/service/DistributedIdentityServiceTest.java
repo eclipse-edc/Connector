@@ -38,9 +38,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
-/**
- *
- */
+
 class DistributedIdentityServiceTest {
     private DistributedIdentityService identityService;
     private RSAPrivateKey privateKey;

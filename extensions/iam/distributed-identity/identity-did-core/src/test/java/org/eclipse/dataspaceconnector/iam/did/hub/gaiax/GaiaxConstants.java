@@ -13,9 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.hub.gaiax;
 
-/**
- *
- */
+
 public interface GaiaxConstants {
 
     @Deprecated

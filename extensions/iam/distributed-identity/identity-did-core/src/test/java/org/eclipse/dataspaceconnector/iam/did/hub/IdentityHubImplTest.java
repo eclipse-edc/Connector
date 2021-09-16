@@ -25,9 +25,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 import java.util.Map;
 
-/**
- *
- */
+
 class IdentityHubImplTest {
     private IdentityHubImpl hub;
     private IdentityHubStore store;

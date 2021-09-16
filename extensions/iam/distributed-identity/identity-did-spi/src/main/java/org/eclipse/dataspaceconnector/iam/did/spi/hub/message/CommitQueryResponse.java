@@ -21,9 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- *
- */
+
 @JsonTypeName("CommitQueryResponse")
 @JsonDeserialize(builder = CommitQueryResponse.Builder.class)
 public class CommitQueryResponse extends HubMessage {

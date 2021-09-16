@@ -16,9 +16,7 @@ package org.eclipse.dataspaceconnector.iam.did.spi.hub.message;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 
-/**
- *
- */
+
 @JsonTypeName("ErrorResponse")
 public class ErrorResponse extends HubMessage {
     private String errorCode;

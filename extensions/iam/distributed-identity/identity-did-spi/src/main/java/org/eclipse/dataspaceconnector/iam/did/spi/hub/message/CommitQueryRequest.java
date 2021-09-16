@@ -19,9 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 
-/**
- *
- */
+
 @JsonTypeName("CommitQueryRequest")
 @JsonDeserialize(builder = CommitQueryRequest.Builder.class)
 public class CommitQueryRequest extends AbstractHubRequest {

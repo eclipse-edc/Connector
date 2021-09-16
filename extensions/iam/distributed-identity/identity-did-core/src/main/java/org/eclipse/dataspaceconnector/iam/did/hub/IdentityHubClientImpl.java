@@ -32,9 +32,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 import java.util.function.Supplier;
 
-/**
- *
- */
+
 public class IdentityHubClientImpl implements IdentityHubClient {
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;

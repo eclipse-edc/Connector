@@ -19,9 +19,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 
 import java.util.Objects;
 
-/**
- *
- */
+
 @JsonTypeName("ObjectQueryRequest")
 @JsonDeserialize(builder = ObjectQueryRequest.Builder.class)
 public class ObjectQueryRequest extends AbstractHubRequest {
