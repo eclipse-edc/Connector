@@ -1,13 +1,16 @@
 package org.eclipse.dataspaceconnector.ion.model;
 
 import com.nimbusds.jose.jwk.JWK;
-import kotlin.NotImplementedError;
 import org.eclipse.dataspaceconnector.ion.IonException;
 import org.eclipse.dataspaceconnector.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.ion.util.MultihashHelper;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Factory class that creates requests for all 4 operations that can be sent to ION
@@ -68,14 +71,14 @@ public class IonRequestFactory {
     }
 
     public static IonRequest createUpdateRequest() {
-        throw new NotImplementedError();
+        throw new UnsupportedOperationException("Operation not yet implemented!");
     }
 
     public static IonRequest createRecoverRequest() {
-        throw new NotImplementedError();
+        throw new UnsupportedOperationException("Operation not yet implemented!");
     }
 
     public static IonRequest createDeactivateRequest() {
-        throw new NotImplementedError();
+        throw new UnsupportedOperationException("Operation not yet implemented!");
     }
 }
