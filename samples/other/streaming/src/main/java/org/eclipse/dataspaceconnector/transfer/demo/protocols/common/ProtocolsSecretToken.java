@@ -20,9 +20,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 
 import java.util.Map;
 
-/**
- *
- */
 @JsonTypeName("dataspaceconnector:protocolssecrettoken")
 public class ProtocolsSecretToken implements SecretToken {
     private final String token;
@@ -36,13 +33,13 @@ public class ProtocolsSecretToken implements SecretToken {
     }
 
     @Override
-    public Map<String, ?> flatten() {
-        return Map.of("token", token);
+    public long getExpiration() {
+        return Long.MAX_VALUE;
     }
 
     @Override
-    public long getExpiration() {
-        return Long.MAX_VALUE;
+    public Map<String, ?> flatten() {
+        return Map.of("token", token);
     }
 }
 

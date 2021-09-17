@@ -23,7 +23,7 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestUtils {
-    public final static String SAMPLE_FILE_RESOURCE_NAME = "hello.txt";
+    public static final String SAMPLE_FILE_RESOURCE_NAME = "hello.txt";
 
     public static Path getResourcePath(String resourceName) {
         Path path = null;

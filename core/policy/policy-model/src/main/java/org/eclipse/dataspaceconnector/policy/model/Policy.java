@@ -17,7 +17,11 @@ package org.eclipse.dataspaceconnector.policy.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 /**
  * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by {@link PolicyType}.
@@ -27,13 +31,13 @@ public class Policy extends Identifiable {
     private final List<Permission> permissions = new ArrayList<>();
     private final List<Prohibition> prohibitions = new ArrayList<>();
     private final List<Duty> obligations = new ArrayList<>();
+    private final Map<String, Object> extensibleProperties = new HashMap<>();
     private String inheritsFrom;
     private String assigner;
     private String assignee;
     private String target;
     @JsonProperty("@type")
     private PolicyType type = PolicyType.SET;
-    private final Map<String, Object> extensibleProperties = new HashMap<>();
 
     private Policy() {
     }

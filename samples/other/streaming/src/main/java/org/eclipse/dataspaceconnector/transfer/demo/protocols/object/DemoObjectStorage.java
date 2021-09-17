@@ -20,13 +20,14 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestina
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.object.ObjectStorage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.object.ObjectStorageObserver;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**
- *
- */
 public class DemoObjectStorage extends AbstractQueuedProvisioner implements ObjectStorage {
     private final Monitor monitor;
 
@@ -40,6 +41,15 @@ public class DemoObjectStorage extends AbstractQueuedProvisioner implements Obje
     @Override
     public void register(ObjectStorageObserver observer) {
         observers.add(observer);
+    }
+
+    @Override
+    public boolean deprovision(String containerName) {
+        containers.remove(containerName);
+        monitor.severe("De-provisioned object container: " + containerName);
+
+        observers.forEach(o -> o.onDeprovision(containerName));
+        return true;
     }
 
     @Override
@@ -63,15 +73,6 @@ public class DemoObjectStorage extends AbstractQueuedProvisioner implements Obje
 
         observers.forEach(o -> o.onStore(containerName, objectKey, token, data));
 
-        return true;
-    }
-
-    @Override
-    public boolean deprovision(String containerName) {
-        containers.remove(containerName);
-        monitor.severe("De-provisioned object container: " + containerName);
-
-        observers.forEach(o -> o.onDeprovision(containerName));
         return true;
     }
 

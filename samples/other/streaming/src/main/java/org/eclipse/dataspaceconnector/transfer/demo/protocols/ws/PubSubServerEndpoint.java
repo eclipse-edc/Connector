@@ -99,6 +99,8 @@ public class PubSubServerEndpoint {
                     connectResult.getConsumer().accept(publish.getPayload());
                 }
                 break;
+            default:
+                break;
         }
     }
 

@@ -14,7 +14,15 @@
 
 package org.eclipse.dataspaceconnector.ids.core.policy;
 
-import org.eclipse.dataspaceconnector.ids.spi.policy.*;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsOfferDutyFunction;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsOfferPermissionFunction;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsOfferPolicyContext;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsOfferProhibitionFunction;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsRequestDutyFunction;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsRequestPermissionFunction;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsRequestPolicyContext;
+import org.eclipse.dataspaceconnector.ids.spi.policy.IdsRequestProhibitionFunction;
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluationResult;
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
 import org.eclipse.dataspaceconnector.policy.model.Policy;

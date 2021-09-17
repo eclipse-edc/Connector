@@ -15,16 +15,17 @@
 package org.eclipse.dataspaceconnector.policy.engine.model;
 
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
-import org.eclipse.dataspaceconnector.policy.model.*;
+import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.dataspaceconnector.policy.engine.model.PolicyTestFunctions.createLiteralAtomicConstraint;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/**
- *
- */
 class PolicyEvaluatorScenarioTest {
 
     /**

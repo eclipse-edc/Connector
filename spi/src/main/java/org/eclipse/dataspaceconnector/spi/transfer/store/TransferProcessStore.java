@@ -33,7 +33,7 @@ public interface TransferProcessStore {
 
     /**
      * Returns a list of TransferProcesses that are in a specific state.
-     * <p>
+     * <br/>
      * Implementors MUST handle the starvation scenario, i.e. when the number of processes is greater than the number
      * passedin via {@code max}.
      * E.g. database-based implementations should perform a query along the lines of {@code SELECT ... ORDER BY TransferProcess#stateTimestamp}.

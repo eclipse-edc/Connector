@@ -14,10 +14,14 @@
 
 package org.eclipse.dataspaceconnector.provision.azure;
 
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectContainerProvisionedResource;
+import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectContainerStatusChecker;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageDefinitionConsumerGenerator;
+import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageProvisioner;
+import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -26,8 +30,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
-import org.eclipse.dataspaceconnector.provision.azure.blob.*;
-import net.jodah.failsafe.RetryPolicy;
 
 import java.util.Set;
 
@@ -45,9 +47,8 @@ public class AzureProvisionExtension implements ServiceExtension {
 
         context.registerService(BlobStoreApi.class, new BlobStoreApiImpl(context.getService(Vault.class)));
 
-        //noinspection unchecked
         var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
-        final BlobStoreApi blobStoreApi = context.getService(BlobStoreApi.class);
+        BlobStoreApi blobStoreApi = context.getService(BlobStoreApi.class);
         provisionManager.register(new ObjectStorageProvisioner(retryPolicy, monitor, blobStoreApi));
 
         // register the generator

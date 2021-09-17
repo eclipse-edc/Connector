@@ -15,10 +15,10 @@
 package org.eclipse.dataspaceconnector.iam.oauth2.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -34,7 +34,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Resolves public signing certificates for the identity provider. Used to verify JWTs.
- *
  * This implementation supports key rotation and refresh by calling {@link #refreshKeys()} on a periodic basis.
  */
 public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable {
@@ -49,7 +48,6 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable 
      * Ctor.
      *
      * @param jwksUrl the URL specified by 'jwks_uri' in the document returned by the identity provider's metadata endpoint.
-     * @param httpClient
      */
     public IdentityProviderKeyResolver(String jwksUrl, Monitor monitor, OkHttpClient httpClient) {
         this.jwksUrl = jwksUrl;

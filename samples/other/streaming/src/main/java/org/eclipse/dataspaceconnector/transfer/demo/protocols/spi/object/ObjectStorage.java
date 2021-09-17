@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Implements in-memory, simulated object storage.
- * <p>
  * An {@link ObjectStorageObserver} can be registered using {@link #register(ObjectStorageObserver)} to record operations or introduce failures for testing.
  */
 public interface ObjectStorage {

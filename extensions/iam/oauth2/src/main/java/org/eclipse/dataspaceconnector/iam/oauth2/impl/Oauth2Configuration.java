@@ -19,9 +19,9 @@ import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 
 /**
- * Configuration values and dependencies for {@link OAuth2ServiceImpl}.
+ * Configuration values and dependencies for {@link Oauth2ServiceImpl}.
  */
-public class OAuth2Configuration {
+public class Oauth2Configuration {
     private String tokenUrl;
     private String clientId;
     private String privateKeyAlias;
@@ -33,6 +33,9 @@ public class OAuth2Configuration {
     private PublicKeyResolver identityProviderKeyResolver;
 
     private ObjectMapper objectMapper;
+
+    private Oauth2Configuration() {
+    }
 
     public String getTokenUrl() {
         return tokenUrl;
@@ -70,28 +73,29 @@ public class OAuth2Configuration {
         return objectMapper;
     }
 
-    private OAuth2Configuration() {
-    }
-
     public static class Builder {
-        private OAuth2Configuration configuration;
+        private final Oauth2Configuration configuration;
+
+        private Builder() {
+            configuration = new Oauth2Configuration();
+        }
 
         public static Builder newInstance() {
             return new Builder();
         }
 
         public Builder tokenUrl(String url) {
-            this.configuration.tokenUrl = url;
+            configuration.tokenUrl = url;
             return this;
         }
 
         public Builder clientId(String clientId) {
-            this.configuration.clientId = clientId;
+            configuration.clientId = clientId;
             return this;
         }
 
         public Builder privateKeyResolver(PrivateKeyResolver resolver) {
-            this.configuration.privateKeyResolver = resolver;
+            configuration.privateKeyResolver = resolver;
             return this;
         }
 
@@ -99,7 +103,7 @@ public class OAuth2Configuration {
          * Resolves this runtime's certificate containing its public key.
          */
         public Builder certificateResolver(CertificateResolver resolver) {
-            this.configuration.certificateResolver = resolver;
+            configuration.certificateResolver = resolver;
             return this;
         }
 
@@ -107,36 +111,32 @@ public class OAuth2Configuration {
          * Resolves the certificate containing the identity provider's public key.
          */
         public Builder identityProviderKeyResolver(PublicKeyResolver resolver) {
-            this.configuration.identityProviderKeyResolver = resolver;
+            configuration.identityProviderKeyResolver = resolver;
             return this;
         }
 
         public Builder privateKeyAlias(String alias) {
-            this.configuration.privateKeyAlias = alias;
+            configuration.privateKeyAlias = alias;
             return this;
         }
 
         public Builder publicCertificateAlias(String alias) {
-            this.configuration.publicCertificateAlias = alias;
+            configuration.publicCertificateAlias = alias;
             return this;
         }
 
         public Builder providerAudience(String audience) {
-            this.configuration.providerAudience = audience;
+            configuration.providerAudience = audience;
             return this;
         }
 
         public Builder objectMapper(ObjectMapper objectMapper) {
-            this.configuration.objectMapper = objectMapper;
+            configuration.objectMapper = objectMapper;
             return this;
         }
 
-        public OAuth2Configuration build() {
+        public Oauth2Configuration build() {
             return configuration;
-        }
-
-        private Builder() {
-            configuration = new OAuth2Configuration();
         }
 
     }

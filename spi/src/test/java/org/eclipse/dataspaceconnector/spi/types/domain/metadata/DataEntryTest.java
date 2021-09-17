@@ -14,7 +14,9 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.io.StringWriter;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DataEntryTest {
 
@@ -27,7 +29,7 @@ class DataEntryTest {
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, entry);
 
-        @SuppressWarnings("unchecked") DataEntry deserialized = mapper.readValue(writer.toString(), DataEntry.class);
+        DataEntry deserialized = mapper.readValue(writer.toString(), DataEntry.class);
 
         assertNotNull(deserialized);
         assertTrue(deserialized.getCatalogEntry() instanceof TestExtension);

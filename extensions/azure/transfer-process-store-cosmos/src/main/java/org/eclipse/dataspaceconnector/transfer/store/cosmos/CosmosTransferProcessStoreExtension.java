@@ -40,18 +40,28 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
      * The setting for the CosmosDB account name
      */
     @EdcSetting
-    private final static String COSMOS_ACCOUNTNAME_SETTING = "edc.cosmos.account.name";
+    private static final String COSMOS_ACCOUNTNAME_SETTING = "edc.cosmos.account.name";
     /**
      * The setting for the name of the database where TransferProcesses will be stored
      */
     @EdcSetting
-    private final static String COSMOS_DBNAME_SETTING = "edc.cosmos.database.name";
+    private static final String COSMOS_DBNAME_SETTING = "edc.cosmos.database.name";
     @EdcSetting
-    private final static String COSMOS_PARTITION_KEY_SETTING = "dataspaceconnector.cosmos.partitionkey";
-    private final static String DEFAULT_PARTITION_KEY = "dataspaceconnector";
-    private final static String CONTAINER_NAME = "transferprocess";
+    private static final String COSMOS_PARTITION_KEY_SETTING = "dataspaceconnector.cosmos.partitionkey";
+    private static final String DEFAULT_PARTITION_KEY = "dataspaceconnector";
+    private static final String CONTAINER_NAME = "transferprocess";
 
     private Monitor monitor;
+
+    @Override
+    public Set<String> provides() {
+        return Set.of("dataspaceconnector:transferprocessstore");
+    }
+
+    @Override
+    public Set<String> requires() {
+        return Set.of("dataspaceconnector:blobstoreapi");
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -106,16 +116,6 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         context.getTypeManager().registerTypes(TransferProcessDocument.class);
         monitor.info("Initialized CosmosDB Transfer Process Store extension");
 
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("dataspaceconnector:blobstoreapi");
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("dataspaceconnector:transferprocessstore");
     }
 
     @Override

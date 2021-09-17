@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi;
 
 /**
  * Base exception for the system.
- * <p>
  * The system should use unchecked exceptions when appropriate (e.g., non-recoverable errors) and may extend this exception.
  */
 public class EdcException extends RuntimeException {

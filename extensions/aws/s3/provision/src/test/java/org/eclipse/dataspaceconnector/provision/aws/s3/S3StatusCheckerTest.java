@@ -46,8 +46,8 @@ class S3StatusCheckerTest extends AbstractS3Test {
     void setup() {
         RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(3).withBackoff(200, 1000, ChronoUnit.MILLIS);
         ClientProvider providerMock = mock(ClientProvider.class);
-        expect(providerMock.clientFor(S3AsyncClient.class, region)).andReturn(S3AsyncClient.builder()
-                .region(Region.of(region))
+        expect(providerMock.clientFor(S3AsyncClient.class, REGION)).andReturn(S3AsyncClient.builder()
+                .region(Region.of(REGION))
                 .credentialsProvider(() -> AwsBasicCredentials.create(credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey())).build());
         replay(providerMock);
         checker = new S3StatusChecker(providerMock, retryPolicy);
@@ -79,13 +79,13 @@ class S3StatusCheckerTest extends AbstractS3Test {
 
     @Override
     protected @NotNull String createBucketName() {
-        return "s3-checker-test-" + PROCESS_ID + "-" + region;
+        return "s3-checker-test-" + PROCESS_ID + "-" + REGION;
     }
 
     private S3BucketProvisionedResource createProvisionedResource(String bucketName) {
         return S3BucketProvisionedResource.Builder.newInstance()
                 .bucketName(bucketName)
-                .region(region)
+                .region(REGION)
                 .transferProcessId(PROCESS_ID)
                 .resourceDefinitionId(RESOURCE_DEFINITION_ID)
                 .id(RESOURCE_ID)

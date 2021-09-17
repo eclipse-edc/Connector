@@ -1,11 +1,10 @@
-name: Unit Tests
+name: Test Code (Style, Tests)
 
 on: [ push, pull_request ]
 
 jobs:
   Unit-Test:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -13,7 +12,22 @@ jobs:
         with:
           java-version: '11'
 
+      # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
+      - name: Run Checkstyle
+        uses: nikitasavinov/checkstyle-action@0.4.0
+        with:
+          checkstyle_config: resources/edc-checkstyle-config.xml
+          level: info
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          tool_name: 'checkstyle'
+          checkstyle_version: '9.0'
+          reporter: 'github-check'
+          filter_mode: 'nofilter'
+
+
       - name: Gradle Test Core
         env:
           INTEGRATION_TEST: false
-        run: ./gradlew clean check
+        # checkstyle would also run as part of the `check` task
+        run: ./gradlew clean check -x checkstyleMain -x checkstyleTest
+

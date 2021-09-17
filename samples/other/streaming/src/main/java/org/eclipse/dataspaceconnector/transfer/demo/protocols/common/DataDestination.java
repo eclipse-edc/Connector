@@ -16,9 +16,6 @@ package org.eclipse.dataspaceconnector.transfer.demo.protocols.common;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
-/**
- *
- */
 public class DataDestination {
     private final String destinationName;
     private final String accessToken;

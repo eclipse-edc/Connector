@@ -19,7 +19,6 @@ import java.util.Set;
 
 /**
  * Contributes services used by the runtime.
- * <p>
  * Service extensions are started after system boostrap.
  */
 public interface ServiceExtension extends SystemExtension {
@@ -66,5 +65,8 @@ public interface ServiceExtension extends SystemExtension {
     /**
      * Defines the load sequence for extensions.
      */
-    enum LoadPhase {PRIMORDIAL, DEFAULT}
+    enum LoadPhase {
+        PRIMORDIAL,
+        DEFAULT
+    }
 }

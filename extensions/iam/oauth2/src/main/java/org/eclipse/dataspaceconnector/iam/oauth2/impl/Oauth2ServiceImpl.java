@@ -21,7 +21,12 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
-import okhttp3.*;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -46,19 +51,19 @@ import static org.eclipse.dataspaceconnector.iam.oauth2.impl.Fingerprint.sha1Bas
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
  */
-public class OAuth2ServiceImpl implements IdentityService {
+public class Oauth2ServiceImpl implements IdentityService {
     private static final long EXPIRATION = 300; // 5 minutes
 
     private static final String GRANT_TYPE = "client_credentials";
     private static final String ASSERTION_TYPE = "urn:ietf:params:oauth:client-assertion-type:jwt-bearer";
     private static final String CONTENT_TYPE = "application/x-www-form-urlencoded";
 
-    private final OAuth2Configuration configuration;
+    private final Oauth2Configuration configuration;
 
     private final RSAKeyProvider credentialProvider;
     private final JWTVerifier verifier;
 
-    public OAuth2ServiceImpl(OAuth2Configuration configuration) {
+    public Oauth2ServiceImpl(Oauth2Configuration configuration) {
         this.configuration = configuration;
         credentialProvider = new PairedProviderWrapper(configuration.getPrivateKeyResolver(), configuration.getCertificateResolver(), configuration.getPrivateKeyAlias());
 
@@ -113,7 +118,7 @@ public class OAuth2ServiceImpl implements IdentityService {
         }
     }
 
-    /***
+    /**
      * Validates the JWT by checking the audience, nbf, and expiration. Accessible for testing.
      */
     @NotNull

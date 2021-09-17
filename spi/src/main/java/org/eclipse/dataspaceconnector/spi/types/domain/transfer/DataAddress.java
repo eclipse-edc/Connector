@@ -103,7 +103,6 @@ public class DataAddress {
             if (!address.getProperties().isEmpty()) {
                 Objects.requireNonNull(address.getType(), "type");
             }
-//            Objects.requireNonNull(address.getKeyName(), "keyName");
             return address;
         }
     }

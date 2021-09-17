@@ -21,8 +21,7 @@ public class ConfigurationFunctions {
 
     /**
      * Returns the property value, env value or default value for the key.
-     * <p>
-     * Naming conventions for keys are '[qualifier].[value]' in lower case. When checking for env variables, keys will be converted to uppercase and '.' replaced by '_'.
+     * <p>Naming conventions for keys are '[qualifier].[value]' in lower case. When checking for env variables, keys will be converted to uppercase and '.' replaced by '_'.</p>
      */
     public static String propOrEnv(String key, String defaultValue) {
         String value = System.getProperty(key);

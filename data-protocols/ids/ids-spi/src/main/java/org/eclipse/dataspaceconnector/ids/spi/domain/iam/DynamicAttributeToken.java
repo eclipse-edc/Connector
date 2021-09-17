@@ -26,7 +26,6 @@ import static org.eclipse.dataspaceconnector.ids.spi.domain.DefaultValues.CONTEX
 
 /**
  * Token format as specified by IDS.
- * <p>
  * .cf https://industrialdataspace.jiveon.com/docs/DOC-2524
  */
 @JsonDeserialize(builder = DynamicAttributeToken.Builder.class)

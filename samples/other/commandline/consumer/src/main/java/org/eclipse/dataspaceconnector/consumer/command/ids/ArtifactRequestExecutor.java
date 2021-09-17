@@ -14,7 +14,11 @@
 
 package org.eclipse.dataspaceconnector.consumer.command.ids;
 
-import de.fraunhofer.iais.eis.*;
+import de.fraunhofer.iais.eis.ArtifactRequestMessage;
+import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
+import de.fraunhofer.iais.eis.DynamicAttributeToken;
+import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
+import de.fraunhofer.iais.eis.TokenFormat;
 import org.eclipse.dataspaceconnector.consumer.command.CommandExecutor;
 import org.eclipse.dataspaceconnector.consumer.command.CommandResult;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;

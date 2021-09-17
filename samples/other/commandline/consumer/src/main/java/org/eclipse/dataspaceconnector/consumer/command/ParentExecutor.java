@@ -16,9 +16,6 @@ package org.eclipse.dataspaceconnector.consumer.command;
 
 import java.util.Map;
 
-/**
- *
- */
 public class ParentExecutor implements CommandExecutor {
     private final Map<String, CommandExecutor> childExecutors;
 

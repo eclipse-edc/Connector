@@ -46,7 +46,7 @@ class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
         var accountKey = propOrEnv("AZ_STORAGE_KEY", null);
         assertThat(accountKey).describedAs("Azure Storage Account Key cannot be null!").isNotNull();
 
-        expect(vault.resolveSecret(accountName + "-key1")).andReturn(accountKey).anyTimes();
+        expect(vault.resolveSecret(ACCOUNT_NAME + "-key1")).andReturn(accountKey).anyTimes();
         replay(vault);
         var blobStoreApi = new BlobStoreApiImpl(vault);
         checker = new ObjectContainerStatusChecker(blobStoreApi, policy);
@@ -60,16 +60,6 @@ class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
         assertThat(checker.isComplete(createResource(containerName))).isTrue();
     }
 
-    private ObjectContainerProvisionedResource createResource(String containerName) {
-        return ObjectContainerProvisionedResource.Builder.newInstance()
-                .containerName(containerName)
-                .accountName(accountName)
-                .resourceDefinitionId(UUID.randomUUID().toString())
-                .transferProcessId(testRunId)
-                .id(testRunId)
-                .build();
-    }
-
     @Test
     void isComplete_notComplete() {
         putBlob("hello.txt", helloTxt);
@@ -80,5 +70,15 @@ class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
     @Test
     void isComplete_containerNotExist() {
         assertThat(checker.isComplete(createResource("container-not-exists"))).isFalse();
+    }
+
+    private ObjectContainerProvisionedResource createResource(String containerName) {
+        return ObjectContainerProvisionedResource.Builder.newInstance()
+                .containerName(containerName)
+                .accountName(ACCOUNT_NAME)
+                .resourceDefinitionId(UUID.randomUUID().toString())
+                .transferProcessId(testRunId)
+                .id(testRunId)
+                .build();
     }
 }

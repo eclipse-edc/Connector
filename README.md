@@ -37,6 +37,13 @@ cd DataSpaceConnector ```
 
 That will build the connector and run unit tests.
 
+## [Optional] Setup your IDE
+
+If you wish to configure your IDE/editor to automatically apply the EDC code style, please
+follow [this guide](styleguide.md).
+
+_Note: the style guide will be checked/enforced in Github Actions._
+
 ## Run your first connector
 
 Connectors can be started using the concept of "launchers", which are essentially compositions of Java modules defined
@@ -106,6 +113,10 @@ Contains utility code such as collection utils, string utils and helper classes.
 ### `scripts`
 
 Contains several scripts to deploy a connector in an AKS cluster on Microsoft Azure using Terraform.
+
+## Code style
+
+please refer to the dedicated [style guide](styleguide.md).
 
 ## Roadmap
 

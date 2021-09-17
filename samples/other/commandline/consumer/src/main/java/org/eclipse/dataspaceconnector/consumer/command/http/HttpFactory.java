@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.consumer.command.http;
 
-import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
 import okhttp3.Interceptor;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class HttpFactory {
      * Adds the auth code header to a request.
      */
     private static class AuthClientInterceptor implements Interceptor {
-        private ExecutionContext context;
+        private final ExecutionContext context;
 
         public AuthClientInterceptor(ExecutionContext context) {
             this.context = context;
@@ -48,7 +48,6 @@ public class HttpFactory {
         @Override
         public Response intercept(@NotNull Chain chain) throws IOException {
             Request.Builder builder = chain.request().newBuilder();
-//            builder.addHeader(X_CONTROL_AUTHORIZATION, TODO);
             builder.addHeader("Content-Type", "application/json");
             Request newRequest = builder.build();
             return chain.proceed(newRequest);

@@ -44,24 +44,31 @@ otherwise [create a new issue](#create-an-issue).
 
 ### Create an Issue
 
-If you have identified a bug or just want to share an idea to further enhance
-the project feel free to create a new issue at our projects corresponding 
+If you have identified a bug or just want to share an idea to further enhance the project feel free to create a new
+issue at our projects corresponding
 [Github Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/new).
 
-Before doing so please consider searching for potentially suitable 
-[existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen). 
+Before doing so please consider searching for potentially suitable
+[existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen).
 
 We also
 use [Github's default label set](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels)
 to classify issues and improve findability.
 
+### Adhere to coding style guide
+
+We aim for a coherent and consistent code base, thus the coding style detailed in the [styleguide](styleguide.md) should
+be followed.
+
 ### Submit a Pull Request
 
-In addition to the contribution guideline made available in the [Eclipse project handbook](https://www.eclipse.org/projects/handbook/#contributing)
+In addition to the contribution guideline made available in
+the [Eclipse project handbook](https://www.eclipse.org/projects/handbook/#contributing)
 we would appreciate if your pull request applies to the following points:
 
-* Always apply the following copyright header to specific files in your work replacing the fields enclosed by curly brackets "{}" with your own identifying information. (Don't
-  include the curly brackets!) Enclose the text in the appropriate comment syntax for the file format.
+* Always apply the following copyright header to specific files in your work replacing the fields enclosed by curly
+  brackets "{}" with your own identifying information. (Don't include the curly brackets!) Enclose the text in the
+  appropriate comment syntax for the file format.
 
     ```text
     Copyright (c) {year} {owner}[ and others]
@@ -88,8 +95,8 @@ we would appreciate if your pull request applies to the following points:
 
   All committers, and all commits, are bound to
   the [Developer Certificate of Origin.](https://www.eclipse.org/legal/DCO.php)
-  As such, all parties involved in a contribution must have valid ECAs. Additionally commits can
-  include a ["Signed-off-by" entry](https://wiki.eclipse.org/Development_Resources/Contributing_via_Git). 
+  As such, all parties involved in a contribution must have valid ECAs. Additionally commits can include
+  a ["Signed-off-by" entry](https://wiki.eclipse.org/Development_Resources/Contributing_via_Git).
 * We prefer small changes and short living branches. Please do not combine independent things in one pull request.
 
 
@@ -108,8 +115,7 @@ we would appreciate if your pull request applies to the following points:
 
     * _Intellectual Property Validation_ verifying the [Eclipse CLA](#eclipse-contributor-agreement) has been signed as
       well as commits have been signed-off and
-    * _Continuous Integration_ performing various test
-      conventions.
+    * _Continuous Integration_ performing various test conventions.
 
 ### Contact Us
 

@@ -26,9 +26,6 @@ import java.util.Collections;
 
 import static java.util.stream.Collectors.toList;
 
-/**
- *
- */
 public class QueryEngineImpl implements QueryEngine {
     private final PolicyRegistry policyRegistry;
     private final IdsPolicyService policyService;

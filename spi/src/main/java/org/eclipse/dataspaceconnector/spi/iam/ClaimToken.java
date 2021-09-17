@@ -19,11 +19,13 @@ import java.util.Map;
 
 /**
  * Models a token containing claims such as a JWT.
- *
  * Currently only a String representation of claims values is supported.
  */
 public class ClaimToken {
-    private Map<String, String> claims = new HashMap<>();
+    private final Map<String, String> claims = new HashMap<>();
+
+    private ClaimToken() {
+    }
 
     /**
      * Returns the claims.
@@ -32,11 +34,12 @@ public class ClaimToken {
         return claims;
     }
 
-    private ClaimToken() {
-    }
-
     public static class Builder {
-        private ClaimToken token;
+        private final ClaimToken token;
+
+        private Builder() {
+            token = new ClaimToken();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -54,10 +57,6 @@ public class ClaimToken {
 
         public ClaimToken build() {
             return token;
-        }
-
-        private Builder() {
-            token = new ClaimToken();
         }
     }
 }

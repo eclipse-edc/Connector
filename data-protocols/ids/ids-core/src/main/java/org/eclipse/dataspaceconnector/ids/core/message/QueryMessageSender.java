@@ -36,9 +36,6 @@ import java.util.concurrent.CompletableFuture;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
 
-/**
- *
- */
 public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<String>> {
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
@@ -80,7 +77,7 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
                 ._modelVersion_(VERSION)
                 ._securityToken_(token)
                 ._issuerConnector_(this.connectorId)
-//                ._queryLanguage_(queryRequest.getQueryLanguage())  // TODO report that this type should not be an Enum
+                //._queryLanguage_(queryRequest.getQueryLanguage())  // TODO report that this type should not be an Enum
                 .build();
         queryMessage.setProperty("query", queryRequest.getQuery());
         queryMessage.setProperty("queryLanguage", queryRequest.getQueryLanguage());

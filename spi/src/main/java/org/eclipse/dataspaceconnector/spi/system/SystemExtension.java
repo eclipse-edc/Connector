@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.spi.system;
 
 /**
  * An extension that contributes capabilities to the runtime.
- * <p>
  * Subtypes provide specific classes of capabilities such as bootstrap, monitoring, and transport services.
  */
 public interface SystemExtension {

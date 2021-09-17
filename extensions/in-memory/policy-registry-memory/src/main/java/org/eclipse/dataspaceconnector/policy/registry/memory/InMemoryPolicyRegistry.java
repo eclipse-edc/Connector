@@ -25,7 +25,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * An in-memory, threadsafe policy registry.
- * <p>
  * This implementation is intended for testing purposes only.
  */
 public class InMemoryPolicyRegistry implements PolicyRegistry {

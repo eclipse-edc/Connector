@@ -31,14 +31,14 @@ import static java.util.stream.Collectors.toSet;
 
 /**
  * Represents a data transfer process.
- * <p>
+ * <br/>
  * A data transfer process exists on both the consumer and provider connector; it is a representation of the data sharing transaction from the perspective of each endpoint. The data
  * transfer process is modeled as a "loosely" coordinated state machine on each connector. The state transitions are symmetric on the consumer and provider with the exception that
  * the consumer process has two additional states for request/request ack.
- * <p>
+ * <br/>
  * The consumer transitions are:
  *
- * </pre>
+ * <pre>
  * {@link TransferProcessStates#INITIAL} ->
  * {@link TransferProcessStates#PROVISIONING} ->
  * {@link TransferProcessStates#PROVISIONED} ->
@@ -50,11 +50,11 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#DEPROVISIONED} ->
  * {@link TransferProcessStates#ENDED} ->
  * </pre>
- * <p>
- * <p>
+ * <br/>
+ * <br/>
  * The provider transitions are:
  *
- * </pre>
+ * <pre>
  * {@link TransferProcessStates#INITIAL} ->
  * {@link TransferProcessStates#PROVISIONING} ->
  * {@link TransferProcessStates#PROVISIONED} ->
@@ -234,6 +234,11 @@ public class TransferProcess {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;
@@ -246,21 +251,16 @@ public class TransferProcess {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(id);
-    }
-
-    public void updateStateTimestamp() {
-        stateTimestamp = Instant.now().toEpochMilli();
-    }
-
-    @Override
     public String toString() {
         return "TransferProcess{" +
                 "id='" + id + '\'' +
                 ", state=" + TransferProcessStates.from(state) +
                 ", stateTimestamp=" + Instant.ofEpochMilli(stateTimestamp) +
                 '}';
+    }
+
+    public void updateStateTimestamp() {
+        stateTimestamp = Instant.now().toEpochMilli();
     }
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {

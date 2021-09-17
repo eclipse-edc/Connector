@@ -26,11 +26,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-/**
- *
- */
 public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatcherRegistry {
     private final Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
+
+    @Override
+    public void register(RemoteMessageDispatcher dispatcher) {
+        dispatchers.put(dispatcher.protocol(), dispatcher);
+    }
 
     @Override
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
@@ -43,11 +45,6 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
             return future;
         }
         return dispatcher.send(responseType, message, context);
-    }
-
-    @Override
-    public void register(RemoteMessageDispatcher dispatcher) {
-        dispatchers.put(dispatcher.protocol(), dispatcher);
     }
 
     @Nullable

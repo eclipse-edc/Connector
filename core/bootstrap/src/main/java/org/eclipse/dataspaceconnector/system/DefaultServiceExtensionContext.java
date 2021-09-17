@@ -38,8 +38,7 @@ import static org.eclipse.dataspaceconnector.spi.system.ServiceExtension.LoadPha
 
 /**
  * Base service extension context.
- * <p>
- * Prior to using, {@link #initialize()} must be called.
+ * <p>Prior to using, {@link #initialize()} must be called.</p>
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private final Monitor monitor;
@@ -69,6 +68,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         connectorId = getSetting("dataspaceconnector.connector.name", "edc-" + UUID.randomUUID());
     }
 
+    @Override
     public String getConnectorId() {
         return connectorId;
     }
@@ -110,7 +110,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> type) {
         T service = (T) services.get(type);
         if (service == null) {
@@ -120,7 +119,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    @SuppressWarnings("unchecked")
     public <T> T getService(Class<T> type, boolean isOptional) {
         if (!isOptional) {
             return getService(type);

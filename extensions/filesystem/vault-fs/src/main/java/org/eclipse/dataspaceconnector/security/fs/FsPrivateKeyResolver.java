@@ -33,7 +33,6 @@ public class FsPrivateKeyResolver implements PrivateKeyResolver {
 
     /**
      * Constructor.
-     * <p>
      * Caches the private keys for performance.
      *
      * @param password the keystore password. Individual key passwords are not supported.

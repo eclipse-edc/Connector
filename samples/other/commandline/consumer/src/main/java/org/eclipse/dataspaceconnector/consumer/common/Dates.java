@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.consumer.common;
 
+import java.util.Date;
+import java.util.GregorianCalendar;
 import javax.xml.datatype.DatatypeConfigurationException;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 
 public class Dates {
 

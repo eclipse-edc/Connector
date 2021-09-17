@@ -14,23 +14,20 @@
 
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
+import org.eclipse.dataspaceconnector.provision.azure.AzureSasToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.provision.azure.AzureSasToken;
-import net.jodah.failsafe.RetryPolicy;
 
 import java.time.OffsetDateTime;
 
 import static net.jodah.failsafe.Failsafe.with;
 
-/**
- *
- */
 public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResourceDefinition, ObjectContainerProvisionedResource> {
     private final RetryPolicy<Object> retryPolicy;
     private final Monitor monitor;

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
-import org.eclipse.dataspaceconnector.schema.azure.*;
+import org.eclipse.dataspaceconnector.schema.azure.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;

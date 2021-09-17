@@ -21,9 +21,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
-/**
- *
- */
 @JsonDeserialize(builder = QueryRequest.Builder.class)
 public class QueryRequest implements RemoteMessage {
     private String protocol;

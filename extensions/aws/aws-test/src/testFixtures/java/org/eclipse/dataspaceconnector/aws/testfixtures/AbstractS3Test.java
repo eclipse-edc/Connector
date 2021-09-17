@@ -20,7 +20,15 @@ import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.*;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
+import com.amazonaws.services.s3.model.CreateBucketRequest;
+import com.amazonaws.services.s3.model.DeleteBucketRequest;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
+import com.amazonaws.services.s3.model.S3Object;
+import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -35,7 +43,7 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public abstract class AbstractS3Test {
 
-    protected final static String region = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
+    protected static final String REGION = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
     // Adding REGION to bucket prevents errors of
     //      "A conflicting conditional operation is currently in progress against this resource."
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
@@ -49,18 +57,18 @@ public abstract class AbstractS3Test {
     public void setupClient() {
         bucketName = createBucketName();
         credentials = getCredentials();
-        client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(region).build();
+        client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(REGION).build();
         createBucket(bucketName);
-    }
-
-    @NotNull
-    protected String createBucketName() {
-        return "test-bucket-" + System.currentTimeMillis() + "-" + region;
     }
 
     @AfterEach
     void cleanup() {
         deleteBucket(bucketName);
+    }
+
+    @NotNull
+    protected String createBucketName() {
+        return "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
     }
 
     protected @NotNull AWSCredentials getCredentials() {
@@ -75,9 +83,9 @@ public abstract class AbstractS3Test {
             fail("Bucket " + bucketName + " exists. Choose a different bucket name to continue test");
         }
 
-        CreateBucketRequest request = AbstractS3Test.region.contains("east")
+        CreateBucketRequest request = AbstractS3Test.REGION.contains("east")
                 ? new CreateBucketRequest(bucketName) // See https://github.com/boto/boto3/issues/125
-                : new CreateBucketRequest(bucketName, AbstractS3Test.region);
+                : new CreateBucketRequest(bucketName, AbstractS3Test.REGION);
         client.createBucket(request);
 
         if (!client.doesBucketExistV2(bucketName)) {
@@ -100,7 +108,7 @@ public abstract class AbstractS3Test {
                 }
 
                 if (objectListing.isTruncated()) {
-                    objectListing = client.listNextBatchOfObjects(objectListing);/**/
+                    objectListing = client.listNextBatchOfObjects(objectListing);
                 } else {
                     break;
                 }

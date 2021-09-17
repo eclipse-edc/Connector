@@ -21,7 +21,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.*;
+import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.DummyCatalogEntry;
+import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createDataRequest;
+import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createManifest;
+import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
 
 class TransferProcessDocumentSerializationTest {
 

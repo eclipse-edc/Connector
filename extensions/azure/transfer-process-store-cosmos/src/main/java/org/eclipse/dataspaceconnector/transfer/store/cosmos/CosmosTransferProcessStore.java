@@ -19,7 +19,12 @@ import com.azure.cosmos.CosmosException;
 import com.azure.cosmos.CosmosStoredProcedure;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.implementation.RequestRateTooLargeException;
-import com.azure.cosmos.models.*;
+import com.azure.cosmos.models.CosmosItemRequestOptions;
+import com.azure.cosmos.models.CosmosItemResponse;
+import com.azure.cosmos.models.CosmosQueryRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureResponse;
+import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.Fallback;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -31,7 +36,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static net.jodah.failsafe.Failsafe.with;
@@ -39,8 +48,8 @@ import static net.jodah.failsafe.Failsafe.with;
 public class CosmosTransferProcessStore implements TransferProcessStore {
 
 
-    private final static String nextForStateSProcName = "nextForState";
-    private final static String leaseSProcName = "lease";
+    private static final String NEXT_FOR_STATE_S_PROC_NAME = "nextForState";
+    private static final String LEASE_S_PROC_NAME = "lease";
     private final CosmosContainer container;
     private final CosmosQueryRequestOptions tracingOptions;
     private final TypeManager typeManager;
@@ -108,7 +117,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
         tracingOptions.setMaxBufferedItemCount(max);
 
-        var sproc = getStoredProcedure(nextForStateSProcName);
+        var sproc = getStoredProcedure(NEXT_FOR_STATE_S_PROC_NAME);
         List<Object> params = Arrays.asList(state, max, getConnectorId());
         var options = new CosmosStoredProcedureRequestOptions();
         options.setPartitionKey(new PartitionKey(partitionKey));
@@ -223,7 +232,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     private void writeLease(String processId, Object connectorId, boolean writeLease) {
-        var sproc = getStoredProcedure(leaseSProcName);
+        var sproc = getStoredProcedure(LEASE_S_PROC_NAME);
         List<Object> args = Arrays.asList(processId, connectorId, writeLease);
         var options = new CosmosStoredProcedureRequestOptions();
         options.setPartitionKey(new PartitionKey(partitionKey));

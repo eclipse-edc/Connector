@@ -31,7 +31,7 @@ import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class AbstractAzureBlobTest {
 
-    protected static final String accountName = "storageitest";
+    protected static final String ACCOUNT_NAME = "storageitest";
     protected static BlobServiceClient blobServiceClient;
     protected String containerName;
     protected boolean reuseClient = true;
@@ -45,7 +45,7 @@ public abstract class AbstractAzureBlobTest {
 
         if (blobServiceClient == null || !reuseClient) {
             var accountSas = getSasToken();
-            blobServiceClient = new BlobServiceClientBuilder().credential(new AzureSasCredential(accountSas)).endpoint("https://" + accountName + ".blob.core.windows.net").buildClient();
+            blobServiceClient = new BlobServiceClientBuilder().credential(new AzureSasCredential(accountSas)).endpoint("https://" + ACCOUNT_NAME + ".blob.core.windows.net").buildClient();
         }
 
         if (blobServiceClient.getBlobContainerClient(containerName).exists()) {

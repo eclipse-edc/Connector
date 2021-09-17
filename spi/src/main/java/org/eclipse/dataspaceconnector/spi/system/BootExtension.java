@@ -24,7 +24,7 @@ public interface BootExtension extends SystemExtension {
     /**
      * Initializes the extension.
      *
-     * @param monitor
+     * @param monitor The {@link Monitor instance}
      */
     default void initialize(Monitor monitor) {
     }

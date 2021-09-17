@@ -20,7 +20,6 @@ import java.util.concurrent.CompletableFuture;
 
 /**
  * Binds and sends remote messages using a {@link RemoteMessageDispatcher}.
- * <p>
  * The registry may support multiple protocols and communication patterns, for example HTTP-based and classic message-oriented variants. Consequently, some protocols may be
  * non-blocking, others my be synchronous request-response.
  */

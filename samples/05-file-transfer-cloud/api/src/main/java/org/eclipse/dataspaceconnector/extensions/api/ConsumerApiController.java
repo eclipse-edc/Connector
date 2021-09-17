@@ -1,7 +1,13 @@
 package org.eclipse.dataspaceconnector.extensions.api;
 
 
-import jakarta.ws.rs.*;
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.common.collection.CollectionUtil;
@@ -92,7 +98,8 @@ public class ConsumerApiController {
             return Response.ok(TransferProcessStates.from(process.getState()).toString()).build();
         } catch (IllegalStateException ex) {
             monitor.severe(ex.getMessage());
-            return Response.status(400).entity("The process must be in one of these states: " + String.join(", ", TransferProcessStates.IN_PROGRESS.name(), TransferProcessStates.REQUESTED_ACK.name(), TransferProcessStates.COMPLETED.name(), TransferProcessStates.STREAMING.name())).build();
+            return Response.status(400).entity("The process must be in one of these states: " +
+                    String.join(", ", TransferProcessStates.IN_PROGRESS.name(), TransferProcessStates.REQUESTED_ACK.name(), TransferProcessStates.COMPLETED.name(), TransferProcessStates.STREAMING.name())).build();
         }
 
     }

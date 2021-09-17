@@ -236,7 +236,7 @@ class DefaultServiceExtensionContextTest {
         return new ArrayList<>(List.of(elements));
     }
 
-    private static abstract class DependingService implements ServiceExtension {
+    private abstract static class DependingService implements ServiceExtension {
 
         @Override
         public Set<String> requires() {
@@ -244,7 +244,7 @@ class DefaultServiceExtensionContextTest {
         }
     }
 
-    private static abstract class CoreService implements ServiceExtension {
+    private abstract static class CoreService implements ServiceExtension {
         @Override
         public Set<String> provides() {
             return Set.of("core");

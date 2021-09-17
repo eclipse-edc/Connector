@@ -27,9 +27,6 @@ import java.io.IOException;
 import static org.eclipse.dataspaceconnector.consumer.common.Output.error;
 
 
-/**
- *
- */
 public class HttpOperations {
 
     private HttpOperations() {

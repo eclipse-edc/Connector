@@ -30,11 +30,6 @@ public class AzureVaultSetSecretRequestExecutor implements org.eclipse.dataspace
 
         var key = context.getParams().get(0);
         var value = context.getParams().get(1);
-//
-//        var vault = context.getService(Vault.class);
-//        var response = vault.storeSecret(key, value);
-//        return response.success() ? new CommandResult("OK") : new CommandResult(true, response.error());
-
         return executePost("/api/vault", new VaultEntry(key, value), context);
     }
 }

@@ -26,14 +26,14 @@ import static org.eclipse.dataspaceconnector.consumer.common.Commands.completion
 
 public class AzureVaultAssemlbyFactory {
 
-    public static void addAzureVaultCommand(Map<String, CommandExecutor> executors, List<Completers.TreeCompleter.Node> nodes){
-         Map<String, CommandExecutor> childExecutors= createSubCommands();
-         executors.put("vault", new ParentExecutor(childExecutors));
-         nodes.add(completions("vault", childExecutors.keySet()));
+    public static void addAzureVaultCommand(Map<String, CommandExecutor> executors, List<Completers.TreeCompleter.Node> nodes) {
+        Map<String, CommandExecutor> childExecutors = createSubCommands();
+        executors.put("vault", new ParentExecutor(childExecutors));
+        nodes.add(completions("vault", childExecutors.keySet()));
     }
 
     private static Map<String, CommandExecutor> createSubCommands() {
-        Map<String, CommandExecutor> executors= new HashMap<>();
+        Map<String, CommandExecutor> executors = new HashMap<>();
         executors.put("get", new AzureVaultGetSecretRequestExecutor());
         executors.put("set", new AzureVaultSetSecretRequestExecutor());
         executors.put("del", new AzureVaultDelSecretRequestExecutor());

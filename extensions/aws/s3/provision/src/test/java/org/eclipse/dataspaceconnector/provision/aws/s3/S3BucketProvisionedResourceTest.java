@@ -25,9 +25,6 @@ import static java.util.UUID.randomUUID;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-/**
- *
- */
 class S3BucketProvisionedResourceTest {
 
     private S3BucketProvisionedResource provisionedResource;
