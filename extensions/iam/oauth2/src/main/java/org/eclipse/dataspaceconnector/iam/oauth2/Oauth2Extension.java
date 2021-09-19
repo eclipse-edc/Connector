@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.iam.oauth2.impl.Oauth2ServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -101,7 +101,7 @@ public class Oauth2Extension implements ServiceExtension {
         String clientId = context.getSetting(CLIENT_ID, "clientId");
         configBuilder.clientId(clientId);
 
-        PrivateKeyResolver privateKeyResolver = context.getService(PrivateKeyResolver.class);
+        RsaPrivateKeyResolver privateKeyResolver = context.getService(RsaPrivateKeyResolver.class);
         configBuilder.privateKeyResolver(privateKeyResolver);
 
         CertificateResolver certificateResolver = context.getService(CertificateResolver.class);

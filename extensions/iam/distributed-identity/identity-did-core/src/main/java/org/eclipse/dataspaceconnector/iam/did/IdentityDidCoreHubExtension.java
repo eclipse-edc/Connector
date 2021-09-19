@@ -104,7 +104,7 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
             var privateKeyAlias = context.getSetting(PRIVATE_KEY_ALIAS, "privateKeyAlias");
             // TODO HACKATHON-1 TASK 6A use correct resolver when key loading implemented
             // var privateKeyResolver = context.getService(PrivateKeyResolver.class);
-            PrivateKeyResolver delegateResolver = id -> privateKey;
+            PrivateKeyResolver<RSAPrivateKey> delegateResolver = id -> privateKey;
 
             // TODO HACKATHON-1 TASK 6A remove temporary override key resolver
             context.registerService(PrivateKeyResolver.class, delegateResolver);

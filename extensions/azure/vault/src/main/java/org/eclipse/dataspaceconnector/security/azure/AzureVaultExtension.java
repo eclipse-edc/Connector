@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.security.azure;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
@@ -31,6 +31,21 @@ public class AzureVaultExtension implements VaultExtension {
     @Override
     public void initialize(Monitor monitor) {
         monitor.debug("AzureVaultExtension: general initialization complete");
+    }
+
+    @Override
+    public Vault getVault() {
+        return vault;
+    }
+
+    @Override
+    public RsaPrivateKeyResolver getPrivateKeyResolver() {
+        return new AzurePrivateKeyResolver(vault);
+    }
+
+    @Override
+    public CertificateResolver getCertificateResolver() {
+        return new AzureCertificateResolver(vault);
     }
 
     @Override
@@ -57,20 +72,5 @@ public class AzureVaultExtension implements VaultExtension {
 
         vault = AzureVault.authenticateWithCertificate(context.getMonitor(), clientId, tenantId, certPath, keyVaultName);
         context.getMonitor().info("AzureVaultExtension: authentication/initialization complete.");
-    }
-
-    @Override
-    public Vault getVault() {
-        return vault;
-    }
-
-    @Override
-    public PrivateKeyResolver getPrivateKeyResolver() {
-        return new AzurePrivateKeyResolver(vault);
-    }
-
-    @Override
-    public CertificateResolver getCertificateResolver() {
-        return new AzureCertificateResolver(vault);
     }
 }

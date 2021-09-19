@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.iam.oauth2.impl;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
 
 import java.security.PublicKey;
 import java.security.cert.X509Certificate;
@@ -27,14 +27,14 @@ import java.security.interfaces.RSAPublicKey;
 import static java.lang.String.format;
 
 /**
- * Shim from a {@link PrivateKeyResolver} and {@link CertificateResolver} to a {@link RSAKeyProvider} required by the JWT signer.
+ * Shim from a {@link RsaPrivateKeyResolver} and {@link CertificateResolver} to a {@link RSAKeyProvider} required by the JWT signer.
  */
 public class PairedProviderWrapper implements RSAKeyProvider {
-    private final PrivateKeyResolver privateKeyResolver;
+    private final RsaPrivateKeyResolver privateKeyResolver;
     private final CertificateResolver certificateResolver;
     private final String privateKeyId;
 
-    public PairedProviderWrapper(PrivateKeyResolver privateKeyResolver, CertificateResolver certificateResolver, String privateKeyId) {
+    public PairedProviderWrapper(RsaPrivateKeyResolver privateKeyResolver, CertificateResolver certificateResolver, String privateKeyId) {
         this.privateKeyResolver = privateKeyResolver;
         this.certificateResolver = certificateResolver;
         this.privateKeyId = privateKeyId;

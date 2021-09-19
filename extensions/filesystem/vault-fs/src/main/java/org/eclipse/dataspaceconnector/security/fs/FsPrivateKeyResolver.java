@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.security.fs;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
 
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -28,7 +28,7 @@ import java.util.Map;
 /**
  * Resolves an RSA private key from a JKS keystore.
  */
-public class FsPrivateKeyResolver implements PrivateKeyResolver {
+public class FsPrivateKeyResolver implements RsaPrivateKeyResolver {
     private final Map<String, RSAPrivateKey> privateKeyCache = new HashMap<>();
 
     /**

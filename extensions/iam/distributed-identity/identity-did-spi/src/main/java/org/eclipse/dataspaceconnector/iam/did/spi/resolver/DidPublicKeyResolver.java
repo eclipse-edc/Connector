@@ -9,6 +9,8 @@ import java.security.PublicKey;
  */
 public interface DidPublicKeyResolver {
 
+    String FEATURE = "edc:identity:public-key-resolver";
+
     /**
      * Resolves the public key. Note null is returned if the key cannot be resolved.
      */

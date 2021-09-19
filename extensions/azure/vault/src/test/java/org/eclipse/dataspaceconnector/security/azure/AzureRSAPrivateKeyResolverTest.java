@@ -27,7 +27,7 @@ import static org.eclipse.dataspaceconnector.security.azure.PrivateTestKeys.ENCO
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @ExtendWith(EasyMockExtension.class)
-class AzurePrivateKeyResolverTest {
+class AzureRSAPrivateKeyResolverTest {
 
     @Mock
     Vault vault;
