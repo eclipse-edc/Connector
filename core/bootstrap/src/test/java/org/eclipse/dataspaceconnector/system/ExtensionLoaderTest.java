@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.MonitorExtension;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
@@ -82,7 +82,7 @@ class ExtensionLoaderTest {
 
         expect(contextMock.loadSingletonExtension(VaultExtension.class, false)).andReturn(null);
         contextMock.registerService(eq(Vault.class), isA(Vault.class));
-        contextMock.registerService(eq(PrivateKeyResolver.class), anyObject()); //these are not null but a lambda returning null
+        contextMock.registerService(eq(RsaPrivateKeyResolver.class), anyObject()); //these are not null but a lambda returning null
         contextMock.registerService(eq(CertificateResolver.class), anyObject());
         replay(contextMock);
 
@@ -96,7 +96,7 @@ class ExtensionLoaderTest {
         DefaultServiceExtensionContext contextMock = niceMock(DefaultServiceExtensionContext.class);
         expect(contextMock.getMonitor()).andReturn(niceMock(Monitor.class)).anyTimes();
         Vault vaultMock = mock(Vault.class);
-        PrivateKeyResolver resolverMock = mock(PrivateKeyResolver.class);
+        RsaPrivateKeyResolver resolverMock = mock(RsaPrivateKeyResolver.class);
         CertificateResolver certResolverMock = mock(CertificateResolver.class);
         expect(contextMock.loadSingletonExtension(VaultExtension.class, false)).andReturn(new VaultExtension() {
 
@@ -106,7 +106,7 @@ class ExtensionLoaderTest {
             }
 
             @Override
-            public PrivateKeyResolver getPrivateKeyResolver() {
+            public RsaPrivateKeyResolver getPrivateKeyResolver() {
                 return resolverMock;
             }
 
