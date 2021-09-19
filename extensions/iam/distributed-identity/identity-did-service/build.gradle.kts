@@ -15,3 +15,12 @@ dependencies {
 
     testImplementation(testFixtures(project(":extensions:iam:distributed-identity:identity-common-test")))
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("iam.identity-did-service") {
+            artifactId = "iam.identity-did-service"
+            from(components["java"])
+        }
+    }
+}

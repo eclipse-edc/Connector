@@ -21,3 +21,12 @@ dependencies {
 
     testImplementation(testFixtures(project(":common:util")))
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("data-protocols.ion.core") {
+            artifactId = "data-protocols.ion.core"
+            from(components["java"])
+        }
+    }
+}

@@ -19,3 +19,12 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("org.quartz-scheduler:quartz:2.3.0")
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("iam.registration-service") {
+            artifactId = "iam.registration-service"
+            from(components["java"])
+        }
+    }
+}
