@@ -15,6 +15,7 @@ dependencies {
 
     implementation("com.google.crypto.tink:tink:1.6.1")
     implementation("io.github.erdtman:java-json-canonicalization:1.1")
+    implementation("org.bouncycastle:bcprov-jdk15on:1.69") // for argon2id
 
     testImplementation(testFixtures(project(":common:util")))
 }
