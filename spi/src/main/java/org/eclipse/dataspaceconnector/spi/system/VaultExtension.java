@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.system;
 
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
 /**
@@ -31,7 +31,7 @@ public interface VaultExtension extends BootExtension {
     /**
      * Returns the private key resolver.
      */
-    PrivateKeyResolver getPrivateKeyResolver();
+    RsaPrivateKeyResolver getPrivateKeyResolver();
 
     /**
      * Returns the certificate resolver.
