@@ -20,6 +20,8 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
  */
 public interface IdentityHub {
 
+    String FEATURE = "edc:identity:hub";
+
     /**
      * Writes a commit JWE to the hub and returns either a success response encoded as a JWE or a plaintext error message.
      */
