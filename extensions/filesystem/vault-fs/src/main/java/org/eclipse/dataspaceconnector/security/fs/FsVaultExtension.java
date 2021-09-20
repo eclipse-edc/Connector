@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.security.fs;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 
@@ -38,7 +38,7 @@ import static org.eclipse.dataspaceconnector.security.fs.FsConfiguration.VAULT_L
  */
 public class FsVaultExtension implements VaultExtension {
     private Vault vault;
-    private RsaPrivateKeyResolver privateKeyResolver;
+    private PrivateKeyResolver privateKeyResolver;
     private CertificateResolver certificateResolver;
 
     @Override
@@ -58,7 +58,7 @@ public class FsVaultExtension implements VaultExtension {
     }
 
     @Override
-    public RsaPrivateKeyResolver getPrivateKeyResolver() {
+    public PrivateKeyResolver getPrivateKeyResolver() {
         return privateKeyResolver;
     }
 

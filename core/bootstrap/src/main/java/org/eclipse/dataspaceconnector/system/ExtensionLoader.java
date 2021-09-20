@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.security.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.MonitorExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -56,7 +56,7 @@ public class ExtensionLoader {
         vaultExtension.initialize(context.getMonitor());
         vaultExtension.intializeVault(context);
         context.registerService(Vault.class, vaultExtension.getVault());
-        context.registerService(RsaPrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
+        context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
         context.registerService(CertificateResolver.class, vaultExtension.getCertificateResolver());
     }
 

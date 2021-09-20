@@ -21,11 +21,13 @@ import java.security.PublicKey;
 @FunctionalInterface
 public interface CredentialsVerifier {
 
+    String FEATURE = "edc:identity:verifier";
+
     /**
      * Verifies credentials contained in the given hub.
      *
      * @param hubBaseUrl the hub base url
-     * @param publicKey the hub's public key to encrypt messages with
+     * @param publicKey  the hub's public key to encrypt messages with
      */
     CredentialsResult verifyCredentials(String hubBaseUrl, PublicKey publicKey);
 

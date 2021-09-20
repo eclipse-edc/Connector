@@ -14,10 +14,10 @@
 package org.eclipse.dataspaceconnector.iam.did.service;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -43,7 +43,7 @@ public class DidServiceExtension implements ServiceExtension {
         var didResolver = context.getService(DidResolver.class);
         var publicKeyResolver = context.getService(DidPublicKeyResolver.class);
 
-        var privateKeyResolver = context.getService(RsaPrivateKeyResolver.class);
+        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
 
         var credentialsVerifier = context.getService(CredentialsVerifier.class);
 

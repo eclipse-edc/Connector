@@ -15,8 +15,9 @@
 package org.eclipse.dataspaceconnector.security.azure;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.jetbrains.annotations.Nullable;
 
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
@@ -28,7 +29,8 @@ import java.util.Base64;
  * Resolves RSA private keys stored as Base 64-encoded text against a vault.
  * <p>Keys must be PEM encoded in PKCS8 format. The key may be stored with or without PEM headers and footers.</p>
  */
-public class AzurePrivateKeyResolver implements RsaPrivateKeyResolver {
+@Deprecated
+public class AzurePrivateKeyResolver implements PrivateKeyResolver {
     private static final String PEM_HEADER = "-----BEGIN PRIVATE KEY-----";
     private static final String PEM_FOOTER = "-----END PRIVATE KEY-----";
     private final Vault vault;
@@ -37,7 +39,6 @@ public class AzurePrivateKeyResolver implements RsaPrivateKeyResolver {
         this.vault = vault;
     }
 
-    @Override
     public RSAPrivateKey resolvePrivateKey(String id) {
         try {
             String encoded = vault.resolveSecret(id);
@@ -53,5 +54,10 @@ public class AzurePrivateKeyResolver implements RsaPrivateKeyResolver {
         } catch (GeneralSecurityException e) {
             throw new EdcException(e);
         }
+    }
+
+    @Override
+    public <T> @Nullable T resolvePrivateKey(String id, Class<T> keyType) {
+        return keyType.cast(resolvePrivateKey(id));
     }
 }

@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.samples.identity.did;
 
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.ion.spi.DidStore;
 import org.jetbrains.annotations.Nullable;
 

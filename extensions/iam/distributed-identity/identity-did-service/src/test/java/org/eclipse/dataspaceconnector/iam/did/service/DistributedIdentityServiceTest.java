@@ -23,18 +23,21 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
-import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
@@ -45,8 +48,10 @@ class DistributedIdentityServiceTest {
     private RSAPublicKey publicKey;
 
     @Test
-    void verifyResolveHubUrl() throws JsonProcessingException {
-        var url = identityService.resolveHubUrl(new ObjectMapper().readValue(TestDids.HUB_URL_DID, Map.class));
+    void verifyResolveHubUrl() throws IOException {
+        var didJSon = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
+        var hubUrlDid = new String(didJSon.readAllBytes(), StandardCharsets.UTF_8);
+        var url = identityService.resolveHubUrl(new ObjectMapper().readValue(hubUrlDid, DidDocument.class));
         Assertions.assertEquals("https://myhub.com", url);
     }
 
@@ -88,19 +93,25 @@ class DistributedIdentityServiceTest {
         privateKey = TemporaryKeyLoader.loadPrivateKey();
         publicKey = TemporaryKeyLoader.loadPublicKey();
 
-        var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
-        var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
+        var didJSon = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
+        var hubUrlDid = new String(didJSon.readAllBytes(), StandardCharsets.UTF_8);
 
         DidResolver didResolver = d -> {
             try {
-                return new ObjectMapper().readValue(hubUrlDid, LinkedHashMap.class);
+                return new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
             } catch (JsonProcessingException e) {
                 throw new AssertionError(e);
             }
         };
 
         CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "eu"));
-        identityService = new DistributedIdentityService("did:ion:123abc", verifier, didResolver, d -> publicKey, k -> privateKey, new Monitor() {
+        PrivateKeyResolver privateKeyResolver = new PrivateKeyResolver() {
+            @Override
+            public <T> @Nullable T resolvePrivateKey(String id, Class<T> keyType) {
+                return (T) privateKey;
+            }
+        };
+        identityService = new DistributedIdentityService("did:ion:123abc", verifier, didResolver, d -> publicKey, privateKeyResolver, new Monitor() {
         });
 
     }

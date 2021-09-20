@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.iam.did.spi.resolver;
+package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 import org.jetbrains.annotations.Nullable;
 

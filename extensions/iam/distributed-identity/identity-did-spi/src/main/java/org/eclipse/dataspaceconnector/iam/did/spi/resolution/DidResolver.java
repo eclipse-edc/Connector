@@ -11,15 +11,14 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.iam.did.spi.resolver;
-
-import java.util.LinkedHashMap;
+package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 /**
  * Resolves a DID against an external resolver service.
  */
+@FunctionalInterface
 public interface DidResolver {
 
-    LinkedHashMap<String, Object> resolveDid(String didKey);
+    DidDocument resolve(String didKey);
 
 }

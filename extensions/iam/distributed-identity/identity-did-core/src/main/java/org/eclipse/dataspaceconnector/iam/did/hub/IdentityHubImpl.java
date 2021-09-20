@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ErrorResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteResponse;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.security.interfaces.RSAPrivateKey;
@@ -39,21 +39,16 @@ import java.util.function.Supplier;
  * Default identity hub implementation.
  */
 public class IdentityHubImpl implements IdentityHub {
-    private IdentityHubStore store;
-    private Supplier<RSAPrivateKey> privateKey;
-    private DidPublicKeyResolver publicKeyResolver;
-    private ObjectMapper objectMapper;
+    private final IdentityHubStore store;
+    private final Supplier<RSAPrivateKey> privateKey;
+    private final DidPublicKeyResolver publicKeyResolver;
+    private final ObjectMapper objectMapper;
 
     public IdentityHubImpl(IdentityHubStore store, Supplier<RSAPrivateKey> privateKey, DidPublicKeyResolver resolver, ObjectMapper objectMapper) {
         this.store = store;
         this.privateKey = privateKey;
-        this.publicKeyResolver = resolver;
+        publicKeyResolver = resolver;
         this.objectMapper = objectMapper;
-    }
-
-    @Override
-    public void write(Commit commit) {
-        store.write(commit);
     }
 
     @Override
@@ -65,6 +60,11 @@ public class IdentityHubImpl implements IdentityHub {
 
         var response = WriteResponse.Builder.newInstance().revision(commit.getObjectId()).build();
         return writeResponse(response, commit.getIss());
+    }
+
+    @Override
+    public void write(Commit commit) {
+        store.write(commit);
     }
 
     @Override

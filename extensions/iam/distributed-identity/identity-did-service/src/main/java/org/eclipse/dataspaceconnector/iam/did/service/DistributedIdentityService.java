@@ -22,8 +22,10 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
@@ -31,11 +33,10 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 
+import java.security.interfaces.RSAPrivateKey;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.Date;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -65,7 +66,7 @@ public class DistributedIdentityService implements IdentityService {
 
     @Override
     public TokenResult obtainClientCredentials(String scope) {
-        var privateKey = privateKeyResolver.resolvePrivateKey(null);
+        RSAPrivateKey privateKey = privateKeyResolver.resolvePrivateKey(null, RSAPrivateKey.class);
         if (privateKey == null) {
             return TokenResult.Builder.newInstance().error("Private key not found").build();
         }
@@ -95,7 +96,7 @@ public class DistributedIdentityService implements IdentityService {
         try {
             var jwt = SignedJWT.parse(token);
 
-            var did = didResolver.resolveDid(jwt.getJWTClaimsSet().getIssuer());
+            var did = didResolver.resolve(jwt.getJWTClaimsSet().getIssuer());
             if (!validateToken(jwt, did)) {
                 return new VerificationResult("Invalid token");
             }
@@ -114,7 +115,45 @@ public class DistributedIdentityService implements IdentityService {
         }
     }
 
-    private CredentialsResult resolveCredentials(Map<String, Object> didDocument) {
+    /**
+     * Returns the location of the Hub endpoint.
+     * <p>
+     * TODO HACKATHON-1 TASK 6B
+     * The current implementation assumes the Hub endpoint is encoded in the client connector DID. We need to support the case where only the Hub did is referenced
+     * in the current connector DID. This will involve resolving the Hub did and obtaining the endpoint address.
+     *
+     * @param did
+     */
+    String resolveHubUrl(DidDocument did) {
+        var services = did.getService();
+        for (Service service : services) {
+            var type = service.getType();
+            if (!"IdentityHub".equals(type)) {
+                continue;
+            }
+            return service.getServiceEndpoint();
+
+// Resolve ION/IdentityHub discrepancy
+
+//            if (!(serviceEndpoint instanceof Map)) {
+//                continue;
+//            }
+//            var locations = ((Map) serviceEndpoint).get("locations");
+//            if (!(locations instanceof List)) {
+//                continue;
+//            }
+//            var locationsList = (List<String>) locations;
+//            if (((List<?>) locations).isEmpty()) {
+//                continue;
+//            }
+//            return locationsList.get(0);
+// End Resolve ION/IdentityHub discrepancy
+
+        }
+        return null;
+    }
+
+    private CredentialsResult resolveCredentials(DidDocument didDocument) {
         // TODO HACKATHON-1 TASK 6B resolve the Hub URL from the Hub's did
         var hubBaseUrl = resolveHubUrl(didDocument);
         if (hubBaseUrl == null) {
@@ -123,14 +162,14 @@ public class DistributedIdentityService implements IdentityService {
         if (!hubBaseUrl.endsWith("/")) {
             hubBaseUrl += "/";
         }
-        var publicKey = publicKeyResolver.resolvePublicKey(null); // TODO HACKATHON-1 this needs to resolve the public key of the Hub DID
+        var publicKey = publicKeyResolver.resolvePublicKey(null);// TODO HACKATHON-1 this needs to resolve the public key of the Hub DID
         if (publicKey == null) {
             return new CredentialsResult("Unable to resolve DID public key");
         }
         return credentialsVerifier.verifyCredentials(hubBaseUrl, publicKey);
     }
 
-    private boolean validateToken(SignedJWT jwt, Map<String, Object> didDocument) {
+    private boolean validateToken(SignedJWT jwt, DidDocument didDocument) {
         try {
             // TODO HACKATHON-1 TASK 6B implement by verifying the token assertion against the public key contained in the DID, NOT the key from  publicKeyResolver.resolvePublicKey()
             // This will involve loading the Key from didDocument
@@ -145,51 +184,6 @@ public class DistributedIdentityService implements IdentityService {
             monitor.info("Error verifying client token", e);
             return false;
         }
-    }
-
-    /**
-     * Returns the location of the Hub endpoint.
-     *
-     * TODO HACKATHON-1 TASK 6B
-     * The current implementation assumes the Hub endpoint is encoded in the client connector DID. We need to support the case where only the Hub did is referenced
-     * in the current connector DID. This will involve resolving the Hub did and obtaining the endpoint address.
-     */
-    @SuppressWarnings({"ConditionCoveredByFurtherCondition", "rawtypes"})
-    String resolveHubUrl(Map<String, Object> did) {
-        var services = did.get("service");
-        if (services == null || !(services instanceof List)) {
-            return null;
-        }
-        var serviceList = (List<?>) services;
-        for (Object service : serviceList) {
-            if (!(service instanceof Map)) {
-                continue;
-            }
-            var serviceMap = (Map) service;
-            var type = serviceMap.get("type");
-            if (!"IdentityHub".equals(type)) {
-                continue;
-            }
-            return (String) serviceMap.get("serviceEndpoint");
-
-            // Resolve ION/IdentityHub discrepancy
-
-            //            if (!(serviceEndpoint instanceof Map)) {
-            //                continue;
-            //            }
-            //            var locations = ((Map) serviceEndpoint).get("locations");
-            //            if (!(locations instanceof List)) {
-            //                continue;
-            //            }
-            //            var locationsList = (List<String>) locations;
-            //            if (((List<?>) locations).isEmpty()) {
-            //                continue;
-            //            }
-            //            return locationsList.get(0);
-            // End Resolve ION/IdentityHub discrepancy
-
-        }
-        return null;
     }
 
 }

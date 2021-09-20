@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.interfaces.RSAPrivateKey;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
@@ -30,7 +31,7 @@ class FsRSAPrivateKeyResolverTest {
 
     @Test
     public void verifyResolution() {
-        assertNotNull(keyResolver.resolvePrivateKey("testkey"));
+        assertNotNull(keyResolver.resolvePrivateKey("testkey", RSAPrivateKey.class));
     }
 
     @BeforeEach

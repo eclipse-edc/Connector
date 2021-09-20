@@ -2,12 +2,12 @@ package org.eclipse.dataspaceconnector.spi.security;
 
 import org.jetbrains.annotations.Nullable;
 
-public interface PrivateKeyResolver<T> {
+@FunctionalInterface
+public interface PrivateKeyResolver {
     String FEATURE = "edc:identity:private-key-resolver";
 
     /**
      * Returns the private key associated with the id or null if not found.
      */
-    @Nullable
-    T resolvePrivateKey(String id);
+    @Nullable <T> T resolvePrivateKey(String id, Class<T> keyType);
 }

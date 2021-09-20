@@ -15,9 +15,9 @@
 package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
 import org.eclipse.dataspaceconnector.ion.DefaultIonClient;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.Service;
 import org.eclipse.dataspaceconnector.ion.spi.DidStore;
 import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;

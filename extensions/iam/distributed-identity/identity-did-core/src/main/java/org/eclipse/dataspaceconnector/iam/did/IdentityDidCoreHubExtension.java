@@ -19,12 +19,12 @@ import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolver.DidPublicKeyResolverImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolver.DidResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -57,7 +57,7 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("identity-hub-store");
+        return Set.of("identity-hub-store", IonClient.FEATURE);
     }
 
     @Override
@@ -82,8 +82,8 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
 
         var activeResolverUrl = context.getSetting(RESOLVER_URL_KEY, RESOLVER_URL);
 
-        var didResolver = new DidResolverImpl(activeResolverUrl, httpClient, typeManager.getMapper());
-        context.registerService(DidResolver.class, didResolver);
+        var ionClient = context.getService(IonClient.class);
+        context.registerService(DidResolver.class, ionClient);
 
         var hubClient = new IdentityHubClientImpl(resolverPair.privateKeyResolver, httpClient, objectMapper);
         context.registerService(IdentityHubClient.class, hubClient);
@@ -102,17 +102,12 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
             RSAPrivateKey privateKey = keys.toRSAPrivateKey();
 
             var privateKeyAlias = context.getSetting(PRIVATE_KEY_ALIAS, "privateKeyAlias");
-            // TODO HACKATHON-1 TASK 6A use correct resolver when key loading implemented
-            // var privateKeyResolver = context.getService(PrivateKeyResolver.class);
-            PrivateKeyResolver<RSAPrivateKey> delegateResolver = id -> privateKey;
+            var privateKeyResolver = context.getService(PrivateKeyResolver.class);
 
-            // TODO HACKATHON-1 TASK 6A remove temporary override key resolver
-            context.registerService(PrivateKeyResolver.class, delegateResolver);
-
-            Supplier<RSAPrivateKey> privateKeyResolver = () -> delegateResolver.resolvePrivateKey(privateKeyAlias);
+            Supplier<RSAPrivateKey> supplier = () -> privateKeyResolver.resolvePrivateKey(privateKeyAlias, RSAPrivateKey.class);
 
             DidPublicKeyResolver publicKeyResolver = new DidPublicKeyResolverImpl(publicKey);
-            return new ResolverPair(privateKeyResolver, publicKeyResolver);
+            return new ResolverPair(supplier, publicKeyResolver);
         } catch (JOSEException e) {
             throw new EdcException(e);
         }

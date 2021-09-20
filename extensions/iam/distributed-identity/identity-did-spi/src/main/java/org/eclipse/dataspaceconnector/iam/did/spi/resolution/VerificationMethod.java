@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.ion.model.did.resolution;
+package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;

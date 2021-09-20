@@ -1,6 +1,8 @@
 {
   "id": "did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA",
-  "@context": "https://www.w3.org/ns/did/v1",
+  "@context": [
+    "https://www.w3.org/ns/did/v1"
+  ],
   "service": [
     {
       "id": "IdentityHub",

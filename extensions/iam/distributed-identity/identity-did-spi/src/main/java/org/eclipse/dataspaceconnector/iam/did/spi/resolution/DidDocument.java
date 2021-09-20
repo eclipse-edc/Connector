@@ -11,13 +11,12 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.ion.model.did.resolution;
+package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import com.nimbusds.jose.jwk.ECKey;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -98,11 +97,12 @@ public class DidDocument {
             return this;
         }
 
-        public Builder verificationMethod(String id, String type, ECKey publicKey) {
+        public Builder verificationMethod(String id, String type, EllipticCurvePublicKey publicKey) {
             document.verificationMethod.add(VerificationMethod.Builder.create()
                     .id(id)
                     .type(type)
-                    .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
+//                    .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
+                    .publicKeyJwk(publicKey)
                     .build());
             return this;
         }

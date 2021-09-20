@@ -6,9 +6,10 @@ import com.nimbusds.jose.jwk.ECKey;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
 import org.eclipse.dataspaceconnector.ion.IonRequestException;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.Service;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.eclipse.dataspaceconnector.ion.util.KeyPairFactory;
 import org.quartz.Job;
@@ -170,11 +171,14 @@ public class CrawlerJob implements Job {
             // Resolve ION/IdentityHub discrepancy
             var service = new Service("#domain-1", "LinkedDomains", "https://test.service.com");
 
+            var eckey = (ECKey) KeyPairFactory.generateKeyPair().getPublicKey();
+            var publicKey = new EllipticCurvePublicKey(eckey.getCurve().getName(), eckey.getKeyType().getValue(), eckey.getX().toString(), eckey.getY().toString());
+
             var randomDocument = DidDocument.Builder.newInstance()
                     .id("did:ion:" + s)
                     .authentication(Collections.singletonList("#key-1"))
                     .service(List.of(service))
-                    .verificationMethod("#key-1", "EcdsaSecp256k1VerificationKey2019", (ECKey) KeyPairFactory.generateKeyPair().getPublicKey())
+                    .verificationMethod("#key-1", "EcdsaSecp256k1VerificationKey2019", publicKey)
                     .build();
 
             results.add(randomDocument);

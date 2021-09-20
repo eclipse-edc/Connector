@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.security;
 
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
-import org.eclipse.dataspaceconnector.spi.security.RsaPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
@@ -46,8 +46,13 @@ public class NullVaultExtension implements VaultExtension {
     }
 
     @Override
-    public RsaPrivateKeyResolver getPrivateKeyResolver() {
-        return (key) -> null;
+    public PrivateKeyResolver getPrivateKeyResolver() {
+        return new PrivateKeyResolver() {
+            @Override
+            public <T> @Nullable T resolvePrivateKey(String id, Class<T> keyType) {
+                return null;
+            }
+        };
     }
 
     @Override
