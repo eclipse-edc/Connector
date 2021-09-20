@@ -17,11 +17,21 @@ package org.eclipse.dataspaceconnector.system;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import java.security.KeyFactory;
+import java.security.NoSuchAlgorithmException;
+import java.security.interfaces.RSAPrivateKey;
+import java.security.spec.InvalidKeySpecException;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.temporal.ChronoUnit;
+import java.util.Base64;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -54,7 +64,21 @@ public class CoreServicesExtension implements ServiceExtension {
         Monitor monitor = context.getMonitor();
         addHttpClient(context);
         addRetryPolicy(context);
+        addPrivateKeyResolver(context);
         monitor.info("Initialized Core Services extension.");
+    }
+
+    private void addPrivateKeyResolver(ServiceExtensionContext context) {
+        VaultPrivateKeyResolver resolver = new VaultPrivateKeyResolver(context.getService(Vault.class));
+        resolver.addParser(RSAPrivateKey.class, encoded -> {
+            try {
+                KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+                return (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(encoded.getBytes())));
+            } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+                throw new EdcException(e);
+            }
+        });
+        context.registerService(PrivateKeyResolver.class, resolver);
     }
 
 

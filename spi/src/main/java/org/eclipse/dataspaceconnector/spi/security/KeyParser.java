@@ -1,10 +1,8 @@
 package org.eclipse.dataspaceconnector.spi.security;
 
-import java.security.PrivateKey;
-
-public interface KeyParser {
+public interface KeyParser<T> {
 
     boolean canParse(Class<?> keyType);
 
-    PrivateKey parse(String encoded);
+    T parse(String encoded);
 }
