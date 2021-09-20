@@ -11,6 +11,8 @@ repositories {
 dependencies {
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
 
+    api(project(":extensions:iam:distributed-identity:identity-did-spi"))
+
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
     implementation("com.google.crypto.tink:tink:1.6.1")
