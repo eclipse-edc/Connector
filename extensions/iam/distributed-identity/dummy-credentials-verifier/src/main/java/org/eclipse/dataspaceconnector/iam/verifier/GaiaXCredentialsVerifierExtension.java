@@ -25,7 +25,7 @@ public class GaiaXCredentialsVerifierExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("identity-did-verifier");
+        return Set.of(CredentialsVerifier.FEATURE);
     }
 
     @Override
