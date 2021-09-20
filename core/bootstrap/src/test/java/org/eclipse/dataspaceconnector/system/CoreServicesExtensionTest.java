@@ -18,17 +18,21 @@ import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.easymock.MockType;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
@@ -61,6 +65,10 @@ class CoreServicesExtensionTest {
         expect(context.getSetting(eq("edc.core.retry.backoff.max"), anyString())).andReturn("10000");
 
         context.registerService(eq(RetryPolicy.class), isA(RetryPolicy.class));
+        expectLastCall().times(1);
+
+        expect(context.getService(Vault.class)).andReturn(niceMock(Vault.class)).anyTimes();
+        context.registerService(eq(PrivateKeyResolver.class), anyObject());
         expectLastCall().times(1);
 
         replay(context);
