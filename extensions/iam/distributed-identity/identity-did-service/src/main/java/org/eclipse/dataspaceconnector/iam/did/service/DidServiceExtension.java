@@ -28,12 +28,12 @@ public class DidServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("iam");
+        return Set.of(IdentityService.FEATURE);
     }
 
     @Override
     public Set<String> requires() {
-        return Set.of("identity-did-core", "identity-did-verifier");
+        return Set.of(DidPublicKeyResolver.FEATURE, PrivateKeyResolver.FEATURE, CredentialsVerifier.FEATURE);
     }
 
     @Override

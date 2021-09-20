@@ -116,7 +116,7 @@ public class EndToEndTest {
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
             @Override
             public Set<String> provides() {
-                return Set.of("iam");
+                return Set.of(IdentityService.FEATURE);
             }
 
             @Override

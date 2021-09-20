@@ -27,7 +27,7 @@ public class IamMockExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("iam");
+        return Set.of(IdentityService.FEATURE);
     }
 
     @Override

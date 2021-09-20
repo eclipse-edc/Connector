@@ -20,6 +20,8 @@ package org.eclipse.dataspaceconnector.spi.iam;
  */
 public interface IdentityService {
 
+    String FEATURE = "edc:iam";
+
     /**
      * Obtains a client token encoded as a JWT.
      */

@@ -64,7 +64,7 @@ public class Oauth2Extension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("iam", "oauth2");
+        return Set.of(IdentityService.FEATURE, "oauth2");
     }
 
     @Override

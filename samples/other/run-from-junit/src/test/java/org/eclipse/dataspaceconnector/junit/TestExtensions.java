@@ -26,7 +26,7 @@ public class TestExtensions {
         return new ServiceExtension() {
             @Override
             public Set<String> provides() {
-                return Set.of("iam");
+                return Set.of(IdentityService.FEATURE);
             }
 
             @Override
