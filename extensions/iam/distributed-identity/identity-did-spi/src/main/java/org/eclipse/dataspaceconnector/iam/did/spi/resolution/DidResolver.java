@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
  */
 @FunctionalInterface
 public interface DidResolver {
+    String FEATURE = "edc:identity:did:resolver";
 
     DidDocument resolve(String didKey);
 
