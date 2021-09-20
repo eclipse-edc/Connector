@@ -28,10 +28,10 @@ import java.util.List;
  */
 @JsonDeserialize(builder = DidDocument.Builder.class)
 public class DidDocument {
+    private final List<Service> service = new ArrayList<>();
     private String id;
     @JsonProperty("@context")
     private List<Object> context = Collections.singletonList("https://w3id.org/did-resolution/v1");
-    private final List<Service> service = new ArrayList<>();
     private List<VerificationMethod> verificationMethod = new ArrayList<>();
     private List<String> authentication = new ArrayList<>();
 
