@@ -52,7 +52,7 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(IdentityHub.FEATURE, PrivateKeyResolver.FEATURE, DidPublicKeyResolver.FEATURE);
+        return Set.of(IdentityHub.FEATURE, IdentityHubClient.FEATURE, PrivateKeyResolver.FEATURE, DidPublicKeyResolver.FEATURE);
     }
 
     @Override
