@@ -24,6 +24,8 @@ import java.util.Collection;
  */
 public interface PolicyRegistry {
 
+    String FEATURE = "edc:policy:registry";
+
     /**
      * Resolves a policy for the given identifier.
      *

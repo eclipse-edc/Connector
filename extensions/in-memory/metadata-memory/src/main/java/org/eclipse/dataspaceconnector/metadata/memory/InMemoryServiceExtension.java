@@ -26,13 +26,13 @@ public class InMemoryServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
-    public LoadPhase phase() {
-        return LoadPhase.PRIMORDIAL;
+    public Set<String> provides() {
+        return Set.of(MetadataObservable.FEATURE, MetadataStore.FEATURE);
     }
 
     @Override
-    public Set<String> provides() {
-        return Set.of("dataspaceconnector:metadata-store-observable");
+    public LoadPhase phase() {
+        return LoadPhase.PRIMORDIAL;
     }
 
     @Override

@@ -23,7 +23,7 @@ public class FileTransferExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:webservice", "policy-registry");
+        return Set.of("edc:webservice", PolicyRegistry.FEATURE);
     }
 
     @Override

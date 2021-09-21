@@ -57,7 +57,7 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("identity-hub-store", IonClient.FEATURE);
+        return Set.of(IdentityHubStore.FEATURE, IonClient.FEATURE);
     }
 
     @Override

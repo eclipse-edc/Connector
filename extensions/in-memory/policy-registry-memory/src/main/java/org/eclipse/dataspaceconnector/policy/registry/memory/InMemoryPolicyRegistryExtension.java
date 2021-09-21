@@ -24,7 +24,7 @@ public class InMemoryPolicyRegistryExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("policy-registry");
+        return Set.of(PolicyRegistry.FEATURE);
     }
 
     @Override

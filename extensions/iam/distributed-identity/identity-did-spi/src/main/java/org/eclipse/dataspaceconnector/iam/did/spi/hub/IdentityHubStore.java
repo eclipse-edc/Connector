@@ -25,6 +25,8 @@ import java.util.Collection;
  */
 public interface IdentityHubStore {
 
+    String FEATURE = "edc:identity:hub:store";
+
     /**
      * Persists a commit.
      */

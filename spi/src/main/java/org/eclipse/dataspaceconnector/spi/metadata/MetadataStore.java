@@ -29,6 +29,8 @@ import java.util.Collection;
 // TODO MetadataStore is replaced by AssetIndex
 public interface MetadataStore {
 
+    String FEATURE = "edc:metadata:store";
+
     /**
      * Returns the entry for the id or null if not found.
      */
