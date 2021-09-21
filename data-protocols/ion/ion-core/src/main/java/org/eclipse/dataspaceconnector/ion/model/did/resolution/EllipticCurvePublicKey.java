@@ -8,8 +8,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 public class EllipticCurvePublicKey {
     String crv;
     String kty;
-    String x;
-    String y;
+    String curvePointX;
+    String curvePointY;
 
     public EllipticCurvePublicKey() {
     }
@@ -17,8 +17,8 @@ public class EllipticCurvePublicKey {
     public EllipticCurvePublicKey(String crv, String kty, String x, String y) {
         this.crv = crv;
         this.kty = kty;
-        this.x = x;
-        this.y = y;
+        this.curvePointX = x;
+        this.curvePointY = y;
     }
 
     @JsonProperty("crv")
@@ -41,19 +41,19 @@ public class EllipticCurvePublicKey {
 
     @JsonProperty("x")
     public String getX() {
-        return x;
+        return curvePointX;
     }
 
     public void setX(String x) {
-        this.x = x;
+        this.curvePointX = x;
     }
 
     @JsonProperty("y")
     public String getY() {
-        return y;
+        return curvePointY;
     }
 
     public void setY(String y) {
-        this.y = y;
+        this.curvePointY = y;
     }
 }

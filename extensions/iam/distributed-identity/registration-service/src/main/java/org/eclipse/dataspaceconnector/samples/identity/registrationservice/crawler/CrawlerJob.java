@@ -19,7 +19,11 @@ import java.io.IOException;
 import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Base64;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -41,9 +45,9 @@ public class CrawlerJob implements Job {
         var monitor = cc.getMonitor();
 
         // get latest did document to obtain continuation token. At this time the continuation token is NOT used
-//        var latestDocument = cc.getDidStore().getLatest();
-//        var continuationToken = latestDocument != null ? latestDocument.getId() : null;
-//        monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
+        //        var latestDocument = cc.getDidStore().getLatest();
+        //        var continuationToken = latestDocument != null ? latestDocument.getId() : null;
+        //        monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
 
         monitor.info("CrawlerJob: browsing ION to obtain GaiaX DIDs");
 

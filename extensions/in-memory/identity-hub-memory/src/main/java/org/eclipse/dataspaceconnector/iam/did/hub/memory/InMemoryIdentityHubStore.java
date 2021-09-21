@@ -31,30 +31,30 @@ import static java.util.stream.Collectors.toList;
 
 /**
  * An im-memory implementation of an {@link IdentityHubStore}.
- *
+ * <p>
  * This implementation is ephemeral and not intended for production use.
  */
 public class InMemoryIdentityHubStore implements IdentityHubStore {
-    private Map<String, List<Commit>>commitIdCache = new HashMap<>(); // commits stored by initial (create commit) object id
-    private Map<String, Map<String, List<HubObject>>> hubCache = new HashMap<>();
+    private final Map<String, List<Commit>> commitIdCache = new HashMap<>(); // commits stored by initial (create commit) object id
+    private final Map<String, Map<String, List<HubObject>>> hubCache = new HashMap<>();
 
-    private ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
+    private final ReentrantReadWriteLock lock = new ReentrantReadWriteLock();
 
     @Override
     public void write(Commit commit) {
         lock.writeLock().lock();
         try {
-           switch (commit.getOperation()) {
-               case create:
-                   commitIdCache.computeIfAbsent(commit.getObjectId(), k-> new ArrayList<>()).add(commit);
-                   var qualifiedType = commit.getQualifiedType();
-                   hubCache.computeIfAbsent(qualifiedType, k->new HashMap<>()).computeIfAbsent(commit.getObjectId(), k-> new ArrayList<>()).add(createObject(commit));
-                   break;
-               case update:
-                   break;
-               case delete:
-                   break;
-           }
+            switch (commit.getOperation()) {
+                case create:
+                    commitIdCache.computeIfAbsent(commit.getObjectId(), k -> new ArrayList<>()).add(commit);
+                    var qualifiedType = commit.getQualifiedType();
+                    hubCache.computeIfAbsent(qualifiedType, k -> new HashMap<>()).computeIfAbsent(commit.getObjectId(), k -> new ArrayList<>()).add(createObject(commit));
+                    break;
+                case update:
+                case delete:
+                default:
+                    break;
+            }
         } finally {
             lock.writeLock().unlock();
         }
@@ -90,19 +90,20 @@ public class InMemoryIdentityHubStore implements IdentityHubStore {
             case Permissions:
             case Profile:
                 throw new UnsupportedOperationException("Not implemented");
+            default:
+                return null;
         }
-        return null;
     }
 
     private HubObject createObject(Commit commit) {
-      return HubObject.Builder.newInstance()
-              .createdBy(commit.getIss())
-              .id(commit.getObjectId())
-              .type(commit.getType())
-              .commitStrategy(commit.getCommitStrategy())
-              .interfaze(commit.getInterface())
-              .sub(commit.getSub())
-              .build();
+        return HubObject.Builder.newInstance()
+                .createdBy(commit.getIss())
+                .id(commit.getObjectId())
+                .type(commit.getType())
+                .commitStrategy(commit.getCommitStrategy())
+                .interfaze(commit.getInterface())
+                .sub(commit.getSub())
+                .build();
     }
 
 }

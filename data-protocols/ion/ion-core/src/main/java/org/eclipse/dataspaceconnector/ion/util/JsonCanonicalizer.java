@@ -10,16 +10,16 @@ import java.io.IOException;
  * Generates "canonical" JSON according to JCS (https://tools.ietf.org/id/draft-rundgren-json-canonicalization-scheme-05.html)
  */
 public class JsonCanonicalizer {
-    private static final ObjectMapper mapper;
+    private static final ObjectMapper MAPPER;
 
     static {
-        mapper = new ObjectMapper();
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
+        MAPPER = new ObjectMapper();
+        MAPPER.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 
     public static byte[] canonicalizeAsBytes(Object object) {
         try {
-            String json = mapper.writeValueAsString(object);
+            String json = MAPPER.writeValueAsString(object);
             var jc = new org.erdtman.jcs.JsonCanonicalizer(json);
 
             return jc.getEncodedUTF8();
@@ -31,7 +31,7 @@ public class JsonCanonicalizer {
 
     public static String canonicalizeAsString(Object object) {
         try {
-            String json = mapper.writeValueAsString(object);
+            String json = MAPPER.writeValueAsString(object);
             var jc = new org.erdtman.jcs.JsonCanonicalizer(json);
             return jc.getEncodedString();
         } catch (IOException e) {

@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.util.Set;
 
 
-public class GaiaXCredentialsVerifierExtension implements ServiceExtension {
+public class GaiaxCredentialsVerifierExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
@@ -37,7 +37,7 @@ public class GaiaXCredentialsVerifierExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var hubClient = context.getService(IdentityHubClient.class);
 
-        var credentialsVerifier = new GaiaXCredentialsVerifier(hubClient);
+        var credentialsVerifier = new GaiaxCredentialsVerifier(hubClient);
         context.registerService(CredentialsVerifier.class, credentialsVerifier);
 
         context.getMonitor().info("GAIA-X credentials verifier extension");

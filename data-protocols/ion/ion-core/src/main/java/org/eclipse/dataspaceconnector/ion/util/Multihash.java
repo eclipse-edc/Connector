@@ -307,15 +307,16 @@ public class Multihash {
         blake2s_248(0xb25f, 31),
         blake2s_256(0xb260, 32);
 
-        private static final Map<Integer, Type> lookup = new HashMap<>();
+        private static final Map<Integer, Type> LOOKUP = new HashMap<>();
 
         static {
             for (Type t : Type.values()) {
-                lookup.put(t.index, t);
+                LOOKUP.put(t.index, t);
             }
         }
 
-        public final int index, length;
+        public final int index;
+        public final int length;
 
         Type(int index, int length) {
             this.index = index;
@@ -323,7 +324,7 @@ public class Multihash {
         }
 
         public static Type lookup(int t) {
-            Type type = lookup.get(t);
+            Type type = LOOKUP.get(t);
             if (type == null) {
                 throw new IllegalStateException(String.format("Unknown Multihash type: 0x%x", t));
             }

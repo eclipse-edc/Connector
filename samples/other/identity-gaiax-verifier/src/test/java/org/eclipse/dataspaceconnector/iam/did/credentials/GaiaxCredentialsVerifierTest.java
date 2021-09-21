@@ -4,7 +4,7 @@ import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.ClientResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
-import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
+import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,9 +14,9 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
 
-class GaiaXCredentialsVerifierTest {
+class GaiaxCredentialsVerifierTest {
     private IdentityHubClient hubClient;
-    private GaiaXCredentialsVerifier credentialsVerifier;
+    private GaiaxCredentialsVerifier credentialsVerifier;
     private RSAPublicKey publicKey;
 
     @Test
@@ -34,7 +34,7 @@ class GaiaXCredentialsVerifierTest {
     void setUp() {
         publicKey = TemporaryKeyLoader.loadPublicKey();
         hubClient = EasyMock.createMock(IdentityHubClient.class);
-        credentialsVerifier = new GaiaXCredentialsVerifier(hubClient);
+        credentialsVerifier = new GaiaxCredentialsVerifier(hubClient);
 
     }
 

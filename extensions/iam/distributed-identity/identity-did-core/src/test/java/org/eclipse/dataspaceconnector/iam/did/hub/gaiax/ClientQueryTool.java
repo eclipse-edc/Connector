@@ -30,7 +30,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.HubMessage;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
-import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
+import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.junit.jupiter.api.Test;
 
@@ -38,14 +38,14 @@ import java.io.IOException;
 
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_COMMIT_QUERY_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_OBJECT_QUERY_URL;
-import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
+import static org.eclipse.dataspaceconnector.iam.did.util.GaiaxAssumptions.assumptions;
 
 /**
  * TODO HACKATHON-1 TASK 1: Java-based query example
  */
 public class ClientQueryTool {
-    private ObjectMapper objectMapper = new ObjectMapper();
-    private RSAKey keys;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final RSAKey keys;
 
     public ClientQueryTool() {
         keys = TemporaryKeyLoader.loadKeys();

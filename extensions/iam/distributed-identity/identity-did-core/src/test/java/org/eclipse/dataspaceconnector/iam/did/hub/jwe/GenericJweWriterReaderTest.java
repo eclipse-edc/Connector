@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Map;
 
-import static org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader.loadKeys;
+import static org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader.loadKeys;
 
 
 

@@ -16,12 +16,12 @@ package org.eclipse.dataspaceconnector.iam.did.util;
 import org.junit.jupiter.api.Assumptions;
 
 
-public class GaiaXAssumptions {
+public class GaiaxAssumptions {
+
+    private GaiaxAssumptions() {
+    }
 
     public static void assumptions() {
         Assumptions.assumeTrue(Boolean.parseBoolean(System.getenv("GAIA-X-LOCAL-HACKATHON")));
-    }
-
-    private GaiaXAssumptions() {
     }
 }

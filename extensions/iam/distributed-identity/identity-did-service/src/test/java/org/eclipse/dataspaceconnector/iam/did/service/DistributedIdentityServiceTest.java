@@ -24,7 +24,7 @@ import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
-import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
+import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,8 +88,8 @@ class DistributedIdentityServiceTest {
         privateKey = TemporaryKeyLoader.loadPrivateKey();
         publicKey = TemporaryKeyLoader.loadPublicKey();
 
-        var didJSon = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
-        var hubUrlDid = new String(didJSon.readAllBytes(), StandardCharsets.UTF_8);
+        var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
+        var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
 
         DidResolver didResolver = d -> {
             try {

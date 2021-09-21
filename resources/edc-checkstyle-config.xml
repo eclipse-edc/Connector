@@ -325,7 +325,10 @@
                value="^@return the *|^This method returns |^A [{]@code [a-zA-Z0-9]+[}]( is a )"/>
       <property name="period" value=""/><!-- We don't require a period symbol at the end of the first line. -->
     </module>
-    <module name="JavadocParagraph"/>
+<!--    disabled javadoc paragraph checking as it would complain about <p> tags-->
+<!--    <module name="JavadocParagraph">-->
+<!--      <property name="allowNewlineParagraph" value="false"/>-->
+<!--    </module>-->
     <module name="RequireEmptyLineBeforeBlockTagGroup"/>
     <module name="AtclauseOrder">
       <property name="tagOrder" value="@param, @return, @throws, @deprecated"/>

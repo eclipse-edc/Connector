@@ -15,7 +15,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteResponse;
-import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
+import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

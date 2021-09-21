@@ -23,7 +23,10 @@ import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
 import java.util.List;
 import java.util.ListIterator;
 
-import static org.eclipse.dataspaceconnector.system.ExtensionLoader.*;
+import static org.eclipse.dataspaceconnector.system.ExtensionLoader.bootServiceExtensions;
+import static org.eclipse.dataspaceconnector.system.ExtensionLoader.loadMonitor;
+import static org.eclipse.dataspaceconnector.system.ExtensionLoader.loadVault;
+
 
 public class ConsumerRuntime {
 

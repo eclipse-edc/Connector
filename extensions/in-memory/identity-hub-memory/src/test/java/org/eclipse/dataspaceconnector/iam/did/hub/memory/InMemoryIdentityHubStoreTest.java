@@ -31,10 +31,10 @@ class InMemoryIdentityHubStoreTest {
         store.write(commit);
 
         var commitResults = store.query(CommitQuery.Builder.newInstance().objectId("123").build());
-        Assertions.assertEquals(commit.getObjectId(),commitResults.iterator().next().getObjectId());
+        Assertions.assertEquals(commit.getObjectId(), commitResults.iterator().next().getObjectId());
 
-        var objectResults =  store.query(ObjectQuery.Builder.newInstance().context("foo").type("foo").build());
-        Assertions.assertEquals(commit.getObjectId(),objectResults.iterator().next().getId());
+        var objectResults = store.query(ObjectQuery.Builder.newInstance().context("foo").type("foo").build());
+        Assertions.assertEquals(commit.getObjectId(), objectResults.iterator().next().getId());
     }
 
     @Test
@@ -43,7 +43,7 @@ class InMemoryIdentityHubStoreTest {
 
         store.write(commit);
 
-        var objectResults =  store.query(ObjectQuery.Builder.newInstance().context("anothercontext").type("foo").build());
+        var objectResults = store.query(ObjectQuery.Builder.newInstance().context("anothercontext").type("foo").build());
         Assertions.assertTrue(objectResults.isEmpty());
     }
 

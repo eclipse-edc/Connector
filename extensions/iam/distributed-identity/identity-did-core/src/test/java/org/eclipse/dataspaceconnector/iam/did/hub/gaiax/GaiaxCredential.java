@@ -20,8 +20,8 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 /**
  * A sample GAIA-X credential written to an identity hub by a verifier.
  */
-@JsonDeserialize(builder = GaiaXCredential.Builder.class)
-public class GaiaXCredential {
+@JsonDeserialize(builder = GaiaxCredential.Builder.class)
+public class GaiaxCredential {
     private String region;
     private String companyId;
 
@@ -35,7 +35,11 @@ public class GaiaXCredential {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private GaiaXCredential credential;
+        private final GaiaxCredential credential;
+
+        private Builder() {
+            credential = new GaiaxCredential();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -52,12 +56,8 @@ public class GaiaXCredential {
             return this;
         }
 
-        public GaiaXCredential build() {
+        public GaiaxCredential build() {
             return credential;
-        }
-
-        private Builder() {
-            credential = new GaiaXCredential();
         }
     }
 }

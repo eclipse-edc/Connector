@@ -24,9 +24,9 @@ class WriteRequestTest {
     @Test
     void verifySerializeDeserialize() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
-        var commitObject = new JsonCommitObject("1233.333.112",new CommitHeader("1"));
+        var commitObject = new JsonCommitObject("1233.333.112", new CommitHeader("1"));
         var serialized = mapper.writeValueAsString(WriteRequest.Builder.newInstance().iss("iss").aud("aud").sub("sub").commit(commitObject).build());
-        var deserialized =  mapper.readValue(serialized,WriteRequest.class);
+        var deserialized = mapper.readValue(serialized, WriteRequest.class);
         Assertions.assertNotNull(deserialized);
     }
 }

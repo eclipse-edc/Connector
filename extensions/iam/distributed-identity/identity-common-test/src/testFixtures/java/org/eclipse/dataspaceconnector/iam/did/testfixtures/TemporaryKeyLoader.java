@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.iam.did.testFixtures;
+package org.eclipse.dataspaceconnector.iam.did.testfixtures;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.RSAKey;
@@ -36,7 +36,7 @@ public class TemporaryKeyLoader {
                 try (InputStream stream = url.openStream()) {
                     keyStore.load(stream, PASSWORD.toCharArray());
                 }
-                keys= RSAKey.load(keyStore, "testkey", PASSWORD.toCharArray());
+                keys = RSAKey.load(keyStore, "testkey", PASSWORD.toCharArray());
             } catch (Exception e) {
                 throw new AssertionError(e);
             }

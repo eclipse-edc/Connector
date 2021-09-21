@@ -29,11 +29,11 @@ import java.util.Objects;
  */
 public class DefaultIonClient implements IonClient {
 
-    private final static String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";
-    private final static String IDENTIFIERS_PATH = "/identifiers";
-    private final static String OPERATIONS_PATH = "/operations";
-    private final String ionUrl;
-    private final ObjectMapper typeManager;
+    private static final String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";
+    private static final String IDENTIFIERS_PATH = "/identifiers";
+    private static final String OPERATIONS_PATH = "/operations";
+    private static String ionUrl;
+    private static ObjectMapper typeManager;
 
     public DefaultIonClient(ObjectMapper typeManager) {
         this(DEFAULT_RESOLUTION_ENDPOINT, typeManager);
@@ -142,7 +142,8 @@ public class DefaultIonClient implements IonClient {
         String requestBodyJson = JsonCanonicalizer.canonicalizeAsString(request);
 
         String answerHashString;
-        String answerNonce, answerNonceHex;
+        String answerNonce;
+        String answerNonceHex;
 
         byte[] salt = HexStringUtils.encodeToHexBytes(challengeNonce);
 

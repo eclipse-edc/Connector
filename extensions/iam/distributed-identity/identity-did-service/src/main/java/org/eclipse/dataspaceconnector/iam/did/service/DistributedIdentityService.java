@@ -42,12 +42,12 @@ import java.util.concurrent.TimeUnit;
  * Implements an identity service backed by an EDC service registry.
  */
 public class DistributedIdentityService implements IdentityService {
-    private String did;
-    private CredentialsVerifier credentialsVerifier;
-    private DidResolver didResolver;
-    private DidPublicKeyResolver publicKeyResolver;
-    private PrivateKeyResolver privateKeyResolver;
-    private Monitor monitor;
+    private final String did;
+    private final CredentialsVerifier credentialsVerifier;
+    private final DidResolver didResolver;
+    private final DidPublicKeyResolver publicKeyResolver;
+    private final PrivateKeyResolver privateKeyResolver;
+    private final Monitor monitor;
 
     public DistributedIdentityService(String did,
                                       CredentialsVerifier credentialsVerifier,
@@ -123,7 +123,7 @@ public class DistributedIdentityService implements IdentityService {
         if (!hubBaseUrl.endsWith("/")) {
             hubBaseUrl += "/";
         }
-        var publicKey = publicKeyResolver.resolvePublicKey(null);// TODO HACKATHON-1 this needs to resolve the public key of the Hub DID
+        var publicKey = publicKeyResolver.resolvePublicKey(null); // TODO HACKATHON-1 this needs to resolve the public key of the Hub DID
         if (publicKey == null) {
             return new CredentialsResult("Unable to resolve DID public key");
         }
@@ -172,21 +172,21 @@ public class DistributedIdentityService implements IdentityService {
             }
             return (String) serviceMap.get("serviceEndpoint");
 
-// Resolve ION/IdentityHub discrepancy
+            // Resolve ION/IdentityHub discrepancy
 
-//            if (!(serviceEndpoint instanceof Map)) {
-//                continue;
-//            }
-//            var locations = ((Map) serviceEndpoint).get("locations");
-//            if (!(locations instanceof List)) {
-//                continue;
-//            }
-//            var locationsList = (List<String>) locations;
-//            if (((List<?>) locations).isEmpty()) {
-//                continue;
-//            }
-//            return locationsList.get(0);
-// End Resolve ION/IdentityHub discrepancy
+            //            if (!(serviceEndpoint instanceof Map)) {
+            //                continue;
+            //            }
+            //            var locations = ((Map) serviceEndpoint).get("locations");
+            //            if (!(locations instanceof List)) {
+            //                continue;
+            //            }
+            //            var locationsList = (List<String>) locations;
+            //            if (((List<?>) locations).isEmpty()) {
+            //                continue;
+            //            }
+            //            return locationsList.get(0);
+            // End Resolve ION/IdentityHub discrepancy
 
         }
         return null;

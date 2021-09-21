@@ -27,14 +27,14 @@ public class InputValidator {
             throw new IonCryptoException("Only EC keys are supported at the moment, but " + key.getKeyType().getValue() + " was supplied!");
         }
 
-        int xLen = ecKey.getX().toString().length();
-        if (xLen != 43) {
-            throw new IonCryptoException("SECP256k1 JWK 'x' property must be 43 bytes but found " + xLen);
+        int lenX = ecKey.getX().toString().length();
+        if (lenX != 43) {
+            throw new IonCryptoException("SECP256k1 JWK 'x' property must be 43 bytes but found " + lenX);
         }
 
-        int yLen = ecKey.getY().toString().length();
-        if (yLen != 43) {
-            throw new IonCryptoException("SECP256k1 JWK 'y' property must be 43 bytes but found " + yLen);
+        int lenY = ecKey.getY().toString().length();
+        if (lenY != 43) {
+            throw new IonCryptoException("SECP256k1 JWK 'y' property must be 43 bytes but found " + lenY);
         }
 
         if (visibility.equals("private") && (ecKey.getD() == null || ecKey.getD().toString().length() != 43)) {

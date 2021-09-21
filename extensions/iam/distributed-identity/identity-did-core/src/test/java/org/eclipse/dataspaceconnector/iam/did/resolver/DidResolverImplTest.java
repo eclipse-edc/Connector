@@ -5,7 +5,7 @@ import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
+import static org.eclipse.dataspaceconnector.iam.did.util.GaiaxAssumptions.assumptions;
 
 
 class DidResolverImplTest {

@@ -20,27 +20,27 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestWriter;
-import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
+import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_WRITE_COMMIT_TEMP_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.CONSUMER_WRITE_COMMIT_URL;
 import static org.eclipse.dataspaceconnector.iam.did.hub.gaiax.GaiaxConstants.PRODUCER_WRITE_COMMIT_URL;
-import static org.eclipse.dataspaceconnector.iam.did.util.GaiaXAssumptions.assumptions;
+import static org.eclipse.dataspaceconnector.iam.did.util.GaiaxAssumptions.assumptions;
 
 /**
  * Tools for writing verified credentials. To enable set the ENV variable {@code GAIA-X-LOCAL-HACKATHON} to true.
  * TODO HACKATHON-1 TASK 1: Java-based example
  */
 public class VerificationTool {
-    private ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Test
     @Deprecated
     public void writeConsumerCredentialsDirect() throws Exception {
         assumptions();
-        var credential = GaiaXCredential.Builder.newInstance().companyId("Consumer").region("eu").build();
+        var credential = GaiaxCredential.Builder.newInstance().companyId("Consumer").region("eu").build();
 
         var serializedCredential = objectMapper.writeValueAsString(credential);
         System.out.println("Serialized credential: " + serializedCredential);
@@ -57,7 +57,7 @@ public class VerificationTool {
     @Test
     public void writeConsumerCredentials() throws Exception {
         assumptions();
-        var credential = GaiaXCredential.Builder.newInstance().companyId("Consumer").region("eu").build();
+        var credential = GaiaxCredential.Builder.newInstance().companyId("Consumer").region("eu").build();
 
         Response response = getResponse(credential, CONSUMER_WRITE_COMMIT_URL);
 
@@ -67,7 +67,7 @@ public class VerificationTool {
     @Test
     public void writeProducerCredentials() throws Exception {
         assumptions();
-        var credential = GaiaXCredential.Builder.newInstance().companyId("Producer").region("eu").build();
+        var credential = GaiaxCredential.Builder.newInstance().companyId("Producer").region("eu").build();
         Response response = getResponse(credential, PRODUCER_WRITE_COMMIT_URL);
 
         System.out.println("Write producer response: " + response.code());
@@ -75,7 +75,7 @@ public class VerificationTool {
 
 
     @NotNull
-    private Response getResponse(GaiaXCredential credential, String url) throws Exception {
+    private Response getResponse(GaiaxCredential credential, String url) throws Exception {
 
 
         var keys = TemporaryKeyLoader.loadKeys();

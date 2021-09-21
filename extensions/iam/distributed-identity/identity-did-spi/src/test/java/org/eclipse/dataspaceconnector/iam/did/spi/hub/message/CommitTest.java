@@ -26,7 +26,7 @@ class CommitTest {
         var commit = Commit.Builder.newInstance().context("foo").type("foo").objectId("123").iss("baz").sub("quux").payload("payload").alg("RSA256").kid("kid").build();
         ObjectMapper mapper = new ObjectMapper();
         var serialized = mapper.writeValueAsString(commit);
-        var deserialized =  mapper.readValue(serialized,Commit.class);
+        var deserialized = mapper.readValue(serialized, Commit.class);
         Assertions.assertNotNull(deserialized);
         Assertions.assertEquals("123", deserialized.getObjectId());
     }

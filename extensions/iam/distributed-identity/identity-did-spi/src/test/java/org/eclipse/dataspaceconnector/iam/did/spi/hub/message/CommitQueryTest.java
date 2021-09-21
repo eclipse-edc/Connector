@@ -25,7 +25,7 @@ class CommitQueryTest {
     void verifySerializeDeserialize() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         var serialized = mapper.writeValueAsString(CommitQuery.Builder.newInstance().objectId("123").build());
-        var deserialized =  mapper.readValue(serialized,CommitQuery.class);
+        var deserialized = mapper.readValue(serialized, CommitQuery.class);
         Assertions.assertNotNull(deserialized);
         Assertions.assertEquals("123", deserialized.getObjectId());
     }

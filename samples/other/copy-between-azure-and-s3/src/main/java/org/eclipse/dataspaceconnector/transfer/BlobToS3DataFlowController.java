@@ -67,8 +67,9 @@ public class BlobToS3DataFlowController implements DataFlowController {
                 return new S3BucketWriter(monitor, typeManager);
             case "AzureStorage":
                 return new BlobStoreWriter(monitor, typeManager);
+            default:
+                throw new IllegalArgumentException("Unknown source type " + destinationType);
         }
-        throw new IllegalArgumentException("Unknown source type " + destinationType);
     }
 
     private @NotNull DataReader getReader(String sourceType) {
@@ -77,8 +78,9 @@ public class BlobToS3DataFlowController implements DataFlowController {
                 return new S3BucketReader();
             case "AzureStorage":
                 return new BlobStoreReader(new BlobStoreApiImpl(vault));
+            default:
+                throw new IllegalArgumentException("Unknown source type " + sourceType);
         }
-        throw new IllegalArgumentException("Unknown source type " + sourceType);
     }
 
     private boolean verifyType(String type) {

@@ -34,9 +34,9 @@ class S3BucketWriter implements DataWriter {
 
     @Override
     public void write(DataAddress destination, String name, InputStream data, String secretToken) {
-//        if (!(secretToken instanceof AwsSecretToken)) {
-//            throw new IllegalArgumentException("Can only handle AwsSecretTokens!");
-//        }
+        //        if (!(secretToken instanceof AwsSecretToken)) {
+        //            throw new IllegalArgumentException("Can only handle AwsSecretTokens!");
+        //        }
 
         var bucketName = destination.getProperty(S3BucketSchema.BUCKET_NAME);
         var region = destination.getProperty(S3BucketSchema.REGION);

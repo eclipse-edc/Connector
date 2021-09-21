@@ -25,7 +25,7 @@ class WriteResponseTest {
     void verifySerializeDeserialize() throws JsonProcessingException {
         ObjectMapper mapper = new ObjectMapper();
         var serialized = mapper.writeValueAsString(WriteResponse.Builder.newInstance().build());
-        var deserialized =  mapper.readValue(serialized,WriteResponse.class);
+        var deserialized = mapper.readValue(serialized, WriteResponse.class);
         Assertions.assertNotNull(deserialized);
     }
 }

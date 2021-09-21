@@ -17,7 +17,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class IonClientImplTest {
 
-    private static final String didUrlToResolve = "did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA";
+    private static final String DID_URL_TO_RESOLVE = "did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA";
 
 
     private DefaultIonClient client;
@@ -29,9 +29,9 @@ class IonClientImplTest {
 
     @Test
     void resolve() {
-        var result = client.resolve(didUrlToResolve);
+        var result = client.resolve(DID_URL_TO_RESOLVE);
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(didUrlToResolve);
+        assertThat(result.getId()).isEqualTo(DID_URL_TO_RESOLVE);
     }
 
 
@@ -68,8 +68,8 @@ class IonClientImplTest {
 
         //TODO: commented out because anchoring does not yet work due to rate limiting
 
-//        var didDoc = client.submit(createDidRequest);
-//        assertThat(didDoc).isNotNull();
-//        assertThat(didDoc.getId()).isNotNull();
+        //        var didDoc = client.submit(createDidRequest);
+        //        assertThat(didDoc).isNotNull();
+        //        assertThat(didDoc.getId()).isNotNull();
     }
 }

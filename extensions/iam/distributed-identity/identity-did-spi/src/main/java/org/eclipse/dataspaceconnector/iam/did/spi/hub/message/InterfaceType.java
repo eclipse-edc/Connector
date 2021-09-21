@@ -16,4 +16,10 @@ package org.eclipse.dataspaceconnector.iam.did.spi.hub.message;
 /**
  * Defines the hub object types.
  */
-public enum InterfaceType {Collections, Actions, Permissions, Profile}
+public enum InterfaceType {
+    Collections,
+    Actions,
+    Permissions,
+    Profile
+}
+
