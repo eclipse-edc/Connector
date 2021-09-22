@@ -41,7 +41,7 @@ class CoreServicesExtensionTest {
 
     @Test
     void provides() {
-        assertThat(extension.provides()).containsExactlyInAnyOrder("dataspaceconnector:http-client", "dataspaceconnector:retry-policy");
+        assertThat(extension.provides()).containsExactlyInAnyOrder("dataspaceconnector:http-client", "dataspaceconnector:retry-policy", PrivateKeyResolver.FEATURE);
     }
 
     @Test
