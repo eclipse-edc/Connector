@@ -1,7 +1,7 @@
 FROM openjdk:11-jre-slim
 
 WORKDIR /app
-COPY ./build/libs/edc-demo-e2e.jar /app
+COPY ./build/libs/dataspaceconnector-demo-e2e.jar /app
 #COPY ./dataspaceconnector-config-docker.properties /app/dataspaceconnector-config.properties
 #COPY ./cert.pfx /cert
 
@@ -16,4 +16,4 @@ ENTRYPOINT java \
     -Dedc.cosmos.database.name=${COSMOS_DB} \
     -Dedc.events.topic.name=${TOPIC_NAME} \
     -Dedc.events.topic.endpoint=${TOPIC_ENDPOINT} \
-    -Djava.security.edg=file:/dev/.urandom -jar edc-demo-e2e.jar
+    -Djava.security.edg=file:/dev/.urandom -jar dataspaceconnector-demo-e2e.jar
