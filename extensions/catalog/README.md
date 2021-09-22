@@ -1,6 +1,6 @@
 ## The catalog extensions
 
-This extension includes the `CatalogService` interface, which serves as a generic convenience feature to issue a catalog query to any EDC-compliant connector. It hides all the nitty-gritty 
+This extension includes the `CatalogService` interface, which serves as a generic convenience feature to issue a catalog query to any EDC-compliant connector. It hides all the technical details 
 like IDS-messages and the like from the user. 
 
 All that's required is a `connectorName` and a `connectorId` of the connector, who's catalog is to be queried.
