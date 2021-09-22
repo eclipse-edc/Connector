@@ -5,11 +5,10 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.RSAEncrypter;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import static com.nimbusds.jose.EncryptionMethod.A256GCM;
-import static com.nimbusds.jose.JWEAlgorithm.RSA_OAEP_256;
+import static com.nimbusds.jose.JWEAlgorithm.ECDH_ES_A256KW;
 
 /**
  * Writes a JWE containing a typed payload.
@@ -21,9 +20,9 @@ public class GenericJweWriter extends AbstractJweWriter<GenericJweWriter> {
     public String buildJwe() {
         try {
             var jwePayload = new Payload(objectMapper.writeValueAsString(payload));
-            var jweHeader = new JWEHeader.Builder(RSA_OAEP_256, A256GCM).build();
+            var jweHeader = new JWEHeader.Builder(ECDH_ES_A256KW, A256GCM).build();
             var jweObject = new JWEObject(jweHeader, jwePayload);
-            jweObject.encrypt(new RSAEncrypter(publicKey));
+            jweObject.encrypt(publicKey.encrypter());
             return jweObject.serialize();
         } catch (JsonProcessingException | JOSEException e) {
             throw new EdcException(e);

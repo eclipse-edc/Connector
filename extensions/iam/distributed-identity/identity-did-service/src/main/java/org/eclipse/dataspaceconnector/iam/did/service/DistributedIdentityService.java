@@ -17,7 +17,6 @@ import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.crypto.RSASSASigner;
-import com.nimbusds.jose.crypto.RSASSAVerifier;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
@@ -34,7 +33,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 
 import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
@@ -173,12 +171,12 @@ public class DistributedIdentityService implements IdentityService {
         try {
             // TODO HACKATHON-1 TASK 6B implement by verifying the token assertion against the public key contained in the DID, NOT the key from  publicKeyResolver.resolvePublicKey()
             // This will involve loading the Key from didDocument
-            var publicKey = (RSAPublicKey) publicKeyResolver.resolvePublicKey("");   // this needs to be replaced
+            var publicKey = publicKeyResolver.resolvePublicKey("");   // this needs to be replaced
             if (publicKey == null) {
                 monitor.info("Unable to resolve DID public key");
                 return false;
             }
-            var verifier = new RSASSAVerifier(publicKey);
+            var verifier = publicKey.verifier();
             return jwt.verify(verifier);
         } catch (JOSEException e) {
             monitor.info("Error verifying client token", e);

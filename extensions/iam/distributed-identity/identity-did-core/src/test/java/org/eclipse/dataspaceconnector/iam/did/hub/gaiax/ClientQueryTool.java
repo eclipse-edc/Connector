@@ -23,6 +23,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryResponse;
@@ -62,8 +64,8 @@ public class ClientQueryTool {
         var queryRequest = ObjectQueryRequest.Builder.newInstance().query(query).iss("123").aud("aud").sub("sub").build();
 
         var objectRequestJwe = new GenericJweWriter()
-                .privateKey(privateKey)
-                .publicKey(publicKey)
+                .privateKey(new RSAPrivateKeyWrapper(privateKey))
+                .publicKey(new RSAPublicKeyWrapper(publicKey))
                 .objectMapper(objectMapper)
                 .payload(queryRequest)
                 .buildJwe();
@@ -75,8 +77,8 @@ public class ClientQueryTool {
             var commitQueryRequest = CommitQueryRequest.Builder.newInstance().query(commitQuery).iss("123").aud("aud").sub("sub").build();
 
             var commitRequestJwe = new GenericJweWriter()
-                    .privateKey(privateKey)
-                    .publicKey(publicKey)
+                    .privateKey(new RSAPrivateKeyWrapper(privateKey))
+                    .publicKey(new RSAPublicKeyWrapper(publicKey))
                     .objectMapper(objectMapper)
                     .payload(commitQueryRequest)
                     .buildJwe();
@@ -102,7 +104,7 @@ public class ClientQueryTool {
         try (var response = httpClient.newCall(request).execute()) {
             var body = response.body();
             assert body != null;
-            return new GenericJweReader().mapper(objectMapper).jwe(body.string()).privateKey(keys.toRSAPrivateKey()).readType(type);
+            return new GenericJweReader().mapper(objectMapper).jwe(body.string()).privateKey(new RSAPrivateKeyWrapper(keys.toRSAPrivateKey())).readType(type);
         } catch (IOException | JOSEException e) {
             throw new EdcException(e);
         }

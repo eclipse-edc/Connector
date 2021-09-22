@@ -2,6 +2,8 @@ package org.eclipse.dataspaceconnector.iam.did.hub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
@@ -9,7 +11,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-
 
 
 class IdentityHubClientImplTest {
@@ -24,12 +25,12 @@ class IdentityHubClientImplTest {
         // TODO pull the hub url from the DID document
         var hubBaseUrl = "http://localhost:8181/api/identity-hub/";
         var publicKey = TemporaryKeyLoader.loadPublicKey();
-        var credentials = hubClient.queryCredentials(queryRequest, hubBaseUrl, publicKey);
+        var credentials = hubClient.queryCredentials(queryRequest, hubBaseUrl, new RSAPublicKeyWrapper(publicKey));
         Assertions.assertNotNull(credentials);
     }
 
     @BeforeEach
     void setUp() {
-        hubClient = new IdentityHubClientImpl(TemporaryKeyLoader::loadPrivateKey, new OkHttpClient(), new ObjectMapper());
+        hubClient = new IdentityHubClientImpl(() -> new RSAPrivateKeyWrapper(TemporaryKeyLoader.loadPrivateKey()), new OkHttpClient(), new ObjectMapper());
     }
 }

@@ -1,8 +1,7 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.jetbrains.annotations.Nullable;
-
-import java.security.PublicKey;
 
 /**
  * Resolves a public key contained in a DID document associated with a DID.
@@ -15,6 +14,6 @@ public interface DidPublicKeyResolver {
      * Resolves the public key. Note null is returned if the key cannot be resolved.
      */
     @Nullable
-    PublicKey resolvePublicKey(String did);
+    PublicKeyWrapper resolvePublicKey(String did);
 
 }

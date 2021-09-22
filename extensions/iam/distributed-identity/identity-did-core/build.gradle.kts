@@ -5,6 +5,7 @@ plugins {
 val rsApi: String by project
 val nimbusVersion: String by project
 
+val nimbusVersion: String by project
 dependencies {
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
     api(project(":data-protocols:ion:ion-core"))

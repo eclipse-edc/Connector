@@ -4,7 +4,6 @@ plugins {
 }
 
 val nimbusVersion: String by project
-
 dependencies {
     api(project(":spi"))
 

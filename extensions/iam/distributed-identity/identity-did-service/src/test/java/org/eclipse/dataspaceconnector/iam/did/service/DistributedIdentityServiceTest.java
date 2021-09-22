@@ -23,7 +23,9 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -111,7 +113,8 @@ class DistributedIdentityServiceTest {
                 return (T) privateKey;
             }
         };
-        identityService = new DistributedIdentityService("did:ion:123abc", verifier, didResolver, d -> publicKey, privateKeyResolver, new Monitor() {
+        DidPublicKeyResolver didPublicKeyResolver = (DidPublicKeyResolver) d -> new RSAPublicKeyWrapper(publicKey);
+        identityService = new DistributedIdentityService("did:ion:123abc", verifier, didResolver, didPublicKeyResolver, privateKeyResolver, new Monitor() {
         });
 
     }

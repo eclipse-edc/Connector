@@ -21,8 +21,6 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.RSAEncrypter;
-import com.nimbusds.jose.crypto.RSASSASigner;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitHeader;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.InterfaceType;
@@ -49,9 +47,10 @@ public class WriteRequestWriter extends AbstractJweWriter<WriteRequestWriter> {
     private InterfaceType interfaze = InterfaceType.Collections;
     private String context;
     private String type;
-    private Commit.Operation operation = Commit.Operation.create;
+    private final Commit.Operation operation = Commit.Operation.create;
     private Object commitObject;
 
+    @Override
     public String buildJwe() {
         Objects.requireNonNull(context);
         Objects.requireNonNull(type);
@@ -63,7 +62,7 @@ public class WriteRequestWriter extends AbstractJweWriter<WriteRequestWriter> {
 
             var commitBody = objectMapper.writeValueAsString(commitObject);
             var jwsCommit = new JWSObject(jwsCommitHeader, new Payload(commitBody));
-            jwsCommit.sign(new RSASSASigner(privateKey));
+            jwsCommit.sign(privateKey.signer());
 
             var serializedCommit = jwsCommit.serialize();
 
@@ -76,7 +75,7 @@ public class WriteRequestWriter extends AbstractJweWriter<WriteRequestWriter> {
 
             var jweHeader = new JWEHeader.Builder(RSA_OAEP_256, A256GCM).keyID(kid).build();
             var jweObject = new JWEObject(jweHeader, payload);
-            jweObject.encrypt(new RSAEncrypter(publicKey));
+            jweObject.encrypt(publicKey.encrypter());
             return jweObject.serialize();
         } catch (JOSEException | JsonProcessingException e) {
             throw new EdcException(e);
