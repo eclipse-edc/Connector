@@ -24,6 +24,7 @@ repositories {
 
 val jetBrainsAnnotationsVersion: String by project
 val jacksonVersion: String by project
+val javaVersion: String by project
 
 val securityType by extra { System.getProperty("security.type", "default") }
 val iamType by extra { System.getProperty("iam.type", "disabled") }
@@ -44,10 +45,17 @@ subprojects {
 allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
+    apply(plugin = "java")
 
     checkstyle {
         toolVersion = "9.0"
         configFile = rootProject.file("resources/edc-checkstyle-config.xml")
+    }
+
+    java {
+        toolchain {
+            languageVersion.set(JavaLanguageVersion.of(javaVersion))
+        }
     }
 
     pluginManager.withPlugin("java-library") {
