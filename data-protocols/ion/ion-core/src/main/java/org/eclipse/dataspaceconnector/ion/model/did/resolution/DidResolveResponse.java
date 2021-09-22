@@ -7,9 +7,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Consists of a context string, a {@link DidDocument} object and a {@link DidDocumentMetadata} object.
  */
 public class DidResolveResponse {
-    String context;
-    DidDocument didDocument;
-    DidDocumentMetadata didDocumentMetadata;
+    private String context;
+    private DidDocument didDocument;
+    private DidDocumentMetadata didDocumentMetadata;
+
+    public DidResolveResponse() {
+    }
 
     @JsonProperty("@context")
     public String getContext() {

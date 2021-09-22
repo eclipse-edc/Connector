@@ -3,9 +3,13 @@ package org.eclipse.dataspaceconnector.ion.model.did.resolution;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Method {
-    boolean published;
-    String recoveryCommitment;
-    String updateCommitment;
+    private boolean published;
+    private String recoveryCommitment;
+    private String updateCommitment;
+
+    public Method() {
+        // needed for json deserialization
+    }
 
     @JsonProperty("published")
     public boolean getPublished() {

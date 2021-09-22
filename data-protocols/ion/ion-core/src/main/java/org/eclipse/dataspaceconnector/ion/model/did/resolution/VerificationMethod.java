@@ -7,10 +7,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = VerificationMethod.Builder.class)
 public class VerificationMethod {
-    String id;
-    String controller;
-    String type;
-    EllipticCurvePublicKey publicKeyJwk;
+    private String id;
+    private String controller;
+    private String type;
+    private EllipticCurvePublicKey publicKeyJwk;
 
     @JsonProperty("id")
     public String getId() {

@@ -6,19 +6,20 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Public part of an Elliptic Curve key
  */
 public class EllipticCurvePublicKey {
-    String crv;
-    String kty;
-    String curvePointX;
-    String curvePointY;
+    private String crv;
+    private String kty;
+    private String curvePointX;
+    private String curvePointY;
 
     public EllipticCurvePublicKey() {
+        // needed for JSON Deserialization
     }
 
     public EllipticCurvePublicKey(String crv, String kty, String x, String y) {
         this.crv = crv;
         this.kty = kty;
-        this.curvePointX = x;
-        this.curvePointY = y;
+        curvePointX = x;
+        curvePointY = y;
     }
 
     @JsonProperty("crv")
@@ -45,7 +46,7 @@ public class EllipticCurvePublicKey {
     }
 
     public void setX(String x) {
-        this.curvePointX = x;
+        curvePointX = x;
     }
 
     @JsonProperty("y")
@@ -54,6 +55,6 @@ public class EllipticCurvePublicKey {
     }
 
     public void setY(String y) {
-        this.curvePointY = y;
+        curvePointY = y;
     }
 }

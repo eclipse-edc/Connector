@@ -3,12 +3,12 @@ package org.eclipse.dataspaceconnector.ion.model.did.resolution;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Service {
-    String id;
-    String type;
-    String serviceEndpoint;
+    private String id;
+    private String type;
+    private String serviceEndpoint;
 
     public Service() {
-
+        // needed for JSON Deserialization
     }
 
     public Service(String id, String type, String serviceEndpoint) {
