@@ -1,7 +1,7 @@
 @startuml
 participant "Client Connector" as cc
 participant "Provider Connector Identity Hub" as pcih
-participant "Registry Service" as rs
+participant "Registration Service" as rs
 participant "ION Network" as ion
 
 rs->ion: Observe (Poll)
