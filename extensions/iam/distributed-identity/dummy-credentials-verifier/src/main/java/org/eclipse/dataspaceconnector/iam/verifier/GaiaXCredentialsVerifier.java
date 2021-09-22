@@ -16,10 +16,10 @@ package org.eclipse.dataspaceconnector.iam.did.credentials;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 
-import java.security.PublicKey;
 import java.util.HashMap;
 
 /**
@@ -27,14 +27,14 @@ import java.util.HashMap;
  * TODO HACKATHON-1 TASK 8 enhance this implementation
  */
 public class GaiaXCredentialsVerifier implements CredentialsVerifier {
-    private IdentityHubClient hubClient;
+    private final IdentityHubClient hubClient;
 
     public GaiaXCredentialsVerifier(IdentityHubClient hubClient) {
         this.hubClient = hubClient;
     }
 
     @Override
-    public CredentialsResult verifyCredentials(String hubBaseUrl, PublicKey publicKey) {
+    public CredentialsResult verifyCredentials(String hubBaseUrl, PublicKeyWrapper publicKey) {
         var query = ObjectQuery.Builder.newInstance().context("GAIA-X").type("RegistrationCredentials").build();
         var queryRequest = ObjectQueryRequest.Builder.newInstance().query(query).iss("123").aud("aud").sub("sub").build();
         var credentials = hubClient.queryCredentials(queryRequest, hubBaseUrl, publicKey);
