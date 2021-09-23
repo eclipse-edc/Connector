@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.hub.keys;
 
+import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEEncrypter;
 import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.RSAEncrypter;
@@ -22,5 +23,10 @@ public class RSAPublicKeyWrapper implements PublicKeyWrapper {
     @Override
     public JWSVerifier verifier() {
         return new RSASSAVerifier(publicKey);
+    }
+
+    @Override
+    public JWEAlgorithm jweAlgorithm() {
+        return JWEAlgorithm.RSA_OAEP_256;
     }
 }

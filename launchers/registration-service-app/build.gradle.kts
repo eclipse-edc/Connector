@@ -15,9 +15,8 @@ dependencies {
     implementation(project(":common:util"))
     implementation(project(":core:protocol:web"))
 //    implementation(project(":extensions:azure:events"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:ion"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:registration-service"))
-    implementation(project(":samples:gaiax-hackathon-1:identity:registration-service-api"))
+    implementation(project(":extensions:iam:distributed-identity:registration-service"))
+    implementation(project(":extensions:iam:distributed-identity:registration-service-api"))
     implementation(project(":extensions:in-memory:did-document-store-inmem"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")

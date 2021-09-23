@@ -74,7 +74,7 @@ include(":extensions:catalog:catalog-service")
 include(":launchers:basic")
 include(":launchers:demo-e2e")
 include(":launchers:junit")
-include(":services:registration-service-app")
+include(":launchers:registration-service-app")
 include(":launchers:simple-provider")
 include(":launchers:simple-consumer")
 
