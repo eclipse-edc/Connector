@@ -16,7 +16,7 @@ import java.util.Map;
 
 class GaiaXCredentialsVerifierTest {
     private IdentityHubClient hubClient;
-    private GaiaXCredentialsVerifier credentialsVerifier;
+    private GaiaxCredentialsVerifier credentialsVerifier;
     private PublicKeyWrapper publicKey;
 
     @Test
@@ -34,7 +34,7 @@ class GaiaXCredentialsVerifierTest {
     void setUp() {
         publicKey = new RSAPublicKeyWrapper(TemporaryKeyLoader.loadPublicKey());
         hubClient = EasyMock.createMock(IdentityHubClient.class);
-        credentialsVerifier = new GaiaXCredentialsVerifier(hubClient);
+        credentialsVerifier = new GaiaxCredentialsVerifier(hubClient);
 
     }
 

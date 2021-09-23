@@ -4,7 +4,6 @@ plugins {
 
 val rsApi: String by project
 
-val nimbusVersion: String by project
 dependencies {
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-crypto"))
