@@ -37,7 +37,7 @@ public class GaiaXCredentialsVerifierExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var hubClient = context.getService(IdentityHubClient.class);
 
-        var credentialsVerifier = new GaiaXCredentialsVerifier(hubClient);
+        var credentialsVerifier = new GaiaxCredentialsVerifier(hubClient);
         context.registerService(CredentialsVerifier.class, credentialsVerifier);
 
         context.getMonitor().info("GAIA-X credentials verifier extension");
