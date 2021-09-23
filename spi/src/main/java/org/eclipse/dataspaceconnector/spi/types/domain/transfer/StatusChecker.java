@@ -14,20 +14,22 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
+import java.util.List;
+
 /**
- * Used to check different status of a resource, e.g. whether a particular ProvisionedResource is "complete", e.g. if a data transfer has completed.
- * Imagine a few files being copied into an FTP folder. Then the completion check might list the folders contents and
- * check whether a file with the "*.complete" extension exists.
+ * Checks if a data transfer has completed.
  *
- * @param <T> the concrete type of ProvisionedResource
+ * For example, a data transfer type involving the copying of files to a folder may employ a completion check that verifies if a file with the "*.complete" extension exists.
  */
 @FunctionalInterface
-public interface StatusChecker<T extends ProvisionedDataDestinationResource> {
+public interface StatusChecker {
+
     /**
-     * checks whether a particular ProvisionedResource is "complete", i.e. whether the data transfer is finished.
+     * Checks if the data transfer is finished.
      *
-     * @param provisionedResource The provisioned resource in question.
-     * @return True if complete, false otherwise
+     * @param id The data transfer process id
+     * @param resources The provisioned resources associated with the transfer or an empty collection if no resources were provisioned
+     * @return true if complete; otherwise false
      */
-    boolean isComplete(T provisionedResource);
+    boolean isComplete(String id, List<ProvisionedResource> resources);
 }

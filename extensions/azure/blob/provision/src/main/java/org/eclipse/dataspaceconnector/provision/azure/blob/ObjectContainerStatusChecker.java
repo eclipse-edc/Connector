@@ -17,9 +17,15 @@ package org.eclipse.dataspaceconnector.provision.azure.blob;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 
-public class ObjectContainerStatusChecker implements StatusChecker<ObjectContainerProvisionedResource> {
+import java.util.List;
+
+import static java.lang.String.format;
+
+public class ObjectContainerStatusChecker implements StatusChecker {
     private final BlobStoreApi blobStoreApi;
     private final RetryPolicy<Object> retryPolicy;
 
@@ -29,12 +35,20 @@ public class ObjectContainerStatusChecker implements StatusChecker<ObjectContain
     }
 
     @Override
-    public boolean isComplete(ObjectContainerProvisionedResource provisionedResource) {
-        if (!blobStoreApi.exists(provisionedResource.getAccountName(), provisionedResource.getContainerName())) {
-            return false;
-        }
+    public boolean isComplete(String id, List<ProvisionedResource> resources) {
+        for (var resource : resources) {
+            if (resource instanceof ObjectContainerProvisionedResource) {
+                var provisionedResource = (ObjectContainerProvisionedResource) resource;
+                if (!blobStoreApi.exists(provisionedResource.getAccountName(), provisionedResource.getContainerName())) {
+                    return false;
+                }
 
-        return Failsafe.with(retryPolicy).get(() -> blobStoreApi.listContainer(provisionedResource.getAccountName(), provisionedResource.getContainerName())
-                .stream().anyMatch(bci -> bci.getName().endsWith(".complete")));
+                return Failsafe.with(retryPolicy).get(() -> blobStoreApi.listContainer(provisionedResource.getAccountName(), provisionedResource.getContainerName())
+                        .stream().anyMatch(bci -> bci.getName().endsWith(".complete")));
+
+            }
+        }
+        throw new EdcException(format("No object container resource was associated with the transfer process: %s - cannot determine completion.", id));
     }
+
 }

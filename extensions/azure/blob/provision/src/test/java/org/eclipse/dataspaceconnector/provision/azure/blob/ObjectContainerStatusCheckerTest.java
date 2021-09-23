@@ -24,8 +24,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
-import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
@@ -40,7 +40,7 @@ class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
 
     @BeforeEach
     void setUp() {
-        RetryPolicy<Object> policy = new RetryPolicy<>().withMaxRetries(1);
+        var policy = new RetryPolicy<>().withMaxRetries(1);
         helloTxt = TestUtils.getFileFromResourceName("hello.txt");
         Vault vault = mock(Vault.class);
         var accountKey = propOrEnv("AZ_STORAGE_KEY", null);
@@ -57,28 +57,19 @@ class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
         putBlob("hello.txt", helloTxt);
         putBlob(testRunId + ".complete", helloTxt);
 
-        assertThat(checker.isComplete(createResource(containerName))).isTrue();
+        assertThat(checker.isComplete("123", emptyList())).isTrue();
     }
 
     @Test
     void isComplete_notComplete() {
         putBlob("hello.txt", helloTxt);
 
-        assertThat(checker.isComplete(createResource(containerName))).isFalse();
+        assertThat(checker.isComplete("123", emptyList())).isFalse();
     }
 
     @Test
     void isComplete_containerNotExist() {
-        assertThat(checker.isComplete(createResource("container-not-exists"))).isFalse();
+        assertThat(checker.isComplete("123", emptyList())).isFalse();
     }
 
-    private ObjectContainerProvisionedResource createResource(String containerName) {
-        return ObjectContainerProvisionedResource.Builder.newInstance()
-                .containerName(containerName)
-                .accountName(ACCOUNT_NAME)
-                .resourceDefinitionId(UUID.randomUUID().toString())
-                .transferProcessId(testRunId)
-                .id(testRunId)
-                .build();
-    }
 }

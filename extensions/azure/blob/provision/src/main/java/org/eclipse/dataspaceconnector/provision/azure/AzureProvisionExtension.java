@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectContainerStatus
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageDefinitionConsumerGenerator;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageProvisioner;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageResourceDefinition;
+import org.eclipse.dataspaceconnector.schema.azure.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -47,7 +48,7 @@ public class AzureProvisionExtension implements ServiceExtension {
 
         context.registerService(BlobStoreApi.class, new BlobStoreApiImpl(context.getService(Vault.class)));
 
-        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
+        @SuppressWarnings("unchecked") var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         BlobStoreApi blobStoreApi = context.getService(BlobStoreApi.class);
         provisionManager.register(new ObjectStorageProvisioner(retryPolicy, monitor, blobStoreApi));
 
@@ -56,7 +57,7 @@ public class AzureProvisionExtension implements ServiceExtension {
         manifestGenerator.registerConsumerGenerator(new ObjectStorageDefinitionConsumerGenerator());
 
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
-        statusCheckerReg.register(ObjectContainerProvisionedResource.class, new ObjectContainerStatusChecker(blobStoreApi, retryPolicy));
+        statusCheckerReg.register(AzureBlobStoreSchema.TYPE, new ObjectContainerStatusChecker(blobStoreApi, retryPolicy));
 
         registerTypes(context.getTypeManager());
 

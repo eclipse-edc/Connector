@@ -17,41 +17,54 @@ package org.eclipse.dataspaceconnector.provision.aws.s3;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
 
+import java.util.List;
 import java.util.concurrent.CompletionException;
 
-public class S3StatusChecker implements StatusChecker<S3BucketProvisionedResource> {
+import static java.lang.String.format;
+
+public class S3StatusChecker implements StatusChecker {
     private final ClientProvider clientProvider;
     private final RetryPolicy<Object> retryPolicy;
 
     public S3StatusChecker(ClientProvider clientProvider, RetryPolicy<Object> retryPolicy) {
         this.clientProvider = clientProvider;
         this.retryPolicy = retryPolicy;
-
     }
 
     @Override
-    public boolean isComplete(S3BucketProvisionedResource definition) {
-        try {
-            var bucketName = definition.getBucketName();
-            var region = definition.getRegion();
+    public boolean isComplete(String id, List<ProvisionedResource> resources) {
+        for (var resource : resources) {
+            if (resource instanceof S3BucketProvisionedResource) {
+                var provisionedResource = (S3BucketProvisionedResource) resource;
+                try {
+                    var bucketName = provisionedResource.getBucketName();
+                    var region = provisionedResource.getRegion();
 
-            var s3client = clientProvider.clientFor(S3AsyncClient.class, region);
+                    var s3client = clientProvider.clientFor(S3AsyncClient.class, region);
 
-            var rq = ListObjectsRequest.builder().bucket(bucketName).build();
-            var response = Failsafe.with(retryPolicy)
-                    .getStageAsync(() -> s3client.listObjects(rq))
-                    .join();
-            return response.contents().stream().anyMatch(s3object -> s3object.key().endsWith(".complete"));
-        } catch (CompletionException cpe) {
-            if (cpe.getCause() instanceof NoSuchBucketException) {
-                return false;
+                    var rq = ListObjectsRequest.builder().bucket(bucketName).build();
+                    var response = Failsafe.with(retryPolicy)
+                            .getStageAsync(() -> s3client.listObjects(rq))
+                            .join();
+                    return response.contents().stream().anyMatch(s3object -> s3object.key().endsWith(".complete"));
+                } catch (CompletionException cpe) {
+                    if (cpe.getCause() instanceof NoSuchBucketException) {
+                        return false;
+                    }
+                    throw cpe;
+                }
+
             }
-            throw cpe;
         }
+        throw new EdcException(format("No object container resource was associated with the transfer process: %s - cannot determine completion.", id));
+
     }
+
 }

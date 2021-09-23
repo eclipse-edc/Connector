@@ -14,10 +14,21 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
+import org.jetbrains.annotations.Nullable;
+
+/**
+ * A registry of {@link StatusChecker}s. Status checkers are responsible for determining if a transfer process is complete.
+ */
 public interface StatusCheckerRegistry {
-    void register(Class<? extends ProvisionedDataDestinationResource> provisionedResourceClass, StatusChecker<? extends ProvisionedDataDestinationResource> statusChecker);
 
-    <T extends ProvisionedDataDestinationResource> StatusChecker<T> resolve(Class<? extends ProvisionedDataDestinationResource> provisionedResourceClass);
+    /**
+     * Registers a status checker for the destination type.
+     */
+    void register(String destinationType, StatusChecker statusChecker);
 
-    <T extends ProvisionedDataDestinationResource> StatusChecker<T> resolve(T resource);
+    /**
+     * Registers a status checker for the destination type and if not found, returns null.
+     */
+    @Nullable
+    StatusChecker resolve(String destinationType);
 }

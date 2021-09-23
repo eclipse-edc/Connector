@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 
@@ -22,24 +21,19 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class StatusCheckerRegistryImpl implements StatusCheckerRegistry {
-    private final Map<Class<? extends ProvisionedDataDestinationResource>, StatusChecker<? extends ProvisionedDataDestinationResource>> inMemoryMap;
+    private final Map<String, StatusChecker> inMemoryMap;
 
     public StatusCheckerRegistryImpl() {
         inMemoryMap = new HashMap<>();
     }
 
     @Override
-    public void register(Class<? extends ProvisionedDataDestinationResource> provisionedResourceClass, StatusChecker<? extends ProvisionedDataDestinationResource> statusChecker) {
-        inMemoryMap.put(provisionedResourceClass, statusChecker);
+    public void register(String destinationType, StatusChecker statusChecker) {
+        inMemoryMap.put(destinationType, statusChecker);
     }
 
     @Override
-    public <T extends ProvisionedDataDestinationResource> StatusChecker<T> resolve(Class<? extends ProvisionedDataDestinationResource> provisionedResourceClass) {
-        return (StatusChecker<T>) inMemoryMap.get(provisionedResourceClass);
-    }
-
-    @Override
-    public <T extends ProvisionedDataDestinationResource> StatusChecker<T> resolve(T resource) {
-        return resolve(resource.getClass());
+    public StatusChecker resolve(String destinationType) {
+        return inMemoryMap.get(destinationType);
     }
 }

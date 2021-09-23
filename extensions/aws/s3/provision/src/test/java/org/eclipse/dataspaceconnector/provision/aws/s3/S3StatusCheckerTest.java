@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
@@ -36,9 +37,6 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFi
 
 @IntegrationTest
 class S3StatusCheckerTest extends AbstractS3Test {
-
-    private static final String RESOURCE_ID = UUID.randomUUID().toString();
-    private static final String RESOURCE_DEFINITION_ID = UUID.randomUUID().toString();
     private static final String PROCESS_ID = UUID.randomUUID().toString();
     private S3StatusChecker checker;
 
@@ -55,9 +53,7 @@ class S3StatusCheckerTest extends AbstractS3Test {
 
     @Test
     void isComplete_whenNotComplete() {
-        var resource = createProvisionedResource(bucketName);
-
-        assertThat(checker.isComplete(resource)).isFalse();
+        assertThat(checker.isComplete("123", emptyList())).isFalse();
     }
 
 
@@ -65,16 +61,14 @@ class S3StatusCheckerTest extends AbstractS3Test {
     void isComplete_whenComplete() {
         //arrange
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
-        var resource = createProvisionedResource(bucketName);
 
         //act-assert
-        assertThat(checker.isComplete(resource)).isTrue();
+        assertThat(checker.isComplete("123", emptyList())).isTrue();
     }
 
     @Test
     void isComplete_whenBucketNotExist() {
-        var res = createProvisionedResource("bucket-not-exist");
-        assertThat(checker.isComplete(res)).isFalse();
+        assertThat(checker.isComplete("123", emptyList())).isFalse();
     }
 
     @Override
@@ -82,14 +76,5 @@ class S3StatusCheckerTest extends AbstractS3Test {
         return "s3-checker-test-" + PROCESS_ID + "-" + REGION;
     }
 
-    private S3BucketProvisionedResource createProvisionedResource(String bucketName) {
-        return S3BucketProvisionedResource.Builder.newInstance()
-                .bucketName(bucketName)
-                .region(REGION)
-                .transferProcessId(PROCESS_ID)
-                .resourceDefinitionId(RESOURCE_DEFINITION_ID)
-                .id(RESOURCE_ID)
-                .build();
-    }
 
 }
