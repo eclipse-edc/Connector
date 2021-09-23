@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.metadata;
 
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -61,6 +62,7 @@ public class GenericDataCatalogEntry implements DataCatalogEntry {
             return new Builder();
         }
 
+        @JsonAnySetter
         public Builder property(String key, String value) {
             lookup.properties.put(key, value);
             return this;
