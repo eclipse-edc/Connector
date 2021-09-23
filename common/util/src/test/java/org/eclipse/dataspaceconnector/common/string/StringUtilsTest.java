@@ -61,4 +61,13 @@ class StringUtilsTest {
         assertThat(StringUtils.equalsIgnoreCase("FOO", "fOo")).isTrue();
 
     }
+
+    @Test
+    void toStringTest() { //cannot be named "toString()"
+        assertThat(StringUtils.toString("")).isEqualTo("");
+        assertThat(StringUtils.toString(23)).isEqualTo("23");
+        assertThat(StringUtils.toString(null)).isEqualTo(null);
+        assertThat(StringUtils.toString(new Object())).contains("java.lang.Object@");
+    }
+
 }

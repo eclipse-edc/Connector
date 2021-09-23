@@ -37,6 +37,9 @@ subprojects {
         maven {
             url = uri("https://maven.iais.fraunhofer.de/artifactory/eis-ids-public/")
         }
+        maven {
+            url = uri("https://repository.mulesoft.org/nexus/content/repositories/public/") //used for the multihash lib
+        }
     }
 
 }

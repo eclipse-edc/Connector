@@ -27,10 +27,7 @@ import java.util.Set;
 
 public class AzureEventExtension implements ServiceExtension {
 
-    private static final String DEFAULT_TOPIC_NAME = "connector-events";
-    private static final String DEFAULT_ENDPOINT_NAME_TEMPLATE = "https://%s.westeurope-1.eventgrid.azure.net/api/events";
-    private static final String TOPIC_NAME_SETTING = "edc.events.topic.name";
-    private static final String TOPIC_ENDPOINT_SETTING = "edc.events.topic.endpoint";
+
     private Monitor monitor;
 
     @Override
@@ -63,8 +60,9 @@ public class AzureEventExtension implements ServiceExtension {
 
         var vault = context.getService(Vault.class);
 
-        var topicName = getTopic(context);
-        var endpoint = getEndpoint(context, topicName);
+        var config = new AzureEventGridConfig(context);
+        var topicName = config.getTopic();
+        var endpoint = config.getEndpoint(topicName);
         monitor.info("AzureEventExtension: will use topic endpoint " + endpoint);
 
         var publisherClient = new EventGridPublisherClientBuilder()
@@ -88,15 +86,5 @@ public class AzureEventExtension implements ServiceExtension {
 
     }
 
-    private String getTopic(ServiceExtensionContext context) {
-        return context.getSetting(AzureEventExtension.TOPIC_NAME_SETTING, AzureEventExtension.DEFAULT_TOPIC_NAME);
-    }
 
-    private String getEndpoint(ServiceExtensionContext context, String topicName) {
-        var ep = context.getSetting(AzureEventExtension.TOPIC_ENDPOINT_SETTING, null);
-        if (ep == null) {
-            ep = String.format(AzureEventExtension.DEFAULT_ENDPOINT_NAME_TEMPLATE, topicName);
-        }
-        return ep;
-    }
 }

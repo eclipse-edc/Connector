@@ -19,6 +19,7 @@ rootProject.name = "dataspaceconnector"
 include(":common:util")
 
 // EDC core modules
+include(":core")
 include(":core:bootstrap")
 include(":core:policy:policy-engine")
 include(":core:policy:policy-model")
@@ -33,6 +34,7 @@ include(":data-protocols:ids:ids-api-transfer")
 include(":data-protocols:ids:ids-core")
 include(":data-protocols:ids:ids-policy-mock")
 include(":data-protocols:ids:ids-spi")
+include(":data-protocols:ion:ion-core")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws:s3:provision")
@@ -41,6 +43,7 @@ include(":extensions:aws:aws-test")
 include(":extensions:azure:blob:blob-schema")
 include(":extensions:azure:blob:provision")
 include(":extensions:azure:events")
+include(":extensions:azure:events-config")
 include(":extensions:azure:azure-test")
 include(":extensions:azure:transfer-process-store-cosmos")
 include(":extensions:azure:vault")
@@ -50,18 +53,32 @@ include(":extensions:filesystem:vault-fs")
 include(":extensions:in-memory:metadata-memory")
 include(":extensions:in-memory:policy-registry-memory")
 include(":extensions:in-memory:transfer-store-memory")
+include(":extensions:in-memory:did-document-store-inmem")
+include(":extensions:in-memory:identity-hub-memory")
 include(":extensions:iam:iam-mock")
 include(":extensions:iam:oauth2")
+include(":extensions:iam:distributed-identity")
+include(":extensions:iam:distributed-identity:identity-did-spi")
+include(":extensions:iam:distributed-identity:identity-did-core")
+include(":extensions:iam:distributed-identity:identity-did-service")
+include(":extensions:iam:distributed-identity:registration-service")
+include(":extensions:iam:distributed-identity:registration-service-api")
+include(":extensions:iam:distributed-identity:identity-common-test")
+include(":extensions:catalog:catalog-service")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
 include(":launchers:demo-e2e")
 include(":launchers:junit")
+include(":services:registration-service-app")
+include(":launchers:simple-provider")
+include(":launchers:simple-consumer")
 
 // modules for code samples
 include(":samples:other:commandline:consumer")
 include(":samples:other:commandline:consumer-runtime")
 include(":samples:other:copy-file-to-s3bucket")
+include(":samples:other:copy-between-azure-and-s3")
 include(":samples:other:dataseed:dataseed-aws")
 include(":samples:other:dataseed:dataseed-azure")
 include(":samples:other:dataseed:dataseed-policy")
@@ -72,6 +89,11 @@ include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
 include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
+include(":samples:identity-gaiax-verifier")
+include(":samples:other:identity-gaiax-verifier")
+
+// all implementations during/regarding the GaiaX Hackathon should go here:
+
 
 // extension points for a connector
 include(":spi")
