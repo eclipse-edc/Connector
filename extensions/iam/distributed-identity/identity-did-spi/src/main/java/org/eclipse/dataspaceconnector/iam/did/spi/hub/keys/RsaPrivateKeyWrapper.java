@@ -7,10 +7,10 @@ import com.nimbusds.jose.crypto.RSASSASigner;
 
 import java.security.interfaces.RSAPrivateKey;
 
-public class RSAPrivateKeyWrapper implements PrivateKeyWrapper {
+public class RsaPrivateKeyWrapper implements PrivateKeyWrapper {
     private final RSAPrivateKey privateKey;
 
-    public RSAPrivateKeyWrapper(RSAPrivateKey privateKey) {
+    public RsaPrivateKeyWrapper(RSAPrivateKey privateKey) {
         this.privateKey = privateKey;
     }
 

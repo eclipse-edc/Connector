@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.iam.did.resolver;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 
 import java.security.PublicKey;
@@ -19,6 +19,6 @@ public class DidPublicKeyResolverImpl implements DidPublicKeyResolver {
 
     @Override
     public PublicKeyWrapper resolvePublicKey(String did) {
-        return new RSAPublicKeyWrapper((RSAPublicKey) publicKey);
+        return new RsaPublicKeyWrapper((RSAPublicKey) publicKey);
     }
 }

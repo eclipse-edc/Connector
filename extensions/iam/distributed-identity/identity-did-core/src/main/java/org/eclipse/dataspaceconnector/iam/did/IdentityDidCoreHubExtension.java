@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
@@ -102,7 +102,7 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
             var privateKeyAlias = context.getSetting(PRIVATE_KEY_ALIAS, "privateKeyAlias");
             var privateKeyResolver = context.getService(PrivateKeyResolver.class);
 
-            Supplier<PrivateKeyWrapper> supplier = () -> new RSAPrivateKeyWrapper(privateKeyResolver.resolvePrivateKey(privateKeyAlias, RSAPrivateKey.class));
+            Supplier<PrivateKeyWrapper> supplier = () -> new RsaPrivateKeyWrapper(privateKeyResolver.resolvePrivateKey(privateKeyAlias, RSAPrivateKey.class));
 
             DidPublicKeyResolver publicKeyResolver = new DidPublicKeyResolverImpl(publicKey);
             return new ResolverPair(supplier, publicKeyResolver);

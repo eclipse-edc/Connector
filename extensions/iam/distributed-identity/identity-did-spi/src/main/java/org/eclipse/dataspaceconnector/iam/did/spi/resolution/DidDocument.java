@@ -101,7 +101,7 @@ public class DidDocument {
             document.verificationMethod.add(VerificationMethod.Builder.create()
                     .id(id)
                     .type(type)
-//                    .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
+                    //.publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
                     .publicKeyJwk(publicKey)
                     .build());
             return this;

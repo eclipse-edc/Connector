@@ -119,8 +119,6 @@ public class DistributedIdentityService implements IdentityService {
      * TODO HACKATHON-1 TASK 6B
      * The current implementation assumes the Hub endpoint is encoded in the client connector DID. We need to support the case where only the Hub did is referenced
      * in the current connector DID. This will involve resolving the Hub did and obtaining the endpoint address.
-     *
-     * @param did
      */
     String resolveHubUrl(DidDocument did) {
         var services = did.getService();
@@ -131,21 +129,21 @@ public class DistributedIdentityService implements IdentityService {
             }
             return service.getServiceEndpoint();
 
-// Resolve ION/IdentityHub discrepancy
+            // Resolve ION/IdentityHub discrepancy
 
-//            if (!(serviceEndpoint instanceof Map)) {
-//                continue;
-//            }
-//            var locations = ((Map) serviceEndpoint).get("locations");
-//            if (!(locations instanceof List)) {
-//                continue;
-//            }
-//            var locationsList = (List<String>) locations;
-//            if (((List<?>) locations).isEmpty()) {
-//                continue;
-//            }
-//            return locationsList.get(0);
-// End Resolve ION/IdentityHub discrepancy
+            //            if (!(serviceEndpoint instanceof Map)) {
+            //                continue;
+            //            }
+            //            var locations = ((Map) serviceEndpoint).get("locations");
+            //            if (!(locations instanceof List)) {
+            //                continue;
+            //            }
+            //            var locationsList = (List<String>) locations;
+            //            if (((List<?>) locations).isEmpty()) {
+            //                continue;
+            //            }
+            //            return locationsList.get(0);
+            // End Resolve ION/IdentityHub discrepancy
 
         }
         return null;
@@ -160,7 +158,7 @@ public class DistributedIdentityService implements IdentityService {
         if (!hubBaseUrl.endsWith("/")) {
             hubBaseUrl += "/";
         }
-        var publicKey = publicKeyResolver.resolvePublicKey(null);// TODO HACKATHON-1 this needs to resolve the public key of the Hub DID
+        var publicKey = publicKeyResolver.resolvePublicKey(null); // TODO HACKATHON-1 this needs to resolve the public key of the Hub DID
         if (publicKey == null) {
             return new CredentialsResult("Unable to resolve DID public key");
         }

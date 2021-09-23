@@ -20,9 +20,9 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestWriter;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPublicKeyWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 
@@ -83,8 +83,8 @@ public class VerificationTool {
         var keys = TemporaryKeyLoader.loadKeys();
 
         var jwe = new WriteRequestWriter()
-                .privateKey(new RSAPrivateKeyWrapper(keys.toRSAPrivateKey()))
-                .publicKey(new RSAPublicKeyWrapper(keys.toRSAPublicKey()))
+                .privateKey(new RsaPrivateKeyWrapper(keys.toRSAPrivateKey()))
+                .publicKey(new RsaPublicKeyWrapper(keys.toRSAPublicKey()))
                 .objectMapper(objectMapper)
                 .commitObject(credential)
                 .kid("kid")

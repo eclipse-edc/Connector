@@ -8,8 +8,8 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestWriter;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
@@ -112,8 +112,8 @@ class IdentityHubImplTest {
     @BeforeEach
     void setUp() throws Exception {
         var keys = TemporaryKeyLoader.loadKeys();
-        privateKey = new RSAPrivateKeyWrapper(keys.toRSAPrivateKey());
-        publicKey = new RSAPublicKeyWrapper(keys.toRSAPublicKey());
+        privateKey = new RsaPrivateKeyWrapper(keys.toRSAPrivateKey());
+        publicKey = new RsaPublicKeyWrapper(keys.toRSAPublicKey());
         store = EasyMock.createMock(IdentityHubStore.class);
         objectMapper = new ObjectMapper();
         hub = new IdentityHubImpl(store, () -> privateKey, did -> publicKey, objectMapper);

@@ -8,10 +8,10 @@ import com.nimbusds.jose.crypto.RSASSAVerifier;
 
 import java.security.interfaces.RSAPublicKey;
 
-public class RSAPublicKeyWrapper implements PublicKeyWrapper {
+public class RsaPublicKeyWrapper implements PublicKeyWrapper {
     private final RSAPublicKey publicKey;
 
-    public RSAPublicKeyWrapper(RSAPublicKey publicKey) {
+    public RsaPublicKeyWrapper(RSAPublicKey publicKey) {
         this.publicKey = publicKey;
     }
 

@@ -23,11 +23,11 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
-import org.eclipse.dataspaceconnector.iam.did.testFixtures.TemporaryKeyLoader;
+import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.jetbrains.annotations.Nullable;
@@ -51,8 +51,8 @@ class DistributedIdentityServiceTest {
 
     @Test
     void verifyResolveHubUrl() throws IOException {
-        var didJSon = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
-        var hubUrlDid = new String(didJSon.readAllBytes(), StandardCharsets.UTF_8);
+        var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
+        var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
         var url = identityService.resolveHubUrl(new ObjectMapper().readValue(hubUrlDid, DidDocument.class));
         Assertions.assertEquals("https://myhub.com", url);
     }
@@ -95,8 +95,8 @@ class DistributedIdentityServiceTest {
         privateKey = TemporaryKeyLoader.loadPrivateKey();
         publicKey = TemporaryKeyLoader.loadPublicKey();
 
-        var didJSon = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
-        var hubUrlDid = new String(didJSon.readAllBytes(), StandardCharsets.UTF_8);
+        var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
+        var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
 
         DidResolver didResolver = d -> {
             try {
@@ -113,7 +113,7 @@ class DistributedIdentityServiceTest {
                 return (T) privateKey;
             }
         };
-        DidPublicKeyResolver didPublicKeyResolver = (DidPublicKeyResolver) d -> new RSAPublicKeyWrapper(publicKey);
+        DidPublicKeyResolver didPublicKeyResolver = (DidPublicKeyResolver) d -> new RsaPublicKeyWrapper(publicKey);
         identityService = new DistributedIdentityService("did:ion:123abc", verifier, didResolver, didPublicKeyResolver, privateKeyResolver, new Monitor() {
         });
 

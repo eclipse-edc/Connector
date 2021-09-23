@@ -1,8 +1,8 @@
 package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RSAPublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPublicKeyWrapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -22,13 +22,13 @@ class GenericJweWriterReaderTest {
         var objectMapper = new ObjectMapper();
 
         var jwe = new GenericJweWriter()
-                .privateKey(new RSAPrivateKeyWrapper(privateKey))
-                .publicKey(new RSAPublicKeyWrapper(publicKey))
+                .privateKey(new RsaPrivateKeyWrapper(privateKey))
+                .publicKey(new RsaPublicKeyWrapper(publicKey))
                 .objectMapper(objectMapper)
                 .payload(Map.of("foo", "bar"))
                 .buildJwe();
 
-        var deserialized = new GenericJweReader().privateKey(new RSAPrivateKeyWrapper(privateKey)).mapper(objectMapper).jwe(jwe).readType(Map.class);
+        var deserialized = new GenericJweReader().privateKey(new RsaPrivateKeyWrapper(privateKey)).mapper(objectMapper).jwe(jwe).readType(Map.class);
         Assertions.assertEquals("bar", deserialized.get("foo"));
     }
 }

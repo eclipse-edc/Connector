@@ -23,7 +23,7 @@ import java.security.interfaces.RSAPrivateKey;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-class FsRSAPrivateKeyResolverTest {
+class FsRsaPrivateKeyResolverTest {
     private static final String PASSWORD = "test123";
     private static final String TEST_KEYSTORE = "edc-test-keystore.jks";
 
@@ -36,12 +36,12 @@ class FsRSAPrivateKeyResolverTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        var url = getClass().getClassLoader().getResource(FsRSAPrivateKeyResolverTest.TEST_KEYSTORE);
+        var url = getClass().getClassLoader().getResource(FsRsaPrivateKeyResolverTest.TEST_KEYSTORE);
         KeyStore keyStore = KeyStore.getInstance(KeyStore.getDefaultType());
         assert url != null;
         try (InputStream stream = url.openStream()) {
-            keyStore.load(stream, FsRSAPrivateKeyResolverTest.PASSWORD.toCharArray());
+            keyStore.load(stream, FsRsaPrivateKeyResolverTest.PASSWORD.toCharArray());
         }
-        keyResolver = new FsPrivateKeyResolver(FsRSAPrivateKeyResolverTest.PASSWORD, keyStore);
+        keyResolver = new FsPrivateKeyResolver(FsRsaPrivateKeyResolverTest.PASSWORD, keyStore);
     }
 }
