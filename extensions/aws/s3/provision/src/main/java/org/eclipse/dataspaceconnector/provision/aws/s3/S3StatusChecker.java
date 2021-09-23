@@ -63,7 +63,7 @@ public class S3StatusChecker implements StatusChecker {
 
             }
         }
-        throw new EdcException(format("No object container resource was associated with the transfer process: %s - cannot determine completion.", id));
+        throw new EdcException(format("No bucket resource was associated with the transfer process: %s - cannot determine completion.", id));
 
     }
 
