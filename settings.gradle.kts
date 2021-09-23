@@ -25,6 +25,7 @@ include(":core:policy:policy-model")
 include(":core:protocol:web")
 include(":core:schema")
 include(":core:transfer")
+include(":core:contract")
 
 // modules that provide implementations for data ingress/egress
 include(":data-protocols:ids:ids-api-catalog")
@@ -67,6 +68,10 @@ include(":samples:other:dataseed:dataseed-policy")
 include(":samples:other:public-rest-api")
 include(":samples:other:run-from-junit")
 include(":samples:other:streaming")
+include(":samples:demo-asset-index")
+include(":samples:demo-contract-framework")
+include(":samples:demo-asset-index")
+include(":samples:demo-contract-framework")
 
 // extension points for a connector
 include(":spi")

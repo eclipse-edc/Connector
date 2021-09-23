@@ -10,11 +10,13 @@
 | **Connector**                          |
 | **Connector Directory**                |
 | **Contract**                           |
-| **Contract Agreement**                 | **Contract Agreement**<br/>* points to a **Contract Offer**<br/>* results from a **Contract Negotation Process**<br/>* has a start date and may have a expiry date and a cancellation date
-| **Contract Negotiation**               |
-| **Contract Offer**                     | **Contract Offer**<br/>* set of obligations and permissions<br/>* can be generated on the fly on provider side (see **Contract Offer Framework**)<br/>* are immutable<br/>* persisted in **Contract Negotiation Process** once the negotiation has startet<br/>* updated versions during the **Contract Negotiation Process** may be generated manually<br/>* target of rules<br/>
-| **Contract Offer Framework**           | **Contract Offer Framework**<br/>* generates **Contract Offers**<br/>* refers to 0..n **Consumers** and to 1..n **Assets**<br/>* provided by an **Extension**<br/>* can be based on "pre-established agreements"
+| **Contract Agreement**                 | **Contract Agreement**<br/>* points to a **Contract Offer**<br/>* results from a **Contract Negotiation Process**<br/>* has a start date and may have a expiry date and a cancellation date
+| **Contract Negotiation**               | * MVP: only possible to accept already offered contracts. Counter offers are rejected automatically.
+| **Contract Offer**                     | **Contract Offer**<br/>* set of obligations and permissions<br/>* generated on the fly on provider side (see **Contract Offer Framework**)<br/>* are immutable<br/>* persisted in **Contract Negotiation Process** once the negotiation has started<br/>
+| **Contract Offer Framework**           | **Contract Offer Framework**<br/>* generates **Contract Offer Templates**<br/>* provided by **Extensions**<br/>* may be implemented in custom extensions to created contract offers based on existing systems
+| **Contract Offer Template**            | Blueprint of a **Contract Offer**
 | **Consumer**                           |
+| **Data**                               |
 | **Dataspace**                          |
 | **EDC Extension**                      |
 | **Element**                            | see **Asset Element**
@@ -24,6 +26,7 @@
 | **IDS Broker**                         | IDS version of the **Connector Directory**
 | **Offer**                              | see **Contract Offer**
 | **Offer Framework**                    | see **Contract Offer Framework**
+| **Policy**                             | logical collection of rules
 | **Provider**                           |
 | **Resource**                           |
 | **Resource Manifest**                  |

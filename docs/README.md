@@ -1,5 +1,7 @@
 **Please note**
+
 ### Work in progress
+
 All content reflects the current state of discussion, not final decisions.
 
 ---
@@ -25,8 +27,9 @@ TBD
 TBD
 
 ## Architecture
-
 TBD
+
+[Architecture](architecture/README.md)
 
 ## Terminology
 

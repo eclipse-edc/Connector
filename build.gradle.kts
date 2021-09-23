@@ -61,6 +61,7 @@ allprojects {
             api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
 
             testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+            testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.easymock:easymock:4.2")
             testImplementation("org.assertj:assertj-core:3.19.0")
