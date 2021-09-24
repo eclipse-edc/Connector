@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020, 2021 Microsoft Corporation and others
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -9,12 +9,16 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Siemens AG - bug fixes
  *
  */
 
 package org.eclipse.dataspaceconnector.spi.types.domain.metadata;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
@@ -32,13 +36,16 @@ import java.util.stream.Collectors;
 @JsonTypeName("dataspaceconnector:genericdataentryextensions")
 @JsonDeserialize(builder = GenericDataCatalogEntry.Builder.class)
 public class GenericDataCatalogEntry implements DataCatalogEntry {
+    @JsonIgnore
     private final Map<String, Object> properties = new HashMap<>();
 
+    @JsonAnyGetter
     public Map<String, Object> getProperties() {
         return properties;
     }
 
     @Override
+    @JsonIgnore
     public DataAddress getAddress() {
         return DataAddress.Builder.newInstance()
                 //convert a Map of String-Object to String-String
@@ -63,6 +70,7 @@ public class GenericDataCatalogEntry implements DataCatalogEntry {
             return new Builder();
         }
 
+        @JsonAnySetter
         public Builder property(String key, String value) {
             lookup.properties.put(key, value);
             return this;
