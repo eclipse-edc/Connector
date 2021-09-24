@@ -47,14 +47,20 @@ public class ClientApiController {
 
     private final Monitor monitor;
 
+    private final String destinationRegion;
+
+    private final String destinationBucket;
+
     public ClientApiController(
             RemoteMessageDispatcherRegistry dispatcherRegistry,
             TransferProcessManager processManager,
-            Monitor monitor
-    ) {
+            Monitor monitor,
+            String destinationRegion, String destinationBucket) {
         this.dispatcherRegistry = dispatcherRegistry;
         this.processManager = processManager;
         this.monitor = monitor;
+        this.destinationRegion = destinationRegion;
+        this.destinationBucket = destinationBucket;
     }
 
     @GET
@@ -85,8 +91,6 @@ public class ClientApiController {
         var connector = (String) request.get("connector");
         var artifact = (String) request.get("artifact");
 
-        var destinationRegion = System.getProperty("destinationRegion");
-        var destinationBucket = System.getProperty("destinationBucket");
         var destinationName = extractDestinationArtifactName(artifact);
 
         var usRequest = createRequest(

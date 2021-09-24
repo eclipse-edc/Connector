@@ -7,13 +7,15 @@ to itself.
 Provider configuration is done by providing _provider-artifacts.json_ file where all available artifacts are described.
 This file provides information for the artifact metadata storage.
 
-Consumer configuration is done by providing the following Java runtime properties at startup:
+Consumer configuration is done by providing the following properties via configuration extension:
 
-* _destinationBucket_ - bucket where to download the requested artifact to (required)
-* _destinationRegion_ - AWS region of the destination bucket (required)
-* _creds_ - JSON token representing AWS credentials that the provider will use to write to specified bucket (required)
+* _dataspaceconnector.transfer.demo.s3.destination.region_ - bucket where to download the requested artifact to (
+  required)
+* _dataspaceconnector.transfer.demo.s3.destination.bucket_ - AWS region of the destination bucket (required)
+* _dataspaceconnector.transfer.demo.s3.destination.creds_ - JSON token representing AWS credentials that the provider
+  will use to write to specified bucket (required)
 
-**creds**
+**dataspaceconnector.transfer.demo.s3.destination.creds**
 
 ```
   {
@@ -57,6 +59,7 @@ The last part `test.txt` will be used as a target filename.
 * Cross account access is configured on AWS side
 * Files are uploaded to one of the buckets
 * File _provider-artifacts.json_ is available in the current directory
+* Configuration is in place (ex. fs config _dataspaceconnector-configuration.properties_)
 
 ## Building and Running
 
@@ -66,7 +69,7 @@ The last part `test.txt` will be used as a target filename.
 
 * Run as follows:
 
-  `java -jar -Dcreds=<SERIALIZED_JSON_TOKEN> -DdestinationBucket=<DESTINATION_BUCKET> -DdestinationRegion=<DESTINATION_REGION> launchers/basic/build/libs/dataspaceconnector-transfer-demo.jar`
+  `java -jar samples/other/file-transfer-s3-to-s3/build/libs/dataspaceconnector-transfer-demo.jar`
 
 * Use postman collection in _/postman_ folder
 

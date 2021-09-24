@@ -14,19 +14,27 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.vault;
 
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 
 public class SingletonVaultExtension implements VaultExtension {
 
+    @EdcSetting
+    private static final String CREDS = "dataspaceconnector.transfer.demo.s3.destination.creds";
+
     private Vault vault;
 
     @Override
-    public void initialize(Monitor monitor) {
-        vault = initializeVault();
+    public void intializeVault(ServiceExtensionContext context) {
+        var monitor = context.getMonitor();
+
+        String secret = context.getSetting(CREDS, "default-secret");
+
+        vault = new SingletonVault(secret);
 
         monitor.info("Initialized Singleton Vault extension");
     }
@@ -44,14 +52,5 @@ public class SingletonVaultExtension implements VaultExtension {
     @Override
     public CertificateResolver getCertificateResolver() {
         return null;
-    }
-
-    private final String SECRET_PROPERTY = "creds";
-
-    public Vault initializeVault() {
-        final String secret = System.getProperty(SECRET_PROPERTY);
-        final SingletonVault vault = new SingletonVault(secret);
-
-        return vault;
     }
 }

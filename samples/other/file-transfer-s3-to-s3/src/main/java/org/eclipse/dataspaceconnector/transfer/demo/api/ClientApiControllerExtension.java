@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.api;
 
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -22,6 +23,13 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 
 public class ClientApiControllerExtension implements ServiceExtension {
+
+    @EdcSetting
+    private static final String DESTINATIO_REGION = "dataspaceconnector.transfer.demo.s3.destination.region";
+
+    @EdcSetting
+    private static final String DESTINATION_BUCKET = "dataspaceconnector.transfer.demo.s3.destination.bucket";
+
     private Monitor monitor;
 
     @Override
@@ -32,7 +40,10 @@ public class ClientApiControllerExtension implements ServiceExtension {
         var dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class);
         var processManager = context.getService(TransferProcessManager.class);
 
-        webService.registerController(new ClientApiController(dispatcherRegistry, processManager, monitor));
+        String destinationRegion = context.getSetting(DESTINATIO_REGION, "test-region");
+        String destinationBucket = context.getSetting(DESTINATION_BUCKET, "test-bucket");
+
+        webService.registerController(new ClientApiController(dispatcherRegistry, processManager, monitor, destinationRegion, destinationBucket));
 
         monitor.info("Initialized Client API extension");
     }
