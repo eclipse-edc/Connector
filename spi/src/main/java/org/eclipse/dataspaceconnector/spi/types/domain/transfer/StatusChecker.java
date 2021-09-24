@@ -18,7 +18,7 @@ import java.util.List;
 
 /**
  * Checks if a data transfer has completed.
- *
+ * <p>
  * For example, a data transfer type involving the copying of files to a folder may employ a completion check that verifies if a file with the "*.complete" extension exists.
  */
 @FunctionalInterface
@@ -27,9 +27,9 @@ public interface StatusChecker {
     /**
      * Checks if the data transfer is finished.
      *
-     * @param id The data transfer process id
-     * @param resources The provisioned resources associated with the transfer or an empty collection if no resources were provisioned
+     * @param transferProcess The data transfer process id
+     * @param resources       The provisioned resources associated with the transfer or an empty collection if no resources were provisioned
      * @return true if complete; otherwise false
      */
-    boolean isComplete(String id, List<ProvisionedResource> resources);
+    boolean isComplete(TransferProcess transferProcess, List<ProvisionedResource> resources);
 }

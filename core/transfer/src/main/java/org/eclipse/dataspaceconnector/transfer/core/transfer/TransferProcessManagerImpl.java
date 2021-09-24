@@ -225,14 +225,14 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
                 if (checker == null) {
                     monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
-                } else if (checker.isComplete(process.getId(), resources)) {
+                } else if (checker.isComplete(process, resources)) {
                     // checker passed, transition the process to the COMPLETED state
                     transitionToCompleted(process);
                 }
             } else {
                 var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
                 if (checker != null) {
-                    if (checker.isComplete(process.getId(), emptyList())) {
+                    if (checker.isComplete(process, emptyList())) {
                         //checker passed, transition the process to the COMPLETED state automatically
                         transitionToCompleted(process);
                     }
