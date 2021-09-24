@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 public class ClientApiControllerExtension implements ServiceExtension {
 
     @EdcSetting
-    private static final String DESTINATIO_REGION = "dataspaceconnector.transfer.demo.s3.destination.region";
+    private static final String DESTINATION_REGION = "dataspaceconnector.transfer.demo.s3.destination.region";
 
     @EdcSetting
     private static final String DESTINATION_BUCKET = "dataspaceconnector.transfer.demo.s3.destination.bucket";
@@ -40,7 +40,7 @@ public class ClientApiControllerExtension implements ServiceExtension {
         var dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class);
         var processManager = context.getService(TransferProcessManager.class);
 
-        String destinationRegion = context.getSetting(DESTINATIO_REGION, "test-region");
+        String destinationRegion = context.getSetting(DESTINATION_REGION, "test-region");
         String destinationBucket = context.getSetting(DESTINATION_BUCKET, "test-bucket");
 
         webService.registerController(new ClientApiController(dispatcherRegistry, processManager, monitor, destinationRegion, destinationBucket));
