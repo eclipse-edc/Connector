@@ -265,7 +265,7 @@ class TransferProcessManagerImplConsumerTest {
     @DisplayName("checkComplete: should transition process with no managed resources if checker returns completed")
     void verifyCompletedNonManagedResources() throws InterruptedException {
         //arrange
-        TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK,new TransferType(), false);
+        TransferProcess process = createTransferProcess(TransferProcessStates.REQUESTED_ACK, new TransferType(), false);
         process.getProvisionedResourceSet().addResource(new TestResource());
         process.getProvisionedResourceSet().addResource(new TestResource());
 
