@@ -25,7 +25,7 @@ public class KeyConverter {
      * @return an {@link ECKey}
      * @throws IllegalArgumentException if any of the public key's properties are not valid. Check {@link ECKey} for details.
      */
-    public static ECKey toECKey(EllipticCurvePublicKey jwk, String id) {
+    public static ECKey toEcKey(EllipticCurvePublicKey jwk, String id) {
         return new ECKey(Curve.parse(jwk.getCrv()),
                 Base64URL.from(jwk.getX()),
                 Base64URL.from(jwk.getY()),
@@ -53,7 +53,7 @@ public class KeyConverter {
                 if (!(publicKey instanceof EllipticCurvePublicKey)) {
                     throw new IllegalArgumentException(format("Public key has 'kty' = '%s' but its Java type was %s!", publicKey.getKty(), publicKey.getClass()));
                 }
-                return new EcPublicKeyWrapper(toECKey((EllipticCurvePublicKey) publicKey, id));
+                return new EcPublicKeyWrapper(toEcKey((EllipticCurvePublicKey) publicKey, id));
             default:
                 throw new IllegalArgumentException(format("Only public-key-JWK of type 'EC' can be used at the moment, but '%s' was specified!", publicKey.getKty()));
         }

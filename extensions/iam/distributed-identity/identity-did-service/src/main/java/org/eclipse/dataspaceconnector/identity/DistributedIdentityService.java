@@ -32,7 +32,7 @@ public class DistributedIdentityService implements IdentityService {
     private final Monitor monitor;
 
     public DistributedIdentityService(VerifiableCredentialProvider vcProvider, DidResolver didResolver, CredentialsVerifier credentialsVerifier, Monitor monitor) {
-        this.verifiableCredentialProvider = vcProvider;
+        verifiableCredentialProvider = vcProvider;
         this.didResolver = didResolver;
         this.credentialsVerifier = credentialsVerifier;
         this.monitor = monitor;
@@ -66,15 +66,15 @@ public class DistributedIdentityService implements IdentityService {
 
             //convert the POJO into a usable PK-wrapper:
             JwkPublicKey publicKeyJwk = publicKey.get().getPublicKeyJwk();
-            PublicKeyWrapper publicKeyWRapper = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
+            PublicKeyWrapper publicKeyWrapper = KeyConverter.toPublicKeyWrapper(publicKeyJwk, publicKey.get().getId());
 
             monitor.debug("Verifying JWT with public key...");
-            if (!VerifiableCredentialFactory.verify(jwt, publicKeyWRapper)) {
+            if (!VerifiableCredentialFactory.verify(jwt, publicKeyWrapper)) {
                 return new VerificationResult("Token could not be verified!");
             }
             monitor.debug("verification successful! Fetching data from IdentityHub");
             String hubUrl = getHubUrl(did);
-            var credentialsResult = credentialsVerifier.verifyCredentials(hubUrl, publicKeyWRapper);
+            var credentialsResult = credentialsVerifier.verifyCredentials(hubUrl, publicKeyWrapper);
 
             monitor.debug("Building ClaimToken");
             var tokenBuilder = ClaimToken.Builder.newInstance();

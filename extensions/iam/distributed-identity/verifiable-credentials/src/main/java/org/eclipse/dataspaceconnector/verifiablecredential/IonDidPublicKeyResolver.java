@@ -36,7 +36,7 @@ public class IonDidPublicKeyResolver implements DidPublicKeyResolver {
         VerificationMethod verificationMethod = didDocument.getVerificationMethod().get(0);
         var jwk = verificationMethod.getPublicKeyJwk();
         try {
-           return KeyConverter.toPublicKeyWrapper(jwk, verificationMethod.getId());
+            return KeyConverter.toPublicKeyWrapper(jwk, verificationMethod.getId());
         } catch (IllegalArgumentException e) {
             throw new PublicKeyResolutionException("Public Key was not a valid EC Key!  Details: " + e.getMessage());
         }

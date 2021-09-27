@@ -4,8 +4,8 @@ import com.nimbusds.jose.jwk.ECKey;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import javax.crypto.interfaces.DHPrivateKey;
 import java.security.interfaces.RSAPrivateKey;
+import javax.crypto.interfaces.DHPrivateKey;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;

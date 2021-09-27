@@ -8,8 +8,8 @@ import org.eclipse.dataspaceconnector.spi.security.KeyParser;
 public class EcPrivateKeyPemParser implements KeyParser<ECKey> {
 
     @Override
-    public boolean canParse(Class<?> aClass) {
-        return aClass.equals(ECKey.class);
+    public boolean canParse(Class<?> keyClass) {
+        return keyClass.equals(ECKey.class);
     }
 
     @Override

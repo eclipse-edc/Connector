@@ -15,31 +15,31 @@ class KeyConverterTest {
 
     @Test
     void toEcKey_illegalParams() {
-        assertThatThrownBy(() -> KeyConverter.toECKey(null, "some-id")).isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> KeyConverter.toECKey(new EllipticCurvePublicKey(), "some-id")).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> KeyConverter.toEcKey(null, "some-id")).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> KeyConverter.toEcKey(new EllipticCurvePublicKey(), "some-id")).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test
     void toEcKey_invalidCurve() {
-        assertThatThrownBy(() -> KeyConverter.toECKey(new EllipticCurvePublicKey("foobar", "EC", "asdf", "ASdfkl"), "some-id"))
+        assertThatThrownBy(() -> KeyConverter.toEcKey(new EllipticCurvePublicKey("foobar", "EC", "asdf", "ASdfkl"), "some-id"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("unsupported curve");
     }
 
     @Test
     void toEcKey_invalidType_shouldCorrectAutomatically() {
-        assertThat(KeyConverter.toECKey(new EllipticCurvePublicKey("secp256k1", "foobar", "wSwuib0Eyfsvdb_RPpQQLlFoHsQE4TSlFdncLePp6Zg", "uxjZNS8HQ9krKn5ZXpjBtSAAj9FQXSDlHlEMR2YA7Hs"), "some-id"))
+        assertThat(KeyConverter.toEcKey(new EllipticCurvePublicKey("secp256k1", "foobar", "wSwuib0Eyfsvdb_RPpQQLlFoHsQE4TSlFdncLePp6Zg", "uxjZNS8HQ9krKn5ZXpjBtSAAj9FQXSDlHlEMR2YA7Hs"), "some-id"))
                 .isNotNull()
                 .hasFieldOrPropertyWithValue("kty", KeyType.EC);
     }
 
     @Test
     void toEcKey_invalidCoordinates() {
-        assertThatThrownBy(() -> KeyConverter.toECKey(new EllipticCurvePublicKey("secp256k1", "EC", "foobar", "uxjZNS8HQ9krKn5ZXpjBtSAAj9FQXSDlHlEMR2YA7Hs"), "some-id"))
+        assertThatThrownBy(() -> KeyConverter.toEcKey(new EllipticCurvePublicKey("secp256k1", "EC", "foobar", "uxjZNS8HQ9krKn5ZXpjBtSAAj9FQXSDlHlEMR2YA7Hs"), "some-id"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid EC JWK: The 'x' and 'y' public coordinates are not on the secp256k1 curve");
 
-        assertThatThrownBy(() -> KeyConverter.toECKey(new EllipticCurvePublicKey("secp256k1", "EC", "wSwuib0Eyfsvdb_RPpQQLlFoHsQE4TSlFdncLePp6Zg", "foobar"), "some-id"))
+        assertThatThrownBy(() -> KeyConverter.toEcKey(new EllipticCurvePublicKey("secp256k1", "EC", "wSwuib0Eyfsvdb_RPpQQLlFoHsQE4TSlFdncLePp6Zg", "foobar"), "some-id"))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Invalid EC JWK: The 'x' and 'y' public coordinates are not on the secp256k1 curve");
     }

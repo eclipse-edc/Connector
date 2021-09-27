@@ -48,7 +48,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Test the {@link DistributedIdentityService} with different key algorithms.
- * See {@link WithP_256} and {@link WithSecp256k1} for concrete impls.
+ * See {@link WithP256} and {@link WithSecp256k1} for concrete impls.
  */
 
 abstract class DistributedIdentityServiceTest {
@@ -156,7 +156,7 @@ abstract class DistributedIdentityServiceTest {
         }
     }
 
-    public static class WithP_256 extends DistributedIdentityServiceTest {
+    public static class WithP256 extends DistributedIdentityServiceTest {
         @Override
         protected @NotNull JWK getKeyPair() {
             return KeyPairFactory.generateKeyPairP256();

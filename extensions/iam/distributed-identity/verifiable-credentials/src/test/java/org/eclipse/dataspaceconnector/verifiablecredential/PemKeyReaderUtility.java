@@ -18,9 +18,9 @@ public class PemKeyReaderUtility {
     @Test
     @Disabled
     void readPemFile() {
-        var jwk1 = parsePemAsJWK("/home/paul/dev/ion-demo/keys2/consumer-public.pem");
-        var jwk2 = parsePemAsJWK("/home/paul/dev/ion-demo/keys2/verifier-public.pem");
-        var jwk3 = parsePemAsJWK("/home/paul/dev/ion-demo/keys2/provider-public.pem");
+        var jwk1 = parsePemAsJwk("/home/paul/dev/ion-demo/keys2/consumer-public.pem");
+        var jwk2 = parsePemAsJwk("/home/paul/dev/ion-demo/keys2/verifier-public.pem");
+        var jwk3 = parsePemAsJwk("/home/paul/dev/ion-demo/keys2/provider-public.pem");
         System.out.println("Public keys: ");
         System.out.printf("consumer: %s%n", jwk1);
         System.out.printf("verifier: %s%n", jwk2);
@@ -28,7 +28,7 @@ public class PemKeyReaderUtility {
     }
 
 
-    private JWK parsePemAsJWK(String resourceName) {
+    private JWK parsePemAsJwk(String resourceName) {
 
         try {
             var pemContents = Files.readString(Path.of(resourceName));

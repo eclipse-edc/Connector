@@ -2,7 +2,11 @@ package org.eclipse.dataspaceconnector.verifiablecredential;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.*;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidConstants;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,7 +15,9 @@ import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.niceMock;
+import static org.easymock.EasyMock.replay;
 import static org.eclipse.dataspaceconnector.verifiablecredential.TestHelper.readFile;
 
 class IonDidPublicKeyResolverTest {
