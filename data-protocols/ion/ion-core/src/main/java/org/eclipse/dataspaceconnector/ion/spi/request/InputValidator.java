@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.ion.model;
+package org.eclipse.dataspaceconnector.ion.spi.request;
 
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;

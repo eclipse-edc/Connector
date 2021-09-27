@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ion.model;
+package org.eclipse.dataspaceconnector.ion.spi.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

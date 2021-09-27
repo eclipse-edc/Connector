@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ion.model;
+package org.eclipse.dataspaceconnector.ion.spi.request;
 
 /*
  * Interface for all ION requests (create, update, deactivate, recover)

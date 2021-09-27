@@ -11,8 +11,8 @@ import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolveResponse;
-import org.eclipse.dataspaceconnector.ion.model.IonRequest;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
+import org.eclipse.dataspaceconnector.ion.spi.request.IonRequest;
 import org.eclipse.dataspaceconnector.ion.util.HexStringUtils;
 import org.eclipse.dataspaceconnector.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.ion.util.SortingNodeFactory;
@@ -32,8 +32,8 @@ public class DefaultIonClient implements IonClient {
     private static final String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";
     private static final String IDENTIFIERS_PATH = "/identifiers";
     private static final String OPERATIONS_PATH = "/operations";
-    private static String ionUrl;
-    private static ObjectMapper typeManager;
+    private final String ionUrl;
+    private final ObjectMapper typeManager;
 
     public DefaultIonClient(ObjectMapper typeManager) {
         this(DEFAULT_RESOLUTION_ENDPOINT, typeManager);

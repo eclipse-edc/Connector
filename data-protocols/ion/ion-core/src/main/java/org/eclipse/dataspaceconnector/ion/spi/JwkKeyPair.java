@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ion.model;
+package org.eclipse.dataspaceconnector.ion.spi;
 
 import com.nimbusds.jose.jwk.JWK;
 

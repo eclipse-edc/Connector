@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.ion.model;
+package org.eclipse.dataspaceconnector.ion.spi.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;

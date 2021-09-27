@@ -18,7 +18,7 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import org.eclipse.dataspaceconnector.ion.IonException;
-import org.eclipse.dataspaceconnector.ion.model.JwkKeyPair;
+import org.eclipse.dataspaceconnector.ion.spi.JwkKeyPair;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;

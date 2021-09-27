@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ion.model;
+package org.eclipse.dataspaceconnector.ion.spi.request;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
@@ -69,7 +69,7 @@ public class PublicKeyDescriptor {
         private String id;
         private String type;
         private Map<String, String> publicKeyJwk;
-        private String[] purposes = {"authentication"};
+        private String[] purposes = { "authentication" };
 
         private Builder() {
         }
