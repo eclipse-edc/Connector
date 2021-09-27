@@ -13,6 +13,7 @@ dependencies {
     implementation(project(":extensions:azure:events-config"))
     implementation(project(":extensions:azure:vault"))
     implementation(project(":data-protocols:ion:ion-core"))
+    implementation(project(":data-protocols:ion:ion-client"))
 
 
     // third party

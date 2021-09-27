@@ -32,15 +32,15 @@ public class DefaultIonClient implements IonClient {
     private static final String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";
     private static final String IDENTIFIERS_PATH = "/identifiers";
     private static final String OPERATIONS_PATH = "/operations";
-    private final String ionUrl;
+    private final String resolutionEndpoint;
     private final ObjectMapper typeManager;
 
     public DefaultIonClient(ObjectMapper typeManager) {
         this(DEFAULT_RESOLUTION_ENDPOINT, typeManager);
     }
 
-    public DefaultIonClient(String ionEndpoint, ObjectMapper typeManager) {
-        ionUrl = ionEndpoint;
+    public DefaultIonClient(String resolutionEndpoint, ObjectMapper typeManager) {
+        this.resolutionEndpoint = resolutionEndpoint;
         this.typeManager = typeManager;
     }
 
@@ -56,7 +56,7 @@ public class DefaultIonClient implements IonClient {
         MediaType json = MediaType.get("application/json; charset=utf-8");
         RequestBody okHttpRequestbody = RequestBody.create(requestBodyJson, json);
         var solutionRequest = new Request.Builder()
-                .url(ionUrl + OPERATIONS_PATH)
+                .url(resolutionEndpoint + OPERATIONS_PATH)
                 .post(okHttpRequestbody)
                 .header("Content-Type", "application/json")
                 .build();
@@ -89,7 +89,7 @@ public class DefaultIonClient implements IonClient {
     public DidDocument resolve(String didUri) {
         var rq = new Request.Builder()
                 .get()
-                .url(ionUrl + IDENTIFIERS_PATH + "/" + didUri)
+                .url(resolutionEndpoint + IDENTIFIERS_PATH + "/" + didUri)
                 .build();
 
         try (var response = getOkHttpClient().newCall(rq).execute()) {
