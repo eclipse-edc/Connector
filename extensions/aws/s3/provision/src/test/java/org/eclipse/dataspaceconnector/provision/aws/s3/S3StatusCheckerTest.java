@@ -18,6 +18,10 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
+import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +30,10 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
@@ -36,9 +42,6 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFi
 
 @IntegrationTest
 class S3StatusCheckerTest extends AbstractS3Test {
-
-    private static final String RESOURCE_ID = UUID.randomUUID().toString();
-    private static final String RESOURCE_DEFINITION_ID = UUID.randomUUID().toString();
     private static final String PROCESS_ID = UUID.randomUUID().toString();
     private S3StatusChecker checker;
 
@@ -54,27 +57,49 @@ class S3StatusCheckerTest extends AbstractS3Test {
     }
 
     @Test
-    void isComplete_whenNotComplete() {
-        var resource = createProvisionedResource(bucketName);
-
-        assertThat(checker.isComplete(resource)).isFalse();
+    void isComplete_noResources_whenNotComplete() {
+        assertThat(checker.isComplete(createTransferProcess(bucketName), emptyList())).isFalse();
     }
 
-
     @Test
-    void isComplete_whenComplete() {
+    void isComplete_noResources_whenComplete() {
         //arrange
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
-        var resource = createProvisionedResource(bucketName);
 
         //act-assert
-        assertThat(checker.isComplete(resource)).isTrue();
+        assertThat(checker.isComplete(createTransferProcess(bucketName), emptyList())).isTrue();
     }
 
     @Test
-    void isComplete_whenBucketNotExist() {
-        var res = createProvisionedResource("bucket-not-exist");
-        assertThat(checker.isComplete(res)).isFalse();
+    void isComplete_noResources_whenBucketNotExist() {
+        assertThat(checker.isComplete(createTransferProcess(bucketName), emptyList())).isFalse();
+    }
+
+    @Test
+    void isComplete_withResources_whenNotComplete() {
+
+        TransferProcess tp = createTransferProcess(bucketName);
+        S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
+
+        assertThat(checker.isComplete(tp, Collections.singletonList(provisionedResource))).isFalse();
+    }
+
+    @Test
+    void isComplete_withResources_whenComplete() {
+        //arrange
+        putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
+
+        //act-assert
+        TransferProcess tp = createTransferProcess(bucketName);
+        S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
+        assertThat(checker.isComplete(tp, Collections.singletonList(provisionedResource))).isTrue();
+    }
+
+    @Test
+    void isComplete_withResources_whenBucketNotExist() {
+        TransferProcess tp = createTransferProcess(bucketName);
+        S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
+        assertThat(checker.isComplete(tp, Collections.singletonList(provisionedResource))).isFalse();
     }
 
     @Override
@@ -82,14 +107,29 @@ class S3StatusCheckerTest extends AbstractS3Test {
         return "s3-checker-test-" + PROCESS_ID + "-" + REGION;
     }
 
-    private S3BucketProvisionedResource createProvisionedResource(String bucketName) {
+    private S3BucketProvisionedResource createProvisionedResource(TransferProcess tp) {
         return S3BucketProvisionedResource.Builder.newInstance()
                 .bucketName(bucketName)
                 .region(REGION)
-                .transferProcessId(PROCESS_ID)
-                .resourceDefinitionId(RESOURCE_DEFINITION_ID)
-                .id(RESOURCE_ID)
+                .resourceDefinitionId(UUID.randomUUID().toString())
+                .transferProcessId(tp.getId())
+                .id(UUID.randomUUID().toString())
                 .build();
     }
+
+    private TransferProcess createTransferProcess(String bucketName) {
+        return TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .dataRequest(DataRequest.Builder.newInstance()
+                        .destinationType(S3BucketSchema.TYPE)
+                        .dataDestination(DataAddress.Builder.newInstance()
+                                .type(S3BucketSchema.TYPE)
+                                .property(S3BucketSchema.REGION, AbstractS3Test.REGION)
+                                .property(S3BucketSchema.BUCKET_NAME, bucketName)
+                                .build())
+                        .build())
+                .build();
+    }
+
 
 }

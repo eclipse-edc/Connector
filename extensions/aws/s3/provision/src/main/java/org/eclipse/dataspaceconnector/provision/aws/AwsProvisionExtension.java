@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisioner;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketResourceDefinition;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3ResourceDefinitionConsumerGenerator;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3StatusChecker;
+import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -60,7 +61,7 @@ public class AwsProvisionExtension implements ServiceExtension {
         clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(createCredentialsProvider(context)).build();
         context.registerService(ClientProvider.class, clientProvider);
 
-        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
+        @SuppressWarnings("unchecked") var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         var s3BucketProvisioner = new S3BucketProvisioner(clientProvider, 3600, monitor, retryPolicy);
         provisionManager.register(s3BucketProvisioner);
 
@@ -69,7 +70,7 @@ public class AwsProvisionExtension implements ServiceExtension {
         manifestGenerator.registerConsumerGenerator(new S3ResourceDefinitionConsumerGenerator());
 
         var statusCheckerReg = context.getService(StatusCheckerRegistry.class);
-        statusCheckerReg.register(S3BucketProvisionedResource.class, new S3StatusChecker(clientProvider, retryPolicy));
+        statusCheckerReg.register(S3BucketSchema.TYPE, new S3StatusChecker(clientProvider, retryPolicy));
 
         registerTypes(context.getTypeManager());
 

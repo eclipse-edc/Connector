@@ -27,8 +27,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -43,6 +41,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
@@ -68,7 +67,6 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private TransferProcessManagerImpl() {
 
     }
-
 
     public void start(TransferProcessStore processStore) {
         transferProcessStore = processStore;
@@ -101,7 +99,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         if (processId != null) {
             return TransferInitiateResponse.Builder.newInstance().id(processId).status(ResponseStatus.OK).build();
         }
-        String id = randomUUID().toString();
+        var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
         transferProcessStore.create(process);
         invokeForEach(l -> l.created(process));
@@ -189,7 +187,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
      * If a process does not have provisioned resources, it will remain in REQUESTED_ACK.
      */
     private int checkProvisioned() {
-        List<TransferProcess> requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
+        var requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
 
         for (var process : requestAcked) {
             // process must either have a non-empty list of provisioned resources, or not have managed resources at all.
@@ -219,28 +217,39 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private int checkCompleted() {
 
         //deal with all the consumer processes
-        List<TransferProcess> processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
+        var processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
 
         for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(Collectors.toList())) {
-
             if (process.getDataRequest().isManagedResources()) {
-                List<ProvisionedResource> resources = process.getProvisionedResourceSet().getResources().stream().filter(this::hasChecker).collect(Collectors.toList());
-
-                // update the process once ALL resources are completed
-                if (resources.stream().allMatch(this::isComplete)) {
-                    process.transitionCompleted();
-                    monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
-                    invokeForEach(listener -> listener.completed(process));
+                var resources = process.getProvisionedResourceSet().getResources();
+                var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
+                if (checker == null) {
+                    monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
+                } else if (checker.isComplete(process, resources)) {
+                    // checker passed, transition the process to the COMPLETED state
+                    transitionToCompleted(process);
                 }
             } else {
-                //no managed resources, just update
-                process.transitionCompleted();
-                monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
-                invokeForEach(listener -> listener.completed(process));
+                var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
+                if (checker != null) {
+                    if (checker.isComplete(process, emptyList())) {
+                        //checker passed, transition the process to the COMPLETED state automatically
+                        transitionToCompleted(process);
+                    }
+                } else {
+                    //no checker, transition the process to the COMPLETED state automatically
+                    transitionToCompleted(process);
+                }
             }
             transferProcessStore.update(process);
         }
         return processesInProgress.size();
+    }
+
+    private void transitionToCompleted(TransferProcess process) {
+        process.transitionCompleted();
+        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
+        invokeForEach(listener -> listener.completed(process));
     }
 
 
@@ -251,7 +260,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
      * map involve preprocessing data or other operations.
      */
     private int provisionInitialProcesses() {
-        List<TransferProcess> processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
+        var processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
             ResourceManifest manifest;
@@ -275,7 +284,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
      * @return the number of requests processed
      */
     private int sendOrProcessProvisionedRequests() {
-        List<TransferProcess> processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
+        var processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
             if (CONSUMER == process.getType()) {
@@ -307,22 +316,6 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return processes.size();
     }
 
-
-    private boolean hasChecker(ProvisionedResource provisionedResource) {
-        return provisionedResource instanceof ProvisionedDataDestinationResource && statusCheckerRegistry.resolve((ProvisionedDataDestinationResource) provisionedResource) != null;
-    }
-
-    private boolean isComplete(ProvisionedResource resource) {
-        if (!(resource instanceof ProvisionedDataDestinationResource)) {
-            return false;
-        }
-        ProvisionedDataDestinationResource dataResource = (ProvisionedDataDestinationResource) resource;
-        var checker = statusCheckerRegistry.resolve(dataResource);
-        if (checker == null) {
-            return true;
-        }
-        return checker.isComplete(dataResource);
-    }
 
     private void invokeForEach(Consumer<TransferProcessListener> action) {
         getListeners().forEach(action);
