@@ -18,7 +18,6 @@ import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import org.eclipse.dataspaceconnector.ion.IonException;
-import org.eclipse.dataspaceconnector.ion.spi.JwkKeyPair;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -32,7 +31,12 @@ import java.security.spec.ECGenParameterSpec;
  */
 public class KeyPairFactory {
 
-    public static JwkKeyPair generateKeyPair() {
+    /**
+     * Generates a Elliptic Curve Public/Private Key pair on the SECP256k1 curve
+     *
+     * @return A {@link JWK} that is in fact an {@link ECKey}
+     */
+    public static JWK generateKeyPair() {
         try {
 
             ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256k1");
@@ -41,15 +45,33 @@ public class KeyPairFactory {
             KeyPair keyPair = g.generateKeyPair();
 
 
-            JWK jwk = new ECKey.Builder(Curve.SECP256K1, (ECPublicKey) keyPair.getPublic())
+            return new ECKey.Builder(Curve.SECP256K1, (ECPublicKey) keyPair.getPublic())
                     .privateKey((ECPrivateKey) keyPair.getPrivate())
                     .build();
-
-
-            return JwkKeyPair.from(jwk);
         } catch (Exception e) {
             throw new IonException(e);
         }
     }
 
+    /**
+     * Generates a Elliptic Curve Public/Private Key pair on the P-256 curve
+     *
+     * @return A {@link JWK} that is in fact an {@link ECKey}
+     */
+    public static JWK generateKeyPairP256() {
+        try {
+
+            ECGenParameterSpec ecSpec = new ECGenParameterSpec("secp256r1");
+            KeyPairGenerator g = KeyPairGenerator.getInstance("EC");
+            g.initialize(ecSpec, new SecureRandom());
+            KeyPair keyPair = g.generateKeyPair();
+
+
+            return new ECKey.Builder(Curve.P_256, (ECPublicKey) keyPair.getPublic())
+                    .privateKey((ECPrivateKey) keyPair.getPrivate())
+                    .build();
+        } catch (Exception e) {
+            throw new IonException(e);
+        }
+    }
 }

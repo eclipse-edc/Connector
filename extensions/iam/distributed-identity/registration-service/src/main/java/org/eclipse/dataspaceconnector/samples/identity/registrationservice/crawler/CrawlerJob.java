@@ -171,7 +171,7 @@ public class CrawlerJob implements Job {
             // Resolve ION/IdentityHub discrepancy
             var service = new Service("#domain-1", "LinkedDomains", "https://test.service.com");
 
-            var eckey = (ECKey) KeyPairFactory.generateKeyPair().getPublicKey();
+            var eckey = (ECKey) KeyPairFactory.generateKeyPair().toPublicJWK();
             var publicKey = new EllipticCurvePublicKey(eckey.getCurve().getName(), eckey.getKeyType().getValue(), eckey.getX().toString(), eckey.getY().toString());
 
             var randomDocument = DidDocument.Builder.newInstance()

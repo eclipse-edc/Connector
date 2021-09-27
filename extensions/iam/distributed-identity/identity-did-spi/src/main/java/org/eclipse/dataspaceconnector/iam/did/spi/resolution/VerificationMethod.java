@@ -10,7 +10,7 @@ public class VerificationMethod {
     private String id;
     private String controller;
     private String type;
-    private EllipticCurvePublicKey publicKeyJwk;
+    private JwkPublicKey publicKeyJwk;
 
     @JsonProperty("id")
     public String getId() {
@@ -40,21 +40,21 @@ public class VerificationMethod {
     }
 
     @JsonProperty("publicKeyJwk")
-    public EllipticCurvePublicKey getPublicKeyJwk() {
+    public JwkPublicKey getPublicKeyJwk() {
         return publicKeyJwk;
     }
 
-    public void setPublicKeyJwk(EllipticCurvePublicKey publicKeyJwk) {
+    public void setPublicKeyJwk(JwkPublicKey publicKeyJwk) {
         this.publicKeyJwk = publicKeyJwk;
     }
 
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        String id;
-        String controller;
-        String type;
-        EllipticCurvePublicKey publicKeyJwk;
+        private String id;
+        private String controller;
+        private String type;
+        private JwkPublicKey publicKeyJwk;
 
         private Builder() {
         }
@@ -79,7 +79,7 @@ public class VerificationMethod {
             return this;
         }
 
-        public Builder publicKeyJwk(EllipticCurvePublicKey publicKeyJwk) {
+        public Builder publicKeyJwk(JwkPublicKey publicKeyJwk) {
             this.publicKeyJwk = publicKeyJwk;
             return this;
         }

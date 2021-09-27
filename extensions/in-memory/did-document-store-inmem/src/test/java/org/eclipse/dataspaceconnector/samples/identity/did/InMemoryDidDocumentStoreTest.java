@@ -129,7 +129,7 @@ class InMemoryDidDocumentStoreTest {
     }
 
     private VerificationMethod createVerificationMethod() {
-        var publicKey = (ECKey) KeyPairFactory.generateKeyPair().getPublicKey();
+        var publicKey = (ECKey) KeyPairFactory.generateKeyPair().toPublicJWK();
         return VerificationMethod.Builder.create()
                 .controller("")
                 .id("#key-1")

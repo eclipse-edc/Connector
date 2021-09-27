@@ -53,7 +53,7 @@ class IonClientImplTest {
         var pkd = PublicKeyDescriptor.Builder.create()
                 .id("key-1")
                 .type("EcdsaSecp256k1VerificationKey2019")
-                .publicKeyJwk(Map.of("publicKeyJwk", pair.getPublicKey().toJSONString())).build();
+                .publicKeyJwk(Map.of("publicKeyJwk", pair.toPublicJWK().toJSONString())).build();
 
         var sd = Collections.singletonList(ServiceDescriptor.Builder.create().id("idhub-url")
                 .type("IdentityHubUrl").serviceEndpoint("https://my.identity.url").build());
@@ -61,7 +61,7 @@ class IonClientImplTest {
         var content = new HashMap<String, Object>();
         content.put("publicKeys", Collections.singletonList(pkd));
         content.put("services", sd);
-        var createDidRequest = IonRequestFactory.createCreateRequest(KeyPairFactory.generateKeyPair().getPublicKey(), KeyPairFactory.generateKeyPair().getPublicKey(), content);
+        var createDidRequest = IonRequestFactory.createCreateRequest(KeyPairFactory.generateKeyPair().toPublicJWK(), KeyPairFactory.generateKeyPair().toPublicJWK(), content);
         assertThat(createDidRequest.getDidUri()).isNotNull();
         assertThat(createDidRequest.getSuffix()).isNotNull();
         assertThat(createDidRequest.getDidUri()).endsWith(createDidRequest.getSuffix());

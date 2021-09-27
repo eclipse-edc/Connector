@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 /**
  * Public part of an Elliptic Curve key
  */
-public class EllipticCurvePublicKey {
+public class EllipticCurvePublicKey implements JwkPublicKey {
     private String crv;
     private String kty;
     private String curvePointX;
@@ -31,6 +31,7 @@ public class EllipticCurvePublicKey {
         this.crv = crv;
     }
 
+    @Override
     @JsonProperty("kty")
     public String getKty() {
         return kty;

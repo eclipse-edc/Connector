@@ -1,5 +1,7 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
+
 import java.util.Arrays;
 import java.util.List;
 
@@ -13,6 +15,7 @@ public interface DidConstants {
             DidConstants.JSON_WEB_KEY_2020,
             DidConstants.RSA_VERIFICATION_KEY_2018,
             DidConstants.ED_25519_VERIFICATION_KEY_2018);
+    @EdcSetting
     String DID_URL_SETTING = "edc.identity.did.url";
 
 }
