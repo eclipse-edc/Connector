@@ -23,32 +23,16 @@ import java.util.Base64;
 
 /**
  * Alternative in {@code https://tools.ietf.org/html/rfc7515#section-3.1} format.
- *
+ * <p>
  * It is constructed by splitting the parts (header, body, signature) of a conventional compact serialized JWT and placing them in the relevant properties
  * (protected, payload, signature).
  */
 public class JsonCommitObject {
+    private final String payload;
+    private final String signature;
+    private final CommitHeader header;
     @JsonProperty("protected")
     private String protectedHeader;
-    private String payload;
-    private String signature;
-    private CommitHeader header;
-
-    public CommitHeader getHeader() {
-        return header;
-    }
-
-    public String getProtectedHeader() {
-        return protectedHeader;
-    }
-
-    public String getPayload() {
-        return payload;
-    }
-
-    public String getSignature() {
-        return signature;
-    }
 
     public JsonCommitObject(@JsonProperty("protected") String protectedHeader,
                             @JsonProperty("payload") String payload,
@@ -65,14 +49,30 @@ public class JsonCommitObject {
         if (tokens.length < 3) {
             throw new IllegalArgumentException("Invalid jwt");
         }
-        this.protectedHeader = tokens[0];
-        this.payload = tokens[1];
-        this.signature = tokens[2];
+        protectedHeader = tokens[0];
+        payload = tokens[1];
+        signature = tokens[2];
         this.header = header;
 
         String hased = computeRev();
 
         this.header.setRev(hased);
+    }
+
+    public CommitHeader getHeader() {
+        return header;
+    }
+
+    public String getProtectedHeader() {
+        return protectedHeader;
+    }
+
+    public String getPayload() {
+        return payload;
+    }
+
+    public String getSignature() {
+        return signature;
     }
 
     @NotNull

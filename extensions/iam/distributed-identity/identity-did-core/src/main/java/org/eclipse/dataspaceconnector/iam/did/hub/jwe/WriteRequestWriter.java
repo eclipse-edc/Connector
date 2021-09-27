@@ -42,12 +42,12 @@ import static com.nimbusds.jose.JWEAlgorithm.RSA_OAEP_256;
  */
 public class WriteRequestWriter extends AbstractJweWriter<WriteRequestWriter> {
 
+    private final Commit.Operation operation = Commit.Operation.create;
     private String kid;
     private String sub;
     private InterfaceType interfaze = InterfaceType.Collections;
     private String context;
     private String type;
-    private final Commit.Operation operation = Commit.Operation.create;
     private Object commitObject;
 
     @Override

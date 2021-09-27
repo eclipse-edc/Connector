@@ -19,22 +19,21 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 
 @JsonTypeName("ErrorResponse")
 public class ErrorResponse extends HubMessage {
-    private String errorCode;
-    private String developerMessage;
+    private final String errorCode;
+    private final String developerMessage;
+
+    public ErrorResponse(@JsonProperty("error_code") String errorCode, @JsonProperty("developer_message") String developerMessage) {
+        this.errorCode = errorCode;
+        this.developerMessage = developerMessage;
+    }
 
     @JsonProperty("error_code")
     public String getErrorCode() {
         return errorCode;
     }
 
-
     @JsonProperty("developer_message")
     public String getDeveloperMessage() {
         return developerMessage;
-    }
-
-    public ErrorResponse(@JsonProperty("error_code") String errorCode, @JsonProperty("developer_message") String developerMessage) {
-        this.errorCode = errorCode;
-        this.developerMessage = developerMessage;
     }
 }

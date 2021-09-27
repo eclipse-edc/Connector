@@ -58,6 +58,11 @@ public class VerifiableCredentialLoaderExtension implements ServiceExtension {
         context.registerService(VerifiableCredentialProvider.class, verifiableCredentialSupplier);
     }
 
+    @Override
+    public void start() {
+        ServiceExtension.super.start();
+    }
+
     private void registerResolvers(ServiceExtensionContext context) {
         // public key resolver
         var ionClient = context.getService(IonClient.class);
@@ -81,10 +86,5 @@ public class VerifiableCredentialLoaderExtension implements ServiceExtension {
             }
         });
 
-    }
-
-    @Override
-    public void start() {
-        ServiceExtension.super.start();
     }
 }

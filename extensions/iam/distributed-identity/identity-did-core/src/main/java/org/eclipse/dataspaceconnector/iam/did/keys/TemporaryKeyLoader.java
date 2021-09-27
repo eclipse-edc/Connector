@@ -26,7 +26,7 @@ import static java.lang.String.format;
 
 /**
  * Temporary key loader until DID key management is implemented.
- *
+ * <p>
  * TODO HACKATHON-1 TASK 6A Usage of these functions in main code needs to be removed.
  */
 public class TemporaryKeyLoader {

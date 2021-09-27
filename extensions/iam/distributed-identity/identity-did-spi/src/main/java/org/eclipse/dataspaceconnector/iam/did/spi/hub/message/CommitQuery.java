@@ -40,10 +40,14 @@ public class CommitQuery {
         return HubMessageConstants.SCHEMA;
     }
 
-    @JsonIgnoreProperties(value = {"@context"}, allowGetters = true, ignoreUnknown = true)
+    @JsonIgnoreProperties(value = { "@context" }, allowGetters = true, ignoreUnknown = true)
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private CommitQuery objectQuery;
+        private final CommitQuery objectQuery;
+
+        private Builder() {
+            objectQuery = new CommitQuery();
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -59,10 +63,6 @@ public class CommitQuery {
         public CommitQuery build() {
             Objects.requireNonNull(objectQuery.objectId, "objectId");
             return objectQuery;
-        }
-
-        private Builder() {
-            objectQuery = new CommitQuery();
         }
 
 

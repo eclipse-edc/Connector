@@ -28,11 +28,11 @@ import java.util.UUID;
 /**
  * Binds the identity hub to an HTTP REST endpoint.
  */
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/identity-hub")
 public class IdentityHubController {
-    private IdentityHub hub;
+    private final IdentityHub hub;
 
     public IdentityHubController(IdentityHub hub) {
         this.hub = hub;

@@ -22,20 +22,20 @@ public class CommitHeader {
     @JsonProperty("iss")
     private String iss;
 
-    public String getRev() {
-        return rev;
+    public CommitHeader(@JsonProperty("iss") String iss) {
+        rev = rev;
+        this.iss = iss;
     }
 
-    public String getIss() {
-        return iss;
+    public String getRev() {
+        return rev;
     }
 
     void setRev(String rev) {
         this.rev = rev;
     }
 
-    public CommitHeader(@JsonProperty("iss") String iss) {
-        this.rev = rev;
-        this.iss = iss;
+    public String getIss() {
+        return iss;
     }
 }

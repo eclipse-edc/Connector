@@ -50,10 +50,14 @@ public class ObjectQuery {
         return context + ":" + type;
     }
 
-    @JsonIgnoreProperties(value = {"@context"}, allowGetters = true, ignoreUnknown = true)
+    @JsonIgnoreProperties(value = { "@context" }, allowGetters = true, ignoreUnknown = true)
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private ObjectQuery objectQuery;
+        private final ObjectQuery objectQuery;
+
+        private Builder() {
+            objectQuery = new ObjectQuery();
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -79,10 +83,6 @@ public class ObjectQuery {
         public ObjectQuery build() {
             Objects.requireNonNull(objectQuery.type, "type");
             return objectQuery;
-        }
-
-        private Builder() {
-            objectQuery = new ObjectQuery();
         }
 
 

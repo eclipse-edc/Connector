@@ -20,6 +20,14 @@ public class ClientResponse<T> {
     private T response;
     private String error;
 
+    public ClientResponse(T response) {
+        this.response = response;
+    }
+
+    public ClientResponse(String error) {
+        this.error = error;
+    }
+
     public T getResponse() {
         return response;
     }
@@ -30,13 +38,5 @@ public class ClientResponse<T> {
 
     public String getError() {
         return error;
-    }
-
-    public ClientResponse(T response) {
-        this.response = response;
-    }
-
-    public ClientResponse(String error) {
-        this.error = error;
     }
 }
