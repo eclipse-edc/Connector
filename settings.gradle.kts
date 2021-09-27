@@ -91,6 +91,7 @@ include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
 include(":samples:identity-gaiax-verifier")
 include(":samples:other:identity-gaiax-verifier")
+include(":samples:other:file-transfer-s3-to-s3")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
 
