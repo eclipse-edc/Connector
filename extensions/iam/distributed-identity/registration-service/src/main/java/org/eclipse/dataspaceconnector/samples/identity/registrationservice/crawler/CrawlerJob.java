@@ -2,27 +2,19 @@ package org.eclipse.dataspaceconnector.samples.identity.registrationservice.craw
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nimbusds.jose.jwk.ECKey;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
 import org.eclipse.dataspaceconnector.ion.IonRequestException;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
-import org.eclipse.dataspaceconnector.ion.util.KeyPairFactory;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 
 import java.io.IOException;
-import java.security.SecureRandom;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -54,16 +46,12 @@ public class CrawlerJob implements Job {
 
         List<DidDocument> newDids;
         var start = Instant.now();
-        if (cc.shouldRandomize()) {
-            newDids = getRandomizedDid();
-        } else {
-            var newDidFutures = getDidDocumentsFromBlockchainAsync(cc);
+        var newDidFutures = getDidDocumentsFromBlockchainAsync(cc);
 
-            newDids = newDidFutures.parallelStream()
-                    .map(CompletableFuture::join)
-                    .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
-        }
+        newDids = newDidFutures.parallelStream()
+                .map(CompletableFuture::join)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
         monitor.info("CrawlerJob: found " + newDids.size() + " new dids on ION, took " + (Duration.between(start, Instant.now()).toString()
                 .substring(2)
                 .replaceAll("(\\d[HMS])(?!$)", "$1 ")
@@ -150,40 +138,6 @@ public class CrawlerJob implements Job {
 
     private OkHttpClient createClient() {
         return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
-    }
-
-    private List<DidDocument> getRandomizedDid() {
-
-
-        // TODO: once the query API for Ion is in place, we need to actually query it
-        // using the continuation token instead of generating random dids here :)
-        var random = new SecureRandom();
-
-        int howMany = random.nextInt(5);
-        var results = new ArrayList<DidDocument>();
-
-        for (int i = 0; i < howMany; i++) {
-
-            byte[] r = new byte[32];
-            random.nextBytes(r);
-            String s = Base64.getUrlEncoder().encodeToString(r);
-
-            // Resolve ION/IdentityHub discrepancy
-            var service = new Service("#domain-1", "LinkedDomains", "https://test.service.com");
-
-            var eckey = (ECKey) KeyPairFactory.generateKeyPair().toPublicJWK();
-            var publicKey = new EllipticCurvePublicKey(eckey.getCurve().getName(), eckey.getKeyType().getValue(), eckey.getX().toString(), eckey.getY().toString());
-
-            var randomDocument = DidDocument.Builder.newInstance()
-                    .id("did:ion:" + s)
-                    .authentication(Collections.singletonList("#key-1"))
-                    .service(List.of(service))
-                    .verificationMethod("#key-1", "EcdsaSecp256k1VerificationKey2019", publicKey)
-                    .build();
-
-            results.add(randomDocument);
-        }
-        return results;
     }
 
 }

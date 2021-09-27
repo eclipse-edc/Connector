@@ -14,6 +14,7 @@ dependencies {
     implementation(project(":extensions:azure:vault"))
     implementation(project(":data-protocols:ion:ion-core"))
     implementation(project(":data-protocols:ion:ion-client"))
+    implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
 
 
     // third party

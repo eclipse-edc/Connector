@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
-import org.eclipse.dataspaceconnector.ion.util.KeyPairFactory;
+import org.eclipse.dataspaceconnector.iam.util.KeyPairFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

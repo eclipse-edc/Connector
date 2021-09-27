@@ -68,6 +68,8 @@ include(":extensions:iam:distributed-identity:identity-did-service")
 include(":extensions:iam:distributed-identity:registration-service")
 include(":extensions:iam:distributed-identity:registration-service-api")
 include(":extensions:iam:distributed-identity:identity-common-test")
+include(":extensions:iam:distributed-identity:verifiable-credentials")
+include(":extensions:iam:distributed-identity:identity-hub-verifier")
 include(":extensions:catalog:catalog-service")
 
 
@@ -94,25 +96,12 @@ include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
 include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
-include(":samples:identity-gaiax-verifier")
-include(":samples:other:identity-gaiax-verifier")
 include(":samples:other:file-transfer-s3-to-s3")
 include(":samples:other:custom-runtime")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
 
 
-// all implementations during/regarding the GaiaX Hackathon should go here:
-include(":samples:gaiax-hackathon-1:identity:cloud-transfer")
-
-include(":samples:gaiax-hackathon-1:identity:control-rest")
-include(":samples:gaiax-hackathon-1:identity:catalog-service")
-
-include(":samples:identity-gaiax-verifier")
-
-include(":samples:gaiax-hackathon-1:identity:launchers:registration-service-app")
-include(":samples:gaiax-hackathon-1:identity:launchers:simple-provider")
-include(":samples:gaiax-hackathon-1:identity:launchers:simple-consumer")
 
 // extension points for a connector
 include(":spi")

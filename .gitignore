@@ -37,9 +37,6 @@ build
 distributions/**/github.properties
 
 # ignore all certificates
-*.pfx
-*.pem
-*.cert
 
 distributions/azure/azure.properties
 .terraform*

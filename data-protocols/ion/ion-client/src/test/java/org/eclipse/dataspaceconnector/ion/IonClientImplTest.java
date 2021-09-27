@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.ion;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.iam.util.KeyPairFactory;
 import org.eclipse.dataspaceconnector.ion.spi.request.IonRequestFactory;
 import org.eclipse.dataspaceconnector.ion.spi.request.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.ion.spi.request.ServiceDescriptor;
-import org.eclipse.dataspaceconnector.ion.util.KeyPairFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
