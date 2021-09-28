@@ -8,8 +8,10 @@ val nimbusVersion: String by project
 
 dependencies {
     api(project(":data-protocols:ion:ion-core"))
-    implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
+
     implementation("org.bouncycastle:bcprov-jdk15on:1.69") // for argon2id
+
+    testImplementation(project(":extensions:iam:distributed-identity:identity-did-core")) // for the KeyPairFactory
 }
 
 publishing {
