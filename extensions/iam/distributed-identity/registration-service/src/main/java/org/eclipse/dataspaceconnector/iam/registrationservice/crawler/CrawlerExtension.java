@@ -12,14 +12,14 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
+package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
+import org.eclipse.dataspaceconnector.iam.did.spi.DidStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
-import org.eclipse.dataspaceconnector.ion.DefaultIonClient;
-import org.eclipse.dataspaceconnector.ion.spi.DidStore;
-import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
+import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -49,11 +49,10 @@ public class CrawlerExtension implements ServiceExtension {
     @EdcSetting
     private static final String ION_URL_SETTING = "edc.ion.crawler.ion.url";
     @EdcSetting
-    private static final String ION_RANDOMIZE_DID_DOCUMENTS_SETTING = "edc.ion.crawler.randomize";
-    @EdcSetting
     private static final String ION_GAIAX_TYPE_SETTING = "Z3hp";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
+    private DidResolver didResolver;
 
     @Override
     public Set<String> provides() {
@@ -62,7 +61,7 @@ public class CrawlerExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:did-documentstore");
+        return Set.of(DidStore.FEATURE, DidResolver.FEATURE);
     }
 
 
@@ -70,9 +69,7 @@ public class CrawlerExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
 
-        // create the crawler that periodically browses ION for new DIDs
-        var ionClient = new DefaultIonClient(context.getTypeManager().getMapper());
-
+        didResolver = context.getService(DidResolver.class);
         context.getMonitor().info("ION Crawler Extension initialized");
     }
 
@@ -118,9 +115,8 @@ public class CrawlerExtension implements ServiceExtension {
                 .ionHost(context.getSetting(ION_URL_SETTING, "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/"))
                 .monitor(context.getMonitor())
                 .publisher(publisher)
-                .randomize(Boolean.parseBoolean(context.getSetting(ION_RANDOMIZE_DID_DOCUMENTS_SETTING, "false")))
                 .didTypes(context.getSetting(ION_GAIAX_TYPE_SETTING, "Z3hp")) //Z3hp is base64 for "gxi", which is GaiaX-Identity type
-                .ionClient(new DefaultIonClient(context.getTypeManager().getMapper())) //can be null if randomize = true
+                .ionClient(didResolver) //can be null if randomize = true
                 .build();
 
         JobDetail job = newJob(CrawlerJob.class)

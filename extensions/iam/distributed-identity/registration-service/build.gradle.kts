@@ -12,9 +12,8 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:azure:events-config"))
     implementation(project(":extensions:azure:vault"))
-    implementation(project(":data-protocols:ion:ion-core"))
-    implementation(project(":data-protocols:ion:ion-client"))
-    implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
+//    implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
+    implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
 
 
     // third party

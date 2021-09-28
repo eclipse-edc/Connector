@@ -8,8 +8,8 @@ val jwtVersion: String by project
 dependencies {
     api(project(":spi"))
     implementation(project(":common:util"))
-    implementation(project(":data-protocols:ion:ion-core"))
-    implementation(project(":extensions:iam:distributed-identity:identity-did-core"))
+    implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
+    testImplementation(project(":extensions:iam:distributed-identity:identity-did-core")) // for the KeyPairFactory
 
 }
 

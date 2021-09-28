@@ -1,13 +1,13 @@
-package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
+package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
-import org.eclipse.dataspaceconnector.ion.spi.DidStore;
-import org.eclipse.dataspaceconnector.ion.spi.IonClient;
-import org.eclipse.dataspaceconnector.samples.identity.registrationservice.events.CrawlerEventPublisher;
+import org.eclipse.dataspaceconnector.iam.did.spi.DidStore;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 /**
  * Stores parameters (such as the DID Type) and necessary objects (such as the IonClient or the DidStore)
- * for the crawler, so it is essentially a Holder which is passed through to the {@link  CrawlerJob} by Quartz
+ * for the crawler, so it is essentially a Holder which is passed through to the {@link CrawlerJob} by Quartz
  */
 public class CrawlerContext {
     public static final String KEY = "edc:ion-crawler:config";
@@ -16,8 +16,7 @@ public class CrawlerContext {
     private CrawlerEventPublisher publisher;
     private String ionHost;
     private String didTypes;
-    private IonClient ionClient;
-    private boolean randomize = false;
+    private DidResolver ionClient;
 
     public DidStore getDidStore() {
         return didStore;
@@ -39,11 +38,8 @@ public class CrawlerContext {
         return didTypes;
     }
 
-    public boolean shouldRandomize() {
-        return randomize;
-    }
 
-    public IonClient getIonClient() {
+    public DidResolver getIonClient() {
         return ionClient;
     }
 
@@ -53,8 +49,7 @@ public class CrawlerContext {
         private CrawlerEventPublisher publisher;
         private String ionHost;
         private String didTypes;
-        private boolean randomize;
-        private IonClient ionClient;
+        private DidResolver ionClient;
 
         private Builder() {
         }
@@ -83,17 +78,12 @@ public class CrawlerContext {
             return this;
         }
 
-        public Builder randomize(boolean randomize) {
-            this.randomize = randomize;
-            return this;
-        }
-
         public Builder didTypes(String didTypes) {
             this.didTypes = didTypes;
             return this;
         }
 
-        public Builder ionClient(IonClient client) {
+        public Builder ionClient(DidResolver client) {
             ionClient = client;
             return this;
         }
@@ -105,7 +95,6 @@ public class CrawlerContext {
             crawlerConfig.publisher = publisher;
             crawlerConfig.didStore = (DidStore) didStore;
             crawlerConfig.monitor = monitor;
-            crawlerConfig.randomize = randomize;
             crawlerConfig.ionClient = ionClient;
             return crawlerConfig;
         }

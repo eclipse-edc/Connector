@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.samples.identity.registrationservice.crawler;
+package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -6,8 +6,8 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.ion.IonRequestException;
-import org.eclipse.dataspaceconnector.ion.spi.IonClient;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -36,11 +36,6 @@ public class CrawlerJob implements Job {
 
         ionApiUrl = Objects.requireNonNull(cc.getIonHost(), "ION Node URL cannot be null!");
         var monitor = cc.getMonitor();
-
-        // get latest did document to obtain continuation token. At this time the continuation token is NOT used
-        //        var latestDocument = cc.getDidStore().getLatest();
-        //        var continuationToken = latestDocument != null ? latestDocument.getId() : null;
-        //        monitor.info("CrawlerJob: browsing ION to obtain new DIDs" + (continuationToken != null ? ", starting at " + continuationToken : ""));
 
         monitor.info("CrawlerJob: browsing ION to obtain GaiaX DIDs");
 
@@ -103,10 +98,10 @@ public class CrawlerJob implements Job {
                 };
                 return om.readValue(json, tr);
             } else {
-                throw new IonRequestException(format("Could not get DIDs: error=%s, message=%s", response.code(), response.body().string()));
+                throw new EdcException(format("Could not get DIDs: error=%s, message=%s", response.code(), response.body().string()));
             }
         } catch (IOException e) {
-            throw new IonRequestException(e);
+            throw new EdcException(e);
         }
     }
 
@@ -117,22 +112,22 @@ public class CrawlerJob implements Job {
      * @param ionClient An ION implementation
      * @return A {@link DidDocument} if found, {@code null} otherwise
      */
-    private DidDocument resolveDid(String didId, IonClient ionClient) {
+    private DidDocument resolveDid(String didId, DidResolver ionClient) {
         try {
             return ionClient.resolve(didId);
-        } catch (IonRequestException ex) {
+        } catch (EdcException ex) {
             return null;
         }
     }
 
     /**
-     * Attempts to resolve a DID from ION asynchronously. Basically a wrapper around {@link CrawlerJob#resolveDid(String, IonClient)}
+     * Attempts to resolve a DID from ION asynchronously. Basically a wrapper around {@link CrawlerJob#resolveDidAsync(String, DidResolver)}
      *
      * @param didId     The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
      * @param ionClient An ION implementation
      * @return A {@code CompletableFuture<DidDocument>} if found, {@code null} otherwise
      */
-    private CompletableFuture<DidDocument> resolveDidAsync(String didId, IonClient ionClient) {
+    private CompletableFuture<DidDocument> resolveDidAsync(String didId, DidResolver ionClient) {
         return CompletableFuture.supplyAsync(() -> resolveDid(didId, ionClient));
     }
 

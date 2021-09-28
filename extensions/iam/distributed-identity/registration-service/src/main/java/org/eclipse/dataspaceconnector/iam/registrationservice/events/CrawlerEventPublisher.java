@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.samples.identity.registrationservice.events;
+package org.eclipse.dataspaceconnector.iam.registrationservice.events;
 
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.core.util.BinaryData;
