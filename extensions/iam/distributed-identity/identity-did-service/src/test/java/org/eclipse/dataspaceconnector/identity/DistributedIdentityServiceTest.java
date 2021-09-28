@@ -32,8 +32,8 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublic
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.util.KeyPairFactory;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.verifiablecredential.EcPrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.verifiablecredential.EcPublicKeyWrapper;
+import org.eclipse.dataspaceconnector.ion.crypto.EcPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.ion.crypto.EcPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.verifiablecredential.VerifiableCredentialFactory;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;

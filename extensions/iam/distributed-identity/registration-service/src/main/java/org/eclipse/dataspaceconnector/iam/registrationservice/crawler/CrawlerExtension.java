@@ -16,9 +16,7 @@ package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
 import org.eclipse.dataspaceconnector.iam.did.spi.DidStore;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
 import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -32,7 +30,6 @@ import org.quartz.SchedulerException;
 import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -41,8 +38,6 @@ import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
 public class CrawlerExtension implements ServiceExtension {
-    @EdcSetting
-    private static final String LOAD_SAMPLE_DATA = "edc.ion.crawler.sample.data";
 
     @EdcSetting
     private static final String CRAWLER_INTERVAL_MIN_SETTING = "edc.ion.crawler.interval-minutes";
@@ -52,7 +47,6 @@ public class CrawlerExtension implements ServiceExtension {
     private static final String ION_GAIAX_TYPE_SETTING = "Z3hp";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
-    private DidResolver didResolver;
 
     @Override
     public Set<String> provides() {
@@ -69,23 +63,18 @@ public class CrawlerExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
 
-        didResolver = context.getService(DidResolver.class);
         context.getMonitor().info("ION Crawler Extension initialized");
     }
 
     @Override
     public void start() {
-        DidStore didStore = context.getService(DidStore.class);
-        if (Boolean.parseBoolean(context.getSetting(LOAD_SAMPLE_DATA, "false"))) {
-            registerSampleDids(didStore);
-        }
         try {
             quartzScheduler = StdSchedulerFactory.getDefaultScheduler();
             quartzScheduler.start();
 
             var minutes = Integer.parseInt(context.getSetting(CRAWLER_INTERVAL_MIN_SETTING, "30"));
 
-            scheduleCrawler(minutes, didStore, context);
+            scheduleCrawler(minutes, context);
             context.getMonitor().info("ION Crawler Extension started");
             context.getMonitor().info("Started periodic crawling of the ION database every " + minutes + " minutes");
 
@@ -106,12 +95,14 @@ public class CrawlerExtension implements ServiceExtension {
         }
     }
 
-    private void scheduleCrawler(int intervalMinutes, DidStore objectStore, ServiceExtensionContext context) throws SchedulerException {
+    private void scheduleCrawler(int intervalMinutes, ServiceExtensionContext context) throws SchedulerException {
+        var didStore = context.getService(DidStore.class);
+        var didResolver = context.getService(DidResolver.class);
 
         var publisher = new CrawlerEventPublisher(context.getService(Vault.class), new AzureEventGridConfig(context));
 
         var crawlerConfig = CrawlerContext.Builder.create()
-                .didStore(objectStore)
+                .didStore(didStore)
                 .ionHost(context.getSetting(ION_URL_SETTING, "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/"))
                 .monitor(context.getMonitor())
                 .publisher(publisher)
@@ -132,19 +123,5 @@ public class CrawlerExtension implements ServiceExtension {
         quartzScheduler.scheduleJob(job, trigger);
     }
 
-    // TODO HACKATHON-1 TASK 1 remove when DIDs registered
-    private void registerSampleDids(DidStore didStore) {
-        context.getMonitor().info("Registering consumer test DID");
-
-        // Resolve ION/IdentityHub discrepancy
-        var hubService = new Service("IdentityHub", "IdentityHub", "http://localhost:9191/api/identity-hub");
-
-        // Resolve ION/IdentityHub discrepancy
-        var catalogService = new Service("GaiaXCatalog", "GaiaXCatalog", "http://localhost:9191/api/catalog");
-
-        var didDocument = DidDocument.Builder.newInstance().id("did:ion:123consumer").service(List.of(hubService, catalogService)).build();
-
-        didStore.saveAll(List.of(didDocument));
-    }
 
 }

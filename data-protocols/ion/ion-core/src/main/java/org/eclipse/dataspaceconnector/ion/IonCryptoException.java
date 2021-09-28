@@ -7,4 +7,8 @@ public class IonCryptoException extends IonException {
     public IonCryptoException(String message) {
         super(message);
     }
+
+    public IonCryptoException(Exception e) {
+        super(e);
+    }
 }

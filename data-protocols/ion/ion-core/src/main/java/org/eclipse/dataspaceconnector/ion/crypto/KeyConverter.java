@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.verifiablecredential;
+package org.eclipse.dataspaceconnector.ion.crypto;
 
 import com.nimbusds.jose.jwk.Curve;
 import com.nimbusds.jose.jwk.ECKey;

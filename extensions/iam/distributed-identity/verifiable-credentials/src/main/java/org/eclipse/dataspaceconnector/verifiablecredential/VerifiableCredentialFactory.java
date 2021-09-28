@@ -11,6 +11,7 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.ion.crypto.EcPrivateKeyWrapper;
 
 import java.text.ParseException;
 import java.time.Instant;

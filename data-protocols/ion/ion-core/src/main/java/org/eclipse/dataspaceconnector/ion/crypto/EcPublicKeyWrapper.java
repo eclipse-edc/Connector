@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.verifiablecredential;
+package org.eclipse.dataspaceconnector.ion.crypto;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEEncrypter;
@@ -7,6 +7,7 @@ import com.nimbusds.jose.crypto.ECDHEncrypter;
 import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.ECKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.ion.IonCryptoException;
 
 public class EcPublicKeyWrapper implements PublicKeyWrapper {
     private final ECKey publicKey;
@@ -20,7 +21,7 @@ public class EcPublicKeyWrapper implements PublicKeyWrapper {
         try {
             return new ECDHEncrypter(publicKey);
         } catch (JOSEException e) {
-            throw new CryptoException(e);
+            throw new IonCryptoException(e);
         }
     }
 
@@ -29,7 +30,7 @@ public class EcPublicKeyWrapper implements PublicKeyWrapper {
         try {
             return new ECDSAVerifier(publicKey);
         } catch (JOSEException e) {
-            throw new CryptoException(e);
+            throw new IonCryptoException(e);
         }
     }
 }

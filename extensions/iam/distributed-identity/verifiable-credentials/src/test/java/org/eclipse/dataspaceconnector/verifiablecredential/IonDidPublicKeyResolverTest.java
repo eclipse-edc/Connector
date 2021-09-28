@@ -7,6 +7,8 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
+import org.eclipse.dataspaceconnector.ion.crypto.IonDidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.ion.crypto.PublicKeyResolutionException;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

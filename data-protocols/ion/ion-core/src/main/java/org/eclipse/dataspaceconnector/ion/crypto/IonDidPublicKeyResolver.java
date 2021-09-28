@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.verifiablecredential;
+package org.eclipse.dataspaceconnector.ion.crypto;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidConstants;

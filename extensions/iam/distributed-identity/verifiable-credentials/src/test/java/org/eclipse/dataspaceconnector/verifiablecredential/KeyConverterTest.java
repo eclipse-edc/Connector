@@ -6,6 +6,8 @@ import com.nimbusds.jose.crypto.ECDSAVerifier;
 import com.nimbusds.jose.jwk.KeyType;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
+import org.eclipse.dataspaceconnector.ion.crypto.EcPublicKeyWrapper;
+import org.eclipse.dataspaceconnector.ion.crypto.KeyConverter;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
