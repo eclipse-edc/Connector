@@ -28,6 +28,7 @@ publishing {
     publications {
         create<MavenPublication>("aws.s3.schema") {
             artifactId = "aws.s3.schema"
+            from(components["java"])
         }
     }
 }
