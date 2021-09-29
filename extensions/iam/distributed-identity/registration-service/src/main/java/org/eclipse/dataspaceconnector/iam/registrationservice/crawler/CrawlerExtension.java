@@ -44,7 +44,7 @@ public class CrawlerExtension implements ServiceExtension {
     @EdcSetting
     private static final String ION_URL_SETTING = "edc.ion.crawler.ion.url";
     @EdcSetting
-    private static final String ION_GAIAX_TYPE_SETTING = "Z3hp";
+    private static final String ION_CRAWLER_TYPE_SETTING = "edc.ion.crawler.did-type";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
 
@@ -106,8 +106,8 @@ public class CrawlerExtension implements ServiceExtension {
                 .ionHost(context.getSetting(ION_URL_SETTING, "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/"))
                 .monitor(context.getMonitor())
                 .publisher(publisher)
-                .didTypes(context.getSetting(ION_GAIAX_TYPE_SETTING, "Z3hp")) //Z3hp is base64 for "gxi", which is GaiaX-Identity type
-                .ionClient(didResolver) //can be null if randomize = true
+                .didTypes(context.getSetting(ION_CRAWLER_TYPE_SETTING, "aW9u"))
+                .ionClient(didResolver)
                 .build();
 
         JobDetail job = newJob(CrawlerJob.class)
