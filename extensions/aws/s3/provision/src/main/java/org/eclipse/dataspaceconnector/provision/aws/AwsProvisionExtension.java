@@ -43,10 +43,10 @@ import java.util.Set;
  */
 public class AwsProvisionExtension implements ServiceExtension {
     @EdcSetting
-    private static final String AWS_ACCESS_KEY = "dataspaceconnector.aws.access.key";
+    private static final String AWS_ACCESS_KEY = "edc.aws.access.key";
 
     @EdcSetting
-    private static final String AWS_SECRET_KEY = "dataspaceconnector.aws.secret.access.key";
+    private static final String AWS_SECRET_KEY = "edc.aws.secret.access.key";
 
     private Monitor monitor;
     private SdkClientProvider clientProvider;

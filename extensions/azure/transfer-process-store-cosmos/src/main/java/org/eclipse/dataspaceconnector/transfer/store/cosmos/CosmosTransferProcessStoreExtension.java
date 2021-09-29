@@ -47,7 +47,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     @EdcSetting
     private static final String COSMOS_DBNAME_SETTING = "edc.cosmos.database.name";
     @EdcSetting
-    private static final String COSMOS_PARTITION_KEY_SETTING = "dataspaceconnector.cosmos.partitionkey";
+    private static final String COSMOS_PARTITION_KEY_SETTING = "edc.cosmos.partitionkey";
     private static final String DEFAULT_PARTITION_KEY = "dataspaceconnector";
     private static final String CONTAINER_NAME = "transferprocess";
 

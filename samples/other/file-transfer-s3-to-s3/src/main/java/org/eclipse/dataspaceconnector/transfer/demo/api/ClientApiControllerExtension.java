@@ -25,10 +25,10 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 public class ClientApiControllerExtension implements ServiceExtension {
 
     @EdcSetting
-    private static final String DESTINATION_REGION = "dataspaceconnector.transfer.demo.s3.destination.region";
+    private static final String DESTINATION_REGION = "edc.transfer.demo.s3.destination.region";
 
     @EdcSetting
-    private static final String DESTINATION_BUCKET = "dataspaceconnector.transfer.demo.s3.destination.bucket";
+    private static final String DESTINATION_BUCKET = "edc.transfer.demo.s3.destination.bucket";
 
     private Monitor monitor;
 

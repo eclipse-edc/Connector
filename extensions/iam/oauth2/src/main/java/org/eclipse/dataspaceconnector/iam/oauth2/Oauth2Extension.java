@@ -36,25 +36,25 @@ import java.util.concurrent.TimeUnit;
 public class Oauth2Extension implements ServiceExtension {
 
     @EdcSetting
-    private static final String PROVIDER_JWKS_URL = "dataspaceconnector.oauth.provider.jwks.url";
+    private static final String PROVIDER_JWKS_URL = "edc.oauth.provider.jwks.url";
 
     @EdcSetting
-    private static final String PROVIDER_AUDIENCE = "dataspaceconnector.oauth.provider.audience";
+    private static final String PROVIDER_AUDIENCE = "edc.oauth.provider.audience";
 
     @EdcSetting
-    private static final String PUBLIC_KEY_ALIAS = "dataspaceconnector.oauth.public.key.alias";
+    private static final String PUBLIC_KEY_ALIAS = "edc.oauth.public.key.alias";
 
     @EdcSetting
-    private static final String PRIVATE_KEY_ALIAS = "dataspaceconnector.oauth.private.key.alias";
+    private static final String PRIVATE_KEY_ALIAS = "edc.oauth.private.key.alias";
 
     @EdcSetting
-    private static final String PROVIDER_JWKS_REFRESH = "dataspaceconnector.oauth.provider.jwks.refresh"; // in minutes
+    private static final String PROVIDER_JWKS_REFRESH = "edc.oauth.provider.jwks.refresh"; // in minutes
 
     @EdcSetting
-    private static final String TOKEN_URL = "dataspaceconnector.oauth.token.url";
+    private static final String TOKEN_URL = "edc.oauth.token.url";
 
     @EdcSetting
-    private static final String CLIENT_ID = "dataspaceconnector.oauth.client.id";
+    private static final String CLIENT_ID = "edc.oauth.client.id";
 
     private IdentityProviderKeyResolver providerKeyResolver;
 
