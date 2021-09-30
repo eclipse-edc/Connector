@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.configuration.fs;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.jetbrains.annotations.Nullable;
@@ -35,7 +36,10 @@ import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationF
  * Sources configuration values from a properties file.
  */
 public class FsConfigurationExtension implements ConfigurationExtension {
-    private static final String CONFIG_LOCATION = propOrEnv("dataspaceconnector.fs.config", "dataspaceconnector-configuration.properties");
+
+    @EdcSetting
+    private static final String CONFIG_LOCATION = propOrEnv("edc.fs.config", "dataspaceconnector-configuration.properties");
+
     private final Map<String, String> propertyCache = new HashMap<>();
     private Path configFile;
 

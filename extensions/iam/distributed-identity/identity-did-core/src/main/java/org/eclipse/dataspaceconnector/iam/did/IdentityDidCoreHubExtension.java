@@ -43,12 +43,12 @@ import static org.eclipse.dataspaceconnector.iam.did.keys.TemporaryKeyLoader.loa
 
 public class IdentityDidCoreHubExtension implements ServiceExtension {
     @EdcSetting
-    private static final String RESOLVER_URL_KEY = "dataspaceconnector.did.resolver.url";
+    private static final String RESOLVER_URL_KEY = "edc.did.resolver.url";
 
     private static final String RESOLVER_URL = "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/identifiers/";
 
     @EdcSetting
-    private static final String PRIVATE_KEY_ALIAS = "dataspaceconnector.did.private.key.alias";
+    private static final String PRIVATE_KEY_ALIAS = "edc.did.private.key.alias";
 
     @Override
     public Set<String> provides() {

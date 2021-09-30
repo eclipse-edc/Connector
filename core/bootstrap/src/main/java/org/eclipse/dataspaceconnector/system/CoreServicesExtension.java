@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.system;
 
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -28,9 +29,15 @@ public class CoreServicesExtension implements ServiceExtension {
 
     public static final String FEATURE_HTTP_CLIENT = "dataspaceconnector:http-client";
     public static final String FEATURE_RETRY_POLICY = "dataspaceconnector:retry-policy";
-    private static final String MAX_RETRIES = "dataspaceconnector:core.retry.max-retries";
-    private static final String BACKOFF_MIN_MILLIS = "dataspaceconnector.core.retry.backoff.min";
-    private static final String BACKOFF_MAX_MILLIS = "dataspaceconnector.core.retry.backoff.max";
+
+    @EdcSetting
+    private static final String MAX_RETRIES = "edc.core.retry.retries.max";
+
+    @EdcSetting
+    private static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
+
+    @EdcSetting
+    private static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
 
     @Override
     public Set<String> provides() {

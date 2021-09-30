@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 public class SingletonVaultExtension implements VaultExtension {
 
     @EdcSetting
-    private static final String CREDS = "dataspaceconnector.transfer.demo.s3.destination.creds";
+    private static final String CREDS = "edc.transfer.demo.s3.destination.creds";
 
     private Vault vault;
 

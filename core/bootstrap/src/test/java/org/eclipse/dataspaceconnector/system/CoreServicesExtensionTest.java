@@ -56,9 +56,9 @@ class CoreServicesExtensionTest {
         context.registerService(eq(OkHttpClient.class), isA(OkHttpClient.class));
         expectLastCall().times(1);
 
-        expect(context.getSetting(eq("dataspaceconnector:core.retry.max-retries"), anyString())).andReturn("3");
-        expect(context.getSetting(eq("dataspaceconnector.core.retry.backoff.min"), anyString())).andReturn("500");
-        expect(context.getSetting(eq("dataspaceconnector.core.retry.backoff.max"), anyString())).andReturn("10000");
+        expect(context.getSetting(eq("edc.core.retry.retries.max"), anyString())).andReturn("3");
+        expect(context.getSetting(eq("edc.core.retry.backoff.min"), anyString())).andReturn("500");
+        expect(context.getSetting(eq("edc.core.retry.backoff.max"), anyString())).andReturn("10000");
 
         context.registerService(eq(RetryPolicy.class), isA(RetryPolicy.class));
         expectLastCall().times(1);

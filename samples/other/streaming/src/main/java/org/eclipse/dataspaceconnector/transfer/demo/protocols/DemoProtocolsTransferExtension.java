@@ -61,11 +61,11 @@ import java.util.Set;
  */
 public class DemoProtocolsTransferExtension implements ServiceExtension {
     @EdcSetting
-    private static final String WS_PUBSUB_ENDPOINT = "dataspaceconnector.demo.protocol.ws.pubsub";
+    private static final String WS_PUBSUB_ENDPOINT = "edc.demo.protocol.ws.pubsub";
     private static final String DEFAULT_WS_PUBSUB_ENDPOINT = "ws://localhost:8181/pubsub/";
 
     @EdcSetting
-    private static final String HTTP_PUBSUB_ENDPOINT = "dataspaceconnector.demo.protocol.http.pubsub";
+    private static final String HTTP_PUBSUB_ENDPOINT = "edc.demo.protocol.http.pubsub";
     private static final String DEFAULT_HTTP_PUBSUB_ENDPOINT = "http://localhost:8181/api/demo/pubsub/";
 
     DemoObjectStorage objectStorage;
