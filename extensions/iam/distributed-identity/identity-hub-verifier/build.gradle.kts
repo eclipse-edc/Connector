@@ -4,7 +4,7 @@ plugins {
 
 dependencies {
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
-    api(project(":data-protocols:ion:ion-core"))
+    api(project(":extensions:ion:ion-core"))
 }
 publishing {
     publications {
