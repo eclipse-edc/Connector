@@ -14,16 +14,20 @@
 package org.eclipse.dataspaceconnector.iam.did;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.ECKey;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
+import org.eclipse.dataspaceconnector.iam.did.resolver.DefaultDidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.CryptoException;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.ion.crypto.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
