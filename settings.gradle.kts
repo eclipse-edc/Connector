@@ -69,6 +69,7 @@ include(":extensions:iam:distributed-identity:registration-service")
 include(":extensions:iam:distributed-identity:registration-service-api")
 include(":extensions:iam:distributed-identity:identity-common-test")
 include(":extensions:iam:distributed-identity:verifiable-credentials")
+include(":extensions:iam:distributed-identity:dummy-credentials-verifier")
 include(":extensions:catalog:catalog-service")
 
 
