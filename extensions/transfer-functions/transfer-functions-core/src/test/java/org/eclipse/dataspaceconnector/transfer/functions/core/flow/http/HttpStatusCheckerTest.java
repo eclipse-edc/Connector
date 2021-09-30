@@ -55,6 +55,8 @@ class HttpStatusCheckerTest {
         EasyMock.replay(interceptor);
 
         assertTrue(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
+
+        EasyMock.verify(interceptor);
     }
 
     @Test
@@ -70,6 +72,8 @@ class HttpStatusCheckerTest {
         EasyMock.replay(interceptor);
 
         assertFalse(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
+
+        EasyMock.verify(interceptor);
     }
 
     @Test
@@ -86,6 +90,8 @@ class HttpStatusCheckerTest {
         EasyMock.replay(interceptor);
 
         assertFalse(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
+
+        EasyMock.verify(interceptor);
     }
 
 

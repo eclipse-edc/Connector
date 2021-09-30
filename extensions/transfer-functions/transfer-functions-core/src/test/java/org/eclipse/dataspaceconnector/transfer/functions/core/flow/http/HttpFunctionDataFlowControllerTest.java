@@ -57,6 +57,8 @@ class HttpFunctionDataFlowControllerTest {
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
         assertEquals(DataFlowInitiateResponse.OK, flowController.initiateFlow(dataRequest));
+
+        EasyMock.verify(interceptor);
     }
 
     @Test
@@ -73,6 +75,8 @@ class HttpFunctionDataFlowControllerTest {
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
         assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getStatus());
+
+        EasyMock.verify(interceptor);
     }
 
     @Test
@@ -89,6 +93,8 @@ class HttpFunctionDataFlowControllerTest {
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
         assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).getStatus());
+
+        EasyMock.verify(interceptor);
     }
 
 
