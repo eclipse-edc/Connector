@@ -37,9 +37,11 @@ include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ion:ion-core")
 
 // modules for technology- or cloud-provider extensions
+include(":extensions:aws")
 include(":extensions:aws:s3:provision")
 include(":extensions:aws:s3:s3-schema")
 include(":extensions:aws:aws-test")
+include(":extensions:azure:blob")
 include(":extensions:azure:blob:blob-schema")
 include(":extensions:azure:blob:provision")
 include(":extensions:azure:events")
@@ -92,6 +94,7 @@ include(":samples:demo-contract-framework")
 include(":samples:identity-gaiax-verifier")
 include(":samples:other:identity-gaiax-verifier")
 include(":samples:other:file-transfer-s3-to-s3")
+include(":samples:other:custom-runtime")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
 

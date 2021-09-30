@@ -100,9 +100,9 @@ Thus, we can simply rebuild and run them:
 
 ```bash
 ./gradlew clean build
-java -Ddataspaceconnector.fs.config=samples/05-file-transfer-cloud/consumer/config.properties -jar samples/05-file-transfer-cloud/consumer/build/libs/consumer.jar
+java -Dedc.fs.config=samples/05-file-transfer-cloud/consumer/config.properties -jar samples/05-file-transfer-cloud/consumer/build/libs/consumer.jar
 # in another terminal window:
-java -Ddataspaceconnector.fs.config=samples/05-file-transfer-cloud/provider/config.properties -jar samples/05-file-transfer-cloud/provider/build/libs/provider.jar
+java -Dedc.fs.config=samples/05-file-transfer-cloud/provider/config.properties -jar samples/05-file-transfer-cloud/provider/build/libs/provider.jar
 ```
 
 Once the connectors are up and running, we can initiate a data transfer by executing:

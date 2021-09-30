@@ -19,19 +19,15 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":core:bootstrap"))
-    api(project(":core:contract"))
-    api(project(":core:policy:policy-engine"))
-    api(project(":core:policy:policy-model"))
-    api(project(":core:schema"))
-    api(project(":core:protocol:web"))
-    api(project(":core:transfer"))
+    api(project(":extensions:azure:blob:api"))
+    api(project(":extensions:azure:blob:blob-schema"))
+    api(project(":extensions:azure:blob:provision"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("core") {
-            artifactId = "core"
+        create<MavenPublication>("azure.blob") {
+            artifactId = "azure.blob"
             from(components["java"])
         }
     }

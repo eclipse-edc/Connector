@@ -47,7 +47,7 @@ public class ExtensionLoader {
     /**
      * Loads a vault extension.
      */
-    public static void loadVault(DefaultServiceExtensionContext context) {
+    public static void loadVault(ServiceExtensionContext context) {
         VaultExtension vaultExtension = context.loadSingletonExtension(VaultExtension.class, false);
         if (vaultExtension == null) {
             vaultExtension = new NullVaultExtension();
