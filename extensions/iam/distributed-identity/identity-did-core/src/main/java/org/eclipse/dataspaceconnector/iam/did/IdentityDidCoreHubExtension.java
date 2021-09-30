@@ -63,7 +63,8 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
         if (publicKeyResolver == null) {
             //registering ION Public Key Resolver
             var resolver = context.getService(DidResolver.class);
-            context.registerService(DidPublicKeyResolver.class, new DefaultDidPublicKeyResolver(resolver));
+            publicKeyResolver = new DefaultDidPublicKeyResolver(resolver);
+            context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
         }
         var privateKeyResolver = context.getService(PrivateKeyResolver.class);
         registerParsers(privateKeyResolver);
