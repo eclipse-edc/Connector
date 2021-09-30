@@ -25,10 +25,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 @FunctionalInterface
 public interface LocalTransferFunction {
 
-    enum Status {
-        COMPLETE, IN_PROCESS, ERROR_RETRY, FATAL_ERROR
-    }
-
     /**
      * Initiates the transfer.
      */
@@ -37,7 +33,7 @@ public interface LocalTransferFunction {
     /**
      * Returns the status of the current transfer.
      */
-    default Status isComplete(String id) {
-        return Status.COMPLETE;
+    default boolean isComplete(String id) {
+        return true;
     }
 }

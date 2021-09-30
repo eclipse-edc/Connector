@@ -40,14 +40,14 @@ import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatu
 public class HttpFunctionDataFlowController implements DataFlowController {
     private static final MediaType JSON = MediaType.get("application/json");
 
-    private String url;
+    private String transferEndpoint;
     private Set<String> protocols;
     private Supplier<OkHttpClient> clientSupplier;
     private TypeManager typeManager;
     private Monitor monitor;
 
-    public HttpFunctionDataFlowController(HttpFlowControllerConfiguration configuration) {
-        this.url = configuration.getUrl();
+    public HttpFunctionDataFlowController(HttpFunctionConfiguration configuration) {
+        this.transferEndpoint = configuration.getTransferEndpoint();
         this.protocols = configuration.getProtocols();
         this.clientSupplier = configuration.getClientSupplier();
         this.typeManager = configuration.getTypeManager();
@@ -62,11 +62,11 @@ public class HttpFunctionDataFlowController implements DataFlowController {
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
         var requestBody = RequestBody.create(typeManager.writeValueAsString(dataRequest), JSON);
-        var request = new Request.Builder().url(url).post(requestBody).build();
+        var request = new Request.Builder().url(transferEndpoint).post(requestBody).build();
         try (var response = clientSupplier.get().newCall(request).execute()) {
             if (response.code() == 200) {
                 return DataFlowInitiateResponse.OK;
-            } else if (response.code() >= 500 || response.code() <= 504) {
+            } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
                 return new DataFlowInitiateResponse(ERROR_RETRY, "Received error code: " + response.code());
             } else {

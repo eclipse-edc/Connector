@@ -47,8 +47,7 @@ import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFun
 public class TransferFunctionsCoreHttpTest {
 
     @Test
-    void verifyLocalFlowControllerInvoked(TransferProcessManager processManager, TransferFunctionInterceptorRegistry registry)
-            throws InterruptedException {
+    void verifyHttpFlowControllerInvoked(TransferProcessManager processManager, TransferFunctionInterceptorRegistry registry) throws InterruptedException {
 
         final var latch = new CountDownLatch(1);
         var invoked = new AtomicBoolean();
@@ -97,5 +96,5 @@ public class TransferFunctionsCoreHttpTest {
         System.clearProperty(ENABLED_PROTOCOLS_KEY);
         System.clearProperty(TRANSFER_TYPE);
     }
-    
+
 }

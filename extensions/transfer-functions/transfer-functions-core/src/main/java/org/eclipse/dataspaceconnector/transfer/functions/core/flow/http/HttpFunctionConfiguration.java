@@ -21,17 +21,22 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 /**
- * Configuration for the HTTP data flow controller.
+ * Configuration for the HTTP data flow controller and status checker.
  */
-public class HttpFlowControllerConfiguration {
-    private String url;
+public class HttpFunctionConfiguration {
+    private String transferEndpoint;
+    private String checkEndpoint;
     private Set<String> protocols;
     private Supplier<OkHttpClient> clientSupplier;
     private TypeManager typeManager;
     private Monitor monitor;
 
-    public String getUrl() {
-        return url;
+    public String getTransferEndpoint() {
+        return transferEndpoint;
+    }
+
+    public String getCheckEndpoint() {
+        return checkEndpoint;
     }
 
     public Set<String> getProtocols() {
@@ -50,18 +55,23 @@ public class HttpFlowControllerConfiguration {
         return typeManager;
     }
 
-    private HttpFlowControllerConfiguration() {
+    private HttpFunctionConfiguration() {
     }
 
     public static class Builder {
-        private HttpFlowControllerConfiguration configuration;
+        private HttpFunctionConfiguration configuration;
 
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder url(String url) {
-            configuration.url = url;
+        public Builder transferEndpoint(String url) {
+            configuration.transferEndpoint = url;
+            return this;
+        }
+
+        public Builder checkEndpoint(String url) {
+            configuration.checkEndpoint = url;
             return this;
         }
 
@@ -85,12 +95,12 @@ public class HttpFlowControllerConfiguration {
             return this;
         }
 
-        public HttpFlowControllerConfiguration build() {
+        public HttpFunctionConfiguration build() {
             return configuration;
         }
 
         private Builder() {
-            configuration = new HttpFlowControllerConfiguration();
+            configuration = new HttpFunctionConfiguration();
         }
     }
 }

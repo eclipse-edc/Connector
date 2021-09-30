@@ -19,9 +19,12 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFlowControllerConfiguration;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
+import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionConfiguration;
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionDataFlowController;
+import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpStatusChecker;
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.local.LocalFunctionDataFlowController;
+import org.eclipse.dataspaceconnector.transfer.functions.core.flow.local.LocalStatusChecker;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.local.LocalTransferFunction;
 import org.jetbrains.annotations.NotNull;
@@ -52,14 +55,18 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     static final String DEFAULT_TIMEOUT_KEY = "edc.transfer.functions.timeout";
 
     @EdcSetting
-    static final String FUNCTION_URL_KEY = "edc.transfer.functions.url";
+    static final String TRANSFER_URL_KEY = "edc.transfer.functions.transfer.endpoint";
+
+    @EdcSetting
+    static final String CHECK_URL_KEY = "edc.transfer.functions.check.endpoint";
 
     @EdcSetting
     static final String TRANSFER_TYPE = "edc.transfer.functions.type";
 
     private static final String DEFAULT_TIMEOUT = "30";
 
-    private static final String DEFAULT_LOCAL_URL = "http://localhost:9090";
+    private static final String DEFAULT_LOCAL_TRANSFER_URL = "http://localhost:9090/transfer";
+    private static final String DEFAULT_LOCAL_CHECK_URL = "http://localhost:9090/checker";
 
     private Monitor monitor;
 
@@ -103,6 +110,10 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
             var flowController = new LocalFunctionDataFlowController(protocols, localTransferFunction);
             var flowManager = context.getService(DataFlowManager.class);
             flowManager.register(flowController);
+
+            var statusChecker = new LocalStatusChecker(localTransferFunction);
+            var statusCheckerRegistry = context.getService(StatusCheckerRegistry.class);
+            protocols.forEach(protocol -> statusCheckerRegistry.register(protocol, statusChecker));
         }
         monitor.info("Started Transfer Functions Core extension");
     }
@@ -117,9 +128,11 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
         context.registerService(TransferFunctionInterceptorRegistry.class, httpClient::addInterceptor);
 
         var typeManager = context.getTypeManager();
-        var url = context.getSetting(FUNCTION_URL_KEY, DEFAULT_LOCAL_URL);
-        var configuration = HttpFlowControllerConfiguration.Builder.newInstance()
-                .url(url)
+        var transferEndpoint = context.getSetting(TRANSFER_URL_KEY, DEFAULT_LOCAL_TRANSFER_URL);
+        var checkEndpoint = context.getSetting(CHECK_URL_KEY, DEFAULT_LOCAL_CHECK_URL);
+        var configuration = HttpFunctionConfiguration.Builder.newInstance()
+                .transferEndpoint(transferEndpoint)
+                .checkEndpoint(checkEndpoint)
                 .clientSupplier(httpClient::build)
                 .protocols(protocols)
                 .typeManager(typeManager)
@@ -129,6 +142,11 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
         var flowController = new HttpFunctionDataFlowController(configuration);
         var flowManager = context.getService(DataFlowManager.class);
         flowManager.register(flowController);
+
+        var statusChecker = new HttpStatusChecker(configuration);
+        var statusCheckerRegistry = context.getService(StatusCheckerRegistry.class);
+        protocols.forEach(protocol -> statusCheckerRegistry.register(protocol, statusChecker));
+
         monitor.info("HTTP transfer functions are enabled");
     }
 
