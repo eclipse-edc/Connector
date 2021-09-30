@@ -2,12 +2,12 @@ package org.eclipse.dataspaceconnector.verifiablecredential;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
+import org.eclipse.dataspaceconnector.iam.did.resolver.DefaultDidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidConstants;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
-import org.eclipse.dataspaceconnector.ion.crypto.IonDidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.ion.crypto.PublicKeyResolutionException;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,13 +26,13 @@ class IonDidPublicKeyResolverTest {
 
     private static final String DID_URL = "did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA";
     private DidDocument didDocument;
-    private IonDidPublicKeyResolver resolver;
+    private DefaultDidPublicKeyResolver resolver;
     private IonClient ionClient;
 
     @BeforeEach
     void setUp() throws JOSEException {
         ionClient = niceMock(IonClient.class);
-        resolver = new IonDidPublicKeyResolver(ionClient);
+        resolver = new DefaultDidPublicKeyResolver(ionClient);
         var eckey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
 
         var publicKey = new EllipticCurvePublicKey(eckey.getCurve().getName(), eckey.getKeyType().getValue(), eckey.getX().toString(), eckey.getY().toString());

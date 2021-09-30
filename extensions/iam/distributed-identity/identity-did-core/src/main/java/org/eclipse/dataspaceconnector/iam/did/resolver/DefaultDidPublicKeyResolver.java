@@ -1,26 +1,28 @@
-package org.eclipse.dataspaceconnector.ion.crypto;
+package org.eclipse.dataspaceconnector.iam.did.resolver;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidConstants;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
-import org.eclipse.dataspaceconnector.ion.spi.IonClient;
+import org.eclipse.dataspaceconnector.ion.crypto.KeyConverter;
+import org.eclipse.dataspaceconnector.ion.crypto.PublicKeyResolutionException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IonDidPublicKeyResolver implements DidPublicKeyResolver {
-    private final IonClient ionClient;
+public class DefaultDidPublicKeyResolver implements DidPublicKeyResolver {
+    private final DidResolver didResolver;
     // this is NOT a comprehensive list as specified in https://www.w3.org/TR/did-spec-registries/#verification-method-types
 
-    public IonDidPublicKeyResolver(IonClient ionClient) {
-        this.ionClient = ionClient;
+    public DefaultDidPublicKeyResolver(DidResolver ionClient) {
+        didResolver = ionClient;
     }
 
     @Override
     public @Nullable PublicKeyWrapper resolvePublicKey(String didUrl) {
-        var didDocument = ionClient.resolve(didUrl);
+        var didDocument = didResolver.resolve(didUrl);
         if (didDocument == null) {
             return null;
         }

@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.verifiablecredential;
 
 import com.nimbusds.jose.jwk.ECKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.CryptoException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

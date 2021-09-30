@@ -1,11 +1,7 @@
 package org.eclipse.dataspaceconnector.verifiablecredential;
 
-import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
-import org.eclipse.dataspaceconnector.ion.crypto.EcPrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.ion.crypto.IonDidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
@@ -24,12 +20,12 @@ public class VerifiableCredentialLoaderExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(DidPublicKeyResolver.FEATURE, VerifiableCredentialProvider.FEATURE);
+        return Set.of(VerifiableCredentialProvider.FEATURE);
     }
 
     @Override
     public Set<String> requires() {
-        return Set.of(PrivateKeyResolver.FEATURE, IonClient.FEATURE);
+        return Set.of(PrivateKeyResolver.FEATURE, IonClient.FEATURE, DidPublicKeyResolver.FEATURE);
     }
 
     @Override
@@ -40,10 +36,6 @@ public class VerifiableCredentialLoaderExtension implements ServiceExtension {
         if (didUrl == null) {
             throw new EdcException(format("The DID Url setting '(%s)' was null!", DID_URL_SETTING));
         }
-
-        // register private and public key resolvers
-        registerResolvers(context);
-
 
         // convenience feature to easily obtain the VC
         VerifiableCredentialProvider verifiableCredentialSupplier = () -> {
@@ -63,30 +55,5 @@ public class VerifiableCredentialLoaderExtension implements ServiceExtension {
     @Override
     public void start() {
         ServiceExtension.super.start();
-    }
-
-    private void registerResolvers(ServiceExtensionContext context) {
-        // public key resolver
-        var ionClient = context.getService(IonClient.class);
-        context.registerService(DidPublicKeyResolver.class, new IonDidPublicKeyResolver(ionClient));
-
-        // add EC-/PEM-Parser
-        var resolver = context.getService(PrivateKeyResolver.class);
-        resolver.addParser(ECKey.class, (encoded) -> {
-            try {
-                return (ECKey) ECKey.parseFromPEMEncodedObjects(encoded);
-            } catch (JOSEException e) {
-                throw new CryptoException(e);
-            }
-        });
-        resolver.addParser(PrivateKeyWrapper.class, (encoded) -> {
-            try {
-                var ecKey = (ECKey) ECKey.parseFromPEMEncodedObjects(encoded);
-                return new EcPrivateKeyWrapper(ecKey);
-            } catch (JOSEException e) {
-                throw new CryptoException(e);
-            }
-        });
-
     }
 }

@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.verifiablecredential;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.CryptoException;
 import org.eclipse.dataspaceconnector.spi.security.KeyParser;
 
 public class EcPrivateKeyPemParser implements KeyParser<ECKey> {

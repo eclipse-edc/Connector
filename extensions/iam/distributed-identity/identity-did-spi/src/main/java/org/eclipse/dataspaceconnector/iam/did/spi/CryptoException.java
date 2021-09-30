@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.verifiablecredential;
+package org.eclipse.dataspaceconnector.iam.did.spi;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
