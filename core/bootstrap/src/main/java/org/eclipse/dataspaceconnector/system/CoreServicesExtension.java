@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.system;
 
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
