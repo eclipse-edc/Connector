@@ -69,17 +69,13 @@ include(":extensions:iam:distributed-identity:registration-service")
 include(":extensions:iam:distributed-identity:registration-service-api")
 include(":extensions:iam:distributed-identity:identity-common-test")
 include(":extensions:iam:distributed-identity:verifiable-credentials")
-include(":extensions:iam:distributed-identity:identity-hub-verifier")
 include(":extensions:catalog:catalog-service")
 
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
-include(":launchers:demo-e2e")
 include(":launchers:junit")
 include(":launchers:registration-service-app")
-include(":launchers:simple-provider")
-include(":launchers:simple-consumer")
 
 // modules for code samples
 include(":samples:other:commandline:consumer")
@@ -100,7 +96,6 @@ include(":samples:other:file-transfer-s3-to-s3")
 include(":samples:other:custom-runtime")
 
 // all implementations during/regarding the GaiaX Hackathon should go here:
-
 
 
 // extension points for a connector
