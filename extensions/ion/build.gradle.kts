@@ -19,13 +19,13 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":data-protocols:ion:ion-core"))
+    api(project(":extensions:ion:ion-core"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("data-protocols.ion") {
-            artifactId = "data-protocols.ion"
+        create<MavenPublication>("ion") {
+            artifactId = "ion"
             from(components["java"])
         }
     }

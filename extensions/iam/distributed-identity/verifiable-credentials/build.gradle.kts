@@ -6,7 +6,7 @@ val nimbusVersion: String by project
 dependencies {
 
     api(project(":spi"))
-    implementation(project(":data-protocols:ion:ion-core"))
+    implementation(project(":extensions:ion:ion-core"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
 
     api("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")

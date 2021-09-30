@@ -24,8 +24,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-protocols.ion-core") {
-            artifactId = "data-protocols.ion-core"
+        create<MavenPublication>("ion.ion-core") {
+            artifactId = "ion.ion-core"
             from(components["java"])
         }
     }
