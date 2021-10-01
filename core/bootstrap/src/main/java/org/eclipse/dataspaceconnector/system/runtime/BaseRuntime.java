@@ -41,7 +41,7 @@ public class BaseRuntime {
         runtime.boot();
     }
 
-    public Monitor getMonitor() {
+    protected Monitor getMonitor() {
         return monitor;
     }
 
