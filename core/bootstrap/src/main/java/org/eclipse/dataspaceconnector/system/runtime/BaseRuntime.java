@@ -78,9 +78,7 @@ public class BaseRuntime {
      * @param context The context.
      */
     protected void initializeContext(ServiceExtensionContext context) {
-        if (context instanceof DefaultServiceExtensionContext) {
-            ((DefaultServiceExtensionContext) context).initialize();
-        }
+        context.initialize();
     }
 
     /**
@@ -122,7 +120,7 @@ public class BaseRuntime {
     }
 
     /**
-     * Create a {@link ServiceExtensionContext} that will be used in this runtime. If e.g. a custom DI mechanism should be used,
+     * Create a {@link ServiceExtensionContext} that will be used in this runtime. If e.g. a third-party dependency-injection framework were to be used,
      * this would likely need to be overridden.
      *
      * @param typeManager The TypeManager (for JSON de-/serialization)
@@ -150,10 +148,12 @@ public class BaseRuntime {
     }
 
     /**
-     * Hook point to initialize the vault. By default this calls {@link org.eclipse.dataspaceconnector.system.ExtensionLoader#loadVault(ServiceExtensionContext)}
-     * to instantiate and configure the vault.
+     * Hook point to initialize the vault. It can be assumed that a {@link org.eclipse.dataspaceconnector.spi.security.Vault} instance exists prior to this method being called.
+     * By default, the {@code Vault} is loaded using the Service Loader mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) and
+     * a call to {@link org.eclipse.dataspaceconnector.system.ExtensionLoader#loadVault(ServiceExtensionContext)} is made.
      * <p>
-     * <strong>Do not use this to provide a custom Vault implementation! Use the extension mechanism for that! </strong>
+     * In order to provide a custom {@code Vault} implementation, please consider using the extension mechanism ({@link org.eclipse.dataspaceconnector.spi.system.VaultExtension}) rather than overriding this method.
+     * However, for development/testing scenarios it might be an easy solution to just override this method.
      *
      * @param context An {@code ServiceExtensionContext} to resolve the {@code Vault} from.
      */
@@ -162,22 +162,22 @@ public class BaseRuntime {
     }
 
     /**
+     * Hook point to instantiate a {@link Monitor}. By default, the runtime instantiates a {@code Monitor} using the Service Loader mechanism, i.e. by calling the {@link ExtensionLoader#loadMonitor()} method.
+     * <p>
+     * Please consider using the extension mechanism (i.e. {@link org.eclipse.dataspaceconnector.spi.system.MonitorExtension}) rather than supplying a custom monitor by overriding this method.
+     * However, for development/testing scenarios it might be an easy solution to just override this method.
+     */
+    @NotNull
+    protected Monitor createMonitor() {
+        return loadMonitor();
+    }
+
+    /**
      * Hook point to supply a (custom) TypeManager. By default a new TypeManager is created
      */
     @NotNull
     private TypeManager createTypeManager() {
         return new TypeManager();
-    }
-
-
-    /**
-     * Hook point to instantiate a {@link Monitor}. By default, the {@link ExtensionLoader#loadMonitor()} method is called.
-     * <p>
-     * <strong>Do not use this to provide a custom Monitor implementation! Use the extension mechanism for that! </strong>
-     */
-    @NotNull
-    private Monitor createMonitor() {
-        return loadMonitor();
     }
 
 }
