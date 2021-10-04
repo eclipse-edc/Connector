@@ -62,12 +62,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         services.put(Monitor.class, monitor);
     }
 
-    public void initialize() {
-        configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
-        configurationExtensions.forEach(ext -> ext.initialize(monitor));
-        connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
-    }
-
     @Override
     public String getConnectorId() {
         return connectorId;
@@ -154,6 +148,13 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public <T> T loadSingletonExtension(Class<T> type, boolean required) {
         return serviceLocator.loadSingletonImplementor(type, required);
+    }
+
+    @Override
+    public void initialize() {
+        configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
+        configurationExtensions.forEach(ext -> ext.initialize(monitor));
+        connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
     }
 
     private void sortExtensions(List<ServiceExtension> extensions, Set<String> loadedExtensions) {

@@ -89,4 +89,8 @@ public interface ServiceExtensionContext {
     @Contract("_, true -> !null")
     <T> T loadSingletonExtension(Class<T> type, boolean required);
 
+    /**
+     * Initializes the service context. This should be used to perform tasks like service registrations, etc.
+     */
+    void initialize();
 }

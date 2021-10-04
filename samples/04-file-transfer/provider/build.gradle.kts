@@ -43,7 +43,7 @@ dependencies {
 
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.runtime.ConnectorRuntime"
+    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

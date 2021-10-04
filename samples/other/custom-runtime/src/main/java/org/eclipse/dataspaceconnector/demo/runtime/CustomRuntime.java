@@ -1,0 +1,47 @@
+package org.eclipse.dataspaceconnector.demo.runtime;
+
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
+import org.eclipse.dataspaceconnector.system.runtime.BaseRuntime;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.List;
+
+public class CustomRuntime extends BaseRuntime {
+
+    /**
+     * The {@code main} method must be re-implemented, otherwise {@link BaseRuntime#main(String[])} would be called, which would
+     * instantiate the {@code BaseRuntime}.
+     */
+    public static void main(String[] args) {
+        new CustomRuntime().boot();
+    }
+
+    @Override
+    protected String getRuntimeName(ServiceExtensionContext context) {
+        return "CUSTOM-RUNTIME";
+    }
+
+    @Override
+    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor) {
+        //override the default service extension context with a super customized one
+        return new SuperCustomExtensionContext(typeManager, monitor);
+    }
+
+    @Override
+    protected void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
+        super.shutdown(serviceExtensions, monitor);
+
+        //this is the custom part here:
+        monitor.info(" CUSTOM RUNTIME SHUTDOWN ! ");
+    }
+
+    private static class SuperCustomExtensionContext extends DefaultServiceExtensionContext {
+        public SuperCustomExtensionContext(TypeManager typeManager, Monitor monitor) {
+            super(typeManager, monitor);
+        }
+    }
+}

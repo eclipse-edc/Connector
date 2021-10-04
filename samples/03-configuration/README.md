@@ -50,7 +50,7 @@ An example file can be found [here](samples/03-configuration/config.properties).
 again, but this time passing the path to the config file:
 
 ```properties
-java -Ddataspaceconnector.fs.config=/etc/eclipse/dataspaceconnector/config.properties -jar samples/03-configuration/build/libs/filsystem-config-connector.jar
+java -Dedc.fs.config=/etc/eclipse/dataspaceconnector/config.properties -jar samples/03-configuration/build/libs/filsystem-config-connector.jar
 ```
 
 Observing the log output we now see that the connector's REST API is exposed on port `9191` instead:

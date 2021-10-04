@@ -13,12 +13,9 @@ that contains the essential dependencies. We'll need at least the following thin
 
 ```kotlin
 dependencies {
-    implementation(project(":core:bootstrap"))
-    implementation(project(":core:transfer"))
-    implementation(project(":core:protocol:web"))
+    implementation(project(":core"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
 
-    // junit dependencies omitted for clarity
 }
 ```
 

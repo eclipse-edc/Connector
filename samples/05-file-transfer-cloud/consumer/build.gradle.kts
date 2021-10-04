@@ -35,7 +35,7 @@ dependencies {
     implementation(project(":extensions:in-memory:metadata-memory"))
     implementation(project(":extensions:azure:vault"))
     implementation(project(":extensions:aws:s3:provision"))
-    
+
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
@@ -47,7 +47,7 @@ dependencies {
 
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.runtime.ConnectorRuntime"
+    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

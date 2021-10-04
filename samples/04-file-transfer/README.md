@@ -121,10 +121,10 @@ Let's rebuild and run them both:
 
 ```bash
 ./gradlew clean build
-java -Ddataspaceconnector.fs.config=samples/04-file-transfer/consumer/config.properties -jar samples/04-file-transfer/consumer/build/libs/consumer.jar
+java -Dedc.fs.config=samples/04-file-transfer/consumer/config.properties -jar samples/04-file-transfer/consumer/build/libs/consumer.jar
 # in another terminal window:
-java -Ddataspaceconnector.fs.config=samples/04-file-transfer/provider/config.properties -jar samples/04-file-transfer/provider/build/libs/provider.jar
-```
+java -Dedc.fs.config=samples/04-file-transfer/provider/config.properties -jar samples/04-file-transfer/provider/build/libs/provider.jar
+````
 
 Assuming you didn't change the config files, the consumer will listen on port `9191` and the provider will listen on
 port `8181`. Open another terminal window (or any REST client of your choice) and execute the following REST request:

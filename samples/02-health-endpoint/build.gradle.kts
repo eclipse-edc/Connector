@@ -18,25 +18,18 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
-val jupiterVersion: String by project
 val rsApi: String by project
 
 dependencies {
-    implementation(project(":core:bootstrap"))
-    implementation(project(":core:transfer"))
-    implementation(project(":core:protocol:web"))
+    implementation(project(":core"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
 }
 
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.runtime.ConnectorRuntime"
+    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

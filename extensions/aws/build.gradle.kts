@@ -19,19 +19,15 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":core:bootstrap"))
-    api(project(":core:contract"))
-    api(project(":core:policy:policy-engine"))
-    api(project(":core:policy:policy-model"))
-    api(project(":core:schema"))
-    api(project(":core:protocol:web"))
-    api(project(":core:transfer"))
+    api(project(":extensions:aws:aws-test"))
+    api(project(":extensions:aws:s3:provision"))
+    api(project(":extensions:aws:s3:s3-schema"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("core") {
-            artifactId = "core"
+        create<MavenPublication>("aws") {
+            artifactId = "aws"
             from(components["java"])
         }
     }
