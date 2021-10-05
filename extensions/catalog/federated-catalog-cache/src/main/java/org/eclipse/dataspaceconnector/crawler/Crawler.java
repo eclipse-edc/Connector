@@ -1,6 +1,9 @@
 package org.eclipse.dataspaceconnector.crawler;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.crawler.spi.ProtocolAdapter;
+import org.eclipse.dataspaceconnector.crawler.spi.UpdateRequest;
+import org.eclipse.dataspaceconnector.crawler.spi.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.util.List;
@@ -11,12 +14,12 @@ import static net.jodah.failsafe.Failsafe.with;
 
 public class Crawler implements Runnable {
 
-    private final List<CrawlerProtocolAdapter> adapters;
+    private final List<ProtocolAdapter> adapters;
     private final Monitor monitor;
     private final Queue<UpdateResponse> queue;
     private final RetryPolicy<Object> retryPolicy;
 
-    public Crawler(List<CrawlerProtocolAdapter> adapters, Monitor monitor, Queue<UpdateResponse> queue, RetryPolicy<Object> retryPolicy) {
+    public Crawler(List<ProtocolAdapter> adapters, Monitor monitor, Queue<UpdateResponse> queue, RetryPolicy<Object> retryPolicy) {
         this.adapters = adapters;
         this.monitor = monitor;
         this.queue = queue;

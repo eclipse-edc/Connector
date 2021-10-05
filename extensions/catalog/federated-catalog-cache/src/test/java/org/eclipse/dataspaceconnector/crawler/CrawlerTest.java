@@ -1,6 +1,9 @@
 package org.eclipse.dataspaceconnector.crawler;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.crawler.spi.ProtocolAdapter;
+import org.eclipse.dataspaceconnector.crawler.spi.UpdateRequest;
+import org.eclipse.dataspaceconnector.crawler.spi.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,14 +21,14 @@ import static org.easymock.EasyMock.*;
 class CrawlerTest {
     public static final int QUEUE_CAPACITY = 3;
     private Crawler crawler;
-    private CrawlerProtocolAdapter protocolAdapterMock;
+    private ProtocolAdapter protocolAdapterMock;
     private ArrayBlockingQueue<UpdateResponse> queue;
-    private List<CrawlerProtocolAdapter> adapters;
+    private List<ProtocolAdapter> adapters;
     private Monitor monitorMock;
 
     @BeforeEach
     void setUp() {
-        protocolAdapterMock = strictMock(CrawlerProtocolAdapter.class);
+        protocolAdapterMock = strictMock(ProtocolAdapter.class);
         queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
         adapters = new ArrayList<>();
         adapters.add(protocolAdapterMock);
@@ -68,7 +71,7 @@ class CrawlerTest {
     @DisplayName("Should insert only those items into queue that have succeeded")
     void shouldInsertInQueue_onlySuccessfulRequests() {
 
-        CrawlerProtocolAdapter secondAdapter = strictMock(CrawlerProtocolAdapter.class);
+        ProtocolAdapter secondAdapter = strictMock(ProtocolAdapter.class);
         adapters.add(secondAdapter);
 
         expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.supplyAsync(UpdateResponse::new));
