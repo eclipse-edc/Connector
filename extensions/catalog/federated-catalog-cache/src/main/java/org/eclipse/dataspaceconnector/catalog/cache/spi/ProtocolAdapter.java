@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.crawler.spi;
+package org.eclipse.dataspaceconnector.catalog.cache.spi;
 
 import java.util.concurrent.CompletableFuture;
 
