@@ -1,9 +1,9 @@
-package org.eclipse.dataspaceconnector.crawler;
+package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.crawler.spi.ProtocolAdapter;
-import org.eclipse.dataspaceconnector.crawler.spi.UpdateRequest;
-import org.eclipse.dataspaceconnector.crawler.spi.UpdateResponse;
+import org.eclipse.dataspaceconnector.catalog.cache.spi.ProtocolAdapter;
+import org.eclipse.dataspaceconnector.catalog.cache.spi.UpdateRequest;
+import org.eclipse.dataspaceconnector.catalog.cache.spi.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,7 +46,7 @@ class CrawlerTest {
     @Test
     @DisplayName("Should insert one item into queue when request succeeds")
     void shouldInsertInQueue_whenSucceeds() {
-        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.supplyAsync(UpdateResponse::new));
+        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse()));
         replay(protocolAdapterMock);
 
         crawler.run();
@@ -81,7 +81,7 @@ class CrawlerTest {
         ProtocolAdapter secondAdapter = strictMock(ProtocolAdapter.class);
         adapters.add(secondAdapter);
 
-        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.supplyAsync(UpdateResponse::new));
+        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse()));
         replay(protocolAdapterMock);
         expect(secondAdapter.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.failedFuture(new RuntimeException()));
         replay(secondAdapter);
