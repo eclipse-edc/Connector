@@ -25,16 +25,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.mock;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.easymock.EasyMock.*;
 
 class CoreServicesExtensionTest {
 
@@ -68,8 +59,8 @@ class CoreServicesExtensionTest {
         expectLastCall().times(1);
 
         expect(context.getService(Vault.class)).andReturn(niceMock(Vault.class)).anyTimes();
-        context.registerService(eq(PrivateKeyResolver.class), anyObject());
-        expectLastCall().times(1);
+        expect(context.getService(eq(PrivateKeyResolver.class))).andReturn(niceMock(PrivateKeyResolver.class));
+//        expectLastCall().times(1);
 
         replay(context);
 

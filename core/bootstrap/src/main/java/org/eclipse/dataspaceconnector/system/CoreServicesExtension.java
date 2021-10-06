@@ -20,8 +20,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -64,12 +62,12 @@ public class CoreServicesExtension implements ServiceExtension {
         Monitor monitor = context.getMonitor();
         addHttpClient(context);
         addRetryPolicy(context);
-        addPrivateKeyResolver(context);
+        registerParser(context);
         monitor.info("Initialized Core Services extension.");
     }
 
-    private void addPrivateKeyResolver(ServiceExtensionContext context) {
-        VaultPrivateKeyResolver resolver = new VaultPrivateKeyResolver(context.getService(Vault.class));
+    private void registerParser(ServiceExtensionContext context) {
+        var resolver = context.getService(PrivateKeyResolver.class);
         resolver.addParser(RSAPrivateKey.class, encoded -> {
             try {
                 KeyFactory keyFactory = KeyFactory.getInstance("RSA");
@@ -78,7 +76,6 @@ public class CoreServicesExtension implements ServiceExtension {
                 throw new EdcException(e);
             }
         });
-        context.registerService(PrivateKeyResolver.class, resolver);
     }
 
 

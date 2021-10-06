@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 
@@ -40,7 +41,7 @@ public class AzureVaultExtension implements VaultExtension {
 
     @Override
     public PrivateKeyResolver getPrivateKeyResolver() {
-        return new AzurePrivateKeyResolver(vault);
+        return new VaultPrivateKeyResolver(vault);
     }
 
     @Override
