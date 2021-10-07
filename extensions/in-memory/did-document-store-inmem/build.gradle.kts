@@ -17,12 +17,3 @@ publishing {
         }
     }
 }
-
-publishing {
-    publications {
-        create<MavenPublication>("in-mem.did-document-store") {
-            artifactId = "in-mem.did-document-store"
-            from(components["java"])
-        }
-    }
-}
