@@ -18,12 +18,18 @@ public class Crawler implements Runnable {
     private final Monitor monitor;
     private final BlockingQueue<UpdateResponse> queue;
     private final RetryPolicy<Object> retryPolicy;
+    private final List<String> targetUrls;
 
-    public Crawler(List<ProtocolAdapter> adapters, Monitor monitor, BlockingQueue<UpdateResponse> queue, RetryPolicy<Object> retryPolicy) {
+    public Crawler(List<String> targetUrls, List<ProtocolAdapter> adapters, Monitor monitor, BlockingQueue<UpdateResponse> queue, RetryPolicy<Object> retryPolicy) {
+        this.targetUrls = targetUrls;
         this.adapters = adapters;
         this.monitor = monitor;
         this.queue = queue;
         this.retryPolicy = retryPolicy;
+    }
+
+    public List<String> getTargetUrls() {
+        return targetUrls;
     }
 
     @Override
@@ -58,6 +64,7 @@ public class Crawler implements Runnable {
         private Monitor monitor;
         private BlockingQueue<UpdateResponse> queue;
         private RetryPolicy<Object> retryPolicy;
+        private List<String> targets;
 
         private Builder() {
         }
@@ -68,6 +75,11 @@ public class Crawler implements Runnable {
 
         public Builder adapters(List<ProtocolAdapter> adapters) {
             this.adapters = adapters;
+            return this;
+        }
+
+        public Builder targets(List<String> targets) {
+            this.targets = targets;
             return this;
         }
 
@@ -87,7 +99,7 @@ public class Crawler implements Runnable {
         }
 
         public Crawler build() {
-            return new Crawler(adapters, monitor, queue, retryPolicy);
+            return new Crawler(targets, adapters, monitor, queue, retryPolicy);
         }
     }
 }
