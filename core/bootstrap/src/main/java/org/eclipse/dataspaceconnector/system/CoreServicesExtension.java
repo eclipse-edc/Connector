@@ -49,7 +49,9 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(FEATURE_HTTP_CLIENT, FEATURE_RETRY_POLICY, PrivateKeyResolver.FEATURE);
+        // the PrivateKeyResolver.FEATURE is not required because it gets registered directly by the
+        // ExtensionLoader.
+        return Set.of(FEATURE_HTTP_CLIENT, FEATURE_RETRY_POLICY);
     }
 
     @Override

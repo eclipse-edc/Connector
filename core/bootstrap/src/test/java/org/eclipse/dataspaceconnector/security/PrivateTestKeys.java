@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.security;
+package org.eclipse.dataspaceconnector.security;
 
 /**
  * PKS8 private keys used for testing.

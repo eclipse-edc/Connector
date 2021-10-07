@@ -1,6 +1,9 @@
-package org.eclipse.dataspaceconnector.spi.security;
+package org.eclipse.dataspaceconnector.security;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.security.KeyParser;
+import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
