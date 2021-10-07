@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
@@ -40,7 +41,7 @@ class CrawlerTest {
         adapters = new ArrayList<>();
         adapters.add(protocolAdapterMock);
         monitorMock = niceMock(Monitor.class);
-        crawler = new Crawler(adapters, monitorMock, queue, createRetryPolicy());
+        crawler = new Crawler(Collections.emptyList(), adapters, monitorMock, queue, createRetryPolicy());
     }
 
     @Test
