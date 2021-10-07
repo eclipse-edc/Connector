@@ -14,31 +14,27 @@
 package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 
 /**
  * Implements base JWE writer functionality.
  */
 public abstract class AbstractJweWriter<T extends AbstractJweWriter<?>> {
-    protected RSAPrivateKey privateKey;
-    protected RSAPublicKey publicKey;
+    protected PrivateKeyWrapper privateKey;
+    protected PublicKeyWrapper publicKey;
     protected ObjectMapper objectMapper;
 
-    @SuppressWarnings("unchecked")
-    public T publicKey(RSAPublicKey publicKey) {
+    public T publicKey(PublicKeyWrapper publicKey) {
         this.publicKey = publicKey;
         return (T) this;
     }
 
-    @SuppressWarnings("unchecked")
-    public T privateKey(RSAPrivateKey privateKey) {
+    public T privateKey(PrivateKeyWrapper privateKey) {
         this.privateKey = privateKey;
         return (T) this;
     }
 
-    @SuppressWarnings("unchecked")
     public T objectMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
         return (T) this;

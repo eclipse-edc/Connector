@@ -52,7 +52,8 @@ public class S3BucketProvisionedResource extends ProvisionedDataDestinationResou
 
     @Override
     public DataAddress createDataDestination() {
-        return DataAddress.Builder.newInstance().property(S3BucketSchema.REGION, region)
+        return DataAddress.Builder.newInstance()
+                .property(S3BucketSchema.REGION, region)
                 .type(S3BucketSchema.TYPE)
                 .property(S3BucketSchema.BUCKET_NAME, bucketName)
                 .keyName("s3-temp-" + bucketName)

@@ -14,50 +14,43 @@
 package org.eclipse.dataspaceconnector.iam.did;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.jwk.ECKey;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolver.DidPublicKeyResolverImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolver.DidResolverImpl;
+import org.eclipse.dataspaceconnector.iam.did.resolver.DefaultDidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.CryptoException;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidResolver;
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.ion.crypto.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
-import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static org.eclipse.dataspaceconnector.iam.did.keys.TemporaryKeyLoader.loadKeys;
-
 
 public class IdentityDidCoreHubExtension implements ServiceExtension {
-    @EdcSetting
-    private static final String RESOLVER_URL_KEY = "edc.did.resolver.url";
-
-    private static final String RESOLVER_URL = "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/identifiers/";
 
     @EdcSetting
     private static final String PRIVATE_KEY_ALIAS = "edc.did.private.key.alias";
 
     @Override
     public Set<String> provides() {
-        return Set.of("identity-did-core");
+        return Set.of(IdentityHub.FEATURE, IdentityHubClient.FEATURE, DidPublicKeyResolver.FEATURE);
     }
 
     @Override
     public Set<String> requires() {
-        return Set.of("identity-hub-store");
+        return Set.of(IdentityHubStore.FEATURE, PrivateKeyResolver.FEATURE, DidResolver.FEATURE);
     }
 
     @Override
@@ -66,11 +59,19 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
 
         var objectMapper = context.getTypeManager().getMapper();
 
-        // TODO: implement key resolvers
-        var resolverPair = temporaryLoadResolvers(context);
-        context.registerService(DidPublicKeyResolver.class, resolverPair.publicKeyResolver);
+        var publicKeyResolver = context.getService(DidPublicKeyResolver.class, true);
+        if (publicKeyResolver == null) {
+            //registering ION Public Key Resolver
+            var resolver = context.getService(DidResolver.class);
+            publicKeyResolver = new DefaultDidPublicKeyResolver(resolver);
+            context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
+        }
+        var privateKeyResolver = context.getService(PrivateKeyResolver.class);
+        registerParsers(privateKeyResolver);
 
-        var hub = new IdentityHubImpl(hubStore, resolverPair.privateKeyResolver, resolverPair.publicKeyResolver, objectMapper);
+        PrivateKeyWrapper privateKeyWrapper = privateKeyResolver.resolvePrivateKey(context.getConnectorId(), PrivateKeyWrapper.class);
+        Supplier<PrivateKeyWrapper> supplier = () -> privateKeyWrapper;
+        var hub = new IdentityHubImpl(hubStore, supplier, publicKeyResolver, objectMapper);
         context.registerService(IdentityHub.class, hub);
 
         var controller = new IdentityHubController(hub);
@@ -78,54 +79,31 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
         webService.registerController(controller);
 
         var httpClient = context.getService(OkHttpClient.class);
-        var typeManager = context.getService(TypeManager.class);
 
-        var activeResolverUrl = context.getSetting(RESOLVER_URL_KEY, RESOLVER_URL);
-
-        var didResolver = new DidResolverImpl(activeResolverUrl, httpClient, typeManager.getMapper());
-        context.registerService(DidResolver.class, didResolver);
-
-        var hubClient = new IdentityHubClientImpl(resolverPair.privateKeyResolver, httpClient, objectMapper);
+        var hubClient = new IdentityHubClientImpl(supplier, httpClient, objectMapper);
         context.registerService(IdentityHubClient.class, hubClient);
 
         context.getMonitor().info("Initialized Identity Did Core extension");
     }
 
-    // TODO: TEMPORARY local key management to be replaced by vault storage
-    private ResolverPair temporaryLoadResolvers(ServiceExtensionContext context) {
-        try {
-            var keys = loadKeys(context.getMonitor());
-            if (keys == null) {
-                return new ResolverPair(() -> null, (dis) -> null);
+    private void registerParsers(PrivateKeyResolver resolver) {
+
+        // add EC-/PEM-Parser
+        resolver.addParser(ECKey.class, (encoded) -> {
+            try {
+                return (ECKey) ECKey.parseFromPEMEncodedObjects(encoded);
+            } catch (JOSEException e) {
+                throw new CryptoException(e);
             }
-            PublicKey publicKey = keys.toPublicKey();
-            RSAPrivateKey privateKey = keys.toRSAPrivateKey();
+        });
+        resolver.addParser(PrivateKeyWrapper.class, (encoded) -> {
+            try {
+                var ecKey = (ECKey) ECKey.parseFromPEMEncodedObjects(encoded);
+                return new EcPrivateKeyWrapper(ecKey);
+            } catch (JOSEException e) {
+                throw new CryptoException(e);
+            }
+        });
 
-            var privateKeyAlias = context.getSetting(PRIVATE_KEY_ALIAS, "privateKeyAlias");
-            // TODO HACKATHON-1 TASK 6A use correct resolver when key loading implemented
-            // var privateKeyResolver = context.getService(PrivateKeyResolver.class);
-            PrivateKeyResolver delegateResolver = id -> privateKey;
-
-            // TODO HACKATHON-1 TASK 6A remove temporary override key resolver
-            context.registerService(PrivateKeyResolver.class, delegateResolver);
-
-            Supplier<RSAPrivateKey> privateKeyResolver = () -> delegateResolver.resolvePrivateKey(privateKeyAlias);
-
-            DidPublicKeyResolver publicKeyResolver = new DidPublicKeyResolverImpl(publicKey);
-            return new ResolverPair(privateKeyResolver, publicKeyResolver);
-        } catch (JOSEException e) {
-            throw new EdcException(e);
-        }
-    }
-
-
-    private static class ResolverPair {
-        Supplier<RSAPrivateKey> privateKeyResolver;
-        DidPublicKeyResolver publicKeyResolver;
-
-        public ResolverPair(Supplier<RSAPrivateKey> privateKeyResolver, DidPublicKeyResolver publicKeyResolver) {
-            this.privateKeyResolver = privateKeyResolver;
-            this.publicKeyResolver = publicKeyResolver;
-        }
     }
 }

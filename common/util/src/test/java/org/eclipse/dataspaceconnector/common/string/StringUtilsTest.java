@@ -69,5 +69,4 @@ class StringUtilsTest {
         assertThat(StringUtils.toString(null)).isEqualTo(null);
         assertThat(StringUtils.toString(new Object())).contains("java.lang.Object@");
     }
-
 }

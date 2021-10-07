@@ -47,7 +47,12 @@ public class NullVaultExtension implements VaultExtension {
 
     @Override
     public PrivateKeyResolver getPrivateKeyResolver() {
-        return (key) -> null;
+        return new PrivateKeyResolver() {
+            @Override
+            public <T> @Nullable T resolvePrivateKey(String id, Class<T> keyType) {
+                return null;
+            }
+        };
     }
 
     @Override

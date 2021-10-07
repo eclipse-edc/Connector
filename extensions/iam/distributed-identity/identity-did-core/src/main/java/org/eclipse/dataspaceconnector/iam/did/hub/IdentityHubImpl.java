@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestReader;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryResponse;
@@ -27,11 +28,9 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ErrorResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteResponse;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolver.DidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.function.Supplier;
 
@@ -39,21 +38,16 @@ import java.util.function.Supplier;
  * Default identity hub implementation.
  */
 public class IdentityHubImpl implements IdentityHub {
-    private IdentityHubStore store;
-    private Supplier<RSAPrivateKey> privateKey;
-    private DidPublicKeyResolver publicKeyResolver;
-    private ObjectMapper objectMapper;
+    private final IdentityHubStore store;
+    private final Supplier<PrivateKeyWrapper> privateKey;
+    private final DidPublicKeyResolver publicKeyResolver;
+    private final ObjectMapper objectMapper;
 
-    public IdentityHubImpl(IdentityHubStore store, Supplier<RSAPrivateKey> privateKey, DidPublicKeyResolver resolver, ObjectMapper objectMapper) {
+    public IdentityHubImpl(IdentityHubStore store, Supplier<PrivateKeyWrapper> privateKey, DidPublicKeyResolver resolver, ObjectMapper objectMapper) {
         this.store = store;
         this.privateKey = privateKey;
-        this.publicKeyResolver = resolver;
+        publicKeyResolver = resolver;
         this.objectMapper = objectMapper;
-    }
-
-    @Override
-    public void write(Commit commit) {
-        store.write(commit);
     }
 
     @Override
@@ -65,6 +59,11 @@ public class IdentityHubImpl implements IdentityHub {
 
         var response = WriteResponse.Builder.newInstance().revision(commit.getObjectId()).build();
         return writeResponse(response, commit.getIss());
+    }
+
+    @Override
+    public void write(Commit commit) {
+        store.write(commit);
     }
 
     @Override
@@ -100,6 +99,6 @@ public class IdentityHubImpl implements IdentityHub {
             }
         }
 
-        return new GenericJweWriter().objectMapper(objectMapper).privateKey(privateKey.get()).publicKey((RSAPublicKey) recipientPublicKey).payload(response).buildJwe();
+        return new GenericJweWriter().objectMapper(objectMapper).privateKey(privateKey.get()).publicKey(recipientPublicKey).payload(response).buildJwe();
     }
 }

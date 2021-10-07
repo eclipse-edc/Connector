@@ -22,6 +22,8 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.ClientResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryResponse;
@@ -31,30 +33,29 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRespons
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.io.IOException;
-import java.security.PublicKey;
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 import java.util.function.Supplier;
+
+import static java.lang.String.format;
 
 
 public class IdentityHubClientImpl implements IdentityHubClient {
     private final OkHttpClient httpClient;
     private final ObjectMapper objectMapper;
-    private final Supplier<RSAPrivateKey> privateKeyResolver;
+    private final Supplier<PrivateKeyWrapper> privateKeySupplier;
 
-    public IdentityHubClientImpl(Supplier<RSAPrivateKey> privateKeyResolver, OkHttpClient httpClient, ObjectMapper objectMapper) {
+    public IdentityHubClientImpl(Supplier<PrivateKeyWrapper> privateKeySupplier, OkHttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
-        this.privateKeyResolver = privateKeyResolver;
+        this.privateKeySupplier = privateKeySupplier;
     }
 
     @Override
-    public ClientResponse<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String baseHubUrl, PublicKey publicKey) {
-        var privateKey = privateKeyResolver.get();
+    public ClientResponse<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String baseHubUrl, PublicKeyWrapper publicKey) {
+        var privateKey = privateKeySupplier.get();
         var objectRequestJwe = new GenericJweWriter()
                 .privateKey(privateKey)
-                .publicKey((RSAPublicKey) publicKey)
+                .publicKey(publicKey)
                 .objectMapper(objectMapper)
                 .payload(query)
                 .buildJwe();
@@ -76,7 +77,7 @@ public class IdentityHubClientImpl implements IdentityHubClient {
 
         var commitRequestJwe = new GenericJweWriter()
                 .privateKey(privateKey)
-                .publicKey((RSAPublicKey) publicKey)
+                .publicKey(publicKey)
                 .objectMapper(objectMapper)
                 .payload(commitQueryRequest)
                 .buildJwe();
@@ -97,9 +98,12 @@ public class IdentityHubClientImpl implements IdentityHubClient {
         var request = new Request.Builder().url(url).post(requestBody).build();
 
         try (var response = httpClient.newCall(request).execute()) {
-            var body = response.body();
-            assert body != null;
-            return new GenericJweReader().mapper(objectMapper).jwe(body.string()).privateKey(privateKeyResolver.get()).readType(type);
+            if (response.isSuccessful()) {
+                var body = response.body();
+                assert body != null;
+                return new GenericJweReader().mapper(objectMapper).jwe(body.string()).privateKey(privateKeySupplier.get()).readType(type);
+            }
+            throw new EdcException(format("Identity Hub request was not successful: %s - %s", response.code(), response.message()));
         } catch (IOException e) {
             throw new EdcException(e);
         }

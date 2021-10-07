@@ -25,10 +25,9 @@ import java.util.List;
 @JsonTypeName("ObjectQueryResponse")
 @JsonDeserialize(builder = ObjectQueryResponse.Builder.class)
 public class ObjectQueryResponse extends HubMessage {
+    private final List<HubObject> objects = new ArrayList<>();
     private String developerMessage;
     private String skipToken;
-
-    private List<HubObject> objects = new ArrayList<>();
 
     private ObjectQueryResponse() {
     }
@@ -47,7 +46,11 @@ public class ObjectQueryResponse extends HubMessage {
     }
 
     public static class Builder extends HubMessage.Builder {
-        private ObjectQueryResponse response;
+        private final ObjectQueryResponse response;
+
+        private Builder() {
+            response = new ObjectQueryResponse();
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -56,31 +59,27 @@ public class ObjectQueryResponse extends HubMessage {
 
         @JsonProperty("developer_message")
         public Builder developerMessage(String message) {
-            this.response.developerMessage = message;
+            response.developerMessage = message;
             return this;
         }
 
         public Builder objects(List<HubObject> objects) {
-            this.response.objects.addAll(objects);
+            response.objects.addAll(objects);
             return this;
         }
 
         public Builder object(HubObject object) {
-            this.response.objects.add(object);
+            response.objects.add(object);
             return this;
         }
 
         public Builder skipToken(String skipToken) {
-            this.response.skipToken = skipToken;
+            response.skipToken = skipToken;
             return this;
         }
 
         public ObjectQueryResponse build() {
             return response;
-        }
-
-        private Builder() {
-            response = new ObjectQueryResponse();
         }
 
     }

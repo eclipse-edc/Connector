@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.security.fs;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.jetbrains.annotations.Nullable;
 
 import java.security.GeneralSecurityException;
 import java.security.Key;
@@ -59,7 +60,7 @@ public class FsPrivateKeyResolver implements PrivateKeyResolver {
     }
 
     @Override
-    public RSAPrivateKey resolvePrivateKey(String id) {
-        return privateKeyCache.get(id);
+    public <T> @Nullable T resolvePrivateKey(String id, Class<T> keyType) {
+        return keyType.cast(privateKeyCache.get(id));
     }
 }

@@ -1,11 +1,11 @@
 package org.eclipse.dataspaceconnector.samples.identity.did;
 
 import com.nimbusds.jose.jwk.ECKey;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.EllipticCurvePublicKey;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.Service;
-import org.eclipse.dataspaceconnector.ion.model.did.resolution.VerificationMethod;
-import org.eclipse.dataspaceconnector.ion.util.KeyPairFactory;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
+import org.eclipse.dataspaceconnector.iam.util.KeyPairFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -129,7 +129,7 @@ class InMemoryDidDocumentStoreTest {
     }
 
     private VerificationMethod createVerificationMethod() {
-        var publicKey = (ECKey) KeyPairFactory.generateKeyPair().getPublicKey();
+        var publicKey = (ECKey) KeyPairFactory.generateKeyPair().toPublicJWK();
         return VerificationMethod.Builder.create()
                 .controller("")
                 .id("#key-1")

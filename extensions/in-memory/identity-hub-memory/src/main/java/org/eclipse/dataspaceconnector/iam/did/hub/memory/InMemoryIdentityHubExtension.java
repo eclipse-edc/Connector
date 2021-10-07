@@ -24,7 +24,7 @@ public class InMemoryIdentityHubExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("identity-hub-store");
+        return Set.of(IdentityHubStore.FEATURE);
     }
 
     @Override

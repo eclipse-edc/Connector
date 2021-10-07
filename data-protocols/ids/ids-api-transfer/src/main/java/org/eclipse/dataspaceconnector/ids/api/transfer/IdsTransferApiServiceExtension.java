@@ -35,7 +35,7 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("ids.core", "policy-registry");
+        return Set.of("ids.core", PolicyRegistry.FEATURE);
     }
 
     @Override

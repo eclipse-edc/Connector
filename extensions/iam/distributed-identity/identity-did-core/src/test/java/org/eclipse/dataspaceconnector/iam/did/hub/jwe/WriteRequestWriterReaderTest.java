@@ -1,13 +1,13 @@
 package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-
-
 
 
 class WriteRequestWriterReaderTest {
@@ -21,8 +21,8 @@ class WriteRequestWriterReaderTest {
         var objectMapper = new ObjectMapper();
 
         var jwe = new WriteRequestWriter()
-                .privateKey(privateKey)
-                .publicKey(publicKey)
+                .privateKey(new RsaPrivateKeyWrapper(privateKey))
+                .publicKey(new RsaPublicKeyWrapper(publicKey))
                 .objectMapper(objectMapper)
                 .commitObject(Map.of("foo", "bar"))
                 .kid("kid")
@@ -30,12 +30,10 @@ class WriteRequestWriterReaderTest {
                 .context("Foo")
                 .type("Bar").buildJwe();
 
-        var commit = new WriteRequestReader().privateKey(privateKey).mapper(objectMapper).verifier((d) -> true).jwe(jwe).readCommit();
+        var commit = new WriteRequestReader().privateKey(new RsaPrivateKeyWrapper(privateKey)).mapper(objectMapper).verifier((d) -> true).jwe(jwe).readCommit();
 
-        //noinspection unchecked
         Assertions.assertEquals("bar", ((Map<String, String>) commit.getPayload()).get("foo"));
     }
-
 
 
 }

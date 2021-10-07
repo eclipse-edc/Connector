@@ -24,10 +24,6 @@ import java.util.Objects;
 
 @JsonDeserialize(builder = Commit.Builder.class)
 public class Commit {
-    public enum Operation {
-        create, update, delete
-    }
-
     private String alg = "RS256";
     private String kid;
     private InterfaceType interfaze = InterfaceType.Collections;
@@ -38,11 +34,12 @@ public class Commit {
     private String committedAt;
     private String objectId;
     private CommitStrategy commitStrategy = CommitStrategy.basic;
-
     private String rev;
     private String iss;
-
     private Object payload;
+
+    private Commit() {
+    }
 
     public String getAlg() {
         return alg;
@@ -105,12 +102,17 @@ public class Commit {
         return payload;
     }
 
-    private Commit() {
+    public enum Operation {
+        create, update, delete
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private Commit commit;
+        private final Commit commit;
+
+        private Builder() {
+            commit = new Commit();
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -118,71 +120,71 @@ public class Commit {
         }
 
         public Builder alg(String alg) {
-            this.commit.alg = alg;
+            commit.alg = alg;
             return this;
         }
 
         public Builder kid(String kid) {
-            this.commit.kid = kid;
+            commit.kid = kid;
             return this;
         }
 
         @JsonProperty("interface")
         public Builder interrfaceType(InterfaceType interfaze) {
-            this.commit.interfaze = interfaze;
+            commit.interfaze = interfaze;
             return this;
         }
 
         public Builder context(String context) {
-            this.commit.context = context;
+            commit.context = context;
             return this;
         }
 
         public Builder type(String type) {
-            this.commit.type = type;
+            commit.type = type;
             return this;
         }
 
         public Builder operation(Operation operation) {
-            this.commit.operation = operation;
+            commit.operation = operation;
             return this;
         }
 
         public Builder sub(String sub) {
-            this.commit.sub = sub;
+            commit.sub = sub;
             return this;
         }
 
         @JsonProperty("committed_at")
         public Builder committedAt(String committedAt) {
-            this.commit.committedAt = committedAt;
+            commit.committedAt = committedAt;
             return this;
         }
 
         @JsonProperty("object_id")
         public Builder objectId(String objectId) {
-            this.commit.objectId = objectId;
+            commit.objectId = objectId;
             return this;
         }
 
         @JsonProperty("commit_strategy")
         public Builder commitStrategy(CommitStrategy commitStrategy) {
-            this.commit.commitStrategy = commitStrategy;
+            commit.commitStrategy = commitStrategy;
             return this;
         }
 
         public Builder rev(String rev) {
-            this.commit.rev = rev;
+            commit.rev = rev;
             return this;
         }
 
         public Builder iss(String iss) {
-            this.commit.iss = iss;
+            commit.iss = iss;
             return this;
         }
 
         public Builder payload(Object payload) {
-            this.commit.payload = payload;
+            commit.payload = payload;
             return this;
         }
 
@@ -191,10 +193,6 @@ public class Commit {
             Objects.requireNonNull(commit.type, "type");
             Objects.requireNonNull(commit.sub, "sub");
             return commit;
-        }
-
-        private Builder() {
-            commit = new Commit();
         }
     }
 

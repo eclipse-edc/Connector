@@ -25,14 +25,18 @@ import java.util.Objects;
 public class CommitQueryRequest extends AbstractHubRequest {
     private CommitQuery query;
 
+    private CommitQueryRequest() {
+    }
+
     public CommitQuery getQuery() {
         return query;
     }
 
-    private CommitQueryRequest() {
-    }
-
     public static class Builder extends AbstractHubRequest.Builder<CommitQueryRequest, Builder> {
+
+        private Builder() {
+            super(new CommitQueryRequest());
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -48,10 +52,6 @@ public class CommitQueryRequest extends AbstractHubRequest {
             verify();
             Objects.requireNonNull(request.query, "query");
             return request;
-        }
-
-        private Builder() {
-            super(new CommitQueryRequest());
         }
 
     }

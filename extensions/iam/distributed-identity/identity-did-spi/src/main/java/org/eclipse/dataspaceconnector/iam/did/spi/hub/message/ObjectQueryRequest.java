@@ -25,14 +25,18 @@ import java.util.Objects;
 public class ObjectQueryRequest extends AbstractHubRequest {
     private ObjectQuery query;
 
+    private ObjectQueryRequest() {
+    }
+
     public ObjectQuery getQuery() {
         return query;
     }
 
-    private ObjectQueryRequest() {
-    }
-
     public static class Builder extends AbstractHubRequest.Builder<ObjectQueryRequest, Builder> {
+
+        private Builder() {
+            super(new ObjectQueryRequest());
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -48,10 +52,6 @@ public class ObjectQueryRequest extends AbstractHubRequest {
             verify();
             Objects.requireNonNull(request.query, "query");
             return request;
-        }
-
-        private Builder() {
-            super(new ObjectQueryRequest());
         }
 
     }

@@ -1,29 +1,38 @@
 package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.nimbusds.jose.EncryptionMethod;
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWEAlgorithm;
 import com.nimbusds.jose.JWEHeader;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.Payload;
-import com.nimbusds.jose.crypto.RSAEncrypter;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
-import static com.nimbusds.jose.EncryptionMethod.A256GCM;
-import static com.nimbusds.jose.JWEAlgorithm.RSA_OAEP_256;
-
 /**
- * Writes a JWE containing a typed payload.
+ * Writes a JWE containing a typed payload. By default the {@link JWEAlgorithm#ECDH_ES_A256KW} in conjunction with the
+ * {@link EncryptionMethod#A256GCM} encryption method.
+ * <p>
+ * <em>Caution! The defaults only work with elliptic curve keys! If you need to use RSA keys, you need to supply a different Algorith and Encryption Method! </em>
+ *
+ * @see EncryptionMethod
+ * @see JWEAlgorithm
+ * @see PublicKeyWrapper#encrypter()
  */
 public class GenericJweWriter extends AbstractJweWriter<GenericJweWriter> {
     private Object payload;
+
 
     @Override
     public String buildJwe() {
         try {
             var jwePayload = new Payload(objectMapper.writeValueAsString(payload));
-            var jweHeader = new JWEHeader.Builder(RSA_OAEP_256, A256GCM).build();
+            var jweAlgorithm = publicKey.jweAlgorithm();
+            var encryptionMethod = publicKey.encryptionMethod();
+            var jweHeader = new JWEHeader.Builder(jweAlgorithm, encryptionMethod).build();
             var jweObject = new JWEObject(jweHeader, jwePayload);
-            jweObject.encrypt(new RSAEncrypter(publicKey));
+            jweObject.encrypt(publicKey.encrypter());
             return jweObject.serialize();
         } catch (JsonProcessingException | JOSEException e) {
             throw new EdcException(e);

@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEObject;
-import com.nimbusds.jose.crypto.RSADecrypter;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.text.ParseException;
@@ -33,7 +32,7 @@ public class GenericJweReader extends AbstractJweReader<GenericJweReader> {
         Objects.requireNonNull(mapper, "mapper");
         try {
             var parsedJwe = JWEObject.parse(jwe);
-            parsedJwe.decrypt(new RSADecrypter(privateKey));
+            parsedJwe.decrypt(privateKey.decrypter());
             return mapper.readValue(parsedJwe.getPayload().toString(), payloadType);
         } catch (ParseException | JOSEException | JsonProcessingException e) {
             throw new EdcException(e);

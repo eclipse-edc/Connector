@@ -35,6 +35,9 @@ public class HubObject {
     private String createdBy;
     private CommitStrategy commitStrategy = CommitStrategy.basic;
 
+    private HubObject() {
+    }
+
     public InterfaceType getInterface() {
         return interfaze;
     }
@@ -67,13 +70,14 @@ public class HubObject {
         return commitStrategy;
     }
 
-    private HubObject() {
-    }
-
-    @JsonIgnoreProperties(value = {"@context"}, allowGetters = true, ignoreUnknown = true)
+    @JsonIgnoreProperties(value = { "@context" }, allowGetters = true, ignoreUnknown = true)
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private HubObject hubObject;
+        private final HubObject hubObject;
+
+        private Builder() {
+            hubObject = new HubObject();
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -104,7 +108,7 @@ public class HubObject {
         }
 
         public Builder sub(String sub) {
-            this.hubObject.sub = sub;
+            hubObject.sub = sub;
             return this;
         }
 
@@ -114,17 +118,12 @@ public class HubObject {
             return this;
         }
 
-
         public HubObject build() {
             Objects.requireNonNull(hubObject.type, "type");
             Objects.requireNonNull(hubObject.id, "id");
             Objects.requireNonNull(hubObject.createdBy, "createdBy");
             Objects.requireNonNull(hubObject.sub, "sub");
             return hubObject;
-        }
-
-        private Builder() {
-            hubObject = new HubObject();
         }
 
 

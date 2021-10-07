@@ -22,8 +22,8 @@ dependencies {
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
     api(project(":extensions:iam:distributed-identity:identity-did-core"))
     api(project(":extensions:iam:distributed-identity:identity-did-service"))
-    api(project(":extensions:iam:distributed-identity:registration-service"))
-    api(project(":extensions:iam:distributed-identity:registration-service-api"))
+//    api(project(":extensions:iam:distributed-identity:registration-service"))
+//    api(project(":extensions:iam:distributed-identity:registration-service-api"))
     api(project(":extensions:iam:distributed-identity:identity-common-test"))
 }
 

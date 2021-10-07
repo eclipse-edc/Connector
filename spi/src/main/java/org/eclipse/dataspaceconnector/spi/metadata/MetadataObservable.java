@@ -17,4 +17,5 @@ package org.eclipse.dataspaceconnector.spi.metadata;
 import org.eclipse.dataspaceconnector.spi.Observable;
 
 public class MetadataObservable extends Observable<MetadataListener> {
+    public static final String FEATURE = "dataspaceconnector:metadata-store-observable";
 }

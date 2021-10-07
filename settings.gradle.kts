@@ -34,10 +34,12 @@ include(":data-protocols:ids:ids-api-transfer")
 include(":data-protocols:ids:ids-core")
 include(":data-protocols:ids:ids-policy-mock")
 include(":data-protocols:ids:ids-spi")
-include(":data-protocols:ion:ion-core")
+include(":extensions:ion:ion-core")
+include(":extensions:ion:ion-client")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
+include(":extensions:api:control-rest")
 include(":extensions:aws:s3:provision")
 include(":extensions:aws:s3:s3-schema")
 include(":extensions:aws:aws-test")
@@ -66,15 +68,15 @@ include(":extensions:iam:distributed-identity:identity-did-service")
 include(":extensions:iam:distributed-identity:registration-service")
 include(":extensions:iam:distributed-identity:registration-service-api")
 include(":extensions:iam:distributed-identity:identity-common-test")
+include(":extensions:iam:distributed-identity:verifiable-credentials")
+include(":extensions:iam:distributed-identity:dummy-credentials-verifier")
 include(":extensions:catalog:catalog-service")
+
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
-include(":launchers:demo-e2e")
 include(":launchers:junit")
-include(":services:registration-service-app")
-include(":launchers:simple-provider")
-include(":launchers:simple-consumer")
+include(":launchers:registration-service-app")
 
 // modules for code samples
 include(":samples:other:commandline:consumer")
@@ -91,8 +93,6 @@ include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
 include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
-include(":samples:identity-gaiax-verifier")
-include(":samples:other:identity-gaiax-verifier")
 include(":samples:other:file-transfer-s3-to-s3")
 include(":samples:other:custom-runtime")
 

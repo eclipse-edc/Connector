@@ -6,6 +6,10 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestWriter;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
@@ -20,8 +24,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.security.interfaces.RSAPrivateKey;
-import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 import java.util.Map;
 
@@ -29,8 +31,8 @@ import java.util.Map;
 class IdentityHubImplTest {
     private IdentityHubImpl hub;
     private IdentityHubStore store;
-    private RSAPrivateKey privateKey;
-    private RSAPublicKey publicKey;
+    private PrivateKeyWrapper privateKey;
+    private PublicKeyWrapper publicKey;
     private ObjectMapper objectMapper;
 
     @Test
@@ -110,8 +112,8 @@ class IdentityHubImplTest {
     @BeforeEach
     void setUp() throws Exception {
         var keys = TemporaryKeyLoader.loadKeys();
-        privateKey = keys.toRSAPrivateKey();
-        publicKey = keys.toRSAPublicKey();
+        privateKey = new RsaPrivateKeyWrapper(keys.toRSAPrivateKey());
+        publicKey = new RsaPublicKeyWrapper(keys.toRSAPublicKey());
         store = EasyMock.createMock(IdentityHubStore.class);
         objectMapper = new ObjectMapper();
         hub = new IdentityHubImpl(store, () -> privateKey, did -> publicKey, objectMapper);

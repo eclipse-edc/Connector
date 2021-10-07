@@ -55,7 +55,7 @@ public class PairedProviderWrapper implements RSAKeyProvider {
 
     @Override
     public RSAPrivateKey getPrivateKey() {
-        return privateKeyResolver != null ? privateKeyResolver.resolvePrivateKey(privateKeyId) : null;
+        return privateKeyResolver != null ? privateKeyResolver.resolvePrivateKey(privateKeyId, RSAPrivateKey.class) : null;
     }
 
     @Override

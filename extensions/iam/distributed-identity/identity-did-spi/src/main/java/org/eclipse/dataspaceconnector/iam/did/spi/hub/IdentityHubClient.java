@@ -13,9 +13,9 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.hub;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 
-import java.security.PublicKey;
 import java.util.Map;
 
 /**
@@ -23,13 +23,15 @@ import java.util.Map;
  */
 public interface IdentityHubClient {
 
+    String FEATURE = "edc:identity:hub:client";
+
     /**
      * Queries credentials from the hub.
      *
-     * @param query the credential query
-     * @param hubUrl the base hub URL
+     * @param query     the credential query
+     * @param hubUrl    the base hub URL
      * @param publicKey the foreign hub's public key resolved from its DID
      */
-    ClientResponse<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String hubUrl, PublicKey publicKey);
+    ClientResponse<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String hubUrl, PublicKeyWrapper publicKey);
 
 }

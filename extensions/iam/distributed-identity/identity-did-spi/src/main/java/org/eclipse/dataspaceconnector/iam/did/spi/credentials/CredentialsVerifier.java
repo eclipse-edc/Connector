@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.credentials;
 
-import java.security.PublicKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 
 /**
  * Obtains and verifies credentials associated with a DID according to an implementation-specific trust model.
@@ -21,12 +21,14 @@ import java.security.PublicKey;
 @FunctionalInterface
 public interface CredentialsVerifier {
 
+    String FEATURE = "edc:identity:verifier";
+
     /**
      * Verifies credentials contained in the given hub.
      *
      * @param hubBaseUrl the hub base url
-     * @param publicKey the hub's public key to encrypt messages with
+     * @param publicKey  the hub's public key to encrypt messages with
      */
-    CredentialsResult verifyCredentials(String hubBaseUrl, PublicKey publicKey);
+    CredentialsResult verifyCredentials(String hubBaseUrl, PublicKeyWrapper publicKey);
 
 }

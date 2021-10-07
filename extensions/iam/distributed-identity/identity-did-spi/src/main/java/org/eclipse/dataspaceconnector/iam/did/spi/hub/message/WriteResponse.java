@@ -24,17 +24,21 @@ import java.util.List;
 @JsonTypeName("WriteResponse")
 @JsonDeserialize(builder = WriteResponse.Builder.class)
 public class WriteResponse extends HubMessage {
-    private List<String> revisions = new ArrayList<>();
+    private final List<String> revisions = new ArrayList<>();
+
+    private WriteResponse() {
+    }
 
     public List<String> getRevisions() {
         return revisions;
     }
 
-    private WriteResponse() {
-    }
-
     public static class Builder extends HubMessage.Builder {
-        private WriteResponse writeResponse;
+        private final WriteResponse writeResponse;
+
+        private Builder() {
+            writeResponse = new WriteResponse();
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -42,21 +46,17 @@ public class WriteResponse extends HubMessage {
         }
 
         public Builder revisions(List<String> revisions) {
-            this.writeResponse.revisions.addAll(revisions);
+            writeResponse.revisions.addAll(revisions);
             return this;
         }
 
         public Builder revision(String revision) {
-            this.writeResponse.revisions.add(revision);
+            writeResponse.revisions.add(revision);
             return this;
         }
 
         public WriteResponse build() {
             return writeResponse;
-        }
-
-        private Builder() {
-            writeResponse = new WriteResponse();
         }
     }
 }

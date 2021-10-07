@@ -22,7 +22,7 @@ public class CatalogServiceImpl implements CatalogService {
         var queryRequest = QueryRequest.Builder.newInstance()
                 .connectorAddress(connectorAddress)
                 .connectorId(connectorName)
-                .queryLanguage("dagx")
+                .queryLanguage("dataspaceconnector")
                 .query("select *")
                 .protocol("ids-rest")
                 .build();

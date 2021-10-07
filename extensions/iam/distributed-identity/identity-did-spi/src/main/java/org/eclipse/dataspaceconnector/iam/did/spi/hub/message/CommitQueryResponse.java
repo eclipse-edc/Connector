@@ -25,10 +25,9 @@ import java.util.List;
 @JsonTypeName("CommitQueryResponse")
 @JsonDeserialize(builder = CommitQueryResponse.Builder.class)
 public class CommitQueryResponse extends HubMessage {
+    private final List<Commit> commits = new ArrayList<>();
     private String developerMessage;
     private String skipToken;
-
-    private List<Commit> commits = new ArrayList<>();
 
     private CommitQueryResponse() {
     }
@@ -47,7 +46,11 @@ public class CommitQueryResponse extends HubMessage {
     }
 
     public static class Builder extends HubMessage.Builder {
-        private CommitQueryResponse response;
+        private final CommitQueryResponse response;
+
+        private Builder() {
+            response = new CommitQueryResponse();
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -56,31 +59,27 @@ public class CommitQueryResponse extends HubMessage {
 
         @JsonProperty("developer_message")
         public Builder developerMessage(String message) {
-            this.response.developerMessage = message;
+            response.developerMessage = message;
             return this;
         }
 
         public Builder commits(List<Commit> commits) {
-            this.response.commits.addAll(commits);
+            response.commits.addAll(commits);
             return this;
         }
 
         public Builder commit(Commit commit) {
-            this.response.commits.add(commit);
+            response.commits.add(commit);
             return this;
         }
 
         public Builder skipToken(String skipToken) {
-            this.response.skipToken = skipToken;
+            response.skipToken = skipToken;
             return this;
         }
 
         public CommitQueryResponse build() {
             return response;
-        }
-
-        private Builder() {
-            response = new CommitQueryResponse();
         }
 
     }

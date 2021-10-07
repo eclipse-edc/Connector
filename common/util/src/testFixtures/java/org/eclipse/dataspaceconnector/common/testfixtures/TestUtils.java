@@ -19,6 +19,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Objects;
+import java.util.Scanner;
 
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -46,5 +48,11 @@ public class TestUtils {
         }
 
         return new File(uri);
+    }
+
+    public static String getResourceFileContentAsString(String resourceName) {
+        var stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
+        Scanner s = new Scanner(Objects.requireNonNull(stream)).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
     }
 }

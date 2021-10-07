@@ -14,30 +14,26 @@
 package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.security.interfaces.RSAPrivateKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
 
 /**
  * Implements base JWE reader functionality.
  */
 public class AbstractJweReader<T extends AbstractJweReader<?>> {
     protected String jwe;
-    protected RSAPrivateKey privateKey;
+    protected PrivateKeyWrapper privateKey;
     protected ObjectMapper mapper;
 
-    @SuppressWarnings("unchecked")
     public T jwe(String jwe) {
         this.jwe = jwe;
         return (T) this;
     }
 
-    @SuppressWarnings("unchecked")
-    public T privateKey(RSAPrivateKey privateKey) {
+    public T privateKey(PrivateKeyWrapper privateKey) {
         this.privateKey = privateKey;
         return (T) this;
     }
 
-    @SuppressWarnings("unchecked")
     public T mapper(ObjectMapper mapper) {
         this.mapper = mapper;
         return (T) this;

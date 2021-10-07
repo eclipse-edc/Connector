@@ -17,7 +17,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.JWEObject;
 import com.nimbusds.jose.JWSObject;
-import com.nimbusds.jose.crypto.RSADecrypter;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitStrategy;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.InterfaceType;
@@ -41,7 +40,7 @@ public class WriteRequestReader extends AbstractJweReader<WriteRequestReader> {
         Objects.requireNonNull(verifier, "verifier");
         try {
             var parsedJwe = JWEObject.parse(jwe);
-            parsedJwe.decrypt(new RSADecrypter(privateKey));
+            parsedJwe.decrypt(privateKey.decrypter());
 
             var writeRequest = mapper.readValue(parsedJwe.getPayload().toString(), WriteRequest.class);
 

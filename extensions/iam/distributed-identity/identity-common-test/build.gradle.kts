@@ -11,3 +11,12 @@ dependencies {
     testFixturesApi("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("iam.identity-common-test") {
+            artifactId = "iam.identity-common-test"
+            from(components["java"])
+        }
+    }
+}

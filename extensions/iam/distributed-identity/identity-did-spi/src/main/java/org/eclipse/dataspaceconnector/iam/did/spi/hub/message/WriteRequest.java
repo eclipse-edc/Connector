@@ -25,14 +25,20 @@ import java.util.Objects;
 public class WriteRequest extends AbstractHubRequest {
     private JsonCommitObject commit;
 
+    private WriteRequest() {
+    }
+
+    @Override
     public String getIss() {
         return iss;
     }
 
+    @Override
     public String getAud() {
         return aud;
     }
 
+    @Override
     public String getSub() {
         return sub;
     }
@@ -41,10 +47,11 @@ public class WriteRequest extends AbstractHubRequest {
         return commit;
     }
 
-    private WriteRequest() {
-    }
-
     public static class Builder extends AbstractHubRequest.Builder<WriteRequest, Builder> {
+
+        private Builder() {
+            super(new WriteRequest());
+        }
 
         @JsonCreator()
         public static Builder newInstance() {
@@ -60,10 +67,6 @@ public class WriteRequest extends AbstractHubRequest {
             verify();
             Objects.requireNonNull(request.commit, "commit");
             return request;
-        }
-
-        private Builder() {
-            super(new WriteRequest());
         }
 
     }

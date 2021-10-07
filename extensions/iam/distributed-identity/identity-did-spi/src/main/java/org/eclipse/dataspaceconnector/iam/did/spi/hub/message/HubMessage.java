@@ -20,7 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "@type")
-@JsonIgnoreProperties(value = {"@context"}, allowGetters = true)
+@JsonIgnoreProperties(value = { "@context" }, allowGetters = true)
 public class HubMessage {
 
     @JsonProperty(value = "@context")
@@ -29,7 +29,7 @@ public class HubMessage {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    @JsonIgnoreProperties(value = {"@context"}, allowGetters = true)
+    @JsonIgnoreProperties(value = { "@context" }, allowGetters = true)
     public static class Builder {
 
         protected Builder() {
