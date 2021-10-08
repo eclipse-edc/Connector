@@ -18,22 +18,19 @@
   fan-out strategy (based on geo-location, last-visited, crawler pool size, etc.)
 - Later this could be implemented using HPL (Hyper PLedger) with an appropriate extension
 
-## Terminology
-
+## Terminology - FCN
 - FCN: Federated Catalog Node - serves its own catalog
-- FCC: Federated Catalog Cache - maintains a snapshot of all catalogs in a dataspace. Crawls other FCNs for their
-  catalog.
-- `Crawler`: a piece of software that periodically issues `update-requests` to other FCNs
+
+## Terminology - FCC
+- `FCC`: Federated Catalog Cache - maintains a snapshot of all catalogs in a dataspace.
+- `Crawler`: a piece of software within the FCC that periodically issues `update-requests` to other FCNs. Has access to the work queue, pulls out 1...n items from the queue and forwards it to the protocol adapter
+    that corresponds to the work item.
 - `update-request`: a request to a FCN to get that FCN's catalog
+- `update-response`: the response to an `update-request`
+- `WorkQueue`: Is a list of work items, each of which contains a URL, a protocol name and an error indication.
+- `WorkItem`: one work element for the crawler, consisting of a URL and a protocol type (=a `Class` object)
 - `Loader`: a piece of software that shoves data into a persistent storage (e.g. hibernate)
 - `LoaderManager`: a piece of code that takes data from a queue and feeds it to the `Loader`.
-- `QueryEngine`: a module that interprets a `cache-query` and forwards it to specific query adapters
-- `cache-query`: a query that the FCC receives from e.g. a connector or any other client
-- `QueryAdapter`: receives a query formulated in a general query language and transforms it into whatever, e.g. SQL or a
-  Gremlin statement,...
-
-## Architectural and deployment considerations
-
 - `Partition`: is a homogenous subset of the dataspace's overall nodes (e.g. by geographical region)
 - `ExecutionPlan`: prescribes how the crawlers should run, i.e. periodically, based on an event, etc.. should be
   JSON-serializable. Contains a queue of work items (which are the target URLs). Should support updating/patching the
@@ -42,9 +39,12 @@
   ExecutionPlan. Updates are applied once the crawling is done (i.e. the work queue is empty). sequential updates are
   collated into a final state. The PartitionManager does not know about the amount of Crawlers, it's only job is to
   populate the work-queue once an execution is required.
-- `WorkQueue`: Is a list of work items, each of which contains a URL, a protocol name and an error indication.
-  `Crawler`: Has access to the work queue, pulls out 1...n items from the queue and forwards it to the protocol adapter
-  that corresponds to the work item.
+
+- `QueryEngine`: a module that interprets a `cache-query` and forwards it to specific query adapters
+- `cache-query`: a query that the FCC receives from e.g. a connector or any other client
+- `QueryAdapter`: receives a query formulated in a general query language and transforms it into whatever, e.g. SQL or a
+  Gremlin statement,...
+
 
 ## Use cases for the FCN
 
@@ -97,3 +97,18 @@
 - execute the query against my persistence backend
 - return the result asynchronously
 
+## Architectural and deployment considerations
+The design of the Cache's crawler aims at being flexible, scalable and low-maintenance. The ultimate goal is
+to crawl a dataspace as fast and efficient as possible. We therefore envision some sort of segmentation of the dataspace.
+We call these segments "Partitions". Many dataspaces will want partitioning based on geographical regions.
+
+Each partition can have several crawlers, the concrete amount is determined by the deployment, e.g. a K8S cluster
+with 10 crawlers. They are relatively dumb pieces of software: when there's work, they run off and crawl.
+
+Whether there's work is determined by the "ExecutionPlan", which is maintained by the "PartitionManager".
+When the ExecutionPlan requires it, the PartitionManager populates a queue shared by all crawlers.
+
+The ExecutionPlan contains a list of target FCNs (or rather: their URLs) and what protocol to use to query them.
+It also contains essentially a crontab spec, which determines when the aforementioned shared queue gets populated.
+
+So in summary, a likely deployment will be a K8S cluster with 1 PartitionManager and N Crawlers.
