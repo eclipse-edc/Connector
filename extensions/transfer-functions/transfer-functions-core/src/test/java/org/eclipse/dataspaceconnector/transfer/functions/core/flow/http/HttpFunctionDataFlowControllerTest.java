@@ -36,7 +36,7 @@ import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatu
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 /**
- *
+ * Verifies HTTP transfer function flow.
  */
 class HttpFunctionDataFlowControllerTest {
     private HttpFunctionDataFlowController flowController;

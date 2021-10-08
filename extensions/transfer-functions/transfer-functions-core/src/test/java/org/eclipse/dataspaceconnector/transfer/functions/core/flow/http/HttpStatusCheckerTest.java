@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- *
+ * Verfies HTTP status checking.
  */
 class HttpStatusCheckerTest {
     private HttpStatusChecker checker;

@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.local.LocalTra
 import java.util.List;
 
 /**
- *
+ * Dispatches to a local transfer function to determine the status of a transfer.
  */
 public class LocalStatusChecker implements StatusChecker {
     private LocalTransferFunction transferFunction;

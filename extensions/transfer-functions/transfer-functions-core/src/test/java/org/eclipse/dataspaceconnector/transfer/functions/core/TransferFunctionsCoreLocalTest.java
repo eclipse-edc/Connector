@@ -14,8 +14,6 @@
 package org.eclipse.dataspaceconnector.transfer.functions.core;
 
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.junit.launcher.MockVault;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
@@ -37,7 +35,7 @@ import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFun
 import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFunctionsCoreServiceExtension.TRANSFER_TYPE;
 
 /**
- *
+ * Verifies a local flow control.
  */
 @ExtendWith(EdcExtension.class)
 public class TransferFunctionsCoreLocalTest {
@@ -68,9 +66,6 @@ public class TransferFunctionsCoreLocalTest {
     protected void before(EdcExtension extension) {
         System.setProperty(ENABLED_PROTOCOLS_KEY, "test-protocol1");
         System.setProperty(TRANSFER_TYPE, "local");
-
-        // register a mock Vault
-        extension.registerServiceMock(Vault.class, new MockVault());
 
         // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);

@@ -103,8 +103,8 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
         if (localTransfer) {
             var localTransferFunction = context.getService(LocalTransferFunction.class, true);
             if (localTransferFunction == null) {
-                monitor.severe("Local transfer functions are configured. An implementation of "
-                        + LocalTransferFunction.class.getName() + " must be provided. Transfer functions are disabled.");
+                monitor.severe("Local transfer functions are configured. An implementation of " +
+                        LocalTransferFunction.class.getName() + " must be provided. Transfer functions are disabled.");
                 return;
             }
             var flowController = new LocalFunctionDataFlowController(protocols, localTransferFunction);
