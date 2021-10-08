@@ -15,3 +15,8 @@ dependencies {
 
 
 }
+//tasks.withType<Test> {
+//    testLogging {
+//        showStandardStreams = true
+//    }
+//}`

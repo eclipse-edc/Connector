@@ -14,7 +14,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -28,6 +30,7 @@ public class CrawlerImpl implements Crawler {
     private final RetryPolicy<Object> retryPolicy;
     private final WorkItemQueue workItems;
     private final Duration waitForWorkItem;
+    private final ReentrantLock lock;
 
     CrawlerImpl(WorkItemQueue workItems, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> retryPolicy, List<ProtocolAdapter> adapters, Duration waitForWorkItem) {
         this.workItems = workItems;
@@ -36,6 +39,7 @@ public class CrawlerImpl implements Crawler {
         queue = responseQueue;
         this.retryPolicy = retryPolicy;
         this.waitForWorkItem = waitForWorkItem;
+        lock = new ReentrantLock();
     }
 
 
@@ -45,6 +49,7 @@ public class CrawlerImpl implements Crawler {
 
         while (item == null) {
             try {
+
                 item = workItems.poll(waitForWorkItem.toMillis(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 handleError(item, e.getMessage());
@@ -76,6 +81,19 @@ public class CrawlerImpl implements Crawler {
     @Override
     public void addAdapter(ProtocolAdapter adapter) {
         adapters.add(adapter);
+    }
+
+    @Override
+    public CompletableFuture<Void> waitForCompletion() {
+
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                lock.tryLock(10, TimeUnit.SECONDS);
+            } catch (InterruptedException ignored) {
+                monitor.debug("interrupted while waiting for crawler completion");
+            }
+            return null;
+        });
     }
 
     private List<ProtocolAdapter> getMatchingAdapters(WorkItem item, List<ProtocolAdapter> adapters) {
