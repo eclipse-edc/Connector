@@ -33,8 +33,10 @@ public class PartitionManagerImpl implements PartitionManager {
      * @param workQueue        An implementation of a blocking {@link WorkItemQueue}
      * @param monitor          A {@link Monitor}
      * @param crawlerGenerator A generator function that MUST create a new instance of a {@link Crawler}
-     * @param numCrawlers      A number indicating how many {@code Crawler} instances should be generated. Note that the PartitionManager may choose to
-     * @param staticWorkLoad   A list of {@link WorkItem} instances that need to be processed on every scheduled run.
+     * @param numCrawlers      A number indicating how many {@code Crawler} instances should be generated.
+     *                         Note that the PartitionManager may choose to generate more or less, e.g. because of constrained system resources.
+     * @param staticWorkLoad   A fixed list of {@link WorkItem} instances that need to be processed on every execution run. This list is treated as immutable,
+     *                         the PartitionManager will only read from it.
      */
     public PartitionManagerImpl(Monitor monitor, WorkItemQueue workQueue, Function<WorkItemQueue, Crawler> crawlerGenerator, int numCrawlers, List<WorkItem> staticWorkLoad) {
         this.monitor = monitor;
