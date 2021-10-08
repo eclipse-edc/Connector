@@ -13,10 +13,11 @@ dependencies {
     implementation(project(":common:util"))
     implementation("org.junit.jupiter:junit-jupiter:5.7.0")
 
+    testImplementation(project(":core:bootstrap")) //for the console monitor
 
 }
-//tasks.withType<Test> {
-//    testLogging {
-//        showStandardStreams = true
-//    }
-//}`
+tasks.withType<Test> {
+    testLogging {
+        showStandardStreams = false
+    }
+}

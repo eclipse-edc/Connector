@@ -1,20 +1,23 @@
 package org.eclipse.dataspaceconnector.catalog.spi.model;
 
-import java.time.Duration;
+/**
+ * Interface for any sort of planned execution of a {@link Runnable} task.
+ */
+public interface ExecutionPlan {
+    /**
+     * Updates this execution plan and the {@code other} execution plan. What this means is highly dependent
+     * on the implementation, e.g. two cron jobs with different schedules could adopt both schedules, one, or the other.
+     *
+     * @param other the other execution plan
+     * @return the merged execution plan.
+     */
+    ExecutionPlan merge(ExecutionPlan other);
 
-public class ExecutionPlan {
-    private final Duration schedule;
-
-    public ExecutionPlan(Duration schedule) {
-        this.schedule = schedule;
-    }
-
-
-    public Duration getSchedule() {
-        return schedule;
-    }
-
-    public ExecutionPlan merge(ExecutionPlan other) {
-        return other; //at this time we just have the schedule, so we can safely overwrite
-    }
+    /**
+     * Execute the task. While not strictly required, spawning another
+     * thread it is highly recommended e.g. by forwarding to an {@link java.util.concurrent.Executor}
+     *
+     * @param task A runnable
+     */
+    void run(Runnable task);
 }

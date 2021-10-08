@@ -25,5 +25,5 @@ public interface PartitionManager {
      *
      * @return A CompletableFuture that resolves once all Crawlers have finished
      */
-    CompletableFuture<Void> waitForCompletion();
+    CompletableFuture<Void> stop();
 }

@@ -7,6 +7,6 @@ public interface Crawler extends Runnable {
 
     void addAdapter(ProtocolAdapter adapter);
 
-    CompletableFuture<Void> waitForCompletion();
+    CompletableFuture<Void> join();
 
 }

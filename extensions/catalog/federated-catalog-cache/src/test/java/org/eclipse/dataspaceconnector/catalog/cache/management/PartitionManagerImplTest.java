@@ -1,8 +1,14 @@
 package org.eclipse.dataspaceconnector.catalog.cache.management;
 
+import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
+import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
+import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapter;
-import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
+import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
+import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
+import org.eclipse.dataspaceconnector.catalog.spi.model.RecurringExecutionPlan;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,111 +17,72 @@ import org.junit.jupiter.params.provider.ValueSource;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-import java.util.Random;
-import java.util.concurrent.CompletableFuture;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
 
 class PartitionManagerImplTest {
-    private final Monitor monitorMock = mock(Monitor.class);
+    public static final int WORK_ITEM_COUNT = 1000;
+    private final Monitor monitorMock = niceMock(Monitor.class);
     private PartitionManagerImpl partitionManager;
+    private WorkItemQueue workItemQueue;
+    private List<WorkItem> staticWorkLoad;
+    private Function<WorkItemQueue, Crawler> generatorFunction;
+    private CountDownLatch latch;
 
     @BeforeEach
     void setup() {
+        latch = new CountDownLatch(WORK_ITEM_COUNT);
+        workItemQueue = new SignalingWorkItemQueue(WORK_ITEM_COUNT + 1, latch);
+        staticWorkLoad = IntStream.range(0, WORK_ITEM_COUNT).mapToObj(i -> new TestWorkItem(ProtocolAdapter.class)).collect(Collectors.toList());
+        generatorFunction = workItemQueue -> CrawlerImpl.Builder.newInstance()
+                .retryPolicy(new RetryPolicy<>())
+                .monitor(monitorMock)
+                .waitItemTime(Duration.of(5, ChronoUnit.SECONDS))
+                .workItems(workItemQueue)
+                .queue(new ArrayBlockingQueue<>(10))
+                .build();
     }
 
     @Test
     void waitForCompletion() throws InterruptedException {
-        Crawler crawlerMock = niceMock(Crawler.class);
-        var crawlerCompletionDelay = CompletableFuture.delayedExecutor(500, TimeUnit.MILLISECONDS);
-        expect(crawlerMock.waitForCompletion()).andReturn(CompletableFuture.supplyAsync(() -> null, crawlerCompletionDelay)).anyTimes();
-        replay(crawlerMock);
 
-        var latch = new CountDownLatch(1);
-
-        partitionManager = new PartitionManagerImpl(monitorMock, workItems -> crawlerMock, 2);
-        partitionManager.schedule(new ExecutionPlan(Duration.of(10, ChronoUnit.MILLIS)));
-
-        partitionManager.waitForCompletion().whenComplete((unused, throwable) -> {
-            assertThat(throwable).isNull();
-            latch.countDown();
-        });
-
-        assertThat(latch.await(1, TimeUnit.SECONDS)).isTrue();
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = { 100, 1000, 10000 })
-    void runManyCrawlers_verifyCompletion(int crawlerCount) throws InterruptedException {
-
-        var latch = new CountDownLatch(crawlerCount);
-        partitionManager = new PartitionManagerImpl(monitorMock, workItems -> new DelayedCrawler(latch), crawlerCount);
-        partitionManager.schedule(new ExecutionPlan(Duration.of(10, ChronoUnit.MILLIS)));
-        Thread.sleep(1000);
-        partitionManager.waitForCompletion().whenComplete((unused, throwable) -> {
-            assertThat(throwable).isNull();
-            latch.countDown();
-            System.out.println("all crawlers complete. latch: " + latch.getCount());
-        });
+        partitionManager = new PartitionManagerImpl(monitorMock, workItemQueue, generatorFunction, 1, staticWorkLoad);
+        partitionManager.schedule(new RecurringExecutionPlan(Duration.of(100, ChronoUnit.MILLIS))); // start working right away
         assertThat(latch.await(10, TimeUnit.SECONDS)).withFailMessage("latch was expected to be 0 but was: " + latch.getCount()).isTrue();
     }
 
-    private static class DelayedCrawler implements Crawler {
-        private static int instanceCount = 0;
-        private final ReentrantLock lock = new ReentrantLock();
+    @ParameterizedTest
+    @ValueSource(ints = { 1, 10, 50 })
+    void runManyCrawlers_verifyCompletion(int crawlerCount) throws InterruptedException {
+        partitionManager = new PartitionManagerImpl(monitorMock, workItemQueue, generatorFunction, crawlerCount, staticWorkLoad);
+        partitionManager.schedule(new RecurringExecutionPlan(Duration.of(100, ChronoUnit.MILLIS)));
+        assertThat(latch.await(10, TimeUnit.SECONDS)).withFailMessage("latch was expected to be 0 but was: " + latch.getCount()).isTrue();
+    }
+
+    private static class SignalingWorkItemQueue extends TestWorkQueue {
         private final CountDownLatch latch;
-        private final int count;
 
-
-        public DelayedCrawler(CountDownLatch latch) {
+        public SignalingWorkItemQueue(int cap, CountDownLatch latch) {
+            super(cap);
             this.latch = latch;
-            count = instanceCount++;
         }
 
         @Override
-        public void addAdapter(ProtocolAdapter adapter) {
+        public WorkItem poll(long timeout, TimeUnit unit) throws InterruptedException {
 
-        }
-
-        @Override
-        public CompletableFuture<Void> waitForCompletion() {
-
-            return CompletableFuture.supplyAsync(() -> {
-                try {
-                    System.out.println("crawler " + count + ": waiting for lock to be release");
-                    lock.tryLock(10, TimeUnit.SECONDS);
-                    System.out.println("crawler " + count + ": lock released. crawler complete!");
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-                return null;
-            });
-        }
-
-        @Override
-        public void run() {
-            try {
-                System.out.println("crawler " + count + ": locking...");
-                lock.lock();
-
-                var sleep = 500 + new Random().nextInt(2000);
-                System.out.println("crawler " + count + " is running (ETA " + sleep + " ms)");
-                Thread.sleep(sleep);
-                System.out.println("crawler " + count + " has finished");
+            var polledItem = super.poll(timeout, unit);
+            if (polledItem != null) {
                 latch.countDown();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } finally {
-                System.out.println("crawler " + count + ": unlocking...");
-                lock.unlock();
             }
+            return polledItem;
         }
     }
 }

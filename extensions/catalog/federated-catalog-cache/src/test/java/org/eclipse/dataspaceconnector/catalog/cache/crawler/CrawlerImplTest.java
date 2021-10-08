@@ -1,8 +1,9 @@
 package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
+import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapter;
-import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
@@ -55,10 +56,12 @@ class CrawlerImplTest {
         replay(protocolAdapterMock);
 
         workQueue.put(new TestWorkItem(protocolAdapterMock.getClass()));
-        crawler.run();
-
-        assertThat(queue).hasSize(1);
-        verify(protocolAdapterMock);
+        Executors.newFixedThreadPool(1).submit(crawler);
+        crawler.join().whenComplete((unused, throwable) -> {
+            assertThat(throwable).isNull();
+            assertThat(queue).hasSize(1);
+            verify(protocolAdapterMock);
+        });
     }
 
     @Test
@@ -74,11 +77,13 @@ class CrawlerImplTest {
         replay(monitorMock);
 
         workQueue.put(new TestWorkItem(protocolAdapterMock.getClass()));
-        crawler.run();
-
-        assertThat(queue).isEmpty();
-        verify(protocolAdapterMock);
-        verify(monitorMock);
+        Executors.newFixedThreadPool(1).submit(crawler);
+        crawler.join().whenComplete((unused, throwable) -> {
+            assertThat(throwable).isNull();
+            assertThat(queue).isEmpty();
+            verify(protocolAdapterMock);
+            verify(monitorMock);
+        });
     }
 
     @Test
@@ -98,12 +103,14 @@ class CrawlerImplTest {
         replay(monitorMock);
 
         workQueue.put(new TestWorkItem(protocolAdapterMock.getClass()));
-        crawler.run();
-
-        assertThat(queue).hasSize(1);
-        verify(protocolAdapterMock);
-        verify(secondAdapter);
-        verify(monitorMock);
+        Executors.newFixedThreadPool(1).submit(crawler);
+        crawler.join().whenComplete((unused, throwable) -> {
+            assertThat(throwable).isNull();
+            assertThat(queue).hasSize(1);
+            verify(protocolAdapterMock);
+            verify(secondAdapter);
+            verify(monitorMock);
+        });
     }
 
     @Test
@@ -121,11 +128,15 @@ class CrawlerImplTest {
         replay(monitorMock);
 
         workQueue.put(new TestWorkItem(protocolAdapterMock.getClass()));
-        crawler.run();
+        Executors.newFixedThreadPool(1).submit(crawler);
+        crawler.join().whenComplete((unused, throwable) -> {
+            assertThat(throwable).isNull();
+            assertThat(queue).hasSize(3);
+            verify(protocolAdapterMock);
+            verify(monitorMock);
+        });
 
-        assertThat(queue).hasSize(3);
-        verify(protocolAdapterMock);
-        verify(monitorMock);
+
     }
 
     @Test
@@ -147,21 +158,17 @@ class CrawlerImplTest {
         replay(protocolAdapterMock);
 
         workQueue.put(new TestWorkItem(AnotherProtocolAdapter.class));
-        crawler.run();
 
-
-        assertThat(workQueue).hasSize(1).allMatch(wi -> ((TestWorkItem) wi).getError() != null);
-        verify(protocolAdapterMock);
+        Executors.newFixedThreadPool(1).submit(crawler);
+        crawler.join().whenComplete((unused, throwable) -> {
+            assertThat(throwable).isNull();
+            assertThat(workQueue).hasSize(1).allMatch(wi -> ((TestWorkItem) wi).getError() != null);
+            verify(protocolAdapterMock);
+        });
     }
 
     private RetryPolicy<Object> createRetryPolicy() {
         return new RetryPolicy<>().withMaxRetries(1);
-    }
-
-    private static class TestWorkQueue extends ArrayBlockingQueue<WorkItem> implements WorkItemQueue {
-        public TestWorkQueue(int cap) {
-            super(cap);
-        }
     }
 
     private static class AnotherProtocolAdapter implements ProtocolAdapter {
@@ -172,31 +179,4 @@ class CrawlerImplTest {
         }
     }
 
-    private static class TestWorkItem implements WorkItem {
-        private final Class<? extends ProtocolAdapter> protocolAdapterType;
-        private String error;
-
-        private TestWorkItem(Class<? extends ProtocolAdapter> protocolAdapterType) {
-            this.protocolAdapterType = protocolAdapterType;
-        }
-
-        @Override
-        public <T extends ProtocolAdapter> Class<T> getProtocolType() {
-            return (Class<T>) protocolAdapterType;
-        }
-
-        @Override
-        public String getUrl() {
-            return "test-url";
-        }
-
-        @Override
-        public void error(String message) {
-            error = message;
-        }
-
-        public String getError() {
-            return error;
-        }
-    }
 }

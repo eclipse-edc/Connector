@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
@@ -31,6 +32,7 @@ public class CrawlerImpl implements Crawler {
     private final WorkItemQueue workItems;
     private final Duration waitForWorkItem;
     private final ReentrantLock lock;
+    private final AtomicBoolean isActive;
 
     CrawlerImpl(WorkItemQueue workItems, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> retryPolicy, List<ProtocolAdapter> adapters, Duration waitForWorkItem) {
         this.workItems = workItems;
@@ -40,41 +42,44 @@ public class CrawlerImpl implements Crawler {
         this.retryPolicy = retryPolicy;
         this.waitForWorkItem = waitForWorkItem;
         lock = new ReentrantLock();
+        isActive = new AtomicBoolean(true);
     }
 
 
     @Override
     public void run() {
-        WorkItem item = null;
 
-        while (item == null) {
+        while (isActive.get()) {
+            lock.lock();
+            WorkItem item = null;
             try {
-
                 item = workItems.poll(waitForWorkItem.toMillis(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 handleError(item, e.getMessage());
             }
-        }
 
-        //item should not be null now
-        var selectedWorkItem = item;
+            monitor.debug(item == null ? "Nothing to do" : "WorkItem acquired");
+            if (item != null) {
+                // search for an adapter
+                var adapters = getMatchingAdapters(item, this.adapters);
 
-        // search for an adapter
-        var adapters = getMatchingAdapters(item, this.adapters);
-
-        if (adapters.isEmpty()) {
-            // otherwise error out the workitem);
-            handleError(selectedWorkItem, "No Adapter found for protocol");
-        } else {
-            // if the adapters are found, use them to send the update request
-            adapters.forEach(a -> a.sendRequest(new UpdateRequest(selectedWorkItem.getUrl()))
-                    .whenComplete((updateResponse, throwable) -> {
-                        if (throwable != null) {
-                            handleError(selectedWorkItem, throwable.getMessage());
-                        } else {
-                            handleResponse(updateResponse);
-                        }
-                    }));
+                if (adapters.isEmpty()) {
+                    // otherwise error out the workitem);
+                    handleError(item, "No Adapter found for protocol " + item.getProtocolType());
+                } else {
+                    // if the adapters are found, use them to send the update request
+                    WorkItem finalItem = item;
+                    adapters.forEach(a -> a.sendRequest(new UpdateRequest(finalItem.getUrl()))
+                            .whenComplete((updateResponse, throwable) -> {
+                                if (throwable != null) {
+                                    handleError(finalItem, throwable.getMessage());
+                                } else {
+                                    handleResponse(updateResponse);
+                                }
+                            }));
+                }
+            }
+            lock.unlock();
         }
     }
 
@@ -84,16 +89,22 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public CompletableFuture<Void> waitForCompletion() {
+    public CompletableFuture<Void> join() {
+        return join(10, TimeUnit.SECONDS);
+    }
 
+    public CompletableFuture<Void> join(long timeout, TimeUnit unit) {
         return CompletableFuture.supplyAsync(() -> {
+            monitor.debug("Stopping Crawler");
+            isActive.set(false);
             try {
-                lock.tryLock(10, TimeUnit.SECONDS);
-            } catch (InterruptedException ignored) {
-                monitor.debug("interrupted while waiting for crawler completion");
+                return lock.tryLock(timeout, unit);
+            } catch (InterruptedException e) {
+                return false;
+            } finally {
+                lock.unlock();
             }
-            return null;
-        });
+        }).thenCompose(bool -> bool ? CompletableFuture.completedFuture(null) : CompletableFuture.failedFuture(new RuntimeException("")));
     }
 
     private List<ProtocolAdapter> getMatchingAdapters(WorkItem item, List<ProtocolAdapter> adapters) {
@@ -106,7 +117,7 @@ public class CrawlerImpl implements Crawler {
         if (errorWorkItem != null) {
             errorWorkItem.error(message);
             //todo: re-enqueue the workitem?
-            workItems.offer(errorWorkItem);
+            //workItems.offer(errorWorkItem);
         }
     }
 
