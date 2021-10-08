@@ -7,11 +7,16 @@ plugins {
     `java-library`
 }
 
+val rsApi: String by project
+
 dependencies {
     api(project(":spi"))
+
     implementation(project(":extensions:catalog:federated-catalog-spi"))
     implementation(project(":common:util"))
     implementation("org.junit.jupiter:junit-jupiter:5.7.0")
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     // generates random names
     // fixme: remove before PR submit
@@ -19,7 +24,16 @@ dependencies {
 
     testImplementation(project(":core:bootstrap")) //for the console monitor
 
+    // required for integration test
+    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":core:protocol:web"))
+    testImplementation(project(":extensions:in-memory:fcc-protocol-registry-memory"))
+    testImplementation(project(":extensions:in-memory:fcc-query-adapter-registry-memory"))
+    testImplementation(project(":extensions:in-memory:node-directory-memory"))
+    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    testImplementation(project(":extensions:in-memory:fcc-store-memory"))
 }
+
 tasks.withType<Test> {
     testLogging {
         showStandardStreams = false
