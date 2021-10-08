@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.catalog.cache.loader;
 
-import org.eclipse.dataspaceconnector.catalog.cache.spi.Loader;
-import org.eclipse.dataspaceconnector.catalog.cache.spi.UpdateResponse;
+import org.eclipse.dataspaceconnector.catalog.spi.Loader;
+import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.WaitStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

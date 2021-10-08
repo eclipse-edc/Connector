@@ -66,7 +66,7 @@ public class AzureProvisionExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("dataspaceconnector:retry-policy");
+        return Set.of("edc:retry-policy");
     }
 
     @Override

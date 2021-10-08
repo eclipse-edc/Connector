@@ -1,8 +1,8 @@
 package org.eclipse.dataspaceconnector.catalog.cache.loader;
 
-import org.eclipse.dataspaceconnector.catalog.cache.spi.Loader;
-import org.eclipse.dataspaceconnector.catalog.cache.spi.LoaderManager;
-import org.eclipse.dataspaceconnector.catalog.cache.spi.UpdateResponse;
+import org.eclipse.dataspaceconnector.catalog.spi.Loader;
+import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
+import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.WaitStrategy;
 
 import java.util.ArrayList;
@@ -25,7 +25,7 @@ public class LoaderManagerImpl implements LoaderManager {
     private final WaitStrategy waitStrategy;
     private ExecutorService executor;
 
-    private LoaderManagerImpl(BlockingQueue<UpdateResponse> queue, List<Loader> loaders, int batchSize, WaitStrategy waitStrategy) {
+    public LoaderManagerImpl(BlockingQueue<UpdateResponse> queue, List<Loader> loaders, int batchSize, WaitStrategy waitStrategy) {
         this.queue = queue;
         this.loaders = loaders;
         this.batchSize = batchSize;
@@ -51,6 +51,11 @@ public class LoaderManagerImpl implements LoaderManager {
         if (executor != null) {
             executor.shutdownNow();
         }
+    }
+
+    @Override
+    public void addLoader(Loader loader) {
+        loaders.add(loader);
     }
 
     private void beginDequeue() {

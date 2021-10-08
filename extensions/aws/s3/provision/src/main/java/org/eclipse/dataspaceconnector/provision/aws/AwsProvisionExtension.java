@@ -79,7 +79,7 @@ public class AwsProvisionExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("dataspaceconnector:retry-policy", "dataspaceconnector:statuschecker");
+        return Set.of("edc:retry-policy", "dataspaceconnector:statuschecker");
     }
 
     @Override
