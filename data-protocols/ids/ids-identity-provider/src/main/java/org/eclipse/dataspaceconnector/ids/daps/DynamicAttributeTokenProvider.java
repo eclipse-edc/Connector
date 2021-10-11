@@ -1,6 +1,25 @@
 package org.eclipse.dataspaceconnector.ids.daps;
 
-public interface DynamicAttributeTokenProvider {
+import org.eclipse.dataspaceconnector.ids.daps.client.DapsClient;
+import org.eclipse.dataspaceconnector.ids.daps.client.DapsClientException;
 
-    DynamicAttributeToken getDynamicAttributeToken() throws DynamicAttributeTokenException;
+import java.util.Objects;
+
+public class DynamicAttributeTokenProvider {
+    private final DapsClient dapsClient;
+
+    public DynamicAttributeTokenProvider(
+            final DapsClient dapsClient) {
+        Objects.requireNonNull(dapsClient);
+        this.dapsClient = dapsClient;
+    }
+
+    // TODO add cache
+    public DynamicAttributeToken getDynamicAttributeToken() throws DynamicAttributeTokenException {
+        try {
+            return dapsClient.requestDynamicAttributeToken();
+        } catch (final DapsClientException e) {
+            throw new DynamicAttributeTokenException(e);
+        }
+    }
 }

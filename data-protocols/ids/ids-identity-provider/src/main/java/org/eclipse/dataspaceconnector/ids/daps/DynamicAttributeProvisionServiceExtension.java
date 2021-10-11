@@ -71,7 +71,7 @@ public class DynamicAttributeProvisionServiceExtension implements ServiceExtensi
 
     private void registerComponents(final ServiceExtensionContext serviceExtensionContext) {
         final DapsClient dapsClient = createDapsClient(serviceExtensionContext);
-        final DynamicAttributeTokenProvider dynamicAttributeTokenProvider = new DynamicAttributeTokenProviderImpl(dapsClient);
+        final DynamicAttributeTokenProvider dynamicAttributeTokenProvider = new DynamicAttributeTokenProvider(dapsClient);
         final IdentityService identityService = new IdentityServiceImpl(dynamicAttributeTokenProvider, serviceExtensionContext.getMonitor());
 
         serviceExtensionContext.registerService(IdentityService.class, identityService);
