@@ -36,7 +36,7 @@ include(":data-protocols:ids:ids-policy-mock")
 include(":data-protocols:ids:ids-spi")
 include(":extensions:ion:ion-core")
 include(":extensions:ion:ion-client")
-include(":data-protocols:ids:ids-daps-dat")
+include(":data-protocols:ids:ids-identity-provider")
 
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")

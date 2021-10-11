@@ -19,18 +19,18 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":data-protocols:ids:ids-spi"))
-    api(project(":data-protocols:ids:ids-core"))
-    api(project(":data-protocols:ids:ids-api-catalog"))
-    api(project(":data-protocols:ids:ids-api-transfer"))
-    api(project(":data-protocols:ids:ids-policy-mock"))
-    api(project(":data-protocols:ids:ids-identity-provider"))
+    implementation(project(":data-protocols:ids:ids-spi"))
+    implementation(project(":data-protocols:ids:ids-core"))
+
+    implementation("io.jsonwebtoken:jjwt-api:0.11.2")
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.69")
 }
+
 
 publishing {
     publications {
-        create<MavenPublication>("data-protocols.ids") {
-            artifactId = "data-protocols.ids"
+        create<MavenPublication>("data-protocols.ids-identity-provider") {
+            artifactId = "data-protocols.ids-identity-provider"
             from(components["java"])
         }
     }
