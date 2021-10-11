@@ -25,6 +25,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,21 +36,34 @@ import java.util.stream.Stream;
 public class InMemoryAssetIndex implements AssetIndex {
     private final List<Asset> cache = new LinkedList<>();
     private final Map<String, DataAddress> dataAddresses = new HashMap<>();
+    private final ReentrantReadWriteLock lock;
 
     public InMemoryAssetIndex(Monitor monitor) {
+        lock = new ReentrantReadWriteLock();
     }
 
     @Override
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression, "expression");
-        return filterByPredicate(cache, collatePredicateWithAnd(expression));
+        lock.readLock().lock();
+        try {
+            return filterByPredicate(cache, collatePredicateWithAnd(expression));
+        } finally {
+            lock.readLock().unlock();
+        }
 
     }
 
     @Override
     public Asset findById(String assetId) {
         Predicate<Asset> predicate = (asset) -> asset.getId().equals(assetId);
-        var assets = filterByPredicate(cache, predicate).collect(Collectors.toList());
+        lock.readLock().lock();
+        List<Asset> assets;
+        try {
+            assets = filterByPredicate(cache, predicate).collect(Collectors.toList());
+        } finally {
+            lock.readLock().unlock();
+        }
 
         if (assets.size() > 1) {
             throw new IllegalStateException("findById() was expected to return 1 result but returned " + assets.size());
@@ -61,23 +75,35 @@ public class InMemoryAssetIndex implements AssetIndex {
     @Override
     public DataAddress resolveForAsset(Asset asset) {
         Objects.requireNonNull(asset, "asset");
-        if (!dataAddresses.containsKey(asset.getId()) || dataAddresses.get(asset.getId()) == null) {
-            throw new IllegalArgumentException("No DataAddress found for Asset ID=" + asset.getId());
+        lock.readLock().lock();
+        try {
+            if (!dataAddresses.containsKey(asset.getId()) || dataAddresses.get(asset.getId()) == null) {
+                throw new IllegalArgumentException("No DataAddress found for Asset ID=" + asset.getId());
+            }
+            return dataAddresses.get(asset.getId());
+        } finally {
+            lock.readLock().unlock();
         }
-        return dataAddresses.get(asset.getId());
-
     }
 
     void add(Asset asset, DataAddress address) {
         Objects.requireNonNull(asset, "asset");
         Objects.requireNonNull(asset.getId(), "asset.getId()");
-        cache.add(asset);
-
-        if (address != null) {
-            dataAddresses.put(asset.getId(), address);
+        lock.writeLock().lock();
+        try {
+            cache.add(asset);
+            if (address != null) {
+                dataAddresses.put(asset.getId(), address);
+            }
+        } finally {
+            lock.writeLock().unlock();
         }
+
     }
 
+    /**
+     * folds all predicates into a new predicate, that is only true when the entire expression is true.
+     */
     private Predicate<Asset> collatePredicateWithAnd(AssetSelectorExpression expression) {
         return expression.getFilters().stream().reduce(x -> true, Predicate::and);
     }

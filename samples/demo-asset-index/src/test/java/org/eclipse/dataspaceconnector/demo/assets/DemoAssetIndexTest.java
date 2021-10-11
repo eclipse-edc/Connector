@@ -37,6 +37,6 @@ public class DemoAssetIndexTest {
     @Test
     public void testIndexReturnsAllFixtures() {
         Stream<Asset> assets = fixtureAssetIndex.queryAssets(SELECT_ALL);
-        Assertions.assertEquals(DemoFixtures.FIXTURES.length, assets.count());
+        Assertions.assertEquals(DemoFixtures.getAssets().size(), assets.count());
     }
 }

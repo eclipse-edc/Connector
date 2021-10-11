@@ -19,43 +19,28 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
-import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class DemoAssetIndex implements AssetIndex {
 
-    private static final List<Asset> ASSETS = Arrays.stream(DemoFixtures.FIXTURES)
-            .map(DemoFixtures.AssetFactory::create)
-            .collect(Collectors.toList());
+    private static final List<Asset> ASSETS = DemoFixtures.getAssets();
 
     @Override
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-        return Optional.ofNullable(expression)
-                .map(this::buildPredicate)
-                .map(this::filterAssets)
-                .orElseGet(Stream::empty);
+        throw new UnsupportedOperationException("Not yet implemented!");
     }
 
     @Override
     public Asset findById(String assetId) {
-        return ASSETS.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
+        throw new UnsupportedOperationException("Not yet implemented!");
     }
 
     @Override
     public DataAddress resolveForAsset(Asset asset) {
-        return null;
-    }
 
-    private Stream<Asset> filterAssets(Predicate<Asset> assetPredicate) {
-        return ASSETS.stream().filter(assetPredicate);
-    }
-
-    private Predicate<Asset> buildPredicate(AssetSelectorExpression assetSelectorExpression) {
-        return buildPredicate(assetSelectorExpression.getFilters());
+        throw new UnsupportedOperationException("Not yet implemented!");
     }
 
     private Predicate<Asset> buildPredicate(List<Predicate<Asset>> predicates) {

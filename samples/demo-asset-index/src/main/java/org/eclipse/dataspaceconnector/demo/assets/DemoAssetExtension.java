@@ -35,10 +35,10 @@ public class DemoAssetExtension implements ServiceExtension {
     }
 
     @Override
-    public void initialize(final ServiceExtensionContext context) {
+    public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        final DemoAssetIndex demoAssetIndex = new DemoAssetIndex();
+        DemoAssetIndex demoAssetIndex = new DemoAssetIndex();
 
         context.registerService(AssetIndex.class, demoAssetIndex);
 
