@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
+import info.schnatterer.mobynamesgenerator.MobyNamesGenerator;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapterRegistry;
@@ -16,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static net.jodah.failsafe.Failsafe.with;
@@ -27,11 +29,12 @@ public class CrawlerImpl implements Crawler {
     private final BlockingQueue<UpdateResponse> queue;
     private final RetryPolicy<Object> retryPolicy;
     private final WorkItemQueue workItems;
-    private final Duration workQueuePollTimeout;
+    private final Supplier<Duration> workQueuePollTimeout;
     private final ReentrantLock lock;
     private final AtomicBoolean isActive;
+    private final String crawlerId;
 
-    CrawlerImpl(WorkItemQueue workItems, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> retryPolicy, ProtocolAdapterRegistry protocolAdapterRegistry, Duration workQueuePollTimeout) {
+    CrawlerImpl(WorkItemQueue workItems, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> retryPolicy, ProtocolAdapterRegistry protocolAdapterRegistry, Supplier<Duration> workQueuePollTimeout) {
         this.workItems = workItems;
         this.protocolAdapterRegistry = protocolAdapterRegistry;
         this.monitor = monitor;
@@ -40,6 +43,7 @@ public class CrawlerImpl implements Crawler {
         this.workQueuePollTimeout = workQueuePollTimeout;
         lock = new ReentrantLock();
         isActive = new AtomicBoolean(true);
+        crawlerId = format("\"%s\"", MobyNamesGenerator.getRandomName().replace("_", " "));
     }
 
 
@@ -50,19 +54,19 @@ public class CrawlerImpl implements Crawler {
             lock.lock();
             WorkItem item = null;
             try {
-                item = workItems.poll(workQueuePollTimeout.toMillis(), TimeUnit.MILLISECONDS);
+                item = workItems.poll(workQueuePollTimeout.get().toMillis(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 handleError(item, e.getMessage());
             }
 
-            monitor.debug(item == null ? "Nothing to do" : "WorkItem acquired");
+            monitor.debug(format("%s: %s", crawlerId, item == null ? "Nothing to do" : "WorkItem acquired"));
             if (item != null) {
                 // search for an adapter
                 var adapters = protocolAdapterRegistry.findForProtocol(item.getProtocol());
 
                 if (adapters.isEmpty()) {
                     // otherwise error out the workitem
-                    handleError(item, "No Adapter found for protocol " + item.getProtocol());
+                    handleError(item, crawlerId + ": No Adapter found for protocol " + item.getProtocol());
                 } else {
                     // if the adapters are found, use them to send the update request
                     WorkItem finalItem = item;
@@ -87,7 +91,7 @@ public class CrawlerImpl implements Crawler {
 
     public CompletableFuture<Void> join(long timeout, TimeUnit unit) {
         return CompletableFuture.supplyAsync(() -> {
-            monitor.debug("Stopping Crawler");
+            monitor.debug(crawlerId + ": Stopping");
             isActive.set(false);
             try {
                 return lock.tryLock(timeout, unit);
@@ -111,10 +115,10 @@ public class CrawlerImpl implements Crawler {
     }
 
     private void handleResponse(UpdateResponse updateResponse) {
-        monitor.info(format("update-response received: %s", updateResponse.toString()));
+        monitor.info(format("%s: update-response received: %s", crawlerId, updateResponse.toString()));
         var offered = with(retryPolicy).get(() -> queue.offer(updateResponse));
         if (!offered) {
-            monitor.severe("Inserting update-response into queue failed due to timeout!");
+            monitor.severe(crawlerId + ": Inserting update-response into queue failed due to timeout!");
         }
     }
 
@@ -125,7 +129,7 @@ public class CrawlerImpl implements Crawler {
         private BlockingQueue<UpdateResponse> queue;
         private RetryPolicy<Object> retryPolicy;
         private WorkItemQueue workItems;
-        private Duration workQueuePollTimeout;
+        private Supplier<Duration> workQueuePollTimeout;
 
         private Builder() {
         }
@@ -144,7 +148,7 @@ public class CrawlerImpl implements Crawler {
             return this;
         }
 
-        public Builder workQueuePollTimeout(Duration duration) {
+        public Builder workQueuePollTimeout(Supplier<Duration> duration) {
             workQueuePollTimeout = duration;
             return this;
         }

@@ -30,6 +30,10 @@ dependencies {
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))
 
+    //FIXME for testing only: spin up a runtime that contains an FCC
+    implementation(project(":extensions:catalog:federated-catalog-cache"))
+    implementation(project(":extensions:in-memory:node-directory-memory"))
+    implementation(project(":extensions:in-memory:fcc-protocol-registry-memory"))
 }
 
 application {

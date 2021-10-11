@@ -59,7 +59,7 @@ class PartitionManagerImplTest {
         generatorFunction = workItemQueue -> CrawlerImpl.Builder.newInstance()
                 .retryPolicy(new RetryPolicy<>())
                 .monitor(monitorMock)
-                .workQueuePollTimeout(Duration.of(5, ChronoUnit.SECONDS))
+                .workQueuePollTimeout(() -> Duration.of(5, ChronoUnit.SECONDS))
                 .workItems(workItemQueue)
                 .protocolAdapters(registry)
                 .queue(new ArrayBlockingQueue<>(10))

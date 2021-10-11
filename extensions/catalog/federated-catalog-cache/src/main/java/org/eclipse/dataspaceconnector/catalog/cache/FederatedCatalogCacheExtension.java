@@ -7,6 +7,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerI
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
+import org.eclipse.dataspaceconnector.catalog.spi.PartitionConfiguration;
 import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
@@ -16,6 +17,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.stream.Collectors;
@@ -39,19 +41,30 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var queue = new ArrayBlockingQueue<UpdateResponse>(DEFAULT_QUEUE_LENGTH);
 
-        // protocol registry
+        // protocol registry - must be supplied by another extension
         var protocolAdapterRegistry = context.getService(ProtocolAdapterRegistry.class);
 
-        // get all known nodes
+        // get all known nodes from node directory - must be supplied by another extension
         var directory = context.getService(FederatedCacheNodeDirectory.class);
         List<WorkItem> nodes = directory.getAll().stream().map(n -> new WorkItem(n.getUrl().toString(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
-        // lets create a simple partition manager:
-        var partitionManager = new PartitionManagerImpl(context.getMonitor(), new InMemoryWorkItemQueue(50), workItems -> createCrawler(workItems, context, protocolAdapterRegistry), 3, nodes);
+
+        //todo: maybe get this from a database or somewhere else?
+        var partitionConfig = new PartitionConfiguration(context);
+
+        // lets create a simple partition manager
+        var partitionManager = new PartitionManagerImpl(context.getMonitor(),
+                new InMemoryWorkItemQueue(partitionConfig.getWorkItemQueueSize(10)),
+                workItems -> createCrawler(workItems, context, protocolAdapterRegistry),
+                partitionConfig.getNumCrawlers(3),
+                nodes);
 
         // and a loader manager
-        var loaderManager = new LoaderManagerImpl(queue, List.of(batch -> context.getMonitor().info("Storing batch of size " + batch.size())), DEFAULT_BATCH_SIZE, () -> DEFAULT_RETRY_TIMEOUT_MILLIS);
+        var loaderManager = new LoaderManagerImpl(queue,
+                List.of(batch -> context.getMonitor().info("Storing batch of size " + batch.size())),
+                partitionConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE),
+                () -> partitionConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS));
 
-
+        //todo: think about how to keep the manager and the loader alive forever
     }
 
     @Override
@@ -76,7 +89,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 .retryPolicy(retryPolicy)
                 .workItems(workItems)
                 .protocolAdapters(protocolAdapters)
-                .workQueuePollTimeout(Duration.ofSeconds(5))
+                .workQueuePollTimeout(() -> Duration.ofMillis(2000 + new Random().nextInt(3000)))
                 .build();
     }
 }

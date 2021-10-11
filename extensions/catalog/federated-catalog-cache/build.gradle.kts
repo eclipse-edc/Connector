@@ -13,6 +13,10 @@ dependencies {
     implementation(project(":common:util"))
     implementation("org.junit.jupiter:junit-jupiter:5.7.0")
 
+    // generates random names
+    // fixme: remove before PR submit
+    implementation("info.schnatterer.moby-names-generator:moby-names-generator:20.10.0-r0")
+
     testImplementation(project(":core:bootstrap")) //for the console monitor
 
 }
