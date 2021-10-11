@@ -24,7 +24,7 @@ based on the contained information. Return values will be interpreted as follows
  
 An HTTP(s) status endpoint must be configured that accepts a GET and returns a JSON-encoded boolean value. If true, the data transfer is complete; otherwise it is ongoing. 
 
-# Local Functions
-
-Local functions are implementations that initiate a data transfer from within the connector process. Note these functions can invoke external data transfer infrastructure that
-performs the actual transfer out-of-process. In most cases, this is the recommended approach as opposed to performing data transfer within the connector process.  
+## Using Interceptors
+              
+OKHttp interceptors can be added to mediate requests to a transfer function endpoint. For example, interceptors may decorate requests with an authentication header. 
+See `TransferFunctionInterceptorRegistry`. 

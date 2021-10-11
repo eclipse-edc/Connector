@@ -23,28 +23,18 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionConfiguration;
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpStatusChecker;
-import org.eclipse.dataspaceconnector.transfer.functions.core.flow.local.LocalFunctionDataFlowController;
-import org.eclipse.dataspaceconnector.transfer.functions.core.flow.local.LocalStatusChecker;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
-import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.local.LocalTransferFunction;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashSet;
 import java.util.Set;
 
-import static java.lang.Integer.parseInt;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.emptySet;
-import static java.util.concurrent.TimeUnit.SECONDS;
 
 /**
- * Bootstraps the transfer functions extension. Two configurations are supported, as determined by the {@link #TRANSFER_TYPE} setting:
- *
- * <ol>
- * <li>HTTP - The extension delegates to an HTTP endpoint to initiate and manage data transfers.</li>
- * <li>LOCAL - The extension delegates to an-process {@link LocalTransferFunction} to initiate and manage data transfers.</li>
- * </ol>
+ * Bootstraps the transfer functions extension.
  */
 public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
 
@@ -52,27 +42,17 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     static final String ENABLED_PROTOCOLS_KEY = "edc.transfer.functions.enabled.protocols";
 
     @EdcSetting
-    static final String DEFAULT_TIMEOUT_KEY = "edc.transfer.functions.timeout";
-
-    @EdcSetting
     static final String TRANSFER_URL_KEY = "edc.transfer.functions.transfer.endpoint";
 
     @EdcSetting
     static final String CHECK_URL_KEY = "edc.transfer.functions.check.endpoint";
-
-    @EdcSetting
-    static final String TRANSFER_TYPE = "edc.transfer.functions.type";
-
-    private static final String DEFAULT_TIMEOUT = "30";
 
     private static final String DEFAULT_LOCAL_TRANSFER_URL = "http://localhost:9090/transfer";
     private static final String DEFAULT_LOCAL_CHECK_URL = "http://localhost:9090/checker";
 
     private Monitor monitor;
 
-    private boolean localTransfer;
     private Set<String> protocols;
-    private ServiceExtensionContext context;
 
     @Override
     public Set<String> provides() {
@@ -81,40 +61,17 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        this.context = context;
         monitor = context.getMonitor();
 
         protocols = getSupportedProtocols(context);
 
-        var transferType = context.getSetting(TRANSFER_TYPE, "HTTP");
-        localTransfer = "LOCAL".equalsIgnoreCase(transferType);
-
-        if (localTransfer) {
-            monitor.info("Local transfer functions are enabled");
-        } else {
-            initializeHttpFunctions(context);
-        }
+        initializeHttpFunctions(context);
 
         monitor.info("Initialized Transfer Functions Core extension");
     }
 
     @Override
     public void start() {
-        if (localTransfer) {
-            var localTransferFunction = context.getService(LocalTransferFunction.class, true);
-            if (localTransferFunction == null) {
-                monitor.severe("Local transfer functions are configured. An implementation of " +
-                        LocalTransferFunction.class.getName() + " must be provided. Transfer functions are disabled.");
-                return;
-            }
-            var flowController = new LocalFunctionDataFlowController(protocols, localTransferFunction);
-            var flowManager = context.getService(DataFlowManager.class);
-            flowManager.register(flowController);
-
-            var statusChecker = new LocalStatusChecker(localTransferFunction);
-            var statusCheckerRegistry = context.getService(StatusCheckerRegistry.class);
-            protocols.forEach(protocol -> statusCheckerRegistry.register(protocol, statusChecker));
-        }
         monitor.info("Started Transfer Functions Core extension");
     }
 
@@ -166,12 +123,11 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     }
 
     /**
-     * Creates an HTTP client. Note that this extension does not use the default runtime HTTP client since this extension allows custom interceptors to be added.
+     * Creates an HTTP client. Note that this extension copies the default runtime HTTP client since this extension allows custom interceptors to be added.
      */
     private OkHttpClient.Builder createHttpClient(ServiceExtensionContext context) {
-        var defaultTimeout = parseInt(context.getSetting(DEFAULT_TIMEOUT_KEY, DEFAULT_TIMEOUT));
-        return new OkHttpClient.Builder().connectTimeout(defaultTimeout, SECONDS).readTimeout(defaultTimeout, SECONDS);
+        var defaultClient = context.getService(OkHttpClient.class);
+        return defaultClient.newBuilder();
     }
-
 
 }

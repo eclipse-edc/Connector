@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -32,11 +31,10 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static okhttp3.Protocol.HTTP_1_1;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFunctionsCoreServiceExtension.ENABLED_PROTOCOLS_KEY;
-import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFunctionsCoreServiceExtension.TRANSFER_TYPE;
 
 /**
  * Verifies the HTTP flow controller works.
@@ -48,10 +46,8 @@ public class TransferFunctionsCoreHttpTest {
     void verifyHttpFlowControllerInvoked(TransferProcessManager processManager, TransferFunctionInterceptorRegistry registry) throws InterruptedException {
 
         final var latch = new CountDownLatch(1);
-        var invoked = new AtomicBoolean();
 
         registry.registerHttpInterceptor(chain -> {
-            invoked.set(true);
             latch.countDown();
             return new Response.Builder()
                     .request(chain.request())
@@ -73,14 +69,12 @@ public class TransferFunctionsCoreHttpTest {
 
         processManager.initiateProviderRequest(dataRequest);
 
-        latch.await(1, TimeUnit.MINUTES);
-        Assertions.assertTrue(invoked.get());
+        assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
     }
 
     @BeforeEach
     protected void before(EdcExtension extension) {
         System.setProperty(ENABLED_PROTOCOLS_KEY, "test-protocol1");
-        System.setProperty(TRANSFER_TYPE, "http");
 
         // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
@@ -89,7 +83,6 @@ public class TransferFunctionsCoreHttpTest {
     @AfterEach
     protected void after() {
         System.clearProperty(ENABLED_PROTOCOLS_KEY);
-        System.clearProperty(TRANSFER_TYPE);
     }
 
 }
