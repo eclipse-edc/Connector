@@ -21,6 +21,10 @@ public class Dat {
         return token;
     }
 
+    public Instant getExpiration() {
+        return expirationDate;
+    }
+
     public boolean isExpired() {
         return expirationDate.isAfter(Instant.now());
     }

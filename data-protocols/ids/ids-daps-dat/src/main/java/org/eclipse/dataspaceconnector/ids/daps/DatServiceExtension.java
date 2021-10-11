@@ -10,6 +10,7 @@ import org.eclipse.dataspaceconnector.ids.daps.sec.CertificateProviderImpl;
 import org.eclipse.dataspaceconnector.ids.daps.sec.PrivateKeyProvider;
 import org.eclipse.dataspaceconnector.ids.daps.sec.PrivateKeyProviderImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -31,7 +32,8 @@ public class DatServiceExtension implements ServiceExtension {
     };
 
     private static final String[] PROVIDES = {
-            "edc:ids:daps:client"
+            "edc:ids:daps:client",
+            IdentityService.FEATURE
     };
 
     @Override
@@ -60,11 +62,13 @@ public class DatServiceExtension implements ServiceExtension {
     private void registerComponents(final ServiceExtensionContext serviceExtensionContext) throws Exception {
         final DapsClient dapsClient = createDapsClient(serviceExtensionContext);
         final DatService datService = new DatServiceImpl(dapsClient);
+        final IdentityServiceImpl datIdentityService = new IdentityServiceImpl(datService, serviceExtensionContext.getMonitor());
 
         serviceExtensionContext.registerService(DatService.class, datService);
+        serviceExtensionContext.registerService(IdentityService.class, datIdentityService);
     }
 
-    private DapsIssuer dapsIssuer(final ServiceExtensionContext serviceExtensionContext) throws Exception {
+    private DapsIssuer dapsIssuer(final ServiceExtensionContext serviceExtensionContext) {
         final CertificateProvider certificateProvider = certificateProvider(serviceExtensionContext);
         return new X509CertificateDapsIssuer(certificateProvider);
     }
@@ -94,9 +98,7 @@ public class DatServiceExtension implements ServiceExtension {
         final OkHttpClient httpClient = httpClient(serviceExtensionContext);
         final ObjectMapper objectMapper = objectMapper(serviceExtensionContext);
 
-        return new DapsClient(
-                tokenUrl, privateKeyProvider, dapsIssuer, httpClient, objectMapper
-        );
+        return new DapsClient(tokenUrl, privateKeyProvider, dapsIssuer, httpClient, objectMapper);
     }
 
     private ObjectMapper objectMapper(final ServiceExtensionContext serviceExtensionContext) {
@@ -108,7 +110,8 @@ public class DatServiceExtension implements ServiceExtension {
         final String url = serviceExtensionContext.getSetting(DatServiceExtensionSettings.EDC_IDS_DAPS_TOKEN_URL, null);
 
         if (url == null) {
-            throw new EdcException(String.format("Configuration %s is required", DatServiceExtensionSettings.EDC_IDS_DAPS_TOKEN_URL));
+            throw new EdcException(
+                    String.format("Configuration %s is required", DatServiceExtensionSettings.EDC_IDS_DAPS_TOKEN_URL));
         }
 
         return new URL(url);
