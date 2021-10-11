@@ -14,43 +14,65 @@
 
 package org.eclipse.dataspaceconnector.spi.asset;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Labels are used to trim down the selection of assets. If the carried hash
  * of labels is empty all available assets are eligible for selection.
  */
 public final class AssetSelectorExpression {
-    private final Map<String, String> filterLabels = new HashMap<>();
 
-    private AssetSelectorExpression(final Map<String, String> filterLabels) {
-        Optional.ofNullable(filterLabels).ifPresent(this.filterLabels::putAll);
+    private List<Predicate<Asset>> filters;
+
+    public AssetSelectorExpression() {
+        filters = new ArrayList<>();
     }
 
-    public Map<String, String> getFilterLabels() {
-        return Collections.unmodifiableMap(filterLabels);
-    }
-
-    public static Builder builder() {
-        return new Builder();
+    public List<Predicate<Asset>> getFilters() {
+        return filters;
     }
 
     public static final class Builder {
-        private final Map<String, String> labels = new HashMap<>();
+        private final AssetSelectorExpression expression;
 
         private Builder() {
+            expression = new AssetSelectorExpression();
+
         }
 
-        public Builder filterByLabel(final String key, final String value) {
-            this.labels.put(key, value);
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder filters(List<Predicate<Asset>> filters) {
+            expression.filters = filters;
             return this;
         }
 
+        public Builder withFilter(Predicate<Asset> predicate) {
+            expression.filters.add(predicate);
+            return this;
+        }
+
+        public Builder withFilter(String fieldName, Object equalsValue) {
+            Predicate<Asset> pred = (asset) -> {
+                try {
+                    return Objects.equals(asset.getClass().getDeclaredField(fieldName).get(asset), equalsValue);
+                } catch (IllegalAccessException | NoSuchFieldException e) {
+                    throw new RuntimeException(e);
+                }
+            };
+
+            return withFilter(pred);
+        }
+
         public AssetSelectorExpression build() {
-            return new AssetSelectorExpression(labels);
+            return expression;
         }
     }
 }

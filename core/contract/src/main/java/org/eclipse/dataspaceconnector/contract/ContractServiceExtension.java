@@ -37,7 +37,7 @@ public class ContractServiceExtension implements ServiceExtension {
     }
 
     @Override
-    public void initialize(final ServiceExtensionContext serviceExtensionContext) {
+    public void initialize(ServiceExtensionContext serviceExtensionContext) {
         monitor = serviceExtensionContext.getMonitor();
 
         registerServices(serviceExtensionContext);
@@ -55,35 +55,28 @@ public class ContractServiceExtension implements ServiceExtension {
         monitor.info(String.format("Shutdown %s", NAME));
     }
 
-    private void registerServices(final ServiceExtensionContext serviceExtensionContext) {
-        /*
-         * Construct an AssetIndexLocator for finding several AssetIndexes provided via extensions
-         */
-        final AssetIndexLocator assetIndexLocator = new AssetIndexLocator(serviceExtensionContext);
-        /*
-         * Add the default asset index delegating calls to extensions
-         */
-        final AssetIndex assetIndex = new CompositeAssetIndex(
-                assetIndexLocator,
-                serviceExtensionContext.getMonitor());
+    private void registerServices(ServiceExtensionContext serviceExtensionContext) {
+
+        AssetIndex assetIndex = null;
+
         /*
          * Construct a ContractOfferFrameworkLocator for finding several ContractOfferFrameworks provided via extensions
          */
-        final ContractOfferFrameworkLocator compositeContractOfferFramework = new ContractOfferFrameworkLocator(
+        ContractOfferFrameworkLocator compositeContractOfferFramework = new ContractOfferFrameworkLocator(
                 serviceExtensionContext
         );
         /*
          * There is always one default contract offer framework instance
          * delegating calls to those provided by custom extensions.
          */
-        final ContractOfferFramework contractOfferFramework = new CompositeContractOfferFramework(
+        ContractOfferFramework contractOfferFramework = new CompositeContractOfferFramework(
                 compositeContractOfferFramework,
                 serviceExtensionContext.getMonitor());
         /*
          * Contract offer service calculates contract offers using a variety of contract offer frameworks
          * ad the given asset index.
          */
-        final ContractOfferService contractOfferService = new ContractOfferServiceImpl(
+        ContractOfferService contractOfferService = new ContractOfferServiceImpl(
                 contractOfferFramework,
                 assetIndex
         );

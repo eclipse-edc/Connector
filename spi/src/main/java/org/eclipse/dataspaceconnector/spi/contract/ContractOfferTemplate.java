@@ -18,17 +18,15 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
  * The {@link ContractOfferTemplate} resolves {@link ContractOffer}s for a stream of {@link Asset}s.
  * {@link Asset}s are resolved using the {@link AssetSelectorExpression}.
- *
  */
 public interface ContractOfferTemplate {
 
     Stream<ContractOffer> getTemplatedOffers(Stream<Asset> assets);
 
-    Optional<AssetSelectorExpression> getSelectorExpression();
+    AssetSelectorExpression getSelectorExpression();
 }

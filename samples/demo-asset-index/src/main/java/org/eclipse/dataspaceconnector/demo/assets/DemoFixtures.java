@@ -127,6 +127,10 @@ final class DemoFixtures {
         private String url;
         private String type;
 
+        public static Fixture.Builder builder() {
+            return new Fixture.Builder();
+        }
+
         public String getId() {
             return id;
         }
@@ -161,10 +165,6 @@ final class DemoFixtures {
 
         public String getType() {
             return type;
-        }
-
-        public static Fixture.Builder builder() {
-            return new Fixture.Builder();
         }
 
         public static final class Builder {
@@ -227,39 +227,36 @@ final class DemoFixtures {
             }
 
             public Fixture build() {
-                final Fixture fixture = new Fixture();
-                fixture.version = this.version;
-                fixture.year = this.year;
-                fixture.url = this.url;
-                fixture.size = this.size;
-                fixture.title = this.title;
-                fixture.pages = this.pages;
-                fixture.category = this.category;
-                fixture.id = this.id;
-                fixture.type = this.type;
+                Fixture fixture = new Fixture();
+                fixture.version = version;
+                fixture.year = year;
+                fixture.url = url;
+                fixture.size = size;
+                fixture.title = title;
+                fixture.pages = pages;
+                fixture.category = category;
+                fixture.id = id;
+                fixture.type = type;
                 return fixture;
             }
         }
     }
 
     static final class AssetFactory {
-        public static Asset create(final DemoFixtures.Fixture fixture) {
-            final Asset.Builder builder = Asset.Builder.newInstance();
+        public static Asset create(DemoFixtures.Fixture fixture) {
+            Asset.Builder builder = Asset.Builder.newInstance();
 
             Optional.ofNullable(fixture.getId())
                     .ifPresent(builder::id);
 
             Optional.ofNullable(fixture.getTitle())
-                    .ifPresent(builder::title);
+                    .ifPresent(builder::name);
 
             Optional.ofNullable(fixture.getVersion())
                     .ifPresent(builder::version);
 
             Optional.ofNullable(fixture.getCategory())
                     .ifPresent(builder::description);
-
-            Optional.ofNullable(fixture.getType())
-                    .ifPresent(builder::fileExtension);
 
             return builder.build();
         }

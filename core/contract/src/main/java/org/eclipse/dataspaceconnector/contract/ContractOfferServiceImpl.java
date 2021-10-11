@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFrameworkQuery;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
@@ -34,8 +35,8 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     private final AssetIndex assetIndex;
 
     public ContractOfferServiceImpl(
-            final ContractOfferFramework contractOfferFramework,
-            final AssetIndex assetIndex
+            ContractOfferFramework contractOfferFramework,
+            AssetIndex assetIndex
     ) {
         Objects.requireNonNull(contractOfferFramework, "ContractOfferFramework must not be null!");
         Objects.requireNonNull(assetIndex, "AssetIndex must not be null!");
@@ -45,11 +46,11 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     }
 
     @Override
-    public ContractOfferQueryResponse queryContractOffers(final ContractOfferQuery contractOfferQuery) {
-        final ContractOfferFrameworkQuery contractOfferFrameworkQuery =
+    public ContractOfferQueryResponse queryContractOffers(ContractOfferQuery contractOfferQuery) {
+        ContractOfferFrameworkQuery contractOfferFrameworkQuery =
                 createContractOfferFrameworkQuery(contractOfferQuery);
 
-        final Stream<ContractOfferTemplate> contractOfferTemplates = Optional.ofNullable(
+        Stream<ContractOfferTemplate> contractOfferTemplates = Optional.ofNullable(
                         contractOfferFramework.queryTemplates(contractOfferFrameworkQuery))
                 .orElseGet(Stream::empty);
 
@@ -58,17 +59,20 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     }
 
     private Stream<ContractOffer> createContractOfferFromTemplate(
-            final ContractOfferTemplate contractOfferTemplate) {
-        final Stream<Asset> assetStream = contractOfferTemplate.getSelectorExpression()
-                .map(assetIndex::queryAssets)
-                .orElseGet(Stream::empty);
+            ContractOfferTemplate contractOfferTemplate) {
+        AssetSelectorExpression selectorExpression = contractOfferTemplate.getSelectorExpression();
+        if (selectorExpression != null) {
+            Stream<Asset> assetStream = assetIndex.queryAssets(selectorExpression);
+            return contractOfferTemplate.getTemplatedOffers(assetStream);
+        }
 
-        return contractOfferTemplate.getTemplatedOffers(assetStream);
+        return Stream.empty();
+
     }
 
     private ContractOfferFrameworkQuery createContractOfferFrameworkQuery(
-            final ContractOfferQuery contractOfferQuery) {
-        final ContractOfferFrameworkQuery.Builder builder = ContractOfferFrameworkQuery.builder();
+            ContractOfferQuery contractOfferQuery) {
+        ContractOfferFrameworkQuery.Builder builder = ContractOfferFrameworkQuery.builder();
 
         Optional.ofNullable(contractOfferQuery.getPrincipal())
                 .ifPresent(builder::principal);

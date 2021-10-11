@@ -25,7 +25,7 @@ import java.util.stream.Stream;
 
 public class DemoAssetIndexTest {
 
-    private static final AssetSelectorExpression SELECT_ALL = AssetSelectorExpression.builder().build();
+    private static final AssetSelectorExpression SELECT_ALL = AssetSelectorExpression.Builder.newInstance().build();
 
     private AssetIndex fixtureAssetIndex;
 
@@ -36,7 +36,7 @@ public class DemoAssetIndexTest {
 
     @Test
     public void testIndexReturnsAllFixtures() {
-        final Stream<Asset> assets = fixtureAssetIndex.queryAssets(SELECT_ALL);
+        Stream<Asset> assets = fixtureAssetIndex.queryAssets(SELECT_ALL);
         Assertions.assertEquals(DemoFixtures.FIXTURES.length, assets.count());
     }
 }

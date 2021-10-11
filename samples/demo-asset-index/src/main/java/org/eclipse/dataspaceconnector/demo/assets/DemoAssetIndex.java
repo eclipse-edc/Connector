@@ -17,12 +17,10 @@ package org.eclipse.dataspaceconnector.demo.assets;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -35,47 +33,36 @@ public class DemoAssetIndex implements AssetIndex {
             .collect(Collectors.toList());
 
     @Override
-    public Stream<Asset> queryAssets(final AssetSelectorExpression expression) {
+    public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         return Optional.ofNullable(expression)
                 .map(this::buildPredicate)
                 .map(this::filterAssets)
                 .orElseGet(Stream::empty);
     }
 
-    private Stream<Asset> filterAssets(final Predicate<Asset> assetPredicate) {
+    @Override
+    public Asset findById(String assetId) {
+        return ASSETS.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
+    }
+
+    @Override
+    public DataAddress resolveForAsset(Asset asset) {
+        return null;
+    }
+
+    private Stream<Asset> filterAssets(Predicate<Asset> assetPredicate) {
         return ASSETS.stream().filter(assetPredicate);
     }
 
-    private Predicate<Asset> buildPredicate(final AssetSelectorExpression assetSelectorExpression) {
-        return buildPredicate(assetSelectorExpression.getFilterLabels());
+    private Predicate<Asset> buildPredicate(AssetSelectorExpression assetSelectorExpression) {
+        return buildPredicate(assetSelectorExpression.getFilters());
     }
 
-    private Predicate<Asset> buildPredicate(final Map<String, String> labels) {
+    private Predicate<Asset> buildPredicate(List<Predicate<Asset>> predicates) {
         // bag for collecting all composable predicates
-        final List<Predicate<Asset>> predicates = new LinkedList<>();
-
-        predicates.add(new LabelsPredicate(Optional.ofNullable(labels).orElseGet(Collections::emptyMap)));
 
         // if example asset does not provide any meaningful properties this will
         // lead to true
         return predicates.stream().reduce(x -> true, Predicate::and);
-    }
-
-    private static class LabelsPredicate implements Predicate<Asset> {
-        private final Map<String, String> labels;
-
-        private LabelsPredicate(final Map<String, String> labels) {
-            this.labels = labels;
-        }
-
-        @Override
-        public boolean test(final Asset asset) {
-            // iterate through all labels and check for equality
-            // Note: map#equals not usable here!
-            labels.entrySet().stream().allMatch(kv -> asset.getLabels().containsKey(kv.getKey()) &&
-                    kv.getValue().equals(asset.getLabels().get(kv.getKey())));
-
-            return true;
-        }
     }
 }
