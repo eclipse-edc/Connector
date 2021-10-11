@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.catalog.cache.management;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
@@ -9,6 +10,8 @@ import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.RecurringExecutionPlan;
+import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
+import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,6 +22,7 @@ import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
@@ -26,7 +30,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.niceMock;
+import static org.easymock.EasyMock.replay;
 
 class PartitionManagerImplTest {
     public static final int WORK_ITEM_COUNT = 1000;
@@ -41,14 +48,23 @@ class PartitionManagerImplTest {
     void setup() {
         latch = new CountDownLatch(WORK_ITEM_COUNT);
         workItemQueue = new SignalingWorkItemQueue(WORK_ITEM_COUNT + 1, latch);
-        staticWorkLoad = IntStream.range(0, WORK_ITEM_COUNT).mapToObj(i -> new TestWorkItem(ProtocolAdapter.class)).collect(Collectors.toList());
+        staticWorkLoad = IntStream.range(0, WORK_ITEM_COUNT).mapToObj(i -> new TestWorkItem()).collect(Collectors.toList());
+
+        ProtocolAdapter adapterMock = niceMock(ProtocolAdapter.class);
+        expect(adapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse())).anyTimes();
+        replay(adapterMock);
+
+        TestProtocolAdapterRegistry registry = new TestProtocolAdapterRegistry(adapterMock);
+
         generatorFunction = workItemQueue -> CrawlerImpl.Builder.newInstance()
                 .retryPolicy(new RetryPolicy<>())
                 .monitor(monitorMock)
-                .waitItemTime(Duration.of(5, ChronoUnit.SECONDS))
+                .workQueuePollTimeout(Duration.of(5, ChronoUnit.SECONDS))
                 .workItems(workItemQueue)
+                .protocolAdapters(registry)
                 .queue(new ArrayBlockingQueue<>(10))
                 .build();
+
     }
 
     @Test

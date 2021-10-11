@@ -2,7 +2,7 @@ package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
-import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
@@ -11,36 +11,33 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static net.jodah.failsafe.Failsafe.with;
 
 public class CrawlerImpl implements Crawler {
 
-    private final List<ProtocolAdapter> adapters;
+    private final ProtocolAdapterRegistry protocolAdapterRegistry;
     private final Monitor monitor;
     private final BlockingQueue<UpdateResponse> queue;
     private final RetryPolicy<Object> retryPolicy;
     private final WorkItemQueue workItems;
-    private final Duration waitForWorkItem;
+    private final Duration workQueuePollTimeout;
     private final ReentrantLock lock;
     private final AtomicBoolean isActive;
 
-    CrawlerImpl(WorkItemQueue workItems, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> retryPolicy, List<ProtocolAdapter> adapters, Duration waitForWorkItem) {
+    CrawlerImpl(WorkItemQueue workItems, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> retryPolicy, ProtocolAdapterRegistry protocolAdapterRegistry, Duration workQueuePollTimeout) {
         this.workItems = workItems;
-        this.adapters = adapters;
+        this.protocolAdapterRegistry = protocolAdapterRegistry;
         this.monitor = monitor;
         queue = responseQueue;
         this.retryPolicy = retryPolicy;
-        this.waitForWorkItem = waitForWorkItem;
+        this.workQueuePollTimeout = workQueuePollTimeout;
         lock = new ReentrantLock();
         isActive = new AtomicBoolean(true);
     }
@@ -53,7 +50,7 @@ public class CrawlerImpl implements Crawler {
             lock.lock();
             WorkItem item = null;
             try {
-                item = workItems.poll(waitForWorkItem.toMillis(), TimeUnit.MILLISECONDS);
+                item = workItems.poll(workQueuePollTimeout.toMillis(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 handleError(item, e.getMessage());
             }
@@ -61,11 +58,11 @@ public class CrawlerImpl implements Crawler {
             monitor.debug(item == null ? "Nothing to do" : "WorkItem acquired");
             if (item != null) {
                 // search for an adapter
-                var adapters = getMatchingAdapters(item, this.adapters);
+                var adapters = protocolAdapterRegistry.findForProtocol(item.getProtocol());
 
                 if (adapters.isEmpty()) {
-                    // otherwise error out the workitem);
-                    handleError(item, "No Adapter found for protocol " + item.getProtocolType());
+                    // otherwise error out the workitem
+                    handleError(item, "No Adapter found for protocol " + item.getProtocol());
                 } else {
                     // if the adapters are found, use them to send the update request
                     WorkItem finalItem = item;
@@ -81,11 +78,6 @@ public class CrawlerImpl implements Crawler {
             }
             lock.unlock();
         }
-    }
-
-    @Override
-    public void addAdapter(ProtocolAdapter adapter) {
-        adapters.add(adapter);
     }
 
     @Override
@@ -107,9 +99,6 @@ public class CrawlerImpl implements Crawler {
         }).thenCompose(bool -> bool ? CompletableFuture.completedFuture(null) : CompletableFuture.failedFuture(new RuntimeException("")));
     }
 
-    private List<ProtocolAdapter> getMatchingAdapters(WorkItem item, List<ProtocolAdapter> adapters) {
-        return adapters.stream().filter(adp -> adp.getClass().equals(item.getProtocolType())).collect(Collectors.toList());
-    }
 
     private void handleError(@Nullable WorkItem errorWorkItem, String message) {
         monitor.severe(message);
@@ -131,12 +120,12 @@ public class CrawlerImpl implements Crawler {
 
 
     public static final class Builder {
-        private List<ProtocolAdapter> adapters = new ArrayList<>();
+        private ProtocolAdapterRegistry adapters;
         private Monitor monitor;
         private BlockingQueue<UpdateResponse> queue;
         private RetryPolicy<Object> retryPolicy;
         private WorkItemQueue workItems;
-        private Duration waitForWorkItem;
+        private Duration workQueuePollTimeout;
 
         private Builder() {
         }
@@ -145,7 +134,7 @@ public class CrawlerImpl implements Crawler {
             return new Builder();
         }
 
-        public Builder adapters(List<ProtocolAdapter> adapters) {
+        public Builder protocolAdapters(ProtocolAdapterRegistry adapters) {
             this.adapters = adapters;
             return this;
         }
@@ -155,8 +144,8 @@ public class CrawlerImpl implements Crawler {
             return this;
         }
 
-        public Builder waitItemTime(Duration duration) {
-            waitForWorkItem = duration;
+        public Builder workQueuePollTimeout(Duration duration) {
+            workQueuePollTimeout = duration;
             return this;
         }
 
@@ -176,7 +165,7 @@ public class CrawlerImpl implements Crawler {
         }
 
         public CrawlerImpl build() {
-            return new CrawlerImpl(workItems, monitor, queue, retryPolicy, adapters, waitForWorkItem);
+            return new CrawlerImpl(workItems, monitor, queue, retryPolicy, adapters, workQueuePollTimeout);
         }
     }
 }

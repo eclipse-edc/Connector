@@ -6,7 +6,7 @@ import java.util.stream.Stream;
 public interface FederatedCacheNodeDirectory {
     String FEATURE = "edc:catalog:node-directory";
 
-    List<String> getAll();
+    List<FederatedCacheNode> getAll();
 
-    Stream<String> getAllAsync();
+    Stream<FederatedCacheNode> getAllAsync();
 }

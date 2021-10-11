@@ -1,9 +1,33 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
-public interface WorkItem {
-    <T extends ProtocolAdapter> Class<T> getProtocolType();
+import java.util.ArrayList;
+import java.util.List;
 
-    String getUrl();
+public class WorkItem {
+    private final String url;
+    private final String protocolName;
+    private final List<String> errors;
 
-    void error(String message);
+    public WorkItem(String url, String protocolName) {
+        this.url = url;
+        this.protocolName = protocolName;
+        errors = new ArrayList<>();
+    }
+
+    public String getProtocol() {
+        return protocolName;
+    }
+
+    public String getUrl() {
+        return url;
+    }
+
+    public void error(String message) {
+        errors.add(message);
+    }
+
+    public List<String> getErrors() {
+        return errors;
+    }
+
 }
