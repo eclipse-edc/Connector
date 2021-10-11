@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class DemoAssetIndex implements AssetIndex {
@@ -41,13 +40,5 @@ public class DemoAssetIndex implements AssetIndex {
     public DataAddress resolveForAsset(Asset asset) {
 
         throw new UnsupportedOperationException("Not yet implemented!");
-    }
-
-    private Predicate<Asset> buildPredicate(List<Predicate<Asset>> predicates) {
-        // bag for collecting all composable predicates
-
-        // if example asset does not provide any meaningful properties this will
-        // lead to true
-        return predicates.stream().reduce(x -> true, Predicate::and);
     }
 }

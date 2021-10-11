@@ -18,10 +18,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.List;
 
-/**
- * It is beyond me why we need a setup this unnecessarily complicated.
- * PLEASE change this to just generate Assets.
- */
 final class DemoFixtures {
 
     public static List<Asset> getAssets() {

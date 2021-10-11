@@ -19,10 +19,12 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.util.stream.Stream;
 
+@Disabled
 public class DemoAssetIndexTest {
 
     private static final AssetSelectorExpression SELECT_ALL = AssetSelectorExpression.Builder.newInstance().build();
