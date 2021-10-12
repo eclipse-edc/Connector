@@ -1,6 +1,10 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
+import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
+import org.eclipse.dataspaceconnector.catalog.spi.model.RecurringExecutionPlan;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+
+import java.time.Duration;
 
 public class PartitionConfiguration {
 
@@ -30,5 +34,9 @@ public class PartitionConfiguration {
 
     public long getLoaderRetryTimeout(int defaultValue) {
         return Integer.parseInt(context.getSetting(PART_LOADER_RETRY_TIMEOUT, String.valueOf(defaultValue)));
+    }
+
+    public ExecutionPlan getExecutionPlan() {
+        return new RecurringExecutionPlan(Duration.ofMinutes(10));
     }
 }

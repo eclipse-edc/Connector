@@ -16,7 +16,6 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
@@ -28,20 +27,18 @@ public class CrawlerImpl implements Crawler {
     private final Monitor monitor;
     private final BlockingQueue<UpdateResponse> queue;
     private final RetryPolicy<Object> retryPolicy;
-    private final WorkItemQueue workItems;
+    private final WorkItemQueue workItemQueue;
     private final Supplier<Duration> workQueuePollTimeout;
-    private final ReentrantLock lock;
     private final AtomicBoolean isActive;
     private final String crawlerId;
 
-    CrawlerImpl(WorkItemQueue workItems, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> retryPolicy, ProtocolAdapterRegistry protocolAdapterRegistry, Supplier<Duration> workQueuePollTimeout) {
-        this.workItems = workItems;
+    CrawlerImpl(WorkItemQueue workItemQueue, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> retryPolicy, ProtocolAdapterRegistry protocolAdapterRegistry, Supplier<Duration> workQueuePollTimeout) {
+        this.workItemQueue = workItemQueue;
         this.protocolAdapterRegistry = protocolAdapterRegistry;
         this.monitor = monitor;
         queue = responseQueue;
         this.retryPolicy = retryPolicy;
         this.workQueuePollTimeout = workQueuePollTimeout;
-        lock = new ReentrantLock();
         isActive = new AtomicBoolean(true);
         crawlerId = format("\"%s\"", MobyNamesGenerator.getRandomName().replace("_", " "));
     }
@@ -51,20 +48,21 @@ public class CrawlerImpl implements Crawler {
     public void run() {
 
         while (isActive.get()) {
-            lock.lock();
+            workItemQueue.lock();
             WorkItem item = null;
             try {
-                item = workItems.poll(workQueuePollTimeout.get().toMillis(), TimeUnit.MILLISECONDS);
+                item = workItemQueue.poll(workQueuePollTimeout.get().toMillis(), TimeUnit.MILLISECONDS);
             } catch (InterruptedException e) {
                 handleError(item, e.getMessage());
             }
 
-            monitor.debug(format("%s: %s", crawlerId, item == null ? "Nothing to do" : "WorkItem acquired"));
+            if (item != null)
+                monitor.debug(format("%s: WorkItem acquired", crawlerId));
             if (item != null) {
                 // search for an adapter
                 var adapters = protocolAdapterRegistry.findForProtocol(item.getProtocol());
 
-                if (adapters.isEmpty()) {
+                if (adapters == null || adapters.isEmpty()) {
                     // otherwise error out the workitem
                     handleError(item, crawlerId + ": No Adapter found for protocol " + item.getProtocol());
                 } else {
@@ -80,7 +78,7 @@ public class CrawlerImpl implements Crawler {
                             }));
                 }
             }
-            lock.unlock();
+            workItemQueue.unlock();
         }
     }
 
@@ -94,11 +92,9 @@ public class CrawlerImpl implements Crawler {
             monitor.debug(crawlerId + ": Stopping");
             isActive.set(false);
             try {
-                return lock.tryLock(timeout, unit);
-            } catch (InterruptedException e) {
-                return false;
+                return workItemQueue.tryLock(timeout, unit);
             } finally {
-                lock.unlock();
+                workItemQueue.unlock();
             }
         }).thenCompose(bool -> bool ? CompletableFuture.completedFuture(null) : CompletableFuture.failedFuture(new RuntimeException("")));
     }

@@ -66,7 +66,14 @@ public class PartitionManagerImpl implements PartitionManager {
     @Override
     public void schedule(ExecutionPlan executionPlan) {
         //todo: should we really discard updates?
-        executionPlan.run(() -> workQueue.addAll(staticWorkLoad));
+        executionPlan.run(() -> {
+            monitor.debug("partition manager: execute plan - waiting for queue lock");
+            workQueue.lock();
+            monitor.debug("partition manager: execute plan - adding workload " + staticWorkLoad.size());
+            workQueue.addAll(staticWorkLoad);
+            monitor.debug("partition manager: execute release queue lock");
+            workQueue.unlock();
+        });
     }
 
     @Override
