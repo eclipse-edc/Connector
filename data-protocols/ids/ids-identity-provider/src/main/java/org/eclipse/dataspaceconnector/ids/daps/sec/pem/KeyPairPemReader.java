@@ -40,6 +40,7 @@ public class KeyPairPemReader extends PemReader {
 
         EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(content);
         if (passphrase != null && passphrase.length > 0) {
+            // Note that OID 1.2.840.113549.1.5.13 is neither by Sun nor by BC supported
             final EncryptedPrivateKeyInfo pkInfo = new EncryptedPrivateKeyInfo(content);
             final PBEKeySpec pbeKeySpec = new PBEKeySpec(passphrase);
             final SecretKeyFactory pbeKeyFactory = SecretKeyFactory.getInstance(pkInfo.getAlgName());

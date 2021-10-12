@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.ids.daps.sec.pem;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -29,9 +28,7 @@ class KeyPairPemReaderTest extends AbstractResourceLoadingTest {
         assertNotNull(keyPair.getPublic());
     }
 
-    // FIXME
     @Test
-    @Disabled("Find solution for 1.2.840.113549.1.5.13 SecretKeyFactory not available")
     void readEncryptedKeyPair() throws NoSuchAlgorithmException, IOException, InvalidKeySpecException, InvalidKeyException {
         final KeyPairPemReader keyPairPemReader = new KeyPairPemReader();
 
