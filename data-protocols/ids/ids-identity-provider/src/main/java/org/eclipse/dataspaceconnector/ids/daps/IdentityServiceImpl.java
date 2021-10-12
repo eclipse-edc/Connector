@@ -22,6 +22,7 @@ public class IdentityServiceImpl implements IdentityService {
     }
 
     @Override
+    // TODO do something with scope
     public TokenResult obtainClientCredentials(final String scope) {
         try {
             final DynamicAttributeToken dynamicAttributeToken = dynamicAttributeTokenProvider.getDynamicAttributeToken();

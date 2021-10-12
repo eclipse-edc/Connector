@@ -11,7 +11,7 @@ public class CertificateProviderImpl implements CertificateProvider {
     }
 
     @Override
-    public X509Certificate getCertificate() throws Exception {
+    public X509Certificate getCertificate() {
         return x509Certificate;
     }
 }

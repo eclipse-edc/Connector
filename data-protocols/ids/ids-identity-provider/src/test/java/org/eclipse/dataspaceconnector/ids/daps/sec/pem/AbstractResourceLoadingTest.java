@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.ids.daps.cert;
+package org.eclipse.dataspaceconnector.ids.daps.sec.pem;
 
 import org.junit.jupiter.api.AfterEach;
 
