@@ -11,10 +11,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Collection;
 import java.util.List;
 import java.util.Queue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -26,6 +25,7 @@ public class PartitionManagerImpl implements PartitionManager {
     private final List<Crawler> crawlers;
     private final WorkItemQueue workQueue;
     private final List<WorkItem> staticWorkLoad;
+    private ExecutorService crawlerScheduler;
 
     /**
      * Instantiates a new PartitionManagerImpl.
@@ -47,20 +47,21 @@ public class PartitionManagerImpl implements PartitionManager {
 
         // create "numCrawlers" crawlers using the generator function
         crawlers = createCrawlers(numCrawlers);
+
         // crawlers will start running as soon as the workQueue gets populated
         startCrawlers(crawlers);
     }
 
     @Override
-    public void update(ExecutionPlan newPlan) {
+    public @NotNull ExecutionPlan update(ExecutionPlan newPlan) {
         if (!scheduledUpdates.offer(newPlan)) {
             monitor.severe("PartitionManager Update was not scheduled!");
         }
 
-        waitForCrawlersAndDo((unused, throwable) -> {
-            var collatedPlan = collateUpdates(scheduledUpdates);
-            schedule(collatedPlan);
-        });
+        if (!waitForCrawlers()) {
+            monitor.severe("Warning: not all crawlers finished in time!");
+        }
+        return collateUpdates(scheduledUpdates);
     }
 
     @Override
@@ -77,10 +78,8 @@ public class PartitionManagerImpl implements PartitionManager {
     }
 
     @Override
-    public CompletableFuture<Void> stop() {
-        var completable = new CompletableFuture<Void>();
-        waitForCrawlersAndDo((unused, throwable) -> completable.complete(null));
-        return completable;
+    public void stop() {
+        waitForCrawlers();
     }
 
     private List<Crawler> createCrawlers(int numCrawlers) {
@@ -91,18 +90,17 @@ public class PartitionManagerImpl implements PartitionManager {
         return scheduledUpdates.stream().reduce(ExecutionPlan::merge).orElseThrow();
     }
 
-    private void waitForCrawlersAndDo(BiConsumer<Void, Throwable> consumer) {
+    private Boolean waitForCrawlers() {
         if (crawlers == null || crawlers.isEmpty()) {
-            consumer.accept(null, null);
-            return;
+            return true;
         }
-        var allStopSignals = crawlers.stream().map(Crawler::join).collect(Collectors.toList());
-        CompletableFuture.allOf(allStopSignals.toArray(CompletableFuture[]::new))
-                .whenComplete(consumer);
+        return crawlers.stream().allMatch(Crawler::join);
     }
 
     private void startCrawlers(List<Crawler> crawlers) {
-        var scheduler = Executors.newFixedThreadPool(crawlers.size());
-        crawlers.forEach(scheduler::submit);
+        if (crawlerScheduler != null) crawlerScheduler.shutdownNow();
+
+        crawlerScheduler = Executors.newScheduledThreadPool(crawlers.size());
+        crawlers.forEach(crawlerScheduler::submit);
     }
 }

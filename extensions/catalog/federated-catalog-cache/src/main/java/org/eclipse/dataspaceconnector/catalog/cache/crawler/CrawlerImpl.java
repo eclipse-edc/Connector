@@ -35,7 +35,9 @@ public class CrawlerImpl implements Crawler {
     private final String crawlerId;
     private final CrawlerErrorHandler errorHandler;
 
-    CrawlerImpl(WorkItemQueue workItemQueue, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue, RetryPolicy<Object> updateResponseEnqueueRetryPolicy, ProtocolAdapterRegistry protocolAdapterRegistry, Supplier<Duration> workQueuePollTimeout, CrawlerErrorHandler errorHandler) {
+    CrawlerImpl(WorkItemQueue workItemQueue, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue,
+                RetryPolicy<Object> updateResponseEnqueueRetryPolicy, ProtocolAdapterRegistry protocolAdapterRegistry,
+                Supplier<Duration> workQueuePollTimeout, CrawlerErrorHandler errorHandler) {
         this.workItemQueue = workItemQueue;
         this.protocolAdapterRegistry = protocolAdapterRegistry;
         this.monitor = monitor;
@@ -95,6 +97,11 @@ public class CrawlerImpl implements Crawler {
                 throw new EdcException(thr);
             } finally {
                 workItemQueue.unlock();
+                try {
+                    Thread.sleep(5); //yield
+                } catch (InterruptedException ignored) {
+                    monitor.debug("interrupted during yielding");
+                }
             }
         }
     }
@@ -124,7 +131,6 @@ public class CrawlerImpl implements Crawler {
     }
 
     private void handleResponse(UpdateResponse updateResponse) {
-        monitor.info(format("%s: update-response received: %s", crawlerId, updateResponse.toString()));
         var offered = with(updateResponseEnqueueRetryPolicy).get(() -> updateResponseQueue.offer(updateResponse));
         if (!offered) {
             monitor.severe(crawlerId + ": Inserting update-response into queue failed due to timeout!");

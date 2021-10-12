@@ -1,19 +1,19 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
-
-import java.util.concurrent.CompletableFuture;
+import org.jetbrains.annotations.NotNull;
 
 public interface PartitionManager {
 
     /**
      * Updates the current execution plan with the new one.
-     * A best effort is attempted to merge two ExecutionPlans. If merging is not possible (e.g. when using Durations)
+     * Implementors should employ their best effort to merge two ExecutionPlans. If merging is not possible (e.g. when using Durations)
      * the new Execution Plan overrides the old one
      *
      * @param newPlan A new (updated) execution plan
+     * @return the merged execution plan
      */
-    void update(ExecutionPlan newPlan);
+    @NotNull ExecutionPlan update(ExecutionPlan newPlan);
 
     /**
      * Schedules all crawlers for execution according to this ExecutionPlan
@@ -23,7 +23,6 @@ public interface PartitionManager {
     /**
      * Waits until all crawlers have finished their task.
      *
-     * @return A CompletableFuture that resolves once all Crawlers have finished
      */
-    CompletableFuture<Void> stop();
+    void stop();
 }

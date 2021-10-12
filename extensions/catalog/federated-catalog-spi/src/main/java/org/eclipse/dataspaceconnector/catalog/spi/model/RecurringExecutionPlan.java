@@ -39,7 +39,7 @@ public class RecurringExecutionPlan implements ExecutionPlan {
 
     @Override
     public void run(Runnable task) {
-        var ses = Executors.newScheduledThreadPool(1);
+        var ses = Executors.newSingleThreadScheduledExecutor();
         long initialDelay = withInitialDelay ? schedule.toMillis() : 0;
         ses.scheduleAtFixedRate(task, initialDelay, schedule.toMillis(), TimeUnit.MILLISECONDS);
     }

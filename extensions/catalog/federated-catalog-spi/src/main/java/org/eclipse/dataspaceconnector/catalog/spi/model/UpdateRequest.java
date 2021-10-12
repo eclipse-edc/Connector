@@ -8,4 +8,8 @@ public class UpdateRequest {
 
         this.nodeUrl = nodeUrl;
     }
+
+    public String getNodeUrl() {
+        return nodeUrl;
+    }
 }

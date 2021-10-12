@@ -7,11 +7,14 @@ public interface ExecutionPlan {
     /**
      * Updates this execution plan and the {@code other} execution plan. What this means is highly dependent
      * on the implementation, e.g. two cron jobs with different schedules could adopt both schedules, one, or the other.
+     * By default, the "other" is returned.
      *
      * @param other the other execution plan
      * @return the merged execution plan.
      */
-    ExecutionPlan merge(ExecutionPlan other);
+    default ExecutionPlan merge(ExecutionPlan other) {
+        return other;
+    }
 
     /**
      * Execute the task. While not strictly required, spawning another

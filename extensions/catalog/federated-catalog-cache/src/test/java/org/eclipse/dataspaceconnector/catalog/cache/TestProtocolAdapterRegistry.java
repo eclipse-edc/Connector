@@ -6,6 +6,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapterRegistry;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,6 +21,7 @@ public class TestProtocolAdapterRegistry implements ProtocolAdapterRegistry {
 
     @Override
     public Collection<ProtocolAdapter> findForProtocol(String protocolName) {
+        if(!map.containsKey(protocolName)) return Collections.emptyList();
         return map.get(protocolName);
     }
 
@@ -40,5 +42,9 @@ public class TestProtocolAdapterRegistry implements ProtocolAdapterRegistry {
                 map.remove(protocolName);
             }
         }
+    }
+
+    public void clear(){
+        map.clear();
     }
 }

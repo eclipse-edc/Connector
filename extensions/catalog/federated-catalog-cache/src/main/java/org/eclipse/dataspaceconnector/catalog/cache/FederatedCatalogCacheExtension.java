@@ -5,6 +5,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.loader.LoaderManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
+import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
 import org.eclipse.dataspaceconnector.catalog.spi.PartitionConfiguration;
@@ -14,13 +15,18 @@ import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import static java.lang.String.format;
 
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     private static final int DEFAULT_QUEUE_LENGTH = 50;
@@ -55,7 +61,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         var partitionManager = new PartitionManagerImpl(context.getMonitor(),
                 new InMemoryWorkItemQueue(partitionConfig.getWorkItemQueueSize(10)),
                 workItems -> createCrawler(workItems, context, protocolAdapterRegistry),
-                partitionConfig.getNumCrawlers(3),
+                partitionConfig.getNumCrawlers(1),
                 nodes);
 
         // and a loader manager
@@ -90,8 +96,21 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 .monitor(context.getMonitor())
                 .retryPolicy(retryPolicy)
                 .workItems(workItems)
+                .errorReceiver(getErrorWorkItemConsumer(context, workItems))
                 .protocolAdapters(protocolAdapters)
                 .workQueuePollTimeout(() -> Duration.ofMillis(2000 + new Random().nextInt(3000)))
                 .build();
+    }
+
+    @NotNull
+    private CrawlerErrorHandler getErrorWorkItemConsumer(ServiceExtensionContext context, WorkItemQueue workItems) {
+        return workItem -> {
+            if (workItem.getErrors().size() > 5) {
+                context.getMonitor().severe(format("The following workitem has errored out more than 5 times. We'll discard it now: [%s]", workItem));
+            } else {
+                context.getMonitor().info("The following work item has errored out. will re-queue after a small delay");
+                Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), 5, TimeUnit.SECONDS);
+            }
+        };
     }
 }
