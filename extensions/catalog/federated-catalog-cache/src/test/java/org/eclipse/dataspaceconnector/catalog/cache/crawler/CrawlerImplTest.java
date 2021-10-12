@@ -47,7 +47,7 @@ class CrawlerImplTest {
         monitorMock = niceMock(Monitor.class);
         workQueue = new TestWorkQueue(1);
         registry = new TestProtocolAdapterRegistry(protocolAdapterMock);
-        crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), registry, Duration.ofMillis(500));
+        crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), registry, () -> Duration.ofMillis(500));
     }
 
     @Test
