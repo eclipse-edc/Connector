@@ -30,4 +30,12 @@ public class WorkItem {
         return errors;
     }
 
+    @Override
+    public String toString() {
+        return "WorkItem{" +
+                "url='" + url + '\'' +
+                ", protocolName='" + protocolName + '\'' +
+                ", errors=" + errors +
+                '}';
+    }
 }

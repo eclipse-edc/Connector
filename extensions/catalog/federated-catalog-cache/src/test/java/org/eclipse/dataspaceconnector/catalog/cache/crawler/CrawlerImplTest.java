@@ -4,12 +4,15 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
+import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -18,6 +21,7 @@ import java.time.Duration;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
@@ -26,6 +30,7 @@ import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.strictMock;
@@ -33,70 +38,96 @@ import static org.easymock.EasyMock.verify;
 
 class CrawlerImplTest {
     public static final int QUEUE_CAPACITY = 3;
+    public static final int JOIN_WAIT_TIME = 100;
+    public static final int WORK_QUEUE_POLL_TIMEOUT = 500;
     private CrawlerImpl crawler;
     private ProtocolAdapter protocolAdapterMock;
     private ArrayBlockingQueue<UpdateResponse> queue;
     private Monitor monitorMock;
     private WorkItemQueue workQueue;
     private TestProtocolAdapterRegistry registry;
+    private CrawlerErrorHandler errorHandlerMock;
+    private ExecutorService executorService;
 
     @BeforeEach
     void setUp() {
+        executorService = Executors.newSingleThreadExecutor();
+        errorHandlerMock = mock(CrawlerErrorHandler.class);
         protocolAdapterMock = strictMock(ProtocolAdapter.class);
         queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
         monitorMock = niceMock(Monitor.class);
-        workQueue = new TestWorkQueue(1);
+        workQueue = new TestWorkQueue(10);
         registry = new TestProtocolAdapterRegistry(protocolAdapterMock);
-        crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), registry, () -> Duration.ofMillis(500));
+        crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), registry, () -> Duration.ofMillis(WORK_QUEUE_POLL_TIMEOUT), errorHandlerMock);
+    }
+
+    @AfterEach
+    void teardown() {
+        executorService.shutdown();
     }
 
     @Test
     @DisplayName("Should insert one item into queue when request succeeds")
     void shouldInsertInQueue_whenSucceeds() throws InterruptedException {
-        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse()));
+        var l = new CountDownLatch(1);
+        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class)))
+                .andAnswer(() -> {
+                    l.countDown();
+                    return CompletableFuture.completedFuture(new UpdateResponse());
+                });
         replay(protocolAdapterMock);
 
         workQueue.put(new TestWorkItem());
-        Executors.newFixedThreadPool(1).submit(crawler);
-        crawler.join().whenComplete((unused, throwable) -> {
-            assertThat(throwable).isNull();
-            assertThat(queue).hasSize(1);
-            verify(protocolAdapterMock);
-        });
+        executorService.submit(crawler);
+        assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
+        assertThat(crawler.join()).isTrue();
+        assertThat(queue).hasSize(1);
     }
 
     @Test
     @DisplayName("Should not insert into queue when the request fails")
     void shouldNotInsertInQueue_whenRequestFails() throws InterruptedException {
 
+        var l = new CountDownLatch(1);
 
-        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.failedFuture(new EdcException("")));
+        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andAnswer(()-> {
+            l.countDown();
+            return CompletableFuture.failedFuture(new EdcException("not reachable"));
+        });
         replay(protocolAdapterMock);
 
         monitorMock.severe(anyString());
         expectLastCall().once();
         replay(monitorMock);
 
+
         workQueue.put(new TestWorkItem());
-        Executors.newFixedThreadPool(1).submit(crawler);
-        crawler.join().whenComplete((unused, throwable) -> {
-            assertThat(throwable).isNull();
-            assertThat(queue).isEmpty();
-            verify(protocolAdapterMock);
-            verify(monitorMock);
-        });
+        executorService.submit(crawler);
+
+        assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
+        assertThat(crawler.join()).isTrue();
+        assertThat(queue).isEmpty();
+        verify(protocolAdapterMock, monitorMock);
     }
 
     @Test
     @DisplayName("Should insert only those items into queue that have succeeded")
     void shouldInsertInQueue_onlySuccessfulProtocolRequests() throws InterruptedException {
 
+        var l = new CountDownLatch(2);
         ProtocolAdapter secondAdapter = strictMock(ProtocolAdapter.class);
         registry.register("test-protocol", secondAdapter);
 
-        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse()));
+        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andAnswer(() -> {
+            l.countDown();
+            return CompletableFuture.completedFuture(new UpdateResponse());
+        });
         replay(protocolAdapterMock);
-        expect(secondAdapter.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.failedFuture(new RuntimeException()));
+
+        expect(secondAdapter.sendRequest(isA(UpdateRequest.class))).andAnswer(() -> {
+            l.countDown();
+            return CompletableFuture.failedFuture(new RuntimeException());
+        });
         replay(secondAdapter);
 
         monitorMock.severe(anyString());
@@ -104,17 +135,12 @@ class CrawlerImplTest {
         replay(monitorMock);
 
         workQueue.put(new TestWorkItem());
-        Executors.newFixedThreadPool(1).submit(crawler);
-        var l = new CountDownLatch(1);
-        crawler.join().whenComplete((unused, throwable) -> {
-            assertThat(throwable).isNull();
-            assertThat(queue).hasSize(1);
-            verify(protocolAdapterMock);
-            verify(secondAdapter);
-            verify(monitorMock);
-            l.countDown();
-        });
-        assertThat(l.await(10, TimeUnit.SECONDS)).withFailMessage("Crawler did not complete in time").isTrue();
+        executorService.submit(crawler);
+
+        assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
+        assertThat(crawler.join()).isTrue();
+        assertThat(queue).hasSize(1);
+        verify(protocolAdapterMock, secondAdapter, monitorMock);
     }
 
     @Test
@@ -124,63 +150,65 @@ class CrawlerImplTest {
         queue.add(new UpdateResponse());
         queue.add(new UpdateResponse()); //queue is full now
 
-        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.supplyAsync(UpdateResponse::new));
+        var l = new CountDownLatch(1);
+        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andAnswer(() -> {
+            l.countDown();
+            return CompletableFuture.completedFuture(new UpdateResponse());
+        });
         replay(protocolAdapterMock);
 
         monitorMock.severe(anyString());
-        expectLastCall().once();
+        expectLastCall().atLeastOnce();
         replay(monitorMock);
 
+
         workQueue.put(new TestWorkItem());
-        Executors.newFixedThreadPool(1).submit(crawler);
-        crawler.join().whenComplete((unused, throwable) -> {
-            assertThat(throwable).isNull();
-            assertThat(queue).hasSize(3);
-            verify(protocolAdapterMock);
-            verify(monitorMock);
-        });
+        executorService.submit(crawler);
 
-
+        assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
+        assertThat(crawler.join()).isTrue();
+        assertThat(queue).hasSize(3);
+        verify(protocolAdapterMock, monitorMock);
     }
 
     @Test
     void shouldPauseWhenNoWorkItem() throws InterruptedException {
         replay(protocolAdapterMock);
 
-        var latch = new CountDownLatch(1);
-        Executors.newSingleThreadExecutor().submit(crawler);
+        executorService.submit(crawler);
 
-        assertThat(latch.await(500, TimeUnit.MILLISECONDS)).isFalse();
+        // wait until the queue has likely been polled at least once
+        Thread.sleep(WORK_QUEUE_POLL_TIMEOUT);
+        assertThat(crawler.join()).isTrue();
         assertThat(queue).hasSize(0);
-
         verify(protocolAdapterMock);
-
     }
 
     @Test
     void shouldErrorOut_whenNoProtocolAdapterFound() throws InterruptedException {
-        replay(protocolAdapterMock);
+
+        crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), new TestProtocolAdapterRegistry(), () -> Duration.ofMillis(500), errorHandlerMock);
 
         workQueue.put(new TestWorkItem());
+        var l = new CountDownLatch(1);
+        errorHandlerMock.accept(isA(WorkItem.class));
+        expectLastCall().andAnswer(() -> {
+            l.countDown();
+            return null;
+        }).once();
+        replay(errorHandlerMock, protocolAdapterMock);
 
-        Executors.newFixedThreadPool(1).submit(crawler);
-        crawler.join().whenComplete((unused, throwable) -> {
-            assertThat(throwable).isNull();
-            assertThat(workQueue).hasSize(1).allSatisfy(wi -> assertThat(wi.getErrors()).isNotNull().hasSize(1));
-            verify(protocolAdapterMock);
-        });
+
+        executorService.submit(crawler);
+
+        assertThat(l.await(5, TimeUnit.SECONDS)).isTrue();
+        assertThat(workQueue).hasSize(0);//1).allSatisfy(wi -> assertThat(wi.getErrors()).isNotNull().hasSize(1));
+        verify(protocolAdapterMock, errorHandlerMock);
+
     }
 
     private RetryPolicy<Object> createRetryPolicy() {
         return new RetryPolicy<>().withMaxRetries(1);
-    }
-
-    private static class AnotherProtocolAdapter implements ProtocolAdapter {
-
-        @Override
-        public CompletableFuture<UpdateResponse> sendRequest(UpdateRequest request) {
-            return null;
-        }
     }
 
 }

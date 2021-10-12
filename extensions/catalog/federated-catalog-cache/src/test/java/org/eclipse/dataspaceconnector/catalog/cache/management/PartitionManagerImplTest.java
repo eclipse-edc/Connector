@@ -13,6 +13,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.RecurringExecutionPlan;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -62,7 +63,8 @@ class PartitionManagerImplTest {
                 .workQueuePollTimeout(() -> Duration.of(5, ChronoUnit.SECONDS))
                 .workItems(workItemQueue)
                 .protocolAdapters(registry)
-                .queue(new ArrayBlockingQueue<>(10))
+                .errorReceiver(workItem -> {})
+                .queue(new AutoDrainingQueue(10))
                 .build();
 
     }
@@ -80,7 +82,8 @@ class PartitionManagerImplTest {
     void runManyCrawlers_verifyCompletion(int crawlerCount) throws InterruptedException {
         partitionManager = new PartitionManagerImpl(monitorMock, workItemQueue, generatorFunction, crawlerCount, staticWorkLoad);
         partitionManager.schedule(new RecurringExecutionPlan(Duration.of(100, ChronoUnit.MILLIS)));
-        assertThat(latch.await(10, TimeUnit.SECONDS)).withFailMessage("latch was expected to be 0 but was: " + latch.getCount()).isTrue();
+        assertThat(latch.await(1, TimeUnit.MINUTES)).withFailMessage("latch was expected to be 0 but was: " + latch.getCount()).isTrue();
+
     }
 
     private static class SignalingWorkItemQueue extends TestWorkQueue {
@@ -92,6 +95,21 @@ class PartitionManagerImplTest {
         }
 
         @Override
+        public void lock() {
+
+        }
+
+        @Override
+        public void unlock() {
+
+        }
+
+        @Override
+        public boolean tryLock(long timeout, TimeUnit unit) {
+            return true;
+        }
+
+        @Override
         public WorkItem poll(long timeout, TimeUnit unit) throws InterruptedException {
 
             var polledItem = super.poll(timeout, unit);
@@ -99,6 +117,22 @@ class PartitionManagerImplTest {
                 latch.countDown();
             }
             return polledItem;
+        }
+    }
+
+    private static class AutoDrainingQueue extends ArrayBlockingQueue<UpdateResponse> {
+        public AutoDrainingQueue(int i) {
+            super(i);
+        }
+
+        @Override
+        public boolean offer(@NotNull UpdateResponse updateResponse) {
+            return true;
+        }
+
+        @Override
+        public boolean offer(UpdateResponse updateResponse, long timeout, TimeUnit unit) throws InterruptedException {
+            return true;
         }
     }
 }
