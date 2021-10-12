@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class PemReader {
+class PemReader {
     protected PemObject read(final InputStream inputStream) throws IOException {
         try (final PEMParser pemParser = new PEMParser(new InputStreamReader(inputStream))) {
             return pemParser.readPemObject();

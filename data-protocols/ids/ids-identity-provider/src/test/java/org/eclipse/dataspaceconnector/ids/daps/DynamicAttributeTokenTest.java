@@ -1,21 +1,21 @@
 package org.eclipse.dataspaceconnector.ids.daps;
 
-import java.time.Instant;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
-public class DynamicAttributeTokenTest {
+import java.time.Instant;
+
+class DynamicAttributeTokenTest {
 
     @Test
-    public void testNullPointerExceptionOnTokenArg() {
+    void testNullPointerExceptionOnTokenArg() {
         Assertions.assertThrows(NullPointerException.class, () -> {
             new DynamicAttributeToken(null, Instant.now());
         });
     }
 
     @Test
-    public void testNullPointerExceptionOnExpirationArg() {
+    void testNullPointerExceptionOnExpirationArg() {
         Assertions.assertThrows(NullPointerException.class, () -> {
             new DynamicAttributeToken("kjd", null);
         });

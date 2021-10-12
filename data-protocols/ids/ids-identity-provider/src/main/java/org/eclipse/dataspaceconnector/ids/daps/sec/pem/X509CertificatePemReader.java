@@ -15,7 +15,7 @@ public class X509CertificatePemReader extends PemReader {
     public X509Certificate readX509Certificate(final InputStream inputStream) throws IOException, CertificateException {
         final PemObject pemObject = read(inputStream);
         final byte[] content = pemObject.getContent();
-        try(final InputStream contentInputStream = new ByteArrayInputStream(content)) {
+        try (final InputStream contentInputStream = new ByteArrayInputStream(content)) {
             return (X509Certificate) CertificateFactory.getInstance(CERTIFICATE_TYPE)
                     .generateCertificate(contentInputStream);
         }

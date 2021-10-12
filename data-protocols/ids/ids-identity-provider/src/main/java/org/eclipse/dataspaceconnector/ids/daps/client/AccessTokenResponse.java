@@ -87,7 +87,7 @@ public class AccessTokenResponse {
         public List<String> deserialize(final JsonParser p, final DeserializationContext ctxt) throws IOException {
             final String value = p.getValueAsString();
 
-            if(value != null) {
+            if (value != null) {
                 return Arrays.stream(value.split(SCOPE_DELIMITER))
                         .filter(s -> !s.isBlank())
                         .collect(Collectors.toList());
@@ -106,7 +106,7 @@ public class AccessTokenResponse {
 
         @Override
         public void serialize(final List<String> value, final JsonGenerator gen, final SerializerProvider provider) throws IOException {
-            if(value != null) {
+            if (value != null) {
                 final String scopes = value.stream()
                         .filter(Objects::nonNull)
                         .collect(Collectors.joining(SCOPE_DELIMITER));

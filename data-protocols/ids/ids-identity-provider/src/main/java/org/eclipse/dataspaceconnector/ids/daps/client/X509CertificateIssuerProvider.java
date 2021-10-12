@@ -13,6 +13,7 @@ import java.util.List;
 import java.util.Objects;
 
 public class X509CertificateIssuerProvider implements IssuerProvider {
+
     private static final byte[] HEX_ARRAY = "0123456789ABCDEF".getBytes(StandardCharsets.US_ASCII);
     private static final String DELIMITER = ":";
     private static final String KEY_ID = "keyid";
@@ -30,8 +31,8 @@ public class X509CertificateIssuerProvider implements IssuerProvider {
         try {
             final X509Certificate x509Certificate = certificateProvider.getCertificate();
 
-            final byte[] authorityKeyIdentifier = getCertificateAKI(x509Certificate);
-            final byte[] subjectKeyIdentifier = getCertificateSKI(x509Certificate);
+            final byte[] authorityKeyIdentifier = getCertificateAuthorityKeyIdentifier(x509Certificate);
+            final byte[] subjectKeyIdentifier = getCertificateSubjectKeyIdentifier(x509Certificate);
 
             return generateConnectorFingerprint(authorityKeyIdentifier, subjectKeyIdentifier);
         } catch (final Exception exception) {
@@ -50,7 +51,7 @@ public class X509CertificateIssuerProvider implements IssuerProvider {
     }
 
     /*@VisibleForTesting*/
-    static byte[] getCertificateSKI(final X509Certificate x509Certificate) {
+    static byte[] getCertificateSubjectKeyIdentifier(final X509Certificate x509Certificate) {
         final String subjectKeyIdentifierId = Extension.subjectKeyIdentifier.getId();
         final byte[] extensionValue = x509Certificate.getExtensionValue(subjectKeyIdentifierId);
         final ASN1OctetString asn1OctetString = ASN1OctetString.getInstance(extensionValue);
@@ -60,7 +61,7 @@ public class X509CertificateIssuerProvider implements IssuerProvider {
     }
 
     /*@VisibleForTesting*/
-    static byte[] getCertificateAKI(final X509Certificate x509Certificate) {
+    static byte[] getCertificateAuthorityKeyIdentifier(final X509Certificate x509Certificate) {
         final String authorityKeyIdentifierId = Extension.authorityKeyIdentifier.getId();
         final byte[] extensionValue = x509Certificate.getExtensionValue(authorityKeyIdentifierId);
         final ASN1OctetString asn1OctetString = ASN1OctetString.getInstance(extensionValue);

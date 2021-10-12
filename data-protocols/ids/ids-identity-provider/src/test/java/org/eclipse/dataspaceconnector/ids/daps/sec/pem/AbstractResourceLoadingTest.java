@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.List;
 
-public abstract class AbstractResourceLoadingTest {
+abstract class AbstractResourceLoadingTest {
     private final List<InputStream> streams = new LinkedList<>();
 
     @AfterEach
@@ -19,7 +19,9 @@ public abstract class AbstractResourceLoadingTest {
     private void closeSilently(final InputStream inputStream) {
         try {
             inputStream.close();
-        } catch (IOException ignored) {}
+        } catch (IOException ignored) {
+            // empty catch block
+        }
     }
 
 

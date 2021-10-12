@@ -14,7 +14,6 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPrivateCrtKey;
 import java.security.spec.EncodedKeySpec;
 import java.security.spec.InvalidKeySpecException;
-import java.security.spec.KeySpec;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.RSAPublicKeySpec;
 import javax.crypto.EncryptedPrivateKeyInfo;
@@ -24,6 +23,7 @@ import javax.crypto.spec.PBEKeySpec;
 public class KeyPairPemReader extends PemReader {
     private static final String ALGORITHM = "RSA";
     private static final Provider PROVIDER = new BouncyCastleProvider();
+
     static {
         java.security.Security.addProvider(PROVIDER);
     }

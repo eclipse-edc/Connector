@@ -11,7 +11,6 @@ public final class IdsSettings {
     public static final String EDC_IDS_DAPS_CERTIFICATE_PATH = "edc.ids.daps.certificatepath";
 
     @EdcSetting
-    // file://tmp/key.pem
     public static final String EDC_IDS_DAPS_PRIVATEKEY_PATH = "edc.ids.daps.privatekeypath";
 
     @EdcSetting

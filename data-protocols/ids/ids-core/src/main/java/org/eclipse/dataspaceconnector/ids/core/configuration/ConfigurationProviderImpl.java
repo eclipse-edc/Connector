@@ -1,13 +1,13 @@
 package org.eclipse.dataspaceconnector.ids.core.configuration;
 
+import org.eclipse.dataspaceconnector.ids.spi.configuration.ConfigurationProvider;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-
-import org.eclipse.dataspaceconnector.ids.spi.configuration.ConfigurationProvider;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class ConfigurationProviderImpl implements ConfigurationProvider {
 

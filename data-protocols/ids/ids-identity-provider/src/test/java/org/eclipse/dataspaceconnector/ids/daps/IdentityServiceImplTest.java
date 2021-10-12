@@ -1,7 +1,5 @@
 package org.eclipse.dataspaceconnector.ids.daps;
 
-import java.time.Instant;
-
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
@@ -11,7 +9,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class IdentityServiceImplTest {
+import java.time.Instant;
+
+class IdentityServiceImplTest {
 
     private static final String TOKEN = "132456789";
 
@@ -22,7 +22,7 @@ public class IdentityServiceImplTest {
 
 
     @BeforeEach
-    public void setup() throws DynamicAttributeTokenException {
+    void setup() throws DynamicAttributeTokenException {
         monitor = EasyMock.createMock(Monitor.class);
         dynamicAttributeToken = EasyMock.createMock(DynamicAttributeToken.class);
         dynamicAttributeTokenProvider = EasyMock.createMock(DynamicAttributeTokenProvider.class);
@@ -34,12 +34,12 @@ public class IdentityServiceImplTest {
     }
 
     @AfterEach
-    public void teardown() {
+    void teardown() {
         EasyMock.verify(monitor, dynamicAttributeTokenProvider);
     }
 
     @Test
-    public void testObtainClientCredentials() {
+    void testObtainClientCredentials() {
         // prepare
         final IdentityService identityService = new IdentityServiceImpl(dynamicAttributeTokenProvider, monitor);
 

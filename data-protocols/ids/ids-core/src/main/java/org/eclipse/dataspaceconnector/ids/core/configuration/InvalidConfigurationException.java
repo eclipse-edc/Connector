@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.ids.core.configuration;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 public class InvalidConfigurationException extends EdcException {
+
     public InvalidConfigurationException(String message) {
         super(message);
     }

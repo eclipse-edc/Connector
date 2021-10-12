@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.ids.core.configuration;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 public class MissingConfigurationException extends EdcException {
+
     public MissingConfigurationException(String message) {
         super(message);
     }

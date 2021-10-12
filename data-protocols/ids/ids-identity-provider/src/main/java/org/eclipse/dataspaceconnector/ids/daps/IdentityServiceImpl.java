@@ -1,12 +1,12 @@
 package org.eclipse.dataspaceconnector.ids.daps;
 
-import java.time.Duration;
-import java.time.Instant;
-
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+
+import java.time.Duration;
+import java.time.Instant;
 
 /**
  * Implementation of the {@link IdentityService} interface. Uses the {@link DynamicAttributeTokenProvider} to obtain client credentials.
