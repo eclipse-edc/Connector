@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.system;
 
 import net.jodah.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -98,17 +97,6 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     private void addHttpClient(ServiceExtensionContext context) {
-        // TODO: remove okttp
-        OkHttpClient.Builder builder = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS);
-        //        if (interceptors != null) {
-        //           for (Interceptor interceptor : interceptors) {
-        //                builder.addInterceptor(interceptor);
-        //            }
-        //        }
-        var okHttpClient = builder.build();
-
-        context.registerService(OkHttpClient.class, okHttpClient);
-
         HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
         context.registerService(HttpClient.class, httpClient);
     }

@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.system;
 
 import net.jodah.failsafe.RetryPolicy;
-import okhttp3.OkHttpClient;
 import org.easymock.MockType;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
@@ -23,6 +22,8 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
+
+import java.net.http.HttpClient;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyString;
@@ -61,7 +62,7 @@ class CoreServicesExtensionTest {
         expect(context.getMonitor()).andReturn(new Monitor() {
         });
 
-        context.registerService(eq(OkHttpClient.class), isA(OkHttpClient.class));
+        context.registerService(eq(HttpClient.class), isA(HttpClient.class));
         expectLastCall().times(1);
 
         expect(context.getSetting(eq("edc.core.retry.retries.max"), anyString())).andReturn("3");
