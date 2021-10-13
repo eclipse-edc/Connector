@@ -23,11 +23,13 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import java.net.http.HttpClient;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Set;
@@ -96,14 +98,18 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     private void addHttpClient(ServiceExtensionContext context) {
+        // TODO: remove okttp
         OkHttpClient.Builder builder = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS);
         //        if (interceptors != null) {
         //           for (Interceptor interceptor : interceptors) {
         //                builder.addInterceptor(interceptor);
         //            }
         //        }
-        var client = builder.build();
+        var okHttpClient = builder.build();
 
-        context.registerService(OkHttpClient.class, client);
+        context.registerService(OkHttpClient.class, okHttpClient);
+
+        HttpClient httpClient = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
+        context.registerService(HttpClient.class, httpClient);
     }
 }
