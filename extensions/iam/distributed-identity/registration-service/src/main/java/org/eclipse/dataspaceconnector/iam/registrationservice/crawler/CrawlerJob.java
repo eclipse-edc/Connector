@@ -15,9 +15,6 @@ package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -26,12 +23,16 @@ import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -92,31 +93,25 @@ public class CrawlerJob implements Job {
      * @return A list of DID IDs in the form {@code did:ion:.....}
      */
     private List<String> getDidSuffixesForType(String type) {
-        var client = createClient();
+        var client = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(30)).build();
 
-        var url = HttpUrl.parse(ionApiUrl)
-                .newBuilder()
-                .addPathSegment(DIDS_PATH)
-                .addQueryParameter("type", type)
-                .addQueryParameter("limit", "50"); //go a maximum of 50 transactions back
+        var uri = ionApiUrl + "/" + DIDS_PATH + "?limit=50&type=" + type;
 
+        try {
+            var request = HttpRequest.newBuilder(new URI(uri))
+                    .GET()
+                    .build();
 
-        var request = new Request.Builder()
-                .url(url.build().url())
-                .get()
-                .build();
-
-        try (var response = client.newCall(request).execute()) {
-            if (response.isSuccessful()) {
-                var json = Objects.requireNonNull(response.body()).string();
+            var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() <= 299) {
+                var json = Objects.requireNonNull(response.body());
                 var om = new ObjectMapper();
-                var tr = new TypeReference<List<String>>() {
-                };
+                var tr = new TypeReference<List<String>>() {};
                 return om.readValue(json, tr);
             } else {
-                throw new EdcException(format("Could not get DIDs: error=%s, message=%s", response.code(), response.body().string()));
+                throw new EdcException(format("Could not get DIDs: error=%s, message=%s", response.statusCode(), response.body()));
             }
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException | URISyntaxException e) {
             throw new EdcException(e);
         }
     }
@@ -145,10 +140,6 @@ public class CrawlerJob implements Job {
      */
     private CompletableFuture<DidResolverRegistry.Result> resolveDidAsync(String didId, DidResolverRegistry resolverRegistry) {
         return CompletableFuture.supplyAsync(() -> resolveDid(didId, resolverRegistry));
-    }
-
-    private OkHttpClient createClient() {
-        return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
     }
 
 }

@@ -19,6 +19,7 @@ import org.easymock.EasyMock;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.http.HttpClient;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -36,7 +37,9 @@ class Oauth2ServiceImplTest {
         EasyMock.expect(jwt.getExpiresAt()).andReturn(new Date(System.currentTimeMillis() + 10000000)).anyTimes();
         EasyMock.expect(jwt.getNotBefore()).andReturn(new Date(System.currentTimeMillis() - 10000000)).anyTimes();
         EasyMock.replay(jwt);
+
         var result = authService.validateToken(jwt, "test.audience");
+
         assertFalse(result.valid());
         EasyMock.verify(jwt);
     }
@@ -47,7 +50,9 @@ class Oauth2ServiceImplTest {
         EasyMock.expect(jwt.getExpiresAt()).andReturn(new Date(System.currentTimeMillis() + 10000000)).anyTimes();
         EasyMock.expect(jwt.getNotBefore()).andReturn(new Date(System.currentTimeMillis() - 10000000)).anyTimes();
         EasyMock.replay(jwt);
+
         var result = authService.validateToken(jwt, "test.audience");
+
         assertFalse(result.valid());
         EasyMock.verify(jwt);
     }
@@ -58,7 +63,9 @@ class Oauth2ServiceImplTest {
         EasyMock.expect(jwt.getExpiresAt()).andReturn(new Date(System.currentTimeMillis() + 10000000)).anyTimes();
         EasyMock.expect(jwt.getNotBefore()).andReturn(new Date(System.currentTimeMillis() + 10000000)).atLeastOnce();
         EasyMock.replay(jwt);
+
         var result = authService.validateToken(jwt, "test.audience");
+
         assertFalse((result.valid()));
         EasyMock.verify(jwt);
     }
@@ -69,7 +76,9 @@ class Oauth2ServiceImplTest {
         EasyMock.expect(jwt.getExpiresAt()).andReturn(new Date(System.currentTimeMillis() - 10000000)).atLeastOnce();
         EasyMock.expect(jwt.getNotBefore()).andReturn(new Date(System.currentTimeMillis() - 10000000)).anyTimes();
         EasyMock.replay(jwt);
+
         var result = authService.validateToken(jwt, "test.audience");
+
         assertFalse((result.valid()));
         EasyMock.verify(jwt);
     }
@@ -81,14 +90,17 @@ class Oauth2ServiceImplTest {
         EasyMock.expect(jwt.getNotBefore()).andReturn(new Date(System.currentTimeMillis() - 10000000)).atLeastOnce();
         EasyMock.expect(jwt.getClaims()).andReturn(Collections.emptyMap()).atLeastOnce();
         EasyMock.replay(jwt);
+
         var result = authService.validateToken(jwt, "test.audience");
+
         assertTrue(result.valid());
         EasyMock.verify(jwt);
     }
 
     @BeforeEach
     void setUp() {
-        jwt = EasyMock.createMock(DecodedJWT.class);
-        authService = new Oauth2ServiceImpl(Oauth2Configuration.Builder.newInstance().build());
+        jwt = EasyMock.mock(DecodedJWT.class);
+        HttpClient httpClient = EasyMock.mock(HttpClient.class);
+        authService = new Oauth2ServiceImpl(Oauth2Configuration.Builder.newInstance().build(), httpClient);
     }
 }

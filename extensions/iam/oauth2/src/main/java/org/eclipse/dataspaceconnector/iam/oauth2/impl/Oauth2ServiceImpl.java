@@ -21,12 +21,6 @@ import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.auth0.jwt.interfaces.RSAKeyProvider;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -35,6 +29,13 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
 import java.time.Instant;
@@ -44,7 +45,6 @@ import java.util.Date;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static org.eclipse.dataspaceconnector.iam.oauth2.impl.Fingerprint.sha1Base64Fingerprint;
 
@@ -61,11 +61,13 @@ public class Oauth2ServiceImpl implements IdentityService {
     private final Oauth2Configuration configuration;
 
     private final RSAKeyProvider credentialProvider;
+    private final HttpClient httpClient;
     private final JWTVerifier verifier;
 
-    public Oauth2ServiceImpl(Oauth2Configuration configuration) {
+    public Oauth2ServiceImpl(Oauth2Configuration configuration, HttpClient httpClient) {
         this.configuration = configuration;
         credentialProvider = new PairedProviderWrapper(configuration.getPrivateKeyResolver(), configuration.getCertificateResolver(), configuration.getPrivateKeyAlias());
+        this.httpClient = httpClient;
 
         RSAKeyProvider verifierProvider = new PublicKeyProviderWrapper(configuration.getIdentityProviderKeyResolver());
         verifier = JWT.require(Algorithm.RSA256(verifierProvider)).build();
@@ -75,35 +77,37 @@ public class Oauth2ServiceImpl implements IdentityService {
     public TokenResult obtainClientCredentials(String scope) {
         String assertion = buildJwt(configuration.getProviderAudience());
 
-        RequestBody requestBody = new FormBody.Builder()
-                .add("client_assertion_type", ASSERTION_TYPE)
-                .add("grant_type", GRANT_TYPE)
-                .add("client_assertion", assertion)
-                .add("scope", scope)
-                .build();
+        try {
+            var requestBody = ofFormData(Map.of(
+                    "client_assertion_type", ASSERTION_TYPE,
+                    "grant_type", GRANT_TYPE,
+                    "client_assertion", assertion,
+                    "scope", scope
+            ));
 
-        Request request = new Request.Builder().url(configuration.getTokenUrl()).addHeader("Content-Type", CONTENT_TYPE).post(requestBody).build();
+            var request = HttpRequest.newBuilder(new URI(configuration.getTokenUrl()))
+                    .header("Content-Type", CONTENT_TYPE)
+                    .POST(requestBody)
+                    .build();
 
-        OkHttpClient client = createClient();
-        try (Response response = client.newCall(request).execute()) {
-            if (!response.isSuccessful()) {
-                try (var body = response.body()) {
-                    String message = body == null ? "<empty body>" : body.string();
-                    return TokenResult.Builder.newInstance().error(message).build();
-                }
+
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            var body = response.body();
+            if (response.statusCode() >= 300) {
+                String message = body == null ? "<empty body>" : body;
+                return TokenResult.Builder.newInstance().error(message).build();
             }
 
-            ResponseBody responseBody = response.body();
-            if (responseBody == null) {
+            if (body == null) {
                 return TokenResult.Builder.newInstance().error("<empty token body>").build();
             }
 
-            String responsePayload = responseBody.string();
-            LinkedHashMap<String, Object> deserialized = configuration.getObjectMapper().readValue(responsePayload, LinkedHashMap.class);
+            LinkedHashMap<String, Object> deserialized = configuration.getObjectMapper().readValue(body, LinkedHashMap.class);
             String token = (String) deserialized.get("access_token");
             long expiresIn = ((Integer) deserialized.get("expires_in")).longValue();
             return TokenResult.Builder.newInstance().token(token).expiresIn(expiresIn).build();
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException | InterruptedException e) {
             throw new EdcException(e);
         }
     }
@@ -185,8 +189,22 @@ public class Oauth2ServiceImpl implements IdentityService {
         }
     }
 
-    private OkHttpClient createClient() {
-        return new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
+    private HttpRequest.BodyPublisher ofFormData(Map<String, String> data) {
+        var result = new StringBuilder();
+        data.forEach((key, value) -> {
+            if (result.length() > 0) {
+                result.append("&");
+            }
+            var encodedName = URLEncoder.encode(key, StandardCharsets.UTF_8);
+            var encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
+            result.append(encodedName);
+            if (encodedValue != null) {
+                result.append("=");
+                result.append(encodedValue);
+            }
+        });
+
+        return HttpRequest.BodyPublishers.ofString(result.toString());
     }
 
 }

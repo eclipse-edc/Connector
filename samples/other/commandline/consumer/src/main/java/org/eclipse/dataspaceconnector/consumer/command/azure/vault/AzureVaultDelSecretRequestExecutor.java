@@ -28,6 +28,6 @@ public class AzureVaultDelSecretRequestExecutor implements CommandExecutor {
         }
         var key = context.getParams().get(0);
 
-        return executeDelete("/api/vault?key=" + key, null, context);
+        return executeDelete("/api/vault?key=" + key, context);
     }
 }

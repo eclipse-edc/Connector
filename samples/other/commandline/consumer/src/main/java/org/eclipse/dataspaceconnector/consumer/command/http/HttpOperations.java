@@ -14,15 +14,17 @@
 
 package org.eclipse.dataspaceconnector.consumer.command.http;
 
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.consumer.command.CommandResult;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 import static org.eclipse.dataspaceconnector.consumer.common.Output.error;
 
@@ -33,44 +35,60 @@ public class HttpOperations {
     }
 
     public static CommandResult executePost(String path, Object payload, ExecutionContext context) {
-        Request request = new Request.Builder().url(context.getEndpointUrl() + path).post(context.write(payload)).build();
+        URI uri = buildURI(context.getEndpointUrl() + path);
+        var request = HttpRequest.newBuilder(uri)
+                .header("Content-Type", "application/json")
+                .POST(context.write(payload))
+                .build();
+
         return executeOperation(request, context);
     }
 
-    public static CommandResult executeDelete(String path, Object payload, ExecutionContext context) {
-        Request request = new Request.Builder().url(context.getEndpointUrl() + path).delete(context.write(payload)).build();
+    public static CommandResult executeDelete(String path, ExecutionContext context) {
+        URI uri = buildURI(context.getEndpointUrl() + path);
+        var request = HttpRequest.newBuilder(uri)
+                .header("Content-Type", "application/json")
+                .DELETE()
+                .build();
+
         return executeOperation(request, context);
     }
 
     public static CommandResult executeGet(String path, ExecutionContext context) {
-        Request request = new Request.Builder().url(context.getEndpointUrl() + path).get().build();
+        URI uri = buildURI(context.getEndpointUrl() + path);
+        var request = HttpRequest.newBuilder(uri)
+                .header("Content-Type", "application/json")
+                .GET()
+                .build();
+
         return executeOperation(request, context);
     }
 
     @NotNull
-    private static CommandResult executeOperation(Request request, ExecutionContext context) {
-        OkHttpClient client = HttpFactory.create(context);
-        try (Response response = client.newCall(request).execute()) {
+    private static CommandResult executeOperation(HttpRequest request, ExecutionContext context) {
+        HttpClient client = context.getService(HttpClient.class);
+        try {
+            var response = client.send(request, HttpResponse.BodyHandlers.ofString());
             return handleResponse(response, context);
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             error(e, context.getTerminal());
             return new CommandResult(true, "");
         }
     }
 
     @NotNull
-    private static CommandResult handleResponse(Response response, ExecutionContext context) throws IOException {
-        ResponseBody responseBody = response.body();
+    private static CommandResult handleResponse(HttpResponse<String> response, ExecutionContext context) throws IOException {
         String message;
-        if (responseBody == null) {
-            message = response.code() + "";
+        if (response.body() == null) {
+            message = response.statusCode() + "";
         } else {
-            message = responseBody.string();
+            message = response.body();
             if (message.length() == 0) {
-                message = response.code() + "";
+                message = response.statusCode() + "";
             }
         }
-        int code = response.code();
+
+        int code = response.statusCode();
         if (code != 200) {
             return new CommandResult(code >= 300, code + ":" + message);
         }
@@ -78,5 +96,13 @@ public class HttpOperations {
             context.getTerminal().writer().println("Response: " + message);
         }
         return new CommandResult(message);
+    }
+
+    private static URI buildURI(String url) {
+        try {
+            return new URI(url);
+        } catch (URISyntaxException e) {
+            throw new EdcException("Cannot parse URI " + url, e);
+        }
     }
 }

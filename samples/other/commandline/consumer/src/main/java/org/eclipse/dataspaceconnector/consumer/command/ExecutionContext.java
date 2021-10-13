@@ -16,11 +16,10 @@ package org.eclipse.dataspaceconnector.consumer.command;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.MediaType;
-import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.consumer.runtime.EdcConnectorConsumerRuntime;
 import org.jline.terminal.Terminal;
 
+import java.net.http.HttpRequest;
 import java.util.List;
 
 import static org.eclipse.dataspaceconnector.consumer.common.Commands.subCommands;
@@ -37,9 +36,9 @@ public class ExecutionContext {
     private ExecutionContext() {
     }
 
-    public RequestBody write(Object value) {
+    public HttpRequest.BodyPublisher write(Object value) {
         try {
-            return RequestBody.create(runtime.getTypeManager().getMapper().writeValueAsString(value), MediaType.get("application/json"));
+            return HttpRequest.BodyPublishers.ofString(runtime.getTypeManager().getMapper().writeValueAsString(value));
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }

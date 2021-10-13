@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.iam.did;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
@@ -17,8 +16,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
 import static org.easymock.EasyMock.createMock;
+import java.net.http.HttpClient;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
@@ -39,7 +38,6 @@ class IdentityDidCoreExtensionTest {
         contextMock = createMock(ServiceExtensionContext.class);
     }
 
-
     @Test
     void verifyCorrectInitialization_withPkResolverPresent() {
         expect(contextMock.getService(IdentityHubStore.class)).andReturn(niceMock(IdentityHubStore.class));
@@ -55,16 +53,16 @@ class IdentityDidCoreExtensionTest {
         contextMock.registerService(eq(DidPublicKeyResolver.class), isA(DefaultDidPublicKeyResolver.class));
         expectLastCall();
 
+        expect(contextMock.getService(HttpClient.class)).andReturn(niceMock(HttpClient.class));
+        contextMock.registerService(eq(IdentityHubClient.class), isA(IdentityHubClientImpl.class));
+        expectLastCall();
+
         contextMock.registerService(eq(IdentityHub.class), isA(IdentityHubImpl.class));
         expectLastCall();
 
         WebService webserviceMock = strictMock(WebService.class);
         expect(contextMock.getService(WebService.class)).andReturn(webserviceMock);
         webserviceMock.registerController(isA(IdentityHubController.class));
-        expectLastCall();
-
-        expect(contextMock.getService(OkHttpClient.class)).andReturn(niceMock(OkHttpClient.class));
-        contextMock.registerService(eq(IdentityHubClient.class), isA(IdentityHubClientImpl.class));
         expectLastCall();
 
         expect(contextMock.getMonitor()).andReturn(new Monitor() {

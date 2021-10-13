@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.iam.oauth2.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.io.IOException;

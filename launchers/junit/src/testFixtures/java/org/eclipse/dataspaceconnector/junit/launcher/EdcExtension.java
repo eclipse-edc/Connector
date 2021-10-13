@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.junit.launcher;
 
-import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -62,10 +61,6 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
      */
     public <T extends SystemExtension> void registerSystemExtension(Class<T> type, SystemExtension extension) {
         systemExtensions.computeIfAbsent(type, k -> new ArrayList<>()).add(extension);
-    }
-
-    public void registerInterceptor(Interceptor interceptor) {
-
     }
 
     @Override

@@ -3,10 +3,6 @@ package org.eclipse.dataspaceconnector.ion;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
@@ -18,6 +14,10 @@ import org.eclipse.dataspaceconnector.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.ion.util.SortingNodeFactory;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
 import java.util.Date;
@@ -51,39 +51,37 @@ public class DefaultIonClient implements IonClient {
     }
 
     @Override
-    public DidDocument submit(IonRequest request) {
+    public DidDocument submit(IonRequest ionRequest) {
         String requestBodyJson;
         try {
-            requestBodyJson = typeManager.writeValueAsString(request);
+            requestBodyJson = typeManager.writeValueAsString(ionRequest);
         } catch (JsonProcessingException ex) {
             throw new IonException(ex);
         }
 
-        MediaType json = MediaType.get("application/json; charset=utf-8");
-        RequestBody okHttpRequestbody = RequestBody.create(requestBodyJson, json);
-        var solutionRequest = new Request.Builder()
-                .url(resolutionEndpoint + OPERATIONS_PATH)
-                .post(okHttpRequestbody)
-                .header("Content-Type", "application/json")
-                .build();
+        var client = getHttpClient();
 
-        var client = getOkHttpClient();
+        try {
+            var request = HttpRequest.newBuilder(new URI(resolutionEndpoint + OPERATIONS_PATH))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBodyJson))
+                    .build();
 
-        try (var solutionResponse = client.newCall(solutionRequest).execute()) {
-            String responseBodyJson = solutionResponse.body().string();
-            if (solutionResponse.isSuccessful()) {
+            var response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            String responseBodyJson = response.body();
+            if (response.statusCode() >= 200 && response.statusCode() <= 299) {
                 var didResponse = typeManager.readValue(responseBodyJson, DidResolveResponse.class);
                 return didResponse.getDidDocument();
             } else {
-                if (solutionResponse.code() >= 500) {
+                if (response.statusCode() >= 500) {
                     throw new IonRequestException("Unexpected 5xx response " + responseBodyJson);
-                } else if (solutionResponse.code() >= 400) {
+                } else if (response.statusCode() >= 400) {
                     //means bad request, should retry
                     throw new IonRequestException("Bad Request, please retry with another challenge");
-                } else if (solutionResponse.code() >= 300) {
-                    throw new IonRequestException("Unexpected 3xx response: " + solutionResponse.message());
+                } else if (response.statusCode() >= 300) {
+                    throw new IonRequestException("Unexpected 3xx response: " + response.body());
                 }
-                throw new IonRequestException("Unexpected response: " + solutionResponse.code() + ", " + responseBodyJson);
+                throw new IonRequestException("Unexpected response: " + response.statusCode() + ", " + responseBodyJson);
             }
 
         } catch (Exception ex) {
@@ -93,18 +91,18 @@ public class DefaultIonClient implements IonClient {
 
     @Override
     public DidDocument resolve(String didUri) {
-        var rq = new Request.Builder()
-                .get()
-                .url(resolutionEndpoint + IDENTIFIERS_PATH + "/" + didUri)
-                .build();
+        try {
+            var rq = HttpRequest.newBuilder(new URI(resolutionEndpoint + IDENTIFIERS_PATH + "/" + didUri))
+                    .GET()
+                    .build();
 
-        try (var response = getOkHttpClient().newCall(rq).execute()) {
-            if (response.isSuccessful()) {
-                var body = response.body().string();
+            var response = getHttpClient().send(rq, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() >= 200 && response.statusCode() <= 299) {
+                var body = response.body();
                 DidResolveResponse didResolveResponse = typeManager.readValue(body, DidResolveResponse.class);
                 return didResolveResponse.getDidDocument();
             }
-            throw new IonRequestException("Resolving the DID URI was unsuccessful: code = " + response.code() + " content= " + response.body().string());
+            throw new IonRequestException("resolving the DID URI was unsuccessful: code = " + response.statusCode() + " content= " + response.body());
         } catch (Exception ex) {
             throw new IonRequestException(ex);
         }
@@ -113,23 +111,26 @@ public class DefaultIonClient implements IonClient {
     public void submitWithChallengeResponse(IonRequest request, String challengeEndpoint, String solutionEndpoint) {
         System.out.println("Getting challenge from " + challengeEndpoint);
 
-        OkHttpClient client = getOkHttpClient();
         ObjectMapper objectMapper = JsonMapper.builder()
                 .nodeFactory(new SortingNodeFactory())
                 .build();
 
-        var rq = new Request.Builder().get()
-                .url(challengeEndpoint)
-                .build();
+
         String challengeNonce;
         String largestAllowedHash;
         int validDuration;
 
-        try (var response = client.newCall(rq).execute()) {
-            if (!response.isSuccessful()) {
-                throw new IonException("Error obtaining challenge: " + response.message());
+        try {
+            var rq = HttpRequest.newBuilder(new URI(challengeEndpoint))
+                    .GET()
+                    .build();
+
+            var response = getHttpClient().send(rq, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() > 299) {
+                throw new IonException("Error obtaining challenge: " + response.body());
             }
-            var json = Objects.requireNonNull(response.body()).string();
+            var json = Objects.requireNonNull(response.body());
             System.out.println("challenge: " + json);
             var map = objectMapper.readValue(json, Map.class);
             challengeNonce = (String) map.get("challengeNonce");
@@ -184,33 +185,29 @@ public class DefaultIonClient implements IonClient {
             throw new IonException("Time expired! Finding an acceptable hash took longer than " + validDuration + " seconds");
         }
 
-        MediaType json = MediaType.get("application/json; charset=utf-8");
-        RequestBody okHttpRequestbody = RequestBody.create(requestBodyJson, json);
-        var solutionRequest = new Request.Builder()
-                .url(solutionEndpoint)
-                .post(okHttpRequestbody)
-                .header("Challenge-Nonce", challengeNonce)
-                .header("Answer-Nonce", answerNonce)
-                .header("Content-Type", "application/json")
-                .build();
+        try {
+            var solutionRequest = HttpRequest.newBuilder(new URI(solutionEndpoint))
+                    .header("Challenge-Nonce", challengeNonce)
+                    .header("Answer-Nonce", answerNonce)
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(requestBodyJson))
+                    .build();
 
-        try (var solutionResponse = client.newCall(solutionRequest).execute()) {
+            var solutionResponse = getHttpClient().send(solutionRequest, HttpResponse.BodyHandlers.ofString());
 
-            if (solutionResponse.isSuccessful()) {
+            if (solutionResponse.statusCode() >= 200 && solutionResponse.statusCode() <= 299) {
                 System.out.println("Successfully submitted the anchor request");
-                var body = solutionResponse.body().string();
-                var message = solutionResponse.message();
+                var body = solutionResponse.body();
 
-                System.out.println("Message: " + message);
                 System.out.println("Body: " + body);
             } else {
-                if (solutionResponse.code() >= 500) {
-                    throw new IonRequestException("Unexpected 5xx response " + solutionResponse.body().string());
-                } else if (solutionResponse.code() >= 400) {
+                if (solutionResponse.statusCode() >= 500) {
+                    throw new IonRequestException("Unexpected 5xx response " + solutionResponse.body());
+                } else if (solutionResponse.statusCode() >= 400) {
                     //means bad request, should retry
                     throw new IonRequestException("Bad Request, please retry with another challenge");
-                } else if (solutionResponse.code() >= 300) {
-                    throw new IonRequestException("Unexpected 3xx response: " + solutionResponse.message());
+                } else if (solutionResponse.statusCode() >= 300) {
+                    throw new IonRequestException("Unexpected 3xx response: " + solutionResponse.body());
                 }
             }
 
@@ -220,8 +217,8 @@ public class DefaultIonClient implements IonClient {
     }
 
     @NotNull
-    private OkHttpClient getOkHttpClient() {
-        return new OkHttpClient.Builder().build();
+    private HttpClient getHttpClient() {
+        return HttpClient.newBuilder().build();
     }
 
     private String createNonce() {

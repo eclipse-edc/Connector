@@ -111,7 +111,7 @@ public class Oauth2Extension implements ServiceExtension {
 
         Oauth2Configuration configuration = configBuilder.build();
 
-        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration);
+        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration, httpClient);
 
         context.registerService(IdentityService.class, oauth2Service);
 
