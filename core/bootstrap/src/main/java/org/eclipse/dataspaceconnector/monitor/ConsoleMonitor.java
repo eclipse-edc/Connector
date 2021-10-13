@@ -25,10 +25,16 @@ import java.util.function.Supplier;
  * Default monitor implementation. Outputs messages to the console.
  */
 public class ConsoleMonitor implements Monitor {
+
+    private static final String SEVERE = "SEVERE";
+    private static final String WARNING = "WARNING";
+    private static final String INFO = "INFO";
+    private static final String DEBUG = "DEBUG";
+
     private Level level;
 
     public enum Level {
-        SEVERE(2), INFO(1), DEBUG(0);
+        SEVERE(3), WARNING(2), INFO(1), DEBUG(0);
 
         int value;
 
@@ -46,21 +52,28 @@ public class ConsoleMonitor implements Monitor {
     }
 
     public void severe(Supplier<String> supplier, Throwable... errors) {
-        output("SEVERE", supplier, errors);
+        output(SEVERE, supplier, errors);
+    }
+
+    public void warning(Supplier<String> supplier, Throwable... errors) {
+        if (Level.WARNING.value < level.value) {
+            return;
+        }
+        output(WARNING, supplier, errors);
     }
 
     public void info(Supplier<String> supplier, Throwable... errors) {
         if (Level.INFO.value < level.value) {
             return;
         }
-        output("INFO", supplier, errors);
+        output(INFO, supplier, errors);
     }
 
     public void debug(Supplier<String> supplier, Throwable... errors) {
         if (Level.DEBUG.value < level.value) {
             return;
         }
-        output("DEBUG", supplier, errors);
+        output(DEBUG, supplier, errors);
     }
 
     private void output(String level, Supplier<String> supplier, Throwable... errors) {
