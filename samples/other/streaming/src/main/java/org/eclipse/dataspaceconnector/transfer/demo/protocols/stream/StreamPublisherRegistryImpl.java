@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -23,18 +22,19 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisher;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
 
+import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.List;
 
 public class StreamPublisherRegistryImpl implements StreamPublisherRegistry {
     private final Vault vault;
-    private final OkHttpClient httpClient;
+    private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final Monitor monitor;
 
     private final List<StreamPublisher> publishers = new ArrayList<>();
 
-    public StreamPublisherRegistryImpl(Vault vault, OkHttpClient httpClient, ObjectMapper objectMapper, Monitor monitor) {
+    public StreamPublisherRegistryImpl(Vault vault, HttpClient httpClient, ObjectMapper objectMapper, Monitor monitor) {
         this.vault = vault;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;

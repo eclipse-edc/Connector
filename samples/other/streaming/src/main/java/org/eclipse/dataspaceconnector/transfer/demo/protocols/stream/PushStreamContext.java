@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -27,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.net.http.HttpClient;
 
 import static java.lang.String.format;
 
@@ -35,11 +35,11 @@ import static java.lang.String.format;
  */
 public class PushStreamContext implements StreamContext {
     private final Vault vault;
-    private final OkHttpClient httpClient;
+    private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final Monitor monitor;
 
-    public PushStreamContext(Vault vault, OkHttpClient httpClient, ObjectMapper objectMapper, Monitor monitor) {
+    public PushStreamContext(Vault vault, HttpClient httpClient, ObjectMapper objectMapper, Monitor monitor) {
         this.vault = vault;
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;

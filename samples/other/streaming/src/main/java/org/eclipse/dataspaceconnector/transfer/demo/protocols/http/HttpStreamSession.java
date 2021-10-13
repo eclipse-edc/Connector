@@ -14,15 +14,15 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.http;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.StreamSession;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
  * Publishes to an HTTP endpoint.
@@ -30,9 +30,9 @@ import java.net.URL;
 public class HttpStreamSession implements StreamSession {
     private final URL endpointUrl;
     private final String destinationToken;
-    private final OkHttpClient httpClient;
+    private final HttpClient httpClient;
 
-    public HttpStreamSession(URL endpointUrl, String destinationToken, OkHttpClient httpClient) {
+    public HttpStreamSession(URL endpointUrl, String destinationToken, HttpClient httpClient) {
         this.endpointUrl = endpointUrl;
         this.destinationToken = destinationToken;
         this.httpClient = httpClient;
@@ -41,22 +41,19 @@ public class HttpStreamSession implements StreamSession {
     @Override
     public void publish(byte[] data) {
         try {
-            var body = RequestBody.create(data, MediaType.get("application/json"));
-            Request request = new Request.Builder()
-                    .url(endpointUrl)
-                    .addHeader("Content-Type", "application/json")
-                    .addHeader("X-Authorization", destinationToken)
-                    .post(body)
+            var request = HttpRequest.newBuilder(endpointUrl.toURI())
+                    .header("Content-Type", "application/json")
+                    .header("X-Authorization", destinationToken)
+                    .POST(HttpRequest.BodyPublishers.ofByteArray(data))
                     .build();
-
-            try (var response = httpClient.newCall(request).execute()) {
-                if (response.code() != 200) {
-                    throw new EdcException("Invalid response received from destination: " + response.code());
-                }
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() != 200) {
+                throw new EdcException("Invalid response received from destination: " + response.statusCode());
             }
-
-        } catch (IOException e) {
+        } catch (InterruptedException | IOException e) {
             throw new EdcException(e);
+        } catch (URISyntaxException e) {
+            throw new EdcException("Cannot parse URI " + endpointUrl);
         }
     }
 

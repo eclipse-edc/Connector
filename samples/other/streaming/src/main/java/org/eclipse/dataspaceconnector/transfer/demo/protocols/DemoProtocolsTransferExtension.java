@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -49,6 +48,7 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.PubSubServerEnd
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WebSocketFactory;
 import org.eclipse.dataspaceconnector.web.transport.JettyService;
 
+import java.net.http.HttpClient;
 import java.util.Set;
 
 /**
@@ -153,7 +153,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         dataFlowMgr.register(objectStorageFlowController);
 
         var vault = context.getService(Vault.class);
-        var httpClient = context.getService(OkHttpClient.class);
+        var httpClient = context.getService(HttpClient.class);
 
         var publisherRegistry = new StreamPublisherRegistryImpl(vault, httpClient, objectMapper, monitor);
         context.registerService(StreamPublisherRegistry.class, publisherRegistry);
