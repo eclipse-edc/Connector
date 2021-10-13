@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
 import okhttp3.RequestBody;
 
+import java.net.http.HttpRequest;
+
 public class MessageFunctions {
 
     private MessageFunctions() {
@@ -30,6 +32,17 @@ public class MessageFunctions {
     public static RequestBody writeJson(Object body, ObjectMapper mapper) {
         try {
             return RequestBody.create(mapper.writeValueAsString(body), MediaType.get("application/json"));
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    /**
+     * Creates a request, writing the object as a JSON message body
+     */
+    public static HttpRequest.BodyPublisher writeJsonPublisher(Object body, ObjectMapper mapper) {
+        try {
+            return HttpRequest.BodyPublishers.ofString(mapper.writeValueAsString(body));
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException(e);
         }

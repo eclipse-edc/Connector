@@ -16,12 +16,15 @@ package org.eclipse.dataspaceconnector.iam.oauth2.impl;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.interfaces.RSAPublicKey;
@@ -42,14 +45,15 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable 
 
     private final ObjectMapper mapper;
     private final AtomicReference<Map<String, RSAPublicKey>> cache = new AtomicReference<>(); // the current key cache, atomic for thread-safety
-    private final OkHttpClient httpClient;
+    private final HttpClient httpClient;
 
     /**
      * Ctor.
      *
      * @param jwksUrl the URL specified by 'jwks_uri' in the document returned by the identity provider's metadata endpoint.
+     * @param httpClient
      */
-    public IdentityProviderKeyResolver(String jwksUrl, Monitor monitor, OkHttpClient httpClient) {
+    public IdentityProviderKeyResolver(String jwksUrl, Monitor monitor, HttpClient httpClient) {
         this.jwksUrl = jwksUrl;
         this.monitor = monitor;
         this.httpClient = httpClient;
@@ -68,35 +72,37 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable 
 
     public void refreshKeys() {
         try {
-            Request request = new Request.Builder().url(jwksUrl).get().build();
+            var request = HttpRequest.newBuilder(new URI(jwksUrl)).GET().build();
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            Response response = httpClient.newCall(request).execute();
-            if (response.code() != 200) {
-                monitor.severe("Unable to refresh identity provider keys. Response code was: " + response.code());
+            if (response.statusCode() != 200) {
+                monitor.severe("Unable to refresh identity provider keys. Response code was: " + response.statusCode());
                 return;
             }
-            try (var body = response.body()) {
-                if (body == null) {
-                    monitor.severe("Unable to refresh identity provider keys. An empty response was returned.");
-                    return;
-                }
 
-                // deserialize the JWKs
-                JwkKeys jwkKeys = mapper.readValue(body.string(), JwkKeys.class);
-                List<JwkKey> keys = jwkKeys.getKeys();
-                if (keys == null || keys.isEmpty()) {
-                    monitor.severe("No keys returned from identity provider.");
-                    return;
-                }
-
-                Map<String, RSAPublicKey> newKeys = deserializeKeys(keys);
-                if (newKeys == null) {
-                    return;
-                }
-                cache.set(newKeys);   // reset the cache
+            var body = response.body();
+            if (body == null) {
+                monitor.severe("Unable to refresh identity provider keys. An empty response was returned.");
+                return;
             }
-        } catch (IOException e) {
+
+            var jwkKeys = mapper.readValue(body, JwkKeys.class);
+            var keys = jwkKeys.getKeys();
+            if (keys == null || keys.isEmpty()) {
+                monitor.severe("No keys returned from identity provider.");
+                return;
+            }
+
+            var newKeys = deserializeKeys(keys);
+            if (newKeys == null) {
+                return;
+            }
+            cache.set(newKeys);
+
+        } catch (IOException | InterruptedException e) {
             monitor.severe("Error resolving identity provider keys: " + jwksUrl, e);
+        } catch (URISyntaxException e) {
+            monitor.severe("Error parsing URI: " + jwksUrl, e);
         }
     }
 

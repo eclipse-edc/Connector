@@ -16,13 +16,13 @@ package org.eclipse.dataspaceconnector.iam.oauth2.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.http.HttpClient;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
@@ -43,8 +43,7 @@ class IdentityProviderKeyResolverTest {
 
     @BeforeEach
     void setUp() throws JsonProcessingException {
-        resolver = new IdentityProviderKeyResolver(URL, new Monitor() {
-        }, EasyMock.niceMock(OkHttpClient.class));
+        resolver = new IdentityProviderKeyResolver(URL, new Monitor() {}, EasyMock.niceMock(HttpClient.class));
 
         keys = new ObjectMapper().readValue(JWKS_URI_RESPONSE, JwkKeys.class);
     }

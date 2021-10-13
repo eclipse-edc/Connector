@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.core;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.core.daps.DapsServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.message.DataRequestMessageSender;
@@ -32,6 +31,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
+import java.net.http.HttpClient;
 import java.util.Set;
 
 /**
@@ -86,7 +86,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private void assembleIdsDispatcher(String connectorId, ServiceExtensionContext context, IdentityService identityService) {
         var processStore = context.getService(TransferProcessStore.class);
         var vault = context.getService(Vault.class);
-        var httpClient = context.getService(OkHttpClient.class);
+        var httpClient = context.getService(HttpClient.class);
 
         var mapper = context.getTypeManager().getMapper();
 
@@ -94,8 +94,8 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         var dispatcher = new IdsRemoteMessageDispatcher();
 
-        dispatcher.register(new QueryMessageSender(connectorId, identityService, httpClient, mapper, monitor));
-        dispatcher.register(new DataRequestMessageSender(connectorId, identityService, processStore, vault, httpClient, mapper, monitor));
+        dispatcher.register(new QueryMessageSender(connectorId, identityService, mapper, monitor, httpClient));
+        dispatcher.register(new DataRequestMessageSender(connectorId, identityService, processStore, vault, mapper, monitor, httpClient));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(dispatcher);

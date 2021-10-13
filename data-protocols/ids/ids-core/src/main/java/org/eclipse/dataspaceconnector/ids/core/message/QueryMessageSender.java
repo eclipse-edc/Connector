@@ -19,44 +19,44 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.QueryMessageBuilder;
 import de.fraunhofer.iais.eis.TokenFormat;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
+import org.jetbrains.annotations.NotNull;
 
-import java.io.IOException;
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
-import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
+import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJsonPublisher;
 
 public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<String>> {
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
 
-    private final OkHttpClient httpClient;
     private final ObjectMapper mapper;
     private final Monitor monitor;
+    private HttpClient httpClient;
     private final URI connectorId;
 
     private final IdentityService identityService;
 
     public QueryMessageSender(String connectorId,
                               IdentityService identityService,
-                              OkHttpClient httpClient,
                               ObjectMapper mapper,
-                              Monitor monitor) {
+                              Monitor monitor, HttpClient httpClient) {
         this.connectorId = URI.create(connectorId);
         this.identityService = identityService;
-        this.httpClient = httpClient;
         this.mapper = mapper;
         this.monitor = monitor;
+        this.httpClient = httpClient;
     }
 
     @Override
@@ -81,49 +81,49 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
                 .build();
         queryMessage.setProperty("query", queryRequest.getQuery());
         queryMessage.setProperty("queryLanguage", queryRequest.getQueryLanguage());
-        var processId = context.getProcessId();
-
-        var requestBody = writeJson(queryMessage, mapper);
-
-        CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         var connectorAddress = queryRequest.getConnectorAddress();
-        HttpUrl baseUrl = HttpUrl.parse(connectorAddress);
-        if (baseUrl == null) {
-            future.completeExceptionally(new IllegalArgumentException("Connector address not specified"));
-            return future;
+        if (connectorAddress == null) {
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Connector address not specified"));
         }
 
-        HttpUrl connectorEndpoint = baseUrl.newBuilder().addPathSegment("api").addPathSegment("ids").addPathSegment("query").build();
+        URI uri = buildUri(connectorAddress + "/api/ids/query");
+        HttpRequest.BodyPublisher bodyPublisher = writeJsonPublisher(queryMessage, mapper);
 
-        Request request = new Request.Builder().url(connectorEndpoint).addHeader("Content-Type", JSON).post(requestBody).build();
+        HttpRequest httpRequest = HttpRequest.newBuilder(uri)
+                .header("Content-Type", JSON)
+                .POST(bodyPublisher)
+                .build();
 
-
-        httpClient.newCall(request).enqueue(new FutureCallback<>(future, r -> {
-            try (r) {
-                if (r.isSuccessful()) {
-                    monitor.debug("Query response received");
-                    try (var body = r.body()) {
+        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    if (response.statusCode() >= 200 && response.statusCode() <= 299) {
+                        String body = response.body();
                         if (body == null) {
-                            future.completeExceptionally(new EdcException("Received an empty body response from connector"));
+                            throw new EdcException("Received an empty body response from connector");
                         } else {
-                            return cast(mapper.readValue(body.string(), List.class));
+                            try {
+                                return cast(mapper.readValue(body, List.class));
+                            } catch (Exception e) {
+                                throw new EdcException(e);
+                            }
                         }
-                    } catch (IOException e) {
-                        future.completeExceptionally(e);
-                    }
-                } else {
-                    if (r.code() == 403) {
-                        // forbidden
-                        future.completeExceptionally(new EdcException("Received not authorized from connector"));
                     } else {
-                        future.completeExceptionally(new EdcException("Received an error from connector:" + r.code()));
+                        if (response.statusCode() == 403) {
+                            throw new EdcException("Received not authorized from connector");
+                        } else {
+                            throw new EdcException("Received an error from connector: " + response.statusCode());
+                        }
                     }
-                }
-                return null;
-            }
-        }));
-        return future;
+                });
+    }
 
+    @NotNull
+    private URI buildUri(String str) {
+        try {
+            return new URI(str);
+        } catch (URISyntaxException e) {
+            throw new EdcException("URI " + str + " is not valid");
+        }
     }
 }

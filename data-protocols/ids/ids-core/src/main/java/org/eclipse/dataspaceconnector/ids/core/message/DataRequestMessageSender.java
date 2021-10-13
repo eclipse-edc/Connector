@@ -19,9 +19,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.TokenFormat;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -32,9 +30,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.concurrent.CompletableFuture;
 
-import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
+import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJsonPublisher;
 
 /**
  * Binds and sends {@link DataRequest} messages through the IDS protocol.
@@ -43,27 +45,27 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
     private final Monitor monitor;
+    private final HttpClient httpClient;
     private final URI connectorId;
     private final IdentityService identityService;
     private final TransferProcessStore transferProcessStore;
     private final Vault vault;
-    private final OkHttpClient httpClient;
     private final ObjectMapper mapper;
 
     public DataRequestMessageSender(String connectorId,
                                     IdentityService identityService,
                                     TransferProcessStore transferProcessStore,
                                     Vault vault,
-                                    OkHttpClient httpClient,
                                     ObjectMapper mapper,
-                                    Monitor monitor) {
+                                    Monitor monitor,
+                                    HttpClient httpClient) {
         this.connectorId = URI.create(connectorId);
         this.identityService = identityService;
         this.transferProcessStore = transferProcessStore;
         this.vault = vault;
-        this.httpClient = httpClient;
         this.mapper = mapper;
         this.monitor = monitor;
+        this.httpClient = httpClient;
     }
 
     @Override
@@ -95,42 +97,37 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
             artifactMessage.setProperty("dataspaceconnector-destination-token", serializedToken);
         }
 
-        var requestBody = writeJson(artifactMessage, mapper);
-
-
         var connectorAddress = dataRequest.getConnectorAddress();
-        HttpUrl baseUrl = HttpUrl.parse(connectorAddress);
-        if (baseUrl == null) {
-            return transitionToErrorState("Invalid connector address: " + connectorAddress, context);
+        if (connectorAddress == null) {
+            return transitionToErrorState("Connector address not specified", context);
         }
 
-        HttpUrl connectorEndpoint = baseUrl.newBuilder().addPathSegment("api").addPathSegment("ids").addPathSegment("request").build();
+        URI uri = buildUri(connectorAddress + "/api/ids/request");
+        HttpRequest.BodyPublisher bodyPublisher = writeJsonPublisher(artifactMessage, mapper);
 
-        Request request = new Request.Builder().url(connectorEndpoint).addHeader("Content-Type", DataRequestMessageSender.JSON).post(requestBody).build();
+        HttpRequest httpRequest = HttpRequest.newBuilder(uri)
+                .header("Content-Type", JSON)
+                .POST(bodyPublisher)
+                .build();
 
-        CompletableFuture<Void> future = new CompletableFuture<>();
-
-        httpClient.newCall(request).enqueue(new FutureCallback<>(future, r -> {
-            try (r) {
-                TransferProcess transferProcess = transferProcessStore.find(processId);
-                if (r.isSuccessful()) {
-                    monitor.debug("Request approved and acknowledged for process: " + processId);
-                    transferProcess.transitionRequestAck();
-                } else if (r.code() == 500) {
-                    transferProcess.transitionProvisioned();  // force retry
-                } else {
-                    if (r.code() == 403) {
-                        // forbidden
-                        monitor.severe("Received not authorized from connector for process: " + processId);
+        return httpClient.sendAsync(httpRequest, HttpResponse.BodyHandlers.ofString())
+                .thenApply(response -> {
+                    TransferProcess transferProcess = transferProcessStore.find(processId);
+                    if (response.statusCode() >= 200 && response.statusCode() <= 299) {
+                        monitor.debug("Request approved and acknowledged for process: " + processId);
+                        transferProcess.transitionRequestAck();
+                    } else if (response.statusCode() == 500) {
+                        transferProcess.transitionProvisioned();  // force retry
+                    } else {
+                        if (response.statusCode() == 403) {
+                            monitor.severe("Received not authorized from connector for process: " + processId);
+                        }
+                        // Fatal error
+                        transferProcess.transitionError("General error, HTTP response code: " + response.statusCode());
                     }
-                    // Fatal error
-                    transferProcess.transitionError("General error, HTTP response code: " + r.code());
-                }
-                transferProcessStore.update(transferProcess);
-                return null;
-            }
-        }));
-        return future;
+                    transferProcessStore.update(transferProcess);
+                    return null;
+                });
     }
 
     @NotNull
@@ -143,4 +140,12 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
         return future;
     }
 
+    @NotNull
+    private URI buildUri(String str) {
+        try {
+            return new URI(str);
+        } catch (URISyntaxException e) {
+            throw new EdcException("URI " + str + " is not valid");
+        }
+    }
 }
