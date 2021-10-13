@@ -24,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- *
+ * Verifies registry dispatching and problem reporting.
  */
 class TransformerRegistryImplTest {
     private TransformerRegistryImpl registry;
@@ -50,10 +50,10 @@ class TransformerRegistryImplTest {
     @Test
     void verifyProblems() {
         var fooBarTransformer = createMock(Foo.class, Bar.class);
-        EasyMock.expect(fooBarTransformer.transform(EasyMock.isA(Foo.class), EasyMock.isA(TransformerContext.class))).andStubAnswer(()->{
-          TransformerContext context = EasyMock.getCurrentArgument(1);
-          context.reportProblem("problem");
-          return null;
+        EasyMock.expect(fooBarTransformer.transform(EasyMock.isA(Foo.class), EasyMock.isA(TransformerContext.class))).andStubAnswer(() -> {
+            TransformerContext context = EasyMock.getCurrentArgument(1);
+            context.reportProblem("problem");
+            return null;
         });
 
         EasyMock.replay(fooBarTransformer);
