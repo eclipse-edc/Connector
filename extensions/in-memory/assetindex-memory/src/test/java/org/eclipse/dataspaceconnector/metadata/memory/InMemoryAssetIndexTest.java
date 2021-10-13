@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-import java.util.Objects;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -24,14 +23,14 @@ class InMemoryAssetIndexTest {
 
     @BeforeEach
     void setUp() {
-        index = new InMemoryAssetIndex(niceMock(Monitor.class));
+        index = new InMemoryAssetIndex(niceMock(Monitor.class), new EqualsOnlyPredicateFactory());
     }
 
     @Test
     void queryAssets() {
         var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
         index.add(testAsset, createDataAddress(testAsset));
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().withFilter(a -> a.getName().equals("foobar")).build());
+        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "foobar").build());
         assertThat(assets).hasSize(1).containsExactly(testAsset);
     }
 
@@ -39,7 +38,7 @@ class InMemoryAssetIndexTest {
     void queryAssets_notFound() {
         var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
         index.add(testAsset, createDataAddress(testAsset));
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().withFilter(a -> a.getName().equals("barbaz")).build());
+        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "barbaz").build());
         assertThat(assets).isEmpty();
     }
 
@@ -47,7 +46,7 @@ class InMemoryAssetIndexTest {
     void queryAssets_fieldNull() {
         var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
         index.add(testAsset, createDataAddress(testAsset));
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().withFilter(a -> Objects.equals(a.getDescription(), "barbaz")).build());
+        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("description", "barbaz").build());
         assertThat(assets).isEmpty();
     }
 
@@ -60,8 +59,8 @@ class InMemoryAssetIndexTest {
         index.add(testAsset2, createDataAddress(testAsset2));
         index.add(testAsset3, createDataAddress(testAsset3));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .withFilter(a -> a.getName().equals("barbaz"))
-                .withFilter(a -> a.getVersion().equals("1"))
+                .whenEquals("name", "barbaz")
+                .whenEquals("version", "1")
                 .build());
         assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset2, testAsset3);
     }
@@ -103,7 +102,7 @@ class InMemoryAssetIndexTest {
         DataAddress address = createDataAddress(testAsset);
         index.add(testAsset, address);
 
-        assertThat(index.resolveForAsset(testAsset)).isEqualTo(address);
+        assertThat(index.resolveForAsset(testAsset.getId())).isEqualTo(address);
     }
 
     @Test
@@ -112,7 +111,7 @@ class InMemoryAssetIndexTest {
         var testAsset = Asset.Builder.newInstance().id(id).name("foobar").version("1").build();
         index.add(testAsset, null);
 
-        assertThatThrownBy(() -> index.resolveForAsset(testAsset)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> index.resolveForAsset(testAsset.getId())).isInstanceOf(IllegalArgumentException.class);
     }
 
     @Test

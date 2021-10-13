@@ -37,8 +37,10 @@ public class InMemoryAssetIndex implements AssetIndex {
     private final List<Asset> cache = new LinkedList<>();
     private final Map<String, DataAddress> dataAddresses = new HashMap<>();
     private final ReentrantReadWriteLock lock;
+    private final PredicateFactory<Asset>  predicateFactory;
 
-    public InMemoryAssetIndex(Monitor monitor) {
+    public InMemoryAssetIndex(Monitor monitor, PredicateFactory<Asset> predicateFactory) {
+        this.predicateFactory = predicateFactory;
         lock = new ReentrantReadWriteLock();
     }
 
@@ -47,7 +49,10 @@ public class InMemoryAssetIndex implements AssetIndex {
         Objects.requireNonNull(expression, "expression");
         lock.readLock().lock();
         try {
-            return filterByPredicate(cache, collatePredicateWithAnd(expression));
+
+            var rootPredicate = expression.getCriteria().stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
+
+            return filterByPredicate(cache, rootPredicate);
         } finally {
             lock.readLock().unlock();
         }
@@ -73,14 +78,14 @@ public class InMemoryAssetIndex implements AssetIndex {
     }
 
     @Override
-    public DataAddress resolveForAsset(Asset asset) {
-        Objects.requireNonNull(asset, "asset");
+    public DataAddress resolveForAsset(String assetId) {
+        Objects.requireNonNull(assetId, "assetId");
         lock.readLock().lock();
         try {
-            if (!dataAddresses.containsKey(asset.getId()) || dataAddresses.get(asset.getId()) == null) {
-                throw new IllegalArgumentException("No DataAddress found for Asset ID=" + asset.getId());
+            if (!dataAddresses.containsKey(assetId) || dataAddresses.get(assetId) == null) {
+                throw new IllegalArgumentException("No DataAddress found for Asset ID=" + assetId);
             }
-            return dataAddresses.get(asset.getId());
+            return dataAddresses.get(assetId);
         } finally {
             lock.readLock().unlock();
         }
@@ -99,13 +104,6 @@ public class InMemoryAssetIndex implements AssetIndex {
             lock.writeLock().unlock();
         }
 
-    }
-
-    /**
-     * folds all predicates into a new predicate, that is only true when the entire expression is true.
-     */
-    private Predicate<Asset> collatePredicateWithAnd(AssetSelectorExpression expression) {
-        return expression.getFilters().stream().reduce(x -> true, Predicate::and);
     }
 
     private Stream<Asset> filterByPredicate(List<Asset> assets, Predicate<Asset> predicate) {

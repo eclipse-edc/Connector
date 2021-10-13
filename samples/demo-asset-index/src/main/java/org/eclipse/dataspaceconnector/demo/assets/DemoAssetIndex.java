@@ -37,8 +37,8 @@ public class DemoAssetIndex implements AssetIndex {
     }
 
     @Override
-    public DataAddress resolveForAsset(Asset asset) {
-
+    public DataAddress resolveForAsset(String assetId) {
         throw new UnsupportedOperationException("Not yet implemented!");
     }
+
 }

@@ -48,10 +48,10 @@ public interface AssetIndex {
      * Resolves a {@link DataAddress} for a given {@code Asset}. A {@code DataAddress} can be understood as a pointer into
      * a storage system like a database or a document store.
      *
-     * @param asset The {@code Asset} for which the data pointer should be fetched.
+     * @param assetId The {@code assetId} for which the data pointer should be fetched.
      * @return A DataAddress
      * @throws NullPointerException     if {@code asset} was null
      * @throws IllegalArgumentException if no corresponding {@code DataAddress} was found for a certain asset
      */
-    DataAddress resolveForAsset(Asset asset);
+    DataAddress resolveForAsset(String assetId);
 }
