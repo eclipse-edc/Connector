@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.ids.spi.transform;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Implementations transform between and IDS and EDC type.
+ * Implementations transform between an IDS and EDC type.
  */
 public interface IdsTypeTransformer<INPUT, OUTPUT> {
 
