@@ -2,7 +2,6 @@ package org.eclipse.dataspaceconnector.ids.core.message;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
-import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;

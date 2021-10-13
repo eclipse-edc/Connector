@@ -15,7 +15,6 @@ package org.eclipse.dataspaceconnector.iam.did;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
@@ -34,6 +33,7 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import java.net.http.HttpClient;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -74,7 +74,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var webService = context.getService(WebService.class);
         webService.registerController(controller);
 
-        var httpClient = context.getService(OkHttpClient.class);
+        var httpClient = context.getService(HttpClient.class);
 
         var hubClient = new IdentityHubClientImpl(supplier, httpClient, objectMapper);
         context.registerService(IdentityHubClient.class, hubClient);

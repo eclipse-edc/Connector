@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.iam.did.hub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.RsaPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.RsaPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQuery;
@@ -11,6 +10,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import java.net.http.HttpClient;
 
 
 class IdentityHubClientImplTest {
@@ -31,6 +32,6 @@ class IdentityHubClientImplTest {
 
     @BeforeEach
     void setUp() {
-        hubClient = new IdentityHubClientImpl(() -> new RsaPrivateKeyWrapper(TemporaryKeyLoader.loadPrivateKey()), new OkHttpClient(), new ObjectMapper());
+        hubClient = new IdentityHubClientImpl(() -> new RsaPrivateKeyWrapper(TemporaryKeyLoader.loadPrivateKey()), HttpClient.newHttpClient(), new ObjectMapper());
     }
 }

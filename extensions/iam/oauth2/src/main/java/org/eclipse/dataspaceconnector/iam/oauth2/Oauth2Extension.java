@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.IdentityProviderKeyResolver;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.Oauth2ServiceImpl;

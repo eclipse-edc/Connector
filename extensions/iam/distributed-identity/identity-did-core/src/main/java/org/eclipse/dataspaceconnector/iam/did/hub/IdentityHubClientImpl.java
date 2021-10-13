@@ -14,10 +14,6 @@
 package org.eclipse.dataspaceconnector.iam.did.hub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.ClientResponse;
@@ -33,6 +29,11 @@ import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Map;
 import java.util.function.Supplier;
 
@@ -40,11 +41,11 @@ import static java.lang.String.format;
 
 
 public class IdentityHubClientImpl implements IdentityHubClient {
-    private final OkHttpClient httpClient;
+    private final HttpClient httpClient;
     private final ObjectMapper objectMapper;
     private final Supplier<PrivateKeyWrapper> privateKeySupplier;
 
-    public IdentityHubClientImpl(Supplier<PrivateKeyWrapper> privateKeySupplier, OkHttpClient httpClient, ObjectMapper objectMapper) {
+    public IdentityHubClientImpl(Supplier<PrivateKeyWrapper> privateKeySupplier, HttpClient httpClient, ObjectMapper objectMapper) {
         this.httpClient = httpClient;
         this.objectMapper = objectMapper;
         this.privateKeySupplier = privateKeySupplier;
@@ -94,17 +95,27 @@ public class IdentityHubClientImpl implements IdentityHubClient {
     }
 
     protected <M extends HubMessage> M executeQuery(Class<M> type, String jwe, String url) {
-        var requestBody = RequestBody.create(jwe, MediaType.get("application/json"));
-        var request = new Request.Builder().url(url).post(requestBody).build();
+        try {
+            var requestBody = HttpRequest.BodyPublishers.ofString(jwe);
+            var request = HttpRequest.newBuilder(new URI(url))
+                    .header("Content-Type", "application/json")
+                    .POST(requestBody)
+                    .build();
 
-        try (var response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
+            var response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() <= 299) {
                 var body = response.body();
                 assert body != null;
-                return new GenericJweReader().mapper(objectMapper).jwe(body.string()).privateKey(privateKeySupplier.get()).readType(type);
+                return new GenericJweReader()
+                        .mapper(objectMapper)
+                        .jwe(body)
+                        .privateKey(privateKeySupplier.get())
+                        .readType(type);
+            } else {
+                throw new EdcException(format("Identity Hub request was not successful: %s - %s", response.statusCode(), response.body()));
             }
-            throw new EdcException(format("Identity Hub request was not successful: %s - %s", response.code(), response.message()));
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException | InterruptedException e) {
             throw new EdcException(e);
         }
     }
