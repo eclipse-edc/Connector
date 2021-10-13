@@ -1,7 +1,7 @@
 # Transfer Functions Core
 
-This extensions provides required services for the Transfer Functions feature (.cf transfer-functions-spi).
+This extensions provides required services for the [Transfer Functions](../transfer-functions-spi/README.md) feature.
 
 # Status
 
-In development. 
+In development. This code has not yet been fully tested. 
