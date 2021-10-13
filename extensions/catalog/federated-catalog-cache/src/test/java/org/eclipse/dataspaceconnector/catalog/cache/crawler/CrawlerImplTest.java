@@ -90,7 +90,7 @@ class CrawlerImplTest {
 
         var l = new CountDownLatch(1);
 
-        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andAnswer(()-> {
+        expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andAnswer(() -> {
             l.countDown();
             return CompletableFuture.failedFuture(new EdcException("not reachable"));
         });
@@ -202,7 +202,7 @@ class CrawlerImplTest {
         executorService.submit(crawler);
 
         assertThat(l.await(5, TimeUnit.SECONDS)).isTrue();
-        assertThat(workQueue).hasSize(0);//1).allSatisfy(wi -> assertThat(wi.getErrors()).isNotNull().hasSize(1));
+        assertThat(workQueue).hasSize(0); //1).allSatisfy(wi -> assertThat(wi.getErrors()).isNotNull().hasSize(1));
         verify(protocolAdapterMock, errorHandlerMock);
 
     }

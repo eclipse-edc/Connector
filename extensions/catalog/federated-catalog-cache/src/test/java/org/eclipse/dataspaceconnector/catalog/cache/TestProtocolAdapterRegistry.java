@@ -21,7 +21,7 @@ public class TestProtocolAdapterRegistry implements ProtocolAdapterRegistry {
 
     @Override
     public Collection<ProtocolAdapter> findForProtocol(String protocolName) {
-        if(!map.containsKey(protocolName)) return Collections.emptyList();
+        if (!map.containsKey(protocolName)) return Collections.emptyList();
         return map.get(protocolName);
     }
 
@@ -44,7 +44,7 @@ public class TestProtocolAdapterRegistry implements ProtocolAdapterRegistry {
         }
     }
 
-    public void clear(){
+    public void clear() {
         map.clear();
     }
 }

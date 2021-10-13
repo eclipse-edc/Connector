@@ -96,7 +96,7 @@ public class PartitionManagerImplTest {
     }
 
     @Test
-    void stop_allCrawlersJoinSuccessfully(){
+    void stop_allCrawlersJoinSuccessfully() {
         List<Crawler> list = new ArrayList<>();
         partitionManager = new PartitionManagerImpl(monitorMock, workItemQueueMock, workItems -> {
             Crawler crawler = strictMock(Crawler.class);
