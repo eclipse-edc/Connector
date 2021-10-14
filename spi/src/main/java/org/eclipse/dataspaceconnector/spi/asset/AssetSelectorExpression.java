@@ -14,43 +14,104 @@
 
 package org.eclipse.dataspaceconnector.spi.asset;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
- * Labels are used to trim down the selection of assets. If the carried hash
- * of labels is empty all available assets are eligible for selection.
+ * AssetSelectorExpressions are using labels to qualify a subset of all Assets in the {@link AssetIndex}.
+ * Mostly, this will be used in the
+ * {@link org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework}.
+ * <p>
+ * If an AssetSelectorExpression does not contain any criteria, it selects no Assets. If all Assets are to be selected,
+ * the {@link AssetSelectorExpression#SELECT_ALL} constant must be used.
  */
+@JsonDeserialize(builder = AssetSelectorExpression.Builder.class)
 public final class AssetSelectorExpression {
-    private final Map<String, String> filterLabels = new HashMap<>();
 
-    private AssetSelectorExpression(final Map<String, String> filterLabels) {
-        Optional.ofNullable(filterLabels).ifPresent(this.filterLabels::putAll);
+    /**
+     * Constant to select the entire {@link AssetIndex} content. Depending on the implementation,
+     * this could take a long time!
+     */
+    public static final AssetSelectorExpression SELECT_ALL = new AssetSelectorExpression("*", "=", "*");
+    private List<Criterion> criteria;
+
+    private AssetSelectorExpression() {
+        criteria = new ArrayList<>();
     }
 
-    public Map<String, String> getFilterLabels() {
-        return Collections.unmodifiableMap(filterLabels);
+
+    private AssetSelectorExpression(String l, String op, String r) {
+        criteria = new ArrayList<>();
+        criteria.add(new Criterion(l, op, r));
     }
 
-    public static Builder builder() {
-        return new Builder();
+    public List<Criterion> getCriteria() {
+        return criteria;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(criteria);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AssetSelectorExpression that = (AssetSelectorExpression) o;
+        return criteria == that.criteria || criteria.equals(that.criteria);
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private final Map<String, String> labels = new HashMap<>();
+        private final AssetSelectorExpression expression;
 
         private Builder() {
+            expression = new AssetSelectorExpression();
         }
 
-        public Builder filterByLabel(final String key, final String value) {
-            this.labels.put(key, value);
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder criteria(List<Criterion> criteria) {
+            expression.criteria = criteria;
+            return this;
+        }
+
+        @JsonIgnore
+        public Builder constraint(String left, String op, String right) {
+            expression.criteria.add(new Criterion(left, op, right));
+            return this;
+        }
+
+        /**
+         * Convenience method to express equality checks. Is equivalent to
+         * {@code Builder.withConstraint(key, "=", value)}
+         *
+         * @param key   left-hand operand
+         * @param value right-hand operand
+         */
+        @JsonIgnore
+        public Builder whenEquals(String key, String value) {
+            expression.criteria.add(new Criterion(key, "=", value));
             return this;
         }
 
         public AssetSelectorExpression build() {
-            return new AssetSelectorExpression(labels);
+            return expression;
         }
     }
+
 }

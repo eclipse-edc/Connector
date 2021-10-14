@@ -14,6 +14,10 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.asset;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import java.util.Map;
 
 // TODO maybe create simple class hierarchy for the asset types (file, api, etc.)
@@ -22,117 +26,79 @@ import java.util.Map;
 /**
  * The {@link Asset} contains the metadata and describes the data itself or a collection of data.
  */
+@JsonDeserialize(builder = Asset.Builder.class)
 public class Asset {
     private String id;
-    private String title;
-    private String description;
+    private String name;
     private String version;
-    private String fileName;
-    private Integer byteSize;
-    private String fileExtension;
-    private Map<String, String> labels;
+    private Map<String, String> properties;
 
     public String getId() {
         return id;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
-    public String getDescription() {
-        return description;
+    public String getName() {
+        return name;
     }
 
     public String getVersion() {
         return version;
     }
 
-    public String getFileName() {
-        return fileName;
+
+    public Map<String, String> getProperties() {
+        return properties;
     }
 
-    public Integer getByteSize() {
-        return byteSize;
-    }
-
-    // TODO in theory each asset may have multiple representations/media types, depending on the transfer capabilities of the EDC
-    public String getFileExtension() {
-        return fileExtension;
-    }
-
-    public Map<String, String> getLabels() {
-        return labels;
-    }
-
+    @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private String id;
         private String title;
-        private String description;
         private String version;
-        private String fileName;
-        private Integer byteSize;
-        private String fileExtension;
         private Map<String, String> labels;
 
         private Builder() {
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder id(final String id) {
+        public Builder id(String id) {
             this.id = id;
             return this;
         }
 
 
-        public Builder title(final String title) {
+        public Builder name(String title) {
             this.title = title;
             return this;
         }
 
-        public Builder description(final String description) {
-            this.description = description;
-            return this;
-        }
-
-        public Builder version(final String version) {
+        public Builder version(String version) {
             this.version = version;
             return this;
         }
 
-        public Builder fileName(final String fileName) {
-            this.fileName = fileName;
+
+        public Builder properties(Map<String, String> properties) {
+            this.labels = properties;
             return this;
         }
 
-        public Builder byteSize(final Integer byteSize) {
-            this.byteSize = byteSize;
+        public Builder property(String key, String value) {
+            this.labels.put(key, value);
             return this;
         }
 
-        public Builder fileExtension(final String mediaType) {
-            this.fileExtension = mediaType;
-            return this;
-        }
-
-        public Builder labels(final Map<String, String> labels) {
-            this.labels = labels;
-            return this;
-        }
 
         public Asset build() {
             Asset asset = new Asset();
-            asset.id = this.id;
-            asset.title = this.title;
-            asset.description = this.description;
-            asset.version = this.version;
-            asset.fileName = this.fileName;
-            asset.byteSize = this.byteSize;
-            asset.fileExtension = this.fileExtension;
-            asset.labels = this.labels;
+            asset.id = id;
+            asset.name = title;
+            asset.version = version;
+            asset.properties = labels;
             return asset;
         }
     }

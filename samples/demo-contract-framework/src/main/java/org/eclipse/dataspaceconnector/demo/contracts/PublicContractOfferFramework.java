@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.types.domain.policy.CommonActionTypes;
 
 import java.util.Collections;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 /**
@@ -37,7 +36,7 @@ import java.util.stream.Stream;
 public class PublicContractOfferFramework implements ContractOfferFramework {
 
     @Override
-    public Stream<ContractOfferTemplate> queryTemplates(final ContractOfferFrameworkQuery query) {
+    public Stream<ContractOfferTemplate> queryTemplates(ContractOfferFrameworkQuery query) {
         return Stream.of(FixtureContractOfferTemplate.INSTANCE);
     }
 
@@ -45,33 +44,33 @@ public class PublicContractOfferFramework implements ContractOfferFramework {
         INSTANCE;
 
         @Override
-        public Stream<ContractOffer> getTemplatedOffers(final Stream<Asset> assets) {
+        public Stream<ContractOffer> getTemplatedOffers(Stream<Asset> assets) {
             return assets.map(this::createContractOffer);
         }
 
         @Override
-        public Optional<AssetSelectorExpression> getSelectorExpression() {
-            return Optional.of(AssetSelectorExpression.builder().build());
+        public AssetSelectorExpression getSelectorExpression() {
+            return AssetSelectorExpression.Builder.newInstance().build();
         }
 
-        private ContractOffer createContractOffer(final Asset asset) {
-            final ContractOffer.Builder builder = ContractOffer.Builder.newInstance();
+        private ContractOffer createContractOffer(Asset asset) {
+            ContractOffer.Builder builder = ContractOffer.Builder.newInstance();
 
-            final Action action = Action.Builder.newInstance()
+            Action action = Action.Builder.newInstance()
                     .type(CommonActionTypes.ALL)
                     .build();
 
-            final Policy.Builder policyBuilder = Policy.Builder.newInstance()
+            Policy.Builder policyBuilder = Policy.Builder.newInstance()
                     .type(PolicyType.CONTRACT);
 
-            final Permission rule = Permission.Builder.newInstance()
+            Permission rule = Permission.Builder.newInstance()
                     .action(action)
                     .constraints(Collections.emptyList())
                     .build();
             policyBuilder.permissions(Collections.singletonList(rule));
 
-            final Policy policy = policyBuilder.build();
-            final OfferedAsset offeredAsset = OfferedAsset.Builder.newInstance()
+            Policy policy = policyBuilder.build();
+            OfferedAsset offeredAsset = OfferedAsset.Builder.newInstance()
                     .asset(asset)
                     .policy(policy)
                     .build();

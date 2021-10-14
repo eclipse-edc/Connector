@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.contract;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
@@ -28,11 +27,15 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Optional;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
+import static org.easymock.EasyMock.mock;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.verify;
 
 class ContractOfferServiceImplTest {
 
@@ -42,15 +45,15 @@ class ContractOfferServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        contractOfferFramework = EasyMock.mock(ContractOfferFramework.class);
-        assetIndex = EasyMock.mock(AssetIndex.class);
+        contractOfferFramework = mock(ContractOfferFramework.class);
+        assetIndex = mock(AssetIndex.class);
 
         contractOfferService = new ContractOfferServiceImpl(contractOfferFramework, assetIndex);
     }
 
     @Test
     void testConstructorNullParametersThrowingIllegalArgumentException() {
-        EasyMock.replay(contractOfferFramework, assetIndex);
+        replay(contractOfferFramework, assetIndex);
 
         // just eval all constructor parameters are mandatory and lead to NPE
         assertThatThrownBy(() -> new ContractOfferServiceImpl(contractOfferFramework, null))
@@ -60,87 +63,85 @@ class ContractOfferServiceImplTest {
         assertThatThrownBy(() -> new ContractOfferServiceImpl(null, null))
                 .isInstanceOf(NullPointerException.class);
 
-        EasyMock.verify(contractOfferFramework, assetIndex);
+        verify(contractOfferFramework, assetIndex);
     }
 
     @Test
     void testContractOfferFrameworkReturningNullResultsEmptyStream() {
         //given
-        final ContractOfferQuery contractOfferQuery = ContractOfferQuery.builder().build();
+        ContractOfferQuery contractOfferQuery = ContractOfferQuery.builder().build();
 
         // expect
-        EasyMock.expect(contractOfferFramework.queryTemplates(EasyMock.isA(ContractOfferFrameworkQuery.class)))
+        expect(contractOfferFramework.queryTemplates(isA(ContractOfferFrameworkQuery.class)))
                 .andReturn(null);
 
-        EasyMock.replay(contractOfferFramework, assetIndex);
+        replay(contractOfferFramework, assetIndex);
 
         // invocation
-        final ContractOfferQueryResponse response = contractOfferService.queryContractOffers(contractOfferQuery);
+        ContractOfferQueryResponse response = contractOfferService.queryContractOffers(contractOfferQuery);
 
         // verification
         assertThat(response).isNotNull();
         assertThat(response.getContractOfferStream()).isEmpty();
 
-        EasyMock.verify(contractOfferFramework, assetIndex);
+        verify(contractOfferFramework, assetIndex);
     }
 
     @Test
     void testContractOfferFrameworkReturningEmptySelectorExpressionResultsEmptyStream() {
         //given
-        final ContractOfferQuery contractOfferQuery = ContractOfferQuery.builder().build();
+        ContractOfferQuery contractOfferQuery = ContractOfferQuery.builder().build();
 
-        final ContractOfferTemplate contractOfferTemplate = EasyMock.mock(ContractOfferTemplate.class);
+        ContractOfferTemplate contractOfferTemplate = mock(ContractOfferTemplate.class);
 
         // expect
-        EasyMock.expect(contractOfferFramework.queryTemplates(EasyMock.isA(ContractOfferFrameworkQuery.class)))
+        expect(contractOfferFramework.queryTemplates(isA(ContractOfferFrameworkQuery.class)))
                 .andReturn(Stream.of(contractOfferTemplate));
-        EasyMock.expect(contractOfferTemplate.getSelectorExpression())
-                .andReturn(Optional.empty());
-        EasyMock.expect(contractOfferTemplate.getTemplatedOffers(EasyMock.isA(Stream.class)))
-                .andReturn(Stream.empty());
+        expect(contractOfferTemplate.getSelectorExpression())
+                .andReturn(null);
 
-        EasyMock.replay(contractOfferFramework, assetIndex, contractOfferTemplate);
+        replay(contractOfferFramework, assetIndex, contractOfferTemplate);
 
         // invocation
-        final ContractOfferQueryResponse response = contractOfferService.queryContractOffers(contractOfferQuery);
+        ContractOfferQueryResponse response = contractOfferService.queryContractOffers(contractOfferQuery);
 
         // verification
         assertThat(response).isNotNull();
         assertThat(response.getContractOfferStream()).isEmpty();
 
-        EasyMock.verify(contractOfferFramework, assetIndex, contractOfferTemplate);
+        verify(contractOfferFramework, assetIndex, contractOfferTemplate);
     }
 
     @Test
     void testFullFlow() {
         //given
-        final ContractOfferQuery contractOfferQuery = ContractOfferQuery.builder().build();
+        ContractOfferQuery contractOfferQuery = ContractOfferQuery.builder().build();
 
-        final ContractOfferTemplate contractOfferTemplate = EasyMock.mock(ContractOfferTemplate.class);
-        final AssetSelectorExpression assetSelectorExpression = AssetSelectorExpression.builder().build();
-        final Asset asset = EasyMock.mock(Asset.class);
-        final Stream<Asset> assetStream = Stream.of(asset);
-        final ContractOffer contractOffer = EasyMock.mock(ContractOffer.class);
+        ContractOfferTemplate contractOfferTemplate = mock(ContractOfferTemplate.class);
+        AssetSelectorExpression assetSelectorExpression = AssetSelectorExpression.Builder.newInstance().build();
+        Asset asset = mock(Asset.class);
+        Stream<Asset> assetStream = Stream.of(asset);
+        ContractOffer contractOffer = mock(ContractOffer.class);
 
         // expect
-        EasyMock.expect(contractOfferFramework.queryTemplates(
-                EasyMock.isA(ContractOfferFrameworkQuery.class))).andReturn(Stream.of(contractOfferTemplate));
-        EasyMock.expect(contractOfferTemplate.getSelectorExpression())
-                .andReturn(Optional.of(assetSelectorExpression));
-        EasyMock.expect(assetIndex.queryAssets(assetSelectorExpression))
+        expect(contractOfferFramework.queryTemplates(
+                isA(ContractOfferFrameworkQuery.class))).andReturn(Stream.of(contractOfferTemplate));
+        expect(contractOfferTemplate.getSelectorExpression())
+                .andReturn(assetSelectorExpression);
+        expect(assetIndex.queryAssets(assetSelectorExpression))
                 .andReturn(assetStream);
-        EasyMock.expect(contractOfferTemplate.getTemplatedOffers(assetStream))
+        expect(contractOfferTemplate.getTemplatedOffers(assetStream))
                 .andReturn(Stream.of(contractOffer));
 
-        EasyMock.replay(contractOfferFramework, assetIndex, contractOfferTemplate, contractOffer);
+        replay(contractOfferFramework, assetIndex, contractOfferTemplate, contractOffer);
 
         // invocation
-        final ContractOfferQueryResponse response = contractOfferService.queryContractOffers(contractOfferQuery);
+        ContractOfferQueryResponse response = contractOfferService.queryContractOffers(contractOfferQuery);
 
         // verification
         assertThat(response).isNotNull();
         assertThat(response.getContractOfferStream()).containsExactly(contractOffer);
 
-        EasyMock.verify(contractOfferFramework, assetIndex, contractOfferTemplate, contractOffer);
+        verify(contractOfferFramework, assetIndex, contractOfferTemplate, contractOffer);
     }
 }

@@ -18,7 +18,32 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.stream.Stream;
 
+/**
+ * Query interface for {@link Asset} objects.
+ */
 public interface AssetIndex {
 
+    String FEATURE = "edc:asset:assetindex";
+
+    /**
+     * Returns all {@link Asset} objects that are selected by a certain expression
+     *
+     * @param expression An object containing a structured query to asset objects. If the expression contains no criteria,
+     *                   {@code Stream.empty()} is returned. If {@link AssetSelectorExpression#SELECT_ALL} is passed in, all
+     *                   Assets in the index are returned.
+     * @return A {@code Stream} that contains all assets that are selected by the expression. Might be empty, never null.
+     * @throws NullPointerException if the {@code AssetSelectorExpression} is null
+     */
     Stream<Asset> queryAssets(AssetSelectorExpression expression);
+
+    /**
+     * Fetches the {@link Asset} with the given ID from the metadata backend.
+     *
+     * @param assetId A String that represents the Asset ID, in most cases this will be a UUID.
+     * @return The {@link Asset} if one was found, or null otherwise.
+     * @throws NullPointerException If {@code assetId} was null or empty.
+     */
+    Asset findById(String assetId);
+
+
 }
