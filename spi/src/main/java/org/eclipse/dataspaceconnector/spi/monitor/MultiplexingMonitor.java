@@ -46,6 +46,16 @@ public class MultiplexingMonitor implements Monitor {
     }
 
     @Override
+    public void warning(Supplier<String> supplier, Throwable... errors) {
+        internalMonitors.forEach(m -> m.warning(supplier, errors));
+    }
+
+    @Override
+    public void warning(String message, Throwable... errors) {
+        internalMonitors.forEach(m -> m.warning(message, errors));
+    }
+
+    @Override
     public void info(Supplier<String> supplier, Throwable... errors) {
         internalMonitors.forEach(m -> m.info(supplier, errors));
     }

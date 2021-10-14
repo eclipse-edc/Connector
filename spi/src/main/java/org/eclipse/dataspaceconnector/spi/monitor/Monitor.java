@@ -32,6 +32,14 @@ public interface Monitor {
     default void severe(Map<String, Object> data) {
     }
 
+    
+    default void warning(Supplier<String> supplier, Throwable... errors) {
+    }
+
+    default void warning(String message, Throwable... errors) {
+        warning(() -> message, errors);
+    }
+
     default void info(Supplier<String> supplier, Throwable... errors) {
     }
 
