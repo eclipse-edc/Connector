@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.easymock.EasyMock.niceMock;
 
 class InMemoryAssetIndexTest {
@@ -102,25 +101,6 @@ class InMemoryAssetIndexTest {
         assertThat(index.findById("not-exist")).isNull();
     }
 
-    @Test
-    void resolveForAsset() {
-        String id = UUID.randomUUID().toString();
-        var testAsset = createAsset("foobar");
-        DataAddress address = createDataAddress(testAsset);
-        index.add(testAsset, address);
-
-        assertThat(index.resolveForAsset(testAsset.getId())).isEqualTo(address);
-    }
-
-    @Test
-    void resolveForAsset_assetNull_raisesException() {
-        String id = UUID.randomUUID().toString();
-        var testAsset = createAsset("foobar");
-        DataAddress address = createDataAddress(testAsset);
-        index.add(testAsset, address);
-
-        assertThatThrownBy(() -> index.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
-    }
 
     @NotNull
     private Asset createAsset(String name) {

@@ -30,10 +30,8 @@ import java.util.Map;
 public class Asset {
     private String id;
     private String name;
-    private String description;
     private String version;
-    private Integer byteSize;
-    private Map<String, String> labels;
+    private Map<String, String> properties;
 
     public String getId() {
         return id;
@@ -43,31 +41,20 @@ public class Asset {
         return name;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public String getVersion() {
         return version;
     }
 
 
-    public Integer getByteSize() {
-        return byteSize;
-    }
-
-
-    public Map<String, String> getLabels() {
-        return labels;
+    public Map<String, String> getProperties() {
+        return properties;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private String id;
         private String title;
-        private String description;
         private String version;
-        private Integer byteSize;
         private Map<String, String> labels;
 
         private Builder() {
@@ -89,35 +76,29 @@ public class Asset {
             return this;
         }
 
-        public Builder description(String description) {
-            this.description = description;
-            return this;
-        }
-
         public Builder version(String version) {
             this.version = version;
             return this;
         }
 
 
-        public Builder byteSize(Integer byteSize) {
-            this.byteSize = byteSize;
+        public Builder properties(Map<String, String> properties) {
+            this.labels = properties;
             return this;
         }
 
-        public Builder labels(Map<String, String> labels) {
-            this.labels = labels;
+        public Builder property(String key, String value) {
+            this.labels.put(key, value);
             return this;
         }
+
 
         public Asset build() {
             Asset asset = new Asset();
             asset.id = id;
             asset.name = title;
-            asset.description = description;
             asset.version = version;
-            asset.byteSize = byteSize;
-            asset.labels = labels;
+            asset.properties = labels;
             return asset;
         }
     }

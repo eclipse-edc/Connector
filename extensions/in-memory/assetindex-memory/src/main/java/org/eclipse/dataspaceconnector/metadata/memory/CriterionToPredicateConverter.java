@@ -39,9 +39,9 @@ public class CriterionToPredicateConverter implements CriterionConverter<Predica
     }
 
     private String label(String key, Asset asset) {
-        if (asset.getLabels() == null || !asset.getLabels().isEmpty()) {
+        if (asset.getProperties() == null || !asset.getProperties().isEmpty()) {
             return null;
         }
-        return asset.getLabels().get(key);
+        return asset.getProperties().get(key);
     }
 }

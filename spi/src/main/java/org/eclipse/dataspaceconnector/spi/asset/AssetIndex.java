@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.spi.asset;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.stream.Stream;
 
@@ -46,14 +45,5 @@ public interface AssetIndex {
      */
     Asset findById(String assetId);
 
-    /**
-     * Resolves a {@link DataAddress} for a given {@code Asset}. A {@code DataAddress} can be understood as a pointer into
-     * a storage system like a database or a document store.
-     *
-     * @param assetId The {@code assetId} for which the data pointer should be fetched.
-     * @return A DataAddress
-     * @throws NullPointerException     if {@code assetId} was null
-     * @throws IllegalArgumentException if no corresponding {@code DataAddress} was found for a certain asset
-     */
-    DataAddress resolveForAsset(String assetId);
+
 }

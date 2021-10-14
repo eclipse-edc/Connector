@@ -33,7 +33,6 @@ import java.util.stream.Stream;
  */
 public class InMemoryAssetIndex implements AssetIndex {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
-    private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
     private final CriterionToPredicateConverter predicateFactory;
 
     public InMemoryAssetIndex(Monitor monitor, CriterionToPredicateConverter predicateFactory) {
@@ -66,25 +65,13 @@ public class InMemoryAssetIndex implements AssetIndex {
         Predicate<Asset> predicate = (asset) -> asset.getId().equals(assetId);
         List<Asset> assets;
         assets = filterByPredicate(cache, predicate).collect(Collectors.toList());
-
         return assets.isEmpty() ? null : assets.get(0);
-    }
-
-    @Override
-    public DataAddress resolveForAsset(String assetId) {
-        Objects.requireNonNull(assetId, "assetId");
-        if (!dataAddresses.containsKey(assetId) || dataAddresses.get(assetId) == null) {
-            throw new IllegalArgumentException("No DataAddress found for Asset ID=" + assetId);
-        }
-        return dataAddresses.get(assetId);
     }
 
     void add(Asset asset, DataAddress address) {
         Objects.requireNonNull(asset, "asset");
         Objects.requireNonNull(asset.getId(), "asset.getId()");
         cache.put(asset.getId(), asset);
-        dataAddresses.put(asset.getId(), address);
-
     }
 
     private Stream<Asset> filterByPredicate(Map<String, Asset> assets, Predicate<Asset> predicate) {
