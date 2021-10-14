@@ -37,6 +37,11 @@ public class ContractServiceExtension implements ServiceExtension {
     }
 
     @Override
+    public final Set<String> requires() {
+        return Set.of(AssetIndex.FEATURE);
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
         monitor = serviceExtensionContext.getMonitor();
 
@@ -57,7 +62,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
     private void registerServices(ServiceExtensionContext serviceExtensionContext) {
 
-        AssetIndex assetIndex = null;
+        AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
 
         /*
          * Construct a ContractOfferFrameworkLocator for finding several ContractOfferFrameworks provided via extensions

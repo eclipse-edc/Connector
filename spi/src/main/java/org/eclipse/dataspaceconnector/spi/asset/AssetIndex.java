@@ -52,7 +52,7 @@ public interface AssetIndex {
      *
      * @param assetId The {@code assetId} for which the data pointer should be fetched.
      * @return A DataAddress
-     * @throws NullPointerException     if {@code asset} was null
+     * @throws NullPointerException     if {@code assetId} was null
      * @throws IllegalArgumentException if no corresponding {@code DataAddress} was found for a certain asset
      */
     DataAddress resolveForAsset(String assetId);

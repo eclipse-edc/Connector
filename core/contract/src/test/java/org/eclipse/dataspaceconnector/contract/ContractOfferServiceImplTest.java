@@ -99,8 +99,6 @@ class ContractOfferServiceImplTest {
                 .andReturn(Stream.of(contractOfferTemplate));
         expect(contractOfferTemplate.getSelectorExpression())
                 .andReturn(null);
-        //        expect(contractOfferTemplate.getTemplatedOffers(isA(Stream.class)))
-        //                .andReturn(Stream.empty());
 
         replay(contractOfferFramework, assetIndex, contractOfferTemplate);
 

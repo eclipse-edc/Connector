@@ -46,7 +46,7 @@ public final class AssetSelectorExpression {
     }
 
 
-    public AssetSelectorExpression(String l, String op, String r) {
+    private AssetSelectorExpression(String l, String op, String r) {
         criteria = new ArrayList<>();
         criteria.add(new Criterion(l, op, r));
     }

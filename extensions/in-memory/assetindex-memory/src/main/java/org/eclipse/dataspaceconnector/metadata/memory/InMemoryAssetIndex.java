@@ -21,10 +21,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -34,7 +34,7 @@ import java.util.stream.Stream;
  * An ephemeral asset index.
  */
 public class InMemoryAssetIndex implements AssetIndex {
-    private final List<Asset> cache = new LinkedList<>();
+    private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new HashMap<>();
     private final ReentrantReadWriteLock lock;
     private final CriterionToPredicateConverter predicateFactory;
@@ -48,11 +48,13 @@ public class InMemoryAssetIndex implements AssetIndex {
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
         // do not return anything if expression is empty
-        if (expression.getCriteria().isEmpty()) return Stream.empty();
+        if (expression.getCriteria().isEmpty()) {
+            return Stream.empty();
+        }
 
         // select everything ONLY if the special constant is used
         if (expression == AssetSelectorExpression.SELECT_ALL) {
-            return cache.stream();
+            return cache.values().stream();
         }
 
         lock.readLock().lock();
@@ -80,10 +82,6 @@ public class InMemoryAssetIndex implements AssetIndex {
             lock.readLock().unlock();
         }
 
-        if (assets.size() > 1) {
-            throw new IllegalStateException("findById() was expected to return 1 result but returned " + assets.size());
-        }
-
         return assets.isEmpty() ? null : assets.get(0);
     }
 
@@ -106,7 +104,7 @@ public class InMemoryAssetIndex implements AssetIndex {
         Objects.requireNonNull(asset.getId(), "asset.getId()");
         lock.writeLock().lock();
         try {
-            cache.add(asset);
+            cache.put(asset.getId(), asset);
             if (address != null) {
                 dataAddresses.put(asset.getId(), address);
             }
@@ -116,8 +114,8 @@ public class InMemoryAssetIndex implements AssetIndex {
 
     }
 
-    private Stream<Asset> filterByPredicate(List<Asset> assets, Predicate<Asset> predicate) {
-        return assets.stream().filter(predicate);
+    private Stream<Asset> filterByPredicate(Map<String, Asset> assets, Predicate<Asset> predicate) {
+        return assets.values().stream().filter(predicate);
     }
 
 }

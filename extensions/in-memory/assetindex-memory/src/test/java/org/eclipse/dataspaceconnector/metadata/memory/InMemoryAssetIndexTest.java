@@ -7,6 +7,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -28,7 +29,7 @@ class InMemoryAssetIndexTest {
 
     @Test
     void queryAssets() {
-        var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
+        var testAsset = createAsset("foobar");
         index.add(testAsset, createDataAddress(testAsset));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "foobar").build());
         assertThat(assets).hasSize(1).containsExactly(testAsset);
@@ -36,7 +37,7 @@ class InMemoryAssetIndexTest {
 
     @Test
     void queryAssets_notFound() {
-        var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
+        var testAsset = createAsset("foobar");
         index.add(testAsset, createDataAddress(testAsset));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "barbaz").build());
         assertThat(assets).isEmpty();
@@ -44,7 +45,7 @@ class InMemoryAssetIndexTest {
 
     @Test
     void queryAssets_fieldNull() {
-        var testAsset = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
+        var testAsset = createAsset("foobar");
         index.add(testAsset, createDataAddress(testAsset));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("description", "barbaz").build());
         assertThat(assets).isEmpty();
@@ -52,9 +53,9 @@ class InMemoryAssetIndexTest {
 
     @Test
     void queryAssets_multipleFound() {
-        var testAsset1 = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
-        var testAsset2 = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("barbaz").version("1").build();
-        var testAsset3 = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("barbaz").version("1").build();
+        var testAsset1 = createAsset("foobar");
+        var testAsset2 = createAsset("barbaz");
+        var testAsset3 = createAsset("barbaz");
         index.add(testAsset1, createDataAddress(testAsset1));
         index.add(testAsset2, createDataAddress(testAsset2));
         index.add(testAsset3, createDataAddress(testAsset3));
@@ -73,10 +74,10 @@ class InMemoryAssetIndexTest {
 
     @Test
     void queryAssets_selectAll_shouldReturnAll() {
-        var testAsset1 = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("barbaz").version("1").build();
+        var testAsset1 = createAsset("barbaz");
         index.add(testAsset1, createDataAddress(testAsset1));
 
-        var testAsset2 = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
+        var testAsset2 = createAsset("foobar");
         index.add(testAsset2, createDataAddress(testAsset2));
 
         assertThat(index.queryAssets(AssetSelectorExpression.SELECT_ALL)).containsExactlyInAnyOrder(testAsset1, testAsset2);
@@ -85,37 +86,26 @@ class InMemoryAssetIndexTest {
     @Test
     void findById() {
         String id = UUID.randomUUID().toString();
-        var testAsset = Asset.Builder.newInstance().id(id).name("foobar").version("1").build();
+        var testAsset = createAsset("barbaz", id);
         index.add(testAsset, createDataAddress(testAsset));
 
         assertThat(index.findById(id)).isNotNull().isEqualTo(testAsset);
     }
 
+
     @Test
     void findById_notfound() {
         String id = UUID.randomUUID().toString();
-        var testAsset = Asset.Builder.newInstance().id(id).name("foobar").version("1").build();
+        var testAsset = createAsset("foobar");
         index.add(testAsset, createDataAddress(testAsset));
 
         assertThat(index.findById("not-exist")).isNull();
     }
 
     @Test
-    void findById_multiple_raisesException() {
-        String id = UUID.randomUUID().toString();
-        var testAsset = Asset.Builder.newInstance().id(id).name("foobar").version("1").build();
-        var testAsset2 = Asset.Builder.newInstance().id(id).name("foobar").version("1").build();
-
-        index.add(testAsset, createDataAddress(testAsset));
-        index.add(testAsset2, createDataAddress(testAsset2)); //in an actual DB this would likely cause problems already
-
-        assertThatThrownBy(() -> index.findById(id)).isInstanceOf(IllegalStateException.class);
-    }
-
-    @Test
     void resolveForAsset() {
         String id = UUID.randomUUID().toString();
-        var testAsset = Asset.Builder.newInstance().id(id).name("foobar").version("1").build();
+        var testAsset = createAsset("foobar");
         DataAddress address = createDataAddress(testAsset);
         index.add(testAsset, address);
 
@@ -125,7 +115,7 @@ class InMemoryAssetIndexTest {
     @Test
     void resolveForAsset_notFound_raisesIllegalArgException() {
         String id = UUID.randomUUID().toString();
-        var testAsset = Asset.Builder.newInstance().id(id).name("foobar").version("1").build();
+        var testAsset = createAsset("foobar");
         index.add(testAsset, null);
 
         assertThatThrownBy(() -> index.resolveForAsset(testAsset.getId())).isInstanceOf(IllegalArgumentException.class);
@@ -134,11 +124,20 @@ class InMemoryAssetIndexTest {
     @Test
     void resolveForAsset_assetNull_raisesException() {
         String id = UUID.randomUUID().toString();
-        var testAsset = Asset.Builder.newInstance().id(id).name("foobar").version("1").build();
+        var testAsset = createAsset("foobar");
         DataAddress address = createDataAddress(testAsset);
         index.add(testAsset, address);
 
         assertThatThrownBy(() -> index.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
+    }
+
+    @NotNull
+    private Asset createAsset(String name) {
+        return createAsset(name, UUID.randomUUID().toString());
+    }
+
+    private Asset createAsset(String name, String id) {
+        return Asset.Builder.newInstance().id(id).name(name).version("1").build();
     }
 
     private DataAddress createDataAddress(Asset asset) {
