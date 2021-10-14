@@ -20,12 +20,10 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -35,13 +33,11 @@ import java.util.stream.Stream;
  */
 public class InMemoryAssetIndex implements AssetIndex {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
-    private final Map<String, DataAddress> dataAddresses = new HashMap<>();
-    private final ReentrantReadWriteLock lock;
+    private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
     private final CriterionToPredicateConverter predicateFactory;
 
     public InMemoryAssetIndex(Monitor monitor, CriterionToPredicateConverter predicateFactory) {
         this.predicateFactory = predicateFactory;
-        lock = new ReentrantReadWriteLock();
     }
 
     @Override
@@ -57,30 +53,19 @@ public class InMemoryAssetIndex implements AssetIndex {
             return cache.values().stream();
         }
 
-        lock.readLock().lock();
-        try {
+        // convert all the criteria into predicates since we're in memory anyway, collate all predicates into one and
+        // apply it to the stream
+        var rootPredicate = expression.getCriteria().stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
 
-            // convert all the criteria into predicates since we're in memory anyway, collate all predicates into one and
-            // apply it to the stream
-            var rootPredicate = expression.getCriteria().stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
-
-            return filterByPredicate(cache, rootPredicate);
-        } finally {
-            lock.readLock().unlock();
-        }
+        return filterByPredicate(cache, rootPredicate);
 
     }
 
     @Override
     public Asset findById(String assetId) {
         Predicate<Asset> predicate = (asset) -> asset.getId().equals(assetId);
-        lock.readLock().lock();
         List<Asset> assets;
-        try {
-            assets = filterByPredicate(cache, predicate).collect(Collectors.toList());
-        } finally {
-            lock.readLock().unlock();
-        }
+        assets = filterByPredicate(cache, predicate).collect(Collectors.toList());
 
         return assets.isEmpty() ? null : assets.get(0);
     }
@@ -88,28 +73,18 @@ public class InMemoryAssetIndex implements AssetIndex {
     @Override
     public DataAddress resolveForAsset(String assetId) {
         Objects.requireNonNull(assetId, "assetId");
-        lock.readLock().lock();
-        try {
-            if (!dataAddresses.containsKey(assetId) || dataAddresses.get(assetId) == null) {
-                throw new IllegalArgumentException("No DataAddress found for Asset ID=" + assetId);
-            }
-            return dataAddresses.get(assetId);
-        } finally {
-            lock.readLock().unlock();
+        if (!dataAddresses.containsKey(assetId) || dataAddresses.get(assetId) == null) {
+            throw new IllegalArgumentException("No DataAddress found for Asset ID=" + assetId);
         }
+        return dataAddresses.get(assetId);
     }
 
     void add(Asset asset, DataAddress address) {
         Objects.requireNonNull(asset, "asset");
         Objects.requireNonNull(asset.getId(), "asset.getId()");
-        lock.writeLock().lock();
-        try {
-            cache.put(asset.getId(), asset);
-            if (address != null) {
-                dataAddresses.put(asset.getId(), address);
-            }
-        } finally {
-            lock.writeLock().unlock();
+        cache.put(asset.getId(), asset);
+        if (address != null) {
+            dataAddresses.put(asset.getId(), address);
         }
 
     }
