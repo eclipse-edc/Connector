@@ -23,7 +23,7 @@ class InMemoryAssetIndexTest {
 
     @BeforeEach
     void setUp() {
-        index = new InMemoryAssetIndex(niceMock(Monitor.class), new EqualsOnlyPredicateFactory());
+        index = new InMemoryAssetIndex(niceMock(Monitor.class), new CriterionToPredicateConverter());
     }
 
     @Test
@@ -63,6 +63,23 @@ class InMemoryAssetIndexTest {
                 .whenEquals("version", "1")
                 .build());
         assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset2, testAsset3);
+    }
+
+    @Test
+    void queryAssets_noExpression_shouldReturnEmpty(){
+        var result= index.queryAssets(AssetSelectorExpression.Builder.newInstance().build());
+        assertThat(result).isEmpty();
+    }
+
+    @Test
+    void queryAssets_selectAll_shouldReturnAll(){
+        var testAsset1 = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("barbaz").version("1").build();
+        index.add(testAsset1, createDataAddress(testAsset1));
+
+        var testAsset2 = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("foobar").version("1").build();
+        index.add(testAsset2, createDataAddress(testAsset2));
+
+        assertThat(index.queryAssets(AssetSelectorExpression.SELECT_ALL)).containsExactlyInAnyOrder(testAsset1, testAsset2);
     }
 
     @Test

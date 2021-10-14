@@ -37,19 +37,29 @@ public class InMemoryAssetIndex implements AssetIndex {
     private final List<Asset> cache = new LinkedList<>();
     private final Map<String, DataAddress> dataAddresses = new HashMap<>();
     private final ReentrantReadWriteLock lock;
-    private final PredicateFactory<Asset>  predicateFactory;
+    private final CriterionToPredicateConverter predicateFactory;
 
-    public InMemoryAssetIndex(Monitor monitor, PredicateFactory<Asset> predicateFactory) {
+    public InMemoryAssetIndex(Monitor monitor, CriterionToPredicateConverter predicateFactory) {
         this.predicateFactory = predicateFactory;
         lock = new ReentrantReadWriteLock();
     }
 
     @Override
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-        Objects.requireNonNull(expression, "expression");
+        Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
+        // do not return anything if expression is empty
+        if (expression.getCriteria().isEmpty()) return Stream.empty();
+
+        // select everything ONLY if the special constant is used
+        if (expression == AssetSelectorExpression.SELECT_ALL) {
+            return cache.stream();
+        }
+
         lock.readLock().lock();
         try {
 
+            // convert all the criteria into predicates since we're in memory anyway, collate all predicates into one and
+            // apply it to the stream
             var rootPredicate = expression.getCriteria().stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
 
             return filterByPredicate(cache, rootPredicate);

@@ -14,19 +14,22 @@
 
 package org.eclipse.dataspaceconnector.spi.asset;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+import java.util.*;
 
 /**
  * AssetSelectorExpressions are using labels to qualify a subset of all Assets in the {@link AssetIndex}.
  * Mostly, this will be used in the
  * {@link org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework}.
  * <p>
- * If an AssetSelectorExpression does not contain any labels, it selects no Assets. If all Assets are to be selected,
+ * If an AssetSelectorExpression does not contain any criteria, it selects no Assets. If all Assets are to be selected,
  * the {@link AssetSelectorExpression#SELECT_ALL} constant must be used.
- * <p>
- * The AssetSelectorExpression should not be used to dynamically narrow a search for assets!
  */
+@JsonDeserialize(builder = AssetSelectorExpression.Builder.class)
 public final class AssetSelectorExpression {
 
     private List<Criterion> criteria;
@@ -35,33 +38,61 @@ public final class AssetSelectorExpression {
         criteria = new ArrayList<>();
     }
 
+    public AssetSelectorExpression(String l, String op, String r) {
+        criteria = new ArrayList<>();
+        criteria.add(new Criterion(l, op, r));
+    }
+
 
     public List<Criterion> getCriteria() {
         return criteria;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        AssetSelectorExpression that = (AssetSelectorExpression) o;
+        return criteria == that.criteria || criteria.equals(that.criteria);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(criteria);
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private final AssetSelectorExpression expression;
 
         private Builder() {
             expression = new AssetSelectorExpression();
-
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder filters(List<Criterion> criteria) {
+        public Builder criteria(List<Criterion> criteria) {
             expression.criteria = criteria;
             return this;
         }
 
-        public Builder withConstraint(String left, String op, String right) {
+        @JsonIgnore
+        public Builder constraint(String left, String op, String right) {
             expression.criteria.add(new Criterion(left, op, right));
             return this;
         }
 
+        /**
+         * Convenience method to express equality checks. Is equivalent to
+         * {@code Builder.withConstraint(key, "=", value)}
+         *
+         * @param key   left-hand operand
+         * @param value right-hand operand
+         */
+        @JsonIgnore
         public Builder whenEquals(String key, String value) {
             expression.criteria.add(new Criterion(key, "=", value));
             return this;
@@ -72,6 +103,10 @@ public final class AssetSelectorExpression {
         }
     }
 
-    public static final AssetSelectorExpression SELECT_ALL = new AssetSelectorExpression();
+    /**
+     * Constant to select the entire {@link AssetIndex} content. Depending on the implementation,
+     * this could take a long time!
+     */
+    public static final AssetSelectorExpression SELECT_ALL = new AssetSelectorExpression("*", "=", "*");
 
 }

@@ -29,8 +29,10 @@ public interface AssetIndex {
     /**
      * Returns all {@link Asset} objects that are selected by a certain expression
      *
-     * @param expression An object containing a structured query to asset objects.
-     * @return A {@code Stream} that contains all assets that are selected by the expression. Might be empty.
+     * @param expression An object containing a structured query to asset objects. If the expression contains no criteria,
+     *                   {@code Stream.empty()} is returned. If {@link AssetSelectorExpression#SELECT_ALL} is passed in, all
+     *                   Assets in the index are returned.
+     * @return A {@code Stream} that contains all assets that are selected by the expression. Might be empty, never null.
      * @throws NullPointerException if the {@code AssetSelectorExpression} is null
      */
     Stream<Asset> queryAssets(AssetSelectorExpression expression);
