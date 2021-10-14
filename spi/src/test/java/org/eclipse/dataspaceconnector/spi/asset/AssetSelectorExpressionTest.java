@@ -6,7 +6,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
 
 class AssetSelectorExpressionTest {
 
@@ -38,7 +37,7 @@ class AssetSelectorExpressionTest {
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        expression= AssetSelectorExpression.Builder.newInstance()
+        expression = AssetSelectorExpression.Builder.newInstance()
                 .constraint("name", "IN", "(bob, alice)")
                 .build();
         var json = objectMapper.writeValueAsString(expression);
@@ -48,8 +47,8 @@ class AssetSelectorExpressionTest {
     }
 
     @Test
-    void verifyDeserialization() throws JsonProcessingException{
-        expression= AssetSelectorExpression.Builder.newInstance()
+    void verifyDeserialization() throws JsonProcessingException {
+        expression = AssetSelectorExpression.Builder.newInstance()
                 .constraint("name", "IN", "(bob, alice)")
                 .build();
         var json = objectMapper.writeValueAsString(expression);

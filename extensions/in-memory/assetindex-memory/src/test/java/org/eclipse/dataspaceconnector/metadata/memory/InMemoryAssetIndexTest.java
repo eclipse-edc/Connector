@@ -66,13 +66,13 @@ class InMemoryAssetIndexTest {
     }
 
     @Test
-    void queryAssets_noExpression_shouldReturnEmpty(){
-        var result= index.queryAssets(AssetSelectorExpression.Builder.newInstance().build());
+    void queryAssets_noExpression_shouldReturnEmpty() {
+        var result = index.queryAssets(AssetSelectorExpression.Builder.newInstance().build());
         assertThat(result).isEmpty();
     }
 
     @Test
-    void queryAssets_selectAll_shouldReturnAll(){
+    void queryAssets_selectAll_shouldReturnAll() {
         var testAsset1 = Asset.Builder.newInstance().id(UUID.randomUUID().toString()).name("barbaz").version("1").build();
         index.add(testAsset1, createDataAddress(testAsset1));
 

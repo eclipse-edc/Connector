@@ -19,7 +19,9 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * AssetSelectorExpressions are using labels to qualify a subset of all Assets in the {@link AssetIndex}.
@@ -32,33 +34,42 @@ import java.util.*;
 @JsonDeserialize(builder = AssetSelectorExpression.Builder.class)
 public final class AssetSelectorExpression {
 
+    /**
+     * Constant to select the entire {@link AssetIndex} content. Depending on the implementation,
+     * this could take a long time!
+     */
+    public static final AssetSelectorExpression SELECT_ALL = new AssetSelectorExpression("*", "=", "*");
     private List<Criterion> criteria;
 
     private AssetSelectorExpression() {
         criteria = new ArrayList<>();
     }
 
+
     public AssetSelectorExpression(String l, String op, String r) {
         criteria = new ArrayList<>();
         criteria.add(new Criterion(l, op, r));
     }
-
 
     public List<Criterion> getCriteria() {
         return criteria;
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        AssetSelectorExpression that = (AssetSelectorExpression) o;
-        return criteria == that.criteria || criteria.equals(that.criteria);
+    public int hashCode() {
+        return Objects.hash(criteria);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(criteria);
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        AssetSelectorExpression that = (AssetSelectorExpression) o;
+        return criteria == that.criteria || criteria.equals(that.criteria);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -102,11 +113,5 @@ public final class AssetSelectorExpression {
             return expression;
         }
     }
-
-    /**
-     * Constant to select the entire {@link AssetIndex} content. Depending on the implementation,
-     * this could take a long time!
-     */
-    public static final AssetSelectorExpression SELECT_ALL = new AssetSelectorExpression("*", "=", "*");
 
 }

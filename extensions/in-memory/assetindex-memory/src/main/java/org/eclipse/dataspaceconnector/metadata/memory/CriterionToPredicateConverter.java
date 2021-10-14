@@ -11,13 +11,15 @@ import java.util.function.Predicate;
 import static java.lang.String.format;
 
 /**
- * Converts a {@link Criterion}, which is essentially a select statement, into a {@link Predicate<Asset>}.
+ * Converts a {@link Criterion}, which is essentially a select statement, into a {@code Predicate<Asset>}.
+ * <p>
  * This is useful when dealing with in-memory collections of objects, here: {@link Asset} where Predicates can be applied
  * efficiently.
- *
+ * <p>
  * _Note: other {@link org.eclipse.dataspaceconnector.spi.asset.AssetIndex} implementations might have different converters!
  */
 public class CriterionToPredicateConverter implements CriterionConverter<Predicate<Asset>> {
+    @Override
     public Predicate<Asset> convert(Criterion criterion) {
         if ("=".equals(criterion.getOperator())) {
             return asset -> Objects.equals(field(criterion.getOperandLeft(), asset), criterion.getOperandRight()) ||

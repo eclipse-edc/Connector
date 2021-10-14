@@ -9,7 +9,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.*;
 
 class CriterionToPredicateConverterTest {
 
@@ -31,14 +30,14 @@ class CriterionToPredicateConverterTest {
     }
 
     @Test
-    void convert_invalidOperator(){
+    void convert_invalidOperator() {
         var criterion = new Criterion("name", "in", "(bob, alice)");
         assertThatThrownBy(() -> converter.convert(criterion)).isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("Operator [in] is not supported by this converter!");
 
     }
 
-    private Asset createAsset(String name){
+    private Asset createAsset(String name) {
         return Asset.Builder.newInstance()
                 .name(name)
                 .id(UUID.randomUUID().toString())
