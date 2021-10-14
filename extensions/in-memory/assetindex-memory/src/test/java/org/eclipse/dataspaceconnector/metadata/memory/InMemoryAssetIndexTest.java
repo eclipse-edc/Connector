@@ -113,15 +113,6 @@ class InMemoryAssetIndexTest {
     }
 
     @Test
-    void resolveForAsset_notFound_raisesIllegalArgException() {
-        String id = UUID.randomUUID().toString();
-        var testAsset = createAsset("foobar");
-        index.add(testAsset, null);
-
-        assertThatThrownBy(() -> index.resolveForAsset(testAsset.getId())).isInstanceOf(IllegalArgumentException.class);
-    }
-
-    @Test
     void resolveForAsset_assetNull_raisesException() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar");

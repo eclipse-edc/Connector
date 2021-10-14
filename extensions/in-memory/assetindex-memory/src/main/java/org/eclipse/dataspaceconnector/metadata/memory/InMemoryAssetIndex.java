@@ -83,9 +83,7 @@ public class InMemoryAssetIndex implements AssetIndex {
         Objects.requireNonNull(asset, "asset");
         Objects.requireNonNull(asset.getId(), "asset.getId()");
         cache.put(asset.getId(), asset);
-        if (address != null) {
-            dataAddresses.put(asset.getId(), address);
-        }
+        dataAddresses.put(asset.getId(), address);
 
     }
 
