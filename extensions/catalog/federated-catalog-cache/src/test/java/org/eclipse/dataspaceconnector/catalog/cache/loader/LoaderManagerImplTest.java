@@ -91,7 +91,7 @@ class LoaderManagerImplTest {
         loaderManager.start();
 
         //wait for completion signal
-        assertThat(completionSignal.await(5, TimeUnit.MILLISECONDS)).isTrue();
+        assertThat(completionSignal.await(5, TimeUnit.SECONDS)).isTrue();
 
         verify(loaderMock);
     }
