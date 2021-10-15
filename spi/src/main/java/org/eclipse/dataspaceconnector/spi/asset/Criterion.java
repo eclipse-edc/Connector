@@ -20,11 +20,11 @@ import java.util.Objects;
  */
 public class Criterion {
     @JsonProperty("left")
-    private String operandLeft;
+    private Object operandLeft;
     @JsonProperty("op")
     private String operator;
     @JsonProperty("right")
-    private String operandRight;
+    private Object operandRight;
 
     private Criterion() {
         //for json serialization
@@ -36,7 +36,7 @@ public class Criterion {
         this.operandRight = right;
     }
 
-    public String getOperandLeft() {
+    public Object getOperandLeft() {
         return operandLeft;
     }
 
@@ -44,7 +44,7 @@ public class Criterion {
         return operator;
     }
 
-    public String getOperandRight() {
+    public Object getOperandRight() {
         return operandRight;
     }
 
