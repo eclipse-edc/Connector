@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.identity;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -17,7 +18,7 @@ public class DistributedIdentityServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of(VerifiableCredentialProvider.FEATURE, DidResolver.FEATURE, CredentialsVerifier.FEATURE);
+        return Set.of(VerifiableCredentialProvider.FEATURE, DidResolverRegistry.FEATURE, CredentialsVerifier.FEATURE);
     }
 
     @Override

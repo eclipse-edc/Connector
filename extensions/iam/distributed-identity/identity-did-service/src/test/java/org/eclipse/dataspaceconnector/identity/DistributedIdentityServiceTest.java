@@ -107,20 +107,7 @@ abstract class DistributedIdentityServiceTest {
         var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
         var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
 
-        DidResolver didResolver = d -> {
-            try {
-                var did = new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
-                ECKey key = (ECKey) keyPair.toPublicJWK();
-                did.getVerificationMethod().add(VerificationMethod.Builder.create()
-                        .type("JsonWebKey2020")
-                        .id("test-key")
-                        .publicKeyJwk(new EllipticCurvePublicKey(key.getCurve().getName(), key.getKeyType().toString(), key.getX().toString(), key.getY().toString()))
-                        .build());
-                return did;
-            } catch (JsonProcessingException e) {
-                throw new AssertionError(e);
-            }
-        };
+        DidResolver didResolver = new TestResolver(hubUrlDid, keyPair);
 
         CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "eu"));
         identityService = new DistributedIdentityService(() -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer"), didResolver, verifier, new Monitor() {
@@ -165,6 +152,37 @@ abstract class DistributedIdentityServiceTest {
         @Override
         protected @NotNull JWSAlgorithm getHeaderAlgorithm() {
             return JWSAlgorithm.ES256;
+        }
+    }
+
+    private static class TestResolver implements DidResolver {
+        private String hubUrlDid;
+        private JWK keyPair;
+
+        public TestResolver(String hubUrlDid, JWK keyPair) {
+            this.hubUrlDid = hubUrlDid;
+            this.keyPair = keyPair;
+        }
+
+        @Override
+        public String getMethod() {
+            return "did:foo";
+        }
+
+        @Override
+        public DidDocument resolve(String didKey) {
+            try {
+                var did = new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
+                ECKey key = (ECKey) keyPair.toPublicJWK();
+                did.getVerificationMethod().add(VerificationMethod.Builder.create()
+                        .type("JsonWebKey2020")
+                        .id("test-key")
+                        .publicKeyJwk(new EllipticCurvePublicKey(key.getCurve().getName(), key.getKeyType().toString(), key.getX().toString(), key.getY().toString()))
+                        .build());
+                return did;
+            } catch (JsonProcessingException e) {
+                throw new AssertionError(e);
+            }
         }
     }
 

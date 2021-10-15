@@ -14,18 +14,18 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 /**
- * Resolves a DID against an external resolver service.
+ * Delegates to a {@link DidResolver} to resolve a DID document.
  */
-public interface DidResolver {
+public interface DidResolverRegistry {
+    String FEATURE = "edc:identity:did:resolver";
 
     /**
-     * Returns the DID method this resolver supports.
+     * Registers a DID resolver.
      */
-    String getMethod();
+    void register(DidResolver resolver);
 
     /**
-     * Resolves the DID document.
+     * Resolves a DID document based on the DID method.
      */
     DidDocument resolve(String didKey);
-
 }

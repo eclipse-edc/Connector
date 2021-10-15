@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.ion.crypto.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -50,7 +51,7 @@ public class IdentityDidCoreHubExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of(IdentityHubStore.FEATURE, PrivateKeyResolver.FEATURE, DidResolver.FEATURE);
+        return Set.of(IdentityHubStore.FEATURE, PrivateKeyResolver.FEATURE, DidResolverRegistry.FEATURE);
     }
 
     @Override
