@@ -25,3 +25,11 @@ tasks.withType<Test> {
         showStandardStreams = false
     }
 }
+publishing {
+    publications {
+        create<MavenPublication>("catalog.cache") {
+            artifactId = "catalog.cache"
+            from(components["java"])
+        }
+    }
+}

@@ -70,7 +70,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 partitionConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE),
                 () -> partitionConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS));
 
-        //todo: think about how to keep the manager and the loader alive forever
         partitionManager.schedule(partitionConfig.getExecutionPlan());
         loaderManager.start();
     }

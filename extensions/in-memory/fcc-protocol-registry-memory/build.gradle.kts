@@ -12,3 +12,11 @@ dependencies {
     api(project(":extensions:catalog:federated-catalog-spi"))
     implementation(project(":common:util"))
 }
+publishing {
+    publications {
+        create<MavenPublication>("in-memory.catalog.cache.protocol-registry") {
+            artifactId = "in-memory.catalog.cache.protocol-registry"
+            from(components["java"])
+        }
+    }
+}

@@ -12,3 +12,11 @@ dependencies {
     api(project(":extensions:catalog:federated-catalog-spi"))
     implementation(project(":common:util"))
 }
+publishing {
+    publications {
+        create<MavenPublication>("in-memory.catalog.node-directory") {
+            artifactId = "in-memory.catalog.node-directory"
+            from(components["java"])
+        }
+    }
+}
