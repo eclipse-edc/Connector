@@ -22,8 +22,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("in-mem.metadata") {
-            artifactId = "in-mem.metadata"
+        create<MavenPublication>("in-memory.metadata") {
+            artifactId = "in-memory.metadata"
             from(components["java"])
         }
     }
