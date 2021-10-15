@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.samples.identity.did;
 
 import com.nimbusds.jose.jwk.ECKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.util.KeyPairFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

@@ -13,6 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+
 /**
  * Resolves a DID against an external resolver service.
  */

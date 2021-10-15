@@ -13,6 +13,9 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+
 /**
  * Delegates to a {@link DidResolver} to resolve a DID document.
  */

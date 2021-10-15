@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.iam.did.resolver;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidConstants;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
 import org.eclipse.dataspaceconnector.ion.crypto.KeyConverter;
 import org.eclipse.dataspaceconnector.ion.crypto.PublicKeyResolutionException;
 import org.jetbrains.annotations.Nullable;

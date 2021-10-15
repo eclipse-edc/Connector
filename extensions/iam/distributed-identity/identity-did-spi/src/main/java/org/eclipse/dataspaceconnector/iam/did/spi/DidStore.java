@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.iam.did.spi;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
