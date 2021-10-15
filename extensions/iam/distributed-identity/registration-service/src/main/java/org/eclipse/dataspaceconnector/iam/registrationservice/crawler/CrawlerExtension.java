@@ -15,9 +15,9 @@
 package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
-import org.eclipse.dataspaceconnector.iam.did.spi.DidStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
