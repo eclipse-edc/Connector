@@ -1,12 +1,11 @@
 package org.eclipse.dataspaceconnector.iam.did.resolver;
 
+import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyConverter;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
-import org.eclipse.dataspaceconnector.ion.crypto.KeyConverter;
-import org.eclipse.dataspaceconnector.ion.crypto.PublicKeyResolutionException;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -16,8 +15,8 @@ public class DefaultDidPublicKeyResolver implements DidPublicKeyResolver {
     private final DidResolver didResolver;
     // this is NOT a comprehensive list as specified in https://www.w3.org/TR/did-spec-registries/#verification-method-types
 
-    public DefaultDidPublicKeyResolver(DidResolver ionClient) {
-        didResolver = ionClient;
+    public DefaultDidPublicKeyResolver(DidResolver didResolver) {
+        this.didResolver = didResolver;
     }
 
     @Override

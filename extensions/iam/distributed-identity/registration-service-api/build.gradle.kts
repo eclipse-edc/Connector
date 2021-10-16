@@ -2,14 +2,11 @@ plugins {
     `java-library`
 }
 
-val jwtVersion: String by project
 val rsApi: String by project
 
-
 dependencies {
-    api(project(":spi"))
     implementation(project(":common:util"))
-    implementation(project(":extensions:ion:ion-core"))
+    api(project(":extensions:iam:distributed-identity:identity-did-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

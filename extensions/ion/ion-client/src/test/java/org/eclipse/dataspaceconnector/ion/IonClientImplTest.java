@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.ion;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.iam.util.KeyPairFactory;
+import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory;
 import org.eclipse.dataspaceconnector.ion.spi.request.IonRequestFactory;
 import org.eclipse.dataspaceconnector.ion.spi.request.PublicKeyDescriptor;
 import org.eclipse.dataspaceconnector.ion.spi.request.ServiceDescriptor;

@@ -3,14 +3,10 @@ plugins {
 }
 
 val rsApi: String by project
-val nimbusVersion: String by project
 
 dependencies {
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
-    api(project(":extensions:ion:ion-core"))
-
-    // newer Nimbus versions create a version conflict with the MSAL library which uses this version as a transitive dependency
-    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
+    implementation(project(":extensions:iam:distributed-identity:identity-did-crypto"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

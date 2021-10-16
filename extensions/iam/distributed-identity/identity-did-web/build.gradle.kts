@@ -3,12 +3,8 @@ plugins {
     `java-test-fixtures`
 }
 
-val nimbusVersion: String by project
 dependencies {
-    api(project(":spi"))
-
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
-
 }
 
 publishing {

@@ -13,8 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.hub;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 
 import java.util.Map;
 
@@ -28,8 +28,8 @@ public interface IdentityHubClient {
     /**
      * Queries credentials from the hub.
      *
-     * @param query     the credential query
-     * @param hubUrl    the base hub URL
+     * @param query the credential query
+     * @param hubUrl the base hub URL
      * @param publicKey the foreign hub's public key resolved from its DID
      */
     ClientResponse<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String hubUrl, PublicKeyWrapper publicKey);

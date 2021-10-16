@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.WriteRequestReader;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryResponse;
@@ -28,6 +27,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ErrorResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteResponse;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 

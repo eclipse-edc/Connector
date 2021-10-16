@@ -1,37 +1,37 @@
 package org.eclipse.dataspaceconnector.identity;
 
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.iam.did.crypto.credentials.VerifiableCredentialFactory;
+import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyConverter;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.JwkPublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
-import org.eclipse.dataspaceconnector.ion.crypto.KeyConverter;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.verifiablecredential.VerifiableCredentialFactory;
-import org.eclipse.dataspaceconnector.verifiablecredential.spi.VerifiableCredentialProvider;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
 import java.util.Date;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class DistributedIdentityService implements IdentityService {
 
-    private final VerifiableCredentialProvider verifiableCredentialProvider;
+    private final Supplier<SignedJWT> verifiableCredentialProvider;
     private final DidResolver didResolver;
     private final CredentialsVerifier credentialsVerifier;
     private final Monitor monitor;
 
-    public DistributedIdentityService(VerifiableCredentialProvider vcProvider, DidResolver didResolver, CredentialsVerifier credentialsVerifier, Monitor monitor) {
+    public DistributedIdentityService(Supplier<SignedJWT> vcProvider, DidResolver didResolver, CredentialsVerifier credentialsVerifier, Monitor monitor) {
         verifiableCredentialProvider = vcProvider;
         this.didResolver = didResolver;
         this.credentialsVerifier = credentialsVerifier;

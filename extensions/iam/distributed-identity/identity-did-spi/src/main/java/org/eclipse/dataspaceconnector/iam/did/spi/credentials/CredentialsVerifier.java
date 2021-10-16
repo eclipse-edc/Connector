@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.credentials;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 
 /**
  * Obtains and verifies credentials associated with a DID according to an implementation-specific trust model.
