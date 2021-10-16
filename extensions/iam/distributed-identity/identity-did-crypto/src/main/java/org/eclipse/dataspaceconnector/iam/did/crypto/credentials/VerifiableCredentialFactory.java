@@ -44,11 +44,14 @@ public class VerifiableCredentialFactory {
 
 
     /**
-     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer
+     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer.
      *
-     * @param privateKeyPemContent The contents of a private key stored in PEM format. Although all private key types are possible, in the context of Distributed Identity and ION
-     * using an Elliptic Curve key ({@code prime256v1}) is advisable. This can be achieved using OpenSSL CLI:
+     * Although all private key types are possible, in the context of Distributed Identity and ION using an Elliptic Curve key ({@code prime256v1}) is advisable. This can be
+     * achieved using OpenSSL CLI:
+     *
      * {@code openssl ecparam -name prime256v1 -genkey -noout -out prime256v1-key.pem}
+     *
+     * @param privateKeyPemContent The contents of a private key stored in PEM format.
      * @param claims a list of key-value-pairs that contain claims
      * @param issuer the "owner" of the VC, in most cases this will be the connector ID. The VC will store this in the "iss" claim
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
@@ -63,10 +66,10 @@ public class VerifiableCredentialFactory {
     }
 
     /**
-     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer
+     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer. Although all private key types are possible, in the context of Distributed Identity
+     * and ION using an Elliptic Curve key ({@code P-256}) is advisable.
      *
-     * @param privateKey A Private Key represented as {@link ECKey}. Although all private key types are possible, in the context of Distributed Identity and ION
-     * using an Elliptic Curve key ({@code P-256}) is advisable.
+     * @param privateKey A Private Key represented as {@link ECKey}.
      * @param claims a list of key-value-pairs that contain claims
      * @param issuer the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
@@ -76,10 +79,10 @@ public class VerifiableCredentialFactory {
     }
 
     /**
-     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer
-     *
-     * @param privateKey A Private Key represented as {@link PrivateKeyWrapper}. Although all private key types are possible, in the context of Distributed Identity and ION
+     * Creates a signed JWT {@link SignedJWT} that contains a set of claims and an issuer. Although all private key types are possible, in the context of Distributed Identity and ION
      * using an Elliptic Curve key ({@code P-256}) is advisable.
+     *
+     * @param privateKey A Private Key represented as {@link PrivateKeyWrapper}.
      * @param claims a list of key-value-pairs that contain claims
      * @param issuer the "owner" of the VC, in most cases this will be the DID ID. The VC will store this in the "iss" claim
      * @return a {@code SignedJWT} that is signed with the private key and contains all claims listed
