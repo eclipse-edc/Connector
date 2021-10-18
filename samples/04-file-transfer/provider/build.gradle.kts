@@ -32,7 +32,6 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:in-memory:policy-registry-memory"))
-    implementation(project(":extensions:in-memory:metadata-memory"))
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 

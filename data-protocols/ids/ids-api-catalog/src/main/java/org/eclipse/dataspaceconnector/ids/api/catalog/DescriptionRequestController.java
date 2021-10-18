@@ -23,7 +23,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
 
 import java.util.Map;
 
@@ -32,11 +31,9 @@ import java.util.Map;
 @Path("/ids")
 public class DescriptionRequestController {
     private final IdsDescriptorService descriptorService;
-    private final MetadataStore metadataStore;
 
-    public DescriptionRequestController(IdsDescriptorService descriptorService, MetadataStore metadataStore) {
+    public DescriptionRequestController(IdsDescriptorService descriptorService) {
         this.descriptorService = descriptorService;
-        this.metadataStore = metadataStore;
     }
 
     @POST

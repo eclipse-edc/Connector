@@ -84,7 +84,7 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
                 ._modelVersion_(DataRequestMessageSender.VERSION)
                 ._securityToken_(token)
                 ._issuerConnector_(this.connectorId)
-                ._requestedArtifact_(URI.create(dataRequest.getDataEntry().getId()))
+                ._requestedArtifact_(URI.create(dataRequest.getAsset().getId()))
                 .build();
         artifactMessage.setProperty("dataspaceconnector-data-destination", dataRequest.getDataDestination());
 

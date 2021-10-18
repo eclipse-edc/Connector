@@ -36,7 +36,7 @@ public class InMemoryDataAddressResolver implements DataAddressResolver {
         return dataAddresses.get(assetId);
     }
 
-    void add(String id, DataAddress address) {
+    public void add(String id, DataAddress address) {
         dataAddresses.put(id, address);
     }
 

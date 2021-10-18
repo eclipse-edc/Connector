@@ -19,7 +19,7 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -68,15 +68,15 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
     private void registerControllers(ServiceExtensionContext context) {
         var webService = context.getService(WebService.class);
         var descriptorService = context.getService(IdsDescriptorService.class);
-        var metadataStore = context.getService(MetadataStore.class);
+        var assetIndex = context.getService(AssetIndex.class);
 
         var dapService = context.getService(DapsService.class);
         var policyRegistry = context.getService(PolicyRegistry.class);
         var policyService = context.getService(IdsPolicyService.class);
-        var queryEngine = new QueryEngineImpl(policyRegistry, policyService, metadataStore, monitor);
+        var queryEngine = new QueryEngineImpl(policyRegistry, policyService, assetIndex, monitor);
 
 
-        webService.registerController(new DescriptionRequestController(descriptorService, metadataStore));
+        webService.registerController(new DescriptionRequestController(descriptorService));
         webService.registerController(new CatalogQueryController(queryEngine, dapService));
     }
 

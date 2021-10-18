@@ -68,7 +68,8 @@ public class InMemoryAssetIndex implements AssetIndex {
         return assets.isEmpty() ? null : assets.get(0);
     }
 
-    void add(Asset asset, DataAddress address) {
+    // TODO: address is not used and it should be deleted
+    public void add(Asset asset, DataAddress address) {
         Objects.requireNonNull(asset, "asset");
         Objects.requireNonNull(asset.getId(), "asset.getId()");
         cache.put(asset.getId(), asset);

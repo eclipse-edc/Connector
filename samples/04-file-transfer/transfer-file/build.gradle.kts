@@ -21,6 +21,8 @@ val rsApi: String by project
 
 dependencies {
     api(project(":spi"))
+    implementation(project(":extensions:in-memory:assetindex-memory"))
+    implementation(project(":extensions:in-memory:dataaddress-resolver-memory"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }
