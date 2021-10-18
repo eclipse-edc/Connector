@@ -1,8 +1,8 @@
 package org.eclipse.dataspaceconnector.catalog.cache.query;
 
-import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
+import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
@@ -27,19 +27,16 @@ class QueryEngineImplTest {
     void getCatalog() {
         QueryAdapterRegistry registry = strictMock(QueryAdapterRegistry.class);
 
-        QueryAdapter adapter1 = strictMock(QueryAdapter.class);
-        QueryAdapter adapter2 = strictMock(QueryAdapter.class);
+        expect(registry.executeQuery(anyObject())).andReturn(QueryResponse.Builder.newInstance()
+                .assets(Stream.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ))
+                .build());
 
-        expect(adapter1.executeQuery(anyObject())).andReturn(Stream.of(ASSET_ABC));
-        expect(adapter2.executeQuery(anyObject())).andReturn(Stream.of(ASSET_DEF, ASSET_XYZ));
-        expect(registry.getAllAdapters()).andReturn(Arrays.asList(adapter1, adapter2));
-
-        replay(adapter1, adapter2, registry);
+        replay(registry);
 
         QueryEngine queryEngine = new QueryEngineImpl(registry);
 
-        assertThat(queryEngine.getCatalog(new CacheQuery())).isEqualTo(Arrays.asList(ASSET_ABC, ASSET_DEF, ASSET_XYZ));
+        assertThat(queryEngine.getCatalog(CacheQuery.Builder.newInstance().build())).isEqualTo(Arrays.asList(ASSET_ABC, ASSET_DEF, ASSET_XYZ));
 
-        verify(adapter1, adapter2, registry);
+        verify(registry);
     }
 }

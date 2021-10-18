@@ -17,7 +17,8 @@ public class DefaultQueryAdapter implements QueryAdapter {
 
     @Override
     public Stream<Asset> executeQuery(CacheQuery query) {
-        return store.query(query).stream();
+        //todo: translate the generic CacheQuery into a list of criteria and
+        return store.query(query.getCriteria()).stream();
     }
 
     @Override
