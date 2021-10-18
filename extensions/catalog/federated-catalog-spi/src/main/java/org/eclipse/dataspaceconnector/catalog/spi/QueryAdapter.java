@@ -7,4 +7,6 @@ import java.util.stream.Stream;
 
 public interface QueryAdapter {
     Stream<Asset> executeQuery(CacheQuery query);
+
+    boolean canExecute(CacheQuery query);
 }
