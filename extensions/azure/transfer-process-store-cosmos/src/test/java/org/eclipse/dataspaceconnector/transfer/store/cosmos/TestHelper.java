@@ -22,6 +22,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
+import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
+
 public class TestHelper {
 
     public static ResourceManifest createManifest() {
@@ -36,7 +38,7 @@ public class TestHelper {
                         .type("Test Address Type")
                         .keyName("Test Key Name")
                         .build())
-                .asset(Asset.Builder.newInstance().id("asset-id").property("policyId", "test-policyId").build())
+                .asset(Asset.Builder.newInstance().id("asset-id").property(POLICY_ID, "test-policyId").build())
                 .processId("test-process-id")
                 .build();
     }

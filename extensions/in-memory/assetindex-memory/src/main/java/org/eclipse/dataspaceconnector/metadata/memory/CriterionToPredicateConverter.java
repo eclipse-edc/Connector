@@ -40,6 +40,6 @@ public class CriterionToPredicateConverter implements CriterionConverter<Predica
         if (asset.getProperties() == null || !asset.getProperties().isEmpty()) {
             return null;
         }
-        return asset.getProperties().get(key);
+        return asset.getProperty(key);
     }
 }

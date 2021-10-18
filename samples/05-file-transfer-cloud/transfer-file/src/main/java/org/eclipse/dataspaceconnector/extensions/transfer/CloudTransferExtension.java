@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
+import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 public class CloudTransferExtension implements ServiceExtension {
     public static final String USE_EU_POLICY = "use-eu";
@@ -47,7 +48,7 @@ public class CloudTransferExtension implements ServiceExtension {
                 .build();
 
         String assetId = "test-document";
-        Asset asset = Asset.Builder.newInstance().id(assetId).property("policyId", USE_EU_POLICY).build();
+        Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
 
         assetIndex.add(asset, dataAddress);
         dataAddressResolver.add(assetId, dataAddress);

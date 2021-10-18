@@ -57,6 +57,10 @@ public class Asset {
         return contentType;
     }
 
+    public Object getProperty(String key) {
+        return properties.get(key);
+    }
+
     public Map<String, Object> getProperties() {
         return properties;
     }

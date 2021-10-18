@@ -22,6 +22,7 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
@@ -58,7 +59,7 @@ public class ConsumerApiController {
                 .connectorAddress(connectorAddress) //the address of the provider connector
                 .protocol("ids-rest") //must be ids-rest
                 .connectorId("consumer")
-                .asset(Asset.Builder.newInstance().id(filename).property("policyId", "use-eu").build())
+                .asset(Asset.Builder.newInstance().id(filename).property(POLICY_ID, "use-eu").build())
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type("File") //the provider uses this to select the correct DataFlowController
                         .property("path", destinationPath) //where we want the file to be stored
