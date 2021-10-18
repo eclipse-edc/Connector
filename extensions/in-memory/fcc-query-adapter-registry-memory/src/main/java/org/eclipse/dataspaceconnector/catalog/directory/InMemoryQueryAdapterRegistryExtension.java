@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.catalog.directory;
 
-import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -14,17 +13,12 @@ public class InMemoryQueryAdapterRegistryExtension implements ServiceExtension {
         return Set.of(QueryAdapterRegistry.FEATURE);
     }
 
-    @Override
-    public Set<String> requires() {
-        return Set.of(FederatedCacheStore.FEATURE);
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        FederatedCacheStore store = context.getService(FederatedCacheStore.class);
 
         QueryAdapterRegistry registry = new InMemoryQueryAdapterRegistry();
-        registry.register(new DefaultQueryAdapter(store));
+
         context.registerService(QueryAdapterRegistry.class, registry);
         context.getMonitor().info("Initialized In-Memory Query Adapter Registry");
     }
