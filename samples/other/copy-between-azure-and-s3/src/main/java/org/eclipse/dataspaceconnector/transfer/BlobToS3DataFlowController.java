@@ -1,12 +1,14 @@
 package org.eclipse.dataspaceconnector.transfer;
 
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApiImpl;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -20,18 +22,19 @@ public class BlobToS3DataFlowController implements DataFlowController {
     private final Vault vault;
     private final Monitor monitor;
     private final TypeManager typeManager;
+    private final DataAddressResolver dataAddressResolver;
 
-    public BlobToS3DataFlowController(Vault vault, Monitor monitor, TypeManager typeManager) {
-
+    public BlobToS3DataFlowController(Vault vault, Monitor monitor, TypeManager typeManager, DataAddressResolver dataAddressResolver) {
         this.vault = vault;
         this.monitor = monitor;
         this.typeManager = typeManager;
+        this.dataAddressResolver = dataAddressResolver;
     }
 
     @Override
     public boolean canHandle(DataRequest dataRequest) {
 
-        String sourceType = dataRequest.getDataEntry().getCatalogEntry().getAddress().getType();
+        String sourceType = dataAddressResolver.resolveForAsset(dataRequest.getAsset().getId()).getType();
         String destinationType = dataRequest.getDestinationType();
 
         return verifyType(sourceType) && verifyType(destinationType);
@@ -39,7 +42,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
-        String sourceType = dataRequest.getDataEntry().getCatalogEntry().getAddress().getType();
+        DataAddress source = dataAddressResolver.resolveForAsset(dataRequest.getAsset().getId());
         String destinationType = dataRequest.getDestinationType();
 
         var destSecretName = dataRequest.getDataDestination().getKeyName();
@@ -49,14 +52,14 @@ public class BlobToS3DataFlowController implements DataFlowController {
         }
         var secret = vault.resolveSecret(destSecretName);
 
-        monitor.info(format("Copying data from %s to %s", sourceType, destinationType));
+        monitor.info(format("Copying data from %s to %s", source.getType(), destinationType));
 
-        var reader = getReader(sourceType);
+        var reader = getReader(source.getType());
         var writer = getWriter(destinationType);
 
-        var data = reader.read(dataRequest.getDataEntry().getCatalogEntry().getAddress());
+        var data = reader.read(source);
 
-        writer.write(dataRequest.getDataDestination(), dataRequest.getDataEntry().getId(), data, secret);
+        writer.write(dataRequest.getDataDestination(), dataRequest.getAsset().getId(), data, secret);
 
         return DataFlowInitiateResponse.OK;
     }

@@ -30,7 +30,8 @@ public class CloudTransferExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
-        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager());
+        DataAddressResolver dataAddressResolver = context.getService(DataAddressResolver.class);
+        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager(), dataAddressResolver);
         dataFlowMgr.register(flowController);
 
 

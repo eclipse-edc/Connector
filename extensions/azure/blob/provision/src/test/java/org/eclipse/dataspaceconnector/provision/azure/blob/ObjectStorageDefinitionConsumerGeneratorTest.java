@@ -15,8 +15,7 @@
 package org.eclipse.dataspaceconnector.provision.azure.blob;
 
 import org.eclipse.dataspaceconnector.schema.azure.AzureBlobStoreSchema;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
@@ -45,10 +44,8 @@ class ObjectStorageDefinitionConsumerGeneratorTest {
                 .property(AzureBlobStoreSchema.CONTAINER_NAME, "test-container")
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
-        var entry = DataEntry.Builder.newInstance().catalogEntry(GenericDataCatalogEntry.Builder.newInstance().build())
-                .build();
-        var dr = DataRequest.Builder.newInstance().dataDestination(destination)
-                .dataEntry(entry).build();
+        var asset = Asset.Builder.newInstance().build();
+        var dr = DataRequest.Builder.newInstance().dataDestination(destination).asset(asset).build();
         var tp = TransferProcess.Builder.newInstance().dataRequest(dr).id(randomUUID().toString()).build();
 
 
@@ -66,12 +63,9 @@ class ObjectStorageDefinitionConsumerGeneratorTest {
         DataAddress destination = DataAddress.Builder.newInstance().type(AzureBlobStoreSchema.TYPE)
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
-        var entry = DataEntry.Builder.newInstance().catalogEntry(GenericDataCatalogEntry.Builder.newInstance().build())
-                .build();
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination)
-                .dataEntry(entry).build();
+        var asset = Asset.Builder.newInstance().build();
+        var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination).asset(asset).build();
         var tp = TransferProcess.Builder.newInstance().dataRequest(dataRequest).id(randomUUID().toString()).build();
-
 
         ResourceDefinition def = generator.generate(tp);
         assertThat(def).isNotNull();

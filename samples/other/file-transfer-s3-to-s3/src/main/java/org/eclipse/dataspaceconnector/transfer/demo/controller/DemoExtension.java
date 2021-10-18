@@ -60,8 +60,9 @@ public class DemoExtension implements ServiceExtension {
         registerTypes(objectMapper);
 
         var dataFlowMgr = context.getService(DataFlowManager.class);
+        var dataAddressResolver = context.getService(DataAddressResolver.class);
 
-        var flowController = new S3toS3TransferFlowController(context.getService(Vault.class), monitor);
+        var flowController = new S3toS3TransferFlowController(context.getService(Vault.class), monitor, dataAddressResolver);
 
         dataFlowMgr.register(flowController);
     }

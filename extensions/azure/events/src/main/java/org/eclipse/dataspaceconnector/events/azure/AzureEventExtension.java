@@ -27,7 +27,6 @@ import java.util.Set;
 
 public class AzureEventExtension implements ServiceExtension {
 
-
     private Monitor monitor;
 
     @Override
@@ -44,7 +43,6 @@ public class AzureEventExtension implements ServiceExtension {
 
         monitor.info("Initialized Azure Events Extension");
     }
-
 
     @Override
     public void start() {

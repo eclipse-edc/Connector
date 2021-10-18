@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -52,8 +52,6 @@ public class ConsumerRunner {
     private static final String PROVIDER_CONNECTOR = "http://localhost:8181/";
     private static final TokenResult US_TOKEN = TokenResult.Builder.newInstance().token("mock-us").build();
     private static final TokenResult EU_TOKEN = TokenResult.Builder.newInstance().token("mock-eu").build();
-    private static final DataEntry EU_ARTIFACT = DataEntry.Builder.newInstance().id("test123").build();
-    private static final DataEntry US_OR_EU_ARTIFACT = DataEntry.Builder.newInstance().id("test456").build();
 
     private CountDownLatch latch;
 
@@ -76,7 +74,7 @@ public class ConsumerRunner {
         for (String artifact : artifacts) {
             System.out.println("processing artifact " + artifact);
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
-            var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
+            var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
             TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
@@ -132,7 +130,7 @@ public class ConsumerRunner {
         for (String artifact : artifacts) {
             System.out.println("processing artifact " + artifact);
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
-            var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
+            var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
             TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
@@ -185,7 +183,7 @@ public class ConsumerRunner {
 
         for (String artifact : artifacts) {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
-            var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), DataEntry.Builder.newInstance().id(artifact).build());
+            var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
             TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
@@ -232,21 +230,21 @@ public class ConsumerRunner {
         extension.registerSystemExtension(ServiceExtension.class, TestExtensions.mockIamExtension(identityService));
     }
 
-    private DataRequest createRequestAws(String id, DataEntry artifactId) {
+    private DataRequest createRequestAws(String id, Asset asset) {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")
-                .dataEntry(artifactId)
+                .asset(asset)
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .destinationType(S3BucketSchema.TYPE).build();
     }
 
-    private DataRequest createRequestAzure(String id, DataEntry artifactId) {
+    private DataRequest createRequestAzure(String id, Asset asset) {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")
-                .dataEntry(artifactId)
+                .asset(asset)
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .dataDestination(DataAddress.Builder.newInstance()

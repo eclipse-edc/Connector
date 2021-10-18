@@ -33,7 +33,6 @@ import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataCatalogEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -95,7 +94,7 @@ class CosmosTransferProcessStoreTest {
         uploadStoredProcedure(container, "nextForState");
         uploadStoredProcedure(container, "lease");
         typeManager = new TypeManager();
-        typeManager.registerTypes(TestHelper.DummyCatalogEntry.class, DataCatalogEntry.class, DataRequest.class, DataEntry.class);
+        typeManager.registerTypes(TestHelper.DummyCatalogEntry.class, DataCatalogEntry.class, DataRequest.class);
         store = new CosmosTransferProcessStore(container, typeManager, partitionKey, connectorId);
     }
 

@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.extensions.api;
 
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
@@ -15,11 +16,11 @@ import java.nio.file.StandardCopyOption;
 
 public class FileTransferFlowController implements DataFlowController {
     private final Monitor monitor;
-    private final TypeManager typeManager;
+    private final DataAddressResolver dataAddressResolver;
 
-    public FileTransferFlowController(Monitor monitor, TypeManager typeManager) {
+    public FileTransferFlowController(Monitor monitor, DataAddressResolver dataAddressResolver) {
         this.monitor = monitor;
-        this.typeManager = typeManager;
+        this.dataAddressResolver = dataAddressResolver;
     }
 
     @Override
@@ -29,7 +30,7 @@ public class FileTransferFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
-        var source = dataRequest.getDataEntry().getCatalogEntry().getAddress();
+        var source = dataAddressResolver.resolveForAsset(dataRequest.getAsset().getId());
         var destination = dataRequest.getDataDestination();
 
         // verify source path

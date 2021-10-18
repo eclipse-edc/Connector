@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
@@ -36,10 +36,7 @@ public class TestHelper {
                         .type("Test Address Type")
                         .keyName("Test Key Name")
                         .build())
-                .dataEntry(DataEntry.Builder.newInstance()
-                        .policyId("test-policyId")
-                        .catalogEntry(new DummyCatalogEntry())
-                        .build())
+                .asset(Asset.Builder.newInstance().id("asset-id").property("policyId", "test-policyId").build())
                 .processId("test-process-id")
                 .build();
     }

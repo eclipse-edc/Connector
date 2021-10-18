@@ -29,8 +29,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -70,8 +70,9 @@ public class EndToEndTest {
         var artifactId = "test123";
         var connectorId = "https://test";
 
-        DataEntry entry = DataEntry.Builder.newInstance().id(artifactId).build();
-        DataRequest request = DataRequest.Builder.newInstance().protocol("ids-rest").dataEntry(entry).connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").build();
+        var entry = Asset.Builder.newInstance().id(artifactId).build();
+        var request = DataRequest.Builder.newInstance().protocol("ids-rest").asset(entry)
+                .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").build();
 
         processManager.initiateConsumerRequest(request);
 
@@ -101,8 +102,9 @@ public class EndToEndTest {
         var artifactId = "test123";
         var connectorId = "https://test";
 
-        DataEntry entry = DataEntry.Builder.newInstance().id(artifactId).build();
-        DataRequest request = DataRequest.Builder.newInstance().protocol("ids-rest").dataEntry(entry).connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").id(UUID.randomUUID().toString()).build();
+        var asset = Asset.Builder.newInstance().id(artifactId).build();
+        var request = DataRequest.Builder.newInstance().protocol("ids-rest").asset(asset)
+                .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").id(UUID.randomUUID().toString()).build();
 
         processManager.initiateProviderRequest(request);
 

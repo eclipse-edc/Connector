@@ -31,9 +31,10 @@ public class FileTransferExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
         var dataFlowMgr = context.getService(DataFlowManager.class);
-        var flowController = new FileTransferFlowController(context.getMonitor(), context.getTypeManager());
+        var dataAddressResolver = context.getService(DataAddressResolver.class);
+
+        var flowController = new FileTransferFlowController(context.getMonitor(), dataAddressResolver);
         dataFlowMgr.register(flowController);
 
 
