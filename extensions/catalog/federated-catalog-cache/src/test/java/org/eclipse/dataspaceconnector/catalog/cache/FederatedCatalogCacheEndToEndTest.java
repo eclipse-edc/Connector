@@ -10,7 +10,6 @@ import okhttp3.Response;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(EdcExtension.class)
-@Disabled
 class FederatedCatalogCacheEndToEndTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -57,16 +55,16 @@ class FederatedCatalogCacheEndToEndTest {
         compareAssetsById(actualAssets, assets);
     }
 
-    private void compareAssetsById(List<Asset> actual, List<Asset> expected) {
-        List<String> actualAssetIds = actual.stream().map(Asset::getId).sorted().collect(Collectors.toList());
-        List<String> expectedAssetIds = expected.stream().map(Asset::getId).sorted().collect(Collectors.toList());
-        assertThat(actualAssetIds).isEqualTo(expectedAssetIds);
-    }
-
-    private static Asset buildAsset() {
+    private Asset buildAsset() {
         return Asset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .name("demo-test")
                 .build();
+    }
+
+    private void compareAssetsById(List<Asset> actual, List<Asset> expected) {
+        List<String> actualAssetIds = actual.stream().map(Asset::getId).sorted().collect(Collectors.toList());
+        List<String> expectedAssetIds = expected.stream().map(Asset::getId).sorted().collect(Collectors.toList());
+        assertThat(actualAssetIds).isEqualTo(expectedAssetIds);
     }
 }

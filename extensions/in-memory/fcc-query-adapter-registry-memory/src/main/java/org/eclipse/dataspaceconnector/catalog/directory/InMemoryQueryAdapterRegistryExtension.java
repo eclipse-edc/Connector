@@ -8,11 +8,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.util.Set;
 
 public class InMemoryQueryAdapterRegistryExtension implements ServiceExtension {
-    
-    @Override
-    public Set<String> requires() {
-        return Set.of(FederatedCacheStore.FEATURE);
-    }
 
     @Override
     public Set<String> provides() {
@@ -20,11 +15,16 @@ public class InMemoryQueryAdapterRegistryExtension implements ServiceExtension {
     }
 
     @Override
+    public Set<String> requires() {
+        return Set.of(FederatedCacheStore.FEATURE);
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         FederatedCacheStore store = context.getService(FederatedCacheStore.class);
 
         QueryAdapterRegistry registry = new InMemoryQueryAdapterRegistry();
-        registry.register(new InMemoryQueryAdapter(store));
+        registry.register(new DefaultQueryAdapter(store));
         context.registerService(QueryAdapterRegistry.class, registry);
         context.getMonitor().info("Initialized In-Memory Query Adapter Registry");
     }

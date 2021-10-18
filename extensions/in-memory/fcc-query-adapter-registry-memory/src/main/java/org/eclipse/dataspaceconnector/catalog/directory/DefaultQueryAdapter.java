@@ -7,16 +7,21 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.stream.Stream;
 
-public class InMemoryQueryAdapter implements QueryAdapter {
+public class DefaultQueryAdapter implements QueryAdapter {
 
     private final FederatedCacheStore store;
 
-    public InMemoryQueryAdapter(FederatedCacheStore store) {
+    public DefaultQueryAdapter(FederatedCacheStore store) {
         this.store = store;
     }
 
     @Override
     public Stream<Asset> executeQuery(CacheQuery query) {
         return store.query(query).stream();
+    }
+
+    @Override
+    public boolean canExecute(CacheQuery query) {
+        return true; //todo: implement this when the CacheQuery is implemented
     }
 }
