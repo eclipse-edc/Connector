@@ -21,12 +21,15 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.util.TopologicalSort;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -44,7 +47,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private final Monitor monitor;
     private final TypeManager typeManager;
 
-    private final Map<Class<?>, Object> services = new HashMap<>();
+    private final Map<Class<?>, List<Object>> services = new HashMap<>();
     private final ServiceLocator serviceLocator;
     private List<ConfigurationExtension> configurationExtensions;
     private String connectorId;
@@ -58,8 +61,8 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         this.monitor = monitor;
         this.serviceLocator = serviceLocator;
         // register as services
-        services.put(TypeManager.class, typeManager);
-        services.put(Monitor.class, monitor);
+        registerService(TypeManager.class, typeManager);
+        registerService(Monitor.class, monitor);
     }
 
     @Override
@@ -99,30 +102,60 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    public <T> boolean hasService(Class<T> type) {
+    public <T> boolean hasService(@NotNull Class<T> type) {
+        Objects.requireNonNull(type, "Type must not be null");
+
         return services.containsKey(type);
     }
 
     @Override
-    public <T> T getService(Class<T> type) {
-        T service = (T) services.get(type);
-        if (service == null) {
+    public <T> T getService(@NotNull Class<T> type) {
+        Objects.requireNonNull(type, "Type must not be null");
+
+        return getService(type, false);
+    }
+
+    @NotNull
+    @Override
+    public <T> List<T> getServices(@NotNull Class<T> type) {
+        Objects.requireNonNull(type, "Type must not be null");
+
+        return getServices(type, false);
+    }
+
+    @NotNull
+    @Override
+    public <T> List<T> getServices(@NotNull Class<T> type, boolean isOptional) {
+        Objects.requireNonNull(type, "Type must not be null");
+
+        List<T> serviceInstances = (List<T>) this.services.get(type);
+
+        if (!isOptional && serviceInstances == null) {
             throw new EdcException("Service not found: " + type.getName());
         }
-        return service;
+
+        return serviceInstances != null ? serviceInstances : Collections.emptyList();
     }
 
     @Override
-    public <T> T getService(Class<T> type, boolean isOptional) {
-        if (!isOptional) {
-            return getService(type);
+    public <T> T getService(@NotNull Class<T> type, boolean isOptional) {
+        Objects.requireNonNull(type, "Type must not be null");
+
+        List<T> serviceInstances = getServices(type, isOptional);
+
+        if (serviceInstances.size() > 1) {
+            throw new EdcException("Ambiguous service found: " + type.getName());
         }
-        return (T) services.get(type);
+
+        return !serviceInstances.isEmpty() ? serviceInstances.iterator().next() : null;
     }
 
     @Override
-    public <T> void registerService(Class<T> type, T service) {
-        services.put(type, service);
+    public <T> void registerService(@NotNull Class<T> type, @NotNull T service) {
+        Objects.requireNonNull(type, "Type must not be null");
+        Objects.requireNonNull(service, "Service must not be null");
+
+        services.computeIfAbsent(type, k -> new LinkedList<>()).add(service);
     }
 
     @Override

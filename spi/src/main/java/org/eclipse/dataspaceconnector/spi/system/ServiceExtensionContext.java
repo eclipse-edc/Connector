@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.spi.system;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Contract;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -30,7 +31,7 @@ public interface ServiceExtensionContext {
      * Fetches the unique ID of the connector. If the {@code dataspaceconnector.connector.name} config value has been set, that value is returned; otherwise  a random
      * name is chosen.
      */
-    public String getConnectorId();
+    String getConnectorId();
 
     /**
      * Returns the system monitor.
@@ -50,26 +51,41 @@ public interface ServiceExtensionContext {
     /**
      * Returns true if the service type is registered.
      */
-    <T> boolean hasService(Class<T> type);
+    <T> boolean hasService(@NotNull Class<T> type);
 
     /**
-     * Returns a system service.
+     * Returns an unambiguous system service.
      */
-    <T> T getService(Class<T> type);
+    <T> T getService(@NotNull Class<T> type);
 
     /**
-     * Returns a system service, but does not throw an exception if not found.
+     * Returns a list of system services.
+     */
+    <T> List<T> getServices(@NotNull Class<T> type);
+
+    /**
+     * Returns an unambiguous system service, but does not throw an exception if not found.
      *
      * @return null if not found
      */
-    default <T> T getService(Class<T> type, boolean isOptional) {
+    default <T> T getService(@NotNull Class<T> type, boolean isOptional) {
         return getService(type);
+    }
+
+    /**
+     * Returns a list system service, but does not throw an exception if not found.
+     *
+     * @return empty list if not found
+     */
+    @NotNull
+    default <T> List<T> getServices(@NotNull Class<T> type, boolean isOptional) {
+        return getServices(type);
     }
 
     /**
      * Registers a service
      */
-    default <T> void registerService(Class<T> type, T service) {
+    default <T> void registerService(@NotNull Class<T> type, @NotNull T service) {
     }
 
     /**

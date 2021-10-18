@@ -35,6 +35,7 @@ import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class DefaultServiceExtensionContextTest {
 
@@ -232,8 +233,120 @@ class DefaultServiceExtensionContextTest {
         assertThat(services).containsExactly(coreService, depending);
     }
 
+    @Test
+    @DisplayName("Context has registered service")
+    void hasService() {
+        assertThat(context.hasService(ServiceInstance.class)).isFalse();
+
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+
+        assertThat(context.hasService(ServiceInstance.class)).isTrue();
+
+        // register a second one
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+
+        assertThat(context.hasService(ServiceInstance.class)).isTrue();
+    }
+
+    @Test
+    @DisplayName("Context registers ambiguous services and throws on requesting optional single instance")
+    void getService_optionalAmbiguous() {
+        // register two to have some ambiguity
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+
+        assertThatThrownBy(() -> context.getService(ServiceInstance.class, true))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Ambiguous service found");
+    }
+
+    @Test
+    @DisplayName("Context registers ambiguous services and throws on requesting non-optional single instance")
+    void getService_nonOptionalAmbiguous() {
+        assertThatThrownBy(() -> context.getService(ServiceInstance.class, false))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Service not found");
+
+        // register two to have some ambiguity
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+
+        assertThatThrownBy(() -> context.getService(ServiceInstance.class, false))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Ambiguous service found");
+    }
+
+    @Test
+    @DisplayName("Context registers unambiguous service and returns null on requesting optional single instance")
+    void getService_optionalUnAmbiguous() {
+        var result = context.getService(ServiceInstance.class, true);
+
+        assertNull(result);
+
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+
+        result = context.getService(ServiceInstance.class, false);
+
+        assertThat(result).isInstanceOf(ServiceInstance.class);
+    }
+
+    @Test
+    @DisplayName("Context registers unambiguous service and throws on requesting non-optional single instance")
+    void getService_nonOptionalUnAmbiguous() {
+        assertThatThrownBy(() -> context.getService(ServiceInstance.class, false))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Service not found");
+
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+
+        var result = context.getService(ServiceInstance.class, false);
+
+        assertThat(result).isInstanceOf(ServiceInstance.class);
+    }
+
+    @Test
+    @DisplayName("Context registers services and throws on requesting non-optional instances")
+    void getServices_nonOptional() {
+        assertThatThrownBy(() -> context.getServices(ServiceInstance.class, false))
+                .isInstanceOf(EdcException.class)
+                .hasMessageContaining("Service not found");
+
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+
+        var result = context.getServices(ServiceInstance.class, false);
+
+        assertThat(result).hasOnlyElementsOfType(ServiceInstance.class).hasSize(1);
+
+        context.registerService(ServiceInstance.class, new ServiceInstance() {
+        });
+
+        result = context.getServices(ServiceInstance.class, false);
+
+        assertThat(result).hasOnlyElementsOfType(ServiceInstance.class).hasSize(2);
+    }
+
+    @Test
+    @DisplayName("Context registers services and returns empty list on requesting optional instances")
+    void getServices_optional() {
+        var result = context.getServices(ServiceInstance.class, true);
+
+        assertThat(result).isNotNull().isEmpty();
+    }
+
     private <T> List<T> mutableListOf(T... elements) {
         return new ArrayList<>(List.of(elements));
+    }
+
+    interface ServiceInstance {
     }
 
     private abstract static class DependingService implements ServiceExtension {
