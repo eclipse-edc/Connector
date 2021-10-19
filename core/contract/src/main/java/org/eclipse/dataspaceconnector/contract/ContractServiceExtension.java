@@ -62,29 +62,27 @@ public class ContractServiceExtension implements ServiceExtension {
 
     private void registerServices(ServiceExtensionContext serviceExtensionContext) {
 
-        AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
+        AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class, true);
+        if (assetIndex == null) {
+            monitor.warning("No AssetIndex registered. Register one to create Contract Offers.");
+            assetIndex = new NullAssetIndex();
+        }
 
-        /*
-         * Construct a ContractOfferFrameworkLocator for finding several ContractOfferFrameworks provided via extensions
-         */
-        ContractOfferFrameworkLocator compositeContractOfferFramework = new ContractOfferFrameworkLocator(
-                serviceExtensionContext
-        );
-        /*
-         * There is always one default contract offer framework instance
-         * delegating calls to those provided by custom extensions.
-         */
-        ContractOfferFramework contractOfferFramework = new CompositeContractOfferFramework(
-                compositeContractOfferFramework,
-                serviceExtensionContext.getMonitor());
+        ContractOfferFramework contractOfferFramework = serviceExtensionContext.getService(ContractOfferFramework.class, true);
+        if (contractOfferFramework == null) {
+            monitor.warning("No ContractOfferFramework registered. Register one to create Contract Offers.");
+            assetIndex = new NullAssetIndex();
+        }
+
         /*
          * Contract offer service calculates contract offers using a variety of contract offer frameworks
          * ad the given asset index.
          */
-        ContractOfferService contractOfferService = new ContractOfferServiceImpl(
+        final ContractOfferService contractOfferService = new ContractOfferServiceImpl(
                 contractOfferFramework,
                 assetIndex
         );
+
         /*
          * Register the just created contract offer service to the service extension context.
          */
