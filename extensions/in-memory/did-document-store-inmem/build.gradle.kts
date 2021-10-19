@@ -6,11 +6,7 @@ val jwtVersion: String by project
 
 
 dependencies {
-    api(project(":spi"))
-    implementation(project(":common:util"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
-    testImplementation(project(":extensions:iam:distributed-identity:identity-did-core")) // for the KeyPairFactory
-
 }
 
 publishing {

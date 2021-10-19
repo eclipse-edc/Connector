@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.ion.spi;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.ion.spi.request.IonRequest;
 

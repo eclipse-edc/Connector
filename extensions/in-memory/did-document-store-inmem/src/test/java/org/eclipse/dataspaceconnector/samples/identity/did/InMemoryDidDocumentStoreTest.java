@@ -1,11 +1,9 @@
 package org.eclipse.dataspaceconnector.samples.identity.did;
 
-import com.nimbusds.jose.jwk.ECKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.Service;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
-import org.eclipse.dataspaceconnector.iam.util.KeyPairFactory;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -129,12 +127,11 @@ class InMemoryDidDocumentStoreTest {
     }
 
     private VerificationMethod createVerificationMethod() {
-        var publicKey = (ECKey) KeyPairFactory.generateKeyPair().toPublicJWK();
         return VerificationMethod.Builder.create()
                 .controller("")
                 .id("#key-1")
                 .type("EcdsaSecp256k1VerificationKey2019")
-                .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
+                .publicKeyJwk(new EllipticCurvePublicKey("key", "ec", "0", "0"))
                 .build();
     }
 }

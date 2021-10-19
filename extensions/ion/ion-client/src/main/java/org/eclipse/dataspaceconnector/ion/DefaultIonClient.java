@@ -9,8 +9,8 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolveResponse;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidResolveResponse;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.eclipse.dataspaceconnector.ion.spi.request.IonRequest;
 import org.eclipse.dataspaceconnector.ion.util.HexStringUtils;
@@ -28,6 +28,7 @@ import java.util.Objects;
  * Standard implementation of the {@link IonClient} interface that can resolve DIDs from ION and submit anchor requests to id.
  */
 public class DefaultIonClient implements IonClient {
+    private static final String DID_METHOD = "did:ion";
 
     private static final String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";
     private static final String IDENTIFIERS_PATH = "/identifiers";
@@ -42,6 +43,11 @@ public class DefaultIonClient implements IonClient {
     public DefaultIonClient(String resolutionEndpoint, ObjectMapper typeManager) {
         this.resolutionEndpoint = resolutionEndpoint;
         this.typeManager = typeManager;
+    }
+
+    @Override
+    public String getMethod() {
+        return DID_METHOD;
     }
 
     @Override

@@ -2,12 +2,12 @@
 
 These extensions contain modules that implement the "Distributed Identity" use case. In particular:
 
-- `identity-did-core`: contains code dealing with the Identity Hub
+- `identity-did-spi`: contains extension points for the distributed identity subsystem
+- `identity-did-crypto`: contains the cryptographic utilities
+- `identity-did-core`: contains core services, including the `IdentityHub` and `DidResolverRegistry`
 - `identity-did-service`: contains the `DistributedIdentityService`, which is an implementation of the `IdentityService`
   interface.
-- `identity-hub-verifier`: contains an implementation of the `CredentialsVerifier` that uses an _IdentityHub_
-- `verifiable-credentials`: contains code to generate signed JWTs that act as _VerifiableCredentials_
-- `identity-did-spi`: contains domain-specific interfaces like the `IdentityHub` and the `IdentityHubClient`
+- `identity-did-web`: contains support for resolving Web DIDs. 
 - `registration-service`: contains a periodic job that crawls the ION network for DIDs of a particular type
 - `registration-service-api`: contains a REST API for the aforementioned registration service
 - `identity-common-test`: contains a utility class to load an RSA key from a *.jks file. See

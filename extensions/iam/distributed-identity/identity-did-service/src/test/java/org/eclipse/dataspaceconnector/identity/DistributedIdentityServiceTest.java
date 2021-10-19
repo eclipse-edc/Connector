@@ -22,19 +22,19 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jose.jwk.JWK;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
+import org.eclipse.dataspaceconnector.iam.did.crypto.credentials.VerifiableCredentialFactory;
+import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.EllipticCurvePublicKey;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.VerificationMethod;
-import org.eclipse.dataspaceconnector.iam.util.KeyPairFactory;
-import org.eclipse.dataspaceconnector.ion.crypto.EcPrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.ion.crypto.EcPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.verifiablecredential.VerifiableCredentialFactory;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -107,20 +107,7 @@ abstract class DistributedIdentityServiceTest {
         var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
         var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
 
-        DidResolver didResolver = d -> {
-            try {
-                var did = new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
-                ECKey key = (ECKey) keyPair.toPublicJWK();
-                did.getVerificationMethod().add(VerificationMethod.Builder.create()
-                        .type("JsonWebKey2020")
-                        .id("test-key")
-                        .publicKeyJwk(new EllipticCurvePublicKey(key.getCurve().getName(), key.getKeyType().toString(), key.getX().toString(), key.getY().toString()))
-                        .build());
-                return did;
-            } catch (JsonProcessingException e) {
-                throw new AssertionError(e);
-            }
-        };
+        DidResolver didResolver = new TestResolver(hubUrlDid, keyPair);
 
         CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "eu"));
         identityService = new DistributedIdentityService(() -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer"), didResolver, verifier, new Monitor() {
@@ -165,6 +152,37 @@ abstract class DistributedIdentityServiceTest {
         @Override
         protected @NotNull JWSAlgorithm getHeaderAlgorithm() {
             return JWSAlgorithm.ES256;
+        }
+    }
+
+    private static class TestResolver implements DidResolver {
+        private String hubUrlDid;
+        private JWK keyPair;
+
+        public TestResolver(String hubUrlDid, JWK keyPair) {
+            this.hubUrlDid = hubUrlDid;
+            this.keyPair = keyPair;
+        }
+
+        @Override
+        public String getMethod() {
+            return "did:foo";
+        }
+
+        @Override
+        public DidDocument resolve(String didKey) {
+            try {
+                var did = new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
+                ECKey key = (ECKey) keyPair.toPublicJWK();
+                did.getVerificationMethod().add(VerificationMethod.Builder.create()
+                        .type("JsonWebKey2020")
+                        .id("test-key")
+                        .publicKeyJwk(new EllipticCurvePublicKey(key.getCurve().getName(), key.getKeyType().toString(), key.getX().toString(), key.getY().toString()))
+                        .build());
+                return did;
+            } catch (JsonProcessingException e) {
+                throw new AssertionError(e);
+            }
         }
     }
 

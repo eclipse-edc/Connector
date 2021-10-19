@@ -2,7 +2,7 @@ package org.eclipse.dataspaceconnector.ion.model.did.resolution;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolveResponse;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidResolveResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

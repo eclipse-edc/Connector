@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.samples.identity.did;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.DidStore;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;

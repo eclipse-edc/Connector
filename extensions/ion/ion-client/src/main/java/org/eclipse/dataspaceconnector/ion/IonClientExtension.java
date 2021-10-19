@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.ion;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -14,7 +15,7 @@ public class IonClientExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(IonClient.FEATURE, DidResolver.FEATURE);
+        return Set.of(IonClient.FEATURE, DidResolverRegistry.FEATURE);
     }
 
     @Override

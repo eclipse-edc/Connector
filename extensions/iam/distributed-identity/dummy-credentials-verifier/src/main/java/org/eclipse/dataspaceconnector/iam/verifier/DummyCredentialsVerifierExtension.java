@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.util.Set;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidConstants.DID_URL_SETTING;
+import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.DID_URL_SETTING;
 
 
 public class DummyCredentialsVerifierExtension implements ServiceExtension {

@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.PublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.jetbrains.annotations.Nullable;
 
 /**

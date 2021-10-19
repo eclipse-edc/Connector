@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.DidStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 

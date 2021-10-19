@@ -1,8 +1,8 @@
 package org.eclipse.dataspaceconnector.iam.did.hub.jwe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPrivateKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.keys.RsaPublicKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.crypto.key.RsaPrivateKeyWrapper;
+import org.eclipse.dataspaceconnector.iam.did.crypto.key.RsaPublicKeyWrapper;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
