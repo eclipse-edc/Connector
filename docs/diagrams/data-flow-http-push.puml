@@ -1,0 +1,70 @@
+'
+'  Copyright (c) 2021 SAP SE
+'
+'  This program and the accompanying materials are made available under the
+'  terms of the Apache License, Version 2.0 which is available at
+'  https://www.apache.org/licenses/LICENSE-2.0
+'
+'  SPDX-License-Identifier: Apache-2.0
+'
+'  Contributors:
+'       SAP SE - Initial Draft
+'
+'
+
+@startuml
+
+skinParam NoteBackgroundColor WhiteSmoke
+skinParam NoteFontColor Black
+skinParam ParticipantBackgroundColor WhiteSmoke
+skinParam ActorBackgroundColor WhiteSmoke
+skinParam AgentBackgroundColor White
+skinParam AgentBorderColor SkyBlue
+skinparam shadowing false
+
+!define ConsumerColor f8f2ff
+!define ProviderColor d9edff
+!define WarningColor Business
+!define LeadColor Technology
+
+autonumber
+
+box Provider #ProviderColor
+    database ProviderDB as "Database"
+    participant DataFlowAgent #white
+    participant ConnectorProvider as "Eclipse\nDataspace\nConnector" #white
+end box
+
+box Consumer #ConsumerColor
+    participant ConnectorConsumer as "Eclipse\nDataspace\nConnector" #white
+    participant HTTPService #white
+end box
+
+hnote over ProviderDB, HTTPService #Business
+**Precondition**
+IDS description/artifact request and contract agreement messages already exchanged
+end note
+
+ConnectorConsumer -> HTTPService ++ : createBasedOnContract(ContractAgreement)
+return APIKey
+
+hnote over ConnectorConsumer, HTTPService #Business
+Consumer stored contract id (or copy of contract) next to data.
+end note
+
+ConnectorConsumer -> ConnectorProvider : Provide APIKey via custom IDS Message
+ConnectorProvider -> DataFlowAgent ++ : initiateDataFlow to API using Key
+    DataFlowAgent -> ProviderDB ++ : fetchData
+        return Data
+    DataFlowAgent -> HTTPService ++ : pushData
+    DataFlowAgent -> ConnectorProvider : logTransfer
+    deactivate DataFlowAgent
+
+HTTPService -> ConnectorConsumer : logTransfer
+deactivate HTTPService
+
+hnote over ProviderDB, HTTPService #Business
+Consumer Connector provides API to lookup contract
+end note
+
+@enduml
