@@ -20,13 +20,13 @@ import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolver.DefaultDidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.resolution.DefaultDidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.resolution.DidResolverRegistryImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -42,12 +42,12 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(IdentityHub.FEATURE, IdentityHubClient.FEATURE, DidPublicKeyResolver.FEATURE);
+        return Set.of(IdentityHub.FEATURE, IdentityHubClient.FEATURE, DidResolverRegistry.FEATURE);
     }
 
     @Override
     public Set<String> requires() {
-        return Set.of(IdentityHubStore.FEATURE, DidResolverRegistry.FEATURE);
+        return Set.of(IdentityHubStore.FEATURE);
     }
 
     @Override
@@ -56,13 +56,12 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
         var objectMapper = context.getTypeManager().getMapper();
 
-        var publicKeyResolver = context.getService(DidPublicKeyResolver.class, true);
-        if (publicKeyResolver == null) {
-            //registering ION Public Key Resolver
-            var resolver = context.getService(DidResolver.class);
-            publicKeyResolver = new DefaultDidPublicKeyResolver(resolver);
-            context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
-        }
+        var resolverRegistry = new DidResolverRegistryImpl();
+        context.registerService(DidResolverRegistry.class, resolverRegistry);
+
+        var publicKeyResolver = new DefaultDidPublicKeyResolver(resolverRegistry);
+        context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
+
         var privateKeyResolver = context.getService(PrivateKeyResolver.class);
         registerParsers(privateKeyResolver);
 

@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import org.eclipse.dataspaceconnector.events.azure.AzureEventGridConfig;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
@@ -98,7 +97,7 @@ public class CrawlerExtension implements ServiceExtension {
 
     private void scheduleCrawler(int intervalMinutes, ServiceExtensionContext context) throws SchedulerException {
         var didStore = context.getService(DidStore.class);
-        var didResolver = context.getService(DidResolver.class);
+        var resolverRegistry = context.getService(DidResolverRegistry.class);
 
         var publisher = new CrawlerEventPublisher(context.getService(Vault.class), new AzureEventGridConfig(context));
 
@@ -108,7 +107,7 @@ public class CrawlerExtension implements ServiceExtension {
                 .monitor(context.getMonitor())
                 .publisher(publisher)
                 .didTypes(context.getSetting(ION_CRAWLER_TYPE_SETTING, "aW9u"))
-                .ionClient(didResolver)
+                .resolverRegistry(resolverRegistry)
                 .build();
 
         JobDetail job = newJob(CrawlerJob.class)

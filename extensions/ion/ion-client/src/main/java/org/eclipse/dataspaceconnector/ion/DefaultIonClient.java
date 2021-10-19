@@ -104,7 +104,7 @@ public class DefaultIonClient implements IonClient {
                 DidResolveResponse didResolveResponse = typeManager.readValue(body, DidResolveResponse.class);
                 return didResolveResponse.getDidDocument();
             }
-            throw new IonRequestException("resolving the DID URI was unsuccessful: code = " + response.code() + " content= " + response.body().string());
+            throw new IonRequestException("Resolving the DID URI was unsuccessful: code = " + response.code() + " content= " + response.body().string());
         } catch (Exception ex) {
             throw new IonRequestException(ex);
         }

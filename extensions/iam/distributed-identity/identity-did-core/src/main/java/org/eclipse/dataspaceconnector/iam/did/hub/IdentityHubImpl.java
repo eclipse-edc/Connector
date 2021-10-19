@@ -90,15 +90,15 @@ public class IdentityHubImpl implements IdentityHub {
      * writes a response JWE using the public key of the ISS sender
      */
     private String writeResponse(Object response, String iss) {
-        var recipientPublicKey = publicKeyResolver.resolvePublicKey(iss);
-        if (recipientPublicKey == null) {
+        var result = publicKeyResolver.resolvePublicKey(iss);
+        if (result.invalid()) {
             try {
-                return objectMapper.writeValueAsString(new ErrorResponse("500", "Unable to resolve recipient public key"));
+                return objectMapper.writeValueAsString(new ErrorResponse("500", "Unable to resolve recipient public key: " + result.getInvalidMessage()));
             } catch (JsonProcessingException e) {
                 throw new EdcException(e);
             }
         }
 
-        return new GenericJweWriter().objectMapper(objectMapper).privateKey(privateKey.get()).publicKey(recipientPublicKey).payload(response).buildJwe();
+        return new GenericJweWriter().objectMapper(objectMapper).privateKey(privateKey.get()).publicKey(result.getWrapper()).payload(response).buildJwe();
     }
 }

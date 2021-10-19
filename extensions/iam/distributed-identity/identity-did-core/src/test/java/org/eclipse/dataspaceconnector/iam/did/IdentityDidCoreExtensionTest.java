@@ -4,7 +4,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolver.DefaultDidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.resolution.DefaultDidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
@@ -37,7 +37,6 @@ class IdentityDidCoreExtensionTest {
         extension = new IdentityDidCoreExtension();
         contextMock = strictMock(ServiceExtensionContext.class);
     }
-
 
     @Test
     void verifyCorrectInitialization_noPkResolverPresent() {
