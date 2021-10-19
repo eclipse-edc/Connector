@@ -43,6 +43,7 @@ subprojects {
         }
     }
 
+    tasks.register<DependencyReportTask>("allDependencies"){}
 }
 
 allprojects {
