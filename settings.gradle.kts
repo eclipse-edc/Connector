@@ -77,6 +77,8 @@ include(":extensions:iam:distributed-identity:identity-common-test")
 include(":extensions:iam:distributed-identity:verifiable-credentials")
 include(":extensions:iam:distributed-identity:dummy-credentials-verifier")
 include(":extensions:catalog:catalog-service")
+include(":extensions:transfer-functions:transfer-functions-spi")
+include(":extensions:transfer-functions:transfer-functions-core")
 
 
 // modules for launchers, i.e. runnable compositions of the app
