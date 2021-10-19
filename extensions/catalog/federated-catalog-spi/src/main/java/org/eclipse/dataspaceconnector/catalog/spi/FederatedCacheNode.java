@@ -1,10 +1,38 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
-import java.net.URL;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.util.List;
 
-public interface FederatedCacheNode {
-    URL getUrl();
 
-    List<String> getSupportedProtocols();
+public class FederatedCacheNode {
+    @JsonProperty("name")
+    private final String name;
+    @JsonProperty("url")
+    private final String targetUrl;
+    @JsonProperty("supportedProtocols")
+    private final List<String> supportedProtocols;
+
+
+    @JsonCreator
+    public FederatedCacheNode(@JsonProperty("name") String name,
+                              @JsonProperty("url") String targetUrl,
+                              @JsonProperty("supportedProtocols") List<String> supportedProtocols) {
+        this.name = name;
+        this.targetUrl = targetUrl;
+        this.supportedProtocols = supportedProtocols;
+    }
+
+    public String getTargetUrl() {
+        return targetUrl;
+    }
+
+    public List<String> getSupportedProtocols() {
+        return supportedProtocols;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

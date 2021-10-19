@@ -9,4 +9,6 @@ public interface FederatedCacheNodeDirectory {
     List<FederatedCacheNode> getAll();
 
     Stream<FederatedCacheNode> getAllAsync();
+
+    void insert(FederatedCacheNode node);
 }

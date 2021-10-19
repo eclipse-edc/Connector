@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.catalog.cache.loader;
 import org.eclipse.dataspaceconnector.catalog.spi.Loader;
 import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.WaitStrategy;
 
 import java.util.ArrayList;
@@ -14,6 +15,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.lang.String.format;
+
 public class LoaderManagerImpl implements LoaderManager {
     private static final int DEFAULT_BATCH_SIZE = 5;
     private static final int DEFAULT_WAIT_TIME_MILLIS = 2000;
@@ -23,13 +26,15 @@ public class LoaderManagerImpl implements LoaderManager {
     private final ReentrantLock lock;
     private final int batchSize;
     private final WaitStrategy waitStrategy;
+    private final Monitor monitor;
     private ExecutorService executor;
 
-    public LoaderManagerImpl(BlockingQueue<UpdateResponse> queue, List<Loader> loaders, int batchSize, WaitStrategy waitStrategy) {
+    public LoaderManagerImpl(BlockingQueue<UpdateResponse> queue, List<Loader> loaders, int batchSize, WaitStrategy waitStrategy, Monitor monitor) {
         this.queue = queue;
         this.loaders = loaders;
         this.batchSize = batchSize;
         this.waitStrategy = waitStrategy;
+        this.monitor = monitor;
         isRunning = new AtomicBoolean(false);
         lock = new ReentrantLock();
     }
@@ -69,11 +74,14 @@ public class LoaderManagerImpl implements LoaderManager {
                     var batch = new ArrayList<UpdateResponse>(batchSize);
                     // take the elements out of the queue and forward to loaders
                     queue.drainTo(batch, batchSize);
+                    monitor.debug(format("LoaderManager: batch full, begin loading (%s items, %s workers)", batchSize, loaders.size()));
                     loaders.forEach(l -> l.load(batch));
+                    monitor.debug("LoaderManager: loading complete");
                 }
                 // else wait and retry on next iteration
             } finally {
                 if (!isBatchFull) {
+                    //monitor.debug(format("LoaderManager: batch not full (%s/%s), yield", queue.size(), batchSize));
                     try {
                         long l = waitStrategy.retryInMillis();
                         Thread.sleep(l);
@@ -94,6 +102,7 @@ public class LoaderManagerImpl implements LoaderManager {
         private List<Loader> loaders;
         private int batchSize = DEFAULT_BATCH_SIZE;
         private WaitStrategy waitStrategy = () -> DEFAULT_WAIT_TIME_MILLIS;
+        private Monitor monitor;
 
         private Builder() {
         }
@@ -118,6 +127,11 @@ public class LoaderManagerImpl implements LoaderManager {
             return this;
         }
 
+        public Builder monitor(Monitor monitor) {
+            this.monitor = monitor;
+            return this;
+        }
+
         public Builder waitStrategy(WaitStrategy waitStrategy) {
             this.waitStrategy = waitStrategy;
             return this;
@@ -129,7 +143,7 @@ public class LoaderManagerImpl implements LoaderManager {
             if (batchSize < 0) {
                 throw new IllegalArgumentException("Batch Size cannot be negative!");
             }
-            return new LoaderManagerImpl(queue, loaders, batchSize, waitStrategy);
+            return new LoaderManagerImpl(queue, loaders, batchSize, waitStrategy, monitor);
         }
     }
 }

@@ -11,16 +11,20 @@ import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
+import org.eclipse.dataspaceconnector.catalog.spi.Loader;
 import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
 import org.eclipse.dataspaceconnector.catalog.spi.PartitionConfiguration;
+import org.eclipse.dataspaceconnector.catalog.spi.PartitionManager;
 import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -36,8 +40,12 @@ import static java.lang.String.format;
 
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     private static final int DEFAULT_QUEUE_LENGTH = 50;
-    private static final int DEFAULT_BATCH_SIZE = 5;
+    private static final int DEFAULT_BATCH_SIZE = 1;
     private static final int DEFAULT_RETRY_TIMEOUT_MILLIS = 2000;
+    private LoaderManager loaderManager;
+    private PartitionManager partitionManager;
+    private PartitionConfiguration partitionManagerConfig;
+    private Monitor monitor;
 
     @Override
     public Set<String> provides() {
@@ -58,47 +66,87 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         queryAdapterRegistry.register(new DefaultQueryAdapter(store));
         var webService = context.getService(WebService.class);
         var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
-        var catalogController = new CatalogController(context.getMonitor(), queryEngine);
+        monitor = context.getMonitor();
+        var catalogController = new CatalogController(monitor, queryEngine);
         webService.registerController(catalogController);
 
         // CRAWLER SUBSYSTEM
-        var queue = new ArrayBlockingQueue<UpdateResponse>(DEFAULT_QUEUE_LENGTH);
+        var updateResponseQueue = new ArrayBlockingQueue<UpdateResponse>(DEFAULT_QUEUE_LENGTH);
+
+        //todo: maybe get this from a database or somewhere else?
+        partitionManagerConfig = new PartitionConfiguration(context);
+
+        // lets create a simple partition manager
+        partitionManager = createPartitionManager(context, updateResponseQueue);
+
+        // and a loader manager
+        loaderManager = createLoaderManager(store, updateResponseQueue);
+
+        monitor.info("Federated Catalog Cache extension initialized");
+    }
+
+    @Override
+    public void start() {
+        partitionManager.schedule(partitionManagerConfig.getExecutionPlan());
+        loaderManager.start();
+        monitor.info("Federated Catalog Cache extension started");
+    }
+
+    @Override
+    public void shutdown() {
+        partitionManager.stop();
+        loaderManager.stop();
+        monitor.info("Federated Catalog Cache extension stopped");
+    }
+
+    @NotNull
+    private LoaderManagerImpl createLoaderManager(FederatedCacheStore store, ArrayBlockingQueue<UpdateResponse> updateResponseQueue) {
+        return new LoaderManagerImpl(updateResponseQueue,
+                List.of(createLoader(store)),
+                partitionManagerConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE),
+                () -> partitionManagerConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS), monitor);
+    }
+
+    @NotNull
+    private PartitionManager createPartitionManager(ServiceExtensionContext context, ArrayBlockingQueue<UpdateResponse> updateResponseQueue) {
 
         // protocol registry - must be supplied by another extension
         var protocolAdapterRegistry = context.getService(ProtocolAdapterRegistry.class);
 
         // get all known nodes from node directory - must be supplied by another extension
         var directory = context.getService(FederatedCacheNodeDirectory.class);
-        List<WorkItem> nodes = directory.getAll().stream().map(n -> new WorkItem(n.getUrl().toString(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
 
-        //todo: maybe get this from a database or somewhere else?
-        var partitionConfig = new PartitionConfiguration(context);
+        // use all nodes EXCEPT self
+        List<WorkItem> nodes = directory.getAll().stream()
+                .filter(node -> !node.getName().equals(context.getConnectorId()))
+                .map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
 
-        // lets create a simple partition manager
-        var partitionManager = new PartitionManagerImpl(context.getMonitor(),
-                new InMemoryWorkItemQueue(partitionConfig.getWorkItemQueueSize(10)),
-                workItems -> createCrawler(workItems, context, protocolAdapterRegistry),
-                partitionConfig.getNumCrawlers(1),
+        return new PartitionManagerImpl(monitor,
+                new InMemoryWorkItemQueue(partitionManagerConfig.getWorkItemQueueSize(10)),
+                workItems -> createCrawler(workItems, context, protocolAdapterRegistry, updateResponseQueue),
+                partitionManagerConfig.getNumCrawlers(2),
                 nodes);
-
-        // and a loader manager
-        var loaderManager = new LoaderManagerImpl(queue,
-                List.of(batch -> context.getMonitor().info("Storing batch of size " + batch.size())),
-                partitionConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE),
-                () -> partitionConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS));
-
-        partitionManager.schedule(partitionConfig.getExecutionPlan());
-        loaderManager.start();
     }
 
-    @Override
-    public void start() {
-        ServiceExtension.super.start();
-    }
+    @NotNull
+    private Loader createLoader(FederatedCacheStore store) {
+        return responses -> {
+            for (var response : responses) {
+                var assetNames = response.getAssetNames();
+                var originator = response.getSource();
 
-    @Override
-    public void shutdown() {
-        ServiceExtension.super.shutdown();
+                assetNames.forEach(n -> {
+                    var asset = Asset.Builder.newInstance()
+                            .id(n)
+                            .name(n)
+                            .version("1.0")
+                            .property("source", originator)
+                            .build();
+                    store.save(asset);
+                });
+
+            }
+        };
     }
 
     private String selectProtocol(List<String> supportedProtocols) {
@@ -106,12 +154,13 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         return supportedProtocols.isEmpty() ? null : supportedProtocols.get(0);
     }
 
-    private Crawler createCrawler(WorkItemQueue workItems, ServiceExtensionContext context, ProtocolAdapterRegistry protocolAdapters) {
+    private Crawler createCrawler(WorkItemQueue workItems, ServiceExtensionContext context, ProtocolAdapterRegistry protocolAdapters, ArrayBlockingQueue<UpdateResponse> updateQueue) {
         var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         return CrawlerImpl.Builder.newInstance()
                 .monitor(context.getMonitor())
                 .retryPolicy(retryPolicy)
                 .workItems(workItems)
+                .queue(updateQueue)
                 .errorReceiver(getErrorWorkItemConsumer(context, workItems))
                 .protocolAdapters(protocolAdapters)
                 .workQueuePollTimeout(() -> Duration.ofMillis(2000 + new Random().nextInt(3000)))

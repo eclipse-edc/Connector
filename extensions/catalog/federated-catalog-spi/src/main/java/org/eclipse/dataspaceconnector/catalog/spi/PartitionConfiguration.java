@@ -12,6 +12,7 @@ public class PartitionConfiguration {
     private static final String PART_NUM_CRAWLER_SETTING = "edc.catalog.cache.partition.num-crawlers";
     private static final String PART_LOADER_BATCH_SIZE_SETTING = "edc.catalog.cache.loader.batch-size";
     private static final String PART_LOADER_RETRY_TIMEOUT = "edc.catalog.cache.loader.timeout-millis";
+    private static final String PART_EXECUTION_PLAN_PERIOD_MINUTES = "edc.catalog.cache.execution.period-minutes";
     private final ServiceExtensionContext context;
 
     public PartitionConfiguration(ServiceExtensionContext context) {
@@ -37,6 +38,7 @@ public class PartitionConfiguration {
     }
 
     public ExecutionPlan getExecutionPlan() {
-        return new RecurringExecutionPlan(Duration.ofMinutes(10));
+        var minutes = Integer.parseInt(context.getSetting(PART_EXECUTION_PLAN_PERIOD_MINUTES, "10"));
+        return new RecurringExecutionPlan(Duration.ofMinutes(minutes));
     }
 }

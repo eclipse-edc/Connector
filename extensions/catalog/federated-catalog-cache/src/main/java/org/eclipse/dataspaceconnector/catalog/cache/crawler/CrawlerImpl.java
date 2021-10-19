@@ -15,6 +15,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -72,7 +73,7 @@ public class CrawlerImpl implements Crawler {
 
                     if (adapters.isEmpty()) {
                         // otherwise error out the workitem
-                        handleError(item, crawlerId + ": No Adapter found for protocol " + item.getProtocol());
+                        handleError(item, String.format("%s: No Adapter found for protocol [%s :: %s]", crawlerId, item.getProtocol(), item.getUrl()));
                     } else {
                         // if the adapters are found, use them to send the update request
                         WorkItem finalItem = item;
@@ -190,6 +191,10 @@ public class CrawlerImpl implements Crawler {
         }
 
         public CrawlerImpl build() {
+            Objects.requireNonNull(workItems);
+            Objects.requireNonNull(queue);
+            Objects.requireNonNull(adapters);
+
             return new CrawlerImpl(workItems, monitor, queue, retryPolicy, adapters, workQueuePollTimeout, errorHandler);
         }
     }
