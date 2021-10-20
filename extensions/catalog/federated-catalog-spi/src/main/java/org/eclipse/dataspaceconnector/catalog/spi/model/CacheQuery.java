@@ -8,9 +8,12 @@ import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Query class that wraps around a list of {@link Criterion} objects.
+ * It is used to submit queries to the FederatedCatalogCache.
+ */
 @JsonDeserialize(builder = CacheQuery.Builder.class)
 public class CacheQuery {
-    // will be implemented in a subsequent PR
     private final List<Criterion> criteria;
 
     private CacheQuery(List<Criterion> criteria) {
