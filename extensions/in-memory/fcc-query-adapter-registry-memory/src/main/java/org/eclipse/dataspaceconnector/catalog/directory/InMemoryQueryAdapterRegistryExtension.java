@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.directory;
 
-import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapterRegistry;
+import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -10,16 +10,16 @@ public class InMemoryQueryAdapterRegistryExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(QueryAdapterRegistry.FEATURE);
+        return Set.of(CacheQueryAdapterRegistry.FEATURE);
     }
 
 
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        QueryAdapterRegistry registry = new InMemoryQueryAdapterRegistry();
+        CacheQueryAdapterRegistry registry = new InMemoryCacheQueryAdapterRegistry();
 
-        context.registerService(QueryAdapterRegistry.class, registry);
+        context.registerService(CacheQueryAdapterRegistry.class, registry);
         context.getMonitor().info("Initialized In-Memory Query Adapter Registry");
     }
 }

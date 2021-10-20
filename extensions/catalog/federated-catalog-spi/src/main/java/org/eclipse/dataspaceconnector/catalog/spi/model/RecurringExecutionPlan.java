@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
- * An ExecutionPlan that executes periodically.
+ * An ExecutionPlan that executes periodically according to a given schedule.
  */
 public class RecurringExecutionPlan implements ExecutionPlan {
     private final Duration schedule;
@@ -15,7 +15,7 @@ public class RecurringExecutionPlan implements ExecutionPlan {
      * Instantiates the {@code RecurringExecutionPlan}.
      *
      * @param schedule         A time span used for initial delay and for the period.
-     * @param withInitialDelay Specifies whether the execution plan should run right away or if an initial delay should pass
+     * @param withInitialDelay Specifies whether the execution plan should run right away or after an initial delay passes. That delay is equal to {@code schedule}.
      */
     public RecurringExecutionPlan(Duration schedule, boolean withInitialDelay) {
         this.schedule = schedule;

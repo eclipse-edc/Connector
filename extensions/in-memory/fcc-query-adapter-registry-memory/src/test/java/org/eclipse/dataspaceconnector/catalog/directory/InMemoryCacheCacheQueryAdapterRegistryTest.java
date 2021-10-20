@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.catalog.directory;
 
-import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -38,19 +38,19 @@ import static org.easymock.EasyMock.strictMock;
 import static org.easymock.EasyMock.verify;
 
 
-class InMemoryQueryAdapterRegistryTest {
+class InMemoryCacheCacheQueryAdapterRegistryTest {
     private static final Asset ASSET_ABC = Asset.Builder.newInstance().id("ABC").build();
     private static final Asset ASSET_DEF = Asset.Builder.newInstance().id("DEF").build();
     private static final Asset ASSET_XYZ = Asset.Builder.newInstance().id("XYZ").build();
 
-    private InMemoryQueryAdapterRegistry registry;
+    private InMemoryCacheQueryAdapterRegistry registry;
 
     @Test
     void getAllAdapters() {
         // initialize
-        QueryAdapter adapter1 = strictMock(QueryAdapter.class);
-        QueryAdapter adapter2 = strictMock(QueryAdapter.class);
-        QueryAdapter adapter3 = strictMock(QueryAdapter.class);
+        CacheQueryAdapter adapter1 = strictMock(CacheQueryAdapter.class);
+        CacheQueryAdapter adapter2 = strictMock(CacheQueryAdapter.class);
+        CacheQueryAdapter adapter3 = strictMock(CacheQueryAdapter.class);
 
         expect(adapter1.executeQuery(anyObject())).andReturn(Stream.of(ASSET_ABC));
         expect(adapter2.executeQuery(anyObject())).andReturn(Stream.of(ASSET_DEF));
@@ -63,7 +63,7 @@ class InMemoryQueryAdapterRegistryTest {
         replay(adapter1, adapter2, adapter3);
 
         // start testing
-        Collection<QueryAdapter> adapters = registry.getAllAdapters();
+        Collection<CacheQueryAdapter> adapters = registry.getAllAdapters();
 
         assertThat(collectAssetsFromAdapters(adapters)).isEqualTo(Arrays.asList(ASSET_ABC, ASSET_DEF, ASSET_XYZ));
 
@@ -72,7 +72,7 @@ class InMemoryQueryAdapterRegistryTest {
 
     @BeforeEach
     public void setUp() {
-        this.registry = new InMemoryQueryAdapterRegistry();
+        this.registry = new InMemoryCacheQueryAdapterRegistry();
     }
 
     @Test
@@ -155,31 +155,31 @@ class InMemoryQueryAdapterRegistryTest {
         verify(adapter1, adapter2, adapter3);
     }
 
-    private QueryAdapter failingAdapter() {
-        QueryAdapter adapter1 = niceMock(QueryAdapter.class);
+    private CacheQueryAdapter failingAdapter() {
+        CacheQueryAdapter adapter1 = niceMock(CacheQueryAdapter.class);
         expect(adapter1.canExecute(anyObject())).andReturn(true);
         expect(adapter1.executeQuery(anyObject())).andThrow(new EdcException("timeout"));
         return adapter1;
     }
 
     @NotNull
-    private QueryAdapter matchingAdapter() {
-        QueryAdapter adapter1 = niceMock(QueryAdapter.class);
+    private CacheQueryAdapter matchingAdapter() {
+        CacheQueryAdapter adapter1 = niceMock(CacheQueryAdapter.class);
         expect(adapter1.canExecute(anyObject())).andReturn(true);
         expect(adapter1.executeQuery(anyObject())).andReturn(Stream.of(new Asset(), new Asset(), new Asset()));
         return adapter1;
     }
 
     @NotNull
-    private QueryAdapter mismatchingAdapter() {
-        QueryAdapter adapter1 = niceMock(QueryAdapter.class);
+    private CacheQueryAdapter mismatchingAdapter() {
+        CacheQueryAdapter adapter1 = niceMock(CacheQueryAdapter.class);
         expect(adapter1.canExecute(anyObject())).andReturn(false);
         return adapter1;
     }
 
-    private List<Asset> collectAssetsFromAdapters(Collection<QueryAdapter> adapters) {
+    private List<Asset> collectAssetsFromAdapters(Collection<CacheQueryAdapter> adapters) {
         List<Asset> assets = new ArrayList<>();
-        adapters.forEach(queryAdapter -> assets.addAll(queryAdapter.executeQuery(null).collect(Collectors.toList())));
+        adapters.forEach(cacheQueryAdapter -> assets.addAll(cacheQueryAdapter.executeQuery(null).collect(Collectors.toList())));
         return assets;
     }
 }

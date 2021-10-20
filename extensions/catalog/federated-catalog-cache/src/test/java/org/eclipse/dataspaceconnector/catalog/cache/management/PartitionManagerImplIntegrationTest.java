@@ -6,7 +6,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
-import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
@@ -58,7 +58,7 @@ class PartitionManagerImplIntegrationTest {
         signallingWorkItemQueue = new SignalingWorkItemQueue(WORK_ITEM_COUNT + 1, queueListener);
         staticWorkLoad = IntStream.range(0, WORK_ITEM_COUNT).mapToObj(i -> new TestWorkItem()).collect(Collectors.toList());
 
-        ProtocolAdapter adapterMock = niceMock(ProtocolAdapter.class);
+        CatalogQueryAdapter adapterMock = niceMock(CatalogQueryAdapter.class);
         expect(adapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse())).times(WORK_ITEM_COUNT);
         replay(adapterMock);
 

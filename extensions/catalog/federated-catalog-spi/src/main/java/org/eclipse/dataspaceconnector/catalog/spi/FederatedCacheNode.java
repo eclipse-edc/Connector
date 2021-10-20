@@ -5,7 +5,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.List;
 
-
+/**
+ * Object that contains information of a FederatedCacheNode. This is used by the {@link FederatedCacheNodeDirectory}.
+ */
 public class FederatedCacheNode {
     @JsonProperty("name")
     private final String name;

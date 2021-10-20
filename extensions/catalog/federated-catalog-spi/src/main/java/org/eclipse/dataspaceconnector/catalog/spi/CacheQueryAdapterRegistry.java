@@ -5,25 +5,25 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
 import java.util.Collection;
 
 /**
- * Registry where {@link QueryAdapter} instances are stored and maintained.
+ * Registry where {@link CacheQueryAdapter} instances are stored and maintained.
  */
-public interface QueryAdapterRegistry {
+public interface CacheQueryAdapterRegistry {
     String FEATURE = "edc:catalog:cache:query:registry";
 
     /**
-     * Finds all instances of {@link QueryAdapter} that was registered.
+     * Finds all instances of {@link CacheQueryAdapter} that was registered.
      *
      * @return The full list of query adapters that have been registered.
      */
-    Collection<QueryAdapter> getAllAdapters();
+    Collection<CacheQueryAdapter> getAllAdapters();
 
     /**
-     * Registers a {@link QueryAdapter} for a given storage type
+     * Registers a {@link CacheQueryAdapter} for a given storage type
      */
-    void register(QueryAdapter adapter);
+    void register(CacheQueryAdapter adapter);
 
     /**
-     * Attempts to execute a query by forwarding it to all suitable {@link QueryAdapter}s. It returns a query response with a status equal to
+     * Attempts to execute a query by forwarding it to all suitable {@link CacheQueryAdapter}s. It returns a query response with a status equal to
      * {@link QueryResponse.Status#ACCEPTED} if there was at least one adapter that could accept the query. If no suitable adapter was found, the status will be
      * {@link QueryResponse.Status#NO_ADAPTER_FOUND}. The actual result of the query, which could be mixed as some adapters might succeed, others might fail, can be
      * obtained from {@link QueryResponse#getAssets()} and {@link QueryResponse#getErrors()}. The earlier list returns an aggregated stream of

@@ -1,34 +1,27 @@
 package org.eclipse.dataspaceconnector.catalog.cache.query;
 
-import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapterRegistry;
+import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-
-import java.util.Collection;
-import java.util.stream.Collectors;
 
 public class QueryEngineImpl implements QueryEngine {
 
-    private final QueryAdapterRegistry queryAdapterRegistry;
+    private final CacheQueryAdapterRegistry cacheQueryAdapterRegistry;
 
-    public QueryEngineImpl(QueryAdapterRegistry queryAdapterRegistry) {
-        this.queryAdapterRegistry = queryAdapterRegistry;
+    public QueryEngineImpl(CacheQueryAdapterRegistry cacheQueryAdapterRegistry) {
+        this.cacheQueryAdapterRegistry = cacheQueryAdapterRegistry;
     }
 
     @Override
-    public Collection<Asset> getCatalog(CacheQuery query) {
-        QueryResponse queryResponse = queryAdapterRegistry.executeQuery(query);
-
-        // query not possible
-        if (queryResponse.getStatus() == QueryResponse.Status.NO_ADAPTER_FOUND) {
-            throw new QueryNotAcceptedException();
-        }
-        if (!queryResponse.getErrors().isEmpty()) {
-            throw new QueryException(queryResponse.getErrors());
-        }
-
-        return queryResponse.getAssets().collect(Collectors.toList());
+    public QueryResponse getCatalog(CacheQuery query) {
+        // todo: the following code must be moved to the API, e.g. a REST controller:
+        //        if (queryResponse.getStatus() == QueryResponse.Status.NO_ADAPTER_FOUND) {
+        //            throw new QueryNotAcceptedException();
+        //        }
+        //        if (!queryResponse.getErrors().isEmpty()) {
+        //            throw new QueryException(queryResponse.getErrors());
+        //        }
+        return cacheQueryAdapterRegistry.executeQuery(query);
     }
 }

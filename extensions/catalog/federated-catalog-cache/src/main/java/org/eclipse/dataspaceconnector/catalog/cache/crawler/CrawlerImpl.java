@@ -4,8 +4,8 @@ import info.schnatterer.mobynamesgenerator.MobyNamesGenerator;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
-import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapter;
-import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapterRegistry;
+import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
@@ -26,7 +26,7 @@ import static net.jodah.failsafe.Failsafe.with;
 
 public class CrawlerImpl implements Crawler {
 
-    private final ProtocolAdapterRegistry protocolAdapterRegistry;
+    private final CatalogQueryAdapterRegistry protocolAdapterRegistry;
     private final Monitor monitor;
     private final BlockingQueue<UpdateResponse> updateResponseQueue;
     private final RetryPolicy<Object> updateResponseEnqueueRetryPolicy;
@@ -37,7 +37,7 @@ public class CrawlerImpl implements Crawler {
     private final CrawlerErrorHandler errorHandler;
 
     CrawlerImpl(WorkItemQueue workItemQueue, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue,
-                RetryPolicy<Object> updateResponseEnqueueRetryPolicy, ProtocolAdapterRegistry protocolAdapterRegistry,
+                RetryPolicy<Object> updateResponseEnqueueRetryPolicy, CatalogQueryAdapterRegistry protocolAdapterRegistry,
                 Supplier<Duration> workQueuePollTimeout, CrawlerErrorHandler errorHandler) {
         this.workItemQueue = workItemQueue;
         this.protocolAdapterRegistry = protocolAdapterRegistry;
@@ -77,7 +77,7 @@ public class CrawlerImpl implements Crawler {
                     } else {
                         // if the adapters are found, use them to send the update request
                         WorkItem finalItem = item;
-                        for (ProtocolAdapter a : adapters) {
+                        for (CatalogQueryAdapter a : adapters) {
                             a.sendRequest(new UpdateRequest(finalItem.getUrl()))
                                     // the following happens on a different thread
                                     .whenComplete((updateResponse, throwable) -> {
@@ -108,10 +108,6 @@ public class CrawlerImpl implements Crawler {
     }
 
     @Override
-    public boolean join() {
-        return join(10, TimeUnit.SECONDS);
-    }
-
     public boolean join(long timeout, TimeUnit unit) {
         monitor.debug(crawlerId + ": Stopping");
         isActive.set(false);
@@ -140,7 +136,7 @@ public class CrawlerImpl implements Crawler {
     }
 
     public static final class Builder {
-        private ProtocolAdapterRegistry adapters;
+        private CatalogQueryAdapterRegistry adapters;
         private Monitor monitor;
         private BlockingQueue<UpdateResponse> queue;
         private RetryPolicy<Object> retryPolicy;
@@ -155,7 +151,7 @@ public class CrawlerImpl implements Crawler {
             return new Builder();
         }
 
-        public Builder protocolAdapters(ProtocolAdapterRegistry adapters) {
+        public Builder protocolAdapters(CatalogQueryAdapterRegistry adapters) {
             this.adapters = adapters;
             return this;
         }

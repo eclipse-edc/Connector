@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
-import org.eclipse.dataspaceconnector.catalog.spi.ProtocolAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
@@ -41,7 +41,7 @@ class CrawlerImplTest {
     public static final int JOIN_WAIT_TIME = 100;
     public static final int WORK_QUEUE_POLL_TIMEOUT = 500;
     private CrawlerImpl crawler;
-    private ProtocolAdapter protocolAdapterMock;
+    private CatalogQueryAdapter protocolAdapterMock;
     private ArrayBlockingQueue<UpdateResponse> queue;
     private Monitor monitorMock;
     private WorkItemQueue workQueue;
@@ -53,7 +53,7 @@ class CrawlerImplTest {
     void setUp() {
         executorService = Executors.newSingleThreadExecutor();
         errorHandlerMock = mock(CrawlerErrorHandler.class);
-        protocolAdapterMock = strictMock(ProtocolAdapter.class);
+        protocolAdapterMock = strictMock(CatalogQueryAdapter.class);
         queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
         monitorMock = niceMock(Monitor.class);
         workQueue = new TestWorkQueue(10);
@@ -115,7 +115,7 @@ class CrawlerImplTest {
     void shouldInsertInQueue_onlySuccessfulProtocolRequests() throws InterruptedException {
 
         var l = new CountDownLatch(2);
-        ProtocolAdapter secondAdapter = strictMock(ProtocolAdapter.class);
+        CatalogQueryAdapter secondAdapter = strictMock(CatalogQueryAdapter.class);
         registry.register("test-protocol", secondAdapter);
 
         expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andAnswer(() -> {

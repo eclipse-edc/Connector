@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.catalog.directory;
 
-import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapter;
-import org.eclipse.dataspaceconnector.catalog.spi.QueryAdapterRegistry;
+import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -14,17 +14,17 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class InMemoryQueryAdapterRegistry implements QueryAdapterRegistry {
+class InMemoryCacheQueryAdapterRegistry implements CacheQueryAdapterRegistry {
 
-    private final Set<QueryAdapter> registry = new CopyOnWriteArraySet<>();
+    private final Set<CacheQueryAdapter> registry = new CopyOnWriteArraySet<>();
 
     @Override
-    public Collection<QueryAdapter> getAllAdapters() {
+    public Collection<CacheQueryAdapter> getAllAdapters() {
         return new ArrayList<>(registry);
     }
 
     @Override
-    public void register(QueryAdapter adapter) {
+    public void register(CacheQueryAdapter adapter) {
         registry.add(adapter);
     }
 

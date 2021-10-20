@@ -3,8 +3,10 @@ package org.eclipse.dataspaceconnector.catalog.spi;
 import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
-import java.util.Collection;
-
+/**
+ * Accepts a {@link CacheQuery} and fetches a collection of {@link Asset} that conform to that query.
+ */
+@FunctionalInterface
 public interface QueryEngine {
-    Collection<Asset> getCatalog(CacheQuery query);
+    QueryResponse getCatalog(CacheQuery query);
 }

@@ -36,7 +36,7 @@ class LoaderManagerImplTest {
         int batchSize = 3;
         queue = new ArrayBlockingQueue<>(batchSize); //default batch size of the loader
         loaderMock = strictMock(Loader.class);
-        loaderManager = new LoaderManagerImpl(queue, Collections.singletonList(loaderMock), batchSize, waitStrategyMock, niceMock(Monitor.class));
+        loaderManager = new LoaderManagerImpl(Collections.singletonList(loaderMock), batchSize, waitStrategyMock, niceMock(Monitor.class));
     }
 
     @Test
@@ -55,7 +55,7 @@ class LoaderManagerImplTest {
         replay(waitStrategyMock);
 
         replay(loaderMock);
-        loaderManager.start();
+        loaderManager.start(queue);
 
         //wait for completion signal
         assertThat(completionSignal.await(20L, TimeUnit.MILLISECONDS)).isTrue();
@@ -84,7 +84,7 @@ class LoaderManagerImplTest {
         expectLastCall().once();
         replay(loaderMock);
 
-        loaderManager.start();
+        loaderManager.start(queue);
 
         //wait for completion signal
         assertThat(completionSignal.await(5, TimeUnit.SECONDS)).isTrue();

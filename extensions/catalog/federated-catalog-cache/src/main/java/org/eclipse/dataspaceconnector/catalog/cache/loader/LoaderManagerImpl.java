@@ -20,7 +20,7 @@ import static java.lang.String.format;
 public class LoaderManagerImpl implements LoaderManager {
     private static final int DEFAULT_BATCH_SIZE = 5;
     private static final int DEFAULT_WAIT_TIME_MILLIS = 2000;
-    private final BlockingQueue<UpdateResponse> queue;
+    private BlockingQueue<UpdateResponse> queue;
     private final List<Loader> loaders;
     private final AtomicBoolean isRunning;
     private final ReentrantLock lock;
@@ -29,8 +29,7 @@ public class LoaderManagerImpl implements LoaderManager {
     private final Monitor monitor;
     private ExecutorService executor;
 
-    public LoaderManagerImpl(BlockingQueue<UpdateResponse> queue, List<Loader> loaders, int batchSize, WaitStrategy waitStrategy, Monitor monitor) {
-        this.queue = queue;
+    public LoaderManagerImpl( List<Loader> loaders, int batchSize, WaitStrategy waitStrategy, Monitor monitor) {
         this.loaders = loaders;
         this.batchSize = batchSize;
         this.waitStrategy = waitStrategy;
@@ -44,7 +43,8 @@ public class LoaderManagerImpl implements LoaderManager {
     }
 
     @Override
-    public void start() {
+    public void start(BlockingQueue<UpdateResponse> queue) {
+        this.queue= queue;
         isRunning.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::beginDequeue);
@@ -98,7 +98,6 @@ public class LoaderManagerImpl implements LoaderManager {
 
 
     public static final class Builder {
-        private BlockingQueue<UpdateResponse> queue;
         private List<Loader> loaders;
         private int batchSize = DEFAULT_BATCH_SIZE;
         private WaitStrategy waitStrategy = () -> DEFAULT_WAIT_TIME_MILLIS;
@@ -112,10 +111,6 @@ public class LoaderManagerImpl implements LoaderManager {
         }
 
 
-        public Builder queue(BlockingQueue<UpdateResponse> queue) {
-            this.queue = queue;
-            return this;
-        }
 
         public Builder loaders(List<Loader> loaders) {
             this.loaders = loaders;
@@ -138,12 +133,11 @@ public class LoaderManagerImpl implements LoaderManager {
         }
 
         public LoaderManagerImpl build() {
-            Objects.requireNonNull(queue);
             Objects.requireNonNull(loaders);
             if (batchSize < 0) {
                 throw new IllegalArgumentException("Batch Size cannot be negative!");
             }
-            return new LoaderManagerImpl(queue, loaders, batchSize, waitStrategy, monitor);
+            return new LoaderManagerImpl( loaders, batchSize, waitStrategy, monitor);
         }
     }
 }

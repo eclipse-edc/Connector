@@ -65,6 +65,7 @@ public class QueryResponse {
 
         private Builder() {
             response = new QueryResponse();
+            response.status = Status.ACCEPTED; //thats the default
         }
 
         public static Builder newInstance() {
@@ -72,12 +73,12 @@ public class QueryResponse {
         }
 
         public Builder assets(Stream<Asset> assets) {
-            this.response.assets = assets;
+            response.assets = assets;
             return this;
         }
 
         public Builder status(Status status) {
-            this.response.status = status;
+            response.status = status;
             return this;
         }
 

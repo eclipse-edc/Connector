@@ -6,6 +6,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.time.Duration;
 
+/**
+ * Object that provides configuration for the {@link PartitionManager}.
+ * All configuration values that do not allow for default values are resolved instantly, all others are resolved
+ * lazily from the context.
+ */
 public class PartitionConfiguration {
 
     private static final String PART_WORK_ITEM_QUEUE_SIZE_SETTING = "edc.catalog.cache.partition.queue-size";
