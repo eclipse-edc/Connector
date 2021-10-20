@@ -71,7 +71,7 @@ public class ContractServiceExtension implements ServiceExtension {
         ContractOfferFramework contractOfferFramework = serviceExtensionContext.getService(ContractOfferFramework.class, true);
         if (contractOfferFramework == null) {
             monitor.warning("No ContractOfferFramework registered. Register one to create Contract Offers.");
-            assetIndex = new NullAssetIndex();
+            contractOfferFramework = new NullContractOfferFramework();
         }
 
         /*
