@@ -24,7 +24,6 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 
 import static de.fraunhofer.iais.eis.RejectionReason.MALFORMED_MESSAGE;
 import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;

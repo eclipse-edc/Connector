@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.api.catalog;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 
 import java.util.Collection;
 
