@@ -14,13 +14,12 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 
 /**
  * Delegates to a {@link DidResolver} to resolve a DID document.
  */
 public interface DidResolverRegistry {
-    String FEATURE = "edc:identity:did:resolver";
+    String FEATURE = "edc:identity:did:resolver-registry";
 
     /**
      * Registers a DID resolver.
@@ -28,7 +27,36 @@ public interface DidResolverRegistry {
     void register(DidResolver resolver);
 
     /**
-     * Resolves a DID document based on the DID method.
+     * Resolves a DID document based on the DID method. If the document cann
      */
-    DidDocument resolve(String didKey);
+    Result resolve(String didKey);
+
+    /**
+     * The response to a resolution operation.
+     */
+    class Result {
+        private DidDocument didDocument;
+        private String invalidMessage;
+
+        public Result(DidDocument didDocument) {
+            this.didDocument = didDocument;
+        }
+
+        public Result(String invalidMessage) {
+            this.invalidMessage = invalidMessage;
+        }
+
+        public boolean invalid() {
+            return invalidMessage != null;
+        }
+
+        public DidDocument getDidDocument() {
+            return didDocument;
+        }
+
+        public String getInvalidMessage() {
+            return invalidMessage;
+        }
+
+    }
 }

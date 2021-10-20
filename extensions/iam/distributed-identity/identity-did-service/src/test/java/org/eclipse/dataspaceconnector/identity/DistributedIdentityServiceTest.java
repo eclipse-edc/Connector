@@ -34,6 +34,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -107,7 +108,7 @@ abstract class DistributedIdentityServiceTest {
         var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
         var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
 
-        DidResolver didResolver = new TestResolver(hubUrlDid, keyPair);
+        DidResolverRegistry didResolver = new TestResolverRegistry(hubUrlDid, keyPair);
 
         CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "eu"));
         identityService = new DistributedIdentityService(() -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer"), didResolver, verifier, new Monitor() {
@@ -155,22 +156,22 @@ abstract class DistributedIdentityServiceTest {
         }
     }
 
-    private static class TestResolver implements DidResolver {
+    private static class TestResolverRegistry implements DidResolverRegistry {
         private String hubUrlDid;
         private JWK keyPair;
 
-        public TestResolver(String hubUrlDid, JWK keyPair) {
+        public TestResolverRegistry(String hubUrlDid, JWK keyPair) {
             this.hubUrlDid = hubUrlDid;
             this.keyPair = keyPair;
         }
 
         @Override
-        public String getMethod() {
-            return "did:foo";
+        public void register(DidResolver resolver) {
+
         }
 
         @Override
-        public DidDocument resolve(String didKey) {
+        public Result resolve(String didKey) {
             try {
                 var did = new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
                 ECKey key = (ECKey) keyPair.toPublicJWK();
@@ -179,7 +180,7 @@ abstract class DistributedIdentityServiceTest {
                         .id("test-key")
                         .publicKeyJwk(new EllipticCurvePublicKey(key.getCurve().getName(), key.getKeyType().toString(), key.getX().toString(), key.getY().toString()))
                         .build());
-                return did;
+                return new Result(did);
             } catch (JsonProcessingException e) {
                 throw new AssertionError(e);
             }

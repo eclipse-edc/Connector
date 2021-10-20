@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.iam.did.resolver;
+package org.eclipse.dataspaceconnector.iam.did.resolution;
 
 import com.nimbusds.jose.JOSEException;
 import com.nimbusds.jose.jwk.ECKey;
@@ -7,7 +7,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +16,6 @@ import java.util.Objects;
 import java.util.Scanner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
@@ -26,12 +25,12 @@ class DefaultDidPublicKeyResolverTest {
     private static final String DID_URL = "did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA";
     private DidDocument didDocument;
     private DefaultDidPublicKeyResolver resolver;
-    private DidResolver didResolver;
+    private DidResolverRegistry resolverRegistry;
 
     @BeforeEach
     void setUp() throws JOSEException {
-        didResolver = niceMock(DidResolver.class);
-        resolver = new DefaultDidPublicKeyResolver(didResolver);
+        resolverRegistry = niceMock(DidResolverRegistry.class);
+        resolver = new DefaultDidPublicKeyResolver(resolverRegistry);
         var eckey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
 
         var publicKey = new EllipticCurvePublicKey(eckey.getCurve().getName(), eckey.getKeyType().getValue(), eckey.getX().toString(), eckey.getY().toString());
@@ -44,29 +43,29 @@ class DefaultDidPublicKeyResolverTest {
 
     @Test
     void resolve() {
-        expect(didResolver.resolve(DID_URL)).andReturn(didDocument);
-        replay(didResolver);
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolverRegistry.Result(didDocument));
+        replay(resolverRegistry);
 
         var pk = resolver.resolvePublicKey(DID_URL);
-        assertThat(pk).isNotNull();
+        assertThat(pk.getWrapper()).isNotNull();
     }
 
     @Test
     void resolve_didNotFound() {
-        expect(didResolver.resolve(DID_URL)).andReturn(null);
-        replay(didResolver);
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolverRegistry.Result("Not found"));
+        replay(resolverRegistry);
 
         var pk = resolver.resolvePublicKey(DID_URL);
-        assertThat(pk).isNull();
+        assertThat(pk.invalid()).isTrue();
     }
 
     @Test
     void resolve_didDoesNotContainPublicKey() {
         didDocument.getVerificationMethod().clear();
-        expect(didResolver.resolve(DID_URL)).andReturn(didDocument);
-        replay(didResolver);
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolverRegistry.Result(didDocument));
+        replay(resolverRegistry);
 
-        assertThatThrownBy(() -> resolver.resolvePublicKey(DID_URL)).isInstanceOf(PublicKeyResolutionException.class).hasMessage("DID does not contain a Public Key!");
+        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
     }
 
     @Test
@@ -76,10 +75,10 @@ class DefaultDidPublicKeyResolverTest {
                 .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
                 .build();
         didDocument.getVerificationMethod().add(vm);
-        expect(didResolver.resolve(DID_URL)).andReturn(didDocument);
-        replay(didResolver);
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolverRegistry.Result(didDocument));
+        replay(resolverRegistry);
 
-        assertThatThrownBy(() -> resolver.resolvePublicKey(DID_URL)).isInstanceOf(PublicKeyResolutionException.class).hasMessage("DID contains more than one \"Allowed Verification Type\"!");
+        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
     }
 
     @Test
@@ -90,10 +89,10 @@ class DefaultDidPublicKeyResolverTest {
                 .build();
         didDocument.getVerificationMethod().add(vm);
 
-        expect(didResolver.resolve(DID_URL)).andReturn(didDocument);
-        replay(didResolver);
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolverRegistry.Result(didDocument));
+        replay(resolverRegistry);
 
-        assertThatThrownBy(() -> resolver.resolvePublicKey(DID_URL)).isInstanceOf(PublicKeyResolutionException.class).hasMessageStartingWith("Public Key was not a valid EC Key!");
+        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
     }
 
     public String readFile(String filename) {

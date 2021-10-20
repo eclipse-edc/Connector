@@ -1,3 +1,16 @@
+/*
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
 package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -6,7 +19,7 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
@@ -46,8 +59,11 @@ public class CrawlerJob implements Job {
         newDids = newDidFutures.parallelStream()
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
+                .filter(result -> !result.invalid())
+                .map(DidResolverRegistry.Result::getDidDocument)
                 .collect(Collectors.toList());
-        monitor.info("CrawlerJob: found " + newDids.size() + " new dids on ION, took " + (Duration.between(start, Instant.now()).toString()
+
+        monitor.info("CrawlerJob: Found " + newDids.size() + " new DIDs on ION, took " + (Duration.between(start, Instant.now()).toString()
                 .substring(2)
                 .replaceAll("(\\d[HMS])(?!$)", "$1 ")
                 .toLowerCase()));
@@ -61,10 +77,10 @@ public class CrawlerJob implements Job {
 
     }
 
-    private List<CompletableFuture<DidDocument>> getDidDocumentsFromBlockchainAsync(CrawlerContext context) {
+    private List<CompletableFuture<DidResolverRegistry.Result>> getDidDocumentsFromBlockchainAsync(CrawlerContext context) {
         return getDidSuffixesForType(context.getDidTypes())
                 .stream()
-                .map(didSuffix -> resolveDidAsync(didSuffix, context.getIonClient()))
+                .map(didSuffix -> resolveDidAsync(didSuffix, context.getResolverRegistry()))
                 .collect(Collectors.toList());
     }
 
@@ -108,27 +124,27 @@ public class CrawlerJob implements Job {
     /**
      * Attempts to resolve a DID from ION
      *
-     * @param didId     The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
-     * @param ionClient An ION implementation
+     * @param didId The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
+     * @param resolverRegistry The resolver registry
      * @return A {@link DidDocument} if found, {@code null} otherwise
      */
-    private DidDocument resolveDid(String didId, DidResolver ionClient) {
+    private DidResolverRegistry.Result resolveDid(String didId, DidResolverRegistry resolverRegistry) {
         try {
-            return ionClient.resolve(didId);
+            return resolverRegistry.resolve(didId);
         } catch (EdcException ex) {
             return null;
         }
     }
 
     /**
-     * Attempts to resolve a DID from ION asynchronously. Basically a wrapper around {@link CrawlerJob#resolveDidAsync(String, DidResolver)}
+     * Attempts to resolve a DID from ION asynchronously. Basically a wrapper around {@link CrawlerJob#resolveDid(String, DidResolverRegistry)}
      *
-     * @param didId     The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
-     * @param ionClient An ION implementation
+     * @param didId The canonical ID (="suffix", "short form URI") of the DID. Must be in the form "did:ion:..."
+     * @param resolverRegistry An ION implementation
      * @return A {@code CompletableFuture<DidDocument>} if found, {@code null} otherwise
      */
-    private CompletableFuture<DidDocument> resolveDidAsync(String didId, DidResolver ionClient) {
-        return CompletableFuture.supplyAsync(() -> resolveDid(didId, ionClient));
+    private CompletableFuture<DidResolverRegistry.Result> resolveDidAsync(String didId, DidResolverRegistry resolverRegistry) {
+        return CompletableFuture.supplyAsync(() -> resolveDid(didId, resolverRegistry));
     }
 
     private OkHttpClient createClient() {

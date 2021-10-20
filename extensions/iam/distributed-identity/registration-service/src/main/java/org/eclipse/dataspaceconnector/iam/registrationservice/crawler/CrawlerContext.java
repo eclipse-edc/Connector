@@ -1,6 +1,19 @@
+/*
+ *  Copyright (c) 2021 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
 package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -16,7 +29,7 @@ public class CrawlerContext {
     private CrawlerEventPublisher publisher;
     private String ionHost;
     private String didTypes;
-    private DidResolver ionClient;
+    private DidResolverRegistry resolverRegistry;
 
     public DidStore getDidStore() {
         return didStore;
@@ -38,9 +51,8 @@ public class CrawlerContext {
         return didTypes;
     }
 
-
-    public DidResolver getIonClient() {
-        return ionClient;
+    public DidResolverRegistry getResolverRegistry() {
+        return resolverRegistry;
     }
 
     public static final class Builder {
@@ -49,7 +61,7 @@ public class CrawlerContext {
         private CrawlerEventPublisher publisher;
         private String ionHost;
         private String didTypes;
-        private DidResolver ionClient;
+        private DidResolverRegistry resolverRegistry;
 
         private Builder() {
         }
@@ -83,8 +95,8 @@ public class CrawlerContext {
             return this;
         }
 
-        public Builder ionClient(DidResolver client) {
-            ionClient = client;
+        public Builder resolverRegistry(DidResolverRegistry resolverRegistry) {
+            this.resolverRegistry = resolverRegistry;
             return this;
         }
 
@@ -93,9 +105,9 @@ public class CrawlerContext {
             crawlerConfig.didTypes = didTypes;
             crawlerConfig.ionHost = ionHost;
             crawlerConfig.publisher = publisher;
-            crawlerConfig.didStore = (DidStore) didStore;
+            crawlerConfig.didStore = didStore;
             crawlerConfig.monitor = monitor;
-            crawlerConfig.ionClient = ionClient;
+            crawlerConfig.resolverRegistry = resolverRegistry;
             return crawlerConfig;
         }
     }

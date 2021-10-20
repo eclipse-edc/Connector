@@ -4,7 +4,6 @@ import com.nimbusds.jose.jwk.ECKey;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.did.crypto.credentials.VerifiableCredentialFactory;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -33,9 +32,9 @@ public class DistributedIdentityServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var vcProvider = createSupplier(context);
-        var didResolver = context.getService(DidResolver.class);
+        var resolverRegistry = context.getService(DidResolverRegistry.class);
         var credentialsVerifier = context.getService(CredentialsVerifier.class);
-        var identityService = new DistributedIdentityService(vcProvider, didResolver, credentialsVerifier, context.getMonitor());
+        var identityService = new DistributedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
         context.registerService(IdentityService.class, identityService);
 
         context.getMonitor().info("Initialized DistributedIdentityService");
