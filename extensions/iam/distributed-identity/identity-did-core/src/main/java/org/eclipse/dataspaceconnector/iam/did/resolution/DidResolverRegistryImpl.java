@@ -24,8 +24,9 @@ import java.util.Objects;
  * Default implementation.
  */
 public class DidResolverRegistryImpl implements DidResolverRegistry {
-    public static final int DID_PREFIX = 0;
-    public static final int DID_METHOD_NAME = 1;
+    private static final String DID = "did";
+    private static final int DID_PREFIX = 0;
+    private static final int DID_METHOD_NAME = 1;
 
     private Map<String, DidResolver> resolvers = new HashMap<>();
 
@@ -42,7 +43,7 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
         if (tokens.length < 3) {
             return new Result("Invalid DID format. The DID must be in the form:  \"did:\" method-name \":\" method-specific-id");
         }
-        if (!"did".equalsIgnoreCase(tokens[DID_PREFIX])) {
+        if (!DID.equalsIgnoreCase(tokens[DID_PREFIX])) {
             return new Result("Invalid DID prefix");
         }
         var methodName = tokens[DID_METHOD_NAME];
