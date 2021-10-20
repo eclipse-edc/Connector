@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.catalog.cache.loader;
 
 import org.eclipse.dataspaceconnector.catalog.spi.Loader;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.WaitStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -35,12 +36,7 @@ class LoaderManagerImplTest {
         int batchSize = 3;
         queue = new ArrayBlockingQueue<>(batchSize); //default batch size of the loader
         loaderMock = strictMock(Loader.class);
-        loaderManager = LoaderManagerImpl.Builder.newInstance()
-                .queue(queue)
-                .batchSize(batchSize)
-                .waitStrategy(waitStrategyMock) //only ever wait for 1 millisecond
-                .loaders(Collections.singletonList(loaderMock))
-                .build();
+        loaderManager = new LoaderManagerImpl(queue, Collections.singletonList(loaderMock), batchSize, waitStrategyMock, niceMock(Monitor.class));
     }
 
     @Test
