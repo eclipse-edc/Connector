@@ -114,7 +114,7 @@ class TransferProcessManagerImplTest {
         var listener = new TestListener();
         manager.registerListener(listener);
 
-        manager.unregister(listener);
+        manager.unregisterListener(listener);
 
         assertThat(manager.getListeners()).doesNotContain(listener);
     }
@@ -126,7 +126,7 @@ class TransferProcessManagerImplTest {
         manager.registerListener(listener);
 
         var listener2 = new TestListener();
-        manager.unregister(listener2);
+        manager.unregisterListener(listener2);
 
         assertThat(manager.getListeners()).doesNotContain(listener2).containsOnly(listener);
     }

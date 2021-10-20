@@ -37,7 +37,7 @@ public abstract class Observable<T> {
         }
     }
 
-    public void unregister(T listener) {
+    public void unregisterListener(T listener) {
         listeners.remove(listener);
     }
 }
