@@ -13,10 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.transfer.functions.core.flow.http;
 
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
@@ -25,6 +21,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -38,13 +39,13 @@ import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatu
  * will be retried; otherwise the request will be placed in the fatal error state.
  */
 public class HttpFunctionDataFlowController implements DataFlowController {
-    private static final MediaType JSON = MediaType.get("application/json");
+    public static final String JSON = "application/json";
 
-    private String transferEndpoint;
-    private Set<String> protocols;
-    private Supplier<OkHttpClient> clientSupplier;
-    private TypeManager typeManager;
-    private Monitor monitor;
+    private final String transferEndpoint;
+    private final Set<String> protocols;
+    private final Supplier<HttpClient> clientSupplier;
+    private final TypeManager typeManager;
+    private final Monitor monitor;
 
     public HttpFunctionDataFlowController(HttpFunctionConfiguration configuration) {
         this.transferEndpoint = configuration.getTransferEndpoint();
@@ -61,19 +62,22 @@ public class HttpFunctionDataFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
-        var requestBody = RequestBody.create(typeManager.writeValueAsString(dataRequest), JSON);
-        var request = new Request.Builder().url(transferEndpoint).post(requestBody).build();
-        try (var response = clientSupplier.get().newCall(request).execute()) {
-            if (response.code() == 200) {
+        try {
+            String requestBody = typeManager.writeValueAsString(dataRequest);
+            var bodyPublisher = HttpRequest.BodyPublishers.ofString(requestBody);
+            var request = HttpRequest.newBuilder(new URI(transferEndpoint))
+                    .header("Content-Type", JSON)
+                    .POST(bodyPublisher).build();
+
+            var response = clientSupplier.get().send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() == 200) {
                 return DataFlowInitiateResponse.OK;
-            } else if (response.code() >= 500 && response.code() <= 504) {
-                // retry
-                return new DataFlowInitiateResponse(ERROR_RETRY, "Received error code: " + response.code());
+            } else if (response.statusCode() >= 500 && response.statusCode() <= 504) {
+                return new DataFlowInitiateResponse(ERROR_RETRY, "Received error code: " + response.statusCode());
             } else {
-                // fatal error
-                return new DataFlowInitiateResponse(FATAL_ERROR, "Received fatal error code: " + response.code());
+                return new DataFlowInitiateResponse(FATAL_ERROR, "Received fatal error code: " + response.statusCode());
             }
-        } catch (IOException e) {
+        } catch (IOException | URISyntaxException | InterruptedException e) {
             monitor.severe("Error invoking transfer function", e);
             return new DataFlowInitiateResponse(ERROR_RETRY, e.getMessage());
         }

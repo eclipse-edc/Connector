@@ -13,16 +13,19 @@
  */
 package org.eclipse.dataspaceconnector.transfer.functions.core;
 
-import okhttp3.MediaType;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import org.awaitility.Awaitility;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,8 +35,11 @@ import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static okhttp3.Protocol.HTTP_1_1;
+import static com.github.tomakehurst.wiremock.client.WireMock.ok;
+import static com.github.tomakehurst.wiremock.client.WireMock.post;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFunctionsCoreServiceExtension.ENABLED_PROTOCOLS_KEY;
 
 /**
@@ -42,19 +48,11 @@ import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFun
 @ExtendWith(EdcExtension.class)
 public class TransferFunctionsCoreHttpTest {
 
+    private final WireMockServer wireMockServer = new WireMockServer(wireMockConfig().port(9090));
+
     @Test
-    void verifyHttpFlowControllerInvoked(TransferProcessManager processManager, TransferFunctionInterceptorRegistry registry) throws InterruptedException {
-
-        final var latch = new CountDownLatch(1);
-
-        registry.registerHttpInterceptor(chain -> {
-            latch.countDown();
-            return new Response.Builder()
-                    .request(chain.request())
-                    .protocol(HTTP_1_1).code(200)
-                    .body(ResponseBody.create("", MediaType.get("application/json"))).message("")
-                    .build();
-        });
+    void verifyHttpFlowControllerInvoked(TransferProcessManager processManager, TransferProcessStore processStore) throws InterruptedException {
+        wireMockServer.stubFor(post("/transfer").willReturn(ok()));
 
         var dataEntry = DataEntry.Builder.newInstance().id("test123").build();
 
@@ -67,13 +65,18 @@ public class TransferFunctionsCoreHttpTest {
                 .dataDestination(DataAddress.Builder.newInstance().type("test-protocol1").build())
                 .connectorId("test").build();
 
-        processManager.initiateProviderRequest(dataRequest);
+        TransferInitiateResponse response = processManager.initiateProviderRequest(dataRequest);
 
-        assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
+        await().untilAsserted(() -> {
+            assertThat(response.getStatus()).isEqualTo(ResponseStatus.OK);
+            TransferProcess transferProcess = processStore.find(response.getId());
+            assertThat(transferProcess.getState()).isEqualTo(TransferProcessStates.IN_PROGRESS.code());
+        });
     }
 
     @BeforeEach
     protected void before(EdcExtension extension) {
+        wireMockServer.start();
         System.setProperty(ENABLED_PROTOCOLS_KEY, "test-protocol1");
 
         // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
@@ -82,6 +85,7 @@ public class TransferFunctionsCoreHttpTest {
 
     @AfterEach
     protected void after() {
+        wireMockServer.stop();
         System.clearProperty(ENABLED_PROTOCOLS_KEY);
     }
 

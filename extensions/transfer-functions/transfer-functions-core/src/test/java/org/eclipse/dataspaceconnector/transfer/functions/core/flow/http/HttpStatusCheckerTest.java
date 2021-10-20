@@ -13,22 +13,25 @@
  */
 package org.eclipse.dataspaceconnector.transfer.functions.core.flow.http;
 
-import okhttp3.Interceptor;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Response;
-import okhttp3.ResponseBody;
+import com.github.tomakehurst.wiremock.WireMockServer;
+import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.github.tomakehurst.wiremock.client.WireMock;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.net.http.HttpClient;
 import java.util.Collections;
 
-import static okhttp3.Protocol.HTTP_1_1;
+import static com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder.okForJson;
+import static com.github.tomakehurst.wiremock.client.WireMock.get;
+import static com.github.tomakehurst.wiremock.client.WireMock.serverError;
+import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.wireMockConfig;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -37,76 +40,56 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * Verfies HTTP status checking.
  */
 class HttpStatusCheckerTest {
-    private HttpStatusChecker checker;
-    private TypeManager typeManager;
-    private OkHttpClient httpClient;
-    private Interceptor interceptor;
+    private final TypeManager typeManager = new TypeManager();
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+    private final HttpFunctionConfiguration configuration = HttpFunctionConfiguration.Builder.newInstance()
+            .checkEndpoint("http://localhost:9090/check")
+            .clientSupplier(() -> httpClient)
+            .monitor(createNiceMock(Monitor.class))
+            .typeManager(typeManager)
+            .build();
+    private final WireMockServer wireMockServer = new WireMockServer(wireMockConfig().port(9090));
 
-    @Test
-    void verifyCompleted() throws IOException {
-        Interceptor delegate = chain -> new Response.Builder()
-                .request(chain.request())
-                .protocol(HTTP_1_1).code(200)
-                .body(ResponseBody.create(typeManager.writeValueAsString(true), MediaType.get("application/json"))).message("ok")
-                .build();
-
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
-
-        assertTrue(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
-
-        EasyMock.verify(interceptor);
-    }
-
-    @Test
-    void verifyNotCompleted() throws IOException {
-        Interceptor delegate = chain -> new Response.Builder()
-                .request(chain.request())
-                .protocol(HTTP_1_1).code(200)
-                .body(ResponseBody.create(typeManager.writeValueAsString(false), MediaType.get("application/json"))).message("ok")
-                .build();
-
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
-
-        assertFalse(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
-
-        EasyMock.verify(interceptor);
-    }
-
-    @Test
-    void verifyServerError() throws IOException {
-        Interceptor delegate = chain -> new Response.Builder()
-                .request(chain.request())
-                .protocol(HTTP_1_1).code(500)
-                .message("Internal Server Error")
-                .body(ResponseBody.create(typeManager.writeValueAsString(false), MediaType.get("txt/html"))).message("ok")
-                .build();
-
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
-
-        assertFalse(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
-
-        EasyMock.verify(interceptor);
-    }
-
+    private final HttpStatusChecker checker = new HttpStatusChecker(configuration);
 
     @BeforeEach
     void setUp() {
-        interceptor = EasyMock.createMock(Interceptor.class);
-
-        typeManager = new TypeManager();
-        httpClient = new OkHttpClient.Builder().addInterceptor(interceptor).build();
-        var configuration = HttpFunctionConfiguration.Builder.newInstance()
-                .checkEndpoint("https://localhost:9090/check")
-                .clientSupplier(() -> httpClient)
-                .monitor(createNiceMock(Monitor.class))
-                .typeManager(typeManager)
-                .build();
-        checker = new HttpStatusChecker(configuration);
+        wireMockServer.start();
     }
+
+    @AfterEach
+    void tearDown() {
+        wireMockServer.stop();
+    }
+
+    @Test
+    void verifyCompleted() {
+        wireMockServer.stubFor(get("/check").willReturn(okForJson(true)));
+        TransferProcess transferProcess = TransferProcess.Builder.newInstance().id("123").build();
+
+        boolean isComplete = checker.isComplete(transferProcess, Collections.emptyList());
+
+        assertTrue(isComplete);
+    }
+
+    @Test
+    void verifyNotCompleted() {
+        wireMockServer.stubFor(get("/check").willReturn(okForJson(false)));
+        TransferProcess transferProcess = TransferProcess.Builder.newInstance().id("123").build();
+
+        boolean isComplete = checker.isComplete(transferProcess, Collections.emptyList());
+
+        assertFalse(isComplete);
+    }
+
+    @Test
+    void verifyServerError() {
+        wireMockServer.stubFor(get("/check").willReturn(serverError()));
+        TransferProcess transferProcess = TransferProcess.Builder.newInstance().id("123").build();
+
+        boolean isComplete = checker.isComplete(transferProcess, Collections.emptyList());
+
+        assertFalse(isComplete);
+    }
+
 }

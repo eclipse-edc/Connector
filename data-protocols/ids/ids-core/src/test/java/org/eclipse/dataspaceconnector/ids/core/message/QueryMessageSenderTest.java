@@ -26,7 +26,7 @@ class QueryMessageSenderTest {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final Monitor monitor = EasyMock.mock(Monitor.class);
 
-    private final WireMockServer wireMockServer = new WireMockServer(wireMockConfig().port(9090));
+    private final WireMockServer wireMockServer = new WireMockServer(wireMockConfig().port(9099));
 
     @BeforeEach
     void setUp() {
@@ -54,7 +54,7 @@ class QueryMessageSenderTest {
                 .connectorId(connectorId)
                 .queryLanguage("queryLanguage")
                 .query("query")
-                .connectorAddress("http://localhost:9090")
+                .connectorAddress("http://localhost:9099")
                 .build();
         MessageContext context = () -> "processId";
 

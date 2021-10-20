@@ -13,7 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.transfer.functions.core;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -23,9 +22,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionConfiguration;
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpStatusChecker;
-import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.http.HttpClient;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -81,8 +80,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     }
 
     private void initializeHttpFunctions(ServiceExtensionContext context) {
-        var httpClient = createHttpClient(context);
-        context.registerService(TransferFunctionInterceptorRegistry.class, httpClient::addInterceptor);
+        var httpClient = context.getService(HttpClient.class);
 
         var typeManager = context.getTypeManager();
         var transferEndpoint = context.getSetting(TRANSFER_URL_KEY, DEFAULT_LOCAL_TRANSFER_URL);
@@ -90,7 +88,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
         var configuration = HttpFunctionConfiguration.Builder.newInstance()
                 .transferEndpoint(transferEndpoint)
                 .checkEndpoint(checkEndpoint)
-                .clientSupplier(httpClient::build)
+                .clientSupplier(() -> httpClient) // TODO: pass the client directly
                 .protocols(protocols)
                 .typeManager(typeManager)
                 .monitor(monitor)
@@ -120,14 +118,6 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
         } else {
             return new HashSet<>(asList(protocolsString.split(",")));
         }
-    }
-
-    /**
-     * Creates an HTTP client. Note that this extension copies the default runtime HTTP client since this extension allows custom interceptors to be added.
-     */
-    private OkHttpClient.Builder createHttpClient(ServiceExtensionContext context) {
-        var defaultClient = context.getService(OkHttpClient.class);
-        return defaultClient.newBuilder();
     }
 
 }

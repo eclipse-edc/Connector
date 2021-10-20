@@ -13,10 +13,10 @@
  */
 package org.eclipse.dataspaceconnector.transfer.functions.core.flow.http;
 
-import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
+import java.net.http.HttpClient;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -27,7 +27,7 @@ public class HttpFunctionConfiguration {
     private String transferEndpoint;
     private String checkEndpoint;
     private Set<String> protocols;
-    private Supplier<OkHttpClient> clientSupplier;
+    private Supplier<HttpClient> clientSupplier;
     private TypeManager typeManager;
     private Monitor monitor;
 
@@ -43,7 +43,7 @@ public class HttpFunctionConfiguration {
         return protocols;
     }
 
-    public Supplier<OkHttpClient> getClientSupplier() {
+    public Supplier<HttpClient> getClientSupplier() {
         return clientSupplier;
     }
 
@@ -80,7 +80,7 @@ public class HttpFunctionConfiguration {
             return this;
         }
 
-        public Builder clientSupplier(Supplier<OkHttpClient> clientSupplier) {
+        public Builder clientSupplier(Supplier<HttpClient> clientSupplier) {
             configuration.clientSupplier = clientSupplier;
             return this;
         }

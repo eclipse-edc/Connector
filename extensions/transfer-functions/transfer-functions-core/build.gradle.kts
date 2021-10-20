@@ -12,6 +12,9 @@
  *
  */
 
+val awaitilityVersion: String by project
+val wiremockVersion: String by project
+
 plugins {
     `java-library`
 }
@@ -25,6 +28,8 @@ dependencies {
     testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation("com.github.tomakehurst:wiremock:${wiremockVersion}")
+    testImplementation("org.awaitility:awaitility:${awaitilityVersion}")
 }
 
 publishing {

@@ -22,9 +22,4 @@ based on the contained information. Return values will be interpreted as follows
 
 ## The Status Endpoint 
  
-An HTTP(s) status endpoint must be configured that accepts a GET and returns a JSON-encoded boolean value. If true, the data transfer is complete; otherwise it is ongoing. 
-
-## Using Interceptors
-              
-OKHttp interceptors can be added to mediate requests to a transfer function endpoint. For example, interceptors may decorate requests with an authentication header. 
-See `TransferFunctionInterceptorRegistry`. 
+An HTTP(s) status endpoint must be configured that accepts a GET and returns a JSON-encoded boolean value. If true, the data transfer is complete; otherwise it is ongoing.
