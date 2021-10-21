@@ -15,8 +15,8 @@
 
 package org.eclipse.dataspaceconnector.catalog.cache.query;
 
-import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;

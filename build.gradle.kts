@@ -43,7 +43,7 @@ subprojects {
         }
     }
 
-    tasks.register<DependencyReportTask>("allDependencies"){}
+    tasks.register<DependencyReportTask>("allDependencies") {}
 }
 
 allprojects {
@@ -54,7 +54,8 @@ allprojects {
     checkstyle {
         toolVersion = "9.0"
         configFile = rootProject.file("resources/edc-checkstyle-config.xml")
-        maxWarnings = 0
+        maxErrors = 0 // does not tolerate errors ...
+        maxWarnings = 0 // ... or warnings
     }
 
     java {

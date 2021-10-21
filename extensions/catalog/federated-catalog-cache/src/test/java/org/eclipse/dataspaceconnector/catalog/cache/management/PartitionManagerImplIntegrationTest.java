@@ -5,8 +5,8 @@ import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
 import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
-import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
@@ -96,6 +96,23 @@ class PartitionManagerImplIntegrationTest {
     }
 
     /**
+     * listens for events on the {@link SignalingWorkItemQueue}
+     */
+    private interface WorkQueueListener {
+        default void locked() {
+        }
+
+        default void unlocked() {
+        }
+
+        default void tryLock() {
+        }
+
+        default void polled(WorkItem polledItem) {
+        }
+    }
+
+    /**
      * A test work item queue that informs a registered listener whenever an
      * event like poll() or unlock() occurs.
      * The recommended pattern is to supply {@code mock(WorkQueueListener.class)}
@@ -131,23 +148,6 @@ class PartitionManagerImplIntegrationTest {
             var polledItem = super.poll(timeout, unit);
             listener.polled(polledItem);
             return polledItem;
-        }
-    }
-
-    /**
-     * listens for events on the {@link SignalingWorkItemQueue}
-     */
-    private interface WorkQueueListener {
-        default void locked() {
-        }
-
-        default void unlocked() {
-        }
-
-        default void tryLock() {
-        }
-
-        default void polled(WorkItem polledItem) {
         }
     }
 

@@ -20,16 +20,16 @@ import static java.lang.String.format;
 public class LoaderManagerImpl implements LoaderManager {
     private static final int DEFAULT_BATCH_SIZE = 5;
     private static final int DEFAULT_WAIT_TIME_MILLIS = 2000;
-    private BlockingQueue<UpdateResponse> queue;
     private final List<Loader> loaders;
     private final AtomicBoolean isRunning;
     private final ReentrantLock lock;
     private final int batchSize;
     private final WaitStrategy waitStrategy;
     private final Monitor monitor;
+    private BlockingQueue<UpdateResponse> queue;
     private ExecutorService executor;
 
-    public LoaderManagerImpl( List<Loader> loaders, int batchSize, WaitStrategy waitStrategy, Monitor monitor) {
+    public LoaderManagerImpl(List<Loader> loaders, int batchSize, WaitStrategy waitStrategy, Monitor monitor) {
         this.loaders = loaders;
         this.batchSize = batchSize;
         this.waitStrategy = waitStrategy;
@@ -44,7 +44,7 @@ public class LoaderManagerImpl implements LoaderManager {
 
     @Override
     public void start(BlockingQueue<UpdateResponse> queue) {
-        this.queue= queue;
+        this.queue = queue;
         isRunning.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::beginDequeue);
@@ -111,7 +111,6 @@ public class LoaderManagerImpl implements LoaderManager {
         }
 
 
-
         public Builder loaders(List<Loader> loaders) {
             this.loaders = loaders;
             return this;
@@ -137,7 +136,7 @@ public class LoaderManagerImpl implements LoaderManager {
             if (batchSize < 0) {
                 throw new IllegalArgumentException("Batch Size cannot be negative!");
             }
-            return new LoaderManagerImpl( loaders, batchSize, waitStrategy, monitor);
+            return new LoaderManagerImpl(loaders, batchSize, waitStrategy, monitor);
         }
     }
 }

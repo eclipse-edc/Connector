@@ -2,10 +2,10 @@ package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
 import info.schnatterer.mobynamesgenerator.MobyNamesGenerator;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
-import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapterRegistry;
+import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
+import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;

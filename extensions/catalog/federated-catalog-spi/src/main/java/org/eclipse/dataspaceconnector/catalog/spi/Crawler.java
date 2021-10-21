@@ -25,7 +25,7 @@ public interface Crawler extends Runnable {
      *
      * @return Whether the crawler finished its run within the given time frame
      */
-    default boolean join(){
+    default boolean join() {
         return join(10, TimeUnit.SECONDS);
     }
 }
