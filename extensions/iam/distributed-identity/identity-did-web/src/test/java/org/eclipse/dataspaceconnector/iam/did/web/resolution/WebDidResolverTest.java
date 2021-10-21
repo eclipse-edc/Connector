@@ -50,7 +50,7 @@ class WebDidResolverTest {
             }
         };
         var resolver = createResolver(interceptor);
-        var document = resolver.resolve("did:web:raw.githubusercontent.com:metaform:web-did-samples:main:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+        var document = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
         assertThat(document).isNotNull();
     }
 
@@ -65,7 +65,7 @@ class WebDidResolverTest {
             }
         };
         var resolver = createResolver(interceptor);
-        var document = resolver.resolve("did:web:raw.githubusercontent.com:metaform:web-did-samples:main:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+        var document = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
         assertThat(document).isNull();
     }
 
