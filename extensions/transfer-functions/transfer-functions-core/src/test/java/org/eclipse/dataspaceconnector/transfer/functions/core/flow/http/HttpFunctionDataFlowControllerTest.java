@@ -47,11 +47,11 @@ class HttpFunctionDataFlowControllerTest {
     private final HttpClient httpClient = HttpClient.newHttpClient();
     private final WireMockServer wireMockServer = new WireMockServer(wireMockConfig().port(9090));
     private final HttpFunctionConfiguration configuration = HttpFunctionConfiguration.Builder.newInstance()
-        .transferEndpoint("http://localhost:9090/check")
-        .clientSupplier(() -> httpClient)
-        .monitor(createNiceMock(Monitor.class))
-        .typeManager(typeManager)
-        .build();
+            .transferEndpoint("http://localhost:9090/check")
+            .clientSupplier(() -> httpClient)
+            .monitor(createNiceMock(Monitor.class))
+            .typeManager(typeManager)
+            .build();
 
     private final HttpFunctionDataFlowController flowController = new HttpFunctionDataFlowController(configuration);
 

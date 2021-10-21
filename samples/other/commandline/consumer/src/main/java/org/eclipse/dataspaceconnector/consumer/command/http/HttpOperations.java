@@ -35,7 +35,7 @@ public class HttpOperations {
     }
 
     public static CommandResult executePost(String path, Object payload, ExecutionContext context) {
-        URI uri = buildURI(context.getEndpointUrl() + path);
+        URI uri = buildUri(context.getEndpointUrl() + path);
         var request = HttpRequest.newBuilder(uri)
                 .header("Content-Type", "application/json")
                 .POST(context.write(payload))
@@ -45,7 +45,7 @@ public class HttpOperations {
     }
 
     public static CommandResult executeDelete(String path, ExecutionContext context) {
-        URI uri = buildURI(context.getEndpointUrl() + path);
+        URI uri = buildUri(context.getEndpointUrl() + path);
         var request = HttpRequest.newBuilder(uri)
                 .header("Content-Type", "application/json")
                 .DELETE()
@@ -55,7 +55,7 @@ public class HttpOperations {
     }
 
     public static CommandResult executeGet(String path, ExecutionContext context) {
-        URI uri = buildURI(context.getEndpointUrl() + path);
+        URI uri = buildUri(context.getEndpointUrl() + path);
         var request = HttpRequest.newBuilder(uri)
                 .header("Content-Type", "application/json")
                 .GET()
@@ -98,7 +98,7 @@ public class HttpOperations {
         return new CommandResult(message);
     }
 
-    private static URI buildURI(String url) {
+    private static URI buildUri(String url) {
         try {
             return new URI(url);
         } catch (URISyntaxException e) {

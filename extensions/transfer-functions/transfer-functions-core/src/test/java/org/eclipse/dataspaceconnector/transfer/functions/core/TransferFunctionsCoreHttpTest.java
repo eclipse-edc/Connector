@@ -48,7 +48,7 @@ import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFun
 @ExtendWith(EdcExtension.class)
 public class TransferFunctionsCoreHttpTest {
 
-    private final WireMockServer wireMockServer = new WireMockServer(wireMockConfig().port(9090));
+    private WireMockServer wireMockServer;
 
     @Test
     void verifyHttpFlowControllerInvoked(TransferProcessManager processManager, TransferProcessStore processStore) throws InterruptedException {
@@ -76,11 +76,13 @@ public class TransferFunctionsCoreHttpTest {
 
     @BeforeEach
     protected void before(EdcExtension extension) {
-        wireMockServer.start();
         System.setProperty(ENABLED_PROTOCOLS_KEY, "test-protocol1");
 
         // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
+
+        wireMockServer = new WireMockServer(wireMockConfig().port(9090));
+        wireMockServer.start();
     }
 
     @AfterEach

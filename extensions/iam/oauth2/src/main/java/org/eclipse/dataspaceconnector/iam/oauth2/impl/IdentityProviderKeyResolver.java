@@ -50,7 +50,7 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable 
      * Ctor.
      *
      * @param jwksUrl the URL specified by 'jwks_uri' in the document returned by the identity provider's metadata endpoint.
-     * @param httpClient
+     * @param httpClient the HttpClient
      */
     public IdentityProviderKeyResolver(String jwksUrl, Monitor monitor, HttpClient httpClient) {
         this.jwksUrl = jwksUrl;

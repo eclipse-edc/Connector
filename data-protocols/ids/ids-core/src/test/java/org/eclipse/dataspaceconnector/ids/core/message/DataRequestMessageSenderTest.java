@@ -73,7 +73,7 @@ class DataRequestMessageSenderTest {
         EasyMock.verify(transferProcessStore);
     }
 
-    public static TransferProcess stateIs(TransferProcessStates state){
+    public static TransferProcess stateIs(TransferProcessStates state) {
         EasyMock.reportMatcher(new IArgumentMatcher() {
             @Override
             public boolean matches(Object argument) {
