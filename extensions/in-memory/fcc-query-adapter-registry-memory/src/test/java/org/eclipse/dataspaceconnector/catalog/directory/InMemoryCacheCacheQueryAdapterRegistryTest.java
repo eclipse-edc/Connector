@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -72,7 +73,7 @@ class InMemoryCacheCacheQueryAdapterRegistryTest {
 
     @BeforeEach
     public void setUp() {
-        this.registry = new InMemoryCacheQueryAdapterRegistry();
+        registry = new InMemoryCacheQueryAdapterRegistry();
     }
 
     @Test
@@ -166,7 +167,8 @@ class InMemoryCacheCacheQueryAdapterRegistryTest {
     private CacheQueryAdapter matchingAdapter() {
         CacheQueryAdapter adapter1 = niceMock(CacheQueryAdapter.class);
         expect(adapter1.canExecute(anyObject())).andReturn(true);
-        expect(adapter1.executeQuery(anyObject())).andReturn(Stream.of(new Asset(), new Asset(), new Asset()));
+        Supplier<Asset> as = () -> Asset.Builder.newInstance().build();
+        expect(adapter1.executeQuery(anyObject())).andReturn(Stream.of(as.get(), as.get(), as.get()));
         return adapter1;
     }
 
