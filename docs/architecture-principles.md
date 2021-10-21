@@ -17,4 +17,4 @@
 
 ###. Testing
 1. All handlers and services should have dedicated unit tests with mocks used for dependencies.
-2. When appropriate, prefer "assembling" services via the ctor so that dependencies can be mocked as opposed to instantiating dependencies directly. 
+2. When appropriate, prefer composing services via the constructor so that dependencies can be mocked as opposed to instantiating dependencies directly. 
