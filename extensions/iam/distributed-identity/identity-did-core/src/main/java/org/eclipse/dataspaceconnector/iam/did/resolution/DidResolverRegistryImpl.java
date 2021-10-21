@@ -51,6 +51,7 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
         if (resolver == null) {
             return new Result("No resolver registered for DID Method: " + methodName);
         }
-        return new Result(resolver.resolve(didKey));
+        var didDocument = resolver.resolve(didKey);
+        return didDocument != null ? new Result(didDocument) : new Result("DID Document not found: " + didKey);
     }
 }

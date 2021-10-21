@@ -46,7 +46,7 @@ public class DefaultIonClient implements IonClient {
     }
 
     @Override
-    public String getMethod() {
+    public @NotNull String getMethod() {
         return DID_METHOD;
     }
 

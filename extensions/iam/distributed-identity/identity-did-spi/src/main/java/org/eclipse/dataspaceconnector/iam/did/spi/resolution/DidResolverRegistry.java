@@ -27,7 +27,7 @@ public interface DidResolverRegistry {
     void register(DidResolver resolver);
 
     /**
-     * Resolves a DID document based on the DID method. If the document cann
+     * Resolves a DID document based on the DID method.
      */
     Result resolve(String didKey);
 
