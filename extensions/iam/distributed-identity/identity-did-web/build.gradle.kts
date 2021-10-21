@@ -3,8 +3,12 @@ plugins {
     `java-test-fixtures`
 }
 
+val okHttpVersion: String by project
+
 dependencies {
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
+
+    implementation("com.squareup.okhttp3:okhttp-dnsoverhttps:${okHttpVersion}")
 }
 
 publishing {

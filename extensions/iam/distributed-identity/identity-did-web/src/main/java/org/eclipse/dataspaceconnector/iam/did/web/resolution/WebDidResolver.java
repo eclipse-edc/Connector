@@ -14,9 +14,11 @@
 package org.eclipse.dataspaceconnector.iam.did.web.resolution;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import okhttp3.dnsoverhttps.DnsOverHttps;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -30,6 +32,7 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 
 /**
  * Resolves a Web DID according to the Web DID specification (https://w3c-ccg.github.io/did-method-web).
@@ -45,10 +48,27 @@ public class WebDidResolver implements DidResolver {
     private ObjectMapper mapper;
     private Monitor monitor;
 
-    public WebDidResolver(OkHttpClient httpClient, ObjectMapper mapper, Monitor monitor) {
-        this.httpClient = httpClient;
+    /**
+     * Creates a resolver that executes DNS over HTTPs queries against the given DNS server.
+     */
+    public WebDidResolver(@Nullable URL dnsServer, OkHttpClient httpClient, ObjectMapper mapper, Monitor monitor) {
+        if (dnsServer != null) {
+            // use DNS over HTTPS for name lookups
+            var dns = new DnsOverHttps.Builder().client(httpClient).url(requireNonNull(HttpUrl.get(dnsServer))).includeIPv6(false).build();
+            this.httpClient = httpClient.newBuilder().dns(dns).build();
+        } else {
+            // use standard DNS lookups
+            this.httpClient = httpClient;
+        }
         this.mapper = mapper;
         this.monitor = monitor;
+    }
+
+    /**
+     * Creates a resolver that executes standard DNS lookups.
+     */
+    public WebDidResolver(OkHttpClient httpClient, ObjectMapper mapper, Monitor monitor) {
+        this(null, httpClient, mapper, monitor);
     }
 
     @Override
@@ -108,4 +128,6 @@ public class WebDidResolver implements DidResolver {
         }
 
     }
+
+
 }

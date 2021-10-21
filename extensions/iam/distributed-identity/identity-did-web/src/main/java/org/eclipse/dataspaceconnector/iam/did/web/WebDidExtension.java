@@ -16,10 +16,17 @@ package org.eclipse.dataspaceconnector.iam.did.web;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.iam.did.web.resolution.WebDidResolver;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.jetbrains.annotations.Nullable;
 
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Set;
+
+import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.iam.did.web.ConfigurationKeys.DNS_OVER_HTTPS;
 
 /**
  * Initializes support for resolving Web DIDs.
@@ -36,11 +43,24 @@ public class WebDidExtension implements ServiceExtension {
         var httpClient = context.getService(OkHttpClient.class);
         var mapper = context.getTypeManager().getMapper();
         var monitor = context.getMonitor();
-        var resolver = new WebDidResolver(httpClient, mapper, monitor);
+
+        var dnsServer = getDnsServerUrl(context);
+
+        var resolver = new WebDidResolver(dnsServer, httpClient, mapper, monitor);
 
         var resolverRegistry = context.getService(DidResolverRegistry.class);
         resolverRegistry.register(resolver);
 
         monitor.info("Initialized Web DID extension");
+    }
+
+    @Nullable
+    private URL getDnsServerUrl(ServiceExtensionContext context) {
+        var dnsServer = context.getSetting(DNS_OVER_HTTPS, null);
+        try {
+            return dnsServer != null ? new URL(dnsServer) : null;
+        } catch (MalformedURLException e) {
+            throw new EdcException(format("Invalid value for %s: %s", DNS_OVER_HTTPS, dnsServer), e);
+        }
     }
 }
