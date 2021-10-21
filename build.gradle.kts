@@ -54,6 +54,7 @@ allprojects {
     checkstyle {
         toolVersion = "9.0"
         configFile = rootProject.file("resources/edc-checkstyle-config.xml")
+        maxWarnings = 0
     }
 
     java {
