@@ -11,6 +11,7 @@ val jodahFailsafeVersion: String by project
 plugins {
     `java-library`
     `maven-publish`
+    `java-test-fixtures`
 }
 
 dependencies {
@@ -23,6 +24,8 @@ dependencies {
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
 
     api(project(":core:policy:policy-model"))
+
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {
