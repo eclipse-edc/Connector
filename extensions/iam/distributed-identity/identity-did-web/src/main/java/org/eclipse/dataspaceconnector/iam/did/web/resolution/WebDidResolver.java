@@ -38,6 +38,7 @@ import static java.util.Objects.requireNonNull;
  * Resolves a Web DID according to the Web DID specification (https://w3c-ccg.github.io/did-method-web).
  */
 public class WebDidResolver implements DidResolver {
+    private static final String DID_SCHEME = "did";
     private static final String DID_METHOD = "web";
     private static final String DID_METHOD_PREFIX = DID_METHOD + ":";
     private static final String HTTPS_PREFIX = " https://";
@@ -109,7 +110,7 @@ public class WebDidResolver implements DidResolver {
      */
     String keyToUrl(String didKey) throws URISyntaxException, IllegalArgumentException, MalformedURLException {
         var uri = new URI(didKey);
-        if (!"did".equalsIgnoreCase(uri.getScheme())) {
+        if (!DID_SCHEME.equalsIgnoreCase(uri.getScheme())) {
             throw new IllegalArgumentException("Invalid DID scheme: " + uri.getScheme());
         }
         var part = uri.getSchemeSpecificPart();
