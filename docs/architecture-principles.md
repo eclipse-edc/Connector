@@ -16,7 +16,7 @@
 4. Only throw an exception when there is no remediation possible, i.e. the exception is fatal. Do not throw an exception if an operation can be retried.  
 
 ##III. Simplicity
-1. Avoid layers of indirection when they are not needed.
+1. Avoid layers of indirection when they are not needed (e.g. "pass-through methods").
 2. Do not overload the use of handlers (not in the OO method overloading sense).
 
 ###IV. Testing
