@@ -1,4 +1,4 @@
-# Refactorings for Architectural Alignment
+# Refactorings for Architectural Alignment - Meeting Protocol
 
 1. Flatten `/request/handler` to `/handler`. Retain `/description` subpackage (seemingly minor but this created a lot of confusion).
 2. Rename `/http` to `/message` (minor, but easy to do)
