@@ -112,15 +112,15 @@ public class WebDidResolver implements DidResolver {
         if (!DID_SCHEME.equalsIgnoreCase(uri.getScheme())) {
             throw new IllegalArgumentException("Invalid DID scheme: " + uri.getScheme());
         }
-        var part = uri.getSchemeSpecificPart();
 
+        var part = uri.getSchemeSpecificPart();
         if (!part.startsWith(DID_METHOD_PREFIX)) {
             throw new IllegalArgumentException("Invalid DID format, the URN must specify the 'web' DID Method: " + didKey);
         } else if (part.endsWith(":")) {
             throw new IllegalArgumentException("Invalid DID format, the URN must not end with ':': " + didKey);
         }
-        var identifier = new URL(HTTPS_PREFIX + part.substring(DID_METHOD_PREFIX.length()).replace(':', '/'));
 
+        var identifier = new URL(HTTPS_PREFIX + part.substring(DID_METHOD_PREFIX.length()).replace(':', '/'));
         if (identifier.getPath().length() == 0) {
             return identifier + WELL_KNOWN + DID_DOCUMENT;
         } else {
