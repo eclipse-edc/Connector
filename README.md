@@ -114,9 +114,9 @@ Contains utility code such as collection utils, string utils and helper classes.
 
 Contains several scripts to deploy a connector in an AKS cluster on Microsoft Azure using Terraform.
 
-## Code style
+## Code style & Patterns
 
-please refer to the dedicated [style guide](styleguide.md).
+Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented in [architecture principles](docs/architecture-principles.md).
 
 ## Roadmap
 
