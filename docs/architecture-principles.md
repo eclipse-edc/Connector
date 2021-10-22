@@ -32,7 +32,7 @@
 2. Do not log secrets or sensitive information.
 
 ###VII. Extensions and Libraries
-1. Extension modules contribute a feature to the runtime such as a service that implements support for a feature. 
+1. Extension modules contribute a feature to the runtime such as a service. 
 2. SPI modules define extensibility points in the runtime. There is a core SPI module that defines extensibility for essential runtime features. There are other SPI modules that 
    define extensibility points for optional features such as IDS.
 3. Libraries are utility modules that provide classes which may be used by other modules. They do not directly contribute features to the runtime. 
