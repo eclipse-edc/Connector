@@ -31,9 +31,9 @@ public class Criterion {
     }
 
     public Criterion(String left, String op, String right) {
-        this.operandLeft = left;
-        this.operator = op;
-        this.operandRight = right;
+        operandLeft = Objects.requireNonNull(left);
+        operator = Objects.requireNonNull(op);
+        operandRight = right; // null may be allowed, for example when the operator is unary, like NOT_NULL
     }
 
     public Object getOperandLeft() {
@@ -49,15 +49,19 @@ public class Criterion {
     }
 
     @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        Criterion criterion = (Criterion) o;
-        return Objects.equals(operandLeft, criterion.operandLeft) && Objects.equals(operator, criterion.operator) && Objects.equals(operandRight, criterion.operandRight);
+    public int hashCode() {
+        return Objects.hash(operandLeft, operator, operandRight);
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(operandLeft, operator, operandRight);
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        Criterion criterion = (Criterion) o;
+        return Objects.equals(operandLeft, criterion.operandLeft) && Objects.equals(operator, criterion.operator) && Objects.equals(operandRight, criterion.operandRight);
     }
 }

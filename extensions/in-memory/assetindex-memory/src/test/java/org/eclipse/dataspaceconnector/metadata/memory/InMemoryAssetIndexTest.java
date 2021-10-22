@@ -28,7 +28,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets() {
         var testAsset = createAsset("foobar");
-        index.insert(testAsset, niceMock(DataAddress.class));
+        index.insert(testAsset, createDataAddress(testAsset));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "foobar").build());
         assertThat(assets).hasSize(1).containsExactly(testAsset);
     }
@@ -36,7 +36,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_notFound() {
         var testAsset = createAsset("foobar");
-        index.insert(testAsset, niceMock(DataAddress.class));
+        index.insert(testAsset, createDataAddress(testAsset));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "barbaz").build());
         assertThat(assets).isEmpty();
     }
@@ -44,7 +44,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_fieldNull() {
         var testAsset = createAsset("foobar");
-        index.insert(testAsset, niceMock(DataAddress.class));
+        index.insert(testAsset, createDataAddress(testAsset));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("description", "barbaz").build());
         assertThat(assets).isEmpty();
     }
@@ -58,8 +58,8 @@ class InMemoryAssetIndexTest {
         index.insert(testAsset2, niceMock(DataAddress.class));
         index.insert(testAsset3, niceMock(DataAddress.class));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance()
-                .whenEquals("name", "barbaz")
-                .whenEquals("version", "1")
+                .whenEquals(Asset.PROPERTY_NAME, "barbaz")
+                .whenEquals(Asset.PROPERTY_VERSION, "1")
                 .build());
         assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset2, testAsset3);
     }

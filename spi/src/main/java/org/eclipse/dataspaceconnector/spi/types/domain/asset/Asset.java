@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 
 
 /**
@@ -29,10 +30,10 @@ import java.util.Map;
 @JsonDeserialize(builder = Asset.Builder.class)
 public class Asset {
 
-    private static final String PROP_KEY_ID = "asset:prop:key";
-    private static final String PROP_KEY_NAME = "asset:prop:name";
-    private static final String PROP_KEY_VERSION = "asset:prop:version";
-    private static final String PROP_KEY_CONTENT_TYPE = "asset:prop:contenttype";
+    public static final String PROPERTY_ID = "asset:prop:key";
+    public static final String PROPERTY_NAME = "asset:prop:name";
+    public static final String PROPERTY_VERSION = "asset:prop:version";
+    public static final String PROPERTY_CONTENT_TYPE = "asset:prop:contenttype";
     private Map<String, Object> properties;
 
     private Asset() {
@@ -41,22 +42,22 @@ public class Asset {
 
     @JsonIgnore
     public String getId() {
-        return getPropertyAsString(PROP_KEY_ID);
+        return getPropertyAsString(PROPERTY_ID);
     }
 
     @JsonIgnore
     public String getName() {
-        return getPropertyAsString(PROP_KEY_NAME);
+        return getPropertyAsString(PROPERTY_NAME);
     }
 
     @JsonIgnore
     public String getVersion() {
-        return getPropertyAsString(PROP_KEY_VERSION);
+        return getPropertyAsString(PROPERTY_VERSION);
     }
 
     @JsonIgnore
     public String getContentType() {
-        return getPropertyAsString(PROP_KEY_CONTENT_TYPE);
+        return getPropertyAsString(PROPERTY_CONTENT_TYPE);
     }
 
     public Map<String, Object> getProperties() {
@@ -79,6 +80,7 @@ public class Asset {
 
         private Builder() {
             asset = new Asset();
+            asset.properties.put(PROPERTY_ID, UUID.randomUUID().toString()); //must always have an ID
         }
 
         @JsonCreator
@@ -87,22 +89,22 @@ public class Asset {
         }
 
         public Builder id(String id) {
-            asset.properties.put(PROP_KEY_ID, id);
+            asset.properties.put(PROPERTY_ID, id);
             return this;
         }
 
         public Builder name(String title) {
-            asset.properties.put(PROP_KEY_NAME, title);
+            asset.properties.put(PROPERTY_NAME, title);
             return this;
         }
 
         public Builder version(String version) {
-            asset.properties.put(PROP_KEY_VERSION, version);
+            asset.properties.put(PROPERTY_VERSION, version);
             return this;
         }
 
         public Builder contentType(String contentType) {
-            asset.properties.put(PROP_KEY_CONTENT_TYPE, contentType);
+            asset.properties.put(PROPERTY_CONTENT_TYPE, contentType);
             return this;
         }
 
