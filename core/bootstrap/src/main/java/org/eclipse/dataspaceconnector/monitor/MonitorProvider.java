@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.monitor;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.system.ExtensionLoader;
 import org.slf4j.ILoggerFactory;
 import org.slf4j.IMarkerFactory;
 import org.slf4j.Marker;
@@ -27,7 +28,7 @@ import org.slf4j.spi.SLF4JServiceProvider;
  * Bridges from SLF4J to a monitor.
  */
 public class MonitorProvider implements SLF4JServiceProvider {
-    private static Monitor INSTANCE;
+    private static Monitor INSTANCE = ExtensionLoader.loadMonitor();
 
     public static void setInstance(Monitor monitor) {
         INSTANCE = monitor;
