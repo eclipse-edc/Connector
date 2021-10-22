@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.Response;
 import okhttp3.dnsoverhttps.DnsOverHttps;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
@@ -81,9 +80,9 @@ public class WebDidResolver implements DidResolver {
     @Nullable
     public DidDocument resolve(String didKey) {
         try {
-            Request request = new Request.Builder().url(keyToUrl(didKey)).get().build();
+            var request = new Request.Builder().url(keyToUrl(didKey)).get().build();
 
-            try (Response response = httpClient.newCall(request).execute()) {
+            try (var response = httpClient.newCall(request).execute()) {
                 if (response.code() != 200) {
                     monitor.severe(format("Error resolving DID: %s. HTTP Code was: %s", didKey, response.code()));
                     return null;
