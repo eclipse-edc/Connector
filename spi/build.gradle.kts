@@ -11,7 +11,6 @@ val jodahFailsafeVersion: String by project
 plugins {
     `java-library`
     `maven-publish`
-    `java-test-fixtures`
 }
 
 dependencies {
