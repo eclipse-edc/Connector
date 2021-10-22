@@ -45,6 +45,7 @@ class AssetTest {
         assertThat(asset.getId()).isEqualTo("abcd123");
         assertThat(asset.getContentType()).isEqualTo("application/json");
         assertThat(asset.getName()).isNull();
+        assertThat(asset.getProperty("numberVal")).isInstanceOf(Integer.class).isEqualTo(42069);
 
         assertThat(asset.getProperties()).hasSize(5);
 
