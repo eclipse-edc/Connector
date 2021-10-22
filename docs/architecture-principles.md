@@ -39,3 +39,7 @@
 4. An SPI module may only reference other SPI modules and library modules. 
 5. An Extension module may only reference other SPI modules and library modules.
 6. A library module may only reference other library modules.
+
+###VIII. Build
+1. There should only be a root `gradle.properties` that defines dependency versions. Do not create separate gradle.properties files in a module.
+2. For external dependencies, do not reference the version directly. Instead, add an entry in `gradle.properties` so that it may be synchronized across the codebase.
