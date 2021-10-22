@@ -17,11 +17,10 @@
 
 ##III. Simplicity
 1. Avoid layers of indirection when they are not needed (e.g. "pass-through methods").
-2. Do not overload the use of handlers (not in the OO method overloading sense).
 
 ###IV. Testing
 1. All handlers and services should have dedicated unit tests with mocks used for dependencies.
-2. When appropriate, prefer composing services via the constructor so that dependencies can be mocked as opposed to instantiating dependencies directly. 
+2. When appropriate, prefer composing services via the constructor so that dependencies can be mocked as opposed to instantiating dependencies directly, see `ProvisionManagerImpl`. 
    
 ###V. Data Objects
 1. Do not create constructors that take many parameters; instead use the builder pattern. An example is `TransferProcess`.
