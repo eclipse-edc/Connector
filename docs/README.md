@@ -27,9 +27,9 @@ TBD
 TBD
 
 ## Architecture
-TBD
+[Architecture Principles](docs/architecture-principles.md)
 
-[Architecture](architecture/README.md)
+[Sequence diagrams](architecture/README.md)
 
 ## Terminology
 
