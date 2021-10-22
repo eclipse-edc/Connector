@@ -43,3 +43,7 @@
 ###VIII. Build
 1. There should only be a root `gradle.properties` that defines dependency versions. Do not create separate gradle.properties files in a module.
 2. For external dependencies, do not reference the version directly. Instead, add an entry in `gradle.properties` so that it may be synchronized across the codebase.
+
+###IX. Handling Null Return Values
+1. In certain situations, `null` may need to be returned from a method, passed as a parameter, or set on a field. Only use `Optional` if a method is part of a fluent API. 
+   Since the runtime will rarely require this, the project standard is to use the `org.jetbrains.annotations.Nullable` and `org.jetbrains.annotations.NotNull` annotations. 
