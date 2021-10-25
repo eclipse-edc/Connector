@@ -29,7 +29,7 @@ class InMemoryAssetIndexTest {
     void queryAssets() {
         var testAsset = createAsset("foobar");
         index.insert(testAsset, createDataAddress(testAsset));
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "foobar").build());
+        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "foobar").build());
         assertThat(assets).hasSize(1).containsExactly(testAsset);
     }
 
@@ -37,7 +37,7 @@ class InMemoryAssetIndexTest {
     void queryAssets_notFound() {
         var testAsset = createAsset("foobar");
         index.insert(testAsset, createDataAddress(testAsset));
-        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "barbaz").build());
+        var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "barbaz").build());
         assertThat(assets).isEmpty();
     }
 
