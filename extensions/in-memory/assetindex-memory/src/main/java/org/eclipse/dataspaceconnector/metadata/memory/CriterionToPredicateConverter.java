@@ -19,7 +19,13 @@ public class CriterionToPredicateConverter implements CriterionConverter<Predica
     @Override
     public Predicate<Asset> convert(Criterion criterion) {
         if ("=".equals(criterion.getOperator())) {
-            return asset -> Objects.equals(property((String) criterion.getOperandLeft(), asset), criterion.getOperandRight());
+            return asset -> {
+                Object property = property((String) criterion.getOperandLeft(), asset);
+                if (property == null) {
+                    return false; //property does not exist on asset
+                }
+                return Objects.equals(property, criterion.getOperandRight());
+            };
         }
         throw new IllegalArgumentException(String.format("Operator [%s] is not supported by this converter!", criterion.getOperator()));
     }

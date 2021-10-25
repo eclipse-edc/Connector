@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 
@@ -30,7 +31,7 @@ import java.util.UUID;
 @JsonDeserialize(builder = Asset.Builder.class)
 public class Asset {
 
-    public static final String PROPERTY_ID = "asset:prop:key";
+    public static final String PROPERTY_ID = "asset:prop:id";
     public static final String PROPERTY_NAME = "asset:prop:name";
     public static final String PROPERTY_VERSION = "asset:prop:version";
     public static final String PROPERTY_CONTENT_TYPE = "asset:prop:contenttype";
@@ -109,7 +110,7 @@ public class Asset {
         }
 
         public Builder properties(Map<String, Object> properties) {
-            asset.properties = properties;
+            asset.properties = Objects.requireNonNull(properties);
             return this;
         }
 
