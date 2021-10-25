@@ -29,7 +29,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets() {
         var testAsset = createAsset("foobar");
-        index.add(testAsset, createDataAddress(testAsset));
+        index.add(testAsset);
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "foobar").build());
         assertThat(assets).hasSize(1).containsExactly(testAsset);
     }
@@ -37,7 +37,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_notFound() {
         var testAsset = createAsset("foobar");
-        index.add(testAsset, createDataAddress(testAsset));
+        index.add(testAsset);
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "barbaz").build());
         assertThat(assets).isEmpty();
     }
@@ -45,7 +45,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_fieldNull() {
         var testAsset = createAsset("foobar");
-        index.add(testAsset, createDataAddress(testAsset));
+        index.add(testAsset);
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("description", "barbaz").build());
         assertThat(assets).isEmpty();
     }
@@ -55,9 +55,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.add(testAsset1, createDataAddress(testAsset1));
-        index.add(testAsset2, createDataAddress(testAsset2));
-        index.add(testAsset3, createDataAddress(testAsset3));
+        index.add(testAsset1);
+        index.add(testAsset2);
+        index.add(testAsset3);
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance()
                 .whenEquals("name", "barbaz")
                 .whenEquals("version", "1")
@@ -74,10 +74,10 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_selectAll_shouldReturnAll() {
         var testAsset1 = createAsset("barbaz");
-        index.add(testAsset1, createDataAddress(testAsset1));
+        index.add(testAsset1);
 
         var testAsset2 = createAsset("foobar");
-        index.add(testAsset2, createDataAddress(testAsset2));
+        index.add(testAsset2);
 
         assertThat(index.queryAssets(AssetSelectorExpression.SELECT_ALL)).containsExactlyInAnyOrder(testAsset1, testAsset2);
     }
@@ -86,7 +86,7 @@ class InMemoryAssetIndexTest {
     void findById() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("barbaz", id);
-        index.add(testAsset, createDataAddress(testAsset));
+        index.add(testAsset);
 
         assertThat(index.findById(id)).isNotNull().isEqualTo(testAsset);
     }
@@ -96,7 +96,7 @@ class InMemoryAssetIndexTest {
     void findById_notfound() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar");
-        index.add(testAsset, createDataAddress(testAsset));
+        index.add(testAsset);
 
         assertThat(index.findById("not-exist")).isNull();
     }

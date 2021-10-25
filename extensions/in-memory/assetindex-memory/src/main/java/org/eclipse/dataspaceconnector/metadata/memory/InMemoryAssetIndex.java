@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.List;
 import java.util.Map;
@@ -68,8 +67,7 @@ public class InMemoryAssetIndex implements AssetIndex {
         return assets.isEmpty() ? null : assets.get(0);
     }
 
-    // TODO: address is not used and it should be deleted
-    public void add(Asset asset, DataAddress address) {
+    void add(Asset asset) {
         Objects.requireNonNull(asset, "asset");
         Objects.requireNonNull(asset.getId(), "asset.getId()");
         cache.put(asset.getId(), asset);
