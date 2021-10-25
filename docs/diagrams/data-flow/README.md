@@ -24,7 +24,7 @@ Subsequently, a contract negotiation (not depicted here) is performed.
 Description:
 - The DataFlowAgent fetches data from a data source, which can either be a storage (e.g., database) or a service (e.g. an app performing transformations).
 - The DataFlowAgent is not responsible for data transformation (e.g., anonymization). Instead, a data service performing this task and acting as proxy should be assigned this task.
-- The consumer creates an auth token (maybe just valid for a limited time range) that gets passed to the provider and can be used to identify the contract. An alternative can be to use the a DAT token + a contract reference in every call.
+- The consumer creates an auth token (maybe just valid for a limited time range) that gets passed to the provider and can be used to identify the contract. An alternative can be to use a DAT token + a contract reference in every call.
 - The consumer stores the contract id (or copy of contract) next to the data.
 - The consumer connector provides an API to lookup contracts.
 - The HTTPService either creates a separate endpoint for each transaction, or uses the same endpoint each time and assures an isolated storage of the received assets.
