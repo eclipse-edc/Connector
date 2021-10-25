@@ -28,6 +28,7 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
+    testImplementation(project(":core:protocol:web"))
 }
 
 publishing {

@@ -26,6 +26,10 @@ import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 
 import static de.fraunhofer.iais.eis.RejectionReason.MALFORMED_MESSAGE;
 import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
+import static jakarta.ws.rs.core.Response.Status.BAD_REQUEST;
+import static jakarta.ws.rs.core.Response.Status.FORBIDDEN;
+import static jakarta.ws.rs.core.Response.status;
+
 
 /**
  * Handles incoming consumer data catalog queries.
@@ -45,26 +49,30 @@ public class CatalogQueryController {
     @POST
     @Path("query")
     public Response query(QueryMessage message) {
-        var connectorId = message.getIssuerConnector().toString();
-
         var verificationResult = dapsService.verifyAndConvertToken(message.getSecurityToken().getTokenValue());
         if (!verificationResult.valid()) {
-            return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHENTICATED).build()).build();
+            return status(FORBIDDEN)
+                    .entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHENTICATED).build())
+                    .build();
         }
 
         var query = (String) message.getProperties().get("query");
         if (query == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(MALFORMED_MESSAGE).build()).build();
+            return status(BAD_REQUEST)
+                    .entity(new RejectionMessageBuilder()._rejectionReason_(MALFORMED_MESSAGE).build())
+                    .build();
         }
 
         var language = (String) message.getProperties().get("queryLanguage");
         if (language == null) {
-            return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(MALFORMED_MESSAGE).build()).build();
+            return status(BAD_REQUEST)
+                    .entity(new RejectionMessageBuilder()._rejectionReason_(MALFORMED_MESSAGE).build())
+                    .build();
         }
 
         var correlationId = message.getId().toString();
-
         var consumerToken = verificationResult.token();
+        var connectorId = message.getIssuerConnector().toString();
 
         var results = queryEngine.execute(correlationId, consumerToken, connectorId, language, query);
         return Response.ok(results).build();
