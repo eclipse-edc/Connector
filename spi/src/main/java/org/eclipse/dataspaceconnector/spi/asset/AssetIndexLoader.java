@@ -6,6 +6,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import java.util.Map;
 
 public interface AssetIndexLoader {
+    String FEATURE = "edc:asset:assetindex:loader";
+
     void insert(Asset asset, DataAddress address);
 
     void insertAll(Map<Asset, DataAddress> entries);
