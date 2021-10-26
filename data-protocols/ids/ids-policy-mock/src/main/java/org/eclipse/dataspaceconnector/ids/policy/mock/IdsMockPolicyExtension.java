@@ -29,7 +29,7 @@ public class IdsMockPolicyExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("ids.core");
+        return Set.of("edc:ids:core");
     }
 
     @Override

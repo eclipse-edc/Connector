@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 
 /**
  * A {@link ContractOfferFramework} yields logic to compute contractually regulated offered assets.
- * 
+ *
  * <p>The {@link ContractOfferFramework} shall be implemented by extensions to
  * provide substantial contract offer templates. The {@link ContractOfferService}
  * uses several {@link ContractOfferFramework} instances to enrich its functionality.

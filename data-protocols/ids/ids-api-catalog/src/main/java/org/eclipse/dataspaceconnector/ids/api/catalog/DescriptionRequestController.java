@@ -27,8 +27,8 @@ import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
 
 import java.util.Map;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/ids")
 public class DescriptionRequestController {
     private final IdsDescriptorService descriptorService;

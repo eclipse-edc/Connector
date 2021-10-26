@@ -32,8 +32,8 @@ import static java.util.stream.Collectors.toList;
 /**
  * Handles incoming consumer data catalog queries.
  */
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/ids")
 public class CatalogQueryController {
     private final QueryEngine queryEngine;

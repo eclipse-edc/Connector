@@ -46,8 +46,8 @@ import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
 /**
  * Receives incoming data transfer requests and processes them.
  */
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/ids")
 public class ArtifactRequestController {
     private static final String TOKEN_KEY = "dataspaceconnector-destination-token";

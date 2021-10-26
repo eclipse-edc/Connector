@@ -1,5 +1,8 @@
 package org.eclipse.dataspaceconnector.spi.types.domain.contract;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -10,6 +13,7 @@ import java.util.Objects;
  * The providing connector may offer assets to other connectors. The relationship between these assets and
  * their corresponding rules is described in the {@link OfferedAsset} object.
  */
+@JsonDeserialize(builder = OfferedAsset.Builder.class)
 public class OfferedAsset {
     private Policy policy;
     private Asset asset;
@@ -24,6 +28,7 @@ public class OfferedAsset {
         return asset;
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private Policy policy;
         private Asset asset;
@@ -31,6 +36,7 @@ public class OfferedAsset {
         private Builder() {
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
