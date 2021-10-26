@@ -76,7 +76,7 @@ class CosmosFederatedCacheNodeDirectoryTest {
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         typeManager = new TypeManager();
         typeManager.registerTypes(FederatedCacheNode.class, FederatedCacheNodeDocument.class);
-        store = new CosmosFederatedCacheNodeDirectory(container, partitionKey, typeManager, new RetryPolicy<>());
+        store = new CosmosFederatedCacheNodeDirectory(container, partitionKey, typeManager, new RetryPolicy<>(), false);
     }
 
     @Test

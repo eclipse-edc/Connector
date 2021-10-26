@@ -1,26 +1,26 @@
-package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
+package org.eclipse.dataspaceconnector.assetindex.azure;
 
 import org.eclipse.dataspaceconnector.cosmos.azure.AbstractCosmosConfig;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-public class FederatedCacheNodeDirectoryCosmosConfig extends AbstractCosmosConfig {
+public class AssetIndexCosmosConfig extends AbstractCosmosConfig {
 
     @EdcSetting
-    private static final String COSMOS_ACCOUNTNAME_SETTING = "edc.node.directory.cosmos.account.name";
+    private static final String COSMOS_ACCOUNTNAME_SETTING = "edc.assetindex.cosmos.account-name";
     @EdcSetting
-    private static final String COSMOS_DBNAME_SETTING = "edc.node.directory.cosmos.database.name";
+    private static final String COSMOS_DBNAME_SETTING = "edc.assetindex.cosmos.database-name";
     @EdcSetting
-    private static final String COSMOS_PREFERRED_REGION_SETTING = "edc.node.directory.cosmos.preferred.region";
+    private static final String COSMOS_PREFERRED_REGION_SETTING = "edc.assetindex.cosmos.preferred-region";
     @EdcSetting
-    private static final String COSMOS_CONTAINER_NAME_SETTING = "edc.node.directory.cosmos.container.name";
+    private static final String COSMOS_CONTAINER_NAME_SETTING = "edc.assetindex.cosmos.container-name";
 
     /**
      * Create a config object to interact with a Cosmos database.
      *
      * @param context Service extension context
      */
-    protected FederatedCacheNodeDirectoryCosmosConfig(ServiceExtensionContext context) {
+    protected AssetIndexCosmosConfig(ServiceExtensionContext context) {
         super(context);
     }
 

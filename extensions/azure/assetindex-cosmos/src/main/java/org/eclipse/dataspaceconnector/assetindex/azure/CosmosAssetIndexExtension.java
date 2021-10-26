@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
+package org.eclipse.dataspaceconnector.assetindex.azure;
 
 import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClient;
@@ -21,11 +21,11 @@ import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
-import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
+import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.cosmos.azure.AbstractCosmosConfig;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -36,17 +36,17 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Provides a persistent implementation of the {@link FederatedCacheNodeDirectory} using CosmosDB.
+ * Provides a persistent implementation of the {@link org.eclipse.dataspaceconnector.spi.asset.AssetIndex} using CosmosDB.
  */
-public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtension {
+public class CosmosAssetIndexExtension implements ServiceExtension {
 
-    private static final String NAME = "CosmosDB Federated Cache Node Directory";
+    private static final String NAME = "CosmosDB Asset Index";
 
     private Monitor monitor;
 
     @Override
     public Set<String> provides() {
-        return Set.of(FederatedCacheNodeDirectory.FEATURE);
+        return Set.of(AssetIndex.FEATURE);
     }
 
     @Override
@@ -54,19 +54,20 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
         monitor = context.getMonitor();
         monitor.info(String.format("Initializing %s extension...", NAME));
 
-        var configuration = new FederatedCacheNodeDirectoryCosmosConfig(context);
+        var configuration = new AssetIndexCosmosConfig(context);
         Vault service = context.getService(Vault.class);
 
         // create client
         var cosmosClient = createClient(service, configuration.getAccountName(), Collections.singletonList(configuration.getPreferredRegion()));
 
+        // get database, throw exception if not exists
         var database = createDatabase(configuration, cosmosClient);
-        CosmosContainer container = getContainer(database, configuration);
+        var container = getContainer(database, configuration);
 
-        context.registerService(FederatedCacheNodeDirectory.class, new CosmosFederatedCacheNodeDirectory(
+        context.registerService(AssetIndex.class, new CosmosAssetIndex(
                 container, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class), configuration.isQueryMetricsEnabled()));
 
-        context.getTypeManager().registerTypes(FederatedCacheNodeDocument.class);
+        context.getTypeManager().registerTypes(AssetDocument.class);
         monitor.info(String.format("Initialized %s extension", NAME));
     }
 
@@ -80,21 +81,11 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
         monitor.info(String.format("Shutdowns %s extension", NAME));
     }
 
-    private static CosmosContainer getContainer(CosmosDatabase database, FederatedCacheNodeDirectoryCosmosConfig configuration) {
-        String containerName = configuration.getContainerName();
-        if (database.readAllContainers().stream().noneMatch(sp -> sp.getId().equals(containerName))) {
-            throw new EdcException(
-                    "A CosmosDB container named '" + containerName + "' was not found in account '" + configuration.getAccountName() + "'. Please create one, preferably using terraform.");
-        }
-        return database.getContainer(containerName);
+    private CosmosDatabase createDatabase(AbstractCosmosConfig configuration, CosmosClient client) {
+        return getDatabase(client, configuration.getDbName());
     }
 
-    private static CosmosDatabase createDatabase(AbstractCosmosConfig configuration, CosmosClient client) {
-        CosmosDatabaseResponse databaseResponse = client.createDatabaseIfNotExists(configuration.getDbName());
-        return client.getDatabase(databaseResponse.getProperties().getId());
-    }
-
-    private static CosmosClient createClient(Vault vault, String accountName, List<String> preferredRegions) {
+    private CosmosClient createClient(Vault vault, String accountName, List<String> preferredRegions) {
         var accountKey = vault.resolveSecret(accountName);
         if (StringUtils.isNullOrEmpty(accountKey)) {
             throw new EdcException("No credentials found in vault for Cosmos DB '" + accountName + "'");
@@ -109,6 +100,20 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
                 .preferredRegions(preferredRegions)
                 .consistencyLevel(ConsistencyLevel.SESSION)
                 .buildClient();
+    }
+
+    private static CosmosDatabase getDatabase(CosmosClient client, String databaseName) {
+        CosmosDatabaseResponse databaseResponse = client.createDatabaseIfNotExists(databaseName);
+        return client.getDatabase(databaseResponse.getProperties().getId());
+    }
+
+    private static CosmosContainer getContainer(CosmosDatabase database, AssetIndexCosmosConfig config) {
+        String containerName = config.getContainerName();
+        if (database.readAllContainers().stream().noneMatch(sp -> sp.getId().equals(containerName))) {
+            throw new EdcException(
+                    "A CosmosDB container named '" + containerName + "' was not found in account '" + config.getAccountName() + "'. Please create one, preferably using terraform.");
+        }
+        return database.getContainer(containerName);
     }
 }
 

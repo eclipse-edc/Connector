@@ -12,19 +12,19 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.catalog.node.directory.azure.model;
+package org.eclipse.dataspaceconnector.assetindex.azure.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
-@JsonTypeName("dataspaceconnector:federatedcatalognodedocument")
-public class FederatedCacheNodeDocument extends CosmosDocument<FederatedCacheNode> {
+@JsonTypeName("dataspaceconnector:assetdocument")
+public class AssetDocument extends CosmosDocument<Asset> {
     @JsonCreator
-    public FederatedCacheNodeDocument(@JsonProperty("wrappedInstance") FederatedCacheNode wrappedInstance,
-                                      @JsonProperty("partitionKey") String partitionKey) {
+    public AssetDocument(@JsonProperty("wrappedInstance") Asset wrappedInstance,
+                         @JsonProperty("partitionKey") String partitionKey) {
         super(wrappedInstance, partitionKey);
     }
 }

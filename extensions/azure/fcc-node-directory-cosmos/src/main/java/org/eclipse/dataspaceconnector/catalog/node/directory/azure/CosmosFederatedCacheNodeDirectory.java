@@ -44,16 +44,16 @@ public class CosmosFederatedCacheNodeDirectory implements FederatedCacheNodeDire
     /**
      * Creates a new instance of the CosmosDB-based federated cache node store.
      *
-     * @param container   The CosmosDB container.
-     * @param typeManager The {@link TypeManager} that's used for serialization and deserialization
+     * @param container             The CosmosDB container.
+     * @param typeManager           The {@link TypeManager} that's used for serialization and deserialization.
+     * @param isQueryMetricsEnabled Activate metrics for query execution.
      */
-    public CosmosFederatedCacheNodeDirectory(CosmosContainer container, String partitionKey, TypeManager typeManager, RetryPolicy<Object> retryPolicy) {
-
+    public CosmosFederatedCacheNodeDirectory(CosmosContainer container, String partitionKey, TypeManager typeManager, RetryPolicy<Object> retryPolicy, boolean isQueryMetricsEnabled) {
         this.container = container;
         this.typeManager = typeManager;
         this.partitionKey = partitionKey;
         tracingOptions = new CosmosQueryRequestOptions();
-        tracingOptions.setQueryMetricsEnabled(true);
+        tracingOptions.setQueryMetricsEnabled(isQueryMetricsEnabled);
         this.retryPolicy = retryPolicy;
     }
 
