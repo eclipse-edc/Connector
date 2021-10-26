@@ -36,7 +36,7 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("ids.core", PolicyRegistry.FEATURE);
+        return Set.of("edc:ids:core", PolicyRegistry.FEATURE);
     }
 
     @Override

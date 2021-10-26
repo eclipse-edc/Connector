@@ -21,9 +21,11 @@ import org.eclipse.dataspaceconnector.ids.core.message.DataRequestMessageSender;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.core.message.QueryMessageSender;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsPolicyServiceImpl;
+import org.eclipse.dataspaceconnector.ids.core.version.ConnectorVersionProviderImpl;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
+import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -38,22 +40,37 @@ import java.util.Set;
  * Implements the IDS Controller REST API.
  */
 public class IdsCoreServiceExtension implements ServiceExtension {
+    private static final String[] REQUIRES = {
+            IdentityService.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore"
+    };
+
+    private static final String[] PROVIDES = {
+            "edc:ids:core"
+    };
+
     private Monitor monitor;
 
     @Override
     public Set<String> provides() {
-        return Set.of("ids.core");
+        return Set.of(PROVIDES);
     }
 
     @Override
     public Set<String> requires() {
-        return Set.of(IdentityService.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
+        return Set.of(REQUIRES);
     }
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
+    public void initialize(ServiceExtensionContext serviceExtensionContext) {
+        monitor = serviceExtensionContext.getMonitor();
 
+        registerConnectorVersionProvider(serviceExtensionContext);
+        registerOther(serviceExtensionContext);
+
+        monitor.info("Initialized IDS Core extension");
+    }
+
+    private void registerOther(ServiceExtensionContext context) {
         var descriptorService = new IdsDescriptorServiceImpl();
         context.registerService(IdsDescriptorService.class, descriptorService);
 
@@ -66,8 +83,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         context.registerService(IdsPolicyService.class, policyService);
 
         assembleIdsDispatcher(connectorId, context, identityService);
-
-        monitor.info("Initialized IDS Core extension");
     }
 
     @Override
@@ -78,6 +93,11 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     @Override
     public void shutdown() {
         monitor.info("Shutdown IDS Core extension");
+    }
+
+    private void registerConnectorVersionProvider(ServiceExtensionContext serviceExtensionContext) {
+        ConnectorVersionProvider connectorVersionProvider = new ConnectorVersionProviderImpl();
+        serviceExtensionContext.registerService(ConnectorVersionProvider.class, connectorVersionProvider);
     }
 
     /**

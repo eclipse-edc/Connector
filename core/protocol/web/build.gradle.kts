@@ -33,6 +33,7 @@ dependencies {
     implementation("org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVersion}")
     implementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
     implementation("org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVersion}")
+    implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
     implementation("org.glassfish.jersey.inject:jersey-hk2:${jerseyVersion}")
     implementation("org.glassfish.jersey.containers:jersey-container-servlet:${jerseyVersion}")
 

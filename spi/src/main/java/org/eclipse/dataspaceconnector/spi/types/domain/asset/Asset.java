@@ -19,17 +19,14 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.Map;
-
-// TODO maybe create simple class hierarchy for the asset types (file, api, etc.)
-// Alternatively use composition over inheritance?
 
 /**
  * The {@link Asset} contains the metadata and describes the data itself or a collection of data.
  */
 @JsonDeserialize(builder = Asset.Builder.class)
 public class Asset {
-
     private final String id;
     private final String name;
     private final String version;
@@ -72,7 +69,7 @@ public class Asset {
         private String contentType;
         private Map<String, Object> properties;
 
-        private Builder() {
+        protected Builder() {
         }
 
         @JsonCreator

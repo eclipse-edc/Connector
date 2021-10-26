@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.web.transport.JettyService;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
@@ -63,6 +64,8 @@ public class JerseyRestService implements WebService {
             resourceConfig.registerInstances(new Binder());
 
             resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
+
+            resourceConfig.register(MultiPartFeature.class);
 
             // Register the Jersey container with Jetty
             ServletContainer servletContainer = new ServletContainer(resourceConfig);
