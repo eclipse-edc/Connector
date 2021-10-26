@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.core.message;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
@@ -26,12 +27,14 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
 
 import java.io.IOException;
 import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
@@ -81,23 +84,21 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
                 .build();
         queryMessage.setProperty("query", queryRequest.getQuery());
         queryMessage.setProperty("queryLanguage", queryRequest.getQueryLanguage());
-        var processId = context.getProcessId();
 
         var requestBody = writeJson(queryMessage, mapper);
 
-        CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         var connectorAddress = queryRequest.getConnectorAddress();
         HttpUrl baseUrl = HttpUrl.parse(connectorAddress);
         if (baseUrl == null) {
-            future.completeExceptionally(new IllegalArgumentException("Connector address not specified"));
-            return future;
+            return CompletableFuture.failedFuture(new IllegalArgumentException("Connector address not specified"));
         }
 
         HttpUrl connectorEndpoint = baseUrl.newBuilder().addPathSegment("api").addPathSegment("ids").addPathSegment("query").build();
 
         Request request = new Request.Builder().url(connectorEndpoint).addHeader("Content-Type", JSON).post(requestBody).build();
 
+        CompletableFuture<List<String>> future = new CompletableFuture<>();
 
         httpClient.newCall(request).enqueue(new FutureCallback<>(future, r -> {
             try (r) {
@@ -107,7 +108,8 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
                         if (body == null) {
                             future.completeExceptionally(new EdcException("Received an empty body response from connector"));
                         } else {
-                            return cast(mapper.readValue(body.string(), List.class));
+                            List<Asset> assets = mapper.readValue(body.string(), new TypeReference<>() {});
+                            return cast(assets.stream().map(Asset::getId).collect(Collectors.toList()));
                         }
                     } catch (IOException e) {
                         future.completeExceptionally(e);
@@ -123,6 +125,7 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
                 return null;
             }
         }));
+
         return future;
 
     }

@@ -14,6 +14,7 @@
 
 val infoModelVersion: String by project
 val rsApi: String by project
+val wiremockVersion: String by project
 
 plugins {
     `java-library`
@@ -29,6 +30,8 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":core:policy:policy-engine"))
+
+    testImplementation("com.github.tomakehurst:wiremock-jre8:${wiremockVersion}")
 }
 
 
