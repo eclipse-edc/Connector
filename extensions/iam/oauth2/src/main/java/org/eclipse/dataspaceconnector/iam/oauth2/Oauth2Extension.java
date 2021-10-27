@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2;
 
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.crypto.RSASSASigner;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.IdentityProviderKeyResolver;
 import org.eclipse.dataspaceconnector.iam.oauth2.impl.Oauth2Configuration;
@@ -25,10 +27,12 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import java.security.interfaces.RSAPrivateKey;
 import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 /**
  * Provides OAuth2 client credentials flow support.
@@ -111,7 +115,13 @@ public class Oauth2Extension implements ServiceExtension {
 
         Oauth2Configuration configuration = configBuilder.build();
 
-        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration);
+        // for now, lets assume we have RSA Private keys
+        Supplier<JWSSigner> pkSuppplier = () -> {
+            var pkId = configuration.getPrivateKeyAlias();
+            var pk = configuration.getPrivateKeyResolver().resolvePrivateKey(pkId, RSAPrivateKey.class);
+            return pk == null ? null : new RSASSASigner(pk);
+        };
+        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration, pkSuppplier);
 
         context.registerService(IdentityService.class, oauth2Service);
 

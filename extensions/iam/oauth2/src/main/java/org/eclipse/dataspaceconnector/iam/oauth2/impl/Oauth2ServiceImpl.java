@@ -14,13 +14,14 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.impl;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.JWTCreator;
-import com.auth0.jwt.JWTVerifier;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.RSAKeyProvider;
+import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSSigner;
+import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
+import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -32,19 +33,22 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
-import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.cert.X509Certificate;
+import java.text.ParseException;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import static org.eclipse.dataspaceconnector.iam.oauth2.impl.Fingerprint.sha1Base64Fingerprint;
 
@@ -60,17 +64,31 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     private final Oauth2Configuration configuration;
 
-    private final RSAKeyProvider credentialProvider;
-    private final JWTVerifier verifier;
+    private final List<ValidationRule> validationRules;
+    private final JWSSigner tokenSigner;
 
-    public Oauth2ServiceImpl(Oauth2Configuration configuration) {
+    /**
+     * Creates a new instance of the OAuth2 Service
+     *
+     * @param configuration             The configuration
+     * @param signerProvider            A {@link Supplier} which is used to get a {@link JWSSigner} instance.
+     * @param additionalValidationRules An optional list of {@link ValidationRule} that are evaluated <em>after</em> the
+     *                                  standard OAuth2 validation
+     */
+    public Oauth2ServiceImpl(Oauth2Configuration configuration, Supplier<JWSSigner> signerProvider, ValidationRule... additionalValidationRules) {
         this.configuration = configuration;
-        credentialProvider = new PairedProviderWrapper(configuration.getPrivateKeyResolver(), configuration.getCertificateResolver(), configuration.getPrivateKeyAlias());
 
-        RSAKeyProvider verifierProvider = new PublicKeyProviderWrapper(configuration.getIdentityProviderKeyResolver());
-        verifier = JWT.require(Algorithm.RSA256(verifierProvider)).build();
+        List<ValidationRule> rules = new ArrayList<>();
+        rules.add(new Oauth2ValidationRule()); //OAuth2 validation must ALWAYS be done
+        rules.addAll(List.of(additionalValidationRules));
+        validationRules = Collections.unmodifiableList(rules);
+
+        tokenSigner = signerProvider.get();
+        if (tokenSigner == null) {
+            throw new EdcException("Could not resolve private key");
+        }
     }
-
+    
     @Override
     public TokenResult obtainClientCredentials(String scope) {
         String assertion = buildJwt(configuration.getProviderAudience());
@@ -111,53 +129,58 @@ public class Oauth2ServiceImpl implements IdentityService {
     @Override
     public VerificationResult verifyJwtToken(String token, String audience) {
         try {
-            var jwt = verifier.verify(token);
-            return validateToken(jwt, audience);
-        } catch (JWTVerificationException e) {
+            var signedJwt = SignedJWT.parse(token);
+
+            var verifier = createVerifier(signedJwt.getHeader(), configuration.getPublicCertificateAlias());
+            if (verifier == null) {
+                return new VerificationResult("Token verification not successful");
+            }
+
+            if (!signedJwt.verify(verifier)) {
+                return new VerificationResult("Token verification not successful");
+            }
+            var claimsSet = signedJwt.getJWTClaimsSet();
+
+            // now we get the results of all the single rules, lets collate them into one
+            var res = validationRules.stream()
+                    .map(r -> r.checkRule(claimsSet, audience))
+                    .reduce(ValidationRuleResult::merge)
+                    .orElseThrow();
+
+            // return instantly if there are errors present
+            if (!res.isSuccess()) {
+                return new VerificationResult(res.getErrorMessages());
+            }
+
+            // build claim tokens
+            var tokenBuilder = ClaimToken.Builder.newInstance();
+            claimsSet.getClaims().forEach((k, v) -> {
+                var claimValue = Objects.toString(v);
+                if (claimValue == null) {
+                    // only support strings
+                    return;
+                }
+                tokenBuilder.claim(k, claimValue);
+            });
+            return new VerificationResult(tokenBuilder.build());
+
+        } catch (JOSEException e) {
             return new VerificationResult(e.getMessage());
+        } catch (ParseException e) {
+            return new VerificationResult("Token could not be decoded");
         }
     }
 
-    /**
-     * Validates the JWT by checking the audience, nbf, and expiration. Accessible for testing.
-     */
-    @NotNull
-    VerificationResult validateToken(DecodedJWT jwt, String audience) {
-        if (jwt.getAudience() == null) {
-            return new VerificationResult("Token audience was empty");
-        }
-        if (jwt.getAudience().stream().noneMatch(audience::equals)) {
-            return new VerificationResult("Token audience did not match required audience: " + audience);
-        }
 
-        var nowUtc = Instant.now();
+    @Nullable
+    private JWSVerifier createVerifier(JWSHeader header, String publicCertificateAlias) {
+        var publicKey = Objects.requireNonNull(configuration.getCertificateResolver().resolveCertificate(publicCertificateAlias)).getPublicKey();
 
-        if (jwt.getNotBefore() == null) {
-            return new VerificationResult("Token not before value was empty");
+        try {
+            return new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey);
+        } catch (JOSEException e) {
+            return null;
         }
-        var nbf = ZonedDateTime.ofInstant(jwt.getNotBefore().toInstant(), ZoneId.of("UTC")).toInstant();
-        if (nowUtc.isBefore(nbf)) {
-            return new VerificationResult("Token not before is after current UTC time");
-        }
-
-        if (jwt.getExpiresAt() == null) {
-            return new VerificationResult("Token expiration value was empty");
-        }
-        var expires = ZonedDateTime.ofInstant(jwt.getExpiresAt().toInstant(), ZoneId.of("UTC")).toInstant();
-        if (!nowUtc.isBefore(expires)) {
-            return new VerificationResult("Token has expired");
-        }
-
-        var tokenBuilder = ClaimToken.Builder.newInstance();
-        jwt.getClaims().forEach((k, v) -> {
-            var claimValue = v.asString();
-            if (claimValue == null) {
-                // only support strings
-                return;
-            }
-            tokenBuilder.claim(k, claimValue);
-        });
-        return new VerificationResult(tokenBuilder.build());
     }
 
     private String buildJwt(String providerAudience) {
@@ -167,20 +190,20 @@ public class Oauth2ServiceImpl implements IdentityService {
                 throw new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias());
             }
 
-            JWTCreator.Builder jwtBuilder = JWT.create();
 
-            jwtBuilder.withHeader(Map.of("x5t", sha1Base64Fingerprint(certificate.getEncoded())));
-
-            jwtBuilder.withAudience(providerAudience);
-
-            jwtBuilder.withIssuer(configuration.getClientId());
-            jwtBuilder.withSubject(configuration.getClientId());
-            jwtBuilder.withJWTId(UUID.randomUUID().toString());
-            jwtBuilder.withNotBefore(new Date());
-            jwtBuilder.withExpiresAt(Date.from(Instant.now().plusSeconds(EXPIRATION)));
-
-            return jwtBuilder.sign(Algorithm.RSA256(credentialProvider));
-        } catch (GeneralSecurityException e) {
+            JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
+            headerBuilder.customParam("x5t", sha1Base64Fingerprint(certificate.getEncoded()));
+            var claimsSet = new JWTClaimsSet.Builder();
+            claimsSet.audience(providerAudience)
+                    .issuer(configuration.getClientId())
+                    .subject(configuration.getClientId())
+                    .jwtID(UUID.randomUUID().toString())
+                    .notBeforeTime(new Date()) //now
+                    .expirationTime(Date.from(Instant.now().plusSeconds(EXPIRATION)));
+            var jwt = new SignedJWT(headerBuilder.build(), claimsSet.build());
+            jwt.sign(tokenSigner);
+            return jwt.serialize();
+        } catch (GeneralSecurityException | JOSEException e) {
             throw new EdcException(e);
         }
     }
