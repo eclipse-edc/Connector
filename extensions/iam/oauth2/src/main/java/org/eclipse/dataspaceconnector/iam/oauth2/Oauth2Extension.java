@@ -82,7 +82,7 @@ public class Oauth2Extension implements ServiceExtension {
 
         // setup the provider key resolver, which will be scheduled for refresh at runtime start
         String jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
-        providerKeyResolver = new IdentityProviderKeyResolver(jwksUrl, context.getMonitor(), httpClient);
+        providerKeyResolver = new IdentityProviderKeyResolver(jwksUrl, context.getMonitor(), httpClient, context.getTypeManager());
         keyRefreshInterval = Integer.parseInt(context.getSetting(PROVIDER_JWKS_REFRESH, "5"));
 
         // setup the OAuth2 service

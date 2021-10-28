@@ -19,6 +19,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -48,12 +49,13 @@ public class IdentityProviderKeyResolver implements PublicKeyResolver, Runnable 
      * Ctor.
      *
      * @param jwksUrl the URL specified by 'jwks_uri' in the document returned by the identity provider's metadata endpoint.
+     * @param typeManager the type manager
      */
-    public IdentityProviderKeyResolver(String jwksUrl, Monitor monitor, OkHttpClient httpClient) {
+    public IdentityProviderKeyResolver(String jwksUrl, Monitor monitor, OkHttpClient httpClient, TypeManager typeManager) {
         this.jwksUrl = jwksUrl;
         this.monitor = monitor;
         this.httpClient = httpClient;
-        mapper = new ObjectMapper();
+        mapper = typeManager.getMapper();
     }
 
     @Override

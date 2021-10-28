@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.ion.util;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.ion.IonException;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.io.IOException;
 
@@ -13,7 +14,7 @@ public class JsonCanonicalizer {
     private static final ObjectMapper MAPPER;
 
     static {
-        MAPPER = new ObjectMapper();
+        MAPPER = new TypeManager().getMapper();
         MAPPER.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
     }
 

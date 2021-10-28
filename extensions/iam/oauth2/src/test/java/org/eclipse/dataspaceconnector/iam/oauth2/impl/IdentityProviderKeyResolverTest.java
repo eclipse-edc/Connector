@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,7 +45,7 @@ class IdentityProviderKeyResolverTest {
     @BeforeEach
     void setUp() throws JsonProcessingException {
         resolver = new IdentityProviderKeyResolver(URL, new Monitor() {
-        }, EasyMock.niceMock(OkHttpClient.class));
+        }, EasyMock.niceMock(OkHttpClient.class), new TypeManager());
 
         keys = new ObjectMapper().readValue(JWKS_URI_RESPONSE, JwkKeys.class);
     }

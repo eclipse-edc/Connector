@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.quartz.JobDataMap;
 import org.quartz.JobDetail;
 import org.quartz.Scheduler;
@@ -105,6 +106,7 @@ public class CrawlerExtension implements ServiceExtension {
                 .didStore(didStore)
                 .ionHost(context.getSetting(ION_URL_SETTING, "http://gx-ion-node.westeurope.cloudapp.azure.com:3000/"))
                 .monitor(context.getMonitor())
+                .typeManager(context.getTypeManager())
                 .publisher(publisher)
                 .didTypes(context.getSetting(ION_CRAWLER_TYPE_SETTING, "aW9u"))
                 .resolverRegistry(resolverRegistry)
