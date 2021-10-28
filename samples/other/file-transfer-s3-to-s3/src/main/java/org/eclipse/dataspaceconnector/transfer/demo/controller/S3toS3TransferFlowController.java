@@ -14,8 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.provision.aws.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -25,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -38,11 +37,13 @@ public class S3toS3TransferFlowController implements DataFlowController {
     private final Vault vault;
     private final Monitor monitor;
     private final DataAddressResolver dataAddressResolver;
+    private final TypeManager typeManager;
 
-    public S3toS3TransferFlowController(Vault vault, Monitor monitor, DataAddressResolver dataAddressResolver) {
+    public S3toS3TransferFlowController(Vault vault, Monitor monitor, DataAddressResolver dataAddressResolver, TypeManager typeManager) {
         this.vault = vault;
         this.monitor = monitor;
         this.dataAddressResolver = dataAddressResolver;
+        this.typeManager = typeManager;
     }
 
     @Override
@@ -62,7 +63,7 @@ public class S3toS3TransferFlowController implements DataFlowController {
         var destinationBucketName = dataRequest.getDataDestination().getProperty(S3BucketSchema.BUCKET_NAME);
 
         var region = dataRequest.getDataDestination().getProperty(S3BucketSchema.REGION);
-        var dt = convertSecret(awsSecret);
+        var dt = typeManager.readValue(awsSecret, AwsTemporarySecretToken.class);
 
         return copyToBucket(sourceBucketName, sourceKey, destinationBucketName, destinationKey, region, dt);
     }
@@ -107,13 +108,5 @@ public class S3toS3TransferFlowController implements DataFlowController {
         }
     }
 
-    private AwsTemporarySecretToken convertSecret(String awsSecret) {
-        try {
-            var mapper = new ObjectMapper();
-            return mapper.readValue(awsSecret, AwsTemporarySecretToken.class);
-        } catch (JsonProcessingException e) {
-            throw new EdcException("Unable to read credentials", e);
-        }
-    }
 }
 

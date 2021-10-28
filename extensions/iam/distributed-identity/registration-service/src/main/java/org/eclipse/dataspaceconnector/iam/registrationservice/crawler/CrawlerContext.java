@@ -17,6 +17,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry
 import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEventPublisher;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 /**
  * Stores parameters (such as the DID Type) and necessary objects (such as the IonClient or the DidStore)
@@ -30,6 +31,7 @@ public class CrawlerContext {
     private String ionHost;
     private String didTypes;
     private DidResolverRegistry resolverRegistry;
+    private TypeManager typeManager;
 
     public DidStore getDidStore() {
         return didStore;
@@ -55,6 +57,10 @@ public class CrawlerContext {
         return resolverRegistry;
     }
 
+    public TypeManager getTypeManager() {
+        return typeManager;
+    }
+
     public static final class Builder {
         private DidStore didStore;
         private Monitor monitor;
@@ -62,6 +68,7 @@ public class CrawlerContext {
         private String ionHost;
         private String didTypes;
         private DidResolverRegistry resolverRegistry;
+        private TypeManager typeManager;
 
         private Builder() {
         }
@@ -100,11 +107,17 @@ public class CrawlerContext {
             return this;
         }
 
+        public Builder typeManager(TypeManager typeManager) {
+            this.typeManager = typeManager;
+            return this;
+        }
+
         public CrawlerContext build() {
             CrawlerContext crawlerConfig = new CrawlerContext();
             crawlerConfig.didTypes = didTypes;
             crawlerConfig.ionHost = ionHost;
             crawlerConfig.publisher = publisher;
+            crawlerConfig.typeManager = typeManager;
             crawlerConfig.didStore = didStore;
             crawlerConfig.monitor = monitor;
             crawlerConfig.resolverRegistry = resolverRegistry;

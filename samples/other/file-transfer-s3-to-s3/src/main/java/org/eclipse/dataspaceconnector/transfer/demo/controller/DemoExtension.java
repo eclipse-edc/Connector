@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataCatalogEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
@@ -51,13 +52,14 @@ public class DemoExtension implements ServiceExtension {
         this.context = context;
         monitor = context.getMonitor();
 
-        var objectMapper = context.getTypeManager().getMapper();
+        TypeManager typeManager = context.getTypeManager();
+        var objectMapper = typeManager.getMapper();
         registerTypes(objectMapper);
 
         var dataFlowMgr = context.getService(DataFlowManager.class);
         var dataAddressResolver = context.getService(DataAddressResolver.class);
 
-        var flowController = new S3toS3TransferFlowController(context.getService(Vault.class), monitor, dataAddressResolver);
+        var flowController = new S3toS3TransferFlowController(context.getService(Vault.class), monitor, dataAddressResolver, typeManager);
 
         dataFlowMgr.register(flowController);
     }

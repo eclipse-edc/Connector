@@ -47,3 +47,6 @@
 ### IX. Handling Null Return Values
 1. In certain situations, `null` may need to be returned from a method, passed as a parameter, or set on a field. Only use `Optional` if a method is part of a fluent API. 
    Since the runtime will rarely require this, the project standard is to use the `org.jetbrains.annotations.Nullable` and `org.jetbrains.annotations.NotNull` annotations. 
+
+### X. Objects Serialization/Deserialization
+1. `TypeManager` is the component responsible for json ser/des, you can also use the `ObjectMapper` inside it, but there should be no other `ObjectMapper` instance.

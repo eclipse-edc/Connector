@@ -14,13 +14,13 @@
 package org.eclipse.dataspaceconnector.iam.registrationservice.crawler;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.quartz.Job;
 import org.quartz.JobDataMap;
 import org.quartz.JobExecutionContext;
@@ -52,11 +52,10 @@ public class CrawlerJob implements Job {
 
         monitor.info("CrawlerJob: browsing ION to obtain GaiaX DIDs");
 
-        List<DidDocument> newDids;
         var start = Instant.now();
         var newDidFutures = getDidDocumentsFromBlockchainAsync(cc);
 
-        newDids = newDidFutures.parallelStream()
+        List<DidDocument> newDids = newDidFutures.parallelStream()
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
                 .filter(result -> !result.invalid())
@@ -73,12 +72,10 @@ public class CrawlerJob implements Job {
         }
 
         cc.getDidStore().saveAll(newDids);
-
-
     }
 
     private List<CompletableFuture<DidResolverRegistry.Result>> getDidDocumentsFromBlockchainAsync(CrawlerContext context) {
-        return getDidSuffixesForType(context.getDidTypes())
+        return getDidSuffixesForType(context.getDidTypes(), context.getTypeManager())
                 .stream()
                 .map(didSuffix -> resolveDidAsync(didSuffix, context.getResolverRegistry()))
                 .collect(Collectors.toList());
@@ -89,9 +86,10 @@ public class CrawlerJob implements Job {
      * the {@code type} parameter and returns the resulting DID suffixes (=IDs).
      *
      * @param type The type to look up. Should be "Z3hp" for GaiaX
+     * @param typeManager the type manager
      * @return A list of DID IDs in the form {@code did:ion:.....}
      */
-    private List<String> getDidSuffixesForType(String type) {
+    private List<String> getDidSuffixesForType(String type, TypeManager typeManager) {
         var client = createClient();
 
         var url = HttpUrl.parse(ionApiUrl)
@@ -109,10 +107,8 @@ public class CrawlerJob implements Job {
         try (var response = client.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 var json = Objects.requireNonNull(response.body()).string();
-                var om = new ObjectMapper();
-                var tr = new TypeReference<List<String>>() {
-                };
-                return om.readValue(json, tr);
+                var typeReference = new TypeReference<List<String>>() {};
+                return typeManager.readValue(json, typeReference);
             } else {
                 throw new EdcException(format("Could not get DIDs: error=%s, message=%s", response.code(), response.body().string()));
             }

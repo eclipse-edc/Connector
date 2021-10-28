@@ -14,8 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.AwsTemporarySecretToken;
@@ -26,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
@@ -45,11 +44,13 @@ import java.util.Objects;
 public class DemoS3FlowController implements DataFlowController {
     private final Vault vault;
     private final Monitor monitor;
+    private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
 
-    public DemoS3FlowController(Vault vault, Monitor monitor) {
+    public DemoS3FlowController(Vault vault, Monitor monitor, TypeManager typeManager) {
         this.vault = vault;
         this.monitor = monitor;
+        this.typeManager = typeManager;
         retryPolicy = new RetryPolicy<>()
                 .withBackoff(500, 5000, ChronoUnit.MILLIS)
                 .withMaxRetries(3);
@@ -68,7 +69,7 @@ public class DemoS3FlowController implements DataFlowController {
         var bucketName = dataRequest.getDataDestination().getProperty(S3BucketSchema.BUCKET_NAME);
 
         var region = dataRequest.getDataDestination().getProperty(S3BucketSchema.REGION);
-        var dt = convertSecret(awsSecret);
+        var dt = typeManager.readValue(awsSecret, AwsTemporarySecretToken.class);
 
         return copyToBucket(bucketName, region, dt);
 
@@ -102,16 +103,6 @@ public class DemoS3FlowController implements DataFlowController {
             monitor.severe("Data request: transfer failed!");
             return new DataFlowInitiateResponse(ResponseStatus.FATAL_ERROR, ex.getLocalizedMessage());
         }
-    }
-
-    private AwsTemporarySecretToken convertSecret(String awsSecret) {
-        try {
-            var mapper = new ObjectMapper();
-            return mapper.readValue(awsSecret, AwsTemporarySecretToken.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-        return null;
     }
 
     private PutObjectRequest createRequest(String bucketName, String objectKey) {

@@ -29,7 +29,7 @@ public class AwsDemoExtension implements ServiceExtension {
 
         var dataFlowMgr = context.getService(DataFlowManager.class);
 
-        var flowController = new DemoS3FlowController(context.getService(Vault.class), monitor);
+        var flowController = new DemoS3FlowController(context.getService(Vault.class), monitor, context.getTypeManager());
 
         dataFlowMgr.register(flowController);
     }
