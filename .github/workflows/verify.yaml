@@ -75,7 +75,7 @@ jobs:
 
       - name: Check Sample 04 (Consumer)
         run: |
-          ./gradlew :samples:04-file-transfer:shadowJar
+          ./gradlew :samples:04-file-transfer:consumer:shadowJar
           echo "Checking Sample 04 - Consumer"
           java -Dedc.fs.config=samples/04-file-transfer/consumer/config.properties -jar samples/04-file-transfer/consumer/build/libs/consumer.jar > log.txt &
           sleep 5
@@ -86,6 +86,7 @@ jobs:
       - name: Check Sample 04 (Provider)
         run: |
           echo "Checking Sample 04 - Provider"
+          ./gradlew :samples:04-file-transfer:provider:shadowJar
           java -Dedc.fs.config=samples/04-file-transfer/provider/config.properties -jar samples/04-file-transfer/provider/build/libs/provider.jar > log.txt &
           sleep 5
           grep "INFO.*edc-.*ready" log.txt
