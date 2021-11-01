@@ -3,9 +3,7 @@ package org.eclipse.dataspaceconnector.metadata.memory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -15,55 +13,52 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.easymock.EasyMock.niceMock;
 
 // this test aims at testing the thread-safety of the asset index
-public class InMemoryAssetIndexConsistencyTest {
+public class InMemoryAssetIndexLoaderTest {
 
     private final Random random = new Random();
-    private AssetIndex assetIndex;
     private AssetIndexLoader assetIndexLoader;
 
     @Test
-    void multipleReadsWrites() throws InterruptedException {
-        var latch = new CountDownLatch(20);
-        Runnable insertTask = () -> {
-            Asset asset = createAsset("test-asset", UUID.randomUUID().toString());
-            assetIndexLoader.insert(asset, createDataAddress(asset));
-            System.out.println("inserted!");
-            latch.countDown();
+    void insert() {
+        var asset = createAsset("test-asset", UUID.randomUUID().toString());
+        var dataAddress = createDataAddress(asset);
+        assetIndexLoader.insert(asset, dataAddress);
 
-        };
+        assertThat(((InMemoryAssetIndex) assetIndexLoader).getAssets()).hasSize(1);
+        assertThat(((InMemoryAssetIndex) assetIndexLoader).getDataAddresses()).hasSize(1);
+    }
 
-        Callable<Stream<Asset>> readTask = () -> {
-            var stream = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL);
-            latch.countDown();
-            System.out.println("got " + stream.count());
-            return stream;
-        };
+    @Test
+    void insert_illegalParams() {
+        assertThatThrownBy(() -> assetIndexLoader.insert(null, niceMock(DataAddress.class))).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> assetIndexLoader.insert(createAsset("testasset", "testid"), null)).isInstanceOf(NullPointerException.class);
+    }
 
-        var scheduler = Executors.newScheduledThreadPool(3);
-        IntStream.range(0, 10).forEach(i -> scheduler.schedule(insertTask, 500 + random.nextInt(1000), TimeUnit.MILLISECONDS));
-        IntStream.range(0, 10).forEach(i -> scheduler.schedule(readTask, 500 + random.nextInt(1000), TimeUnit.MILLISECONDS));
+    @Test
+    void insert_exists() {
+        var asset = createAsset("test-asset", UUID.randomUUID().toString());
+        var dataAddress = createDataAddress(asset);
+        assetIndexLoader.insert(asset, dataAddress);
+        DataAddress dataAddress1 = createDataAddress(asset);
+        assetIndexLoader.insert(asset, dataAddress1);
 
-        assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
+        //assert that this replaces the previous data address
+        assertThat(((InMemoryAssetIndex) assetIndexLoader).getAssets()).hasSize(1).containsValue(asset);
+        assertThat(((InMemoryAssetIndex) assetIndexLoader).getDataAddresses()).hasSize(1).containsValue(dataAddress1);
 
     }
+
 
     @BeforeEach
     void setup() {
         Monitor monitorMock = niceMock(Monitor.class);
-        var index = new InMemoryAssetIndex(monitorMock, new CriterionToPredicateConverter());
-        assetIndex = index;
-        assetIndexLoader = index;
+        assetIndexLoader = new InMemoryAssetIndex(new CriterionToPredicateConverter());
     }
 
     private Asset createAsset(String name, String id) {

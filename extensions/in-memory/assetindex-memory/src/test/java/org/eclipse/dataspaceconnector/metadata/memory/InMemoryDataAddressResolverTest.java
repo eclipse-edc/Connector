@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,7 +13,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.easymock.EasyMock.niceMock;
 
 class InMemoryDataAddressResolverTest {
     private InMemoryAssetIndex resolver;
@@ -22,7 +20,7 @@ class InMemoryDataAddressResolverTest {
 
     @BeforeEach
     void setUp() {
-        resolver = new InMemoryAssetIndex(niceMock(Monitor.class), new CriterionToPredicateConverter());
+        resolver = new InMemoryAssetIndex(new CriterionToPredicateConverter());
     }
 
     @Test

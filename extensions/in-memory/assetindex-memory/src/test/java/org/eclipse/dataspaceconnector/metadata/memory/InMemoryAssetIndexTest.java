@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.jetbrains.annotations.NotNull;
@@ -23,7 +22,7 @@ class InMemoryAssetIndexTest {
 
     @BeforeEach
     void setUp() {
-        index = new InMemoryAssetIndex(niceMock(Monitor.class), new CriterionToPredicateConverter());
+        index = new InMemoryAssetIndex(new CriterionToPredicateConverter());
     }
 
     @Test

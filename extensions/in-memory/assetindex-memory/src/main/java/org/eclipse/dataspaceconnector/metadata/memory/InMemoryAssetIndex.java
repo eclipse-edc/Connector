@@ -18,10 +18,10 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -40,7 +40,7 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     private final CriterionToPredicateConverter predicateFactory;
     private final ReentrantLock lock;
 
-    public InMemoryAssetIndex(Monitor monitor, CriterionToPredicateConverter predicateFactory) {
+    public InMemoryAssetIndex(CriterionToPredicateConverter predicateFactory) {
         this.predicateFactory = predicateFactory;
         //fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantLock(true);
@@ -123,6 +123,14 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
         }
     }
 
+    public Map<String, Asset> getAssets() {
+        return Collections.unmodifiableMap(cache);
+    }
+
+    public Map<String, DataAddress> getDataAddresses() {
+        return Collections.unmodifiableMap(dataAddresses);
+    }
+
     /**
      * this method is NOT secured with locks, any guarding must take place in the calling method!
      */
@@ -137,5 +145,4 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     private Stream<Asset> filterByPredicate(Map<String, Asset> assets, Predicate<Asset> predicate) {
         return assets.values().stream().filter(predicate);
     }
-
 }
