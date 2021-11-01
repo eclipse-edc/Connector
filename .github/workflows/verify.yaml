@@ -3,7 +3,35 @@ name: Test Code (Style, Tests)
 on: [ push, pull_request ]
 
 jobs:
-  Unit-Test:
+  #  Unit-Test:
+  #    runs-on: ubuntu-latest
+  #    steps:
+  #      - uses: actions/checkout@v2
+  #      - name: Set up JDK 11
+  #        uses: actions/setup-java@v1
+  #        with:
+  #          java-version: '11'
+  #
+  #      # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
+  #      - name: Run Checkstyle
+  #        uses: nikitasavinov/checkstyle-action@0.4.0
+  #        with:
+  #          checkstyle_config: resources/edc-checkstyle-config.xml
+  #          level: error
+  #          github_token: ${{ secrets.GITHUB_TOKEN }}
+  #          tool_name: 'checkstyle'
+  #          checkstyle_version: '9.0'
+  #          reporter: 'github-check'
+  #          filter_mode: 'nofilter'
+  #
+  #
+  #      - name: Gradle Test Core
+  #        env:
+  #          INTEGRATION_TEST: false
+  #        # checkstyle would also run as part of the `check` task
+  #        run: ./gradlew clean check -x checkstyleMain -x checkstyleTest
+
+  Sanity-Check:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -12,30 +40,13 @@ jobs:
         with:
           java-version: '11'
 
-      #      # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
-      #      - name: Run Checkstyle
-      #        uses: nikitasavinov/checkstyle-action@0.4.0
-      #        with:
-      #          checkstyle_config: resources/edc-checkstyle-config.xml
-      #          level: error
-      #          github_token: ${{ secrets.GITHUB_TOKEN }}
-      #          tool_name: 'checkstyle'
-      #          checkstyle_version: '9.0'
-      #          reporter: 'github-check'
-      #          filter_mode: 'nofilter'
-      #
-      #
-      #      - name: Gradle Test Core
-      #        env:
-      #          INTEGRATION_TEST: false
-      #        # checkstyle would also run as part of the `check` task
-      #        run: ./gradlew clean check -x checkstyleMain -x checkstyleTest
-
       - name: Sanity-check samples
         run: |
           ./gradlew shadowJar
+          echo "Checking Sample 01"
           java -jar samples/01-basic-connector/build/libs/basic-connector.jar > /dev/null &
           kill -INT $!
 
+          echo "Checking Sample 02"
           java -jar samples/02-health-endpoint/build/libs/connector-health.jar > /dev/null $
           kill -INT $!
