@@ -40,6 +40,8 @@ jobs:
         with:
           java-version: '11'
 
+      # c
+
       - name: Check Sample 01
         run: |
           ./gradlew :samples:01-basic-connector:shadowJar
@@ -66,6 +68,25 @@ jobs:
           ./gradlew :samples:03-configuration:shadowJar
           echo "Checking Sample 03"
           java -Dedc.fs.config=samples/03-configuration/config.properties -jar samples/03-configuration/build/libs/filsystem-config-connector.jar > log.txt &
+          sleep 5
+          grep "INFO.*edc-.*ready" log.txt
+          rm log.txt
+          killall java
+
+      - name: Check Sample 04 (Consumer)
+        run: |
+          ./gradlew :samples:04-file-transfer:shadowJar
+          echo "Checking Sample 04 - Consumer"
+          java -Dedc.fs.config=samples/04-file-transfer/consumer/config.properties -jar samples/04-file-transfer/consumer/build/libs/consumer.jar > log.txt &
+          sleep 5
+          grep "INFO.*edc-.*ready" log.txt
+          rm log.txt
+          killall java
+
+      - name: Check Sample 04 (Provider)
+        run: |
+          echo "Checking Sample 04 - Provider"
+          java -Dedc.fs.config=samples/04-file-transfer/provider/config.properties -jar samples/04-file-transfer/provider/build/libs/provider.jar > log.txt &
           sleep 5
           grep "INFO.*edc-.*ready" log.txt
           rm log.txt
