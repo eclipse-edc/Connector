@@ -24,6 +24,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:in-memory:assetindex-memory"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }
