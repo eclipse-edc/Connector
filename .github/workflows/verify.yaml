@@ -12,22 +12,30 @@ jobs:
         with:
           java-version: '11'
 
-      # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
-      - name: Run Checkstyle
-        uses: nikitasavinov/checkstyle-action@0.4.0
-        with:
-          checkstyle_config: resources/edc-checkstyle-config.xml
-          level: error
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          tool_name: 'checkstyle'
-          checkstyle_version: '9.0'
-          reporter: 'github-check'
-          filter_mode: 'nofilter'
+      #      # lets run Checkstyle explicitly (as opposed to within gradle) due to better reporting capabilities
+      #      - name: Run Checkstyle
+      #        uses: nikitasavinov/checkstyle-action@0.4.0
+      #        with:
+      #          checkstyle_config: resources/edc-checkstyle-config.xml
+      #          level: error
+      #          github_token: ${{ secrets.GITHUB_TOKEN }}
+      #          tool_name: 'checkstyle'
+      #          checkstyle_version: '9.0'
+      #          reporter: 'github-check'
+      #          filter_mode: 'nofilter'
+      #
+      #
+      #      - name: Gradle Test Core
+      #        env:
+      #          INTEGRATION_TEST: false
+      #        # checkstyle would also run as part of the `check` task
+      #        run: ./gradlew clean check -x checkstyleMain -x checkstyleTest
 
+      - name: Sanity-check samples
+        run: |
+          ./gradlew shadowJar
+          java -jar samples/01-basic-connector/build/libs/basic-connector.jar > /dev/null &
+          kill -INT $!
 
-      - name: Gradle Test Core
-        env:
-          INTEGRATION_TEST: false
-        # checkstyle would also run as part of the `check` task
-        run: ./gradlew clean check -x checkstyleMain -x checkstyleTest
-
+          java -jar samples/02-health-endpoint/build/libs/connector-health.jar > /dev/null $
+          kill -INT $!
