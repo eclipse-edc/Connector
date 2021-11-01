@@ -50,3 +50,7 @@ jobs:
           echo "Checking Sample 02"
           java -jar samples/02-health-endpoint/build/libs/connector-health.jar > /dev/null $
           kill -INT $!
+
+          echo "Checking Sample 03"
+          java -jar samples/03-configuration/build/libs/filsystem-config-connector.jar > /dev/null $
+          kill -INT $!
