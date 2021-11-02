@@ -27,7 +27,7 @@ public class TransferProxyHttpExtension implements ServiceExtension {
         webService.registerController(controller);
 
         var manager = context.getService(DataProxyManager.class);
-        manager.addProxy(new RestDataProxy(controller.getBasePath()));
+        manager.addProxy(RestDataProxy.DESTINATION_TYPE_HTTP, new RestDataProxy(controller.getRootPath()));
 
     }
 }

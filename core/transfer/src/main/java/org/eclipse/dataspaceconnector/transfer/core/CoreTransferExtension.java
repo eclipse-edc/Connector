@@ -59,7 +59,8 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("dataspaceconnector:statuschecker", "dataspaceconnector:dispatcher", "dataspaceconnector:manifestgenerator", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable", DataProxyManager.FEATURE);
+        return Set.of("dataspaceconnector:statuschecker", "dataspaceconnector:dispatcher", "dataspaceconnector:manifestgenerator",
+                "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable", DataProxyManager.FEATURE);
     }
 
     @Override

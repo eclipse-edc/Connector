@@ -104,10 +104,10 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         invokeForEach(l -> l.created(process));
 
         //todo: fetch url, generate temporary token, encode that into the response
-        var obj = dataProxyManager.getProxy(dataRequest);
-        if (obj != null) {
-            Object data = obj.getData(dataRequest);
-            return TransferResponse.Builder.newInstance().id(process.getId()).data(data).status(ResponseStatus.OK).build();
+        var dataProxy = dataProxyManager.getProxy(dataRequest);
+        if (dataProxy != null) {
+            Object proxyData = dataProxy.getData(dataRequest);
+            return TransferResponse.Builder.newInstance().id(process.getId()).data(proxyData).status(ResponseStatus.OK).build();
         }
         return TransferResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.FATAL_ERROR).build();
     }

@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 public interface DataProxyManager {
     String FEATURE = "edc:transfer:dataproxyregistry";
 
-    void addProxy(DataProxy proxy);
+    void addProxy(String type, DataProxy proxy);
 
     DataProxy getProxy(DataRequest dataRequest);
 }

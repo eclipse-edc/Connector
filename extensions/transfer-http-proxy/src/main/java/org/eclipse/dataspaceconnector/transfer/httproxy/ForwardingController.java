@@ -42,7 +42,7 @@ public class ForwardingController {
         this.client = client;
     }
 
-    public String getBasePath() {
+    public String getRootPath() {
         return "/artifacts";
     }
 

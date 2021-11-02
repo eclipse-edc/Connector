@@ -4,25 +4,23 @@ import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxy;
 import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class DataProxyManagerImpl implements DataProxyManager {
-    private final List<DataProxy> proxies;
+    private final Map<String, DataProxy> proxies;
 
     public DataProxyManagerImpl() {
-        proxies = new ArrayList<>();
+        proxies = new ConcurrentHashMap<>();
     }
 
     @Override
-    public void addProxy(DataProxy proxy) {
-        if (!proxies.contains(proxy)) {
-            proxies.add(proxy);
-        }
+    public void addProxy(String type, DataProxy proxy) {
+        proxies.put(type, proxy);
     }
 
     @Override
     public DataProxy getProxy(DataRequest dataRequest) {
-        return proxies.stream().filter(p -> p.canHandle(dataRequest)).findFirst().orElse(null);
+        return proxies.get(dataRequest.getDestinationType());
     }
 }
