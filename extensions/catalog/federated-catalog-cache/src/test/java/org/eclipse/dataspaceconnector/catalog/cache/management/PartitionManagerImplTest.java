@@ -44,16 +44,7 @@ public class PartitionManagerImplTest {
     @BeforeEach
     void setup() {
         staticWorkload = List.of(new TestWorkItem());
-        partitionManager = new PartitionManagerImpl(monitorMock, workItemQueueMock, mockCrawler(), 5, staticWorkload);
-    }
-
-    @NotNull
-    private Function<WorkItemQueue, Crawler> mockCrawler() {
-        return workItems -> {
-            Crawler mock = niceMock(Crawler.class);
-            replay(mock);
-            return mock;
-        };
+        partitionManager = new PartitionManagerImpl(monitorMock, workItemQueueMock, mockCrawler(), 5, () -> staticWorkload);
     }
 
     @Test
@@ -106,9 +97,18 @@ public class PartitionManagerImplTest {
             replay(crawler);
             list.add(crawler);
             return crawler;
-        }, 5, staticWorkload);
+        }, 5, () -> staticWorkload);
 
         partitionManager.stop();
         list.forEach(EasyMock::verify);
+    }
+
+    @NotNull
+    private Function<WorkItemQueue, Crawler> mockCrawler() {
+        return workItems -> {
+            Crawler mock = niceMock(Crawler.class);
+            replay(mock);
+            return mock;
+        };
     }
 }

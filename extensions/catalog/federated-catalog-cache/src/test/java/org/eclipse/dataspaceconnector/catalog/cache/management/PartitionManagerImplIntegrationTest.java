@@ -89,7 +89,7 @@ class PartitionManagerImplIntegrationTest {
             return null;
         }).anyTimes();
         replay(queueListener);
-        var partitionManager = new PartitionManagerImpl(monitorMock, signallingWorkItemQueue, generatorFunction, crawlerCount, staticWorkLoad);
+        var partitionManager = new PartitionManagerImpl(monitorMock, signallingWorkItemQueue, generatorFunction, crawlerCount, () -> staticWorkLoad);
         partitionManager.schedule(new RunOnceExecutionPlan());
         assertThat(latch.await(1, TimeUnit.MINUTES)).withFailMessage("latch was expected to be 0 but was: " + latch.getCount()).isTrue();
 

@@ -15,6 +15,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -24,21 +25,20 @@ public class PartitionManagerImpl implements PartitionManager {
     private final Function<WorkItemQueue, Crawler> crawlerGenerator;
     private final List<Crawler> crawlers;
     private final WorkItemQueue workQueue;
-    private final List<WorkItem> staticWorkLoad;
+    private final Supplier<List<WorkItem>> staticWorkLoad;
     private ExecutorService crawlerScheduler;
 
     /**
      * Instantiates a new PartitionManagerImpl.
      *
-     * @param workQueue        An implementation of a blocking {@link WorkItemQueue}
      * @param monitor          A {@link Monitor}
+     * @param workQueue        An implementation of a blocking {@link WorkItemQueue}
      * @param crawlerGenerator A generator function that MUST create a new instance of a {@link Crawler}
      * @param numCrawlers      A number indicating how many {@code Crawler} instances should be generated.
      *                         Note that the PartitionManager may choose to generate more or less, e.g. because of constrained system resources.
      * @param staticWorkLoad   A fixed list of {@link WorkItem} instances that need to be processed on every execution run. This list is treated as immutable,
-     *                         the PartitionManager will only read from it.
      */
-    public PartitionManagerImpl(Monitor monitor, WorkItemQueue workQueue, Function<WorkItemQueue, Crawler> crawlerGenerator, int numCrawlers, List<WorkItem> staticWorkLoad) {
+    public PartitionManagerImpl(Monitor monitor, WorkItemQueue workQueue, Function<WorkItemQueue, Crawler> crawlerGenerator, int numCrawlers, Supplier<List<WorkItem>> staticWorkLoad) {
         this.monitor = monitor;
         this.staticWorkLoad = staticWorkLoad;
         this.workQueue = workQueue;
@@ -67,11 +67,12 @@ public class PartitionManagerImpl implements PartitionManager {
     @Override
     public void schedule(ExecutionPlan executionPlan) {
         //todo: should we really discard updates?
+        var currentList = staticWorkLoad.get();
         executionPlan.run(() -> {
             monitor.debug("partition manager: execute plan - waiting for queue lock");
             workQueue.lock();
-            monitor.debug("partition manager: execute plan - adding workload " + staticWorkLoad.size());
-            workQueue.addAll(staticWorkLoad);
+            monitor.debug("partition manager: execute plan - adding workload " + currentList.size());
+            workQueue.addAll(currentList);
             monitor.debug("partition manager: execute release queue lock");
             workQueue.unlock();
         });
@@ -98,7 +99,9 @@ public class PartitionManagerImpl implements PartitionManager {
     }
 
     private void startCrawlers(List<Crawler> crawlers) {
-        if (crawlerScheduler != null) crawlerScheduler.shutdownNow();
+        if (crawlerScheduler != null) {
+            crawlerScheduler.shutdownNow();
+        }
 
         crawlerScheduler = Executors.newScheduledThreadPool(crawlers.size());
         crawlers.forEach(crawlerScheduler::submit);

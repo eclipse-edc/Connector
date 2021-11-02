@@ -8,5 +8,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
  */
 @FunctionalInterface
 public interface QueryEngine {
+    String FEATURE = "edc:catalog:query:engine";
+
     QueryResponse getCatalog(CacheQuery query);
 }

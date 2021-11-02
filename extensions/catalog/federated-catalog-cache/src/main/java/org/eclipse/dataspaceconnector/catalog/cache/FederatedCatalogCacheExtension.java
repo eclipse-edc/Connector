@@ -17,6 +17,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.Loader;
 import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
 import org.eclipse.dataspaceconnector.catalog.spi.PartitionConfiguration;
 import org.eclipse.dataspaceconnector.catalog.spi.PartitionManager;
+import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
@@ -34,11 +35,13 @@ import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
 public class FederatedCatalogCacheExtension implements ServiceExtension {
+    public static final int DEFAULT_NUM_CRAWLERS = 1;
     private static final int DEFAULT_QUEUE_LENGTH = 50;
     private static final int DEFAULT_BATCH_SIZE = 1;
     private static final int DEFAULT_RETRY_TIMEOUT_MILLIS = 2000;
@@ -50,7 +53,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(Crawler.FEATURE, LoaderManager.FEATURE);
+        return Set.of(Crawler.FEATURE, LoaderManager.FEATURE, QueryEngine.FEATURE);
     }
 
     @Override
@@ -67,6 +70,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         queryAdapterRegistry.register(new DefaultCacheQueryAdapter(store));
         var webService = context.getService(WebService.class);
         var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
+        context.registerService(QueryEngine.class, queryEngine);
         monitor = context.getMonitor();
         var catalogController = new CatalogController(monitor, queryEngine);
         webService.registerController(catalogController);
@@ -117,14 +121,14 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         var directory = context.getService(FederatedCacheNodeDirectory.class);
 
         // use all nodes EXCEPT self
-        List<WorkItem> nodes = directory.getAll().stream()
+        Supplier<List<WorkItem>> nodes = () -> directory.getAll().stream()
                 .filter(node -> !node.getName().equals(context.getConnectorId()))
                 .map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
 
         return new PartitionManagerImpl(monitor,
                 new InMemoryWorkItemQueue(partitionManagerConfig.getWorkItemQueueSize(10)),
                 workItems -> createCrawler(workItems, context, protocolAdapterRegistry, updateResponseQueue),
-                partitionManagerConfig.getNumCrawlers(2),
+                partitionManagerConfig.getNumCrawlers(DEFAULT_NUM_CRAWLERS),
                 nodes);
     }
 
