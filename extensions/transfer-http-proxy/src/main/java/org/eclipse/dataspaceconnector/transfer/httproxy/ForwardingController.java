@@ -6,8 +6,12 @@ import jakarta.ws.rs.HeaderParam;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.UriBuilder;
+import jakarta.ws.rs.core.UriInfo;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
@@ -15,6 +19,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
 import java.util.Objects;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -42,7 +48,7 @@ public class ForwardingController {
 
     @GET
     @Path("/{id}")
-    public Response getData(@HeaderParam("Authorization") String bearerToken, @PathParam("id") String assetId) {
+    public Response getData(@HeaderParam("Authorization") String bearerToken, @PathParam("id") String assetId, @Context UriInfo uriInfo) throws MalformedURLException {
         monitor.info("Validate token for proxy");
         monitor.warning("Token validation not yet fully implemented!");
         if (bearerToken == null) {
@@ -62,12 +68,17 @@ public class ForwardingController {
             var targetUrl = dataAddress.getProperty(PROPERTY_TARGET_URL);
             var secretName = dataAddress.getProperty(PROPERTY_API_KEY_NAME);
 
-            var request = new Request.Builder().get().url(targetUrl);
+            var targetUri = addQueryParams(targetUrl, uriInfo.getQueryParameters());
 
+            var request = new Request.Builder().get().url(targetUri.toURL());
+
+            // attach an API key as auth header, if present
             if (secretName != null) {
                 var apiKey = vault.resolveSecret(secretName);
                 request.header("Authorization", Objects.requireNonNull(apiKey));
             }
+
+            // add all query params of the incoming request to the outgoing one
 
             try (var response = client.newCall(request.build()).execute()) {
                 if (response.isSuccessful()) {
@@ -77,10 +88,17 @@ public class ForwardingController {
             } catch (IOException ex) {
                 return Response.serverError().build();
             }
+        } else {
+            monitor.severe("A target URL for the requestes Asset does not exist");
         }
 
-
         return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    private URI addQueryParams(String uri, MultivaluedMap<String, String> queryParameters) {
+        var uriBuilder = UriBuilder.fromUri(uri);
+        queryParameters.forEach((s, strings) -> uriBuilder.queryParam(s, strings.toArray()));
+        return uriBuilder.build();
 
     }
 }
