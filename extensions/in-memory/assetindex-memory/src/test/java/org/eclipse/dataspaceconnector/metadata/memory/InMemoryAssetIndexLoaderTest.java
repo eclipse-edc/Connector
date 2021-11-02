@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
@@ -15,7 +14,6 @@ import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.easymock.EasyMock.niceMock;
 
 public class InMemoryAssetIndexLoaderTest {
 
@@ -33,7 +31,8 @@ public class InMemoryAssetIndexLoaderTest {
 
     @Test
     void insert_illegalParams() {
-        assertThatThrownBy(() -> assetIndexLoader.insert(null, niceMock(DataAddress.class))).isInstanceOf(NullPointerException.class);
+        var dataAddress = DataAddress.Builder.newInstance().build();
+        assertThatThrownBy(() -> assetIndexLoader.insert(null, dataAddress)).isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> assetIndexLoader.insert(createAsset("testasset", "testid"), null)).isInstanceOf(NullPointerException.class);
     }
 
@@ -54,7 +53,6 @@ public class InMemoryAssetIndexLoaderTest {
 
     @BeforeEach
     void setup() {
-        Monitor monitorMock = niceMock(Monitor.class);
         assetIndexLoader = new InMemoryAssetIndex(new CriterionToPredicateConverter());
     }
 
