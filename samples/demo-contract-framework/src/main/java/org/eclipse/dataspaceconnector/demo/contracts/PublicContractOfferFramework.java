@@ -50,7 +50,7 @@ public class PublicContractOfferFramework implements ContractOfferFramework {
 
         @Override
         public AssetSelectorExpression getSelectorExpression() {
-            return AssetSelectorExpression.Builder.newInstance().build();
+            return AssetSelectorExpression.SELECT_ALL;
         }
 
         private ContractOffer createContractOffer(Asset asset) {

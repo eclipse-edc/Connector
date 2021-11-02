@@ -17,11 +17,18 @@ plugins {
 }
 
 val jupiterVersion: String by project
+val rsApi: String by project
 
 dependencies {
     api(project(":spi"))
-    api(project(":core:bootstrap"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    api(project(":core"))
+    api(project(":extensions:in-memory:assetindex-memory"))
+    api(project(":extensions:in-memory:transfer-store-memory"))
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
+    testImplementation(testFixtures(project(":launchers:junit")))
 }

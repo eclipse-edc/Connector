@@ -14,8 +14,13 @@
 
 package org.eclipse.dataspaceconnector.demo.contracts;
 
+import org.eclipse.dataspaceconnector.contract.ContractOfferServiceImpl;
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndexWriter;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -35,12 +40,24 @@ public class DemoContractOfferFrameworkExtension implements ServiceExtension {
     }
 
     @Override
+    public Set<String> requires() {
+        return Set.of(AssetIndex.FEATURE, "edc:webservice");
+    }
+
+    @Override
     public void initialize(final ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        final PublicContractOfferFramework contractOfferFramework = new PublicContractOfferFramework();
-
+        var contractOfferFramework = new PublicContractOfferFramework();
         context.registerService(ContractOfferFramework.class, contractOfferFramework);
+
+        var assetIndex = context.getService(AssetIndex.class);
+        var webService = context.getService(WebService.class);
+        var assetIndexWriter = new InMemoryAssetIndexWriter((InMemoryAssetIndex) assetIndex);
+        var contractOfferService = new ContractOfferServiceImpl(contractOfferFramework, assetIndex);
+
+        webService.registerController(new AssetIndexController(assetIndexWriter));
+        webService.registerController(new ContractOfferController(contractOfferService));
 
         monitor.info(String.format("Initialized %s", NAME));
     }

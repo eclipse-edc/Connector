@@ -89,7 +89,6 @@ include(":launchers:ids-connector")
 include(":launchers:registration-service-app")
 
 // modules for code samples
-include(":samples:demo-asset-index")
 include(":samples:demo-contract-framework")
 include(":samples:other:commandline:consumer")
 include(":samples:other:commandline:consumer-runtime")

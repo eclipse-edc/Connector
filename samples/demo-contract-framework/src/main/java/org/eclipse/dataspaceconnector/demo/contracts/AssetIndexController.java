@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.demo.assetindex;
+package org.eclipse.dataspaceconnector.demo.contracts;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
@@ -21,7 +21,6 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndexWriter;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
@@ -38,19 +37,10 @@ import static java.util.stream.Collectors.toList;
 @Path("/assets")
 public class AssetIndexController {
 
-    private final AssetIndex assetIndex;
     private final AssetIndexWriter assetIndexWriter;
 
-    public AssetIndexController(AssetIndex assetIndex, AssetIndexWriter assetIndexWriter) {
-        this.assetIndex = assetIndex;
+    public AssetIndexController(AssetIndexWriter assetIndexWriter) {
         this.assetIndexWriter = assetIndexWriter;
-    }
-
-    @GET
-    public Response getAssets() {
-        Stream<Asset> assets = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL);
-
-        return Response.ok(assets.collect(toList())).build();
     }
 
     @POST

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.demo.assetindex;
+package org.eclipse.dataspaceconnector.demo.contracts;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import okhttp3.MediaType;
@@ -23,9 +23,7 @@ import okhttp3.Response;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +35,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(EdcExtension.class)
-public class DemoAssetIndexExtensionTest {
+public class DemoContractOfferFrameworkExtensionTest {
 
     private static final String HTTP_PORT = "9999";
 
@@ -47,16 +45,16 @@ public class DemoAssetIndexExtensionTest {
     }
 
     @Test
-    void insertAndRetrieveAssets(OkHttpClient httpClient, TypeManager typeManager) {
-        AssetsClient assetsClient = new AssetsClient(httpClient, typeManager);
-        Map<String, String> requestBody = Map.of("id", "anId", "path", "/a/valid/path");
-        assetsClient.post(requestBody);
+    void retrieveContractOffers(OkHttpClient httpClient, TypeManager typeManager) {
+        ConnectorClient client = new ConnectorClient(httpClient, typeManager);
+        client.indexAsset(Map.of("id", "anId", "path", "/a/valid/path"));
 
-        List<Asset> assets = assetsClient.getAll();
+        List<Map<String, Object>> contractOffers = client.getAllContractOffers();
 
-        assertThat(assets).hasSize(1).element(0)
-                .matches(it -> "anId".equals(it.getId()))
-                .matches(it -> "/a/valid/path".equals(it.getProperties().get("path")));
+        assertThat(contractOffers).hasSize(1).element(0)
+                .extracting("assets").asList().element(0)
+                .extracting("asset").extracting("id")
+                .isEqualTo("anId");
     }
 
     @NotNull
@@ -69,38 +67,38 @@ public class DemoAssetIndexExtensionTest {
         };
     }
 
-    private static class AssetsClient {
-
+    private class ConnectorClient {
         private final OkHttpClient httpClient;
         private final TypeManager typeManager;
-        private final String url = String.format("http://localhost:%s/api/assets", HTTP_PORT);
+        private final String url = String.format("http://localhost:%s/api", HTTP_PORT);
 
-        public AssetsClient(OkHttpClient httpClient, TypeManager typeManager) {
+        public ConnectorClient(OkHttpClient httpClient, TypeManager typeManager) {
             this.httpClient = httpClient;
             this.typeManager = typeManager;
         }
 
-        public void post(Map<String, String> requestData) {
+        public void indexAsset(Map<String, String> requestData) {
             RequestBody requestBody = RequestBody.create(typeManager.writeValueAsBytes(requestData), MediaType.get("application/json"));
-            Request request = new Request.Builder().url(url)
+            Request request = new Request.Builder().url(url + "/assets")
                     .post(requestBody)
                     .build();
 
             try (Response response = httpClient.newCall(request).execute()) {
                 assertThat(response.code()).isEqualTo(200);
             } catch (IOException e) {
-                throw new RuntimeException();
+                throw new RuntimeException(e);
             }
         }
 
-        public List<Asset> getAll() {
-            Request request = new Request.Builder().url(url).get().build();
+        public List<Map<String, Object>> getAllContractOffers() {
+            Request request = new Request.Builder().url(url + "/offers")
+                    .get().build();
 
             try (Response response = httpClient.newCall(request).execute()) {
                 assertThat(response.code()).isEqualTo(200);
                 return typeManager.readValue(response.body().string(), new TypeReference<>() {});
             } catch (IOException e) {
-                throw new RuntimeException();
+                throw new RuntimeException(e);
             }
         }
     }
