@@ -11,17 +11,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
-import java.util.Random;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.easymock.EasyMock.niceMock;
 
-// this test aims at testing the thread-safety of the asset index
 public class InMemoryAssetIndexLoaderTest {
 
-    private final Random random = new Random();
     private AssetIndexLoader assetIndexLoader;
 
     @Test
