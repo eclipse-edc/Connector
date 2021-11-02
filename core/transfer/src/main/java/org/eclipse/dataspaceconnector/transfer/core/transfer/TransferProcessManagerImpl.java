@@ -20,12 +20,14 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
@@ -63,6 +65,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private Monitor monitor;
     private ExecutorService executor;
     private StatusCheckerRegistry statusCheckerRegistry;
+    private DataProxyManager dataProxyManager;
 
     private TransferProcessManagerImpl() {
 
@@ -92,6 +95,22 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return initiateRequest(PROVIDER, dataRequest);
     }
 
+    @Override
+    public TransferResponse processRequestSync(DataRequest dataRequest) {
+        //create a transfer process in the COMPLETED state
+        var id = randomUUID().toString();
+        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(PROVIDER).build();
+        transferProcessStore.create(process);
+        invokeForEach(l -> l.created(process));
+
+        //todo: fetch url, generate temporary token, encode that into the response
+        var obj = dataProxyManager.getProxy(dataRequest);
+        if (obj != null) {
+            Object data = obj.getData(dataRequest);
+            return TransferResponse.Builder.newInstance().id(process.getId()).data(data).status(ResponseStatus.OK).build();
+        }
+        return TransferResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.FATAL_ERROR).build();
+    }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
@@ -366,6 +385,11 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
 
         public Builder monitor(Monitor monitor) {
             manager.monitor = monitor;
+            return this;
+        }
+
+        public Builder dataProxyRegistry(DataProxyManager registry) {
+            manager.dataProxyManager = registry;
             return this;
         }
 

@@ -28,12 +28,15 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
+import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 
@@ -56,7 +59,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("dataspaceconnector:statuschecker", "dataspaceconnector:dispatcher", "dataspaceconnector:manifestgenerator", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable");
+        return Set.of("dataspaceconnector:statuschecker", "dataspaceconnector:dispatcher", "dataspaceconnector:manifestgenerator", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable", DataProxyManager.FEATURE);
     }
 
     @Override
@@ -92,6 +95,9 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
 
+        var dataProxyRegistry = new DataProxyManagerImpl();
+        context.registerService(DataProxyManager.class, dataProxyRegistry);
+
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
@@ -99,6 +105,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .provisionManager(provisionManager)
                 .dispatcherRegistry(dispatcherRegistry)
                 .statusCheckerRegistry(statusCheckerRegistry)
+                .dataProxyRegistry(dataProxyRegistry)
                 .monitor(monitor)
                 .build();
 
