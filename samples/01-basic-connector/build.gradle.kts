@@ -21,6 +21,7 @@ plugins {
 dependencies {
     implementation(project(":core"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
+    implementation(project(":extensions:in-memory:assetindex-memory"))
 }
 
 application {

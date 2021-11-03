@@ -33,6 +33,8 @@ dependencies {
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:metadata-memory"))
+    implementation(project(":extensions:in-memory:assetindex-memory"))
+
     implementation(project(":extensions:azure:vault"))
 
     implementation(project(":data-protocols:ids"))
