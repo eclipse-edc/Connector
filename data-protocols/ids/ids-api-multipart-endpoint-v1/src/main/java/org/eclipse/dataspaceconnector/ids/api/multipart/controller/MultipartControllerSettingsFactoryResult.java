@@ -41,7 +41,7 @@ public class MultipartControllerSettingsFactoryResult {
         return Collections.unmodifiableList(errors != null ? errors : Collections.emptyList());
     }
 
-    public static final class Builder {
+    static final class Builder {
         private MultipartControllerSettings multipartControllerSettings;
         private List<String> errors;
 

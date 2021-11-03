@@ -36,8 +36,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -51,9 +49,9 @@ public class MultipartControllerTest {
     private MultipartControllerSettings multipartControllerSettings;
 
     @BeforeEach
-    public void setup() throws URISyntaxException {
+    public void setup() {
         multipartHandlers = new ArrayList<>();
-        URI connectorId = new URI("https://example.com");
+        String connectorId = "https://example.com";
 
         identityService = EasyMock.createMock(IdentityService.class);
         multipartControllerSettings = EasyMock.createMock(MultipartControllerSettings.class);

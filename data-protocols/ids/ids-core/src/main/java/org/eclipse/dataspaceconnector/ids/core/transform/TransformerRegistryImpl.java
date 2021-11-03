@@ -30,7 +30,7 @@ import java.util.Objects;
  * Implements a {@link TransformerRegistry} that recursively dispatches to transformers for type conversion.
  */
 public class TransformerRegistryImpl implements TransformerRegistry {
-    private Map<TransformKey, IdsTypeTransformer<?, ?>> transformers = new HashMap<>();
+    private final Map<TransformKey, IdsTypeTransformer<?, ?>> transformers = new HashMap<>();
 
     @Override
     public void register(IdsTypeTransformer<?, ?> transformer) {
@@ -45,7 +45,7 @@ public class TransformerRegistryImpl implements TransformerRegistry {
         return context.hasProblems() ? new TransformResult<>(context.problems) : new TransformResult<>(output);
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private <INPUT, OUTPUT> @Nullable OUTPUT transform(INPUT object, Class<OUTPUT> outputType, TransformerContext context) {
         Objects.requireNonNull(object);
         var key = new TransformKey(object.getClass(), outputType);
@@ -57,8 +57,8 @@ public class TransformerRegistryImpl implements TransformerRegistry {
     }
 
     private static class TransformKey {
-        final Class<?> input;
-        final Class<?> output;
+        private final Class<?> input;
+        private final Class<?> output;
 
         public TransformKey(Class<?> input, Class<?> output) {
             Objects.requireNonNull(input);
@@ -90,9 +90,8 @@ public class TransformerRegistryImpl implements TransformerRegistry {
     }
 
     private static class TransformerContextImpl implements TransformerContext {
-        private TransformerRegistryImpl registry;
-
         private final List<String> problems = new ArrayList<>();
+        private final TransformerRegistryImpl registry;
 
         public TransformerContextImpl(TransformerRegistryImpl registry) {
             this.registry = registry;

@@ -27,7 +27,8 @@ import java.net.URI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class RejectionMessageUtilTest {
-    private final URI connectorId = URI.create("urn:connector:38bfeade-3566-11ec-8d3d-0242ac130003");
+    private final String connectorId = "38bfeade-3566-11ec-8d3d-0242ac130003";
+    private final URI connectorIdUri = URI.create("urn:connector:" + connectorId);
     private final URI correlationMessageId = URI.create("urn:message:7c35205e-3566-11ec-8d3d-0242ac130003");
     private final URI senderAgent = URI.create("urn:sender:7c352356-3566-11ec-8d3d-0242ac130003");
     private final URI issuerConnector = URI.create("urn:issuer:7c35255e-3566-11ec-8d3d-0242ac130003");
@@ -213,7 +214,7 @@ class RejectionMessageUtilTest {
     private void assertConnectorIdPropertiesMapped(RejectionMessage rejectionMessage) {
         assertThat(rejectionMessage).isNotNull();
 
-        assertThat(rejectionMessage.getIssuerConnector()).isEqualTo(connectorId);
-        assertThat(rejectionMessage.getSenderAgent()).isEqualTo(connectorId);
+        assertThat(rejectionMessage.getIssuerConnector()).isEqualTo(connectorIdUri);
+        assertThat(rejectionMessage.getSenderAgent()).isEqualTo(connectorIdUri);
     }
 }
