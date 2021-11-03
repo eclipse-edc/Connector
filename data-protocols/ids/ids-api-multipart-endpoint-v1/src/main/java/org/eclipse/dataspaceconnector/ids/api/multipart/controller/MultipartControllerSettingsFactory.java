@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.ids.core.configuration.IllegalSettingExcep
 import org.eclipse.dataspaceconnector.ids.core.configuration.SettingResolver;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -35,7 +34,7 @@ public class MultipartControllerSettingsFactory {
     public MultipartControllerSettingsFactoryResult createRejectionMessageFactorySettings() {
         List<String> errors = new ArrayList<>();
 
-        URI id = null;
+        String id = null;
 
         try {
             id = settingResolver.resolveId();

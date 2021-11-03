@@ -14,8 +14,37 @@
 
 package org.eclipse.dataspaceconnector.ids.spi.types;
 
+import java.util.Arrays;
+import java.util.stream.Collectors;
+
 public enum SecurityProfile {
-    BASE_SECURITY_PROFILE,
-    TRUST_SECURITY_PROFILE,
-    TRUST_PLUS_SECURITY_PROFILE;
+    BASE_SECURITY_PROFILE("base"),
+    TRUST_SECURITY_PROFILE("trust"),
+    TRUST_PLUS_SECURITY_PROFILE("trust-plus");
+
+    private final String value;
+
+    SecurityProfile(String value) {
+        this.value = value;
+    }
+
+    public static SecurityProfile fromValue(String value) {
+        for (SecurityProfile securityProfile : SecurityProfile.values()) {
+            if (securityProfile.value.equalsIgnoreCase(value)) {
+                return securityProfile;
+            }
+        }
+
+        throw new IllegalArgumentException(
+                String.format(
+                        "IDS Settings: Invalid security profile '%s'. Valid profiles: [%s]",
+                        value,
+                        Arrays.stream(SecurityProfile.values()).map(Enum::toString).collect(Collectors.joining(", "))
+                )
+        );
+    }
+
+    public String getValue() {
+        return value;
+    }
 }

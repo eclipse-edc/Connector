@@ -16,22 +16,20 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import org.jetbrains.annotations.Nullable;
 
-import java.net.URI;
-
 public class DescriptionHandlerSettings {
-    private final URI id;
+    private final String id;
 
-    private DescriptionHandlerSettings(@Nullable URI id) {
+    private DescriptionHandlerSettings(@Nullable String id) {
         this.id = id;
     }
 
     @Nullable
-    public URI getId() {
+    public String getId() {
         return id;
     }
 
-    public static class Builder {
-        private URI id;
+    static class Builder {
+        private String id;
 
         public static Builder newInstance() {
             return new Builder();
@@ -40,7 +38,7 @@ public class DescriptionHandlerSettings {
         private Builder() {
         }
 
-        public Builder id(@Nullable URI id) {
+        public Builder id(@Nullable String id) {
             this.id = id;
             return this;
         }

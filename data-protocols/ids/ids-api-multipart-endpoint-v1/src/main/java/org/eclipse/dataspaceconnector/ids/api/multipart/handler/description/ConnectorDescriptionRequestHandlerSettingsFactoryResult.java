@@ -15,33 +15,33 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public class ConnectorDescriptionRequestHandlerSettingsFactoryResult {
     private final ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings;
     private final List<String> errors;
 
     private ConnectorDescriptionRequestHandlerSettingsFactoryResult(
-            @Nullable ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings,
-            @Nullable List<String> errors) {
-        this.connectorDescriptionRequestHandlerSettings = connectorDescriptionRequestHandlerSettings;
-        this.errors = errors;
+            @NotNull ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings,
+            @NotNull List<String> errors) {
+        this.connectorDescriptionRequestHandlerSettings = Objects.requireNonNull(connectorDescriptionRequestHandlerSettings);
+        this.errors = Objects.requireNonNull(errors);
     }
 
-    @Nullable
-    public ConnectorDescriptionRequestHandlerSettings getConnectorDescriptionRequestHandlerSettings() {
+    @NotNull
+    public ConnectorDescriptionRequestHandlerSettings getSettings() {
         return connectorDescriptionRequestHandlerSettings;
     }
 
     @NotNull
     public List<String> getErrors() {
-        return Collections.unmodifiableList(errors != null ? errors : Collections.emptyList());
+        return Collections.unmodifiableList(errors);
     }
 
-    public static final class Builder {
+    static final class Builder {
         private ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings;
         private List<String> errors;
 
@@ -49,13 +49,13 @@ public class ConnectorDescriptionRequestHandlerSettingsFactoryResult {
             return new Builder();
         }
 
-        public Builder connectorDescriptionRequestHandlerSettings(@Nullable ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings) {
-            this.connectorDescriptionRequestHandlerSettings = connectorDescriptionRequestHandlerSettings;
+        public Builder settings(@NotNull ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings) {
+            this.connectorDescriptionRequestHandlerSettings = Objects.requireNonNull(connectorDescriptionRequestHandlerSettings);
             return this;
         }
 
-        public Builder errors(@Nullable List<String> errors) {
-            this.errors = errors;
+        public Builder errors(@NotNull List<String> errors) {
+            this.errors = Objects.requireNonNull(errors);
             return this;
         }
 

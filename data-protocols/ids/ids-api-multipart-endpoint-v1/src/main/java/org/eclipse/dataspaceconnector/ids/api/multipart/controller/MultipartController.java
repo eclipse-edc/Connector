@@ -30,8 +30,10 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.malformedMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
@@ -52,12 +54,12 @@ public class MultipartController {
     private final MultipartControllerSettings multipartControllerSettings;
 
     public MultipartController(
-            MultipartControllerSettings multipartControllerSettings,
-            IdentityService identityService,
-            List<Handler> multipartHandlers) {
-        this.identityService = identityService;
-        this.multipartHandlers = multipartHandlers;
-        this.multipartControllerSettings = multipartControllerSettings;
+            @NotNull MultipartControllerSettings multipartControllerSettings,
+            @NotNull IdentityService identityService,
+            @NotNull List<Handler> multipartHandlers) {
+        this.identityService = Objects.requireNonNull(identityService);
+        this.multipartHandlers = Objects.requireNonNull(multipartHandlers);
+        this.multipartControllerSettings = Objects.requireNonNull(multipartControllerSettings);
     }
 
     @POST
@@ -122,7 +124,7 @@ public class MultipartController {
     private FormDataMultiPart createFormDataMultiPart(Object header) {
         return createFormDataMultiPart(header, null);
     }
-    
+
     private FormDataMultiPart createFormDataMultiPart(Object header, Object payload) {
         FormDataMultiPart multiPart = new FormDataMultiPart();
         if (header != null) {

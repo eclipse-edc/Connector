@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRespons
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+
 public interface DescriptionRequestHandler {
 
     @Nullable

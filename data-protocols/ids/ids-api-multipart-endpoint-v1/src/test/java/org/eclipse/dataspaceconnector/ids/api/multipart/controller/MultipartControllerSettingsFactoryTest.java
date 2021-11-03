@@ -21,19 +21,17 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.net.URISyntaxException;
 
 public class MultipartControllerSettingsFactoryTest {
 
-    private URI connectorId;
+    private static final String CONNECTOR_ID = "https://example.com";
 
     // mocks
     private SettingResolver settingResolver;
 
     @BeforeEach
-    public void setup() throws URISyntaxException {
-        connectorId = new URI("https://example.com");
+    public void setup() {
         settingResolver = EasyMock.createMock(SettingResolver.class);
     }
 
@@ -41,7 +39,7 @@ public class MultipartControllerSettingsFactoryTest {
     public void testErrorsPartOfResponse() throws IllegalSettingException {
         // prepare
         var reason = "test-reason";
-        var exception = new IllegalSettingException(reason);
+        var exception = new IllegalSettingException("setting", reason);
         var multipartControllerSettingsFactory = new MultipartControllerSettingsFactory(settingResolver);
 
         EasyMock.expect(settingResolver.resolveId()).andThrow(exception);
@@ -60,7 +58,7 @@ public class MultipartControllerSettingsFactoryTest {
         // prepare
         var multipartControllerSettingsFactory = new MultipartControllerSettingsFactory(settingResolver);
 
-        EasyMock.expect(settingResolver.resolveId()).andReturn(connectorId);
+        EasyMock.expect(settingResolver.resolveId()).andReturn(CONNECTOR_ID);
         EasyMock.replay(settingResolver);
 
         // invoke
@@ -68,6 +66,6 @@ public class MultipartControllerSettingsFactoryTest {
 
         //validate
         Assertions.assertNotNull(result.getRejectionMessageFactorySettings());
-        Assertions.assertEquals(connectorId, result.getRejectionMessageFactorySettings().getId());
+        Assertions.assertEquals(CONNECTOR_ID, result.getRejectionMessageFactorySettings().getId());
     }
 }
