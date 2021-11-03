@@ -48,7 +48,7 @@ jobs:
           echo "Checking Sample 01"
           java -jar samples/01-basic-connector/build/libs/basic-connector.jar > log.txt &
           sleep 5
-          grep "INFO.*edc-.*ready" log.txt
+          grep "INFO.*edc-.*readasdfy" log.txt 
           rm log.txt
           killall java
 
