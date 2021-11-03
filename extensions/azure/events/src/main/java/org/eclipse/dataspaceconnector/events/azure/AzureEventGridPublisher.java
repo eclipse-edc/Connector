@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.events.azure;
 import com.azure.core.util.BinaryData;
 import com.azure.messaging.eventgrid.EventGridEvent;
 import com.azure.messaging.eventgrid.EventGridPublisherAsyncClient;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataListener;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -26,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 import reactor.core.publisher.BaseSubscriber;
 import reactor.core.publisher.Mono;
 
-class AzureEventGridPublisher implements TransferProcessListener, MetadataListener {
+class AzureEventGridPublisher implements TransferProcessListener {
 
     private final Monitor monitor;
     private final EventGridPublisherAsyncClient<EventGridEvent> client;
@@ -72,26 +71,6 @@ class AzureEventGridPublisher implements TransferProcessListener, MetadataListen
     public void error(TransferProcess process) {
         sendEvent("error", eventTypeTransferprocess, createTransferProcessDto(process)).subscribe(new LoggingSubscriber<>("Transfer process errored!"));
 
-    }
-
-    @Override
-    public void querySubmitted() {
-        sendEvent("queryReceived", eventTypeMetadata, new EventDto(connectorId)).subscribe(new LoggingSubscriber<>("query submitted"));
-    }
-
-    @Override
-    public void searchInitiated() {
-        sendEvent("searchInitiated", eventTypeMetadata, new EventDto(connectorId)).subscribe(new LoggingSubscriber<>("search initiated"));
-    }
-
-    @Override
-    public void metadataItemAdded() {
-        sendEvent("itemAdded", eventTypeMetadata, new EventDto(connectorId)).subscribe(new LoggingSubscriber<>("AzureEventGrid: metadata item added"));
-    }
-
-    @Override
-    public void metadataItemUpdated() {
-        sendEvent("itemUpdated", eventTypeMetadata, new EventDto(connectorId)).subscribe(new LoggingSubscriber<>("metadata item updated"));
     }
 
     private Mono<Void> sendEvent(String what, String where, Object payload) {
