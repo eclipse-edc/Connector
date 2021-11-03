@@ -25,6 +25,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -96,7 +97,7 @@ public class ClientApiController {
         var usRequest = createRequest(
                 connector,
                 UUID.randomUUID().toString(),
-                DataEntry.Builder.newInstance().id(artifact).build(),
+                Asset.Builder.newInstance().id(artifact).build(),
                 destinationBucket,
                 destinationName,
                 destinationRegion);
@@ -112,7 +113,7 @@ public class ClientApiController {
     private DataRequest createRequest(
             final String connector,
             final String id,
-            final DataEntry artifactId,
+            final Asset artifactId,
             final String destinationBucket,
             final String destinationName,
             final String destinationRegion
@@ -121,7 +122,7 @@ public class ClientApiController {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")
-                .dataEntry(artifactId)
+                .asset(artifactId)
                 .connectorId(connector)
                 .connectorAddress(composeConnectorAddress(connector))
                 .dataDestination(DataAddress.Builder.newInstance()

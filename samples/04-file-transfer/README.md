@@ -37,28 +37,32 @@ so-called "catalog". For the sake of simplicity we use an in-memory catalog and 
 
 ```java
 // in FileTransferExtension.java
-@Override
-public void initialize(ServiceExtensionContext context){
+    @Override
+    public void initialize(ServiceExtensionContext context){
         // ...
         registerDataEntries(context);
         // ...
-        }
+    }
 
-private void registerDataEntries(ServiceExtensionContext context){
-        var metadataStore=context.getService(MetadataStore.class);
+    private void registerDataEntries(ServiceExtensionContext context) {
+        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
+        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
-        GenericDataCatalogEntry file1=GenericDataCatalogEntry.Builder.newInstance()
-        .property("type","File")
-        .property("path","/path/to/assets/")
-        .property("filename","test-document.txt")
+        DataAddress dataAddress = DataAddress.Builder.newInstance()
+        .property("type", "File")
+        .property("path", "/home/paul/Documents/")
+        .property("filename", "test-document.txt")
         .build();
 
-        DataEntry entry1=DataEntry.Builder.newInstance().id("test-document").policyId(USE_EU_POLICY).catalogEntry(file1).build();
-        metadataStore.save(entry1);
-        }
+        String assetId = "test-document";
+        Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
+
+        assetIndex.add(asset, dataAddress);
+        dataAddressResolver.add(assetId, dataAddress);
+    }
 ```
 
-This adds a `GenericDataCatalogEntry` to the `MetadataStore` (which is the catalog). Or, in other words, your provider
+This adds a `GenericDataCatalogEntry` to the `AssetIndex` (which is the catalog). Or, in other words, your provider
 now "hosts" one file named `test-documents.txt` located in the path `/path/to/assets/` on your development machine. It
 makes it available for transfer under its `id` `"test-document"`. While it makes sense to have some sort of similarity
 between file name and id, it is by no means mandatory.

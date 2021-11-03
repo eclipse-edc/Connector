@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.api.catalog;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.Collection;
 
@@ -27,6 +27,6 @@ public interface QueryEngine {
     /**
      * Executes a query. Implementations must treat the query as originating from an untrusted source.
      */
-    Collection<DataEntry> execute(String correlationId, ClaimToken consumerToken, String connectorId, String type, String query);
+    Collection<Asset> execute(String correlationId, ClaimToken consumerToken, String connectorId, String type, String query);
 
 }

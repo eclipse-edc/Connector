@@ -15,7 +15,6 @@ package org.eclipse.dataspaceconnector.events.azure;
 
 import com.azure.core.credential.AzureKeyCredential;
 import com.azure.messaging.eventgrid.EventGridPublisherClientBuilder;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataObservable;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -26,7 +25,6 @@ import java.util.Objects;
 import java.util.Set;
 
 public class AzureEventExtension implements ServiceExtension {
-
 
     private Monitor monitor;
 
@@ -44,7 +42,6 @@ public class AzureEventExtension implements ServiceExtension {
 
         monitor.info("Initialized Azure Events Extension");
     }
-
 
     @Override
     public void start() {
@@ -77,13 +74,6 @@ public class AzureEventExtension implements ServiceExtension {
         if (processObservable != null) {
             processObservable.registerListener(publisher);
         }
-
-        var metadataObservable = context.getService(MetadataObservable.class, true);
-        if (metadataObservable != null) {
-            metadataObservable.registerListener(publisher);
-        }
-
-
     }
 
 

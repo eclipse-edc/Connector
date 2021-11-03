@@ -19,7 +19,7 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
@@ -56,13 +56,13 @@ public class TransferFunctionsCoreHttpTest {
                     .build();
         });
 
-        var dataEntry = DataEntry.Builder.newInstance().id("test123").build();
+        var asset = Asset.Builder.newInstance().id("test123").build();
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("ids")
                 .destinationType("foo")
-                .dataEntry(dataEntry)
+                .asset(asset)
                 .managedResources(false)
                 .dataDestination(DataAddress.Builder.newInstance().type("test-protocol1").build())
                 .connectorId("test").build();

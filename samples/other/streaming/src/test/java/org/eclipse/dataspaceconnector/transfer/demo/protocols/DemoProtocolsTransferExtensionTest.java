@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols;
@@ -59,13 +59,13 @@ class DemoProtocolsTransferExtensionTest {
             latch.countDown();
         });
 
-        var dataEntry = DataEntry.Builder.newInstance().id("test123").build();
+        var asset = Asset.Builder.newInstance().id("test123").build();
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("loopback")
                 .destinationType(DemoProtocols.PUSH_STREAM_WS)
-                .dataEntry(dataEntry)
+                .asset(asset)
                 .dataDestination(DataAddress.Builder.newInstance().type(DemoProtocols.PUSH_STREAM_WS)
                         .property(DemoProtocols.DESTINATION_NAME, destinationName).build())
                 .connectorId("test").build();

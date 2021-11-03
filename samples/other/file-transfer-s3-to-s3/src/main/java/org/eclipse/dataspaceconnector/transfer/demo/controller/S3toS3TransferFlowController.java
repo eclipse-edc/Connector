@@ -19,6 +19,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.provision.aws.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
@@ -36,10 +37,12 @@ import software.amazon.awssdk.services.s3.model.S3Exception;
 public class S3toS3TransferFlowController implements DataFlowController {
     private final Vault vault;
     private final Monitor monitor;
+    private final DataAddressResolver dataAddressResolver;
 
-    public S3toS3TransferFlowController(Vault vault, Monitor monitor) {
+    public S3toS3TransferFlowController(Vault vault, Monitor monitor, DataAddressResolver dataAddressResolver) {
         this.vault = vault;
         this.monitor = monitor;
+        this.dataAddressResolver = dataAddressResolver;
     }
 
     @Override
@@ -49,12 +52,10 @@ public class S3toS3TransferFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+        var source = dataAddressResolver.resolveForAsset(dataRequest.getAsset().getId());
 
-        final String sourceKey = dataRequest.getDataEntry().getCatalogEntry().getAddress()
-                .getKeyName();
-
-        final String sourceBucketName = dataRequest.getDataEntry().getCatalogEntry().getAddress()
-                .getProperty(S3BucketSchema.BUCKET_NAME);
+        final String sourceKey = source.getKeyName();
+        final String sourceBucketName = source.getProperty(S3BucketSchema.BUCKET_NAME);
 
         var destinationKey = dataRequest.getDataDestination().getKeyName();
         var awsSecret = vault.resolveSecret(destinationKey);

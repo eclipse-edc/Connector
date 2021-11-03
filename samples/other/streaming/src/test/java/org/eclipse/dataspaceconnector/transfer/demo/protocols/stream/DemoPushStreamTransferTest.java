@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.fixture.AbstractDemoTransferTest;
@@ -60,14 +60,14 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
 
         registry.register(new TestStreamPublisher(requestLatch));
 
-        var dataEntry = DataEntry.Builder.newInstance().id("test123").build();
+        var asset = Asset.Builder.newInstance().id("test123").build();
 
         var destinationWs = DataAddress.Builder.newInstance().type(PUSH_STREAM_WS).property(DESTINATION_NAME, destinationName).build();
         var dataRequestWs = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("loopback")
                 .destinationType(PUSH_STREAM_HTTP)
-                .dataEntry(dataEntry)
+                .asset(asset)
                 .dataDestination(destinationWs)
                 .connectorId("test").build();
 
@@ -97,14 +97,14 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
 
         registry.register(new TestStreamPublisher(requestLatch));
 
-        var dataEntry = DataEntry.Builder.newInstance().id("test123").build();
+        var asset = Asset.Builder.newInstance().id("test123").build();
 
         var destinationHttp = DataAddress.Builder.newInstance().type(PUSH_STREAM_HTTP).property(DESTINATION_NAME, destinationName).build();
         var dataRequestHttp = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol("loopback")
                 .destinationType(PUSH_STREAM_HTTP)
-                .dataEntry(dataEntry)
+                .asset(asset)
                 .dataDestination(destinationHttp)
                 .connectorId("test").build();
 

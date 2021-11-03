@@ -19,8 +19,8 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
 
 /**
  * Polymorphic data request.
@@ -38,7 +38,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private String connectorId;
 
-    private DataEntry dataEntry;
+    private Asset asset;
 
     private DataAddress dataDestination;
 
@@ -91,10 +91,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     /**
-     * The requested data.
+     * The requested asset.
      */
-    public DataEntry getDataEntry() {
-        return dataEntry;
+    public Asset getAsset() {
+        return asset;
     }
 
     /**
@@ -122,7 +122,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .connectorAddress(connectorAddress)
                 .protocol(protocol)
                 .connectorId(connectorId)
-                .dataEntry(dataEntry)    // shallow copy, may need to revisit
+                .asset(asset)
                 .dataAddress(dataDestination)
                 .transferType(transferType)
                 .managedResources(managedResources)
@@ -175,8 +175,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder dataEntry(DataEntry entry) {
-            request.dataEntry = entry;
+        public Builder asset(Asset asset) {
+            request.asset = asset;
             return this;
         }
 

@@ -5,22 +5,22 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
-import org.junit.jupiter.api.Assertions;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 
 class DataRequestTest {
 
     @Test
     void verifyNoDestination() {
-        String id = UUID.randomUUID().toString();
-        DataEntry entry = DataEntry.Builder.newInstance().catalogEntry(GenericDataCatalogEntry.Builder.newInstance().build()).build();
+        var id = UUID.randomUUID().toString();
+        var asset = Asset.Builder.newInstance().build();
 
-        Assertions.assertThrows(IllegalArgumentException.class, () -> DataRequest.Builder.newInstance().id(id).dataEntry(entry).build());
+        assertThrows(IllegalArgumentException.class, () -> DataRequest.Builder.newInstance().id(id).asset(asset).build());
     }
 
 }

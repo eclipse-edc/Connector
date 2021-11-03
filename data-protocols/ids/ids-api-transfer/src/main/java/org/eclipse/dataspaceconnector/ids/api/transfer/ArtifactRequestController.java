@@ -25,7 +25,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -42,6 +42,7 @@ import static de.fraunhofer.iais.eis.RejectionReason.NOT_FOUND;
 import static de.fraunhofer.iais.eis.RejectionReason.TEMPORARILY_NOT_AVAILABLE;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
+import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 /**
  * Receives incoming data transfer requests and processes them.
@@ -54,7 +55,7 @@ public class ArtifactRequestController {
     private static final String DESTINATION_KEY = "dataspaceconnector-data-destination";
 
     private final DapsService dapsService;
-    private final MetadataStore metadataStore;
+    private final AssetIndex assetIndex;
     private final TransferProcessManager processManager;
     private final IdsPolicyService policyService;
     private final PolicyRegistry policyRegistry;
@@ -62,14 +63,14 @@ public class ArtifactRequestController {
     private final Monitor monitor;
 
     public ArtifactRequestController(DapsService dapsService,
-                                     MetadataStore metadataStore,
+                                     AssetIndex assetIndex,
                                      TransferProcessManager processManager,
                                      IdsPolicyService policyService,
                                      PolicyRegistry policyRegistry,
                                      Vault vault,
                                      Monitor monitor) {
         this.dapsService = dapsService;
-        this.metadataStore = metadataStore;
+        this.assetIndex = assetIndex;
         this.processManager = processManager;
         this.policyService = policyService;
         this.policyRegistry = policyRegistry;
@@ -89,13 +90,13 @@ public class ArtifactRequestController {
         var dataUrn = message.getRequestedArtifact().toString();
         monitor.debug(() -> "Received artifact request for: " + dataUrn);
 
-        var entry = metadataStore.findForId(dataUrn);
+        var asset = assetIndex.findById(dataUrn);
 
-        if (entry == null) {
+        if (asset == null) {
             return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_FOUND).build()).build();
         }
 
-        var policy = policyRegistry.resolvePolicy(entry.getPolicyId());
+        var policy = policyRegistry.resolvePolicy((String) asset.getProperty(POLICY_ID));
         if (policy == null) {
             monitor.severe("Policy not found for artifact: " + dataUrn);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new RejectionMessageBuilder()._rejectionReason_(TEMPORARILY_NOT_AVAILABLE).build()).build();
@@ -120,7 +121,7 @@ public class ArtifactRequestController {
 
         var dataDestination = DataAddress.Builder.newInstance().type(type).properties(properties).keyName(secretName).build();
 
-        var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).dataEntry(entry).dataDestination(dataDestination).protocol(IDS_REST).build();
+        var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).asset(asset).dataDestination(dataDestination).protocol(IDS_REST).build();
 
         var destinationToken = (String) message.getProperties().get(ArtifactRequestController.TOKEN_KEY);
 

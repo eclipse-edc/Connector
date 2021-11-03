@@ -23,7 +23,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import static de.fraunhofer.iais.eis.RejectionReason.MALFORMED_MESSAGE;
 import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
@@ -69,6 +69,6 @@ public class CatalogQueryController {
         var consumerToken = verificationResult.token();
 
         var results = queryEngine.execute(correlationId, consumerToken, connectorId, language, query);
-        return Response.ok(results.stream().map(DataEntry::getId).collect(toList())).build();
+        return Response.ok(results.stream().map(Asset::getId).collect(toList())).build();
     }
 }

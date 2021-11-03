@@ -1,20 +1,24 @@
 package org.eclipse.dataspaceconnector.extensions.transfer;
 
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
+import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 public class CloudTransferExtension implements ServiceExtension {
     public static final String USE_EU_POLICY = "use-eu";
@@ -22,7 +26,8 @@ public class CloudTransferExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
-        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager());
+        var dataAddressResolver = context.getService(DataAddressResolver.class);
+        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager(), dataAddressResolver);
         dataFlowMgr.register(flowController);
 
 
@@ -32,20 +37,21 @@ public class CloudTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        var metadataStore = context.getService(MetadataStore.class);
+        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
+        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
-        String storageAccountName = "edctutorialstorage";
-        String sourceContainerName = "src-container";
-        GenericDataCatalogEntry file1 = GenericDataCatalogEntry.Builder.newInstance()
+        DataAddress dataAddress = DataAddress.Builder.newInstance()
                 .property("type", "AzureStorage")
-                .property("account", storageAccountName)
-                .property("container", sourceContainerName)
+                .property("account", "edctutorialstorage")
+                .property("container", "src-container")
                 .property("blobname", "test-document.txt")
                 .build();
 
+        String assetId = "test-document";
+        Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
 
-        DataEntry entry1 = DataEntry.Builder.newInstance().id("test-document").policyId(USE_EU_POLICY).catalogEntry(file1).build();
-        metadataStore.save(entry1);
+        assetIndex.add(asset, dataAddress);
+        dataAddressResolver.add(assetId, dataAddress);
     }
 
     private void savePolicies(ServiceExtensionContext context) {

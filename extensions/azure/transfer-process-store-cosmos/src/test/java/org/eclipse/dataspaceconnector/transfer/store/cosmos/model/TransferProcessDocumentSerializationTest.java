@@ -33,7 +33,6 @@ class TransferProcessDocumentSerializationTest {
     @BeforeEach
     void setup() {
         typeManager = new TypeManager();
-        typeManager.registerTypes(DummyCatalogEntry.class, DataCatalogEntry.class);
         typeManager.registerTypes(TransferProcessDocument.class, TransferProcess.class);
     }
 
@@ -55,8 +54,6 @@ class TransferProcessDocumentSerializationTest {
         assertThat(s).contains("\"destinationType\":\"Test Address Type\"");
         assertThat(s).contains("\"keyName\":\"Test Key Name\"");
         assertThat(s).contains("\"type\":\"Test Address Type\"");
-        assertThat(s).contains("dummycatalogentry");
-
     }
 
     @Test

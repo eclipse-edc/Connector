@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.ids.api.transfer;
 
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -65,7 +65,7 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
 
         var transferManager = context.getService(TransferProcessManager.class);
 
-        var metadataStore = context.getService(MetadataStore.class);
+        var assetIndex = context.getService(AssetIndex.class);
 
         var policyService = context.getService(IdsPolicyService.class);
 
@@ -75,7 +75,7 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
 
         var policyRegistry = context.getService(PolicyRegistry.class);
 
-        webService.registerController(new ArtifactRequestController(dapService, metadataStore, transferManager, policyService, policyRegistry, vault, monitor));
+        webService.registerController(new ArtifactRequestController(dapService, assetIndex, transferManager, policyService, policyRegistry, vault, monitor));
     }
 
 

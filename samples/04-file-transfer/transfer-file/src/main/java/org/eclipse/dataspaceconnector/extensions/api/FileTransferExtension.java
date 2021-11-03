@@ -1,21 +1,25 @@
 package org.eclipse.dataspaceconnector.extensions.api;
 
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.Set;
 
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
+import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 public class FileTransferExtension implements ServiceExtension {
 
@@ -23,14 +27,15 @@ public class FileTransferExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:webservice", PolicyRegistry.FEATURE);
+        return Set.of("edc:webservice", PolicyRegistry.FEATURE, DataAddressResolver.FEATURE, AssetIndex.FEATURE);
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
         var dataFlowMgr = context.getService(DataFlowManager.class);
-        var flowController = new FileTransferFlowController(context.getMonitor(), context.getTypeManager());
+        var dataAddressResolver = context.getService(DataAddressResolver.class);
+
+        var flowController = new FileTransferFlowController(context.getMonitor(), dataAddressResolver);
         dataFlowMgr.register(flowController);
 
 
@@ -50,15 +55,19 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        var metadataStore = context.getService(MetadataStore.class);
+        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
+        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
-        GenericDataCatalogEntry file1 = GenericDataCatalogEntry.Builder.newInstance()
+        DataAddress dataAddress = DataAddress.Builder.newInstance()
                 .property("type", "File")
                 .property("path", "/home/paul/Documents/")
                 .property("filename", "test-document.txt")
                 .build();
 
-        DataEntry entry1 = DataEntry.Builder.newInstance().id("test-document").policyId(USE_EU_POLICY).catalogEntry(file1).build();
-        metadataStore.save(entry1);
+        String assetId = "test-document";
+        Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
+
+        assetIndex.add(asset, dataAddress);
+        dataAddressResolver.add(assetId, dataAddress);
     }
 }

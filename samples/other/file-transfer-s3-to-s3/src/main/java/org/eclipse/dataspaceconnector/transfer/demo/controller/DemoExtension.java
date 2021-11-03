@@ -16,12 +16,15 @@ package org.eclipse.dataspaceconnector.transfer.demo.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -57,8 +60,9 @@ public class DemoExtension implements ServiceExtension {
         registerTypes(objectMapper);
 
         var dataFlowMgr = context.getService(DataFlowManager.class);
+        var dataAddressResolver = context.getService(DataAddressResolver.class);
 
-        var flowController = new S3toS3TransferFlowController(context.getService(Vault.class), monitor);
+        var flowController = new S3toS3TransferFlowController(context.getService(Vault.class), monitor, dataAddressResolver);
 
         dataFlowMgr.register(flowController);
     }
@@ -71,7 +75,8 @@ public class DemoExtension implements ServiceExtension {
     }
 
     private void loadDataEntries() {
-        MetadataStore metadataStore = context.getService(MetadataStore.class);
+        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
+        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
         var objectMapper = context.getTypeManager().getMapper();
 
@@ -82,7 +87,7 @@ public class DemoExtension implements ServiceExtension {
                 final File sourceFile = source.toFile();
                 final List<DataEntry> dataEntries = objectMapper.readValue(sourceFile, new TypeReference<>() {
                 });
-                dataEntries.forEach(metadataStore::save);
+                // TODO: we miss an example of the provider-artifacts.json to adapt for assetIndex storing
             }
 
         } catch (IOException e) {

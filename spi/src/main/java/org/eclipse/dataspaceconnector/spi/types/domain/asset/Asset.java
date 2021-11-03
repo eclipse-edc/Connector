@@ -57,6 +57,10 @@ public class Asset {
         return contentType;
     }
 
+    public Object getProperty(String key) {
+        return properties.get(key);
+    }
+
     public Map<String, Object> getProperties() {
         return properties;
     }
@@ -67,7 +71,7 @@ public class Asset {
         private String name;
         private String version;
         private String contentType;
-        private Map<String, Object> properties;
+        private Map<String, Object> properties = new HashMap<>();
 
         protected Builder() {
         }

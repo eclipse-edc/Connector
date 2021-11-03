@@ -1,23 +1,28 @@
 package org.eclipse.dataspaceconnector.transfer;
 
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
+import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.metadata.MetadataStore;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.List;
 
+import static java.util.Arrays.asList;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
+import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 public class CloudTransferExtension implements ServiceExtension {
     public static final String USE_EU_POLICY = "use-eu";
@@ -26,7 +31,8 @@ public class CloudTransferExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
-        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager());
+        DataAddressResolver dataAddressResolver = context.getService(DataAddressResolver.class);
+        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager(), dataAddressResolver);
         dataFlowMgr.register(flowController);
 
 
@@ -36,44 +42,23 @@ public class CloudTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        var metadataStore = context.getService(MetadataStore.class);
+        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
+        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
-        GenericDataCatalogEntry file1 = GenericDataCatalogEntry.Builder.newInstance()
-                .property("type", "AzureStorage")
-                .property("account", "gxhackpaulgpstorage")
-                .property("container", "hackathon-src-container")
-                .property("blobname", "azure.png")
-                .build();
+        asList("azure.png", "doc1.txt", "pinup.webp", "index.jpg")
+                .forEach(filename -> {
+                    DataAddress dataAddress = DataAddress.Builder.newInstance()
+                            .property("type", "AzureStorage")
+                            .property("account", "gxhackpaulgpstorage")
+                            .property("container", "hackathon-src-container")
+                            .property("blobname", "azure.png")
+                            .build();
 
-        GenericDataCatalogEntry file3 = GenericDataCatalogEntry.Builder.newInstance()
-                .property("type", "AzureStorage")
-                .property("account", "gxhackpaulgpstorage")
-                .property("container", "hackathon-src-container")
-                .property("blobname", "doc1.txt")
-                .build();
+                    Asset asset = Asset.Builder.newInstance().id(filename).property(POLICY_ID, USE_US_OR_EU_POLICY).build();
 
-        GenericDataCatalogEntry file2 = GenericDataCatalogEntry.Builder.newInstance()
-                .property("type", "AzureStorage")
-                .property("account", "gxhackpaulgpstorage")
-                .property("container", "hackathon-src-container")
-                .property("blobname", "pinup.webp")
-                .build();
-
-        GenericDataCatalogEntry file4 = GenericDataCatalogEntry.Builder.newInstance()
-                .property("type", "AzureStorage")
-                .property("account", "gxhackpaulgpstorage")
-                .property("container", "hackathon-src-container")
-                .property("blobname", "index.jpg")
-                .build();
-
-        DataEntry entry1 = DataEntry.Builder.newInstance().id("azure.png").policyId(USE_US_OR_EU_POLICY).catalogEntry(file1).build();
-        DataEntry entry2 = DataEntry.Builder.newInstance().id("pinup.webp").policyId(USE_US_OR_EU_POLICY).catalogEntry(file2).build();
-        DataEntry entry3 = DataEntry.Builder.newInstance().id("doc1.txt").policyId(USE_US_OR_EU_POLICY).catalogEntry(file3).build();
-        DataEntry entry4 = DataEntry.Builder.newInstance().id("index.jpg").policyId(USE_US_OR_EU_POLICY).catalogEntry(file4).build();
-        metadataStore.save(entry1);
-        metadataStore.save(entry2);
-        metadataStore.save(entry3);
-        metadataStore.save(entry4);
+                    assetIndex.add(asset, dataAddress);
+                    dataAddressResolver.add(filename, dataAddress);
+                });
     }
 
     private void savePolicies(ServiceExtensionContext context) {
