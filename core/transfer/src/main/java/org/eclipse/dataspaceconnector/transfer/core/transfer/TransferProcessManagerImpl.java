@@ -36,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -96,19 +97,39 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     }
 
     @Override
-    public TransferResponse processRequestSync(DataRequest dataRequest) {
+    public TransferResponse initiateProviderRequestSync(DataRequest dataRequest) {
         //create a transfer process in the COMPLETED state
         var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(PROVIDER).build();
         transferProcessStore.create(process);
-        invokeForEach(l -> l.created(process));
+        invokeForEach(l -> l.completed(process));
 
         var dataProxy = dataProxyManager.getProxy(dataRequest);
         if (dataProxy != null) {
-            Object proxyData = dataProxy.getData(dataRequest);
+            var proxyData = dataProxy.getData(dataRequest);
             return TransferResponse.Builder.newInstance().id(process.getId()).data(proxyData).status(ResponseStatus.OK).build();
         }
         return TransferResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.FATAL_ERROR).build();
+    }
+
+    @Override
+    public TransferInitiateResult initiateConsumerRequestSync(DataRequest dataRequest) {
+        var id = UUID.randomUUID().toString();
+        var transferProcess = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.REQUESTED.code()).type(CONSUMER).build();
+        transferProcessStore.create(transferProcess);
+        invokeForEach(l -> l.requested(transferProcess));
+
+        var future = dispatcherRegistry.send(Object.class, dataRequest, transferProcess::getId);
+        try {
+
+            var result = future.join();
+            transferProcess.transitionInProgress();
+            transferProcess.transitionCompleted();
+            transferProcessStore.update(transferProcess);
+            return TransferResponse.Builder.newInstance().data(result).id(dataRequest.getId()).status(ResponseStatus.OK).build();
+        } catch (RuntimeException ex) {
+            return TransferResponse.Builder.newInstance().id(dataRequest.getId()).status(ResponseStatus.ERROR_RETRY).error(ex.getMessage()).build();
+        }
     }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
@@ -309,7 +330,11 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 process.transitionRequested();
                 transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
                 invokeForEach(l -> l.requested(process));
-                dispatcherRegistry.send(Void.class, dataRequest, process::getId);
+                dispatcherRegistry.send(Object.class, dataRequest, process::getId).whenComplete((o, throwable) -> {
+                    if (o != null) {
+                        monitor.info("Object received: " + o.toString());
+                    }
+                });
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
                 if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {

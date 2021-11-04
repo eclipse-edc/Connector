@@ -17,12 +17,15 @@ plugins {
 }
 
 val rsApi: String by project
+val nimbusVersion: String by project
+
 
 dependencies {
     api(project(":spi"))
     api(project(":extensions:transfer-functions:transfer-functions-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
 
 }
 

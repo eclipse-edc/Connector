@@ -4,5 +4,5 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 public interface DataProxy {
 
-    Object getData(DataRequest request);
+    ProxyEntry getData(DataRequest request);
 }

@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.httproxy;
 
+import com.nimbusds.jwt.PlainJWT;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HeaderParam;
@@ -21,6 +22,9 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.List;
 import java.util.Objects;
 
 @Consumes({ MediaType.APPLICATION_JSON })
@@ -34,12 +38,14 @@ public class ForwardingController {
     private final DataAddressResolver dataAddressResolver;
     private final Vault vault;
     private final OkHttpClient client;
+    private final List<String> issuedTokens;
 
-    public ForwardingController(Monitor monitor, DataAddressResolver dataAddressResolver, Vault vault, OkHttpClient client) {
+    public ForwardingController(Monitor monitor, DataAddressResolver dataAddressResolver, Vault vault, OkHttpClient client, List<String> issuedTokens) {
         this.monitor = monitor;
         this.dataAddressResolver = dataAddressResolver;
         this.vault = vault;
         this.client = client;
+        this.issuedTokens = issuedTokens;
     }
 
     public String getRootPath() {
@@ -50,10 +56,12 @@ public class ForwardingController {
     @Path("/{id}")
     public Response getData(@HeaderParam("Authorization") String bearerToken, @PathParam("id") String assetId, @Context UriInfo uriInfo) throws MalformedURLException {
         monitor.info("Validate token for proxy");
-        monitor.warning("Token validation not yet fully implemented!");
         if (bearerToken == null) {
             monitor.severe("No token supplied with request");
             return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+        if (tokenValid(bearerToken)) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
         monitor.info("resolving DataAddress for asset " + assetId);
@@ -93,6 +101,36 @@ public class ForwardingController {
         }
 
         return Response.status(Response.Status.BAD_REQUEST).build();
+    }
+
+    private boolean tokenExpired(String bearerToken) {
+
+        try {
+            PlainJWT jwt = PlainJWT.parse(bearerToken);
+            var exp = jwt.getJWTClaimsSet().getDateClaim("exp");
+            return exp.before(new Date());
+        } catch (ParseException e) {
+            return true;
+        }
+    }
+
+    private boolean tokenExists(String bearerToken) {
+        return issuedTokens.contains(bearerToken);
+    }
+
+    private boolean tokenValid(String bearerToken) {
+        return tokenExists(bearerToken) &&
+                isValidJwt(bearerToken) &&
+                tokenExpired(bearerToken);
+    }
+
+    private boolean isValidJwt(String bearerToken) {
+        try {
+            PlainJWT.parse(bearerToken);
+            return true;
+        } catch (ParseException ec) {
+            return false;
+        }
     }
 
     private URI addQueryParams(String uri, MultivaluedMap<String, String> queryParameters) {

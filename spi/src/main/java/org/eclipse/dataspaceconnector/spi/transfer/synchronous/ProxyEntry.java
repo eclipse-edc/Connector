@@ -1,9 +1,12 @@
-package org.eclipse.dataspaceconnector.transfer.httproxy;
+package org.eclipse.dataspaceconnector.spi.transfer.synchronous;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
 
-public class ProxyEntry {
+@JsonTypeName("dataspaceconnector:proxyentry")
+public class ProxyEntry implements Polymorphic {
 
     private final String url;
     private final String token;
@@ -20,5 +23,12 @@ public class ProxyEntry {
 
     public String getToken() {
         return token;
+    }
+
+    @Override
+    public String toString() {
+        return "ProxyEntry{" +
+                "url='" + url + '\'' +
+                '}';
     }
 }

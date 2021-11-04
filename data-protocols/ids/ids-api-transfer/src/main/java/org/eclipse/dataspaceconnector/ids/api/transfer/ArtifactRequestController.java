@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.api.transfer;
 
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
+import de.fraunhofer.iais.eis.ArtifactResponseMessage;
 import de.fraunhofer.iais.eis.ArtifactResponseMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
 import jakarta.ws.rs.Consumes;
@@ -52,10 +53,12 @@ import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/ids")
 public class ArtifactRequestController {
+    public static final String ISSYNCREQUEST_KEY = "dataspaceconnector-is-synch-request";
     private static final String TOKEN_KEY = "dataspaceconnector-destination-token";
     private static final String DESTINATION_KEY = "dataspaceconnector-data-destination";
     private static final String PROPERTIES_KEY = "dataspaceconnector-properties";
 
+    private static final String DATA_OBJECT_KEY = "dataspaceconnector-data-object";
     private final DapsService dapsService;
     private final AssetIndex assetIndex;
     private final TransferProcessManager processManager;
@@ -115,7 +118,11 @@ public class ArtifactRequestController {
 
         Map<String, Object> messageProperties = message.getProperties();
         var destinationMap = (Map<String, Object>) messageProperties.get(DESTINATION_KEY);
-        var type = (String) destinationMap.get("type");
+
+        Object syncRq = message.getProperties().get(ISSYNCREQUEST_KEY);
+        var isSyncRequest = syncRq != null && (Boolean) syncRq;
+
+        var type = destinationMap.get("type").toString();
 
         Map<String, String> destinationProperties = (Map<String, String>) destinationMap.get("properties");
         var secretName = (String) destinationMap.get("keyName");
@@ -141,9 +148,10 @@ public class ArtifactRequestController {
         var response = processManager.initiateProviderRequest(dataRequest);
 
         if (response.succeeded()) {
-            monitor.info("Data transfer request initiated");
             ArtifactResponseMessageBuilder messageBuilder = new ArtifactResponseMessageBuilder();
-            return Response.ok().entity(messageBuilder.build()).build();
+            ArtifactResponseMessage build = messageBuilder.build();
+            build.setProperty(DATA_OBJECT_KEY, response.getData());
+            return Response.ok().entity(build).build();
         } else {
             if (response.getFailure().status() == ResponseStatus.FATAL_ERROR) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(BAD_PARAMETERS).build()).build();
