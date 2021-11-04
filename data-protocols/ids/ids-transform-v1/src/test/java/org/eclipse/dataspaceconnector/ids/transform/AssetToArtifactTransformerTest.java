@@ -115,7 +115,6 @@ class AssetToArtifactTransformerTest {
         Assertions.assertEquals(ASSET_BYTESIZE, result.getByteSize());
     }
 
-
     @AfterEach
     void tearDown() {
         EasyMock.verify(asset, context);

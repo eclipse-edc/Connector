@@ -51,8 +51,9 @@ public class DataCatalogToResourceCatalogTransformer implements IdsTypeTransform
         }
 
         List<Resource> resources = new LinkedList<>();
-        if (object.getAssets() != null) {
-            for (Asset asset : object.getAssets()) {
+        List<Asset> assets = object.getAssets();
+        if (assets != null) {
+            for (Asset asset : assets) {
                 Resource resource = context.transform(asset, Resource.class);
                 if (resource != null) {
                     resources.add(resource);
