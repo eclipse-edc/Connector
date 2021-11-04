@@ -22,7 +22,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class StringToMediaTypeTransformer implements IdsTypeTransformer<String, MediaType> {
+public class StringToIdsMediaTypeTransformer implements IdsTypeTransformer<String, MediaType> {
 
     @Override
     public Class<String> getInputType() {

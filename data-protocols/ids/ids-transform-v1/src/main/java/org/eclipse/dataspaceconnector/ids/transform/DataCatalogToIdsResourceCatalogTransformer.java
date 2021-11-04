@@ -31,7 +31,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-public class DataCatalogToResourceCatalogTransformer implements IdsTypeTransformer<DataCatalog, ResourceCatalog> {
+public class DataCatalogToIdsResourceCatalogTransformer implements IdsTypeTransformer<DataCatalog, ResourceCatalog> {
 
     @Override
     public Class<DataCatalog> getInputType() {

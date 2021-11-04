@@ -24,14 +24,14 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
-public class UriToIdsIdTransformerTest {
+class UriToIdsIdTransformerTest {
 
     private static final IdsType IDS_ID_TYPE = IdsType.ARTIFACT;
     private static final String IDS_ID_VALUE = "32d39d70-68f7-44f3-b8b2-27550f2081f4";
     private static final URI URI = java.net.URI.create("urn:artifact:32d39d70-68f7-44f3-b8b2-27550f2081f4");
 
     // subject
-    UriToIdsIdTransformer uriToIdsIdTransformer;
+    private UriToIdsIdTransformer uriToIdsIdTransformer;
 
     // mocks
     private TransformerContext context;

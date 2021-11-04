@@ -23,7 +23,8 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.util.Objects;
 
-public class UriToConnectorEndpointTransformer implements IdsTypeTransformer<URI, ConnectorEndpoint> {
+public class UriToIdsConnectorEndpointTransformer implements IdsTypeTransformer<URI, ConnectorEndpoint> {
+
     @Override
     public Class<URI> getInputType() {
         return URI.class;

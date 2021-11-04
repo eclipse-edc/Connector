@@ -32,12 +32,12 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DataCatalogToResourceCatalogTransformerTest {
+class DataCatalogToIdsResourceCatalogTransformerTest {
     private static final String CATALOG_ID = "test_id";
     private static final URI ID_URI = URI.create("urn:test:test_id");
 
     // subject
-    private DataCatalogToResourceCatalogTransformer dataCatalogToResourceCatalogTransformer;
+    private DataCatalogToIdsResourceCatalogTransformer dataCatalogToIdsResourceCatalogTransformer;
 
     // mocks
     private DataCatalog dataCatalog;
@@ -45,7 +45,7 @@ class DataCatalogToResourceCatalogTransformerTest {
 
     @BeforeEach
     void setUp() {
-        dataCatalogToResourceCatalogTransformer = new DataCatalogToResourceCatalogTransformer();
+        dataCatalogToIdsResourceCatalogTransformer = new DataCatalogToIdsResourceCatalogTransformer();
         dataCatalog = EasyMock.createMock(DataCatalog.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -55,7 +55,7 @@ class DataCatalogToResourceCatalogTransformerTest {
         EasyMock.replay(dataCatalog, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            dataCatalogToResourceCatalogTransformer.transform(null, null);
+            dataCatalogToIdsResourceCatalogTransformer.transform(null, null);
         });
     }
 
@@ -64,7 +64,7 @@ class DataCatalogToResourceCatalogTransformerTest {
         EasyMock.replay(dataCatalog, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            dataCatalogToResourceCatalogTransformer.transform(dataCatalog, null);
+            dataCatalogToIdsResourceCatalogTransformer.transform(dataCatalog, null);
         });
     }
 
@@ -72,7 +72,7 @@ class DataCatalogToResourceCatalogTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(dataCatalog, context);
 
-        var result = dataCatalogToResourceCatalogTransformer.transform(null, context);
+        var result = dataCatalogToIdsResourceCatalogTransformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -100,7 +100,7 @@ class DataCatalogToResourceCatalogTransformerTest {
         EasyMock.replay(a1, a2, r1, r2, dataCatalog, context);
 
         // invoke
-        var result = dataCatalogToResourceCatalogTransformer.transform(dataCatalog, context);
+        var result = dataCatalogToIdsResourceCatalogTransformer.transform(dataCatalog, context);
 
         // verify
         assertThat(result).isNotNull();

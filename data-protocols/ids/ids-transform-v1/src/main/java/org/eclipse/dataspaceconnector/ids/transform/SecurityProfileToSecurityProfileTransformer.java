@@ -14,36 +14,36 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class SecurityProfileToSecurityProfileTransformer implements IdsTypeTransformer<org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile, SecurityProfile> {
-    private static final Map<org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile, SecurityProfile> MAPPING = new HashMap<>() {
+public class SecurityProfileToSecurityProfileTransformer implements IdsTypeTransformer<SecurityProfile, de.fraunhofer.iais.eis.SecurityProfile> {
+    private static final Map<SecurityProfile, de.fraunhofer.iais.eis.SecurityProfile> MAPPING = new HashMap<>() {
         {
-            put(org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile.BASE_SECURITY_PROFILE, SecurityProfile.BASE_SECURITY_PROFILE);
-            put(org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile.TRUST_SECURITY_PROFILE, SecurityProfile.TRUST_SECURITY_PROFILE);
-            put(org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile.TRUST_PLUS_SECURITY_PROFILE, SecurityProfile.TRUST_PLUS_SECURITY_PROFILE);
+            put(SecurityProfile.BASE_SECURITY_PROFILE, de.fraunhofer.iais.eis.SecurityProfile.BASE_SECURITY_PROFILE);
+            put(SecurityProfile.TRUST_SECURITY_PROFILE, de.fraunhofer.iais.eis.SecurityProfile.TRUST_SECURITY_PROFILE);
+            put(SecurityProfile.TRUST_PLUS_SECURITY_PROFILE, de.fraunhofer.iais.eis.SecurityProfile.TRUST_PLUS_SECURITY_PROFILE);
         }
     };
 
     @Override
-    public Class<org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile> getInputType() {
-        return org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile.class;
-    }
-
-    @Override
-    public Class<SecurityProfile> getOutputType() {
+    public Class<SecurityProfile> getInputType() {
         return SecurityProfile.class;
     }
 
     @Override
-    public @Nullable SecurityProfile transform(org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile object, TransformerContext context) {
+    public Class<de.fraunhofer.iais.eis.SecurityProfile> getOutputType() {
+        return de.fraunhofer.iais.eis.SecurityProfile.class;
+    }
+
+    @Override
+    public @Nullable de.fraunhofer.iais.eis.SecurityProfile transform(SecurityProfile object, TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;

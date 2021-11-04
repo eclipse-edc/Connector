@@ -22,11 +22,11 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 
-public class IntegerToBigIntegerTransformerTest {
+class IntegerToBigIntegerTransformerTest {
     private static final Integer INTEGER = 10;
 
     // subject
-    IntegerToBigIntegerTransformer integerToBigIntegerTransformer;
+    private IntegerToBigIntegerTransformer integerToBigIntegerTransformer;
 
     // mocks
     private TransformerContext context;

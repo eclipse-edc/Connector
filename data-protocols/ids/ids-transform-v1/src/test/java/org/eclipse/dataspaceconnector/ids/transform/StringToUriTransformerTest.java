@@ -20,11 +20,11 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class StringToUriTransformerTest {
+class StringToUriTransformerTest {
     private static final String STRING = "https//example.com";
 
     // subject
-    StringToUriTransformer stringToUriTransformer;
+    private StringToUriTransformer stringToUriTransformer;
 
     // mocks
     private TransformerContext context;

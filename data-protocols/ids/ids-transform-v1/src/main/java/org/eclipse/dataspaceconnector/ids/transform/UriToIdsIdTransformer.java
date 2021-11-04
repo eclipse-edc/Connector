@@ -24,6 +24,7 @@ import java.net.URI;
 import java.util.Objects;
 
 public class UriToIdsIdTransformer implements IdsTypeTransformer<URI, IdsId> {
+
     @Override
     public Class<URI> getInputType() {
         return URI.class;

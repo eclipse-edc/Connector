@@ -58,17 +58,17 @@ public class IdsTransformServiceExtension implements ServiceExtension {
         var registry = serviceExtensionContext.getService(TransformerRegistry.class);
 
         Arrays.asList(
-                new AssetToArtifactTransformer(),
-                new AssetToRepresentationTransformer(),
-                new AssetToResourceTransformer(),
-                new DataCatalogToResourceCatalogTransformer(),
-                new EdcConnectorToConnectorTransformer(),
+                new AssetToIdsArtifactTransformer(),
+                new AssetToIdsRepresentationTransformer(),
+                new AssetToIdsResourceTransformer(),
+                new ConnectorToIdsConnectorTransformer(),
+                new DataCatalogToIdsResourceCatalogTransformer(),
                 new IdsIdToUriTransformer(),
                 new IntegerToBigIntegerTransformer(),
                 new SecurityProfileToSecurityProfileTransformer(),
-                new StringToMediaTypeTransformer(),
+                new StringToIdsMediaTypeTransformer(),
                 new StringToUriTransformer(),
-                new UriToConnectorEndpointTransformer(),
+                new UriToIdsConnectorEndpointTransformer(),
                 new UriToIdsIdTransformer(),
                 new UriToIdsTypeTransformer()
         ).forEach(registry::register);

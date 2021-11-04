@@ -20,18 +20,18 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class StringToMediaTypeTransformerTest {
+class StringToIdsMediaTypeTransformerTest {
     private static final String STRING = "hello";
 
     // subject
-    StringToMediaTypeTransformer stringToMediaTypeTransformer;
+    private StringToIdsMediaTypeTransformer stringToIdsMediaTypeTransformer;
 
     // mocks
     private TransformerContext context;
 
     @BeforeEach
     public void setup() {
-        stringToMediaTypeTransformer = new StringToMediaTypeTransformer();
+        stringToIdsMediaTypeTransformer = new StringToIdsMediaTypeTransformer();
         context = EasyMock.createMock(TransformerContext.class);
     }
 
@@ -40,7 +40,7 @@ public class StringToMediaTypeTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            stringToMediaTypeTransformer.transform(null, null);
+            stringToIdsMediaTypeTransformer.transform(null, null);
         });
     }
 
@@ -49,7 +49,7 @@ public class StringToMediaTypeTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            stringToMediaTypeTransformer.transform(STRING, null);
+            stringToIdsMediaTypeTransformer.transform(STRING, null);
         });
     }
 
@@ -57,7 +57,7 @@ public class StringToMediaTypeTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(context);
 
-        var result = stringToMediaTypeTransformer.transform(null, context);
+        var result = stringToIdsMediaTypeTransformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -68,7 +68,7 @@ public class StringToMediaTypeTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = stringToMediaTypeTransformer.transform(STRING, context);
+        var result = stringToIdsMediaTypeTransformer.transform(STRING, context);
 
         // verify
         Assertions.assertNotNull(result);
