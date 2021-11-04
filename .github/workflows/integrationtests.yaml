@@ -1,9 +1,12 @@
 name: Integration Tests
 
+# should only run on base branch, as secrets are not passed to runners
+# when the PR comes from a fork
 on: [ pull_request_target ]
 
 jobs:
   Azure-Integration-Test:
+    # run only on upstream repo
     if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
 
@@ -28,6 +31,7 @@ jobs:
         run: ./gradlew extensions:azure:transfer-process-store-cosmos:check
 
   Aws-Integration-Test:
+    # run only on upstream repo
     if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
 
