@@ -35,14 +35,14 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AssetToRepresentationTransformerTest {
+class AssetToIdsRepresentationTransformerTest {
     private static final String REPRESENTATION_ID = "test_id";
     private static final URI REPRESENTATION_ID_URI = URI.create("urn:representation:1");
     private static final String ASSET_FILE_EXTENSION = "file_extension";
     private static final MediaType MEDIA_TYPE = new CustomMediaTypeBuilder()._filenameExtension_(ASSET_FILE_EXTENSION).build();
 
     // subject
-    private AssetToRepresentationTransformer assetToRepresentationTransformer;
+    private AssetToIdsRepresentationTransformer assetToIdsRepresentationTransformer;
 
     // mocks
     private Asset asset;
@@ -50,7 +50,7 @@ public class AssetToRepresentationTransformerTest {
 
     @BeforeEach
     void setUp() {
-        assetToRepresentationTransformer = new AssetToRepresentationTransformer();
+        assetToIdsRepresentationTransformer = new AssetToIdsRepresentationTransformer();
         asset = EasyMock.createMock(Asset.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -60,7 +60,7 @@ public class AssetToRepresentationTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToRepresentationTransformer.transform(null, null);
+            assetToIdsRepresentationTransformer.transform(null, null);
         });
     }
 
@@ -69,7 +69,7 @@ public class AssetToRepresentationTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToRepresentationTransformer.transform(asset, null);
+            assetToIdsRepresentationTransformer.transform(asset, null);
         });
     }
 
@@ -77,7 +77,7 @@ public class AssetToRepresentationTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(asset, context);
 
-        var result = assetToRepresentationTransformer.transform(null, context);
+        var result = assetToIdsRepresentationTransformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -102,7 +102,7 @@ public class AssetToRepresentationTransformerTest {
         EasyMock.replay(asset, context);
 
         // invoke
-        var result = assetToRepresentationTransformer.transform(asset, context);
+        var result = assetToIdsRepresentationTransformer.transform(asset, context);
 
         // verify
         Assertions.assertNotNull(result);
@@ -132,7 +132,7 @@ public class AssetToRepresentationTransformerTest {
         EasyMock.replay(asset, context);
 
         // invoke
-        Representation result = assetToRepresentationTransformer.transform(asset, context);
+        Representation result = assetToIdsRepresentationTransformer.transform(asset, context);
 
         // verify
         Assertions.assertNotNull(result);

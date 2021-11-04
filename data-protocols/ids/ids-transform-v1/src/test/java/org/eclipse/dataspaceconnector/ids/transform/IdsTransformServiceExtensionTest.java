@@ -56,8 +56,8 @@ class IdsTransformServiceExtensionTest {
     private TransformerRegistry transformerRegistry;
 
     // mocks
-    Monitor monitor;
-    ServiceExtensionContext serviceExtensionContext;
+    private Monitor monitor;
+    private ServiceExtensionContext serviceExtensionContext;
 
     /**
      * All required convertibles

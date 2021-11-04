@@ -29,9 +29,9 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 
-public class AssetToResourceTransformer implements IdsTypeTransformer<Asset, Resource> {
+public class AssetToIdsResourceTransformer implements IdsTypeTransformer<Asset, Resource> {
 
-    public AssetToResourceTransformer() {
+    public AssetToIdsResourceTransformer() {
     }
 
     @Override

@@ -15,20 +15,24 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
-import de.fraunhofer.iais.eis.ArtifactBuilder;
+import de.fraunhofer.iais.eis.MediaType;
+import de.fraunhofer.iais.eis.Representation;
+import de.fraunhofer.iais.eis.RepresentationBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.math.BigInteger;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Objects;
 
-public class AssetToArtifactTransformer extends AbstractAssetTransformer implements IdsTypeTransformer<Asset, Artifact> {
+public class AssetToIdsRepresentationTransformer extends AbstractAssetTransformer implements IdsTypeTransformer<Asset, Representation> {
 
     @Override
     public Class<Asset> getInputType() {
@@ -36,35 +40,48 @@ public class AssetToArtifactTransformer extends AbstractAssetTransformer impleme
     }
 
     @Override
-    public Class<Artifact> getOutputType() {
-        return Artifact.class;
+    public Class<Representation> getOutputType() {
+        return Representation.class;
     }
 
     @Override
-    public @Nullable Artifact transform(Asset object, TransformerContext context) {
+    public @Nullable Representation transform(Asset object, TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
         }
 
+        Artifact artifact = context.transform(object, Artifact.class);
+
         IdsId id = IdsId.Builder.newInstance()
                 .value(object.getId())
-                .type(IdsType.ARTIFACT)
+                .type(IdsType.REPRESENTATION)
                 .build();
-
         URI uri = context.transform(id, URI.class);
 
-        ArtifactBuilder artifactBuilder = new ArtifactBuilder(uri);
+        RepresentationBuilder representationBuilder = new RepresentationBuilder(uri);
 
         var properties = object.getProperties();
         if (properties == null) {
             context.reportProblem("Asset properties null");
-            return artifactBuilder.build();
+        } else {
+            extractProperty(context, properties, TransformKeys.KEY_ASSET_FILE_EXTENSION, String.class, (value) -> {
+                setMediaType(value, context, representationBuilder);
+            });
         }
 
-        extractProperty(context, properties, TransformKeys.KEY_ASSET_FILE_NAME, String.class, artifactBuilder::_fileName_);
-        extractProperty(context, properties, TransformKeys.KEY_ASSET_BYTE_SIZE, BigInteger.class, artifactBuilder::_byteSize_);
+        representationBuilder._instance_(new ArrayList<>(Collections.singletonList(artifact)));
 
-        return artifactBuilder.build();
+        return representationBuilder.build();
+    }
+
+    private static void setMediaType(@NotNull String fileExtension, TransformerContext transformerContext, RepresentationBuilder representationBuilder) {
+        MediaType mediaType = transformerContext.transform(fileExtension, MediaType.class);
+
+        if (mediaType == null) {
+            return;
+        }
+
+        representationBuilder._mediaType_(mediaType);
     }
 }

@@ -34,7 +34,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 
-public class EdcConnectorToConnectorTransformer implements IdsTypeTransformer<Connector, de.fraunhofer.iais.eis.Connector> {
+public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Connector, de.fraunhofer.iais.eis.Connector> {
 
     @Override
     public Class<Connector> getInputType() {

@@ -22,13 +22,13 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class IdsIdToUriTransformerTest {
+class IdsIdToUriTransformerTest {
 
     private static final IdsType IDS_ID_TYPE = IdsType.ARTIFACT;
     private static final String IDS_ID_VALUE = "1c6865e0-80ca-4811-bcf0-fcad250b538f";
 
     // subject
-    IdsIdToUriTransformer idsIdToUriTransformer;
+    private IdsIdToUriTransformer idsIdToUriTransformer;
 
     // mocks
     private IdsId idsId;

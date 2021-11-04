@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
-public class UriToIdsTypeTransformerTest {
+class UriToIdsTypeTransformerTest {
 
     private static final IdsType IDS_ID_TYPE = IdsType.ARTIFACT;
     private static final String IDS_ID_VALUE = "32d39d70-68f7-44f3-b8b2-27550f2081f4";
@@ -32,7 +32,7 @@ public class UriToIdsTypeTransformerTest {
     private static final URI IDS_ID_URI = java.net.URI.create("urn:artifact:" + IDS_ID_VALUE);
 
     // subject
-    UriToIdsTypeTransformer uriToIdsTypeTransformer;
+    private UriToIdsTypeTransformer uriToIdsTypeTransformer;
 
     // mocks
     private TransformerContext context;
