@@ -26,7 +26,7 @@ import static net.jodah.failsafe.Failsafe.with;
 
 public class CrawlerImpl implements Crawler {
 
-    private final CatalogQueryAdapterRegistry protocolAdapterRegistry;
+    private final CatalogQueryAdapterRegistry catalogQueryAdapterRegistry;
     private final Monitor monitor;
     private final BlockingQueue<UpdateResponse> updateResponseQueue;
     private final RetryPolicy<Object> updateResponseEnqueueRetryPolicy;
@@ -37,10 +37,10 @@ public class CrawlerImpl implements Crawler {
     private final CrawlerErrorHandler errorHandler;
 
     CrawlerImpl(WorkItemQueue workItemQueue, Monitor monitor, BlockingQueue<UpdateResponse> responseQueue,
-                RetryPolicy<Object> updateResponseEnqueueRetryPolicy, CatalogQueryAdapterRegistry protocolAdapterRegistry,
+                RetryPolicy<Object> updateResponseEnqueueRetryPolicy, CatalogQueryAdapterRegistry catalogQueryAdapterRegistry,
                 Supplier<Duration> workQueuePollTimeout, CrawlerErrorHandler errorHandler) {
         this.workItemQueue = workItemQueue;
-        this.protocolAdapterRegistry = protocolAdapterRegistry;
+        this.catalogQueryAdapterRegistry = catalogQueryAdapterRegistry;
         this.monitor = monitor;
         updateResponseQueue = responseQueue;
         this.updateResponseEnqueueRetryPolicy = updateResponseEnqueueRetryPolicy;
@@ -69,7 +69,7 @@ public class CrawlerImpl implements Crawler {
                     monitor.debug(format("%s: WorkItem acquired", crawlerId));
 
                     // search for an adapter
-                    var adapters = protocolAdapterRegistry.findForProtocol(item.getProtocol());
+                    var adapters = catalogQueryAdapterRegistry.findForProtocol(item.getProtocol());
 
                     if (adapters.isEmpty()) {
                         // otherwise error out the workitem

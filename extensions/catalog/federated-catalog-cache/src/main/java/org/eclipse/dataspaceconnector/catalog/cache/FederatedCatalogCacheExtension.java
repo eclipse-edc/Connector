@@ -126,7 +126,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 .map(n -> new WorkItem(n.getTargetUrl(), selectProtocol(n.getSupportedProtocols()))).collect(Collectors.toList());
 
         return new PartitionManagerImpl(monitor,
-                new InMemoryWorkItemQueue(partitionManagerConfig.getWorkItemQueueSize(10)),
+                new DefaultWorkItemQueue(partitionManagerConfig.getWorkItemQueueSize(10)),
                 workItems -> createCrawler(workItems, context, protocolAdapterRegistry, updateResponseQueue),
                 partitionManagerConfig.getNumCrawlers(DEFAULT_NUM_CRAWLERS),
                 nodes);

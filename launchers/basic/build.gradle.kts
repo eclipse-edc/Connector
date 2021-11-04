@@ -32,8 +32,8 @@ dependencies {
 
     //FIXME for testing only: spin up a runtime that contains an FCC
     implementation(project(":extensions:catalog:federated-catalog-cache"))
-    implementation(project(":extensions:in-memory:node-directory-memory"))
-    implementation(project(":extensions:in-memory:fcc-protocol-registry-memory"))
+    implementation(project(":extensions:in-memory:fcc-node-directory-memory"))
+    implementation(project(":extensions:in-memory:fcc-catalogquery-adapter-registry-memory"))
 }
 
 application {

@@ -25,9 +25,9 @@ dependencies {
     // required for integration test
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:protocol:web"))
-    testImplementation(project(":extensions:in-memory:fcc-protocol-registry-memory"))
+    testImplementation(project(":extensions:in-memory:fcc-catalogquery-adapter-registry-memory"))
     testImplementation(project(":extensions:in-memory:fcc-query-adapter-registry-memory"))
-    testImplementation(project(":extensions:in-memory:node-directory-memory"))
+    testImplementation(project(":extensions:in-memory:fcc-node-directory-memory"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(project(":extensions:in-memory:fcc-store-memory"))
 }

@@ -10,18 +10,20 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class InMemoryProtocolAdapterRegistry implements CatalogQueryAdapterRegistry {
+class InMemoryCatalogQueryAdapterRegistry implements CatalogQueryAdapterRegistry {
 
     private final Map<String, List<CatalogQueryAdapter>> map;
 
-    InMemoryProtocolAdapterRegistry() {
-        this.map = new ConcurrentHashMap<>();
+    InMemoryCatalogQueryAdapterRegistry() {
+        map = new ConcurrentHashMap<>();
     }
 
 
     @Override
     public Collection<CatalogQueryAdapter> findForProtocol(String protocolName) {
-        if (!map.containsKey(protocolName)) return Collections.emptyList();
+        if (!map.containsKey(protocolName)) {
+            return Collections.emptyList();
+        }
         return map.get(protocolName);
     }
 

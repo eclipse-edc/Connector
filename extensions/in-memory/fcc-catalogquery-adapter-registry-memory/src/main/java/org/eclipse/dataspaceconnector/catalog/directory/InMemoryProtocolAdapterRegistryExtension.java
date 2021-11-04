@@ -14,7 +14,7 @@ public class InMemoryProtocolAdapterRegistryExtension implements ServiceExtensio
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        context.registerService(CatalogQueryAdapterRegistry.class, new InMemoryProtocolAdapterRegistry());
+        context.registerService(CatalogQueryAdapterRegistry.class, new InMemoryCatalogQueryAdapterRegistry());
         context.getMonitor().info("Initialized In-Memory Protocol Adapter Registry");
     }
 }
