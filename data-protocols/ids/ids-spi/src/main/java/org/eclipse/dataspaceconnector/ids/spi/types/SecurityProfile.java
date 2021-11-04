@@ -17,6 +17,9 @@ package org.eclipse.dataspaceconnector.ids.spi.types;
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+/**
+ * DTO representing IDS Security Profile
+ */
 public enum SecurityProfile {
     BASE_SECURITY_PROFILE("base"),
     TRUST_SECURITY_PROFILE("trust"),

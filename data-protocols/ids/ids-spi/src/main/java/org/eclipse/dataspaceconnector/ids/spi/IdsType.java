@@ -1,5 +1,8 @@
 package org.eclipse.dataspaceconnector.ids.spi;
 
+/**
+ * ID / URI types for IDS resources.
+ */
 public enum IdsType {
     CONTRACT("contract"),
     CONTRACT_OFFER("contractoffer"),

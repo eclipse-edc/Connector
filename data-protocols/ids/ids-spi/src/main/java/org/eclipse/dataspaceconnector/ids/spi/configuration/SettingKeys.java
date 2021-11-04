@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.ids.spi.configuration;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 
+/**
+ * The {@link SettingKeys} class contains all available IDS settings.
+ */
 public final class SettingKeys {
     @EdcSetting
     public static final String EDC_IDS_ID = "edc.ids.id";

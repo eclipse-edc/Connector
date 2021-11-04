@@ -8,6 +8,9 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.util.List;
 
+/**
+ * DTO representing IDS Dataspace Connector
+ */
 @JsonDeserialize(builder = Connector.Builder.class)
 public class Connector {
     private final String id;

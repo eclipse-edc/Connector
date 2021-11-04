@@ -8,6 +8,9 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * DTO representing IDS Data Catalog
+ */
 @JsonDeserialize(builder = DataCatalog.Builder.class)
 public class DataCatalog {
     private final String id;
