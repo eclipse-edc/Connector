@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.version.IdsProtocol;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -39,9 +40,11 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notFound;
 
 abstract class AbstractDescriptionRequestHandler implements DescriptionRequestHandler {
+    protected final Monitor monitor;
     protected final TransformerRegistry transformerRegistry;
 
-    public AbstractDescriptionRequestHandler(@NotNull TransformerRegistry transformerRegistry) {
+    public AbstractDescriptionRequestHandler(@NotNull Monitor monitor, @NotNull TransformerRegistry transformerRegistry) {
+        this.monitor = monitor;
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
     }
 
@@ -75,8 +78,12 @@ abstract class AbstractDescriptionRequestHandler implements DescriptionRequestHa
         DescriptionResponseMessageBuilder builder;
         TransformResult<URI> transformResult = transformerRegistry.transform(messageId, URI.class);
         if (transformResult.hasProblems()) {
-
-            // TODO: handle transformer problems
+            monitor.warning(
+                    String.format(
+                            "Could not transform IdsId to URI: [%s]",
+                            String.join(", ", transformResult.getProblems())
+                    )
+            );
             builder = new DescriptionResponseMessageBuilder();
         } else {
             builder = new DescriptionResponseMessageBuilder(transformResult.getOutput());

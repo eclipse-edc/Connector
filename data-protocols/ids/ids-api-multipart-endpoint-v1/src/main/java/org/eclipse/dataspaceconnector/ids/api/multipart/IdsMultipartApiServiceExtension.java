@@ -260,7 +260,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         }
 
         return new MultipartController(
-                multipartControllerSettingsFactoryResult.getRejectionMessageFactorySettings(),
+                multipartControllerSettingsFactoryResult.getSettings(),
                 identityService,
                 handlers
         );

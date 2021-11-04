@@ -52,6 +52,7 @@ public class AssetToRepresentationTransformer extends AbstractAssetTransformer i
         }
 
         Artifact artifact = context.transform(object, Artifact.class);
+
         IdsId id = IdsId.Builder.newInstance()
                 .value(object.getId())
                 .type(IdsType.REPRESENTATION)

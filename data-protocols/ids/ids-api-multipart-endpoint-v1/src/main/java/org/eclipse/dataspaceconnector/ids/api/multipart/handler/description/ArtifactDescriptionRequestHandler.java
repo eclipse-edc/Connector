@@ -42,7 +42,7 @@ public class ArtifactDescriptionRequestHandler extends AbstractDescriptionReques
             @NotNull ArtifactDescriptionRequestHandlerSettings artifactDescriptionRequestHandlerSettings,
             @NotNull AssetIndex assetIndex,
             @NotNull TransformerRegistry transformerRegistry) {
-        super(transformerRegistry);
+        super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndex = Objects.requireNonNull(assetIndex);
         this.connectorId = Objects.requireNonNull(artifactDescriptionRequestHandlerSettings).getId();
@@ -60,7 +60,12 @@ public class ArtifactDescriptionRequestHandler extends AbstractDescriptionReques
 
         var result = transformerRegistry.transform(uri, IdsId.class);
         if (result.hasProblems()) {
-            // TODO log problems
+            monitor.warning(
+                    String.format(
+                            "Could not transform URI to IdsId: [%s]",
+                            String.join(", ", result.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
@@ -76,7 +81,12 @@ public class ArtifactDescriptionRequestHandler extends AbstractDescriptionReques
 
         TransformResult<Artifact> transformResult = transformerRegistry.transform(asset, Artifact.class);
         if (transformResult.hasProblems()) {
-            // TODO log
+            monitor.warning(
+                    String.format(
+                            "Could not transform Asset to Artifact: [%s]",
+                            String.join(", ", result.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 

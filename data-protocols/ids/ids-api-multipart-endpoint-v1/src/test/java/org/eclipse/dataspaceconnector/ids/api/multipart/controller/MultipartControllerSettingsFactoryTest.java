@@ -21,8 +21,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URISyntaxException;
-
 public class MultipartControllerSettingsFactoryTest {
 
     private static final String CONNECTOR_ID = "https://example.com";
@@ -65,7 +63,7 @@ public class MultipartControllerSettingsFactoryTest {
         var result = multipartControllerSettingsFactory.createRejectionMessageFactorySettings();
 
         //validate
-        Assertions.assertNotNull(result.getRejectionMessageFactorySettings());
-        Assertions.assertEquals(CONNECTOR_ID, result.getRejectionMessageFactorySettings().getId());
+        Assertions.assertNotNull(result.getSettings());
+        Assertions.assertEquals(CONNECTOR_ID, result.getSettings().getId());
     }
 }
