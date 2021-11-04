@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
-import org.eclipse.dataspaceconnector.ids.spi.version.IdsProtocol;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
