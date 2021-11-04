@@ -26,7 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -38,12 +38,12 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
     private final CriterionToPredicateConverter predicateFactory;
-    private final ReentrantLock lock;
+    private final ReentrantReadWriteLock lock;
 
     public InMemoryAssetIndex(CriterionToPredicateConverter predicateFactory) {
         this.predicateFactory = predicateFactory;
         //fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
-        lock = new ReentrantLock(true);
+        lock = new ReentrantReadWriteLock(true);
     }
 
     @Override
@@ -56,11 +56,11 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
 
         // select everything ONLY if the special constant is used
         if (expression == AssetSelectorExpression.SELECT_ALL) {
-            lock.lock();
+            lock.readLock().lock();
             try {
                 return cache.values().stream();
             } finally {
-                lock.unlock();
+                lock.readLock().unlock();
             }
         }
 
@@ -68,11 +68,11 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
         // apply it to the stream
         var rootPredicate = expression.getCriteria().stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
 
-        lock.lock();
+        lock.readLock().lock();
         try {
             return filterByPredicate(cache, rootPredicate);
         } finally {
-            lock.unlock();
+            lock.readLock().unlock();
         }
     }
 
@@ -80,46 +80,46 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     public Asset findById(String assetId) {
         Predicate<Asset> predicate = (asset) -> asset.getId().equals(assetId);
         List<Asset> assets;
-        lock.lock();
+        lock.readLock().lock();
         try {
             assets = filterByPredicate(cache, predicate).collect(Collectors.toList());
         } finally {
-            lock.unlock();
+            lock.readLock().unlock();
         }
         return assets.isEmpty() ? null : assets.get(0);
     }
 
     @Override
     public void insert(Asset asset, DataAddress address) {
-        lock.lock();
+        lock.writeLock().lock();
         try {
             add(asset, address);
         } finally {
-            lock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
-    public void insertAll(Map<Asset, DataAddress> entries) {
-        lock.lock();
+    public void insertAll(List<Map.Entry<Asset, DataAddress>> entries) {
+        lock.writeLock().lock();
         try {
-            entries.forEach(this::add);
+            entries.forEach(entry -> add(entry.getKey(), entry.getValue()));
         } finally {
-            lock.unlock();
+            lock.writeLock().unlock();
         }
     }
 
     @Override
     public DataAddress resolveForAsset(String assetId) {
         Objects.requireNonNull(assetId, "assetId");
-        lock.lock();
+        lock.readLock().lock();
         try {
             if (!dataAddresses.containsKey(assetId) || dataAddresses.get(assetId) == null) {
                 throw new IllegalArgumentException("No DataAddress found for Asset ID=" + assetId);
             }
             return dataAddresses.get(assetId);
         } finally {
-            lock.unlock();
+            lock.readLock().unlock();
         }
     }
 

@@ -9,6 +9,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.AbstractMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -50,6 +52,35 @@ public class InMemoryAssetIndexLoaderTest {
 
     }
 
+    @Test
+    void insertAll() {
+        var asset1 = createAsset("asset1", "id1");
+        var asset2 = createAsset("asset2", "id2");
+
+        var address1 = createDataAddress(asset1);
+        var address2 = createDataAddress(asset2);
+
+        assetIndexLoader.insertAll(List.of(new AbstractMap.SimpleEntry<>(asset1, address1), new AbstractMap.SimpleEntry<>(asset2, address2)));
+
+        assertThat(((InMemoryAssetIndex) assetIndexLoader).getAssets()).hasSize(2);
+        assertThat(((InMemoryAssetIndex) assetIndexLoader).getDataAddresses()).hasSize(2);
+
+    }
+
+    @Test
+    void insertAll_oneExists_shouldOverwrite() {
+        var asset1 = createAsset("asset1", "id1");
+
+        var address1 = createDataAddress(asset1);
+        var address2 = createDataAddress(asset1);
+
+        assetIndexLoader.insertAll(List.of(new AbstractMap.SimpleEntry<>(asset1, address1), new AbstractMap.SimpleEntry<>(asset1, address2)));
+
+        // only one address/asset combo should exist
+        assertThat(((InMemoryAssetIndex) assetIndexLoader).getAssets()).hasSize(1);
+        assertThat(((InMemoryAssetIndex) assetIndexLoader).getDataAddresses()).hasSize(1).containsValue(address2).containsKeys(asset1.getId());
+
+    }
 
     @BeforeEach
     void setup() {
