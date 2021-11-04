@@ -42,7 +42,7 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
             @NotNull DataCatalogDescriptionRequestHandlerSettings dataCatalogDescriptionRequestHandlerSettings,
             @NotNull DataCatalogService dataCatalogService,
             @NotNull TransformerRegistry transformerRegistry) {
-        super(transformerRegistry);
+        super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.dataCatalogService = Objects.requireNonNull(dataCatalogService);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
@@ -60,7 +60,12 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
 
         var result = transformerRegistry.transform(uri, IdsId.class);
         if (result.hasProblems()) {
-            // TODO log problems
+            monitor.warning(
+                    String.format(
+                            "Could not transform URI to IdsId: [%s]",
+                            String.join(", ", result.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
@@ -76,7 +81,12 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
 
         TransformResult<ResourceCatalog> transformResult = transformerRegistry.transform(dataCatalog, ResourceCatalog.class);
         if (transformResult.hasProblems()) {
-            // TODO log
+            monitor.warning(
+                    String.format(
+                            "Could not transform DataCatalog to ResourceCatalog: [%s]",
+                            String.join(", ", result.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
@@ -89,5 +99,4 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
                 .payload(catalog)
                 .build();
     }
-
 }

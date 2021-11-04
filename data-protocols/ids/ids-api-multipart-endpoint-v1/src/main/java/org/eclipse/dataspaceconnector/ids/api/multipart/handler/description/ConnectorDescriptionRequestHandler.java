@@ -41,7 +41,7 @@ public class ConnectorDescriptionRequestHandler extends AbstractDescriptionReque
             @NotNull ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings,
             @NotNull ConnectorService connectorService,
             @NotNull TransformerRegistry transformerRegistry) {
-        super(transformerRegistry);
+        super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorService = Objects.requireNonNull(connectorService);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
@@ -60,7 +60,12 @@ public class ConnectorDescriptionRequestHandler extends AbstractDescriptionReque
 
         TransformResult<Connector> transformResult = transformerRegistry.transform(connectorService.getConnector(), Connector.class);
         if (transformResult.hasProblems()) {
-            // TODO log
+            monitor.warning(
+                    String.format(
+                            "Could not transform Connector: [%s]",
+                            String.join(", ", transformResult.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
@@ -87,5 +92,4 @@ public class ConnectorDescriptionRequestHandler extends AbstractDescriptionReque
 
         return requestedConnectorId.equals(connectorIdUri);
     }
-
 }

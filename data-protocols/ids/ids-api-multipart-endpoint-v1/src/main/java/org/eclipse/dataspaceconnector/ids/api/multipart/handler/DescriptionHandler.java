@@ -93,7 +93,12 @@ public class DescriptionHandler implements Handler {
         if (requestedElement != null) {
             var result = transformerRegistry.transform(requestedElement, IdsType.class);
             if (result.hasProblems()) {
-                // TODO: log problems
+                monitor.warning(
+                        String.format(
+                                "Could not transform URI to IdsType: [%s]",
+                                String.join(", ", result.getProblems())
+                        )
+                );
                 return createBadParametersErrorMultipartResponse(descriptionRequestMessage);
             }
 

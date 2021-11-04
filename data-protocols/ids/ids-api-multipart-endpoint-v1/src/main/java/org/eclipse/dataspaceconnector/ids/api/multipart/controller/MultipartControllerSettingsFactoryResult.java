@@ -21,19 +21,19 @@ import java.util.Collections;
 import java.util.List;
 
 public class MultipartControllerSettingsFactoryResult {
-    private final MultipartControllerSettings multipartControllerSettings;
+    private final MultipartControllerSettings settings;
     private final List<String> errors;
 
     private MultipartControllerSettingsFactoryResult(
-            @Nullable MultipartControllerSettings multipartControllerSettings,
+            @Nullable MultipartControllerSettings settings,
             @Nullable List<String> errors) {
-        this.multipartControllerSettings = multipartControllerSettings;
+        this.settings = settings;
         this.errors = errors;
     }
 
     @Nullable
-    public MultipartControllerSettings getRejectionMessageFactorySettings() {
-        return multipartControllerSettings;
+    public MultipartControllerSettings getSettings() {
+        return settings;
     }
 
     @NotNull
@@ -42,15 +42,15 @@ public class MultipartControllerSettingsFactoryResult {
     }
 
     static final class Builder {
-        private MultipartControllerSettings multipartControllerSettings;
+        private MultipartControllerSettings settings;
         private List<String> errors;
 
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder multipartControllerSettings(@Nullable MultipartControllerSettings multipartControllerSettings) {
-            this.multipartControllerSettings = multipartControllerSettings;
+        public Builder settings(@Nullable MultipartControllerSettings settings) {
+            this.settings = settings;
             return this;
         }
 
@@ -60,7 +60,7 @@ public class MultipartControllerSettingsFactoryResult {
         }
 
         public MultipartControllerSettingsFactoryResult build() {
-            return new MultipartControllerSettingsFactoryResult(multipartControllerSettings, errors);
+            return new MultipartControllerSettingsFactoryResult(settings, errors);
         }
     }
 }

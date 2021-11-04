@@ -84,6 +84,14 @@ public final class RejectionMessageUtil {
     }
 
     @NotNull
+    public static RejectionMessage internalRecipientError(
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
+        return createRejectionMessageBuilder(correlationMessage, connectorId)
+                ._rejectionReason_(RejectionReason.INTERNAL_RECIPIENT_ERROR)
+                .build();
+    }
+
+    @NotNull
     private static RejectionMessageBuilder createRejectionMessageBuilder(
             @Nullable Message correlationMessage, @Nullable String connectorId) {
 

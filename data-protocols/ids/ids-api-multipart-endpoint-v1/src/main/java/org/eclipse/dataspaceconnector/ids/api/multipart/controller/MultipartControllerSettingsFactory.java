@@ -45,7 +45,7 @@ public class MultipartControllerSettingsFactory {
         var settings = MultipartControllerSettings.Builder.newInstance().id(id).build();
 
         return MultipartControllerSettingsFactoryResult.Builder.newInstance()
-                .multipartControllerSettings(settings)
+                .settings(settings)
                 .errors(errors)
                 .build();
     }

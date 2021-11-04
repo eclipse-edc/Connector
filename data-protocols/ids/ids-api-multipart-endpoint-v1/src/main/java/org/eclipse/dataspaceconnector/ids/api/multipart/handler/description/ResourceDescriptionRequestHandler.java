@@ -42,7 +42,7 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
             @NotNull ResourceDescriptionRequestHandlerSettings resourceDescriptionRequestHandlerSettings,
             @NotNull AssetIndex assetIndex,
             @NotNull TransformerRegistry transformerRegistry) {
-        super(transformerRegistry);
+        super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndex = Objects.requireNonNull(assetIndex);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
@@ -60,7 +60,12 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
 
         var result = transformerRegistry.transform(uri, IdsId.class);
         if (result.hasProblems()) {
-            // TODO log problems
+            monitor.warning(
+                    String.format(
+                            "Could not transform URI to IdsId: [%s]",
+                            String.join(", ", result.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
@@ -76,7 +81,12 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
 
         TransformResult<Resource> transformResult = transformerRegistry.transform(asset, Resource.class);
         if (transformResult.hasProblems()) {
-            // TODO log
+            monitor.warning(
+                    String.format(
+                            "Could not transform Asset to Resource: [%s]",
+                            String.join(", ", transformResult.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
@@ -89,5 +99,4 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
                 .payload(resource)
                 .build();
     }
-
 }

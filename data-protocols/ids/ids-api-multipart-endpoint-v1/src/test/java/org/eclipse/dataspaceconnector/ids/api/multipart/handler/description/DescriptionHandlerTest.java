@@ -178,6 +178,9 @@ class DescriptionHandlerTest {
 
         EasyMock.expect(descriptionHandlerSettings.getId()).andReturn(null);
 
+        monitor.warning(EasyMock.anyString());
+        EasyMock.expectLastCall();
+
         // record
         EasyMock.replay(
                 monitor,
@@ -196,7 +199,6 @@ class DescriptionHandlerTest {
         assertThat(result).isNotNull();
         assertThat(result).extracting(MultipartResponse::getHeader).isInstanceOf(RejectionMessage.class);
     }
-
 
     @Test
     void testHandleRequestOfTypeDescriptionRequestMessageUnknownButValidRequestedElement() {

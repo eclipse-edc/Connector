@@ -47,11 +47,11 @@ public class AssetToArtifactTransformer extends AbstractAssetTransformer impleme
             return null;
         }
 
-
         IdsId id = IdsId.Builder.newInstance()
                 .value(object.getId())
                 .type(IdsType.ARTIFACT)
                 .build();
+
         URI uri = context.transform(id, URI.class);
 
         ArtifactBuilder artifactBuilder = new ArtifactBuilder(uri);

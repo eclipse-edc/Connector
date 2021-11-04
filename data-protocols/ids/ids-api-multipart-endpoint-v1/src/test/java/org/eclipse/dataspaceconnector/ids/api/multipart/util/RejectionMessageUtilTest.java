@@ -188,6 +188,33 @@ class RejectionMessageUtilTest {
         assertConnectorIdPropertiesMapped(rejectionMessage);
     }
 
+    @Test
+    public void testInternalRecipientError() {
+        var rejectionMessage = RejectionMessageUtil
+                .internalRecipientError(null, null);
+
+        assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
+
+        rejectionMessage = RejectionMessageUtil
+                .internalRecipientError(correlationMessage, null);
+
+        assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
+        assertCorrelationMessagePropertiesMapped(rejectionMessage);
+
+        rejectionMessage = RejectionMessageUtil
+                .internalRecipientError(null, connectorId);
+
+        assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
+        assertConnectorIdPropertiesMapped(rejectionMessage);
+
+        rejectionMessage = RejectionMessageUtil
+                .internalRecipientError(correlationMessage, connectorId);
+
+        assertBasePropertiesMapped(rejectionMessage, RejectionReason.INTERNAL_RECIPIENT_ERROR);
+        assertCorrelationMessagePropertiesMapped(rejectionMessage);
+        assertConnectorIdPropertiesMapped(rejectionMessage);
+    }
+
     private void assertBasePropertiesMapped(RejectionMessage rejectionMessage, RejectionReason rejectionReason) {
         assertThat(rejectionMessage).isNotNull()
                 .extracting(RejectionMessage::getRejectionReason).isEqualTo(rejectionReason);

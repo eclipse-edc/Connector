@@ -42,7 +42,7 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
             @NotNull RepresentationDescriptionRequestHandlerSettings representationDescriptionRequestHandlerSettings,
             @NotNull AssetIndex assetIndex,
             @NotNull TransformerRegistry transformerRegistry) {
-        super(transformerRegistry);
+        super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndex = Objects.requireNonNull(assetIndex);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
@@ -60,7 +60,12 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
 
         var result = transformerRegistry.transform(uri, IdsId.class);
         if (result.hasProblems()) {
-            // TODO log problems
+            monitor.warning(
+                    String.format(
+                            "Could not transform URI to IdsId: [%s]",
+                            String.join(", ", result.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
@@ -76,7 +81,12 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
 
         TransformResult<Representation> transformResult = transformerRegistry.transform(asset, Representation.class);
         if (transformResult.hasProblems()) {
-            // TODO log
+            monitor.warning(
+                    String.format(
+                            "Could not transform Asset to Representation: [%s]",
+                            String.join(", ", transformResult.getProblems())
+                    )
+            );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
@@ -89,5 +99,4 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
                 .payload(representation)
                 .build();
     }
-
 }
