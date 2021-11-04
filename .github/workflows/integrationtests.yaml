@@ -1,6 +1,6 @@
 name: Integration Tests
 
-on: [ push, pull_request ]
+on: [ pull_request ]
 
 jobs:
   Azure-Integration-Test:
