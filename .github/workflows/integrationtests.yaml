@@ -4,6 +4,7 @@ on: [ push, pull_request ]
 
 jobs:
   Azure-Integration-Test:
+    if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
 
     steps:
@@ -27,6 +28,7 @@ jobs:
         run: ./gradlew extensions:azure:transfer-process-store-cosmos:check
 
   Aws-Integration-Test:
+    if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
 
     steps:
