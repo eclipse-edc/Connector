@@ -1,14 +1,12 @@
 package org.eclipse.dataspaceconnector.transfer;
 
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -42,8 +40,7 @@ public class CloudTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
-        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
+        AssetIndexLoader assetIndex = context.getService(AssetIndexLoader.class);
 
         asList("azure.png", "doc1.txt", "pinup.webp", "index.jpg")
                 .forEach(filename -> {
@@ -56,8 +53,7 @@ public class CloudTransferExtension implements ServiceExtension {
 
                     Asset asset = Asset.Builder.newInstance().id(filename).property(POLICY_ID, USE_US_OR_EU_POLICY).build();
 
-                    assetIndex.add(asset, dataAddress);
-                    dataAddressResolver.add(filename, dataAddress);
+                    assetIndex.insert(asset, dataAddress);
                 });
     }
 
