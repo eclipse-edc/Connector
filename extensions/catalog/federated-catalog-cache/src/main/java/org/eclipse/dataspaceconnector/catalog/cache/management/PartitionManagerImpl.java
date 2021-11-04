@@ -25,7 +25,7 @@ public class PartitionManagerImpl implements PartitionManager {
     private final Function<WorkItemQueue, Crawler> crawlerGenerator;
     private final List<Crawler> crawlers;
     private final WorkItemQueue workQueue;
-    private final Supplier<List<WorkItem>> staticWorkLoad;
+    private final Supplier<List<WorkItem>> workloadSource;
     private ExecutorService crawlerScheduler;
 
     /**
@@ -36,11 +36,11 @@ public class PartitionManagerImpl implements PartitionManager {
      * @param crawlerGenerator A generator function that MUST create a new instance of a {@link Crawler}
      * @param numCrawlers      A number indicating how many {@code Crawler} instances should be generated.
      *                         Note that the PartitionManager may choose to generate more or less, e.g. because of constrained system resources.
-     * @param staticWorkLoad   A fixed list of {@link WorkItem} instances that need to be processed on every execution run. This list is treated as immutable,
+     * @param workloadSource   A fixed list of {@link WorkItem} instances that need to be processed on every execution run. This list is treated as immutable,
      */
-    public PartitionManagerImpl(Monitor monitor, WorkItemQueue workQueue, Function<WorkItemQueue, Crawler> crawlerGenerator, int numCrawlers, Supplier<List<WorkItem>> staticWorkLoad) {
+    public PartitionManagerImpl(Monitor monitor, WorkItemQueue workQueue, Function<WorkItemQueue, Crawler> crawlerGenerator, int numCrawlers, Supplier<List<WorkItem>> workloadSource) {
         this.monitor = monitor;
-        this.staticWorkLoad = staticWorkLoad;
+        this.workloadSource = workloadSource;
         this.workQueue = workQueue;
         this.crawlerGenerator = crawlerGenerator;
         scheduledUpdates = new ConcurrentLinkedQueue<>();
@@ -67,7 +67,7 @@ public class PartitionManagerImpl implements PartitionManager {
     @Override
     public void schedule(ExecutionPlan executionPlan) {
         //todo: should we really discard updates?
-        var currentList = staticWorkLoad.get();
+        var currentList = workloadSource.get();
         executionPlan.run(() -> {
             monitor.debug("partition manager: execute plan - waiting for queue lock");
             workQueue.lock();
