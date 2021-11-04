@@ -13,19 +13,17 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.web;
 
+import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
+import okhttp3.dnsoverhttps.DnsOverHttps;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.iam.did.web.resolution.WebDidResolver;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.jetbrains.annotations.Nullable;
 
-import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.Set;
 
-import static java.lang.String.format;
+import static java.util.Objects.requireNonNull;
 import static org.eclipse.dataspaceconnector.iam.did.web.ConfigurationKeys.DNS_OVER_HTTPS;
 
 /**
@@ -40,13 +38,12 @@ public class WebDidExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var httpClient = context.getService(OkHttpClient.class);
         var mapper = context.getTypeManager().getMapper();
         var monitor = context.getMonitor();
 
-        var dnsServer = getDnsServerUrl(context);
+        OkHttpClient httpClient = getOkHttpClient(context);
 
-        var resolver = new WebDidResolver(dnsServer, httpClient, mapper, monitor);
+        var resolver = new WebDidResolver(httpClient, mapper, monitor);
 
         var resolverRegistry = context.getService(DidResolverRegistry.class);
         resolverRegistry.register(resolver);
@@ -54,13 +51,16 @@ public class WebDidExtension implements ServiceExtension {
         monitor.info("Initialized Web DID extension");
     }
 
-    @Nullable
-    private URL getDnsServerUrl(ServiceExtensionContext context) {
+    private OkHttpClient getOkHttpClient(ServiceExtensionContext context) {
+        var httpClient = context.getService(OkHttpClient.class);
         var dnsServer = context.getSetting(DNS_OVER_HTTPS, null);
-        try {
-            return dnsServer != null ? new URL(dnsServer) : null;
-        } catch (MalformedURLException e) {
-            throw new EdcException(format("Invalid value for %s: %s", DNS_OVER_HTTPS, dnsServer), e);
+
+        if (dnsServer != null) {
+            // use DNS over HTTPS for name lookups
+            var dns = new DnsOverHttps.Builder().client(httpClient).url(requireNonNull(HttpUrl.get(dnsServer))).includeIPv6(false).build();
+            httpClient = httpClient.newBuilder().dns(dns).build();
         }
+        return httpClient;
     }
+
 }

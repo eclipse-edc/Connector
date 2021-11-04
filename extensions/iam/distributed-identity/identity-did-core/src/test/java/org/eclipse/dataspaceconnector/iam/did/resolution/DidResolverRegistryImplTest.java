@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.iam.did.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -62,8 +63,9 @@ class DidResolverRegistryImplTest {
         }
 
         @Override
-        public DidDocument resolve(String didKey) {
-            return DidDocument.Builder.newInstance().build();
+        @NotNull
+        public DidResolutionResult resolve(String didKey) {
+            return new DidResolutionResult(DidDocument.Builder.newInstance().build());
         }
     }
 

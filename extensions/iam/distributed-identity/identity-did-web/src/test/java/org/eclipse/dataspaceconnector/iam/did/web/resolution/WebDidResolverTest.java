@@ -29,7 +29,6 @@ import java.nio.charset.StandardCharsets;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Fail.failBecauseExceptionWasNotThrown;
 
 /**
  * Verifies Web DID resolution.
@@ -50,8 +49,8 @@ class WebDidResolverTest {
             }
         };
         var resolver = createResolver(interceptor);
-        var document = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
-        assertThat(document).isNotNull();
+        var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+        assertThat(result.getDidDocument()).isNotNull();
     }
 
     @Test
@@ -65,23 +64,8 @@ class WebDidResolverTest {
             }
         };
         var resolver = createResolver(interceptor);
-        var document = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
-        assertThat(document).isNull();
-    }
-
-    @Test
-    void verifyConvertToUrl() throws Exception {
-        var resolver = createResolver();
-
-        assertThat(resolver.keyToUrl("did:web:w3c-ccg.github.io")).isEqualTo("https://w3c-ccg.github.io/.well-known/did.json");
-        assertThat(resolver.keyToUrl("did:web:w3c-ccg.github.io:user:alice")).isEqualTo("https://w3c-ccg.github.io/user/alice/did.json");
-
-        try {
-            resolver.keyToUrl("did:web:w3c-ccg.github.io:user:alice:");
-            failBecauseExceptionWasNotThrown(IllegalArgumentException.class);
-        } catch (IllegalArgumentException e) {
-            /// expected
-        }
+        var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
+        assertThat(result.invalid()).isTrue();
     }
 
     private WebDidResolver createResolver(Interceptor... interceptors) {

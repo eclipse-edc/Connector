@@ -18,6 +18,7 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -59,7 +60,7 @@ public class CrawlerJob implements Job {
                 .map(CompletableFuture::join)
                 .filter(Objects::nonNull)
                 .filter(result -> !result.invalid())
-                .map(DidResolverRegistry.Result::getDidDocument)
+                .map(DidResolutionResult::getDidDocument)
                 .collect(Collectors.toList());
 
         monitor.info("CrawlerJob: Found " + newDids.size() + " new DIDs on ION, took " + (Duration.between(start, Instant.now()).toString()
@@ -74,7 +75,7 @@ public class CrawlerJob implements Job {
         cc.getDidStore().saveAll(newDids);
     }
 
-    private List<CompletableFuture<DidResolverRegistry.Result>> getDidDocumentsFromBlockchainAsync(CrawlerContext context) {
+    private List<CompletableFuture<DidResolutionResult>> getDidDocumentsFromBlockchainAsync(CrawlerContext context) {
         return getDidSuffixesForType(context.getDidTypes(), context.getTypeManager())
                 .stream()
                 .map(didSuffix -> resolveDidAsync(didSuffix, context.getResolverRegistry()))
@@ -124,7 +125,7 @@ public class CrawlerJob implements Job {
      * @param resolverRegistry The resolver registry
      * @return A {@link DidDocument} if found, {@code null} otherwise
      */
-    private DidResolverRegistry.Result resolveDid(String didId, DidResolverRegistry resolverRegistry) {
+    private DidResolutionResult resolveDid(String didId, DidResolverRegistry resolverRegistry) {
         try {
             return resolverRegistry.resolve(didId);
         } catch (EdcException ex) {
@@ -139,7 +140,7 @@ public class CrawlerJob implements Job {
      * @param resolverRegistry An ION implementation
      * @return A {@code CompletableFuture<DidDocument>} if found, {@code null} otherwise
      */
-    private CompletableFuture<DidResolverRegistry.Result> resolveDidAsync(String didId, DidResolverRegistry resolverRegistry) {
+    private CompletableFuture<DidResolutionResult> resolveDidAsync(String didId, DidResolverRegistry resolverRegistry) {
         return CompletableFuture.supplyAsync(() -> resolveDid(didId, resolverRegistry));
     }
 

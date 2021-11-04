@@ -13,9 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 /**
  * Resolves a DID against an external resolver service.
@@ -29,9 +27,9 @@ public interface DidResolver {
     String getMethod();
 
     /**
-     * Resolves the DID document or returns null if not found.
+     * Resolves the DID document.
      */
-    @Nullable
-    DidDocument resolve(String didKey);
+    @NotNull
+    DidResolutionResult resolve(String didKey);
 
 }

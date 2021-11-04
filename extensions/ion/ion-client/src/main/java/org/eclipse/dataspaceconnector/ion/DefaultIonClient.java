@@ -11,6 +11,7 @@ import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidResolveResponse;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.eclipse.dataspaceconnector.ion.spi.request.IonRequest;
 import org.eclipse.dataspaceconnector.ion.util.HexStringUtils;
@@ -92,7 +93,8 @@ public class DefaultIonClient implements IonClient {
     }
 
     @Override
-    public DidDocument resolve(String didUri) {
+    @NotNull
+    public DidResolutionResult resolve(String didUri) {
         var rq = new Request.Builder()
                 .get()
                 .url(resolutionEndpoint + IDENTIFIERS_PATH + "/" + didUri)
@@ -102,7 +104,7 @@ public class DefaultIonClient implements IonClient {
             if (response.isSuccessful()) {
                 var body = response.body().string();
                 DidResolveResponse didResolveResponse = typeManager.readValue(body, DidResolveResponse.class);
-                return didResolveResponse.getDidDocument();
+                return new DidResolutionResult(didResolveResponse.getDidDocument());
             }
             throw new IonRequestException("Resolving the DID URI was unsuccessful: code = " + response.code() + " content= " + response.body().string());
         } catch (Exception ex) {
