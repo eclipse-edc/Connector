@@ -86,7 +86,6 @@ include(":extensions:catalog:catalog-service")
 include(":extensions:catalog:federated-catalog-node")
 include(":extensions:catalog:federated-catalog-cache")
 include(":extensions:catalog:federated-catalog-spi")
-include(":extensions:catalog:federated-catalog-node-directory")
 include(":extensions:transfer-functions:transfer-functions-spi")
 include(":extensions:transfer-functions:transfer-functions-core")
 
