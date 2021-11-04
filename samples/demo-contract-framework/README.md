@@ -2,6 +2,7 @@
 
 This framework provides an implementation of the ContractOfferFramework interface.
 
+A simple REST API is offered to add assets to an in memory catalog.
 The implemented PublicContractOfferFramework creates free use contract offers for all assets.
 
 ## Run

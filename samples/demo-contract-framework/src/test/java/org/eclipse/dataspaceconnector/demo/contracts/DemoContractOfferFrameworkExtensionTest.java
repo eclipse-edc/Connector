@@ -67,7 +67,7 @@ public class DemoContractOfferFrameworkExtensionTest {
         };
     }
 
-    private class ConnectorClient {
+    private static class ConnectorClient {
         private final OkHttpClient httpClient;
         private final TypeManager typeManager;
         private final String url = String.format("http://localhost:%s/api", HTTP_PORT);

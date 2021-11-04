@@ -15,9 +15,8 @@
 package org.eclipse.dataspaceconnector.demo.contracts;
 
 import org.eclipse.dataspaceconnector.contract.ContractOfferServiceImpl;
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndexWriter;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -53,10 +52,10 @@ public class DemoContractOfferFrameworkExtension implements ServiceExtension {
 
         var assetIndex = context.getService(AssetIndex.class);
         var webService = context.getService(WebService.class);
-        var assetIndexWriter = new InMemoryAssetIndexWriter((InMemoryAssetIndex) assetIndex);
+        var assetIndexLoader = context.getService(AssetIndexLoader.class);
         var contractOfferService = new ContractOfferServiceImpl(contractOfferFramework, assetIndex);
 
-        webService.registerController(new AssetIndexController(assetIndexWriter));
+        webService.registerController(new AssetIndexController(assetIndexLoader));
         webService.registerController(new ContractOfferController(contractOfferService));
 
         monitor.info(String.format("Initialized %s", NAME));
