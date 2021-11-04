@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.jetbrains.annotations.NotNull;
@@ -23,13 +22,13 @@ class InMemoryAssetIndexTest {
 
     @BeforeEach
     void setUp() {
-        index = new InMemoryAssetIndex(niceMock(Monitor.class), new CriterionToPredicateConverter());
+        index = new InMemoryAssetIndex(new CriterionToPredicateConverter());
     }
 
     @Test
     void queryAssets() {
         var testAsset = createAsset("foobar");
-        index.add(testAsset, createDataAddress(testAsset));
+        index.insert(testAsset, niceMock(DataAddress.class));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "foobar").build());
         assertThat(assets).hasSize(1).containsExactly(testAsset);
     }
@@ -37,7 +36,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_notFound() {
         var testAsset = createAsset("foobar");
-        index.add(testAsset, createDataAddress(testAsset));
+        index.insert(testAsset, niceMock(DataAddress.class));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("name", "barbaz").build());
         assertThat(assets).isEmpty();
     }
@@ -45,7 +44,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_fieldNull() {
         var testAsset = createAsset("foobar");
-        index.add(testAsset, createDataAddress(testAsset));
+        index.insert(testAsset, niceMock(DataAddress.class));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("description", "barbaz").build());
         assertThat(assets).isEmpty();
     }
@@ -55,9 +54,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.add(testAsset1, createDataAddress(testAsset1));
-        index.add(testAsset2, createDataAddress(testAsset2));
-        index.add(testAsset3, createDataAddress(testAsset3));
+        index.insert(testAsset1, niceMock(DataAddress.class));
+        index.insert(testAsset2, niceMock(DataAddress.class));
+        index.insert(testAsset3, niceMock(DataAddress.class));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance()
                 .whenEquals("name", "barbaz")
                 .whenEquals("version", "1")
@@ -74,10 +73,10 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_selectAll_shouldReturnAll() {
         var testAsset1 = createAsset("barbaz");
-        index.add(testAsset1, createDataAddress(testAsset1));
+        index.insert(testAsset1, niceMock(DataAddress.class));
 
         var testAsset2 = createAsset("foobar");
-        index.add(testAsset2, createDataAddress(testAsset2));
+        index.insert(testAsset2, niceMock(DataAddress.class));
 
         assertThat(index.queryAssets(AssetSelectorExpression.SELECT_ALL)).containsExactlyInAnyOrder(testAsset1, testAsset2);
     }
@@ -86,7 +85,7 @@ class InMemoryAssetIndexTest {
     void findById() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("barbaz", id);
-        index.add(testAsset, createDataAddress(testAsset));
+        index.insert(testAsset, niceMock(DataAddress.class));
 
         assertThat(index.findById(id)).isNotNull().isEqualTo(testAsset);
     }
@@ -95,8 +94,8 @@ class InMemoryAssetIndexTest {
     @Test
     void findById_notfound() {
         String id = UUID.randomUUID().toString();
-        var testAsset = createAsset("foobar");
-        index.add(testAsset, createDataAddress(testAsset));
+        var testAsset = createAsset("foobar", id);
+        index.insert(testAsset, niceMock(DataAddress.class));
 
         assertThat(index.findById("not-exist")).isNull();
     }

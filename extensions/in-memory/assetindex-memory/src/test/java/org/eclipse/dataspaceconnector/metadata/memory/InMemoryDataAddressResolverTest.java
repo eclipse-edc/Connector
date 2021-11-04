@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.metadata.memory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.assertj.core.api.Assertions;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,16 +12,15 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 import java.util.UUID;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class InMemoryDataAddressResolverTest {
-    private InMemoryDataAddressResolver resolver;
+    private InMemoryAssetIndex resolver;
 
 
     @BeforeEach
     void setUp() {
-        resolver = new InMemoryDataAddressResolver();
+        resolver = new InMemoryAssetIndex(new CriterionToPredicateConverter());
     }
 
     @Test
@@ -28,9 +28,9 @@ class InMemoryDataAddressResolverTest {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
         DataAddress address = createDataAddress(testAsset);
-        resolver.add(id, address);
+        resolver.insert(testAsset, address);
 
-        assertThat(resolver.resolveForAsset(testAsset.getId())).isEqualTo(address);
+        Assertions.assertThat(resolver.resolveForAsset(testAsset.getId())).isEqualTo(address);
     }
 
     @Test
@@ -38,7 +38,7 @@ class InMemoryDataAddressResolverTest {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
         DataAddress address = createDataAddress(testAsset);
-        resolver.add(id, address);
+        resolver.insert(testAsset, address);
 
         assertThatThrownBy(() -> resolver.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
     }

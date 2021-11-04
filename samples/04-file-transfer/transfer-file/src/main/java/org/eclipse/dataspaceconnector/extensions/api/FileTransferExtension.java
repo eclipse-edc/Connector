@@ -1,13 +1,12 @@
 package org.eclipse.dataspaceconnector.extensions.api;
 
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -55,8 +54,7 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
-        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
+        AssetIndexLoader loader = context.getService(AssetIndexLoader.class);
 
         DataAddress dataAddress = DataAddress.Builder.newInstance()
                 .property("type", "File")
@@ -67,7 +65,6 @@ public class FileTransferExtension implements ServiceExtension {
         String assetId = "test-document";
         Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
 
-        assetIndex.add(asset, dataAddress);
-        dataAddressResolver.add(assetId, dataAddress);
+        loader.insert(asset, dataAddress);
     }
 }
