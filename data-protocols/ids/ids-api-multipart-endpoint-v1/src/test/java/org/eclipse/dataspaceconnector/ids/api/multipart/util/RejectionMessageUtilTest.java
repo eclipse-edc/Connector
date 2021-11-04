@@ -18,7 +18,7 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.ids.spi.version.IdsProtocol;
+import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

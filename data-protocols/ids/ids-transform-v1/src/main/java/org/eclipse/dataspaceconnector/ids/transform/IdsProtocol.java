@@ -12,9 +12,8 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.spi.version;
+package org.eclipse.dataspaceconnector.ids.transform;
 
-// TODO move to transformer package
 public final class IdsProtocol {
     public static final String INFORMATION_MODEL_VERSION = "4.0.0";
 }
