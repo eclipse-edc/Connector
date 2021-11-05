@@ -1,13 +1,12 @@
 package org.eclipse.dataspaceconnector.extensions.transfer;
 
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
+import org.eclipse.dataspaceconnector.metadata.memory.AssetStorage;
 import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -37,7 +36,7 @@ public class CloudTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
+        AssetStorage assetStorage =  context.getService(AssetStorage.class);
         InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
         DataAddress dataAddress = DataAddress.Builder.newInstance()
@@ -50,7 +49,8 @@ public class CloudTransferExtension implements ServiceExtension {
         String assetId = "test-document";
         Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
 
-        assetIndex.add(asset, dataAddress);
+        assetStorage.add(asset);
+        dataAddressResolver.add(asset.getId(), dataAddress);
         dataAddressResolver.add(assetId, dataAddress);
     }
 

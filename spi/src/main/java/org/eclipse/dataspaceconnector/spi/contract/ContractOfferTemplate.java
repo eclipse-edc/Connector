@@ -26,7 +26,7 @@ import java.util.stream.Stream;
  */
 public interface ContractOfferTemplate {
 
-    Stream<ContractOffer> getTemplatedOffers(Stream<Asset> assets);
+    Stream<ContractOffer> getTemplatedOffers(Iterable<Asset> assets);
 
     AssetSelectorExpression getSelectorExpression();
 }

@@ -29,7 +29,7 @@ import java.util.Objects;
  * {@link org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework}.
  * <p>
  * If an AssetSelectorExpression does not contain any criteria, it selects no Assets. If all Assets are to be selected,
- * the {@link AssetSelectorExpression#SELECT_ALL} constant must be used.
+ * use the {@link AssetSelectorExpression#SELECT_ALL}.
  */
 @JsonDeserialize(builder = AssetSelectorExpression.Builder.class)
 public final class AssetSelectorExpression {
@@ -38,17 +38,16 @@ public final class AssetSelectorExpression {
      * Constant to select the entire {@link AssetIndex} content. Depending on the implementation,
      * this could take a long time!
      */
-    public static final AssetSelectorExpression SELECT_ALL = new AssetSelectorExpression("*", "=", "*");
-    private List<Criterion> criteria;
+    public static final AssetSelectorExpression SELECT_ALL = AssetSelectorExpression.Builder.newInstance()
+            .whenEquals("*", "*").build();
 
-    private AssetSelectorExpression() {
-        criteria = new ArrayList<>();
-    }
+    /**
+     * Criteria to retrieve a subset of {@link org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset}s from the {@link AssetIndex}.
+     */
+    private final List<Criterion> criteria;
 
-
-    private AssetSelectorExpression(String l, String op, String r) {
-        criteria = new ArrayList<>();
-        criteria.add(new Criterion(l, op, r));
+    private AssetSelectorExpression(final List<Criterion> criteria) {
+        this.criteria = criteria;
     }
 
     public List<Criterion> getCriteria() {
@@ -72,27 +71,29 @@ public final class AssetSelectorExpression {
         return criteria == that.criteria || criteria.equals(that.criteria);
     }
 
+
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private final AssetSelectorExpression expression;
 
-        private Builder() {
-            expression = new AssetSelectorExpression();
-        }
+        private final List<Criterion> criteria;
 
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }
 
+        private Builder() {
+            criteria = new ArrayList<>();
+        }
+
         public Builder criteria(List<Criterion> criteria) {
-            expression.criteria = criteria;
+            this.criteria.addAll(criteria);
             return this;
         }
 
         @JsonIgnore
         public Builder constraint(String left, String op, String right) {
-            expression.criteria.add(new Criterion(left, op, right));
+            this.criteria.add(new Criterion(left, op, right));
             return this;
         }
 
@@ -105,13 +106,12 @@ public final class AssetSelectorExpression {
          */
         @JsonIgnore
         public Builder whenEquals(String key, String value) {
-            expression.criteria.add(new Criterion(key, "=", value));
+            this.criteria.add(new Criterion(key, "=", value));
             return this;
         }
 
         public AssetSelectorExpression build() {
-            return expression;
+            return new AssetSelectorExpression(criteria);
         }
     }
-
 }

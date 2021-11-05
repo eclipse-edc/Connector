@@ -30,6 +30,16 @@ class CriterionToPredicateConverterTest {
     }
 
     @Test
+    void convert_selectAll() {
+        var criterion = new Criterion("*", "=", "*");
+        var asset = createAsset("test-asset");
+        var predicate = converter.convert(criterion);
+
+        assertThat(predicate).isNotNull();
+        assertThat(predicate.test(asset)).isTrue();
+    }
+
+    @Test
     void convert_invalidOperator() {
         var criterion = new Criterion("name", "in", "(bob, alice)");
         assertThatThrownBy(() -> converter.convert(criterion)).isInstanceOf(IllegalArgumentException.class)

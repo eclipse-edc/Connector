@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexQuery;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexResult;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFrameworkQuery;
@@ -22,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQueryResponse;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferTemplate;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 
 import java.util.Objects;
@@ -54,20 +55,24 @@ public class ContractOfferServiceImpl implements ContractOfferService {
                         contractOfferFramework.queryTemplates(contractOfferFrameworkQuery))
                 .orElseGet(Stream::empty);
 
-        return new ContractOfferQueryResponse(contractOfferTemplates
-                .flatMap(this::createContractOfferFromTemplate));
+        return new ContractOfferQueryResponse(
+                contractOfferTemplates
+                        .flatMap(this::createContractOfferFromTemplate));
     }
 
     private Stream<ContractOffer> createContractOfferFromTemplate(
             ContractOfferTemplate contractOfferTemplate) {
         AssetSelectorExpression selectorExpression = contractOfferTemplate.getSelectorExpression();
-        if (selectorExpression != null) {
-            Stream<Asset> assetStream = assetIndex.queryAssets(selectorExpression);
-            return contractOfferTemplate.getTemplatedOffers(assetStream);
+        if (selectorExpression == null) {
+            return Stream.empty();
         }
 
-        return Stream.empty();
-
+        AssetIndexQuery assetIndexQuery = AssetIndexQuery.Builder.newInstance()
+                .expression(selectorExpression)
+                .limit(Integer.MAX_VALUE)
+                .build();
+        AssetIndexResult assetIndexResult = assetIndex.queryAssets(assetIndexQuery);
+        return contractOfferTemplate.getTemplatedOffers(assetIndexResult);
     }
 
     private ContractOfferFrameworkQuery createContractOfferFrameworkQuery(

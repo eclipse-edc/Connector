@@ -16,8 +16,6 @@ package org.eclipse.dataspaceconnector.spi.contract;
 
 import java.security.Principal;
 
-// TODO: add pagination attributes
-
 /**
  * The {@link ContractOfferFrameworkQuery} narrows down the number of
  * queried {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer}.
@@ -35,21 +33,18 @@ public class ContractOfferQuery {
         return principal;
     }
 
-    public static ContractOfferQuery.Builder builder() {
-        return ContractOfferQuery.Builder.newInstance();
-    }
 
     public static final class Builder {
         private Principal principal;
 
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
         private Builder() {
         }
 
-        public static ContractOfferQuery.Builder newInstance() {
-            return new ContractOfferQuery.Builder();
-        }
-
-        public ContractOfferQuery.Builder principal(final Principal principal) {
+        public Builder principal(final Principal principal) {
             this.principal = principal;
             return this;
         }

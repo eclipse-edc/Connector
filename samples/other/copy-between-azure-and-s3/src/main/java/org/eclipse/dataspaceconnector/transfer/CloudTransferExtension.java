@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer;
 
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
+import org.eclipse.dataspaceconnector.metadata.memory.AssetStorage;
 import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -42,7 +42,7 @@ public class CloudTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
+        AssetStorage assetStorage = context.getService(AssetStorage.class);
         InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
         asList("azure.png", "doc1.txt", "pinup.webp", "index.jpg")
@@ -56,8 +56,8 @@ public class CloudTransferExtension implements ServiceExtension {
 
                     Asset asset = Asset.Builder.newInstance().id(filename).property(POLICY_ID, USE_US_OR_EU_POLICY).build();
 
-                    assetIndex.add(asset, dataAddress);
-                    dataAddressResolver.add(filename, dataAddress);
+                    assetStorage.add(asset);
+                    dataAddressResolver.add(asset.getId(), dataAddress);
                 });
     }
 

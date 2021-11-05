@@ -14,69 +14,82 @@
 
 package org.eclipse.dataspaceconnector.metadata.memory;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexQuery;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexResult;
+import org.eclipse.dataspaceconnector.spi.pagination.Cursor;
+import org.eclipse.dataspaceconnector.spi.pagination.StringCursor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * An ephemeral asset index.
  */
-public class InMemoryAssetIndex implements AssetIndex {
-    private final Map<String, Asset> cache = new ConcurrentHashMap<>();
+class InMemoryAssetIndex implements AssetIndex {
+    private final AssetStorage assetStorage;
     private final CriterionToPredicateConverter predicateFactory;
 
-    public InMemoryAssetIndex(Monitor monitor, CriterionToPredicateConverter predicateFactory) {
-        this.predicateFactory = predicateFactory;
+    public InMemoryAssetIndex(@NotNull AssetStorage assetStorage, @NotNull CriterionToPredicateConverter predicateFactory) {
+        this.assetStorage = Objects.requireNonNull(assetStorage);
+        this.predicateFactory = Objects.requireNonNull(predicateFactory);
     }
 
     @Override
-    public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-        Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
-        // do not return anything if expression is empty
+    public AssetIndexResult queryAssets(AssetIndexQuery query) {
+        Objects.requireNonNull(query, "AssetSelectorExpression can not be null!");
+
+        // return nothing if expression is empty
+        var expression = query.getExpression();
         if (expression.getCriteria().isEmpty()) {
-            return Stream.empty();
+            return AssetIndexResult.Builder.newInstance().expression(expression).build();
         }
 
-        // select everything ONLY if the special constant is used
-        if (expression == AssetSelectorExpression.SELECT_ALL) {
-            return cache.values().stream();
-        }
-
-        // convert all the criteria into predicates since we're in memory anyway, collate all predicates into one and
-        // apply it to the stream
+        // find matching assets
+        var matchingAssets = new ArrayList<Asset>();
+        var storageIterator = getStorageIterator(query.getNextCursor());
         var rootPredicate = expression.getCriteria().stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
+        while (storageIterator.hasNext() && matchingAssets.size() < query.getLimit()) {
+            var asset = storageIterator.next();
+            if (rootPredicate.test(asset)) {
+                matchingAssets.add(asset);
+            }
+        }
 
-        return filterByPredicate(cache, rootPredicate);
+        // create cursor
+        var isIteratorEmpty = !storageIterator.hasNext();
+        var cursor = isIteratorEmpty ? null : new StringCursor(lastElement(matchingAssets).getId());
 
+        // return result
+        return AssetIndexResult.Builder.newInstance()
+                .assets(matchingAssets)
+                .expression(expression)
+                .nextCursor(cursor)
+                .build();
     }
 
     @Override
     public Asset findById(String assetId) {
-        Predicate<Asset> predicate = (asset) -> asset.getId().equals(assetId);
-        List<Asset> assets;
-        assets = filterByPredicate(cache, predicate).collect(Collectors.toList());
-        return assets.isEmpty() ? null : assets.get(0);
+        return assetStorage.getAsset(assetId);
     }
 
-    // TODO: address is not used and it should be deleted
-    public void add(Asset asset, DataAddress address) {
-        Objects.requireNonNull(asset, "asset");
-        Objects.requireNonNull(asset.getId(), "asset.getId()");
-        cache.put(asset.getId(), asset);
+    private Iterator<Asset> getStorageIterator(@Nullable Cursor cursor) {
+        if (cursor != null && !(cursor instanceof StringCursor)) {
+            throw new EdcException(String.format("not supported cursor passed to in memory asset index extension (%s)", cursor.getClass().getName()));
+        }
+
+        return cursor == null ?
+                assetStorage.getAssets() :
+                assetStorage.getAssetsAscending(((StringCursor) cursor).getMarker());
     }
 
-    private Stream<Asset> filterByPredicate(Map<String, Asset> assets, Predicate<Asset> predicate) {
-        return assets.values().stream().filter(predicate);
+    private static <T> T lastElement(ArrayList<T> list) {
+        return list.get(list.size() - 1);
     }
-
 }

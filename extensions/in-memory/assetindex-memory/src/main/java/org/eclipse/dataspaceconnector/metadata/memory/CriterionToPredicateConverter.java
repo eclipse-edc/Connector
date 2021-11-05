@@ -19,11 +19,18 @@ import java.util.function.Predicate;
 public class CriterionToPredicateConverter implements CriterionConverter<Predicate<Asset>> {
     @Override
     public Predicate<Asset> convert(Criterion criterion) {
-        if ("=".equals(criterion.getOperator())) {
-            return asset -> Objects.equals(field((String) criterion.getOperandLeft(), asset), criterion.getOperandRight()) ||
-                    Objects.equals(label((String) criterion.getOperandLeft(), asset), criterion.getOperandRight());
+        var isEqualsOperator = "=".equals(criterion.getOperator());
+        if (!isEqualsOperator) {
+            throw new IllegalArgumentException(String.format("Operator [%s] is not supported by this converter!", criterion.getOperator()));
         }
-        throw new IllegalArgumentException(String.format("Operator [%s] is not supported by this converter!", criterion.getOperator()));
+
+        var isSelectAllCriterion = criterion.getOperandLeft().equals("*") && criterion.getOperandRight().equals("*");
+        if (isSelectAllCriterion) {
+            return asset -> true;
+        }
+
+        return asset -> Objects.equals(field((String)criterion.getOperandLeft(), asset), criterion.getOperandRight()) ||
+                Objects.equals(label((String)criterion.getOperandLeft(), asset), criterion.getOperandRight());
     }
 
     private Object field(String fieldName, Asset asset) {

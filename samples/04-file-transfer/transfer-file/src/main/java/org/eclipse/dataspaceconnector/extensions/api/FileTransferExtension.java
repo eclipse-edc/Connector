@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.extensions.api;
 
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
+import org.eclipse.dataspaceconnector.metadata.memory.AssetStorage;
 import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -55,7 +55,7 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
+        AssetStorage assetStorage = context.getService(AssetStorage.class);
         InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
         DataAddress dataAddress = DataAddress.Builder.newInstance()
@@ -67,7 +67,7 @@ public class FileTransferExtension implements ServiceExtension {
         String assetId = "test-document";
         Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
 
-        assetIndex.add(asset, dataAddress);
+        assetStorage.add(asset);
         dataAddressResolver.add(assetId, dataAddress);
     }
 }

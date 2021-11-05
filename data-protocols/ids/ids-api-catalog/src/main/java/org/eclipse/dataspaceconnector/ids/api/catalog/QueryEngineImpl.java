@@ -16,14 +16,17 @@ package org.eclipse.dataspaceconnector.ids.api.catalog;
 
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndexQuery;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
@@ -52,6 +55,12 @@ public class QueryEngineImpl implements QueryEngine {
                 .filter(p -> policyService.evaluateRequest(connectorId, correlationId, consumerToken, p).valid())
                 .collect(toList());
 
-        return assetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance().build()).collect(toList());
+        var expression = AssetSelectorExpression.Builder.newInstance().build();
+        var assetIndexQuery = AssetIndexQuery.Builder.newInstance().expression(expression).limit(Integer.MAX_VALUE).build();
+        var result = assetIndex.queryAssets(assetIndexQuery);
+
+        List<Asset> assets = new ArrayList<>();
+        result.iterator().forEachRemaining(assets::add);
+        return assets;
     }
 }

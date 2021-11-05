@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.types.domain.policy.CommonActionTypes;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.stream.Stream;
 
@@ -44,8 +45,8 @@ public class PublicContractOfferFramework implements ContractOfferFramework {
         INSTANCE;
 
         @Override
-        public Stream<ContractOffer> getTemplatedOffers(Stream<Asset> assets) {
-            return assets.map(this::createContractOffer);
+        public Stream<ContractOffer> getTemplatedOffers(Iterable<Asset> assets) {
+            return Stream.of(createContractOffer(assets));
         }
 
         @Override
@@ -53,7 +54,7 @@ public class PublicContractOfferFramework implements ContractOfferFramework {
             return AssetSelectorExpression.Builder.newInstance().build();
         }
 
-        private ContractOffer createContractOffer(Asset asset) {
+        private ContractOffer createContractOffer(Iterable<Asset> assets) {
             ContractOffer.Builder builder = ContractOffer.Builder.newInstance();
 
             Action action = Action.Builder.newInstance()
@@ -70,12 +71,17 @@ public class PublicContractOfferFramework implements ContractOfferFramework {
             policyBuilder.permissions(Collections.singletonList(rule));
 
             Policy policy = policyBuilder.build();
-            OfferedAsset offeredAsset = OfferedAsset.Builder.newInstance()
-                    .asset(asset)
-                    .policy(policy)
-                    .build();
 
-            builder.assets(Collections.singletonList(offeredAsset));
+            var offeredAssets = new ArrayList<OfferedAsset>();
+            for (var asset : assets) {
+                OfferedAsset offeredAsset = OfferedAsset.Builder.newInstance()
+                        .asset(asset)
+                        .policy(policy)
+                        .build();
+                offeredAssets.add(offeredAsset);
+            }
+
+            builder.assets(offeredAssets);
 
             return builder.build();
         }

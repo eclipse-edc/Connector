@@ -18,8 +18,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 
 import java.util.stream.Stream;
 
-// TODO: add pagination attributes
-
 /**
  * The {@link ContractOfferQueryResponse} returns a stream of {@link ContractOffer} as a result of a query.
  */
@@ -27,7 +25,7 @@ public class ContractOfferQueryResponse {
     private final Stream<ContractOffer> contractOfferStream;
 
     public ContractOfferQueryResponse(final Stream<ContractOffer> contractOfferStream) {
-        this.contractOfferStream = contractOfferStream;
+        this.contractOfferStream = contractOfferStream == null ? Stream.empty() : contractOfferStream;
     }
 
     public Stream<ContractOffer> getContractOfferStream() {
