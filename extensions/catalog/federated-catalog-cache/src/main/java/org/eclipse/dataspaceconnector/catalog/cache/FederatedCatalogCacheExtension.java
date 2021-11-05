@@ -66,7 +66,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         // QUERY SUBSYSTEM
         var queryAdapterRegistry = context.getService(CacheQueryAdapterRegistry.class);
 
-        FederatedCacheStore store = context.getService(FederatedCacheStore.class);
+        var store = context.getService(FederatedCacheStore.class);
         queryAdapterRegistry.register(new DefaultCacheQueryAdapter(store));
         var webService = context.getService(WebService.class);
         var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
@@ -105,7 +105,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     }
 
     @NotNull
-    private LoaderManagerImpl createLoaderManager(FederatedCacheStore store) {
+    private LoaderManager createLoaderManager(FederatedCacheStore store) {
         return new LoaderManagerImpl(List.of(createLoader(store)),
                 partitionManagerConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE),
                 () -> partitionManagerConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS), monitor);

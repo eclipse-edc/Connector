@@ -13,6 +13,7 @@ public interface FederatedCacheStore {
     String FEATURE = "edc:catalog:cache:store";
 
     /**
+     * todo: rename _this_ asset to something else, and add the originator as property
      * Adds an {@link Asset} to the store
      */
     void save(Asset asset);

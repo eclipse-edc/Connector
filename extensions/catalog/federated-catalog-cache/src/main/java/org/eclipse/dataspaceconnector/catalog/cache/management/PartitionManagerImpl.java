@@ -69,11 +69,11 @@ public class PartitionManagerImpl implements PartitionManager {
         //todo: should we really discard updates?
         var currentList = workloadSource.get();
         executionPlan.run(() -> {
-            monitor.debug("partition manager: execute plan - waiting for queue lock");
+            monitor.debug("Partition manager: execute plan - waiting for queue lock");
             workQueue.lock();
-            monitor.debug("partition manager: execute plan - adding workload " + currentList.size());
+            monitor.debug("Partition manager: execute plan - adding workload " + currentList.size());
             workQueue.addAll(currentList);
-            monitor.debug("partition manager: execute release queue lock");
+            monitor.debug("Partition manager: execute release queue lock");
             workQueue.unlock();
         });
     }

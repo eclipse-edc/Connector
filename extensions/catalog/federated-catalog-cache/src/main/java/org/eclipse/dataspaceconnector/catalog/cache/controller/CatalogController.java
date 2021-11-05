@@ -33,7 +33,7 @@ public class CatalogController {
     @Path("catalog")
     public Collection<Asset> getCatalog(CacheQuery cacheQuery) {
         monitor.info("Received a catalog request");
-        QueryResponse queryResponse = queryEngine.getCatalog(cacheQuery);
+        var queryResponse = queryEngine.getCatalog(cacheQuery);
         // query not possible
         if (queryResponse.getStatus() == QueryResponse.Status.NO_ADAPTER_FOUND) {
             throw new QueryNotAcceptedException();
