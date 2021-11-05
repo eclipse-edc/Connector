@@ -1,6 +1,6 @@
 # Writing Integration Tests
 
-## Definition
+## Definition and distinction
 
 While _unit tests_ test one single class by stubbing or mocking dependencies, and an end-2-end test relies on the _
 entire_
@@ -29,21 +29,23 @@ An integration test is annotated with `@IntegrationTest`, which causes the test 
 `RUN_INTEGRATION_TEST` environment variable is set to `true`.
 
 All integration tests should have the `"...IntegrationTest"` postfix to distinguish them clearly from unit tests. They
-should not reside in a separate package, because all tests should maintain package consistency to their test subject.
+should reside in the same package as unit tests because all tests should maintain package consistency to their test
+subject.
 
-Any credentials, secrets, passwords, etc. required by the integration tests should be passed in using environment
-variables. A good way to access them is `ConfigurationFunctions#propOrEnv()` because then the credentials can also be
-supplied via system properties.
+Any credentials, secrets, passwords, etc. that are required by the integration tests should be passed in using
+environment variables. A good way to access them is `ConfigurationFunctions.propOrEnv()` because then the credentials
+can also be supplied via system properties.
 
 There is no one-size-fits-all guideline whether to perform setup tasks in the `@BeforeAll` or `@BeforeEach`, it will
-depend on the concrete system you're using. In most cases it is **not** advisable to deploy/provision the external
-system itself in either of them. For example, provisioning a CosmosDB or spinning up a Postgres docker container
-directly in the test should generally be avoided, because it will introduce code, that does not have anything to do with
-the test, can cause security problems (privilege escalation through the Docker API), etc.
+depend on the concrete system you're using. Long-running setup should be done in the `@BeforeAll` so as not to extend
+the run-time of the test unnecessarily. In contrast, in most cases it is **not** advisable to deploy/provision the
+external system itself in either of those methods. For example, provisioning a CosmosDB or spinning up a Postgres docker
+container directly in the test should generally be avoided, because it will introduce code, that does not have anything
+to do with the test and may cause security problems (privilege escalation through the Docker API), etc.
 
 Rather, the external system should be deployed in the CI script, or there might even be a dedicated test instance
-running continuously. In the latter case we need to be careful to avoid conflicts (e.g. database names) and to clean-up
-before and after the test.
+running continuously. In the latter case we need to be careful to avoid conflicts (e.g. database names) when multiple
+test runners access that system simultaneously and to properly clean-up any residue before and after the test.
 
 ## Running them locally
 
