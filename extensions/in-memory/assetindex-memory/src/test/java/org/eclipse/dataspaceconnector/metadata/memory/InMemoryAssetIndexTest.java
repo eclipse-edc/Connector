@@ -19,7 +19,6 @@ import static org.easymock.EasyMock.niceMock;
 class InMemoryAssetIndexTest {
     private InMemoryAssetIndex index;
 
-
     @BeforeEach
     void setUp() {
         index = new InMemoryAssetIndex(new CriterionToPredicateConverter());
