@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -29,7 +30,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 class FederatedCatalogCacheEndToEndTest {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final String PORT = "9999";
+    private static final String PORT = String.valueOf(2000 + new Random().nextInt(8000));
 
     @BeforeAll
     static void setProps() {
