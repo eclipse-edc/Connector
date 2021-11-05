@@ -48,6 +48,8 @@ public class DemoContractOfferFrameworkExtensionTest {
     @Test
     void retrieveContractOffers(OkHttpClient httpClient, TypeManager typeManager) {
         ConnectorClient client = new ConnectorClient(httpClient, typeManager);
+        // for the 'id' we must actually use the constant from Asset, otherwise an exception gets raised during
+        // the adding of the asset to the index
         client.indexAsset(Map.of(Asset.PROPERTY_ID, "anId", "path", "/a/valid/path"));
 
         List<Map<String, Object>> contractOffers = client.getAllContractOffers();
