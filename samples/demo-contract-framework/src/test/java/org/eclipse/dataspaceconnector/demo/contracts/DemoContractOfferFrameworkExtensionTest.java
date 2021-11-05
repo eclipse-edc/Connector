@@ -23,6 +23,7 @@ import okhttp3.Response;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -47,13 +48,13 @@ public class DemoContractOfferFrameworkExtensionTest {
     @Test
     void retrieveContractOffers(OkHttpClient httpClient, TypeManager typeManager) {
         ConnectorClient client = new ConnectorClient(httpClient, typeManager);
-        client.indexAsset(Map.of("id", "anId", "path", "/a/valid/path"));
+        client.indexAsset(Map.of(Asset.PROPERTY_ID, "anId", "path", "/a/valid/path"));
 
         List<Map<String, Object>> contractOffers = client.getAllContractOffers();
 
         assertThat(contractOffers).hasSize(1).element(0)
                 .extracting("assets").asList().element(0)
-                .extracting("asset").extracting("id")
+                .extracting("asset").extracting("properties").extracting(Asset.PROPERTY_ID)
                 .isEqualTo("anId");
     }
 
@@ -96,7 +97,8 @@ public class DemoContractOfferFrameworkExtensionTest {
 
             try (Response response = httpClient.newCall(request).execute()) {
                 assertThat(response.code()).isEqualTo(200);
-                return typeManager.readValue(response.body().string(), new TypeReference<>() {});
+                return typeManager.readValue(response.body().string(), new TypeReference<>() {
+                });
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
