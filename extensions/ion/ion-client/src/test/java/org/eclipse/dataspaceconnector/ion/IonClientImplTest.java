@@ -30,8 +30,8 @@ class IonClientImplTest {
     @Test
     void resolve() {
         var result = client.resolve(DID_URL_TO_RESOLVE);
-        assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(DID_URL_TO_RESOLVE);
+        assertThat(result.getDidDocument()).isNotNull();
+        assertThat(result.getDidDocument().getId()).isEqualTo(DID_URL_TO_RESOLVE);
     }
 
 

@@ -11,25 +11,19 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
+package org.eclipse.dataspaceconnector.iam.did.web;
 
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 
 /**
- * Resolves a DID against an external resolver service.
+ * Defines configuration keys used by the Web DID extension.
  */
-public interface DidResolver {
+public interface ConfigurationKeys {
 
     /**
-     * Returns the DID method this resolver supports.
+     * If set, the resolver will use the endpoint to resolve DIDs using DNS over HTTPS.
      */
-    @NotNull
-    String getMethod();
-
-    /**
-     * Resolves the DID document.
-     */
-    @NotNull
-    DidResolutionResult resolve(String didKey);
+    @EdcSetting
+    String DNS_OVER_HTTPS = "edc.webdid.doh.url";
 
 }

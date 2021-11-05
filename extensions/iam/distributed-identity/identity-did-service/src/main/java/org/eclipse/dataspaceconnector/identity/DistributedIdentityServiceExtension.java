@@ -37,7 +37,7 @@ public class DistributedIdentityServiceExtension implements ServiceExtension {
         var identityService = new DistributedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
         context.registerService(IdentityService.class, identityService);
 
-        context.getMonitor().info("Initialized DistributedIdentityService");
+        context.getMonitor().info("Initialized Distributed Identity Service extension");
 
     }
 

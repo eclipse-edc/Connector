@@ -14,7 +14,9 @@
 package org.eclipse.dataspaceconnector.iam.did.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -56,13 +58,14 @@ class DidResolverRegistryImplTest {
     private static class MockResolver implements DidResolver {
 
         @Override
-        public String getMethod() {
+        public @NotNull String getMethod() {
             return FOO_METHOD;
         }
 
         @Override
-        public DidDocument resolve(String didKey) {
-            return DidDocument.Builder.newInstance().build();
+        @NotNull
+        public DidResolutionResult resolve(String didKey) {
+            return new DidResolutionResult(DidDocument.Builder.newInstance().build());
         }
     }
 
