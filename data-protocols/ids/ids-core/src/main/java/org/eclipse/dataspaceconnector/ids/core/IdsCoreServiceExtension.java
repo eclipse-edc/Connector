@@ -69,12 +69,12 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(IdentityService.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
+        return Set.of("edc:ids:core");
     }
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:ids:core");
+        return Set.of(IdentityService.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
     }
 
     @Override
