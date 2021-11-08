@@ -17,8 +17,6 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
@@ -50,14 +48,13 @@ public class DataCatalogToIdsResourceCatalogTransformer implements IdsTypeTransf
             return null;
         }
 
-        IdsId idsId = IdsId.Builder.newInstance()
-                .type(IdsType.CATALOG)
-                .value(object.getId())
-                .build();
-
-        URI id = context.transform(idsId, URI.class);
-
-        ResourceCatalogBuilder resourceCatalogBuilder = new ResourceCatalogBuilder(id);
+        ResourceCatalogBuilder builder;
+        URI catalogId = object.getId();
+        if (catalogId != null) {
+            builder = new ResourceCatalogBuilder(catalogId);
+        } else {
+            builder = new ResourceCatalogBuilder();
+        }
 
         List<Resource> resources = new LinkedList<>();
         List<Asset> assets = object.getAssets();
@@ -70,8 +67,8 @@ public class DataCatalogToIdsResourceCatalogTransformer implements IdsTypeTransf
             }
         }
 
-        resourceCatalogBuilder._offeredResource_(new ArrayList<>(resources));
+        builder._offeredResource_(new ArrayList<>(resources));
 
-        return resourceCatalogBuilder.build();
+        return builder.build();
     }
 }

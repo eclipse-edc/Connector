@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
+import java.net.URI;
 import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -32,14 +33,14 @@ import java.util.stream.Stream;
  */
 public class DataCatalogServiceImpl implements DataCatalogService {
     private final Monitor monitor;
-    private final String dataCatalogId;
+    private final URI dataCatalogId;
     private final AssetIndex assetIndex;
 
     public DataCatalogServiceImpl(
             @NotNull Monitor monitor,
-            @NotNull String dataCatalogId,
+            @NotNull URI dataCatalogId,
             @NotNull AssetIndex assetIndex) {
-        this.monitor = monitor;
+        this.monitor = Objects.requireNonNull(monitor);
         this.dataCatalogId = Objects.requireNonNull(dataCatalogId);
         this.assetIndex = Objects.requireNonNull(assetIndex);
     }

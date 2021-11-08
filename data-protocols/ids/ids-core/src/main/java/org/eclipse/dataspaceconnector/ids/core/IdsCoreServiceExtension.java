@@ -47,6 +47,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -68,12 +69,12 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(IdentityService.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
+        return Set.of("edc:ids:core");
     }
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:ids:core");
+        return Set.of(IdentityService.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
     }
 
     @Override
@@ -82,7 +83,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         List<String> settingErrors = new ArrayList<>();
         ConnectorServiceSettings connectorServiceSettings = null;
-        String dataCatalogId = null;
+        URI dataCatalogId = null;
 
         try {
             connectorServiceSettings = new ConnectorServiceSettings(serviceExtensionContext, monitor);
@@ -171,7 +172,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     }
 
     private DataCatalogService createDataCatalogService(
-            String dataCatalogId,
+            URI dataCatalogId,
             AssetIndex assetIndex) {
         return new DataCatalogServiceImpl(
                 monitor,
@@ -197,8 +198,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         return new ConnectorVersionProviderImpl();
     }
 
-
-    private String resolveCatalogId(ServiceExtensionContext serviceExtensionContext) {
+    private URI resolveCatalogId(ServiceExtensionContext serviceExtensionContext) {
         String value = serviceExtensionContext.getSetting(EDC_IDS_CATALOG_ID, null);
 
         if (value == null) {
@@ -207,15 +207,13 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         }
 
         try {
-
             // Hint: use stringified uri to keep uri path and query
             IdsId idsId = IdsIdParser.parse(value);
             if (idsId.getType() == IdsType.CATALOG) {
-                return value;
+                return URI.create(value);
             } else {
                 throw new EdcException(String.format(ERROR_INVALID_SETTING, EDC_IDS_CATALOG_ID, value));
             }
-
         } catch (IllegalArgumentException e) {
             throw new EdcException(String.format(ERROR_INVALID_SETTING, EDC_IDS_CATALOG_ID, value));
         }
