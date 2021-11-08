@@ -6,12 +6,8 @@ import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -20,7 +16,6 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public class PartitionManagerImpl implements PartitionManager {
-    private final Queue<ExecutionPlan> scheduledUpdates;
     private final Monitor monitor;
     private final Function<WorkItemQueue, Crawler> crawlerGenerator;
     private final List<Crawler> crawlers;
@@ -43,7 +38,6 @@ public class PartitionManagerImpl implements PartitionManager {
         this.workloadSource = workloadSource;
         this.workQueue = workQueue;
         this.crawlerGenerator = crawlerGenerator;
-        scheduledUpdates = new ConcurrentLinkedQueue<>();
 
         // create "numCrawlers" crawlers using the generator function
         crawlers = createCrawlers(numCrawlers);
@@ -52,17 +46,6 @@ public class PartitionManagerImpl implements PartitionManager {
         startCrawlers(crawlers);
     }
 
-    @Override
-    public @NotNull ExecutionPlan update(ExecutionPlan newPlan) {
-        if (!scheduledUpdates.offer(newPlan)) {
-            monitor.severe("PartitionManager Update was not scheduled!");
-        }
-
-        if (!waitForCrawlers()) {
-            monitor.severe("Warning: not all crawlers finished in time!");
-        }
-        return collateUpdates(scheduledUpdates);
-    }
 
     @Override
     public void schedule(ExecutionPlan executionPlan) {
@@ -87,15 +70,11 @@ public class PartitionManagerImpl implements PartitionManager {
         return IntStream.range(0, numCrawlers).mapToObj(i -> crawlerGenerator.apply(workQueue)).collect(Collectors.toList());
     }
 
-    private @NotNull ExecutionPlan collateUpdates(Collection<ExecutionPlan> scheduledUpdates) {
-        return scheduledUpdates.stream().reduce(ExecutionPlan::merge).orElseThrow();
-    }
-
-    private Boolean waitForCrawlers() {
+    private void waitForCrawlers() {
         if (crawlers == null || crawlers.isEmpty()) {
-            return true;
+            return;
         }
-        return crawlers.stream().allMatch(Crawler::join);
+        crawlers.forEach(Crawler::join);
     }
 
     private void startCrawlers(List<Crawler> crawlers) {

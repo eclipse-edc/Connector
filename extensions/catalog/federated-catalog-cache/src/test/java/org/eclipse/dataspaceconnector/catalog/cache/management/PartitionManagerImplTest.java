@@ -8,7 +8,6 @@ import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
-import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,30 +61,6 @@ public class PartitionManagerImplTest {
         partitionManager.schedule(Runnable::run);
 
         verify(workItemQueueMock);
-    }
-
-    @Test
-    void update() {
-        ExecutionPlan newPlan = strictMock(ExecutionPlan.class);
-        replay(newPlan);
-
-        assertThat(partitionManager.update(newPlan)).isEqualTo(newPlan);
-        verify(newPlan);
-    }
-
-    @Test
-    void update_multipleTimes() {
-        ExecutionPlan plan1 = strictMock(ExecutionPlan.class);
-        ExecutionPlan plan2 = strictMock(ExecutionPlan.class);
-
-        expect(plan1.merge(plan2)).andReturn(plan2);
-        replay(plan1, plan2);
-
-        assertThat(partitionManager.update(plan1)).isEqualTo(plan1);
-        assertThat(partitionManager.update(plan2)).isEqualTo(plan2);
-
-        verify(plan1, plan2);
-
     }
 
     @Test
