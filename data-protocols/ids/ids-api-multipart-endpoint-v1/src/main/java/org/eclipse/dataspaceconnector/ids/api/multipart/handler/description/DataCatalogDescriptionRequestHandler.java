@@ -39,14 +39,14 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
 
     public DataCatalogDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull DataCatalogDescriptionRequestHandlerSettings dataCatalogDescriptionRequestHandlerSettings,
+            @NotNull String connectorId,
             @NotNull DataCatalogService dataCatalogService,
             @NotNull TransformerRegistry transformerRegistry) {
         super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.dataCatalogService = Objects.requireNonNull(dataCatalogService);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.connectorId = Objects.requireNonNull(dataCatalogDescriptionRequestHandlerSettings).getId();
+        this.connectorId = Objects.requireNonNull(connectorId);
     }
 
     @Override

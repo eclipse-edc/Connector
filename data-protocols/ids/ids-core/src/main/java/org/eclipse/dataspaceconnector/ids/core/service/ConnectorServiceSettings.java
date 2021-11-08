@@ -14,36 +14,99 @@
 
 package org.eclipse.dataspaceconnector.ids.core.service;
 
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class ConnectorServiceSettings {
-    private final String id;
-    private final String title;
-    private final String description;
-    private final SecurityProfile securityProfile;
-    private final URI endpoint;
-    private final URI maintainer;
-    private final URI curator;
 
-    private ConnectorServiceSettings(
-            @Nullable String id,
-            @Nullable String title,
-            @Nullable String description,
-            @Nullable SecurityProfile securityProfile,
-            @Nullable URI endpoint,
-            @Nullable URI maintainer,
-            @Nullable URI curator) {
-        this.id = id;
-        this.title = title;
-        this.description = description;
-        this.securityProfile = securityProfile;
-        this.endpoint = endpoint;
-        this.maintainer = maintainer;
-        this.curator = curator;
+    @EdcSetting
+    public static final String EDC_IDS_ID = "edc.ids.id";
+    @EdcSetting
+    public static final String EDC_IDS_TITLE = "edc.ids.title";
+    @EdcSetting
+    public static final String EDC_IDS_DESCRIPTION = "edc.ids.description";
+    @EdcSetting
+    public static final String EDC_IDS_SECURITY_PROFILE = "edc.ids.security.profile";
+    @EdcSetting
+    public static final String EDC_IDS_ENDPOINT = "edc.ids.endpoint";
+    @EdcSetting
+    public static final String EDC_IDS_MAINTAINER = "edc.ids.maintainer";
+    @EdcSetting
+    public static final String EDC_IDS_CURATOR = "edc.ids.curator";
+
+
+    public static final String DEFAULT_EDC_IDS_TITLE = "Eclipse Dataspace Connector";
+    public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
+    public static final String DEFAULT_EDC_IDS_DESCRIPTION = "Eclipse Dataspace Connector";
+    public static final String DEFAULT_EDC_IDS_SECURITY_PROFILE = SecurityProfile.BASE_SECURITY_PROFILE.getValue();
+    public static final String DEFAULT_EDC_IDS_ENDPOINT = "https://example.com";
+    public static final String DEFAULT_EDC_IDS_MAINTAINER = "https://example.com";
+    public static final String DEFAULT_EDC_IDS_CURATOR = "https://example.com";
+
+    private static final String WARNING_USING_DEFAULT_SETTING = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
+    private static final String ERROR_INVALID_SETTING = "IDS Settings: Invalid setting for '%s'. Was %s'.";
+
+    private final Monitor monitor;
+    private final ServiceExtensionContext serviceExtensionContext;
+
+    // TODO Shouldn't the connector ID be an URI? Ask Denis
+    private String id;
+    private String title;
+    private String description;
+    private SecurityProfile securityProfile;
+    private URI endpoint;
+    private URI maintainer;
+    private URI curator;
+
+    public ConnectorServiceSettings(@NotNull ServiceExtensionContext serviceExtensionContext, @NotNull Monitor monitor) {
+        this.serviceExtensionContext = Objects.requireNonNull(serviceExtensionContext);
+        this.monitor = Objects.requireNonNull(monitor);
+
+        List<String> errors = new ArrayList<>();
+
+        setTitle();
+        setDescription();
+        var error = setConnectorId();
+        if (error != null) {
+            errors.add(error);
+        }
+
+        error = setSecurityProfile();
+        if (error != null) {
+            errors.add(error);
+        }
+
+        error = setEndpoint();
+        if (error != null) {
+            errors.add(error);
+        }
+
+        error = setMaintainer();
+        if (error != null) {
+            errors.add(error);
+        }
+
+        error = setCurator();
+        if (error != null) {
+            errors.add(error);
+        }
+
+        if (!errors.isEmpty()) {
+            throw new EdcException(String.join(", ", error));
+        }
     }
 
     @Nullable
@@ -81,60 +144,119 @@ public class ConnectorServiceSettings {
         return curator;
     }
 
-    static final class Builder {
-        private String id;
-        private String title;
-        private String description;
-        private SecurityProfile securityProfile;
-        private URI endpoint;
-        private URI maintainer;
-        private URI curator;
+    private String setConnectorId() {
+        String value = serviceExtensionContext.getSetting(EDC_IDS_ID, null);
 
-        private Builder() {
+        if (value == null) {
+            String message = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
+            monitor.warning(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
+            value = DEFAULT_EDC_IDS_ID;
         }
 
-        public static Builder newInstance() {
-            return new Builder();
+        try {
+
+            // Hint: use stringified uri to keep uri path and query
+            IdsId idsId = IdsIdParser.parse(value);
+            if (idsId.getType() == IdsType.CONNECTOR) {
+                id = value;
+                return null;
+            } else {
+                return String.format(ERROR_INVALID_SETTING, EDC_IDS_ID, value);
+            }
+
+        } catch (IllegalArgumentException e) {
+            return String.format(ERROR_INVALID_SETTING, EDC_IDS_ID, value);
+        }
+    }
+
+    private void setTitle() {
+        String value = serviceExtensionContext.getSetting(EDC_IDS_TITLE, null);
+
+        if (value == null) {
+            monitor.warning(String.format(WARNING_USING_DEFAULT_SETTING, EDC_IDS_TITLE, DEFAULT_EDC_IDS_TITLE));
+            value = DEFAULT_EDC_IDS_TITLE;
         }
 
-        public Builder id(@Nullable String id) {
-            this.id = id;
-            return this;
+        this.title = value;
+    }
+
+    private void setDescription() {
+        String value = serviceExtensionContext.getSetting(EDC_IDS_DESCRIPTION, null);
+
+        if (value == null) {
+            monitor.warning(String.format(WARNING_USING_DEFAULT_SETTING, EDC_IDS_DESCRIPTION, DEFAULT_EDC_IDS_DESCRIPTION));
+            value = DEFAULT_EDC_IDS_DESCRIPTION;
         }
 
-        public Builder title(@Nullable String title) {
-            this.title = title;
-            return this;
+        this.description = value;
+    }
+
+    private String setSecurityProfile() {
+        String value = serviceExtensionContext.getSetting(EDC_IDS_SECURITY_PROFILE, null);
+
+        if (value == null) {
+            monitor.warning(String.format(WARNING_USING_DEFAULT_SETTING, EDC_IDS_SECURITY_PROFILE, DEFAULT_EDC_IDS_SECURITY_PROFILE));
+            value = DEFAULT_EDC_IDS_SECURITY_PROFILE;
         }
 
-        public Builder description(@Nullable String description) {
-            this.description = description;
-            return this;
+        this.description = value;
+
+        try {
+            this.securityProfile = SecurityProfile.fromValue(value);
+        } catch (IllegalArgumentException illegalArgumentException) {
+            return String.format(ERROR_INVALID_SETTING, EDC_IDS_SECURITY_PROFILE, value);
+        }
+        return null;
+    }
+
+    private String setEndpoint() {
+        String value = serviceExtensionContext.getSetting(EDC_IDS_ENDPOINT, null);
+
+        if (value == null) {
+            monitor.warning(String.format(WARNING_USING_DEFAULT_SETTING, EDC_IDS_ENDPOINT, DEFAULT_EDC_IDS_ENDPOINT));
+            value = DEFAULT_EDC_IDS_ENDPOINT;
         }
 
-        public Builder securityProfile(@Nullable SecurityProfile securityProfile) {
-            this.securityProfile = securityProfile;
-            return this;
+        try {
+            endpoint = URI.create(value);
+        } catch (IllegalArgumentException e) {
+            return String.format(ERROR_INVALID_SETTING, EDC_IDS_ENDPOINT, value);
         }
 
-        public Builder endpoint(@Nullable URI endpoint) {
-            this.endpoint = endpoint;
-            return this;
+        return null;
+    }
+
+    private String setMaintainer() {
+        String value = serviceExtensionContext.getSetting(EDC_IDS_MAINTAINER, null);
+
+        if (value == null) {
+            monitor.warning(String.format(WARNING_USING_DEFAULT_SETTING, EDC_IDS_MAINTAINER, DEFAULT_EDC_IDS_MAINTAINER));
+            value = DEFAULT_EDC_IDS_MAINTAINER;
         }
 
-        public Builder maintainer(@Nullable URI maintainer) {
-            this.maintainer = maintainer;
-            return this;
+        try {
+            maintainer = URI.create(value);
+        } catch (IllegalArgumentException e) {
+            return String.format(ERROR_INVALID_SETTING, EDC_IDS_MAINTAINER, value);
         }
 
-        public Builder curator(@Nullable URI curator) {
-            this.curator = curator;
-            return this;
+        return null;
+    }
+
+    private String setCurator() {
+        String value = serviceExtensionContext.getSetting(EDC_IDS_CURATOR, null);
+
+        if (value == null) {
+            monitor.warning(String.format(WARNING_USING_DEFAULT_SETTING, EDC_IDS_CURATOR, DEFAULT_EDC_IDS_CURATOR));
+            value = DEFAULT_EDC_IDS_CURATOR;
         }
 
-        @NotNull
-        public ConnectorServiceSettings build() {
-            return new ConnectorServiceSettings(id, title, description, securityProfile, endpoint, maintainer, curator);
+        try {
+            curator = URI.create(value);
+        } catch (IllegalArgumentException e) {
+            return String.format(ERROR_INVALID_SETTING, EDC_IDS_CURATOR, value);
         }
+
+        return null;
     }
 }

@@ -3,7 +3,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.ids.core.configuration.IllegalSettingException;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
@@ -17,16 +16,17 @@ import java.net.URI;
 import java.net.URISyntaxException;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockDescriptionRequestMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockSettingsResolver;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockTransformerRegistry;
 
 public class ConnectorDescriptionRequestHandlerTest {
+
+    private static final String CONNECTOR_ID = "urn:connector:edc";
+
     // subject
     private ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler;
 
     // mocks
     private Monitor monitor;
-    private ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings;
     private ConnectorService connectorService;
     private TransformerRegistry transformerRegistry;
     private DescriptionRequestMessage descriptionRequestMessage;
@@ -34,17 +34,11 @@ public class ConnectorDescriptionRequestHandlerTest {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @BeforeEach
-    public void setup() throws URISyntaxException, IllegalSettingException {
+    public void setup() throws URISyntaxException {
         monitor = EasyMock.createMock(Monitor.class);
         connector = EasyMock.createMock(Connector.class);
         EasyMock.replay(monitor, connector);
 
-        var settingsResolver = mockSettingsResolver();
-        EasyMock.replay(settingsResolver);
-        var settingFactory = new ConnectorDescriptionRequestHandlerSettingsFactory(settingsResolver);
-        var settingFactoryResult = settingFactory.getSettingsResult();
-        var settings = settingFactoryResult.getSettings();
-        connectorDescriptionRequestHandlerSettings = settings;
 
         connectorService = EasyMock.createMock(ConnectorService.class);
         EasyMock.expect(connectorService.getConnector()).andReturn(EasyMock.createMock(org.eclipse.dataspaceconnector.ids.spi.types.Connector.class));
@@ -57,23 +51,23 @@ public class ConnectorDescriptionRequestHandlerTest {
         EasyMock.expect(transformerRegistry.transform(EasyMock.isA(org.eclipse.dataspaceconnector.ids.spi.types.Connector.class), EasyMock.eq(Connector.class))).andReturn(connectorResult);
         EasyMock.replay(transformerRegistry, connectorResult);
 
-        descriptionRequestMessage = mockDescriptionRequestMessage(new URI("urn:connector:" + settings.getId()));
+        descriptionRequestMessage = mockDescriptionRequestMessage(new URI(CONNECTOR_ID));
         EasyMock.replay(descriptionRequestMessage);
 
-        connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorDescriptionRequestHandlerSettings, connectorService, transformerRegistry);
+        connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, CONNECTOR_ID, connectorService, transformerRegistry);
     }
 
     @Test
     @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
         Assertions.assertThrows(NullPointerException.class,
-                () -> new ConnectorDescriptionRequestHandler(null, connectorDescriptionRequestHandlerSettings, connectorService, transformerRegistry));
+                () -> new ConnectorDescriptionRequestHandler(null, CONNECTOR_ID, connectorService, transformerRegistry));
         Assertions.assertThrows(NullPointerException.class,
                 () -> new ConnectorDescriptionRequestHandler(monitor, null, connectorService, transformerRegistry));
         Assertions.assertThrows(NullPointerException.class,
-                () -> new ConnectorDescriptionRequestHandler(monitor, connectorDescriptionRequestHandlerSettings, null, transformerRegistry));
+                () -> new ConnectorDescriptionRequestHandler(monitor, CONNECTOR_ID, null, transformerRegistry));
         Assertions.assertThrows(NullPointerException.class,
-                () -> new ConnectorDescriptionRequestHandler(monitor, connectorDescriptionRequestHandlerSettings, connectorService, null));
+                () -> new ConnectorDescriptionRequestHandler(monitor, CONNECTOR_ID, connectorService, null));
     }
 
     @Test

@@ -36,16 +36,14 @@ class DataCatalogServiceImplTest {
 
     // mocks
     private Monitor monitor;
-    private DataCatalogServiceSettings dataCatalogServiceSettings;
     private AssetIndex assetIndex;
 
     @BeforeEach
     void setUp() {
         monitor = EasyMock.createMock(Monitor.class);
-        dataCatalogServiceSettings = EasyMock.createMock(DataCatalogServiceSettings.class);
         assetIndex = EasyMock.createMock(AssetIndex.class);
 
-        dataCatalogService = new DataCatalogServiceImpl(monitor, dataCatalogServiceSettings, assetIndex);
+        dataCatalogService = new DataCatalogServiceImpl(monitor, CATALOG_ID, assetIndex);
     }
 
     @Test
@@ -55,10 +53,8 @@ class DataCatalogServiceImplTest {
         EasyMock.expect(assetIndex.queryAssets(EasyMock.anyObject(AssetSelectorExpression.class)))
                 .andReturn(assets.stream());
 
-        EasyMock.expect(dataCatalogServiceSettings.getCatalogId()).andReturn(CATALOG_ID);
-
         // record
-        EasyMock.replay(monitor, dataCatalogServiceSettings, assetIndex);
+        EasyMock.replay(monitor, assetIndex);
 
         // invoke
         var result = dataCatalogService.getDataCatalog();
@@ -71,6 +67,6 @@ class DataCatalogServiceImplTest {
 
     @AfterEach
     void tearDown() {
-        EasyMock.verify(monitor, dataCatalogServiceSettings, assetIndex);
+        EasyMock.verify(monitor, assetIndex);
     }
 }

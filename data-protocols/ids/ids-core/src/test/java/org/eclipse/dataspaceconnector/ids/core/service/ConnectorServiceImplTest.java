@@ -29,7 +29,7 @@ import java.net.URI;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class ConnectorServiceImplTest {
-    private static final String CONNECTOR_ID = "connectorId";
+    private static final String CONNECTOR_ID = "urn:connector:edc";
     private static final String CONNECTOR_TITLE = "connectorTitle";
     private static final String CONNECTOR_DESCRIPTION = "connectorDescription";
     private static final SecurityProfile CONNECTOR_SECURITY_PROFILE = SecurityProfile.TRUST_PLUS_SECURITY_PROFILE;

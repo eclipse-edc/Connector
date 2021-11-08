@@ -3,7 +3,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Representation;
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.ids.core.configuration.IllegalSettingException;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -19,17 +18,17 @@ import java.net.URISyntaxException;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockAssetIndex;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockDescriptionRequestMessage;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockSettingsResolver;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockTransformerRegistry;
 
 public class RepresentationDescriptionRequestHandlerTest {
+
+    private static final String CONNECTOR_ID = "urn:connector:edc";
 
     // subject
     private RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
 
     // mocks
     private Monitor monitor;
-    private RepresentationDescriptionRequestHandlerSettings representationDescriptionRequestHandlerSettings;
     private TransformerRegistry transformerRegistry;
     private DescriptionRequestMessage descriptionRequestMessage;
     private AssetIndex assetIndex;
@@ -37,17 +36,11 @@ public class RepresentationDescriptionRequestHandlerTest {
 
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @BeforeEach
-    public void setup() throws URISyntaxException, IllegalSettingException {
+    public void setup() throws URISyntaxException {
         monitor = EasyMock.createMock(Monitor.class);
         representation = EasyMock.createMock(Representation.class);
         EasyMock.expect(representation.getId()).andReturn(new URI("urn:representation:hello"));
         EasyMock.replay(monitor, representation);
-
-        var settingsResolver = mockSettingsResolver();
-        EasyMock.replay(settingsResolver);
-        var settingFactory = new RepresentationDescriptionRequestHandlerSettingsFactory(settingsResolver);
-        var settingFactoryResult = settingFactory.getSettingsResult();
-        representationDescriptionRequestHandlerSettings = settingFactoryResult.getSettings();
 
         assetIndex = mockAssetIndex();
         EasyMock.expect(assetIndex.findById(EasyMock.anyString())).andReturn(EasyMock.createMock(Asset.class));
@@ -63,20 +56,20 @@ public class RepresentationDescriptionRequestHandlerTest {
         descriptionRequestMessage = mockDescriptionRequestMessage(representation.getId());
         EasyMock.replay(descriptionRequestMessage);
 
-        representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, representationDescriptionRequestHandlerSettings, assetIndex, transformerRegistry);
+        representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry);
     }
 
     @Test
     @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
         Assertions.assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(null, representationDescriptionRequestHandlerSettings, assetIndex, transformerRegistry));
+                () -> new RepresentationDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, transformerRegistry));
         Assertions.assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(monitor, null, assetIndex, transformerRegistry));
         Assertions.assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(monitor, representationDescriptionRequestHandlerSettings, null, transformerRegistry));
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, null, transformerRegistry));
         Assertions.assertThrows(NullPointerException.class,
-                () -> new RepresentationDescriptionRequestHandler(monitor, representationDescriptionRequestHandlerSettings, assetIndex, null));
+                () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null));
     }
 
     @Test

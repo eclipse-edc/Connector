@@ -39,13 +39,13 @@ public class ArtifactDescriptionRequestHandler extends AbstractDescriptionReques
 
     public ArtifactDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull ArtifactDescriptionRequestHandlerSettings artifactDescriptionRequestHandlerSettings,
+            @NotNull String connectorId,
             @NotNull AssetIndex assetIndex,
             @NotNull TransformerRegistry transformerRegistry) {
         super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndex = Objects.requireNonNull(assetIndex);
-        this.connectorId = Objects.requireNonNull(artifactDescriptionRequestHandlerSettings).getId();
+        this.connectorId = Objects.requireNonNull(connectorId);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
     }
 

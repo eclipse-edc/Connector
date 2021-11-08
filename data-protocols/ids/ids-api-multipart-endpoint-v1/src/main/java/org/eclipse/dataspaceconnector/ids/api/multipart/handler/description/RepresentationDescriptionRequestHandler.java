@@ -39,14 +39,14 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
 
     public RepresentationDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull RepresentationDescriptionRequestHandlerSettings representationDescriptionRequestHandlerSettings,
+            @NotNull String connectorId,
             @NotNull AssetIndex assetIndex,
             @NotNull TransformerRegistry transformerRegistry) {
         super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndex = Objects.requireNonNull(assetIndex);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.connectorId = Objects.requireNonNull(representationDescriptionRequestHandlerSettings).getId();
+        this.connectorId = Objects.requireNonNull(connectorId);
     }
 
     @Override

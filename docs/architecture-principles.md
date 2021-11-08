@@ -3,7 +3,7 @@
 ## I. Fail-fast and Explicit Configuration
 
 1. Configuration should be loaded and validated at extension initialization so that issues are reported immediately. Do not lazy-load configuration unless it is required to do so.
-2. Settings can be pulled from the extension context and placed into POJOs, which are passed to services via their constructor.
+2. Settings can be pulled from the extension context and placed into configuration objects, which are passed to services via their constructor.
 3. Service configuration requirements should always be explicit; as a general rule, do not pass a single configuration object with many values to multiple services.
    For example, see `HttpFunctionConfiguration.java`.
 4. Annotate configuration keys with `EdcSetting` so that they may be tracked.

@@ -32,15 +32,15 @@ import java.util.stream.Stream;
  */
 public class DataCatalogServiceImpl implements DataCatalogService {
     private final Monitor monitor;
-    private final DataCatalogServiceSettings dataCatalogServiceSettings;
+    private final String dataCatalogId;
     private final AssetIndex assetIndex;
 
     public DataCatalogServiceImpl(
             @NotNull Monitor monitor,
-            @NotNull DataCatalogServiceSettings dataCatalogServiceSettings,
+            @NotNull String dataCatalogId,
             @NotNull AssetIndex assetIndex) {
         this.monitor = monitor;
-        this.dataCatalogServiceSettings = Objects.requireNonNull(dataCatalogServiceSettings);
+        this.dataCatalogId = Objects.requireNonNull(dataCatalogId);
         this.assetIndex = Objects.requireNonNull(assetIndex);
     }
 
@@ -56,7 +56,7 @@ public class DataCatalogServiceImpl implements DataCatalogService {
 
         return DataCatalog.Builder
                 .newInstance()
-                .id(dataCatalogServiceSettings.getCatalogId())
+                .id(dataCatalogId)
                 .assets(assetStream.collect(Collectors.toList()))
                 .build();
     }

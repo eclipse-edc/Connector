@@ -20,12 +20,6 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandlerSettings;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -44,12 +38,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class DescriptionHandlerTest {
 
+    private static final String CONNECTOR_ID = "urn:connector:edc";
+
     // subject
     private DescriptionHandler descriptionHandler;
 
     // mocks
     private Monitor monitor;
-    private DescriptionHandlerSettings descriptionHandlerSettings;
     private TransformerRegistry transformerRegistry;
     private ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler;
     private DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler;
@@ -60,7 +55,6 @@ class DescriptionHandlerTest {
     @BeforeEach
     void setUp() {
         monitor = EasyMock.mock(Monitor.class);
-        descriptionHandlerSettings = EasyMock.mock(DescriptionHandlerSettings.class);
         transformerRegistry = EasyMock.mock(TransformerRegistry.class);
         artifactDescriptionRequestHandler = EasyMock.mock(ArtifactDescriptionRequestHandler.class);
         dataCatalogDescriptionRequestHandler = EasyMock.mock(DataCatalogDescriptionRequestHandler.class);
@@ -70,7 +64,7 @@ class DescriptionHandlerTest {
 
         descriptionHandler = new DescriptionHandler(
                 monitor,
-                descriptionHandlerSettings,
+                CONNECTOR_ID,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -83,7 +77,6 @@ class DescriptionHandlerTest {
     void testCanHandleNullThrowsNullPointerException() {
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -102,7 +95,6 @@ class DescriptionHandlerTest {
 
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -141,7 +133,6 @@ class DescriptionHandlerTest {
         // record
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -176,7 +167,7 @@ class DescriptionHandlerTest {
         EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(URI.class), EasyMock.eq(IdsType.class)))
                 .andReturn(new TransformResult<>(Collections.singletonList("unknown type")));
 
-        EasyMock.expect(descriptionHandlerSettings.getId()).andReturn(null);
+        EasyMock.expect(CONNECTOR_ID).andReturn(null);
 
         monitor.warning(EasyMock.anyString());
         EasyMock.expectLastCall();
@@ -184,7 +175,6 @@ class DescriptionHandlerTest {
         // record
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -214,7 +204,7 @@ class DescriptionHandlerTest {
                 .header(requestHeader)
                 .build();
 
-        EasyMock.expect(descriptionHandlerSettings.getId()).andReturn(null);
+        EasyMock.expect(CONNECTOR_ID).andReturn(null);
 
         EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(URI.class), EasyMock.eq(IdsType.class)))
                 .andReturn(new TransformResult<>(IdsType.PARTICIPANT));
@@ -222,7 +212,6 @@ class DescriptionHandlerTest {
         // record
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -266,7 +255,6 @@ class DescriptionHandlerTest {
         // record
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -309,7 +297,6 @@ class DescriptionHandlerTest {
         // record
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -352,7 +339,6 @@ class DescriptionHandlerTest {
         // record
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -395,7 +381,6 @@ class DescriptionHandlerTest {
         // record
         EasyMock.replay(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
@@ -417,7 +402,6 @@ class DescriptionHandlerTest {
     void tearDown() {
         EasyMock.verify(
                 monitor,
-                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,

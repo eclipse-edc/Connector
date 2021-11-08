@@ -36,7 +36,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 
 public class DescriptionHandler implements Handler {
     private final Monitor monitor;
-    private final DescriptionHandlerSettings descriptionHandlerSettings;
+    private final String connectorId;
     private final TransformerRegistry transformerRegistry;
     private final ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler;
     private final DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler;
@@ -46,7 +46,7 @@ public class DescriptionHandler implements Handler {
 
     public DescriptionHandler(
             @NotNull Monitor monitor,
-            @NotNull DescriptionHandlerSettings descriptionHandlerSettings,
+            @NotNull String connectorId,
             @NotNull TransformerRegistry transformerRegistry,
             @NotNull ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler,
             @NotNull DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler,
@@ -54,7 +54,7 @@ public class DescriptionHandler implements Handler {
             @NotNull ResourceDescriptionRequestHandler resourceDescriptionRequestHandler,
             @NotNull ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler) {
         this.monitor = Objects.requireNonNull(monitor);
-        this.descriptionHandlerSettings = Objects.requireNonNull(descriptionHandlerSettings);
+        this.connectorId = Objects.requireNonNull(connectorId);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
         this.artifactDescriptionRequestHandler = Objects.requireNonNull(artifactDescriptionRequestHandler);
         this.dataCatalogDescriptionRequestHandler = Objects.requireNonNull(dataCatalogDescriptionRequestHandler);
@@ -125,13 +125,13 @@ public class DescriptionHandler implements Handler {
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
         return MultipartResponse.Builder.newInstance()
-                .header(badParameters(message, descriptionHandlerSettings.getId()))
+                .header(badParameters(message, connectorId))
                 .build();
     }
 
     private MultipartResponse createErrorMultipartResponse(Message message) {
         return MultipartResponse.Builder.newInstance()
-                .header(messageTypeNotSupported(message, descriptionHandlerSettings.getId()))
+                .header(messageTypeNotSupported(message, connectorId))
                 .build();
     }
 }

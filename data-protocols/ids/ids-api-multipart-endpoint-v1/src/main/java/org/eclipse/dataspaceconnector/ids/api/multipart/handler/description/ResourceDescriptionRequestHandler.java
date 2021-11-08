@@ -39,14 +39,14 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
 
     public ResourceDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull ResourceDescriptionRequestHandlerSettings resourceDescriptionRequestHandlerSettings,
+            @NotNull String connectorId,
             @NotNull AssetIndex assetIndex,
             @NotNull TransformerRegistry transformerRegistry) {
         super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.assetIndex = Objects.requireNonNull(assetIndex);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.connectorId = Objects.requireNonNull(resourceDescriptionRequestHandlerSettings).getId();
+        this.connectorId = Objects.requireNonNull(connectorId);
     }
 
     @Override

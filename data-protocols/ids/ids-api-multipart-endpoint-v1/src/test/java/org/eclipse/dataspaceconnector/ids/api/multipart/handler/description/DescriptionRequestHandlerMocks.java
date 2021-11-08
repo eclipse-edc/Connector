@@ -2,15 +2,12 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.ids.core.configuration.IllegalSettingException;
-import org.eclipse.dataspaceconnector.ids.core.configuration.SettingResolver;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -48,12 +45,5 @@ final class DescriptionRequestHandlerMocks {
         EasyMock.expect(descriptionRequestMessage.getIssuerConnector()).andReturn(new URI("https://issuer-connector.com/"));
         EasyMock.expect(descriptionRequestMessage.getRequestedElement()).andReturn(requestedElement);
         return descriptionRequestMessage;
-    }
-
-    @NotNull
-    public static SettingResolver mockSettingsResolver() throws IllegalSettingException {
-        SettingResolver settingResolver = EasyMock.createMock(SettingResolver.class);
-        EasyMock.expect(settingResolver.resolveId()).andReturn("connector-id");
-        return settingResolver;
     }
 }

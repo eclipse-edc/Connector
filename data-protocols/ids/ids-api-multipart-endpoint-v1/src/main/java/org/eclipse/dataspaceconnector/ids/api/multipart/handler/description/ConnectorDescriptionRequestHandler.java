@@ -38,14 +38,14 @@ public class ConnectorDescriptionRequestHandler extends AbstractDescriptionReque
 
     public ConnectorDescriptionRequestHandler(
             @NotNull Monitor monitor,
-            @NotNull ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings,
+            @NotNull String connectorId,
             @NotNull ConnectorService connectorService,
             @NotNull TransformerRegistry transformerRegistry) {
         super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorService = Objects.requireNonNull(connectorService);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
-        this.connectorId = Objects.requireNonNull(connectorDescriptionRequestHandlerSettings).getId();
+        this.connectorId = Objects.requireNonNull(connectorId);
     }
 
     @Override
