@@ -57,6 +57,11 @@ public class CachedAsset extends Asset {
             return this;
         }
 
+        public Builder copyFrom(Asset otherAsset) {
+            otherAsset.getProperties().forEach((k, v) -> asset.getProperties().put(k, v));
+            return this;
+        }
+
         @Override
         public CachedAsset build() {
             return (CachedAsset) asset;

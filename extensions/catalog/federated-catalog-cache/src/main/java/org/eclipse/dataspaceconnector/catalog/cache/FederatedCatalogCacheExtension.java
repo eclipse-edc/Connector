@@ -8,13 +8,11 @@ import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerI
 import org.eclipse.dataspaceconnector.catalog.cache.query.DefaultCacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
-import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
-import org.eclipse.dataspaceconnector.catalog.spi.Loader;
 import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
 import org.eclipse.dataspaceconnector.catalog.spi.PartitionConfiguration;
 import org.eclipse.dataspaceconnector.catalog.spi.PartitionManager;
@@ -106,7 +104,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
     @NotNull
     private LoaderManager createLoaderManager(FederatedCacheStore store) {
-        return new LoaderManagerImpl(List.of(createLoader(store)),
+        return new LoaderManagerImpl(List.of(new DefaultLoader(store)),
                 partitionManagerConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE),
                 () -> partitionManagerConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS), monitor);
     }
@@ -132,27 +130,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 nodes);
     }
 
-    @NotNull
-    private Loader createLoader(FederatedCacheStore store) {
-        return responses -> {
-            for (var response : responses) {
-                var assetNames = response.getAssetNames();
-                var originator = response.getSource();
-
-                assetNames.forEach(n -> {
-                    var asset = CachedAsset.Builder.newInstance()
-                            .id(n)
-                            .name(n)
-                            .version("1.0")
-                            .originator(originator)
-                            //.policy(somePolicy) //not yet implemented
-                            .build();
-                    store.save(asset);
-                });
-
-            }
-        };
-    }
 
     private String selectProtocol(List<String> supportedProtocols) {
         //just take the first matching one.

@@ -91,8 +91,8 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
     }
 
     private CosmosDatabase createDatabase(AbstractCosmosConfig configuration, CosmosClient client) {
-
-        return getDatabase(client, configuration.getDbName());
+        CosmosDatabaseResponse databaseResponse = client.createDatabaseIfNotExists(configuration.getDbName());
+        return client.getDatabase(databaseResponse.getProperties().getId());
     }
 
     private CosmosClient createClient(Vault vault, String accountName, List<String> preferredRegions) {
@@ -110,11 +110,6 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
                 .preferredRegions(preferredRegions)
                 .consistencyLevel(ConsistencyLevel.SESSION)
                 .buildClient();
-    }
-
-    private CosmosDatabase getDatabase(CosmosClient client, String databaseName) {
-        CosmosDatabaseResponse databaseResponse = client.createDatabaseIfNotExists(databaseName);
-        return client.getDatabase(databaseResponse.getProperties().getId());
     }
 
 

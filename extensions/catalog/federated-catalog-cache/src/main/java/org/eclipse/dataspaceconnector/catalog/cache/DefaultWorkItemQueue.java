@@ -7,7 +7,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
-class DefaultWorkItemQueue extends ArrayBlockingQueue<WorkItem> implements WorkItemQueue {
+public class DefaultWorkItemQueue extends ArrayBlockingQueue<WorkItem> implements WorkItemQueue {
     private final ReentrantLock lock;
 
     public DefaultWorkItemQueue(int capacity) {

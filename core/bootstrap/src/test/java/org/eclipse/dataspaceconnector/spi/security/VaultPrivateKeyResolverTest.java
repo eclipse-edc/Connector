@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.spi.security;
 
+import org.eclipse.dataspaceconnector.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -18,8 +19,6 @@ import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
-import static org.eclipse.dataspaceconnector.spi.security.PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER;
-import static org.eclipse.dataspaceconnector.spi.security.PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM;
 
 class VaultPrivateKeyResolverTest {
 
@@ -36,7 +35,7 @@ class VaultPrivateKeyResolverTest {
 
     @Test
     void resolvePrivateKey() {
-        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(ENCODED_PRIVATE_KEY_HEADER);
+        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER);
         replay(vault);
         assertThat(resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isNotNull();
         verify(vault);
@@ -49,7 +48,7 @@ class VaultPrivateKeyResolverTest {
 
     @Test
     void resolvePrivateKey_secretNotInCorrectFormat() {
-        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(ENCODED_PRIVATE_KEY_NOPEM);
+        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
         replay(vault);
 
         assertThatThrownBy(() -> resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isInstanceOf(IllegalArgumentException.class);
@@ -58,7 +57,7 @@ class VaultPrivateKeyResolverTest {
 
     @Test
     void resolvePrivateKey_noParserFound() {
-        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(ENCODED_PRIVATE_KEY_NOPEM);
+        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
         replay(vault);
 
         assertThatThrownBy(() -> resolver.resolvePrivateKey(TEST_SECRET_ALIAS, DHPrivateKey.class)).isInstanceOf(EdcException.class)
@@ -68,7 +67,7 @@ class VaultPrivateKeyResolverTest {
 
     @Test
     void addParser() {
-        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(ENCODED_PRIVATE_KEY_HEADER).times(2);
+        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER).times(2);
         replay(vault);
 
         resolver = new VaultPrivateKeyResolver(vault);
@@ -85,7 +84,7 @@ class VaultPrivateKeyResolverTest {
 
     @Test
     void testAddParser() {
-        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(ENCODED_PRIVATE_KEY_HEADER).times(2);
+        expect(vault.resolveSecret(TEST_SECRET_ALIAS)).andReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_HEADER).times(2);
         replay(vault);
 
         resolver = new VaultPrivateKeyResolver(vault);

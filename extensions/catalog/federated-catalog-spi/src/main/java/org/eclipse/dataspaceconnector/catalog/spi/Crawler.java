@@ -15,7 +15,7 @@ public interface Crawler extends Runnable {
     String FEATURE = "edc:catalog:cache:crawler";
 
     /**
-     * Terminates a crawler and waits the given amount of time until it has completed its current run.
+     * Signals a crawler to terminate and waits the given amount of time until it has completed its current run.
      *
      * @param timeout Amount of time to wait before abandoning the crawler's thread
      * @param unit    Time unit of the wait time
@@ -25,7 +25,7 @@ public interface Crawler extends Runnable {
 
 
     /**
-     * Terminates a crawler and waits some time until it has completed its current run. The default wait time is 10 seconds.
+     * Signals a crawler to terminate and waits some time until it has completed its current run. The default wait time is 10 seconds.
      *
      * @return Whether the crawler finished its run within the given time frame
      */

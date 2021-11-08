@@ -1,12 +1,12 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
-import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
+import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 
 import java.util.Collection;
 
 /**
  * Registry where {@link CacheQueryAdapter} instances are stored and maintained.
- * {@link CacheQuery}s should be issued to the registry rather than to the {@link CacheQueryAdapter} directly!
+ * {@link FederatedCatalogCacheQuery}s should be issued to the registry rather than to the {@link CacheQueryAdapter} directly!
  */
 public interface CacheQueryAdapterRegistry {
     String FEATURE = "edc:catalog:cache:query:registry";
@@ -32,8 +32,8 @@ public interface CacheQueryAdapterRegistry {
      * <p>
      * For example, when 1 of 5 adapters that receive the query times out, there will be results from 4, errors from 1.
      *
-     * @param query The {@link CacheQuery}
+     * @param query The {@link FederatedCatalogCacheQuery}
      * @return a {@link QueryResponse} with {@link QueryResponse#getStatus()} that contains the result (Assets) and potentially errors.
      */
-    QueryResponse executeQuery(CacheQuery query);
+    QueryResponse executeQuery(FederatedCatalogCacheQuery query);
 }

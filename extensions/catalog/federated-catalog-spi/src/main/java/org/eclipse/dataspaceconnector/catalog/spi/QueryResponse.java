@@ -19,12 +19,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class QueryResponse {
     private Status status;
     private List<String> errors = new ArrayList<>();
-    private Stream<Asset> assets = Stream.empty();
+    private List<Asset> assets = new ArrayList<>();
 
     private QueryResponse(Status status) {
         this.status = status;
@@ -35,14 +34,14 @@ public class QueryResponse {
 
     }
 
-    public static QueryResponse ok(Stream<Asset> result) {
+    public static QueryResponse ok(List<Asset> result) {
         return Builder.newInstance()
                 .status(Status.ACCEPTED)
                 .assets(result)
                 .build();
     }
 
-    public Stream<Asset> getAssets() {
+    public List<Asset> getAssets() {
         return assets;
     }
 
@@ -72,7 +71,7 @@ public class QueryResponse {
             return new Builder();
         }
 
-        public Builder assets(Stream<Asset> assets) {
+        public Builder assets(List<Asset> assets) {
             response.assets = assets;
             return this;
         }

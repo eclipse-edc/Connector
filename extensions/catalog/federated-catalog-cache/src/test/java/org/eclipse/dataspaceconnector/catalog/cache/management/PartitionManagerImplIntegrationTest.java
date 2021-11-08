@@ -1,9 +1,8 @@
 package org.eclipse.dataspaceconnector.catalog.cache.management;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.catalog.cache.DefaultWorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
-import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
-import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
@@ -36,6 +35,7 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
 
 /**
  * This tests the PartitionManagerImpl with real crawlers and in a real multithreading environment.
@@ -56,7 +56,7 @@ class PartitionManagerImplIntegrationTest {
         latch = new CountDownLatch(WORK_ITEM_COUNT);
         queueListener = niceMock(WorkQueueListener.class);
         signallingWorkItemQueue = new SignalingWorkItemQueue(WORK_ITEM_COUNT + 1, queueListener);
-        staticWorkLoad = IntStream.range(0, WORK_ITEM_COUNT).mapToObj(i -> new TestWorkItem()).collect(Collectors.toList());
+        staticWorkLoad = IntStream.range(0, WORK_ITEM_COUNT).mapToObj(i -> createWorkItem()).collect(Collectors.toList());
 
         CatalogQueryAdapter adapterMock = niceMock(CatalogQueryAdapter.class);
         expect(adapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse())).times(WORK_ITEM_COUNT);
@@ -117,7 +117,7 @@ class PartitionManagerImplIntegrationTest {
      * event like poll() or unlock() occurs.
      * The recommended pattern is to supply {@code mock(WorkQueueListener.class)}
      */
-    private static class SignalingWorkItemQueue extends TestWorkQueue {
+    private static class SignalingWorkItemQueue extends DefaultWorkItemQueue {
         private final WorkQueueListener listener;
 
         public SignalingWorkItemQueue(int cap, WorkQueueListener listener) {

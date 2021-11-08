@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.catalog.cache.DefaultWorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
-import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
-import org.eclipse.dataspaceconnector.catalog.cache.TestWorkQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
@@ -18,6 +18,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -33,8 +35,10 @@ import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.strictMock;
 import static org.easymock.EasyMock.verify;
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
 
 class CrawlerImplTest {
     public static final int QUEUE_CAPACITY = 3;
@@ -45,7 +49,7 @@ class CrawlerImplTest {
     private ArrayBlockingQueue<UpdateResponse> queue;
     private Monitor monitorMock;
     private WorkItemQueue workQueue;
-    private TestProtocolAdapterRegistry registry;
+    private CatalogQueryAdapterRegistry registry;
     private CrawlerErrorHandler errorHandlerMock;
     private ExecutorService executorService;
 
@@ -56,8 +60,10 @@ class CrawlerImplTest {
         protocolAdapterMock = strictMock(CatalogQueryAdapter.class);
         queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
         monitorMock = niceMock(Monitor.class);
-        workQueue = new TestWorkQueue(10);
-        registry = new TestProtocolAdapterRegistry(protocolAdapterMock);
+        workQueue = new DefaultWorkItemQueue(10);
+        registry = niceMock(CatalogQueryAdapterRegistry.class);
+        expect(registry.findForProtocol(anyString())).andReturn(Collections.singletonList(protocolAdapterMock));
+        replay(registry);
         crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), registry, () -> Duration.ofMillis(WORK_QUEUE_POLL_TIMEOUT), errorHandlerMock);
     }
 
@@ -77,7 +83,7 @@ class CrawlerImplTest {
                 });
         replay(protocolAdapterMock);
 
-        workQueue.put(new TestWorkItem());
+        workQueue.put(createWorkItem());
         executorService.submit(crawler);
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
         assertThat(crawler.join()).isTrue();
@@ -101,7 +107,7 @@ class CrawlerImplTest {
         replay(monitorMock);
 
 
-        workQueue.put(new TestWorkItem());
+        workQueue.put(createWorkItem());
         executorService.submit(crawler);
 
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
@@ -116,13 +122,15 @@ class CrawlerImplTest {
 
         var l = new CountDownLatch(2);
         CatalogQueryAdapter secondAdapter = strictMock(CatalogQueryAdapter.class);
-        registry.register("test-protocol", secondAdapter);
+        reset(registry);
+        expect(registry.findForProtocol(anyString())).andReturn(Arrays.asList(protocolAdapterMock, secondAdapter));
+        expectLastCall();
 
         expect(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).andAnswer(() -> {
             l.countDown();
             return CompletableFuture.completedFuture(new UpdateResponse());
         });
-        replay(protocolAdapterMock);
+        replay(protocolAdapterMock, registry);
 
         expect(secondAdapter.sendRequest(isA(UpdateRequest.class))).andAnswer(() -> {
             l.countDown();
@@ -134,7 +142,7 @@ class CrawlerImplTest {
         expectLastCall().once();
         replay(monitorMock);
 
-        workQueue.put(new TestWorkItem());
+        workQueue.put(createWorkItem());
         executorService.submit(crawler);
 
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
@@ -162,7 +170,7 @@ class CrawlerImplTest {
         replay(monitorMock);
 
 
-        workQueue.put(new TestWorkItem());
+        workQueue.put(createWorkItem());
         executorService.submit(crawler);
 
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
@@ -189,7 +197,7 @@ class CrawlerImplTest {
 
         crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), new TestProtocolAdapterRegistry(), () -> Duration.ofMillis(500), errorHandlerMock);
 
-        workQueue.put(new TestWorkItem());
+        workQueue.put(createWorkItem());
         var l = new CountDownLatch(1);
         errorHandlerMock.accept(isA(WorkItem.class));
         expectLastCall().andAnswer(() -> {

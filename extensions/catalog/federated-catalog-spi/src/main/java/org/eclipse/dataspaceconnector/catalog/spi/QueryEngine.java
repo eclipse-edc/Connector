@@ -1,14 +1,14 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
-import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
+import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 /**
- * Accepts a {@link CacheQuery} and fetches a collection of {@link Asset} that conform to that query.
+ * Accepts a {@link FederatedCatalogCacheQuery} and fetches a collection of {@link Asset} that conform to that query.
  */
 @FunctionalInterface
 public interface QueryEngine {
     String FEATURE = "edc:catalog:query:engine";
 
-    QueryResponse getCatalog(CacheQuery query);
+    QueryResponse getCatalog(FederatedCatalogCacheQuery query);
 }

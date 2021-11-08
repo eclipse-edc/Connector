@@ -4,7 +4,6 @@ import org.easymock.EasyMock;
 import org.easymock.EasyMockExtension;
 import org.easymock.Mock;
 import org.easymock.MockType;
-import org.eclipse.dataspaceconnector.catalog.cache.TestWorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
@@ -28,6 +27,7 @@ import static org.easymock.EasyMock.niceMock;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.strictMock;
 import static org.easymock.EasyMock.verify;
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
 
 /**
  * Unit test for the partition manager
@@ -44,7 +44,7 @@ public class PartitionManagerImplTest {
 
     @BeforeEach
     void setup() {
-        staticWorkload = List.of(new TestWorkItem());
+        staticWorkload = List.of(createWorkItem());
         partitionManager = new PartitionManagerImpl(monitorMock, workItemQueueMock, mockCrawler(), 5, () -> staticWorkload);
     }
 

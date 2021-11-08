@@ -62,7 +62,7 @@ public class CrawlerImpl implements Crawler {
                 try {
                     item = workItemQueue.poll(workQueuePollTimeout.get().toMillis(), TimeUnit.MILLISECONDS);
                 } catch (InterruptedException e) {
-                    handleError(item, e.getMessage());
+                    monitor.warning(e.getMessage());
                 }
 
                 if (item != null) {
@@ -109,7 +109,6 @@ public class CrawlerImpl implements Crawler {
 
     @Override
     public boolean join(long timeout, TimeUnit unit) {
-        monitor.debug(crawlerId + ": Stopping");
         isActive.set(false);
         try {
             return workItemQueue.tryLock(timeout, unit);

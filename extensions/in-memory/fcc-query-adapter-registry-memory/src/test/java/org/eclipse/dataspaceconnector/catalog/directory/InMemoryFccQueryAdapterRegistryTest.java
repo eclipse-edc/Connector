@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.catalog.directory;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
-import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
+import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -40,7 +40,7 @@ import static org.easymock.EasyMock.strictMock;
 import static org.easymock.EasyMock.verify;
 
 
-class InMemoryCacheCacheQueryAdapterRegistryTest {
+class InMemoryFccQueryAdapterRegistryTest {
     private static final CachedAsset ASSET_ABC = CachedAsset.Builder.newInstance().id("ABC").build();
     private static final CachedAsset ASSET_DEF = CachedAsset.Builder.newInstance().id("DEF").build();
     private static final CachedAsset ASSET_XYZ = CachedAsset.Builder.newInstance().id("XYZ").build();
@@ -79,7 +79,7 @@ class InMemoryCacheCacheQueryAdapterRegistryTest {
 
     @Test
     void executeQuery_whenNoAdapter() {
-        var result = registry.executeQuery(niceMock(CacheQuery.class));
+        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
 
         assertThat(result).isNotNull();
         assertThat(result.getAssets()).isEmpty();
@@ -98,7 +98,7 @@ class InMemoryCacheCacheQueryAdapterRegistryTest {
         registry.register(adapter2);
         registry.register(adapter3);
 
-        var result = registry.executeQuery(niceMock(CacheQuery.class));
+        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
         assertThat(result.getAssets()).hasSize(6);
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
@@ -114,7 +114,7 @@ class InMemoryCacheCacheQueryAdapterRegistryTest {
         registry.register(adapter1);
         registry.register(adapter2);
 
-        var result = registry.executeQuery(niceMock(CacheQuery.class));
+        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
         assertThat(result.getAssets()).hasSize(6);
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
@@ -132,7 +132,7 @@ class InMemoryCacheCacheQueryAdapterRegistryTest {
         registry.register(adapter2);
         registry.register(adapter3);
 
-        var result = registry.executeQuery(niceMock(CacheQuery.class));
+        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
         assertThat(result.getAssets()).hasSize(6);
         assertThat(result.getErrors()).isNotEmpty().hasSize(1);
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
@@ -150,7 +150,7 @@ class InMemoryCacheCacheQueryAdapterRegistryTest {
         registry.register(adapter2);
         registry.register(adapter3);
 
-        var result = registry.executeQuery(niceMock(CacheQuery.class));
+        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
         assertThat(result.getAssets()).hasSize(0);
         assertThat(result.getErrors()).isNotEmpty().hasSize(3);
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);

@@ -30,7 +30,6 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static net.jodah.failsafe.Failsafe.with;
 
@@ -65,17 +64,12 @@ public class CosmosFederatedCacheNodeDirectory implements FederatedCacheNodeDire
         try {
             var response = with(retryPolicy).get(() -> container.queryItems(query, tracingOptions, Object.class));
             return response.stream()
-                    .map(this::convertObject)
+                    .map(databaseDocument -> typeManager.readValue(typeManager.writeValueAsString(databaseDocument), FederatedCacheNodeDocument.class))
                     .map(FederatedCacheNodeDocument::getWrappedInstance)
                     .collect(Collectors.toList());
         } catch (CosmosException ex) {
             throw new EdcException(ex);
         }
-    }
-
-    @Override
-    public Stream<FederatedCacheNode> getAllAsync() {
-        return getAll().stream();
     }
 
     @Override
@@ -100,7 +94,4 @@ public class CosmosFederatedCacheNodeDirectory implements FederatedCacheNodeDire
         }
     }
 
-    private FederatedCacheNodeDocument convertObject(Object databaseDocument) {
-        return typeManager.readValue(typeManager.writeValueAsString(databaseDocument), FederatedCacheNodeDocument.class);
-    }
 }

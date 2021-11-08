@@ -3,11 +3,11 @@ package org.eclipse.dataspaceconnector.catalog.cache.query;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
-import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
+import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Test;
 
-import java.util.stream.Stream;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
@@ -26,13 +26,13 @@ class QueryEngineImplTest {
     void getCatalog() {
         CacheQueryAdapterRegistry registry = strictMock(CacheQueryAdapterRegistry.class);
 
-        expect(registry.executeQuery(anyObject())).andReturn(QueryResponse.ok(Stream.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ)));
+        expect(registry.executeQuery(anyObject())).andReturn(QueryResponse.ok(List.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ)));
 
         replay(registry);
 
         QueryEngine queryEngine = new QueryEngineImpl(registry);
 
-        QueryResponse catalog = queryEngine.getCatalog(CacheQuery.Builder.newInstance().build());
+        QueryResponse catalog = queryEngine.getCatalog(FederatedCatalogCacheQuery.Builder.newInstance().build());
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
         assertThat(catalog.getErrors()).isEmpty();
         assertThat(catalog.getAssets()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
@@ -45,7 +45,7 @@ class QueryEngineImplTest {
         CacheQueryAdapterRegistry registry = strictMock(CacheQueryAdapterRegistry.class);
 
         expect(registry.executeQuery(anyObject())).andReturn(QueryResponse.Builder.newInstance()
-                .assets(Stream.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ))
+                .assets(List.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ))
                 .error("some error")
                 .build());
 
@@ -53,7 +53,7 @@ class QueryEngineImplTest {
 
         QueryEngine queryEngine = new QueryEngineImpl(registry);
 
-        QueryResponse catalog = queryEngine.getCatalog(CacheQuery.Builder.newInstance().build());
+        QueryResponse catalog = queryEngine.getCatalog(FederatedCatalogCacheQuery.Builder.newInstance().build());
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
         assertThat(catalog.getErrors()).hasSize(1).containsExactly("some error");
         assertThat(catalog.getAssets()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
@@ -74,7 +74,7 @@ class QueryEngineImplTest {
 
         QueryEngine queryEngine = new QueryEngineImpl(registry);
 
-        QueryResponse catalog = queryEngine.getCatalog(CacheQuery.Builder.newInstance().build());
+        QueryResponse catalog = queryEngine.getCatalog(FederatedCatalogCacheQuery.Builder.newInstance().build());
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.NO_ADAPTER_FOUND);
         assertThat(catalog.getErrors()).hasSize(1);
         assertThat(catalog.getAssets()).isEmpty();

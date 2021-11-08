@@ -12,11 +12,11 @@ import java.util.List;
  * Query class that wraps around a list of {@link Criterion} objects.
  * It is used to submit queries to the FederatedCatalogCache.
  */
-@JsonDeserialize(builder = CacheQuery.Builder.class)
-public class CacheQuery {
+@JsonDeserialize(builder = FederatedCatalogCacheQuery.Builder.class)
+public class FederatedCatalogCacheQuery {
     private final List<Criterion> criteria;
 
-    private CacheQuery(List<Criterion> criteria) {
+    private FederatedCatalogCacheQuery(List<Criterion> criteria) {
         this.criteria = criteria;
     }
 
@@ -40,12 +40,12 @@ public class CacheQuery {
         }
 
         public Builder where(Criterion criterion) {
-            this.criteria.add(criterion);
+            criteria.add(criterion);
             return this;
         }
 
-        public CacheQuery build() {
-            return new CacheQuery(criteria);
+        public FederatedCatalogCacheQuery build() {
+            return new FederatedCatalogCacheQuery(criteria);
         }
     }
 }

@@ -1,14 +1,14 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
-import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
+import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
 /**
- * Adapter to translate a {@link CacheQuery} into whatever query language the underlying data store uses.
- * This is the main interface to perform a query against the internal Federated Cache, however, queries ({@link CacheQuery})
+ * Adapter to translate a {@link FederatedCatalogCacheQuery} into whatever query language the underlying data store uses.
+ * This is the main interface to perform a query against the internal Federated Cache, however, queries ({@link FederatedCatalogCacheQuery})
  * should be submitted to the {@link CacheQueryAdapterRegistry}.
  * <p>
  * Implement this interface in your extension to contribute another "database protocol", e.g. a {@link FederatedCacheStore} based on
@@ -21,7 +21,7 @@ public interface CacheQueryAdapter {
      * @return A stream of {@link Asset} objects. Can be empty, can never be null.
      * @throws IllegalArgumentException may be thrown if the implementor cannot translate the query.
      */
-    @NotNull Stream<CachedAsset> executeQuery(CacheQuery query);
+    @NotNull Stream<CachedAsset> executeQuery(FederatedCatalogCacheQuery query);
 
     /**
      * Checks whether a given query can be run by the implementor. This does not limit itself to whether the query
@@ -30,6 +30,6 @@ public interface CacheQueryAdapter {
      * @param query The Query
      * @return true if the query can be run, false otherwise.
      */
-    boolean canExecute(CacheQuery query);
+    boolean canExecute(FederatedCatalogCacheQuery query);
 
 }

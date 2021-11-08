@@ -3,7 +3,7 @@ package org.eclipse.dataspaceconnector.catalog.directory;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
-import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
+import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
@@ -29,7 +29,7 @@ class InMemoryCacheQueryAdapterRegistry implements CacheQueryAdapterRegistry {
     }
 
     @Override
-    public QueryResponse executeQuery(CacheQuery query) {
+    public QueryResponse executeQuery(FederatedCatalogCacheQuery query) {
 
         var adapters = registry.stream().filter(ad -> ad.canExecute(query)).collect(Collectors.toList());
 
@@ -53,6 +53,6 @@ class InMemoryCacheQueryAdapterRegistry implements CacheQueryAdapterRegistry {
             }
         }
 
-        return responseBuilder.assets(assets).build();
+        return responseBuilder.assets(assets.collect(Collectors.toList())).build();
     }
 }
