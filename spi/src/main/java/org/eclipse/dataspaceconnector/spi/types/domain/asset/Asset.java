@@ -115,4 +115,5 @@ public class Asset {
             return new Asset(id, name, version, contentType, properties);
         }
     }
+
 }

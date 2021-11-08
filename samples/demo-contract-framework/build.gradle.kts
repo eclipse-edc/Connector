@@ -14,14 +14,35 @@
 
 plugins {
     `java-library`
+    id("application")
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
 val jupiterVersion: String by project
+val rsApi: String by project
 
 dependencies {
     api(project(":spi"))
-    api(project(":core:bootstrap"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
+    api(project(":core"))
+    api(project(":extensions:in-memory:assetindex-memory"))
+    api(project(":extensions:in-memory:transfer-store-memory"))
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
+    testImplementation(testFixtures(project(":launchers:junit")))
 }
+
+application {
+    @Suppress("DEPRECATION")
+    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
+}
+
+tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
+    exclude("**/pom.properties", "**/pom.xm")
+    mergeServiceFiles()
+    archiveFileName.set("connector.jar")
+}
+

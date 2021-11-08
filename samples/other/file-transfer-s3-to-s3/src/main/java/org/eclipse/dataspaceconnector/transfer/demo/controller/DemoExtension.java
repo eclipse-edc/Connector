@@ -16,14 +16,11 @@ package org.eclipse.dataspaceconnector.transfer.demo.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryAssetIndex;
-import org.eclipse.dataspaceconnector.metadata.memory.InMemoryDataAddressResolver;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
@@ -45,11 +42,9 @@ import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
 
 public class DemoExtension implements ServiceExtension {
 
-    private Monitor monitor;
-
-    private ServiceExtensionContext context;
-
     public static final String USE_EU_POLICY = "use-eu";
+    private Monitor monitor;
+    private ServiceExtensionContext context;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -75,8 +70,6 @@ public class DemoExtension implements ServiceExtension {
     }
 
     private void loadDataEntries() {
-        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
-        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
 
         var objectMapper = context.getTypeManager().getMapper();
 
@@ -84,8 +77,8 @@ public class DemoExtension implements ServiceExtension {
 
         try {
             if (Files.exists(source)) {
-                final File sourceFile = source.toFile();
-                final List<DataEntry> dataEntries = objectMapper.readValue(sourceFile, new TypeReference<>() {
+                File sourceFile = source.toFile();
+                List<DataEntry> dataEntries = objectMapper.readValue(sourceFile, new TypeReference<>() {
                 });
                 // TODO: we miss an example of the provider-artifacts.json to adapt for assetIndex storing
             }
