@@ -16,6 +16,7 @@
 package org.eclipse.dataspaceconnector.catalog.cache.query;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -34,7 +35,7 @@ public class DefaultCacheQueryAdapter implements CacheQueryAdapter {
     @Override
     public @NotNull Stream<Asset> executeQuery(CacheQuery query) {
         //todo: translate the generic CacheQuery into a list of criteria and
-        return store.query(query.getCriteria()).stream();
+        return store.query(query.getCriteria()).stream().map(CachedAsset::getAsset);
     }
 
     @Override

@@ -8,6 +8,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerI
 import org.eclipse.dataspaceconnector.catalog.cache.query.DefaultCacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
+import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
@@ -140,11 +141,10 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
                 var originator = response.getSource();
 
                 assetNames.forEach(n -> {
-                    var asset = Asset.Builder.newInstance()
-                            .id(n)
-                            .name(n)
-                            .version("1.0")
-                            .property("source", originator)
+                    var asset = CachedAsset.Builder.newInstance()
+                            .asset(Asset.Builder.newInstance().id(n).name(n).version("1.0").build())
+                            .originator(originator)
+                            //.policy(somePolicy) //not yet implemented
                             .build();
                     store.save(asset);
                 });

@@ -7,6 +7,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -48,7 +49,7 @@ class FederatedCatalogCacheEndToEndTest {
         int nbAssets = 3;
 
         // generate assets and populate the store
-        List<Asset> assets = new ArrayList<>();
+        List<CachedAsset> assets = new ArrayList<>();
         for (int i = 0; i < nbAssets; i++) {
             assets.add(buildAsset());
         }
@@ -70,16 +71,18 @@ class FederatedCatalogCacheEndToEndTest {
         compareAssetsById(actualAssets, assets);
     }
 
-    private Asset buildAsset() {
-        return Asset.Builder.newInstance()
+    private CachedAsset buildAsset() {
+        var asset = Asset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .name("demo-test")
                 .build();
+
+        return CachedAsset.Builder.newInstance().asset(asset).build();
     }
 
-    private void compareAssetsById(List<Asset> actual, List<Asset> expected) {
+    private void compareAssetsById(List<Asset> actual, List<CachedAsset> expected) {
         List<String> actualAssetIds = actual.stream().map(Asset::getId).sorted().collect(Collectors.toList());
-        List<String> expectedAssetIds = expected.stream().map(Asset::getId).sorted().collect(Collectors.toList());
+        List<String> expectedAssetIds = expected.stream().map(CachedAsset::getId).sorted().collect(Collectors.toList());
         assertThat(actualAssetIds).isEqualTo(expectedAssetIds);
     }
 }

@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.Collection;
 import java.util.List;
@@ -14,17 +13,17 @@ public interface FederatedCacheStore {
 
     /**
      * todo: rename _this_ asset to something else, and add the originator as property
-     * Adds an {@link Asset} to the store
+     * Adds an {@link CachedAsset} to the store
      */
-    void save(Asset asset);
+    void save(CachedAsset asset);
 
     /**
-     * Queries the store for {@link Asset}s
+     * Queries the store for {@link CachedAsset}s
      *
      * @param query A list of criteria the asset must fulfill
      * @return A collection of assets that are already in the store and that satisfy a given list of criteria.
      */
-    Collection<Asset> query(List<Criterion> query);
+    Collection<CachedAsset> query(List<Criterion> query);
 
-    Collection<Asset> getAll();
+    Collection<CachedAsset> getAll();
 }
