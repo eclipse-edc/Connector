@@ -16,8 +16,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.RejectionMessage;
-import de.fraunhofer.iais.eis.RejectionReason;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
@@ -31,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -148,86 +145,6 @@ class DescriptionHandlerTest {
         // verify
         assertThat(result).isNotNull();
         assertThat(result).extracting(MultipartResponse::getHeader).isEqualTo(responseHeader);
-    }
-
-    @Test
-    void testHandleRequestOfTypeDescriptionRequestMessageWithUnknownRequestedElementErrorResponse() {
-        // prepare
-        DescriptionRequestMessage requestHeader = EasyMock.mock(DescriptionRequestMessage.class);
-
-        EasyMock.expect(requestHeader.getRequestedElement()).andReturn(URI.create("urn:test:abc"));
-        EasyMock.expect(requestHeader.getId()).andReturn(null);
-        EasyMock.expect(requestHeader.getSenderAgent()).andReturn(null);
-        EasyMock.expect(requestHeader.getIssuerConnector()).andReturn(null);
-
-        MultipartRequest multipartRequest = MultipartRequest.Builder.newInstance()
-                .header(requestHeader)
-                .build();
-
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(URI.class), EasyMock.eq(IdsType.class)))
-                .andReturn(new TransformResult<>(Collections.singletonList("unknown type")));
-
-        EasyMock.expect(CONNECTOR_ID).andReturn(null);
-
-        monitor.warning(EasyMock.anyString());
-        EasyMock.expectLastCall();
-
-        // record
-        EasyMock.replay(
-                monitor,
-                transformerRegistry,
-                artifactDescriptionRequestHandler,
-                dataCatalogDescriptionRequestHandler,
-                representationDescriptionRequestHandler,
-                resourceDescriptionRequestHandler,
-                connectorDescriptionRequestHandler,
-                requestHeader);
-
-        // invoke
-        var result = descriptionHandler.handleRequest(multipartRequest);
-
-        assertThat(result).isNotNull();
-        assertThat(result).extracting(MultipartResponse::getHeader).isInstanceOf(RejectionMessage.class);
-    }
-
-    @Test
-    void testHandleRequestOfTypeDescriptionRequestMessageUnknownButValidRequestedElement() {
-        // prepare
-        DescriptionRequestMessage requestHeader = EasyMock.mock(DescriptionRequestMessage.class);
-
-        EasyMock.expect(requestHeader.getRequestedElement()).andReturn(URI.create("urn:abc:1"));
-        EasyMock.expect(requestHeader.getId()).andReturn(null);
-        EasyMock.expect(requestHeader.getSenderAgent()).andReturn(null);
-        EasyMock.expect(requestHeader.getIssuerConnector()).andReturn(null);
-
-        MultipartRequest multipartRequest = MultipartRequest.Builder.newInstance()
-                .header(requestHeader)
-                .build();
-
-        EasyMock.expect(CONNECTOR_ID).andReturn(null);
-
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(URI.class), EasyMock.eq(IdsType.class)))
-                .andReturn(new TransformResult<>(IdsType.PARTICIPANT));
-
-        // record
-        EasyMock.replay(
-                monitor,
-                transformerRegistry,
-                artifactDescriptionRequestHandler,
-                dataCatalogDescriptionRequestHandler,
-                representationDescriptionRequestHandler,
-                resourceDescriptionRequestHandler,
-                connectorDescriptionRequestHandler,
-                requestHeader);
-
-        // invoke
-        var result = descriptionHandler.handleRequest(multipartRequest);
-
-        // verify
-        assertThat(result).isNotNull()
-                .extracting(MultipartResponse::getHeader).isInstanceOf(RejectionMessage.class);
-        assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
     }
 
     @Test

@@ -30,7 +30,11 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.util.Objects;
 
-public class ConnectorDescriptionRequestHandler extends AbstractDescriptionRequestHandler {
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionResponseMessageUtil.createDescriptionResponseMessage;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createErrorMultipartResponse;
+
+public class ConnectorDescriptionRequestHandler implements DescriptionRequestHandler {
     private final String connectorId;
     private final Monitor monitor;
     private final ConnectorService connectorService;
@@ -41,7 +45,6 @@ public class ConnectorDescriptionRequestHandler extends AbstractDescriptionReque
             @NotNull String connectorId,
             @NotNull ConnectorService connectorService,
             @NotNull TransformerRegistry transformerRegistry) {
-        super(monitor, transformerRegistry);
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorService = Objects.requireNonNull(connectorService);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);

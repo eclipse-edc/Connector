@@ -63,7 +63,7 @@ public class ConnectorServiceSettings {
     private final ServiceExtensionContext serviceExtensionContext;
 
     // TODO Shouldn't the connector ID be an URI? Ask Denis
-    private String id;
+    private URI id;
     private String title;
     private String description;
     private SecurityProfile securityProfile;
@@ -77,29 +77,29 @@ public class ConnectorServiceSettings {
 
         List<String> errors = new ArrayList<>();
 
-        setTitle();
-        setDescription();
+        initTitle();
+        initDescription();
         var error = setConnectorId();
         if (error != null) {
             errors.add(error);
         }
 
-        error = setSecurityProfile();
+        error = initSecurityProfile();
         if (error != null) {
             errors.add(error);
         }
 
-        error = setEndpoint();
+        error = initEndpoint();
         if (error != null) {
             errors.add(error);
         }
 
-        error = setMaintainer();
+        error = initMaintainer();
         if (error != null) {
             errors.add(error);
         }
 
-        error = setCurator();
+        error = initCurator();
         if (error != null) {
             errors.add(error);
         }
@@ -110,7 +110,7 @@ public class ConnectorServiceSettings {
     }
 
     @Nullable
-    public String getId() {
+    public URI getId() {
         return id;
     }
 
@@ -154,11 +154,10 @@ public class ConnectorServiceSettings {
         }
 
         try {
-
             // Hint: use stringified uri to keep uri path and query
             IdsId idsId = IdsIdParser.parse(value);
             if (idsId.getType() == IdsType.CONNECTOR) {
-                id = value;
+                id = URI.create(idsId.getValue());
                 return null;
             } else {
                 return String.format(ERROR_INVALID_SETTING, EDC_IDS_ID, value);
@@ -169,7 +168,7 @@ public class ConnectorServiceSettings {
         }
     }
 
-    private void setTitle() {
+    private void initTitle() {
         String value = serviceExtensionContext.getSetting(EDC_IDS_TITLE, null);
 
         if (value == null) {
@@ -180,7 +179,7 @@ public class ConnectorServiceSettings {
         this.title = value;
     }
 
-    private void setDescription() {
+    private void initDescription() {
         String value = serviceExtensionContext.getSetting(EDC_IDS_DESCRIPTION, null);
 
         if (value == null) {
@@ -191,7 +190,7 @@ public class ConnectorServiceSettings {
         this.description = value;
     }
 
-    private String setSecurityProfile() {
+    private String initSecurityProfile() {
         String value = serviceExtensionContext.getSetting(EDC_IDS_SECURITY_PROFILE, null);
 
         if (value == null) {
@@ -209,7 +208,7 @@ public class ConnectorServiceSettings {
         return null;
     }
 
-    private String setEndpoint() {
+    private String initEndpoint() {
         String value = serviceExtensionContext.getSetting(EDC_IDS_ENDPOINT, null);
 
         if (value == null) {
@@ -226,7 +225,7 @@ public class ConnectorServiceSettings {
         return null;
     }
 
-    private String setMaintainer() {
+    private String initMaintainer() {
         String value = serviceExtensionContext.getSetting(EDC_IDS_MAINTAINER, null);
 
         if (value == null) {
@@ -243,7 +242,7 @@ public class ConnectorServiceSettings {
         return null;
     }
 
-    private String setCurator() {
+    private String initCurator() {
         String value = serviceExtensionContext.getSetting(EDC_IDS_CURATOR, null);
 
         if (value == null) {

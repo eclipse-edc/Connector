@@ -33,8 +33,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataCatalogToIdsResourceCatalogTransformerTest {
-    private static final String CATALOG_ID = "test_id";
-    private static final URI ID_URI = URI.create("urn:test:test_id");
+    private static final URI CATALOG_ID = URI.create("urn:test:test_id");
 
     // subject
     private DataCatalogToIdsResourceCatalogTransformer dataCatalogToIdsResourceCatalogTransformer;
@@ -86,12 +85,9 @@ class DataCatalogToIdsResourceCatalogTransformerTest {
         Resource r2 = EasyMock.createMock(Resource.class);
         List<Asset> assets = Arrays.asList(a1, a2);
         List<Resource> resources = Arrays.asList(r1, r2);
-        IdsId id = IdsId.Builder.newInstance().value(CATALOG_ID).type(IdsType.CATALOG).build();
 
         EasyMock.expect(dataCatalog.getId()).andReturn(CATALOG_ID);
         EasyMock.expect(dataCatalog.getAssets()).andReturn(assets);
-
-        EasyMock.expect(context.transform(EasyMock.eq(id), EasyMock.eq(URI.class))).andReturn(ID_URI);
 
         EasyMock.expect(context.transform(EasyMock.eq(a1), EasyMock.eq(Resource.class))).andReturn(r1);
         EasyMock.expect(context.transform(EasyMock.eq(a2), EasyMock.eq(Resource.class))).andReturn(r2);
@@ -104,7 +100,7 @@ class DataCatalogToIdsResourceCatalogTransformerTest {
 
         // verify
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(ID_URI);
+        assertThat(result.getId()).isEqualTo(CATALOG_ID);
         assertThat(result.getOfferedResource()).hasSize(resources.size());
         assertThat(result.getOfferedResource().get(0)).isEqualTo(r1);
         assertThat(result.getOfferedResource().get(1)).isEqualTo(r2);

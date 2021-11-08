@@ -23,13 +23,14 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataCatalogServiceImplTest {
-    private static final String CATALOG_ID = "catalogId";
+    private static final URI CATALOG_ID = URI.create("urn:catalog:catalogId");
 
     // subject
     private DataCatalogServiceImpl dataCatalogService;
