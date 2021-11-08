@@ -1,8 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +16,8 @@ class CachedAssetTest {
     @Test
     void getOriginator() {
         var ca = CachedAsset.Builder.newInstance()
-                .asset(createAsset())
+                .id("testAsset1")
+                .name("test-asset")
                 .originator("test-originator")
                 .build();
 
@@ -28,7 +27,8 @@ class CachedAssetTest {
     @Test
     void getOriginator_notPresent() {
         var ca = CachedAsset.Builder.newInstance()
-                .asset(createAsset())
+                .id("testAsset1")
+                .name("test-asset")
                 .build();
 
         assertThat(ca.getOriginator()).isNull();
@@ -39,8 +39,9 @@ class CachedAssetTest {
 
         Policy policy = Policy.Builder.newInstance().build();
         var ca = CachedAsset.Builder.newInstance()
-                .asset(createAsset())
                 .policy(policy)
+                .id("testAsset1")
+                .name("test-asset")
                 .build();
 
         assertThat(ca.getPolicy()).isEqualTo(policy);
@@ -50,14 +51,11 @@ class CachedAssetTest {
     void getPolicy_notPresent() {
 
         var ca = CachedAsset.Builder.newInstance()
-                .asset(createAsset())
+                .id("testAsset1")
+                .name("test-asset")
                 .build();
 
         assertThat(ca.getPolicy()).isNull();
     }
 
-    @NotNull
-    private Asset createAsset() {
-        return Asset.Builder.newInstance().id("asset1").name("test-asset").build();
-    }
 }

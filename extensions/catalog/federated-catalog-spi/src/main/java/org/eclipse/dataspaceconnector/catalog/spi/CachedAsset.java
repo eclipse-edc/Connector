@@ -14,42 +14,32 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
  */
 @JsonTypeName()
 @JsonDeserialize(builder = CachedAsset.Builder.class)
-public class CachedAsset {
+public class CachedAsset extends Asset {
 
     private static final String PROPERTY_ORIGINATOR = "asset:prop:originator";
     private static final String PROPERTY_POLICY = "asset:prop:policy";
-    private final Asset wrappedAsset;
 
-    private CachedAsset(Asset wrappedAsset) {
-        this.wrappedAsset = wrappedAsset;
+    private CachedAsset() {
     }
 
 
     @JsonIgnore
     public String getOriginator() {
-        Object property = wrappedAsset.getProperty(PROPERTY_ORIGINATOR);
+        Object property = getProperty(PROPERTY_ORIGINATOR);
         return property != null ? property.toString() : null;
     }
 
     @JsonIgnore
     public Policy getPolicy() {
-        Object property = wrappedAsset.getProperty(PROPERTY_POLICY);
+        Object property = getProperty(PROPERTY_POLICY);
         return property != null ? (Policy) property : null;
     }
 
-    public Asset getAsset() {
-        return wrappedAsset;
-    }
-
-    public String getId() {
-        return wrappedAsset.getId();
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private Asset asset;
+    public static final class Builder extends Asset.Builder<Builder> {
 
         private Builder() {
+            super(new CachedAsset());
         }
 
         @JsonCreator
@@ -67,13 +57,9 @@ public class CachedAsset {
             return this;
         }
 
-        public Builder asset(Asset asset) {
-            this.asset = asset;
-            return this;
-        }
-
+        @Override
         public CachedAsset build() {
-            return new CachedAsset(asset);
+            return (CachedAsset) asset;
         }
     }
 }

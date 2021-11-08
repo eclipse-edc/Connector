@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -142,7 +141,9 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
                 assetNames.forEach(n -> {
                     var asset = CachedAsset.Builder.newInstance()
-                            .asset(Asset.Builder.newInstance().id(n).name(n).version("1.0").build())
+                            .id(n)
+                            .name(n)
+                            .version("1.0")
                             .originator(originator)
                             //.policy(somePolicy) //not yet implemented
                             .build();

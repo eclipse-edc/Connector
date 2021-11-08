@@ -37,7 +37,7 @@ public class Asset {
     public static final String PROPERTY_CONTENT_TYPE = "asset:prop:contenttype";
     private Map<String, Object> properties;
 
-    private Asset() {
+    protected Asset() {
         properties = new HashMap<>();
     }
 
@@ -76,47 +76,47 @@ public class Asset {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
-        private final Asset asset;
+    public static class Builder<B extends Builder<B>> {
+        protected final Asset asset;
 
-        private Builder() {
-            asset = new Asset();
+        protected Builder(Asset asset) {
+            this.asset = asset;
             asset.properties.put(PROPERTY_ID, UUID.randomUUID().toString()); //must always have an ID
         }
 
         @JsonCreator
         public static Builder newInstance() {
-            return new Builder();
+            return new Builder(new Asset());
         }
 
-        public Builder id(String id) {
+        public B id(String id) {
             asset.properties.put(PROPERTY_ID, id);
-            return this;
+            return (B) this;
         }
 
-        public Builder name(String title) {
+        public B name(String title) {
             asset.properties.put(PROPERTY_NAME, title);
-            return this;
+            return (B) this;
         }
 
-        public Builder version(String version) {
+        public B version(String version) {
             asset.properties.put(PROPERTY_VERSION, version);
-            return this;
+            return (B) this;
         }
 
-        public Builder contentType(String contentType) {
+        public B contentType(String contentType) {
             asset.properties.put(PROPERTY_CONTENT_TYPE, contentType);
-            return this;
+            return (B) this;
         }
 
-        public Builder properties(Map<String, Object> properties) {
+        public B properties(Map<String, Object> properties) {
             asset.properties = Objects.requireNonNull(properties);
-            return this;
+            return (B) this;
         }
 
-        public Builder property(String key, Object value) {
+        public B property(String key, Object value) {
             asset.properties.put(key, value);
-            return this;
+            return (B) this;
         }
 
         public Asset build() {

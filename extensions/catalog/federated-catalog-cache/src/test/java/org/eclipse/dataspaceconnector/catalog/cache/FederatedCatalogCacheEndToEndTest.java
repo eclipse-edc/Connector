@@ -72,12 +72,10 @@ class FederatedCatalogCacheEndToEndTest {
     }
 
     private CachedAsset buildAsset() {
-        var asset = Asset.Builder.newInstance()
+        return CachedAsset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .name("demo-test")
                 .build();
-
-        return CachedAsset.Builder.newInstance().asset(asset).build();
     }
 
     private void compareAssetsById(List<Asset> actual, List<CachedAsset> expected) {

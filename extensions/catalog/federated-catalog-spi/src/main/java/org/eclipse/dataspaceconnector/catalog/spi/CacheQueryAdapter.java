@@ -21,7 +21,7 @@ public interface CacheQueryAdapter {
      * @return A stream of {@link Asset} objects. Can be empty, can never be null.
      * @throws IllegalArgumentException may be thrown if the implementor cannot translate the query.
      */
-    @NotNull Stream<Asset> executeQuery(CacheQuery query);
+    @NotNull Stream<CachedAsset> executeQuery(CacheQuery query);
 
     /**
      * Checks whether a given query can be run by the implementor. This does not limit itself to whether the query

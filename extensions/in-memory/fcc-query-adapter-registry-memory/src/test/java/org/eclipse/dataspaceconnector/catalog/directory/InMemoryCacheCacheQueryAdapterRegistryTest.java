@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.catalog.directory;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.CacheQuery;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -40,9 +41,9 @@ import static org.easymock.EasyMock.verify;
 
 
 class InMemoryCacheCacheQueryAdapterRegistryTest {
-    private static final Asset ASSET_ABC = Asset.Builder.newInstance().id("ABC").build();
-    private static final Asset ASSET_DEF = Asset.Builder.newInstance().id("DEF").build();
-    private static final Asset ASSET_XYZ = Asset.Builder.newInstance().id("XYZ").build();
+    private static final CachedAsset ASSET_ABC = CachedAsset.Builder.newInstance().id("ABC").build();
+    private static final CachedAsset ASSET_DEF = CachedAsset.Builder.newInstance().id("DEF").build();
+    private static final CachedAsset ASSET_XYZ = CachedAsset.Builder.newInstance().id("XYZ").build();
 
     private InMemoryCacheQueryAdapterRegistry registry;
 
@@ -167,7 +168,7 @@ class InMemoryCacheCacheQueryAdapterRegistryTest {
     private CacheQueryAdapter matchingAdapter() {
         CacheQueryAdapter adapter1 = niceMock(CacheQueryAdapter.class);
         expect(adapter1.canExecute(anyObject())).andReturn(true);
-        Supplier<Asset> as = () -> Asset.Builder.newInstance().build();
+        Supplier<CachedAsset> as = () -> CachedAsset.Builder.newInstance().build();
         expect(adapter1.executeQuery(anyObject())).andReturn(Stream.of(as.get(), as.get(), as.get()));
         return adapter1;
     }
