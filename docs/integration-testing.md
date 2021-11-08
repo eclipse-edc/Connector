@@ -37,15 +37,17 @@ environment variables. A good way to access them is `ConfigurationFunctions.prop
 can also be supplied via system properties.
 
 There is no one-size-fits-all guideline whether to perform setup tasks in the `@BeforeAll` or `@BeforeEach`, it will
-depend on the concrete system you're using. Long-running setup should be done in the `@BeforeAll` so as not to extend
-the run-time of the test unnecessarily. In contrast, in most cases it is **not** advisable to deploy/provision the
-external system itself in either of those methods. For example, provisioning a CosmosDB or spinning up a Postgres docker
-container directly in the test should generally be avoided, because it will introduce code, that does not have anything
-to do with the test and may cause security problems (privilege escalation through the Docker API), etc.
+depend on the concrete system you're using. Long-running one-time setup should be done in the `@BeforeAll` so as not to
+extend the run-time of the test unnecessarily. In contrast, in most cases it is **not** advisable to deploy/provision
+the external system itself in either of those methods. In other words, provisioning a CosmosDB or spinning up a Postgres
+docker container directly from test code should generally be avoided, because it will introduce code that has nothing to
+do with the test and may cause security problems (privilege escalation through the Docker API), etc.
 
-Rather, the external system should be deployed in the CI script, or there might even be a dedicated test instance
-running continuously. In the latter case we need to be careful to avoid conflicts (e.g. database names) when multiple
-test runners access that system simultaneously and to properly clean-up any residue before and after the test.
+This does not discourage the use of external test environments like containers, rather, the external system should be
+deployed in the CI script (e.g. through Github's `services` feature), or there might even be a dedicated test instance
+running continuously, e.g. a CosmosDB test instance in Azure. In the latter case we need to be careful to avoid
+conflicts (e.g. database names) when multiple test runners access that system simultaneously and to properly clean-up
+any residue before and after the test.
 
 ## Running them locally
 
