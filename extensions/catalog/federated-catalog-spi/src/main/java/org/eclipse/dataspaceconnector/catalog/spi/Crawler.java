@@ -3,9 +3,13 @@ package org.eclipse.dataspaceconnector.catalog.spi;
 import java.util.concurrent.TimeUnit;
 
 /**
- * A runnable object that performs a task repeatedly.
+ * A runnable object that performs a query task repeatedly. Crawlers are used to inquire other Federated Cache Nodes' fetch
+ * their Asset list.
+ * This interface is not limited to performing catalog queries of course, although currently it is its sole use case.
  * <p>
- * In the catalog space a {@code Crawler}s job is to go through a list of targets (=nodes) and collect their catalog.
+ * In other words: the {@code Crawler}s job is to go through a list of targets (=nodes) and collect their catalog.
+ * <p>
+ * Crawlers should not throw exceptions when a crawl process failed, rather the should use the {@link CrawlerErrorHandler} interface!
  */
 public interface Crawler extends Runnable {
     String FEATURE = "edc:catalog:cache:crawler";

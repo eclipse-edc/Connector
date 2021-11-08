@@ -8,6 +8,11 @@ import java.util.stream.Stream;
 
 /**
  * Adapter to translate a {@link CacheQuery} into whatever query language the underlying data store uses.
+ * This is the main interface to perform a query against the internal Federated Cache, however, queries ({@link CacheQuery})
+ * should be submitted to the {@link CacheQueryAdapterRegistry}.
+ * <p>
+ * Implement this interface in your extension to contribute another "database protocol", e.g. a {@link FederatedCacheStore} based on
+ * PostgreSQL.
  */
 public interface CacheQueryAdapter {
     /**

@@ -6,6 +6,7 @@ import java.util.Collection;
 
 /**
  * Registry where {@link CacheQueryAdapter} instances are stored and maintained.
+ * {@link CacheQuery}s should be issued to the registry rather than to the {@link CacheQueryAdapter} directly!
  */
 public interface CacheQueryAdapterRegistry {
     String FEATURE = "edc:catalog:cache:query:registry";

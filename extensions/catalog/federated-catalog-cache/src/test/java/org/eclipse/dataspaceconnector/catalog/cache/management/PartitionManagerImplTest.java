@@ -106,7 +106,7 @@ public class PartitionManagerImplTest {
         }, 5, () -> staticWorkload);
 
 
-        // wait until all crawlers have run 
+        // wait until all crawlers have run
         assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
         partitionManager.stop();
         list.forEach(EasyMock::verify);

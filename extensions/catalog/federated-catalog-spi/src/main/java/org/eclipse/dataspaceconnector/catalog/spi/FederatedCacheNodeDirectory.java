@@ -16,7 +16,7 @@ public interface FederatedCacheNodeDirectory {
 
     /**
      * Get all nodes asynchronously. Useful if the backing storage system has an async API.
-     * By default this just returns {@code Stream.of(getAll())}.
+     * By default, this just returns {@code getAll().stream()}.
      */
     default Stream<FederatedCacheNode> getAllAsync() {
         return getAll().stream();
