@@ -14,13 +14,14 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.controller;
 
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.ErrorResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.List;
 
-public class MultipartControllerSettingsFactoryResult {
+public class MultipartControllerSettingsFactoryResult implements ErrorResult {
     private final MultipartControllerSettings settings;
     private final List<String> errors;
 

@@ -14,13 +14,14 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.ErrorResult;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
-public class DataCatalogDescriptionRequestHandlerSettingsFactoryResult {
+public class DataCatalogDescriptionRequestHandlerSettingsFactoryResult implements ErrorResult {
     private final DataCatalogDescriptionRequestHandlerSettings settings;
     private final List<String> errors;
 

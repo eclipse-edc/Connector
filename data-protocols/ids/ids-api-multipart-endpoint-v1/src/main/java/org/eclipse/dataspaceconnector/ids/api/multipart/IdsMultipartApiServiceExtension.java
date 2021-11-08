@@ -15,27 +15,35 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
+import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartControllerSettings;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartControllerSettingsFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartControllerSettingsFactoryResult;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandlerSettings;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandlerSettingsFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandlerSettingsFactoryResult;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandlerSettings;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandlerSettingsFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandlerSettingsFactoryResult;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandlerSettings;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandlerSettingsFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandlerSettingsFactoryResult;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandlerSettings;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandlerSettingsFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandlerSettingsFactoryResult;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandlerSettings;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandlerSettingsFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandlerSettingsFactoryResult;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandlerSettings;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandlerSettingsFactory;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandlerSettingsFactoryResult;
+import org.eclipse.dataspaceconnector.ids.api.multipart.util.ErrorResult;
 import org.eclipse.dataspaceconnector.ids.core.configuration.SettingResolver;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
@@ -48,8 +56,11 @@ import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -108,161 +119,70 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         TransformerRegistry transformerRegistry = serviceExtensionContext.getService(TransformerRegistry.class);
 
         SettingResolver settingResolver = new SettingResolver(serviceExtensionContext);
-        List<Handler> handlers = new LinkedList<>();
 
-        // Register the top-level Multipart JAX-RS controller
-        MultipartController multipartController = createMultipartController(settingResolver, identityService, handlers);
-        webService.registerController(multipartController);
-
-        // Create and register the IDS Self-Description-Handler
-        DescriptionHandler descriptionHandler = createDescriptionHandler(
-                settingResolver,
-                connectorService,
-                dataCatalogService,
-                assetIndex,
-                transformerRegistry
-        );
-        handlers.add(descriptionHandler);
-    }
-
-    private DescriptionHandler createDescriptionHandler(
-            SettingResolver settingResolver,
-            ConnectorService connectorService,
-            DataCatalogService dataCatalogService,
-            AssetIndex assetIndex,
-            TransformerRegistry transformerRegistry) {
+        // create settings factories
+        ArtifactDescriptionRequestHandlerSettingsFactory artifactDescriptionRequestHandlerSettingsFactory = new ArtifactDescriptionRequestHandlerSettingsFactory(settingResolver);
+        DataCatalogDescriptionRequestHandlerSettingsFactory dataCatalogDescriptionRequestHandlerSettingsFactory = new DataCatalogDescriptionRequestHandlerSettingsFactory(settingResolver);
+        RepresentationDescriptionRequestHandlerSettingsFactory representationDescriptionRequestHandlerSettingsFactory = new RepresentationDescriptionRequestHandlerSettingsFactory(settingResolver);
+        ResourceDescriptionRequestHandlerSettingsFactory resourceDescriptionRequestHandlerSettingsFactory = new ResourceDescriptionRequestHandlerSettingsFactory(settingResolver);
+        ConnectorDescriptionRequestHandlerSettingsFactory connectorDescriptionRequestHandlerSettingsFactory = new ConnectorDescriptionRequestHandlerSettingsFactory(settingResolver);
+        MultipartControllerSettingsFactory multipartControllerSettingsFactory = new MultipartControllerSettingsFactory(settingResolver);
         DescriptionHandlerSettingsFactory descriptionHandlerSettingsFactory = new DescriptionHandlerSettingsFactory(settingResolver);
+
+        // get settings factory result
+        ArtifactDescriptionRequestHandlerSettingsFactoryResult artifactDescriptionRequestHandlerSettingsFactoryResult = artifactDescriptionRequestHandlerSettingsFactory.getSettingsResult();
+        DataCatalogDescriptionRequestHandlerSettingsFactoryResult dataCatalogDescriptionRequestHandlerSettingsFactoryResult = dataCatalogDescriptionRequestHandlerSettingsFactory.getSettingsResult();
+        RepresentationDescriptionRequestHandlerSettingsFactoryResult representationDescriptionRequestHandlerSettingsFactoryResult = representationDescriptionRequestHandlerSettingsFactory.getSettingsResult();
+        ResourceDescriptionRequestHandlerSettingsFactoryResult resourceDescriptionRequestHandlerSettingsFactoryResult = resourceDescriptionRequestHandlerSettingsFactory.getSettingsResult();
+        ConnectorDescriptionRequestHandlerSettingsFactoryResult connectorDescriptionRequestHandlerSettingsFactoryResult = connectorDescriptionRequestHandlerSettingsFactory.getSettingsResult();
+        MultipartControllerSettingsFactoryResult multipartControllerSettingsFactoryResult = multipartControllerSettingsFactory.createRejectionMessageFactorySettings();
         DescriptionHandlerSettingsFactoryResult descriptionHandlerSettingsFactoryResult = descriptionHandlerSettingsFactory.getSettingsResult();
 
-        if (!descriptionHandlerSettingsFactoryResult.getErrors().isEmpty()) {
-            throw new EdcException(String.format("Could not set up DescriptionHandler: %s", String.join(", ", descriptionHandlerSettingsFactoryResult.getErrors())));
-        }
+        // throw on settings factory errors
+        throwOnError(artifactDescriptionRequestHandlerSettingsFactoryResult, dataCatalogDescriptionRequestHandlerSettingsFactoryResult, representationDescriptionRequestHandlerSettingsFactoryResult,
+                resourceDescriptionRequestHandlerSettingsFactoryResult, connectorDescriptionRequestHandlerSettingsFactoryResult, multipartControllerSettingsFactoryResult, descriptionHandlerSettingsFactoryResult);
 
-        ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler = createArtifactDescriptionRequestHandler(settingResolver, assetIndex, transformerRegistry);
-        DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler = createDataCatalogDescriptionRequestHandler(settingResolver, dataCatalogService, transformerRegistry);
-        RepresentationDescriptionRequestHandler representationDescriptionRequestHandler = createRepresentationDescriptionRequestHandler(settingResolver, assetIndex, transformerRegistry);
-        ResourceDescriptionRequestHandler resourceDescriptionRequestHandler = createResourceDescriptionRequestHandler(settingResolver, assetIndex, transformerRegistry);
-        ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler = createConnectorDescriptionRequestHandler(settingResolver, connectorService, transformerRegistry);
+        // validate settings not null
+        ArtifactDescriptionRequestHandlerSettings artifactDescriptionRequestHandlerSettings = Objects.requireNonNull(artifactDescriptionRequestHandlerSettingsFactoryResult.getSettings());
+        DataCatalogDescriptionRequestHandlerSettings dataCatalogDescriptionRequestHandlerSettings = Objects.requireNonNull(dataCatalogDescriptionRequestHandlerSettingsFactoryResult.getSettings());
+        RepresentationDescriptionRequestHandlerSettings representationDescriptionRequestHandlerSettings = Objects.requireNonNull(representationDescriptionRequestHandlerSettingsFactoryResult.getSettings());
+        ResourceDescriptionRequestHandlerSettings resourceDescriptionRequestHandlerSettings = Objects.requireNonNull(resourceDescriptionRequestHandlerSettingsFactoryResult.getSettings());
+        ConnectorDescriptionRequestHandlerSettings connectorDescriptionRequestHandlerSettings = Objects.requireNonNull(connectorDescriptionRequestHandlerSettingsFactoryResult.getSettings());
+        MultipartControllerSettings multipartControllerSettings = Objects.requireNonNull(multipartControllerSettingsFactoryResult.getSettings());
+        DescriptionHandlerSettings descriptionHandlerSettings = Objects.requireNonNull(descriptionHandlerSettingsFactoryResult.getSettings());
 
-        return new DescriptionHandler(
+        // create description request handlers
+        ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, artifactDescriptionRequestHandlerSettings, assetIndex, transformerRegistry);
+        DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, dataCatalogDescriptionRequestHandlerSettings, dataCatalogService, transformerRegistry);
+        RepresentationDescriptionRequestHandler representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, representationDescriptionRequestHandlerSettings, assetIndex, transformerRegistry);
+        ResourceDescriptionRequestHandler resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, resourceDescriptionRequestHandlerSettings, assetIndex, transformerRegistry);
+        ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorDescriptionRequestHandlerSettings, connectorService, transformerRegistry);
+
+        // create request handler
+        DescriptionHandler descriptionHandler = new DescriptionHandler(
                 monitor,
-                descriptionHandlerSettingsFactoryResult.getSettings(),
+                descriptionHandlerSettings,
                 transformerRegistry,
                 artifactDescriptionRequestHandler,
                 dataCatalogDescriptionRequestHandler,
                 representationDescriptionRequestHandler,
                 resourceDescriptionRequestHandler,
                 connectorDescriptionRequestHandler);
+
+        List<Handler> handlers = new LinkedList<>();
+        handlers.add(descriptionHandler);
+
+        // create & register controller
+        MultipartController multipartController = new MultipartController(multipartControllerSettings, identityService, handlers);
+        webService.registerController(multipartController);
     }
 
-    private ConnectorDescriptionRequestHandler createConnectorDescriptionRequestHandler(
-            SettingResolver settingResolver,
-            ConnectorService connectorService,
-            TransformerRegistry transformerRegistry) {
-        ConnectorDescriptionRequestHandlerSettingsFactory connectorDescriptionRequestHandlerSettingsFactory = new ConnectorDescriptionRequestHandlerSettingsFactory(settingResolver);
-        ConnectorDescriptionRequestHandlerSettingsFactoryResult connectorDescriptionRequestHandlerSettingsFactoryResult = connectorDescriptionRequestHandlerSettingsFactory.getSettingsResult();
+    private void throwOnError(ErrorResult... errorResults) {
+        List<String> errors = new ArrayList<>();
+        Arrays.stream(errorResults).map(ErrorResult::getErrors).distinct().forEach(errors::addAll);
 
-        if (!connectorDescriptionRequestHandlerSettingsFactoryResult.getErrors().isEmpty()) {
-            throw new EdcException(String.format("Could not set up ConnectorDescriptionRequestHandler: %s", String.join(", ", connectorDescriptionRequestHandlerSettingsFactoryResult.getErrors())));
+        if (!errors.isEmpty()) {
+            throw new EdcException(String.format("Invalid setting(s) in IDS Multipart Extension: %s", String.join(", ", errors)));
         }
-
-        return new ConnectorDescriptionRequestHandler(
-                monitor,
-                connectorDescriptionRequestHandlerSettingsFactoryResult.getSettings(),
-                connectorService,
-                transformerRegistry
-        );
-    }
-
-    private ResourceDescriptionRequestHandler createResourceDescriptionRequestHandler(
-            SettingResolver settingResolver,
-            AssetIndex assetIndex,
-            TransformerRegistry transformerRegistry) {
-        ResourceDescriptionRequestHandlerSettingsFactory resourceDescriptionRequestHandlerSettingsFactory = new ResourceDescriptionRequestHandlerSettingsFactory(settingResolver);
-        ResourceDescriptionRequestHandlerSettingsFactoryResult resourceDescriptionRequestHandlerSettingsFactoryResult = resourceDescriptionRequestHandlerSettingsFactory.getSettingsResult();
-
-        if (!resourceDescriptionRequestHandlerSettingsFactoryResult.getErrors().isEmpty()) {
-            throw new EdcException(String.format("Could not set up ResourceDescriptionRequestHandler: %s", String.join(", ", resourceDescriptionRequestHandlerSettingsFactoryResult.getErrors())));
-        }
-
-        return new ResourceDescriptionRequestHandler(
-                monitor,
-                resourceDescriptionRequestHandlerSettingsFactoryResult.getSettings(),
-                assetIndex,
-                transformerRegistry
-        );
-    }
-
-    private RepresentationDescriptionRequestHandler createRepresentationDescriptionRequestHandler(
-            SettingResolver settingResolver,
-            AssetIndex assetIndex,
-            TransformerRegistry transformerRegistry) {
-        RepresentationDescriptionRequestHandlerSettingsFactory representationDescriptionRequestHandlerSettingsFactory = new RepresentationDescriptionRequestHandlerSettingsFactory(settingResolver);
-        RepresentationDescriptionRequestHandlerSettingsFactoryResult representationDescriptionRequestHandlerSettingsFactoryResult = representationDescriptionRequestHandlerSettingsFactory.getSettingsResult();
-
-        if (!representationDescriptionRequestHandlerSettingsFactoryResult.getErrors().isEmpty()) {
-            throw new EdcException(String.format("Could not set up RepresentationDescriptionRequestHandler: %s", String.join(", ", representationDescriptionRequestHandlerSettingsFactoryResult.getErrors())));
-        }
-
-        return new RepresentationDescriptionRequestHandler(
-                monitor,
-                representationDescriptionRequestHandlerSettingsFactoryResult.getSettings(),
-                assetIndex,
-                transformerRegistry
-        );
-    }
-
-    private DataCatalogDescriptionRequestHandler createDataCatalogDescriptionRequestHandler(
-            SettingResolver settingResolver,
-            DataCatalogService dataCatalogService,
-            TransformerRegistry transformerRegistry) {
-        DataCatalogDescriptionRequestHandlerSettingsFactory dataCatalogDescriptionRequestHandlerSettingsFactory = new DataCatalogDescriptionRequestHandlerSettingsFactory(settingResolver);
-        DataCatalogDescriptionRequestHandlerSettingsFactoryResult dataCatalogDescriptionRequestHandlerSettingsFactoryResult = dataCatalogDescriptionRequestHandlerSettingsFactory.getSettingsResult();
-
-        if (!dataCatalogDescriptionRequestHandlerSettingsFactoryResult.getErrors().isEmpty()) {
-            throw new EdcException(String.format("Could not set up DataCatalogDescriptionRequestHandler: %s", String.join(", ", dataCatalogDescriptionRequestHandlerSettingsFactoryResult.getErrors())));
-        }
-
-        return new DataCatalogDescriptionRequestHandler(
-                monitor,
-                dataCatalogDescriptionRequestHandlerSettingsFactoryResult.getSettings(),
-                dataCatalogService,
-                transformerRegistry
-        );
-    }
-
-    private ArtifactDescriptionRequestHandler createArtifactDescriptionRequestHandler(
-            SettingResolver settingResolver,
-            AssetIndex assetIndex,
-            TransformerRegistry transformerRegistry
-    ) {
-        ArtifactDescriptionRequestHandlerSettingsFactory artifactDescriptionRequestHandlerSettingsFactory = new ArtifactDescriptionRequestHandlerSettingsFactory(settingResolver);
-        ArtifactDescriptionRequestHandlerSettingsFactoryResult artifactDescriptionRequestHandlerSettingsFactoryResult = artifactDescriptionRequestHandlerSettingsFactory.getSettingsResult();
-
-        if (!artifactDescriptionRequestHandlerSettingsFactoryResult.getErrors().isEmpty()) {
-            throw new EdcException(String.format("Could not set up ArtifactDescriptionRequestHandler: %s", String.join(", ", artifactDescriptionRequestHandlerSettingsFactoryResult.getErrors())));
-        }
-
-        return new ArtifactDescriptionRequestHandler(
-                monitor,
-                artifactDescriptionRequestHandlerSettingsFactoryResult.getSettings(),
-                assetIndex,
-                transformerRegistry
-        );
-    }
-
-    private MultipartController createMultipartController(SettingResolver settingResolver, IdentityService identityService, List<Handler> handlers) {
-        MultipartControllerSettingsFactory multipartControllerSettingsFactory = new MultipartControllerSettingsFactory(settingResolver);
-        MultipartControllerSettingsFactoryResult multipartControllerSettingsFactoryResult = multipartControllerSettingsFactory.createRejectionMessageFactorySettings();
-
-        if (!multipartControllerSettingsFactoryResult.getErrors().isEmpty()) {
-            throw new EdcException(String.format("Could not set up MultipartController: %s", String.join(", ", multipartControllerSettingsFactoryResult.getErrors())));
-        }
-
-        return new MultipartController(
-                multipartControllerSettingsFactoryResult.getSettings(),
-                identityService,
-                handlers
-        );
     }
 }
