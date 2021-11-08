@@ -34,7 +34,7 @@ public class DefaultCacheQueryAdapter implements CacheQueryAdapter {
     @Override
     public @NotNull Stream<CachedAsset> executeQuery(FederatedCatalogCacheQuery query) {
         //todo: translate the generic CacheQuery into a list of criteria and
-        return store.query(query.getCriteria()).stream();
+        return store.query(query.getCriteria()).stream().map(CachedAsset::getAsset);
     }
 
     @Override
