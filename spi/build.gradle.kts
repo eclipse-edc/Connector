@@ -23,6 +23,8 @@ dependencies {
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
 
     api(project(":core:policy:policy-model"))
+
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {

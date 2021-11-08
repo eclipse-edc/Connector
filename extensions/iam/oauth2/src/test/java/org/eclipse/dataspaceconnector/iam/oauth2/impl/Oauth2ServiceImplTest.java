@@ -81,7 +81,7 @@ class Oauth2ServiceImplTest {
     @Test
     void verifyValidJwt() {
 
-        var jwt = createJwt("test.audience", new Date(System.currentTimeMillis() - 1000), new Date(System.currentTimeMillis() + 1000));
+        var jwt = createJwt("test.audience", new Date(System.currentTimeMillis() - 10000000), new Date(System.currentTimeMillis() + 10000000));
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
         assertThat(result.valid()).isTrue();
         assertThat(result.errors()).isNotNull().isEmpty();
