@@ -20,6 +20,7 @@ import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -160,8 +161,8 @@ class DescriptionHandlerTest {
         URI uri = URI.create("urn:artifact:1");
         EasyMock.expect(requestHeader.getRequestedElement()).andReturn(uri);
 
-        EasyMock.expect(transformerRegistry.transform(uri, IdsType.class))
-                .andReturn(new TransformResult<>(IdsType.ARTIFACT));
+        EasyMock.expect(transformerRegistry.transform(uri, IdsId.class))
+                .andReturn(new TransformResult<>(IdsId.Builder.newInstance().value("1").type(IdsType.ARTIFACT).build()));
 
         EasyMock.expect(artifactDescriptionRequestHandler.handle(EasyMock.eq(requestHeader), EasyMock.anyObject())).andReturn(response);
 
@@ -202,8 +203,8 @@ class DescriptionHandlerTest {
         URI uri = URI.create("urn:catalog:1");
         EasyMock.expect(requestHeader.getRequestedElement()).andReturn(uri);
 
-        EasyMock.expect(transformerRegistry.transform(uri, IdsType.class))
-                .andReturn(new TransformResult<>(IdsType.CATALOG));
+        EasyMock.expect(transformerRegistry.transform(uri, IdsId.class))
+                .andReturn(new TransformResult<>(IdsId.Builder.newInstance().value("1").type(IdsType.CATALOG).build()));
 
         EasyMock.expect(dataCatalogDescriptionRequestHandler.handle(EasyMock.eq(requestHeader), EasyMock.anyObject())).andReturn(response);
 
@@ -244,8 +245,8 @@ class DescriptionHandlerTest {
         URI uri = URI.create("urn:representation:1");
         EasyMock.expect(requestHeader.getRequestedElement()).andReturn(uri);
 
-        EasyMock.expect(transformerRegistry.transform(uri, IdsType.class))
-                .andReturn(new TransformResult<>(IdsType.REPRESENTATION));
+        EasyMock.expect(transformerRegistry.transform(uri, IdsId.class))
+                .andReturn(new TransformResult<>(IdsId.Builder.newInstance().value("1").type(IdsType.REPRESENTATION).build()));
 
         EasyMock.expect(representationDescriptionRequestHandler.handle(EasyMock.eq(requestHeader), EasyMock.anyObject())).andReturn(response);
 
@@ -286,8 +287,8 @@ class DescriptionHandlerTest {
         URI uri = URI.create("urn:resource:1");
         EasyMock.expect(requestHeader.getRequestedElement()).andReturn(uri);
 
-        EasyMock.expect(transformerRegistry.transform(uri, IdsType.class))
-                .andReturn(new TransformResult<>(IdsType.RESOURCE));
+        EasyMock.expect(transformerRegistry.transform(uri, IdsId.class))
+                .andReturn(new TransformResult<>(IdsId.Builder.newInstance().value("1").type(IdsType.RESOURCE).build()));
 
         EasyMock.expect(resourceDescriptionRequestHandler.handle(EasyMock.eq(requestHeader), EasyMock.anyObject())).andReturn(response);
 

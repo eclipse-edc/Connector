@@ -30,36 +30,6 @@ public class IdsId {
         this.value = Objects.requireNonNull(value);
     }
 
-    @Deprecated
-    public static IdsId participant(String value) {
-        return new IdsId(IdsType.PARTICIPANT, value);
-    }
-
-    @Deprecated
-    public static IdsId connector(String value) {
-        return new IdsId(IdsType.CONNECTOR, value);
-    }
-
-    @Deprecated
-    public static IdsId representation(String value) {
-        return new IdsId(IdsType.REPRESENTATION, value);
-    }
-
-    @Deprecated
-    public static IdsId resource(String value) {
-        return new IdsId(IdsType.RESOURCE, value);
-    }
-
-    @Deprecated
-    public static IdsId catalog(String value) {
-        return new IdsId(IdsType.CATALOG, value);
-    }
-
-    @Deprecated
-    public static IdsId artifact(String value) {
-        return new IdsId(IdsType.ARTIFACT, value);
-    }
-
     public IdsType getType() {
         return type;
     }

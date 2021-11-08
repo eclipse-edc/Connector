@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.Repr
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -89,23 +90,22 @@ public class DescriptionHandler implements Handler {
         var payload = multipartRequest.getPayload();
 
         var requestedElement = descriptionRequestMessage.getRequestedElement();
-        IdsType type = null;
+        IdsId idsId = null;
         if (requestedElement != null) {
-            var result = transformerRegistry.transform(requestedElement, IdsType.class);
-            if (result.hasProblems()) {
+            var result = transformerRegistry.transform(requestedElement, IdsId.class);
+            if (result.hasProblems() || (idsId = result.getOutput()) == null) {
                 monitor.warning(
                         String.format(
-                                "Could not transform URI to IdsType: [%s]",
+                                "Could not transform URI to IdsId: [%s]",
                                 String.join(", ", result.getProblems())
                         )
                 );
                 return createBadParametersErrorMultipartResponse(descriptionRequestMessage);
             }
-
-            type = result.getOutput();
         }
 
-        if (type == null || type == IdsType.CONNECTOR) {
+        IdsType type;
+        if (idsId == null || (type = idsId.getType()) == IdsType.CONNECTOR) {
             return connectorDescriptionRequestHandler.handle(descriptionRequestMessage, payload);
         }
 

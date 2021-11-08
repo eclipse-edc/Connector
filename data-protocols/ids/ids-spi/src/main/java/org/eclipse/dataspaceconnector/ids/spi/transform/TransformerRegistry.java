@@ -26,10 +26,10 @@ public interface TransformerRegistry {
     /**
      * Transforms the object and any contained types, returning its transformed representation or null if the operation cannot be completed.
      *
-     * @param object the instance to transform
+     * @param object     the instance to transform
      * @param outputType the transformed output type
-     * @param <INPUT> the instance type
-     * @param <OUTPUT> the transformed object type
+     * @param <INPUT>    the instance type
+     * @param <OUTPUT>   the transformed object type
      * @return the transform result
      */
     <INPUT, OUTPUT> TransformResult<OUTPUT> transform(INPUT object, Class<OUTPUT> outputType);
