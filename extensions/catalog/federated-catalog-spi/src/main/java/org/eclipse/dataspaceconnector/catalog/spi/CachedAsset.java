@@ -8,6 +8,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
+/**
+ * This is a wrapper class for the {@link Asset} object, which has typed accessors for additional properties, namely a  {@link Policy} and the "originator",
+ * which is the name of the connector that the asset comes from.
+ */
 @JsonTypeName()
 @JsonDeserialize(builder = CachedAsset.Builder.class)
 public class CachedAsset {
@@ -42,7 +46,7 @@ public class CachedAsset {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder {
+    public static final class Builder extends Asset.Builder {
         private Asset asset;
 
         private Builder() {
@@ -68,6 +72,7 @@ public class CachedAsset {
             return this;
         }
 
+        @Override
         public CachedAsset build() {
             return new CachedAsset(asset);
         }
