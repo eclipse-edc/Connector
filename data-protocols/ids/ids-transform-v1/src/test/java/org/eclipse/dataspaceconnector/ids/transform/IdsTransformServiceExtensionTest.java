@@ -15,13 +15,11 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
-import de.fraunhofer.iais.eis.ConnectorEndpoint;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -38,7 +36,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.ArgumentsProvider;
 import org.junit.jupiter.params.provider.ArgumentsSource;
 
-import java.math.BigInteger;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -76,13 +73,7 @@ class IdsTransformServiceExtensionTest {
 
                     Arguments.arguments(IdsId.class, URI.class),
 
-                    Arguments.arguments(Integer.class, BigInteger.class),
-
-                    Arguments.arguments(String.class, URI.class),
-
-                    Arguments.arguments(URI.class, IdsId.class),
-                    Arguments.arguments(URI.class, IdsType.class),
-                    Arguments.arguments(URI.class, ConnectorEndpoint.class)
+                    Arguments.arguments(URI.class, IdsId.class)
             );
         }
     }

@@ -53,18 +53,14 @@ public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Co
             return null;
         }
 
-        URI connectorId = null;
+        BaseConnectorBuilder builder;
         if (object.getId() != null) {
             IdsId idsId = IdsId.Builder.newInstance()
                     .type(IdsType.CONNECTOR)
                     .value(object.getId())
                     .build();
 
-            connectorId = context.transform(idsId, URI.class);
-        }
-
-        BaseConnectorBuilder builder;
-        if (connectorId != null) {
+            URI connectorId = context.transform(idsId, URI.class);
             builder = new BaseConnectorBuilder(connectorId);
         } else {
             builder = new BaseConnectorBuilder();
