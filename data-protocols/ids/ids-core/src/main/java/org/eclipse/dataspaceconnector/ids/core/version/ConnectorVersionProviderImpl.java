@@ -15,13 +15,13 @@
 package org.eclipse.dataspaceconnector.ids.core.version;
 
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 
 // TODO move to edc-core
 public class ConnectorVersionProviderImpl implements ConnectorVersionProvider {
+    private static final String VERSION = "0.0.1";
 
     @Override
     public String getVersion() {
-        return ServiceExtension.class.getPackage().getImplementationVersion();
+        return VERSION;
     }
 }

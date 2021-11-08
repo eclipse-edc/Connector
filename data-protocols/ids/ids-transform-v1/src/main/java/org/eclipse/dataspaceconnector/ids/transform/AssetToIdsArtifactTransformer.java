@@ -26,9 +26,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
 import java.net.URI;
+import java.util.Map;
 import java.util.Objects;
 
-public class AssetToIdsArtifactTransformer extends AbstractAssetTransformer implements IdsTypeTransformer<Asset, Artifact> {
+public class AssetToIdsArtifactTransformer implements IdsTypeTransformer<Asset, Artifact> {
 
     @Override
     public Class<Asset> getInputType() {
@@ -56,14 +57,37 @@ public class AssetToIdsArtifactTransformer extends AbstractAssetTransformer impl
 
         ArtifactBuilder artifactBuilder = new ArtifactBuilder(uri);
 
-        var properties = object.getProperties();
+        Map<String, Object> properties = object.getProperties();
         if (properties == null) {
             context.reportProblem("Asset properties null");
             return artifactBuilder.build();
         }
 
-        extractProperty(context, properties, TransformKeys.KEY_ASSET_FILE_NAME, String.class, artifactBuilder::_fileName_);
-        extractProperty(context, properties, TransformKeys.KEY_ASSET_BYTE_SIZE, BigInteger.class, artifactBuilder::_byteSize_);
+        Object propertyValue = properties.get(TransformKeys.KEY_ASSET_FILE_NAME);
+        if (propertyValue == null) {
+            context.reportProblem(String.format("Asset property %s is null", TransformKeys.KEY_ASSET_FILE_NAME));
+        } else {
+            if (propertyValue instanceof String) {
+                artifactBuilder._fileName_((String) propertyValue);
+            } else {
+                context.reportProblem(String.format("Asset property %s expected to be of type %s", TransformKeys.KEY_ASSET_FILE_NAME, String.class.getName()));
+            }
+        }
+
+        propertyValue = properties.get(TransformKeys.KEY_ASSET_BYTE_SIZE);
+        if (propertyValue == null) {
+            context.reportProblem(String.format("Asset property %s is null", TransformKeys.KEY_ASSET_BYTE_SIZE));
+        } else {
+            if (propertyValue instanceof BigInteger) {
+                artifactBuilder._byteSize_((BigInteger) propertyValue);
+            } else if (propertyValue instanceof Integer) {
+                artifactBuilder._byteSize_(BigInteger.valueOf((int) propertyValue));
+            } else if (propertyValue instanceof Long) {
+                artifactBuilder._byteSize_(BigInteger.valueOf((long) propertyValue));
+            } else {
+                context.reportProblem(String.format("Asset property %s expected to be of type %s", TransformKeys.KEY_ASSET_BYTE_SIZE, BigInteger.class.getName()));
+            }
+        }
 
         return artifactBuilder.build();
     }

@@ -57,7 +57,9 @@ public class AssetToIdsResourceTransformer implements IdsTypeTransformer<Asset, 
                 .value(object.getId())
                 .type(IdsType.RESOURCE)
                 .build();
+
         URI uri = context.transform(id, URI.class);
+
         ResourceBuilder resourceBuilder = new ResourceBuilder(uri);
         resourceBuilder._representation_(new ArrayList<>(Collections.singletonList(result)));
 

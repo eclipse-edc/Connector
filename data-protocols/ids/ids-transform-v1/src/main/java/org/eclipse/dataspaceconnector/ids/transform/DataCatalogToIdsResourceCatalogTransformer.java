@@ -56,13 +56,8 @@ public class DataCatalogToIdsResourceCatalogTransformer implements IdsTypeTransf
                 .build();
 
         URI id = context.transform(idsId, URI.class);
-        ResourceCatalogBuilder resourceCatalogBuilder;
-        if (id == null) {
-            // TODO problem?
-            resourceCatalogBuilder = new ResourceCatalogBuilder();
-        } else {
-            resourceCatalogBuilder = new ResourceCatalogBuilder(id);
-        }
+
+        ResourceCatalogBuilder resourceCatalogBuilder = new ResourceCatalogBuilder(id);
 
         List<Resource> resources = new LinkedList<>();
         List<Asset> assets = object.getAssets();

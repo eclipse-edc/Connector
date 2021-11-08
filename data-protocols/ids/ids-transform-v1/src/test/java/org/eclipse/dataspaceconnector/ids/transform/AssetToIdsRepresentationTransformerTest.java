@@ -120,8 +120,6 @@ class AssetToIdsRepresentationTransformerTest {
         };
         EasyMock.expect(asset.getProperties()).andReturn(properties);
 
-        EasyMock.expect(context.transform(ASSET_FILE_EXTENSION, MediaType.class)).andReturn(MEDIA_TYPE);
-
         var artifact = new ArtifactBuilder().build();
         EasyMock.expect(context.transform(EasyMock.anyObject(Asset.class), EasyMock.eq(Artifact.class))).andReturn(artifact);
 

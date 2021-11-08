@@ -25,24 +25,16 @@ import java.util.Set;
 public class IdsTransformServiceExtension implements ServiceExtension {
     private static final String NAME = "IDS Transform extension";
 
-    private static final String[] REQUIRES = {
-            "edc:ids:core"
-    };
-
-    private static final String[] PROVIDES = {
-            "edc:ids:transform:v1"
-    };
-
     private Monitor monitor;
 
     @Override
     public Set<String> requires() {
-        return Set.of(REQUIRES);
+        return Set.of("edc:ids:core");
     }
 
     @Override
     public Set<String> provides() {
-        return Set.of(PROVIDES);
+        return Set.of("edc:ids:transform:v1");
     }
 
     @Override
@@ -64,13 +56,8 @@ public class IdsTransformServiceExtension implements ServiceExtension {
                 new ConnectorToIdsConnectorTransformer(),
                 new DataCatalogToIdsResourceCatalogTransformer(),
                 new IdsIdToUriTransformer(),
-                new IntegerToBigIntegerTransformer(),
                 new SecurityProfileToSecurityProfileTransformer(),
-                new StringToIdsMediaTypeTransformer(),
-                new StringToUriTransformer(),
-                new UriToIdsConnectorEndpointTransformer(),
-                new UriToIdsIdTransformer(),
-                new UriToIdsTypeTransformer()
+                new UriToIdsIdTransformer()
         ).forEach(registry::register);
     }
 

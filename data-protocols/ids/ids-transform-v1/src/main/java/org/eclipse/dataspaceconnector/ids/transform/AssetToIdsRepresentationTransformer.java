@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
-import de.fraunhofer.iais.eis.MediaType;
+import de.fraunhofer.iais.eis.CustomMediaTypeBuilder;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
@@ -24,15 +24,15 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 
-public class AssetToIdsRepresentationTransformer extends AbstractAssetTransformer implements IdsTypeTransformer<Asset, Representation> {
+public class AssetToIdsRepresentationTransformer implements IdsTypeTransformer<Asset, Representation> {
 
     @Override
     public Class<Asset> getInputType() {
@@ -57,31 +57,28 @@ public class AssetToIdsRepresentationTransformer extends AbstractAssetTransforme
                 .value(object.getId())
                 .type(IdsType.REPRESENTATION)
                 .build();
+
         URI uri = context.transform(id, URI.class);
 
         RepresentationBuilder representationBuilder = new RepresentationBuilder(uri);
+        representationBuilder._instance_(new ArrayList<>(Collections.singletonList(artifact)));
 
-        var properties = object.getProperties();
+        Map<String, Object> properties = object.getProperties();
         if (properties == null) {
             context.reportProblem("Asset properties null");
         } else {
-            extractProperty(context, properties, TransformKeys.KEY_ASSET_FILE_EXTENSION, String.class, (value) -> {
-                setMediaType(value, context, representationBuilder);
-            });
+            Object propertyValue = properties.get(TransformKeys.KEY_ASSET_FILE_EXTENSION);
+            if (propertyValue == null) {
+                context.reportProblem(String.format("Asset property %s is null", TransformKeys.KEY_ASSET_FILE_EXTENSION));
+            } else {
+                if (propertyValue instanceof String) {
+                    representationBuilder._mediaType_(new CustomMediaTypeBuilder()._filenameExtension_((String) propertyValue).build());
+                } else {
+                    context.reportProblem(String.format("Asset property %s expected to be of type %s", TransformKeys.KEY_ASSET_FILE_EXTENSION, String.class.getName()));
+                }
+            }
         }
-
-        representationBuilder._instance_(new ArrayList<>(Collections.singletonList(artifact)));
 
         return representationBuilder.build();
-    }
-
-    private static void setMediaType(@NotNull String fileExtension, TransformerContext transformerContext, RepresentationBuilder representationBuilder) {
-        MediaType mediaType = transformerContext.transform(fileExtension, MediaType.class);
-
-        if (mediaType == null) {
-            return;
-        }
-
-        representationBuilder._mediaType_(mediaType);
     }
 }
