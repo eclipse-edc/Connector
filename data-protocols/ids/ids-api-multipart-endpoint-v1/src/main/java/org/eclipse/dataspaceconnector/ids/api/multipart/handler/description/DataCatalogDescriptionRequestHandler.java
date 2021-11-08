@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
-public class DataCatalogDescriptionRequestHandler extends AbstractGeneralDescriptionRequestHandler<DataCatalog, ResourceCatalog> {
+public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionRequestHandler<DataCatalog, ResourceCatalog> {
     private final DataCatalogService dataCatalogService;
 
     public DataCatalogDescriptionRequestHandler(

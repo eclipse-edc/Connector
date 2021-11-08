@@ -32,14 +32,14 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.descripti
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createBadParametersErrorMultipartResponse;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.MultipartResponseUtil.createNotFoundErrorMultipartResponse;
 
-abstract class AbstractGeneralDescriptionRequestHandler<T, S> implements DescriptionRequestHandler {
+abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionRequestHandler {
     protected final String connectorId;
     protected final Monitor monitor;
     protected final TransformerRegistry transformerRegistry;
     protected final IdsType targetIdsType;
     protected final Class<S> resultType;
 
-    public AbstractGeneralDescriptionRequestHandler(
+    public AbstractDescriptionRequestHandler(
             @NotNull String connectorId,
             @NotNull Monitor monitor,
             @NotNull TransformerRegistry transformerRegistry,
@@ -78,17 +78,17 @@ abstract class AbstractGeneralDescriptionRequestHandler<T, S> implements Descrip
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        T suppliedObject = retrieveObject(idsId);
-        if (suppliedObject == null) {
+        T retrievedObject = retrieveObject(idsId);
+        if (retrievedObject == null) {
             return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        TransformResult<S> transformResult = transformerRegistry.transform(suppliedObject, resultType);
+        TransformResult<S> transformResult = transformerRegistry.transform(retrievedObject, resultType);
         if (transformResult.hasProblems()) {
             monitor.warning(
                     String.format(
                             "Could not transform %s to %S: [%s]",
-                            suppliedObject.getClass().getSimpleName(),
+                            retrievedObject.getClass().getSimpleName(),
                             resultType.getSimpleName(),
                             String.join(", ", transformResult.getProblems())
                     )

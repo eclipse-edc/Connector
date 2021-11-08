@@ -25,7 +25,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public class ArtifactDescriptionRequestHandler extends AbstractGeneralDescriptionRequestHandler<Asset, Artifact> {
+public class ArtifactDescriptionRequestHandler extends AbstractDescriptionRequestHandler<Asset, Artifact> {
     private final AssetIndex assetIndex;
 
     public ArtifactDescriptionRequestHandler(
