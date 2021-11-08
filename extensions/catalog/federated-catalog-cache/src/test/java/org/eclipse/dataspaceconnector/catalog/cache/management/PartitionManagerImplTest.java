@@ -18,6 +18,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -87,18 +89,25 @@ public class PartitionManagerImplTest {
     }
 
     @Test
-    void stop_allCrawlersJoinSuccessfully() {
+    void stop_allCrawlersJoinSuccessfully() throws InterruptedException {
         List<Crawler> list = new ArrayList<>();
+        var latch = new CountDownLatch(5);
         partitionManager = new PartitionManagerImpl(monitorMock, workItemQueueMock, workItems -> {
             Crawler crawler = strictMock(Crawler.class);
             crawler.run();
-            expectLastCall();
+            expectLastCall().andAnswer(() -> {
+                latch.countDown();
+                return null;
+            });
             expect(crawler.join()).andReturn(true);
             replay(crawler);
             list.add(crawler);
             return crawler;
         }, 5, () -> staticWorkload);
 
+
+        // wait until all crawlers have run 
+        assertThat(latch.await(10, TimeUnit.SECONDS)).isTrue();
         partitionManager.stop();
         list.forEach(EasyMock::verify);
     }
