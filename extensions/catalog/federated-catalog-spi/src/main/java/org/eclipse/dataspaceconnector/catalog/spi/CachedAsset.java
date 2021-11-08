@@ -46,7 +46,7 @@ public class CachedAsset {
     }
 
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder extends Asset.Builder {
+    public static final class Builder {
         private Asset asset;
 
         private Builder() {
@@ -72,7 +72,6 @@ public class CachedAsset {
             return this;
         }
 
-        @Override
         public CachedAsset build() {
             return new CachedAsset(asset);
         }
