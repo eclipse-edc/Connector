@@ -31,7 +31,8 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class DataCatalogToIdsResourceCatalogTransformerTest {
-    private static final URI CATALOG_ID = URI.create("urn:test:test_id");
+    private static final String CATALOG_ID = "test_id";
+    private static final URI EXPECTED_CATALOG_ID = URI.create("urn:catalog:test_id");
 
     // subject
     private DataCatalogToIdsResourceCatalogTransformer dataCatalogToIdsResourceCatalogTransformer;
@@ -98,7 +99,7 @@ class DataCatalogToIdsResourceCatalogTransformerTest {
 
         // verify
         assertThat(result).isNotNull();
-        assertThat(result.getId()).isEqualTo(CATALOG_ID);
+        assertThat(result.getId()).isEqualTo(EXPECTED_CATALOG_ID);
         assertThat(result.getOfferedResource()).hasSize(resources.size());
         assertThat(result.getOfferedResource().get(0)).isEqualTo(r1);
         assertThat(result.getOfferedResource().get(1)).isEqualTo(r2);

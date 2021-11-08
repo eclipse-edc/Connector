@@ -47,7 +47,6 @@ public class ConnectorServiceSettings {
     @EdcSetting
     public static final String EDC_IDS_CURATOR = "edc.ids.curator";
 
-
     public static final String DEFAULT_EDC_IDS_TITLE = "Eclipse Dataspace Connector";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
     public static final String DEFAULT_EDC_IDS_DESCRIPTION = "Eclipse Dataspace Connector";
@@ -63,7 +62,7 @@ public class ConnectorServiceSettings {
     private final ServiceExtensionContext serviceExtensionContext;
 
     // TODO Shouldn't the connector ID be an URI? Ask Denis
-    private URI id;
+    private String id;
     private String title;
     private String description;
     private SecurityProfile securityProfile;
@@ -110,7 +109,7 @@ public class ConnectorServiceSettings {
     }
 
     @Nullable
-    public URI getId() {
+    public String getId() {
         return id;
     }
 
@@ -157,7 +156,7 @@ public class ConnectorServiceSettings {
             // Hint: use stringified uri to keep uri path and query
             IdsId idsId = IdsIdParser.parse(value);
             if (idsId.getType() == IdsType.CONNECTOR) {
-                id = URI.create(idsId.getValue());
+                id = idsId.getValue();
                 return null;
             } else {
                 return String.format(ERROR_INVALID_SETTING, EDC_IDS_ID, value);

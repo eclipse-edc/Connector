@@ -20,6 +20,8 @@ import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.SecurityProfile;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
 import de.fraunhofer.iais.eis.util.Util;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
@@ -52,9 +54,14 @@ public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Co
         }
 
         BaseConnectorBuilder builder;
-        URI connectorId = object.getId();
-        if (object.getId() != null) {
-            builder = new BaseConnectorBuilder(connectorId);
+        String connectorId = object.getId();
+        if (connectorId != null) {
+            URI connectorIdUri = URI.create(String.join(
+                    IdsIdParser.DELIMITER,
+                    IdsIdParser.SCHEME,
+                    IdsType.CONNECTOR.getValue(),
+                    connectorId));
+            builder = new BaseConnectorBuilder(connectorIdUri);
         } else {
             builder = new BaseConnectorBuilder();
         }

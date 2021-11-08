@@ -17,6 +17,8 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
@@ -49,9 +51,14 @@ public class DataCatalogToIdsResourceCatalogTransformer implements IdsTypeTransf
         }
 
         ResourceCatalogBuilder builder;
-        URI catalogId = object.getId();
+        String catalogId = object.getId();
         if (catalogId != null) {
-            builder = new ResourceCatalogBuilder(catalogId);
+            URI catalogIdUri = URI.create(String.join(
+                    IdsIdParser.DELIMITER,
+                    IdsIdParser.SCHEME,
+                    IdsType.CATALOG.getValue(),
+                    catalogId));
+            builder = new ResourceCatalogBuilder(catalogIdUri);
         } else {
             builder = new ResourceCatalogBuilder();
         }

@@ -95,7 +95,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
         TransformerRegistry transformerRegistry = serviceExtensionContext.getService(TransformerRegistry.class);
 
-        String connectorId = resolveId(serviceExtensionContext);
+        String connectorId = resolveConnectorId(serviceExtensionContext);
 
         // create description request handlers
         ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
@@ -123,7 +123,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         webService.registerController(multipartController);
     }
 
-    private String resolveId(@NotNull ServiceExtensionContext context) {
+    private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
         Objects.requireNonNull(context);
 
         String value = context.getSetting(EDC_IDS_ID, null);

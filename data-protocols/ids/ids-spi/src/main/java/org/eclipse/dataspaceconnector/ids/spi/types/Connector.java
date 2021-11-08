@@ -13,7 +13,7 @@ import java.util.List;
  */
 @JsonDeserialize(builder = Connector.Builder.class)
 public class Connector {
-    private final URI id;
+    private final String id;
     private final String title;
     private final String description;
     private final String connectorVersion;
@@ -24,7 +24,7 @@ public class Connector {
     private final URI curator;
 
     public Connector(
-            @Nullable URI id,
+            @Nullable String id,
             @Nullable String title,
             @Nullable String description,
             @Nullable String connectorVersion,
@@ -45,7 +45,7 @@ public class Connector {
     }
 
     @Nullable
-    public URI getId() {
+    public String getId() {
         return id;
     }
 
@@ -91,7 +91,7 @@ public class Connector {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private URI id;
+        private String id;
         private String title;
         private String description;
         private String connectorVersion;
@@ -108,7 +108,7 @@ public class Connector {
             return new Builder();
         }
 
-        public Builder id(@Nullable URI id) {
+        public Builder id(@Nullable String id) {
             this.id = id;
             return this;
         }

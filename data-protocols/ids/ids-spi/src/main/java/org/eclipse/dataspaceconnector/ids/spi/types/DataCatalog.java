@@ -14,15 +14,15 @@ import java.util.Objects;
  */
 @JsonDeserialize(builder = DataCatalog.Builder.class)
 public class DataCatalog {
-    private final URI id;
+    private final String id;
     private final List<Asset> assets;
 
-    private DataCatalog(@NotNull URI id, @NotNull List<Asset> assets) {
+    private DataCatalog(@NotNull String id, @NotNull List<Asset> assets) {
         this.id = Objects.requireNonNull(id);
         this.assets = Objects.requireNonNull(assets);
     }
 
-    public URI getId() {
+    public String getId() {
         return id;
     }
 
@@ -32,14 +32,14 @@ public class DataCatalog {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private URI id;
+        private String id;
         private List<Asset> assets;
 
         public static Builder newInstance() {
             return new Builder();
         }
 
-        public Builder id(URI id) {
+        public Builder id(String id) {
             this.id = id;
             return this;
         }

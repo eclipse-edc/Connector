@@ -34,8 +34,8 @@ class DescriptionResponseMessageUtil {
             @Nullable String connectorId,
             @Nullable Message correlationMessage) {
 
-        URI uri = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
-        DescriptionResponseMessageBuilder builder = new DescriptionResponseMessageBuilder(uri);
+        URI messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
+        DescriptionResponseMessageBuilder builder = new DescriptionResponseMessageBuilder(messageId);
 
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
