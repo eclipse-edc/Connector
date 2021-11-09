@@ -155,11 +155,13 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     @NotNull
     private CrawlerErrorHandler getErrorWorkItemConsumer(ServiceExtensionContext context, WorkItemQueue workItems) {
         return workItem -> {
-            if (workItem.getErrors().size() > 5) {
+            if (workItem.getErrors().size() > 7) {
                 context.getMonitor().severe(format("The following workitem has errored out more than 5 times. We'll discard it now: [%s]", workItem));
             } else {
-                context.getMonitor().info("The following work item has errored out. will re-queue after a small delay");
-                Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), 5, TimeUnit.SECONDS);
+                var random = new Random();
+                var to = 5 + random.nextInt(20);
+                context.getMonitor().info(format("The following work item has errored out. will re-queue after a small delay (%s)", to));
+                Executors.newSingleThreadScheduledExecutor().schedule(() -> workItems.offer(workItem), to, TimeUnit.SECONDS);
             }
         };
     }
