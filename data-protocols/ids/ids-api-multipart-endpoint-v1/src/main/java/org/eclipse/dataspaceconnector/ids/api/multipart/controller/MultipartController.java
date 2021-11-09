@@ -30,8 +30,10 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.malformedMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.messageTypeNotSupported;
@@ -49,15 +51,15 @@ public class MultipartController {
 
     private final IdentityService identityService;
     private final List<Handler> multipartHandlers;
-    private final MultipartControllerSettings multipartControllerSettings;
+    private final String connectorId;
 
     public MultipartController(
-            MultipartControllerSettings multipartControllerSettings,
-            IdentityService identityService,
-            List<Handler> multipartHandlers) {
-        this.identityService = identityService;
-        this.multipartHandlers = multipartHandlers;
-        this.multipartControllerSettings = multipartControllerSettings;
+            @NotNull String connectorId,
+            @NotNull IdentityService identityService,
+            @NotNull List<Handler> multipartHandlers) {
+        this.identityService = Objects.requireNonNull(identityService);
+        this.multipartHandlers = Objects.requireNonNull(multipartHandlers);
+        this.connectorId = Objects.requireNonNull(connectorId);
     }
 
     @POST
@@ -67,14 +69,14 @@ public class MultipartController {
         if (header == null) {
             return Response.ok(
                     createFormDataMultiPart(
-                            malformedMessage(null, multipartControllerSettings.getId()))).build();
+                            malformedMessage(null, connectorId))).build();
         }
 
         DynamicAttributeToken dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
             return Response.ok(
                     createFormDataMultiPart(
-                            notAuthenticated(header, multipartControllerSettings.getId()))).build();
+                            notAuthenticated(header, connectorId))).build();
         }
 
         VerificationResult verificationResult = identityService.verifyJwtToken(
@@ -82,13 +84,13 @@ public class MultipartController {
         if (verificationResult == null) {
             return Response.ok(
                     createFormDataMultiPart(
-                            notAuthenticated(header, multipartControllerSettings.getId()))).build();
+                            notAuthenticated(header, connectorId))).build();
         }
 
         if (!verificationResult.valid()) {
             return Response.ok(
                     createFormDataMultiPart(
-                            notAuthorized(header, multipartControllerSettings.getId()))).build();
+                            notAuthorized(header, connectorId))).build();
         }
 
         MultipartRequest multipartRequest = MultipartRequest.Builder.newInstance()
@@ -101,7 +103,7 @@ public class MultipartController {
         if (handler == null) {
             return Response.ok(
                     createFormDataMultiPart(
-                            messageTypeNotSupported(header, multipartControllerSettings.getId()))).build();
+                            messageTypeNotSupported(header, connectorId))).build();
         }
 
         MultipartResponse multipartResponse = handler.handleRequest(multipartRequest);
@@ -112,7 +114,7 @@ public class MultipartController {
 
         return Response.ok(
                 createFormDataMultiPart(
-                        notFound(header, multipartControllerSettings.getId()))).build();
+                        notFound(header, connectorId))).build();
     }
 
     private FormDataMultiPart createFormDataMultiPart(MultipartResponse multipartResponse) {
@@ -122,7 +124,7 @@ public class MultipartController {
     private FormDataMultiPart createFormDataMultiPart(Object header) {
         return createFormDataMultiPart(header, null);
     }
-    
+
     private FormDataMultiPart createFormDataMultiPart(Object header, Object payload) {
         FormDataMultiPart multiPart = new FormDataMultiPart();
         if (header != null) {

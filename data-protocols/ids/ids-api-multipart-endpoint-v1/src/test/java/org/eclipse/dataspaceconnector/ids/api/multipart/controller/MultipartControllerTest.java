@@ -36,35 +36,30 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class MultipartControllerTest {
 
+    private static final String CONNECTOR_ID = "urn:connector:edc";
+
     private List<Handler> multipartHandlers;
 
     // mocks
     private IdentityService identityService;
-    private MultipartControllerSettings multipartControllerSettings;
 
     @BeforeEach
-    public void setup() throws URISyntaxException {
+    public void setup() {
         multipartHandlers = new ArrayList<>();
-        URI connectorId = new URI("https://example.com");
 
         identityService = EasyMock.createMock(IdentityService.class);
-        multipartControllerSettings = EasyMock.createMock(MultipartControllerSettings.class);
-
-        EasyMock.expect(multipartControllerSettings.getId()).andReturn(connectorId);
     }
 
     @Test
     public void testMalformedMessageOnBodyHeaderNull() {
         // prepare
-        var controller = new MultipartController(multipartControllerSettings, identityService, multipartHandlers);
+        var controller = new MultipartController(CONNECTOR_ID, identityService, multipartHandlers);
 
         // invoke
         var response = controller.request(null, null);
@@ -77,7 +72,7 @@ public class MultipartControllerTest {
     @Test
     public void testNotAuthenticatedOnDatNull() {
         // prepare
-        var controller = new MultipartController(multipartControllerSettings, identityService, multipartHandlers);
+        var controller = new MultipartController(CONNECTOR_ID, identityService, multipartHandlers);
         var header = new DescriptionRequestMessageBuilder()
                 ._securityToken_(null)
                 .build();
@@ -93,14 +88,14 @@ public class MultipartControllerTest {
     @Test
     public void testNotAuthenticatedOnDatValueNull() {
         // prepare
-        var controller = new MultipartController(multipartControllerSettings, identityService, multipartHandlers);
+        var controller = new MultipartController(CONNECTOR_ID, identityService, multipartHandlers);
         var dynamicAttributeToken = new DynamicAttributeTokenBuilder()
                 ._tokenValue_(null)
                 .build();
         var header = new DescriptionRequestMessageBuilder()
                 ._securityToken_(dynamicAttributeToken)
                 .build();
-        EasyMock.replay(multipartControllerSettings, identityService);
+        EasyMock.replay(identityService);
 
         // invoke
         var response = controller.request(header, null);
@@ -113,12 +108,12 @@ public class MultipartControllerTest {
     @Test
     public void testNotAuthenticatedOnVerificationResultNull() {
         // prepare
-        var controller = new MultipartController(multipartControllerSettings, identityService, multipartHandlers);
+        var controller = new MultipartController(CONNECTOR_ID, identityService, multipartHandlers);
         var header = createValidBodyHeader();
 
         EasyMock.expect(identityService.verifyJwtToken("not-null", null))
                 .andReturn(null);
-        EasyMock.replay(multipartControllerSettings, identityService);
+        EasyMock.replay(identityService);
 
         // invoke
         var response = controller.request(header, null);
@@ -132,12 +127,12 @@ public class MultipartControllerTest {
     @Test
     public void testNotAuthorizedOnVerificationResultInvalid() {
         // prepare
-        var controller = new MultipartController(multipartControllerSettings, identityService, multipartHandlers);
+        var controller = new MultipartController(CONNECTOR_ID, identityService, multipartHandlers);
         var header = createValidBodyHeader();
 
         EasyMock.expect(identityService.verifyJwtToken("not-null", null))
                 .andReturn(new VerificationResult("error"));
-        EasyMock.replay(multipartControllerSettings, identityService);
+        EasyMock.replay(identityService);
 
         // invoke
         var response = controller.request(header, null);
@@ -150,12 +145,12 @@ public class MultipartControllerTest {
     @Test
     public void testNotSupportedOnNoHandlerFound() {
         // prepare
-        var controller = new MultipartController(multipartControllerSettings, identityService, multipartHandlers);
+        var controller = new MultipartController(CONNECTOR_ID, identityService, multipartHandlers);
         var header = createValidBodyHeader();
 
         EasyMock.expect(identityService.verifyJwtToken("not-null", null))
                 .andReturn(new VerificationResult(ClaimToken.Builder.newInstance().build()));
-        EasyMock.replay(multipartControllerSettings, identityService);
+        EasyMock.replay(identityService);
 
         // invoke
         var response = controller.request(header, null);
@@ -168,7 +163,7 @@ public class MultipartControllerTest {
     @Test
     public void testReturnsHandlerResponse() {
         // prepare
-        var controller = new MultipartController(multipartControllerSettings, identityService, multipartHandlers);
+        var controller = new MultipartController(CONNECTOR_ID, identityService, multipartHandlers);
         var header = createValidBodyHeader();
         var expectedPayload = "helloPayload";
 
@@ -176,7 +171,7 @@ public class MultipartControllerTest {
 
         EasyMock.expect(identityService.verifyJwtToken("not-null", null))
                 .andReturn(new VerificationResult(ClaimToken.Builder.newInstance().build()));
-        EasyMock.replay(multipartControllerSettings, identityService);
+        EasyMock.replay(identityService);
 
         // invoke
         var response = controller.request(header, null);
@@ -190,13 +185,13 @@ public class MultipartControllerTest {
     @Test
     public void testReturnsNotFoundOnHandlerResponseEmpty() {
         // prepare
-        var controller = new MultipartController(multipartControllerSettings, identityService, multipartHandlers);
+        var controller = new MultipartController(CONNECTOR_ID, identityService, multipartHandlers);
         var header = createValidBodyHeader();
         multipartHandlers.add(new NullHandler());
 
         EasyMock.expect(identityService.verifyJwtToken("not-null", null))
                 .andReturn(new VerificationResult(ClaimToken.Builder.newInstance().build()));
-        EasyMock.replay(multipartControllerSettings, identityService);
+        EasyMock.replay(identityService);
 
         // invoke
         var response = controller.request(header, null);

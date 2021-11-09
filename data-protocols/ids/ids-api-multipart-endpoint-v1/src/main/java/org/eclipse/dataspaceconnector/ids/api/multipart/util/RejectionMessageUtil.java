@@ -19,8 +19,9 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionReason;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.version.IdsProtocol;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +37,7 @@ public final class RejectionMessageUtil {
 
     @NotNull
     public static RejectionMessage notFound(
-            @Nullable Message correlationMessage, @Nullable URI connectorId) {
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_FOUND)
                 .build();
@@ -44,7 +45,7 @@ public final class RejectionMessageUtil {
 
     @NotNull
     public static RejectionMessage notAuthenticated(
-            @Nullable Message correlationMessage, @Nullable URI connectorId) {
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_AUTHENTICATED)
                 .build();
@@ -52,7 +53,7 @@ public final class RejectionMessageUtil {
 
     @NotNull
     public static RejectionMessage notAuthorized(
-            @Nullable Message correlationMessage, @Nullable URI connectorId) {
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.NOT_AUTHORIZED)
                 .build();
@@ -60,7 +61,7 @@ public final class RejectionMessageUtil {
 
     @NotNull
     public static RejectionMessage malformedMessage(
-            @Nullable Message correlationMessage, @Nullable URI connectorId) {
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.MALFORMED_MESSAGE)
                 .build();
@@ -68,26 +69,55 @@ public final class RejectionMessageUtil {
 
     @NotNull
     public static RejectionMessage messageTypeNotSupported(
-            @Nullable Message correlationMessage, @Nullable URI connectorId) {
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
         return createRejectionMessageBuilder(correlationMessage, connectorId)
                 ._rejectionReason_(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED)
                 .build();
     }
 
     @NotNull
-    private static RejectionMessageBuilder createRejectionMessageBuilder(
-            @Nullable Message correlationMessage, @Nullable URI connectorId) {
-        IdsId messageId = IdsId.message(UUID.randomUUID().toString());
+    public static RejectionMessage badParameters(
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
+        return createRejectionMessageBuilder(correlationMessage, connectorId)
+                ._rejectionReason_(RejectionReason.BAD_PARAMETERS)
+                .build();
+    }
 
-        RejectionMessageBuilder builder = new RejectionMessageBuilder(messageId.toUri());
+    @NotNull
+    public static RejectionMessage internalRecipientError(
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
+        return createRejectionMessageBuilder(correlationMessage, connectorId)
+                ._rejectionReason_(RejectionReason.INTERNAL_RECIPIENT_ERROR)
+                .build();
+    }
+
+    @NotNull
+    private static RejectionMessageBuilder createRejectionMessageBuilder(
+            @Nullable Message correlationMessage, @Nullable String connectorId) {
+
+        String id = String.join(
+                IdsIdParser.DELIMITER,
+                IdsIdParser.SCHEME,
+                IdsType.MESSAGE.getValue(),
+                UUID.randomUUID().toString());
+
+        RejectionMessageBuilder builder = new RejectionMessageBuilder(URI.create(id));
 
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._issued_(CalendarUtil.gregorianNow());
 
         if (connectorId != null) {
-            builder._issuerConnector_(connectorId);
-            builder._senderAgent_(connectorId);
+            connectorId = String.join(
+                    IdsIdParser.DELIMITER,
+                    IdsIdParser.SCHEME,
+                    IdsType.CONNECTOR.getValue(),
+                    connectorId);
+
+            URI connectorIdUri = URI.create(connectorId);
+
+            builder._issuerConnector_(connectorIdUri);
+            builder._senderAgent_(connectorIdUri);
         }
 
         if (correlationMessage != null) {
