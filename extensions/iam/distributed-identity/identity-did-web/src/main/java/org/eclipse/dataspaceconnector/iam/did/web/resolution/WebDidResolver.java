@@ -33,9 +33,9 @@ import static org.eclipse.dataspaceconnector.iam.did.web.resolution.DidFunctions
 public class WebDidResolver implements DidResolver {
     private static final String DID_METHOD = "web";
 
-    private OkHttpClient httpClient;
-    private ObjectMapper mapper;
-    private Monitor monitor;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper mapper;
+    private final Monitor monitor;
 
     /**
      * Creates a resolver that executes standard DNS lookups.
@@ -65,7 +65,8 @@ public class WebDidResolver implements DidResolver {
                     if (body == null) {
                         return new DidResolutionResult("DID response contained an empty body: " + didKey);
                     }
-                    return new DidResolutionResult(mapper.readValue(body.string(), DidDocument.class));
+                    DidDocument didDocument = mapper.readValue(body.string(), DidDocument.class);
+                    return new DidResolutionResult(didDocument);
                 }
             } catch (IOException e) {
                 monitor.severe("Error resolving DID: " + didKey, e);
@@ -76,8 +77,6 @@ public class WebDidResolver implements DidResolver {
             return new DidResolutionResult("Invalid DID key: " + e.getMessage());
         }
     }
-
-
 
 
 }

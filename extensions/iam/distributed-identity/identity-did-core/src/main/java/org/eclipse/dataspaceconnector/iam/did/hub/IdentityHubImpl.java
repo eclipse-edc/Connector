@@ -52,8 +52,6 @@ public class IdentityHubImpl implements IdentityHub {
 
     @Override
     public String write(String jwe) {
-        // TODO HACKATHON-1 TASK 7 implement permissions
-        // TODO HACKATHON-1 TASK 7 implement verification
         var commit = new WriteRequestReader().mapper(objectMapper).privateKey(privateKey.get()).verifier((jwso) -> true).jwe(jwe).readCommit();
         store.write(commit);
 
@@ -68,17 +66,14 @@ public class IdentityHubImpl implements IdentityHub {
 
     @Override
     public String queryCommits(String jwe) {
-        // TODO HACKATHON-1 TASK 7 implement permissions
         var query = new GenericJweReader().mapper(objectMapper).privateKey(privateKey.get()).jwe(jwe).readType(CommitQueryRequest.class);
         var commits = store.query(query.getQuery());
-        // TODO HACKATHON-1 TASK 7 serialize commits as JWEs as per DIF spec
         var response = CommitQueryResponse.Builder.newInstance().commits(new ArrayList<>(commits)).build();
         return writeResponse(response, query.getIss());
     }
 
     @Override
     public String queryObjects(String jwe) {
-        // TODO HACKATHON-1 TASK 7 implement permissions
         var query = new GenericJweReader().mapper(objectMapper).privateKey(privateKey.get()).jwe(jwe).readType(ObjectQueryRequest.class);
         var hubObjects = store.query(query.getQuery());
 

@@ -52,6 +52,11 @@ public class CoreTransferExtension implements ServiceExtension {
     private TransferProcessManagerImpl processManager;
 
     @Override
+    public Set<String> provides() {
+        return Set.of("dataspaceconnector:statuschecker", "dataspaceconnector:dispatcher", "dataspaceconnector:manifestgenerator", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable");
+    }
+
+    @Override
     public LoadPhase phase() {
         return LoadPhase.PRIMORDIAL;
     }
@@ -98,11 +103,6 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(TransferProcessObservable.class, processManager);
 
         monitor.info("Initialized Core Transfer extension");
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("dataspaceconnector:statuschecker", "dataspaceconnector:dispatcher", "dataspaceconnector:manifestgenerator", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable");
     }
 
     @Override

@@ -29,6 +29,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.security.cert.X509Certificate;
+import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 import java.util.function.Supplier;
@@ -45,7 +46,7 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyNoAudienceToken() {
-        var jwt = createJwt(null, new Date(System.currentTimeMillis() - 10000000), new Date(System.currentTimeMillis() + 10000000));
+        var jwt = createJwt(null, Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
 
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
         assertThat(result.valid()).isFalse();
@@ -54,7 +55,7 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyInvalidAudienceToken() {
-        var jwt = createJwt("different.audience", new Date(System.currentTimeMillis() - 10000000), new Date(System.currentTimeMillis() + 10000000));
+        var jwt = createJwt("different.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
         assertThat(result.valid()).isFalse();
         assertThat(result.errors()).isNotEmpty();
@@ -62,7 +63,7 @@ class Oauth2ServiceImplTest {
 
     @Test
     void verifyInvalidAttemptUseNotBeforeToken() {
-        var jwt = createJwt("test.audience", new Date(System.currentTimeMillis() + 10000000), new Date(System.currentTimeMillis() + 10000000));
+        var jwt = createJwt("test.audience", Date.from(Instant.now().plusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
         assertThat(result.valid()).isFalse();
         assertThat(result.errors()).isNotEmpty();
@@ -71,7 +72,7 @@ class Oauth2ServiceImplTest {
     @Test
     void verifyExpiredToken() {
 
-        var jwt = createJwt("test.audience", new Date(System.currentTimeMillis() - 10000000), new Date(System.currentTimeMillis() - 10000000));
+        var jwt = createJwt("test.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().minusSeconds(1000)));
 
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
         assertThat(result.valid()).isFalse();
@@ -81,7 +82,7 @@ class Oauth2ServiceImplTest {
     @Test
     void verifyValidJwt() {
 
-        var jwt = createJwt("test.audience", new Date(System.currentTimeMillis() - 10000000), new Date(System.currentTimeMillis() + 10000000));
+        var jwt = createJwt("test.audience", Date.from(Instant.now().minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
         assertThat(result.valid()).isTrue();
         assertThat(result.errors()).isNotNull().isEmpty();

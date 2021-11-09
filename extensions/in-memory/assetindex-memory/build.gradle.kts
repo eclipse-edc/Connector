@@ -28,3 +28,12 @@ publishing {
         }
     }
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("in-memory.asset-index") {
+            artifactId = "in-memory.asset-index"
+            from(components["java"])
+        }
+    }
+}

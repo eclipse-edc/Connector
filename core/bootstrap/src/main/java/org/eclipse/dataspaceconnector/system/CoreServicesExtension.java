@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 public class CoreServicesExtension implements ServiceExtension {
 
     public static final String FEATURE_HTTP_CLIENT = "dataspaceconnector:http-client";
-    public static final String FEATURE_RETRY_POLICY = "dataspaceconnector:retry-policy";
+    public static final String FEATURE_RETRY_POLICY = "edc:retry-policy";
 
     @EdcSetting
     private static final String MAX_RETRIES = "edc.core.retry.retries.max";
