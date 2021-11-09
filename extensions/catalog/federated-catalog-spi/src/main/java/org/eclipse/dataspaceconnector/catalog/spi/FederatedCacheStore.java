@@ -25,5 +25,4 @@ public interface FederatedCacheStore {
      */
     Collection<CachedAsset> query(List<Criterion> query);
 
-    Collection<CachedAsset> getAll();
 }

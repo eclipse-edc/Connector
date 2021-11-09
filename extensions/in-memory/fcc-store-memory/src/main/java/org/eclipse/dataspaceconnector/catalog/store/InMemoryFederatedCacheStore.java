@@ -36,9 +36,4 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
         return cache.values().stream().filter(rootPredicate).collect(Collectors.toList());
     }
 
-    @Override
-    public Collection<CachedAsset> getAll() {
-        return cache.values();
-    }
-
 }
