@@ -31,8 +31,6 @@ public interface IdsMessageSender<M extends RemoteMessage, R> {
 
     /**
      * Binds and sends the message, returning a future for retrieving the response.
-     *
-     * @return
      */
     CompletableFuture<R> send(M message, MessageContext context);
 
