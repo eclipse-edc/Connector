@@ -104,7 +104,7 @@ public class ConnectorServiceSettings {
         }
 
         if (!errors.isEmpty()) {
-            throw new EdcException(String.join(", ", error));
+            throw new EdcException(String.join(", ", errors));
         }
     }
 
