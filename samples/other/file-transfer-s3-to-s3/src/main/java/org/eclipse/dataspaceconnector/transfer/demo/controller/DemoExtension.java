@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.transfer.demo.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -28,10 +27,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataCatalogEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.io.File;
 import java.io.IOException;
@@ -52,10 +48,7 @@ public class DemoExtension implements ServiceExtension {
         this.context = context;
         monitor = context.getMonitor();
 
-        TypeManager typeManager = context.getTypeManager();
-        var objectMapper = typeManager.getMapper();
-        registerTypes(objectMapper);
-
+        var typeManager = context.getTypeManager();
         var dataFlowMgr = context.getService(DataFlowManager.class);
         var dataAddressResolver = context.getService(DataAddressResolver.class);
 
@@ -80,7 +73,7 @@ public class DemoExtension implements ServiceExtension {
         try {
             if (Files.exists(source)) {
                 File sourceFile = source.toFile();
-                List<DataEntry> dataEntries = objectMapper.readValue(sourceFile, new TypeReference<>() {
+                List<Asset> assets = objectMapper.readValue(sourceFile, new TypeReference<>() {
                 });
                 // TODO: we miss an example of the provider-artifacts.json to adapt for assetIndex storing
             }
@@ -98,11 +91,5 @@ public class DemoExtension implements ServiceExtension {
         var euUsePermission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("idsc:USE").build()).constraint(euConstraint).build();
         var euPolicy = Policy.Builder.newInstance().id(USE_EU_POLICY).permission(euUsePermission).build();
         policyRegistry.registerPolicy(euPolicy);
-    }
-
-    private void registerTypes(ObjectMapper objectMapper) {
-        objectMapper.registerSubtypes(DataEntry.class,
-                DataCatalogEntry.class,
-                GenericDataCatalogEntry.class);
     }
 }

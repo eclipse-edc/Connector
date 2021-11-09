@@ -61,11 +61,4 @@ public class TestHelper {
         return createTransferProcess(processId, TransferProcessStates.UNSAVED);
     }
 
-    @JsonTypeName("dataspaceconnector:dummycatalogentry")
-    public static class DummyCatalogEntry implements org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataCatalogEntry {
-        @Override
-        public DataAddress getAddress() {
-            return DataAddress.Builder.newInstance().type("test-source-type").build();
-        }
-    }
 }

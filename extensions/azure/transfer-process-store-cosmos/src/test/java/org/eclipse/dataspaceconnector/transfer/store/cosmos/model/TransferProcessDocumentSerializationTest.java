@@ -15,13 +15,11 @@
 package org.eclipse.dataspaceconnector.transfer.store.cosmos.model;
 
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataCatalogEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.DummyCatalogEntry;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createDataRequest;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createManifest;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
