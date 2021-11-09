@@ -17,7 +17,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.document.DidResolveResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -66,8 +65,7 @@ public class WebDidResolver implements DidResolver {
                     if (body == null) {
                         return new DidResolutionResult("DID response contained an empty body: " + didKey);
                     }
-                    String didDocJson = body.string();
-                    DidDocument didDocument = mapper.readValue(didDocJson, DidResolveResponse.class).getDidDocument();
+                    DidDocument didDocument = mapper.readValue(body.string(), DidDocument.class);
                     return new DidResolutionResult(didDocument);
                 }
             } catch (IOException e) {
