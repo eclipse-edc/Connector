@@ -129,7 +129,7 @@ class TransferProcessManagerImplConsumerTest {
         TransferProcess process = createTransferProcess(TransferProcessStates.PROVISIONED);
         var cdl = new CountDownLatch(1);
         //prepare provision manager
-        expect(dispatcherRegistry.send(eq(Void.class), anyObject(), anyObject())).andAnswer(() -> {
+        expect(dispatcherRegistry.send(eq(Object.class), anyObject(), anyObject())).andAnswer(() -> {
             cdl.countDown();
             return null;
         }).times(1);
