@@ -17,6 +17,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidResolveResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -33,9 +34,9 @@ import static org.eclipse.dataspaceconnector.iam.did.web.resolution.DidFunctions
 public class WebDidResolver implements DidResolver {
     private static final String DID_METHOD = "web";
 
-    private OkHttpClient httpClient;
-    private ObjectMapper mapper;
-    private Monitor monitor;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper mapper;
+    private final Monitor monitor;
 
     /**
      * Creates a resolver that executes standard DNS lookups.
@@ -65,7 +66,9 @@ public class WebDidResolver implements DidResolver {
                     if (body == null) {
                         return new DidResolutionResult("DID response contained an empty body: " + didKey);
                     }
-                    return new DidResolutionResult(mapper.readValue(body.string(), DidDocument.class));
+                    String didDocJson = body.string();
+                    DidDocument didDocument = mapper.readValue(didDocJson, DidResolveResponse.class).getDidDocument();
+                    return new DidResolutionResult(didDocument);
                 }
             } catch (IOException e) {
                 monitor.severe("Error resolving DID: " + didKey, e);
@@ -76,8 +79,6 @@ public class WebDidResolver implements DidResolver {
             return new DidResolutionResult("Invalid DID key: " + e.getMessage());
         }
     }
-
-
 
 
 }

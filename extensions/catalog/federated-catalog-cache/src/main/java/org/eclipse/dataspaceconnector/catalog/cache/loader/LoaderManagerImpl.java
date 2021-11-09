@@ -29,7 +29,7 @@ public class LoaderManagerImpl implements LoaderManager {
     private BlockingQueue<UpdateResponse> queue;
     private ExecutorService executor;
 
-    public LoaderManagerImpl(List<Loader> loaders, int batchSize, WaitStrategy waitStrategy, Monitor monitor) {
+    protected LoaderManagerImpl(List<Loader> loaders, int batchSize, WaitStrategy waitStrategy, Monitor monitor) {
         this.loaders = loaders;
         this.batchSize = batchSize;
         this.waitStrategy = waitStrategy;

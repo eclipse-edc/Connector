@@ -104,9 +104,12 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
     @NotNull
     private LoaderManager createLoaderManager(FederatedCacheStore store) {
-        return new LoaderManagerImpl(List.of(new DefaultLoader(store)),
-                partitionManagerConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE),
-                () -> partitionManagerConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS), monitor);
+        return LoaderManagerImpl.Builder.newInstance()
+                .loaders(List.of(new DefaultLoader(store)))
+                .batchSize(partitionManagerConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE))
+                .waitStrategy(() -> partitionManagerConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS))
+                .monitor(monitor)
+                .build();
     }
 
     @NotNull

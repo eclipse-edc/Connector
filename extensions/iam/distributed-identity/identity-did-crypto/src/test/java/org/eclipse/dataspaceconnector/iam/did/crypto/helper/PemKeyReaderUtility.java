@@ -21,10 +21,14 @@ public class PemKeyReaderUtility {
         var jwk1 = parsePemAsJwk("/home/paul/dev/ion-demo/keys2/consumer-public.pem");
         var jwk2 = parsePemAsJwk("/home/paul/dev/ion-demo/keys2/verifier-public.pem");
         var jwk3 = parsePemAsJwk("/home/paul/dev/ion-demo/keys2/provider-public.pem");
+        var jwk4 = parsePemAsJwk("/home/paul/dev/ion-demo/keys2/connector3-public.pem");
+        var jwk5 = parsePemAsJwk("/home/paul/dev/ion-demo/keys2/connector4-public.pem");
         System.out.println("Public keys: ");
         System.out.printf("consumer: %s%n", jwk1);
         System.out.printf("verifier: %s%n", jwk2);
         System.out.printf("provider: %s%n", jwk3);
+        System.out.printf("connector3: %s%n", jwk4);
+        System.out.printf("connector4: %s%n", jwk5);
     }
 
 
