@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2020, 2021 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *
  */
 
@@ -24,12 +24,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
+public abstract class IdsRemoteMessageDispatcher implements RemoteMessageDispatcher {
 
-/**
- * Binds and sends remote messages using the IDS REST protocol by dispatching to {@link IdsMessageSender}s.
- */
-public class IdsRemoteMessageDispatcher implements RemoteMessageDispatcher {
     private final Map<Class<? extends RemoteMessage>, IdsMessageSender<? extends RemoteMessage, ?>> senders = new HashMap<>();
 
     public void register(IdsMessageSender<? extends RemoteMessage, ?> handler) {
@@ -37,9 +33,7 @@ public class IdsRemoteMessageDispatcher implements RemoteMessageDispatcher {
     }
 
     @Override
-    public String protocol() {
-        return IDS_REST;
-    }
+    public abstract String protocol();
 
     @Override
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
