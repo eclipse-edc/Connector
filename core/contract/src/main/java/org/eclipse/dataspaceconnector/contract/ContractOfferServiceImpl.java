@@ -55,6 +55,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
                         contractOfferFramework.queryTemplates(contractOfferFrameworkQuery))
                 .orElseGet(Stream::empty);
 
+        // TODO Filtering like this is quite expensive. Find a better way
         Predicate<ContractOffer> targetAssetFilter = contractOffer -> contractOfferQuery.getTargetAssetIds().isEmpty() ||
                 contractOffer.getAssets().stream().anyMatch(a -> contractOfferQuery.getTargetAssetIds().contains(a.getId()));
 
