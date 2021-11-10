@@ -14,115 +14,152 @@
 
 package org.eclipse.dataspaceconnector.assetindex.azure;
 
-import com.azure.cosmos.CosmosContainer;
-import com.azure.cosmos.implementation.NotFoundException;
-import com.azure.cosmos.models.CosmosItemResponse;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.easymock.EasyMock.anyObject;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.niceMock;
+import static org.easymock.EasyMock.matches;
 import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
 import static org.easymock.EasyMock.strictMock;
 import static org.easymock.EasyMock.verify;
 
 class CosmosAssetIndexTest {
 
+    private CosmosDbApi api;
     private TypeManager typeManager;
     private RetryPolicy<Object> retryPolicy;
+
+    private static AssetDocument createDocument(String id) {
+        return new AssetDocument(Asset.Builder.newInstance().id(id).build(), "partitionkey-test");
+    }
 
     @BeforeEach
     public void setUp() {
         typeManager = new TypeManager();
         typeManager.registerTypes(AssetDocument.class, Asset.class);
         retryPolicy = new RetryPolicy<>().withMaxRetries(1);
+        api = strictMock(CosmosDbApi.class);
+    }
+
+    @AfterEach
+    public void tearDown() {
+        reset(api);
     }
 
     @Test
     void inputValidation() {
-        CosmosContainer container = niceMock(CosmosContainer.class);
-
-        // null cosmos container
+        // null cosmos api
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(null, null, typeManager, retryPolicy, false));
-
-        // partition key null or empty
-        assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(container, null, typeManager, retryPolicy, false));
-        assertThatExceptionOfType(EdcException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(container, "", typeManager, retryPolicy, false));
+                .isThrownBy(() -> new CosmosAssetIndex(null, null, retryPolicy));
 
         // type manager is null
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(container, "partition-key", null, retryPolicy, false));
+                .isThrownBy(() -> new CosmosAssetIndex(api, null, retryPolicy));
 
         // retry policy is null
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(container, "partition-key", typeManager, null, false));
+                .isThrownBy(() -> new CosmosAssetIndex(api, typeManager, null));
     }
-
 
     @Test
     void findById() {
-        CosmosItemResponse<Object> response = strictMock(CosmosItemResponse.class);
-        CosmosContainer container = strictMock(CosmosContainer.class);
-
         String id = "id-test";
         AssetDocument document = createDocument(id);
-        expect(response.getItem()).andReturn(document);
+        expect(api.queryItemById(eq(id))).andReturn(document);
 
-        expect(container.readItem(eq(id), anyObject(), anyObject(), anyObject())).andReturn(response);
+        replay(api);
 
-        replay(container, response);
-
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(container, "partitionkey-test", typeManager, retryPolicy, false);
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
 
         Asset actualAsset = assetIndex.findById(id);
-
         assertThat(actualAsset.getProperties()).isEqualTo(document.getWrappedInstance().getProperties());
 
-        verify(container, response);
+        verify(api);
     }
 
     @Test
-    void findById_notFound() {
-        CosmosContainer container = niceMock(CosmosContainer.class);
-
+    void findByIdThrowEdcException() {
         String id = "id-test";
+        expect(api.queryItemById(eq(id)))
+                .andThrow(new EdcException("Failed to fetch object"))
+                .andThrow(new EdcException("Failed again to find object"));
 
-        expect(container.readItem(eq(id), anyObject(), anyObject(), anyObject()))
-                .andThrow(new NotFoundException())
-                .andThrow(new NotFoundException());
+        replay(api);
 
-        replay(container);
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
 
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(container, "partitionkey-test", typeManager, retryPolicy, false);
+        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> assetIndex.findById(id));
 
-        Asset actualAsset = assetIndex.findById(id);
-
-        assertThat(actualAsset).isNull();
-
-        verify(container);
+        verify(api);
     }
 
-    private static AssetDocument createDocument(String id) {
-        return new AssetDocument(Asset.Builder.newInstance()
-                .id(id)
-                .name("node-test")
-                .contentType("application/json")
-                .version("123")
-                .property("hello", "world")
-                .property("foo", "bar")
-                .build(),
-                "partitionkey-test");
+    @Test
+    void findByIdReturnsNull() {
+        String id = "id-test";
+        expect(api.queryItemById(eq(id))).andReturn(null);
+
+        replay(api);
+
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
+
+        Asset actualAsset = assetIndex.findById(id);
+        assertThat(actualAsset).isNull();
+
+        verify(api);
+    }
+
+    @Test
+    void queryAssets() {
+        String id1 = UUID.randomUUID().toString();
+        String id2 = UUID.randomUUID().toString();
+        expect(api.queryItems(anyObject())).andReturn(List.of(createDocument(id1), createDocument(id2)));
+
+        replay(api);
+
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
+
+        List<Asset> assets = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL).collect(Collectors.toList());
+        assertThat(assets)
+                .anyMatch(asset -> asset.getId().equals(id1))
+                .anyMatch(asset -> asset.getId().equals(id2));
+
+        verify(api);
+    }
+
+    @Test
+    void queryAssets_withSelection() {
+        String id1 = UUID.randomUUID().toString();
+        String id2 = UUID.randomUUID().toString();
+        // let's verify that the query actually contains the proper WHERE clause
+        expect(api.queryItems(matches(".*WHERE AssetDocument.*" + Asset.PROPERTY_NAME + " = 'somename'"))).andReturn(List.of(createDocument(id1), createDocument(id2)));
+
+        replay(api);
+
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
+
+        var selectByName = AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "somename").build();
+        List<Asset> assets = assetIndex.queryAssets(selectByName).collect(Collectors.toList());
+        assertThat(assets)
+                .anyMatch(asset -> asset.getId().equals(id1))
+                .anyMatch(asset -> asset.getId().equals(id2));
+
+        verify(api);
     }
 }

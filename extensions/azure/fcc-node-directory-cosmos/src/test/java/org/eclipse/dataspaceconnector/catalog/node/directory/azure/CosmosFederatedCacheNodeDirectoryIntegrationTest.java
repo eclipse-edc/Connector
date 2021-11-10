@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.assetindex.azure;
+package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
 import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClientBuilder;
@@ -20,39 +20,41 @@ import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
+import com.azure.cosmos.models.PartitionKey;
+import com.azure.cosmos.util.CosmosPagedIterable;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
+import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 @IntegrationTest
-class CosmosAssetIndexIntegrationTest {
-    public static final String REGION = "westeurope";
+class CosmosFederatedCacheNodeDirectoryIntegrationTest {
     private static final String TEST_ID = UUID.randomUUID().toString();
+    public static final String REGION = "westeurope";
     private static final String ACCOUNT_NAME = "cosmos-itest";
-    private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
-    private static final String CONTAINER_NAME = "CosmosAssetIndexTest-" + TEST_ID;
     private static final String TEST_PARTITION_KEY = "test-partitionkey";
+    private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
+    private static final String CONTAINER_NAME = "CosmosFederatedCatalogNodeStoreTest-" + TEST_ID;
     private static CosmosContainer container;
     private static CosmosDatabase database;
-    private CosmosAssetIndex assetIndex;
+    private CosmosFederatedCacheNodeDirectory store;
+    private TypeManager typeManager;
 
     @BeforeAll
     static void prepareCosmosClient() {
@@ -75,78 +77,48 @@ class CosmosAssetIndexIntegrationTest {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
         CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(CONTAINER_NAME, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
-        TypeManager typeManager = new TypeManager();
-        typeManager.registerTypes(Asset.class, AssetDocument.class);
-        CosmosDbApi api = new CosmosDbApiImpl(container, TEST_PARTITION_KEY, true);
-        assetIndex = new CosmosAssetIndex(api, typeManager, new RetryPolicy<>());
+        typeManager = new TypeManager();
+        typeManager.registerTypes(FederatedCacheNode.class, FederatedCacheNodeDocument.class);
+        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(container, TEST_PARTITION_KEY, true);
+        store = new CosmosFederatedCacheNodeDirectory(cosmosDbApi, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>());
     }
 
     @Test
-    void queryAssets_selectAll() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("hello", "world")
-                .build();
+    void create() {
+        FederatedCacheNode node = new FederatedCacheNode(UUID.randomUUID().toString(), "http://test.com", Arrays.asList("rest", "ids"));
+        store.insert(node);
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("foo", "bar")
-                .build();
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
-
-        List<Asset> assets = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL).collect(Collectors.toList());
-
-        assertThat(assets).hasSize(2)
-                .anyMatch(asset -> asset.getProperties().equals(asset1.getProperties()))
-                .anyMatch(asset -> asset.getProperties().equals(asset2.getProperties()));
+        CosmosPagedIterable<Object> documents = container.readAllItems(new PartitionKey(TEST_PARTITION_KEY), Object.class);
+        assertThat(documents).hasSize(1)
+                .allSatisfy(obj -> {
+                    var doc = convert(obj);
+                    assertNodesAreEqual(doc.getWrappedInstance(), node);
+                    assertThat(doc.getPartitionKey()).isEqualTo(TEST_PARTITION_KEY);
+                });
     }
 
     @Test
-    void queryAssets_filterOnProperty() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("test", "world")
-                .build();
+    void getAll() {
+        FederatedCacheNode node1 = new FederatedCacheNode("test1", "http://test1.com", Collections.singletonList("ids"));
+        FederatedCacheNode node2 = new FederatedCacheNode("test2", "http://test2.com", Collections.singletonList("rest"));
+        container.createItem(new FederatedCacheNodeDocument(node1, TEST_PARTITION_KEY));
+        container.createItem(new FederatedCacheNodeDocument(node2, TEST_PARTITION_KEY));
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("test", "bar")
-                .build();
+        List<FederatedCacheNode> result = store.getAll();
 
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
-
-        AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
-                .whenEquals("asset_prop_id", "456")
-                .build();
-
-        List<Asset> assets = assetIndex.queryAssets(expression).collect(Collectors.toList());
-
-        assertThat(assets).hasSize(1)
-                .allSatisfy(asset -> assertThat(asset.getId()).isEqualTo("456"));
+        assertThat(result).hasSize(2)
+                .anyMatch(node -> assertNodesAreEqual(node, node1))
+                .anyMatch(node -> assertNodesAreEqual(node, node2));
     }
 
-    @Test
-    void findById() {
-        Asset asset1 = Asset.Builder.newInstance()
-                .id("123")
-                .property("test", "world")
-                .build();
+    private static boolean assertNodesAreEqual(FederatedCacheNode node1, FederatedCacheNode node2) {
+        return node1.getName().equals(node2.getName()) &&
+                node1.getTargetUrl().equals(node2.getTargetUrl()) &&
+                node1.getSupportedProtocols().equals(node2.getSupportedProtocols());
+    }
 
-        Asset asset2 = Asset.Builder.newInstance()
-                .id("456")
-                .property("test", "bar")
-                .build();
-
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
-
-        Asset asset = assetIndex.findById("456");
-
-        assertThat(asset).isNotNull();
-        assertThat(asset.getProperties()).isEqualTo(asset2.getProperties());
+    private FederatedCacheNodeDocument convert(Object obj) {
+        return typeManager.readValue(typeManager.writeValueAsBytes(obj), FederatedCacheNodeDocument.class);
     }
 
     @AfterEach

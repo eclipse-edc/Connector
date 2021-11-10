@@ -45,7 +45,10 @@ class AssetDocumentSerializationTest {
                 .contains("\"asset:prop:name\":\"node-test\"")
                 .contains("\"asset:prop:version\":\"123\"")
                 .contains("\"asset:prop:contenttype\":\"application/json\"")
-                .contains("\"foo\":\"bar\"");
+                .contains("\"foo\":\"bar\"")
+                .contains("\"sanitizedProperties\":")
+                .contains("\"asset_prop_id\":\"id-test\"")
+                .contains("\"asset_prop_name\":\"node-test\"");
     }
 
     @Test
@@ -56,7 +59,7 @@ class AssetDocumentSerializationTest {
         String json = typeManager.writeValueAsString(document);
 
         var deserialized = typeManager.readValue(json, AssetDocument.class);
-        assertThat(deserialized).usingRecursiveComparison().isEqualTo(document);
+        assertThat(deserialized.getWrappedInstance()).usingRecursiveComparison().isEqualTo(document.getWrappedInstance());
     }
 
     private static Asset createAsset() {

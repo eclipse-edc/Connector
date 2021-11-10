@@ -14,25 +14,16 @@
 
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
-import com.azure.cosmos.ConsistencyLevel;
-import com.azure.cosmos.CosmosClient;
-import com.azure.cosmos.CosmosClientBuilder;
-import com.azure.cosmos.CosmosContainer;
-import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.models.CosmosDatabaseResponse;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
-import org.eclipse.dataspaceconnector.common.string.StringUtils;
-import org.eclipse.dataspaceconnector.cosmos.azure.AbstractCosmosConfig;
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -55,16 +46,11 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
         monitor.info(String.format("Initializing %s extension...", NAME));
 
         var configuration = new FederatedCacheNodeDirectoryCosmosConfig(context);
-        Vault service = context.getService(Vault.class);
+        Vault vault = context.getService(Vault.class);
 
-        // create client
-        var cosmosClient = createClient(service, configuration.getAccountName(), Collections.singletonList(configuration.getPreferredRegion()));
-
-        var database = createDatabase(configuration, cosmosClient);
-        CosmosContainer container = getContainer(database, configuration);
-
-        context.registerService(FederatedCacheNodeDirectory.class, new CosmosFederatedCacheNodeDirectory(
-                container, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class), configuration.isQueryMetricsEnabled()));
+        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
+        FederatedCacheNodeDirectory directory = new CosmosFederatedCacheNodeDirectory(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class));
+        context.registerService(FederatedCacheNodeDirectory.class, directory);
 
         context.getTypeManager().registerTypes(FederatedCacheNodeDocument.class);
         monitor.info(String.format("Initialized %s extension", NAME));
@@ -78,37 +64,6 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
     @Override
     public void shutdown() {
         monitor.info(String.format("Shutdowns %s extension", NAME));
-    }
-
-    private static CosmosContainer getContainer(CosmosDatabase database, FederatedCacheNodeDirectoryCosmosConfig configuration) {
-        String containerName = configuration.getContainerName();
-        if (database.readAllContainers().stream().noneMatch(sp -> sp.getId().equals(containerName))) {
-            throw new EdcException(
-                    "A CosmosDB container named '" + containerName + "' was not found in account '" + configuration.getAccountName() + "'. Please create one, preferably using terraform.");
-        }
-        return database.getContainer(containerName);
-    }
-
-    private static CosmosDatabase createDatabase(AbstractCosmosConfig configuration, CosmosClient client) {
-        CosmosDatabaseResponse databaseResponse = client.createDatabaseIfNotExists(configuration.getDbName());
-        return client.getDatabase(databaseResponse.getProperties().getId());
-    }
-
-    private static CosmosClient createClient(Vault vault, String accountName, List<String> preferredRegions) {
-        var accountKey = vault.resolveSecret(accountName);
-        if (StringUtils.isNullOrEmpty(accountKey)) {
-            throw new EdcException("No credentials found in vault for Cosmos DB '" + accountName + "'");
-        }
-
-        // create cosmos db api client
-        String host = "https://" + accountName + ".documents.azure.com:443/";
-
-        return new CosmosClientBuilder()
-                .endpoint(host)
-                .key(accountKey)
-                .preferredRegions(preferredRegions)
-                .consistencyLevel(ConsistencyLevel.SESSION)
-                .buildClient();
     }
 }
 

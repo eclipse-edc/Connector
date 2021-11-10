@@ -14,7 +14,7 @@ public abstract class AbstractCosmosConfig {
     @EdcSetting
     private static final String DEFAULT_QUERY_METRICS_ENABLED_SETTING = "edc.cosmos.query-metrics-enabled";
 
-    public static final String DEFAULT_REGION = "Europe";
+    public static final String DEFAULT_REGION = "westeurope";
     private static final String DEFAULT_PARTITION_KEY = "dataspaceconnector";
 
 

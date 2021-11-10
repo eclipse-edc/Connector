@@ -20,11 +20,36 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
+import java.util.Map;
+import java.util.stream.Collectors;
+
 @JsonTypeName("dataspaceconnector:assetdocument")
 public class AssetDocument extends CosmosDocument<Asset> {
+    private final String id;
+    private final Map<String, Object> sanitizedProperties;
+
     @JsonCreator
     public AssetDocument(@JsonProperty("wrappedInstance") Asset wrappedInstance,
                          @JsonProperty("partitionKey") String partitionKey) {
         super(wrappedInstance, partitionKey);
+        id = wrappedInstance.getId();
+        sanitizedProperties = sanitizeProperties(wrappedInstance);
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public Map<String, Object> getSanitizedProperties() {
+        return sanitizedProperties;
+    }
+
+    private static Map<String, Object> sanitizeProperties(Asset asset) {
+        return asset.getProperties().entrySet().stream()
+                .collect(Collectors.toMap(entry -> sanitizeKey(entry.getKey()), Map.Entry::getValue));
+    }
+
+    private static String sanitizeKey(String key) {
+        return key.replace(':', '_');
     }
 }

@@ -14,17 +14,11 @@
 
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
-import com.azure.cosmos.CosmosContainer;
-import com.azure.cosmos.CosmosException;
-import com.azure.cosmos.models.CosmosItemRequestOptions;
-import com.azure.cosmos.models.CosmosItemResponse;
-import com.azure.cosmos.models.CosmosQueryRequestOptions;
-import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
-import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.util.List;
@@ -35,8 +29,7 @@ import static net.jodah.failsafe.Failsafe.with;
 
 public class CosmosFederatedCacheNodeDirectory implements FederatedCacheNodeDirectory {
 
-    private final CosmosContainer container;
-    private final CosmosQueryRequestOptions tracingOptions;
+    private final CosmosDbApi cosmosDbApi;
     private final TypeManager typeManager;
     private final String partitionKey;
     private final RetryPolicy<Object> retryPolicy;
@@ -44,54 +37,30 @@ public class CosmosFederatedCacheNodeDirectory implements FederatedCacheNodeDire
     /**
      * Creates a new instance of the CosmosDB-based federated cache node store.
      *
-     * @param container             The CosmosDB container.
-     * @param typeManager           The {@link TypeManager} that's used for serialization and deserialization.
-     * @param isQueryMetricsEnabled Activate metrics for query execution.
+     * @param cosmosDbApi Api to interact with CosmosDB container.
+     * @param typeManager The {@link TypeManager} that's used for serialization and deserialization.
      */
-    public CosmosFederatedCacheNodeDirectory(CosmosContainer container, String partitionKey, TypeManager typeManager, RetryPolicy<Object> retryPolicy, boolean isQueryMetricsEnabled) {
-        this.container = container;
+    public CosmosFederatedCacheNodeDirectory(CosmosDbApi cosmosDbApi, String partitionKey, TypeManager typeManager, RetryPolicy<Object> retryPolicy) {
+        this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.partitionKey = partitionKey;
-        tracingOptions = new CosmosQueryRequestOptions();
-        tracingOptions.setQueryMetricsEnabled(isQueryMetricsEnabled);
         this.retryPolicy = retryPolicy;
     }
 
     @Override
     public List<FederatedCacheNode> getAll() {
-        var query = "SELECT * FROM FederatedCatalogueNodeDocument";
-
-        try {
-            var response = with(retryPolicy).get(() -> container.queryItems(query, tracingOptions, Object.class));
-            return response.stream()
-                    .map(databaseDocument -> typeManager.readValue(typeManager.writeValueAsString(databaseDocument), FederatedCacheNodeDocument.class))
-                    .map(FederatedCacheNodeDocument::getWrappedInstance)
-                    .collect(Collectors.toList());
-        } catch (CosmosException ex) {
-            throw new EdcException(ex);
-        }
+        var response = with(retryPolicy).get(cosmosDbApi::queryAllItems);
+        return response.stream()
+                .map(databaseDocument -> typeManager.readValue(typeManager.writeValueAsString(databaseDocument), FederatedCacheNodeDocument.class))
+                .map(FederatedCacheNodeDocument::getWrappedInstance)
+                .collect(Collectors.toList());
     }
 
     @Override
     public void insert(FederatedCacheNode node) {
-        Objects.requireNonNull(node.getName(), "FederatedCacheNode must have an name!");
+        Objects.requireNonNull(node.getName(), "FederatedCacheNode must have a name!");
 
-        CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        //todo: configure indexing
         var document = new FederatedCacheNodeDocument(node, partitionKey);
-        try {
-            var response = with(retryPolicy).get(() -> container.createItem(document, new PartitionKey(partitionKey), options));
-            handleResponse(response);
-        } catch (CosmosException cme) {
-            throw new EdcException(cme);
-        }
+        with(retryPolicy).run(() -> cosmosDbApi.createItem(document));
     }
-
-    private void handleResponse(CosmosItemResponse<?> response) {
-        int code = response.getStatusCode();
-        if (code < 200 || code >= 300) {
-            throw new EdcException("Error during CosmosDB interaction: " + code);
-        }
-    }
-
 }
