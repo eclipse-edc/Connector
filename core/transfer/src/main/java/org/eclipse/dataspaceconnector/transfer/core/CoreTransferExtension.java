@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
@@ -37,6 +38,7 @@ import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerIm
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.AsyncTransferProcessManager;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.DefaultProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.SyncTransferProcessManager;
@@ -63,7 +65,7 @@ public class CoreTransferExtension implements ServiceExtension {
     @Override
     public Set<String> provides() {
         return Set.of("dataspaceconnector:statuschecker", "dataspaceconnector:dispatcher", "dataspaceconnector:manifestgenerator",
-                "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable", DataProxyManager.FEATURE);
+                "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable", DataProxyManager.FEATURE, ProxyEntryHandlerRegistry.FEATURE);
     }
 
     @Override
@@ -118,7 +120,11 @@ public class CoreTransferExtension implements ServiceExtension {
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .monitor(monitor)
                 .build();
-        var syncMgr = new SyncTransferProcessManager(dataProxyRegistry, transferProcessStore, dispatcherRegistry);
+
+        var proxyEntryHandlerRegistry = new DefaultProxyEntryHandlerRegistry();
+        context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
+
+        var syncMgr = new SyncTransferProcessManager(dataProxyRegistry, transferProcessStore, dispatcherRegistry, proxyEntryHandlerRegistry, typeManager);
 
         processManager = new TransferProcessManagerDelegate(asyncMgr, syncMgr);
 

@@ -7,6 +7,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandlerRegistry;
 
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -15,7 +16,7 @@ public class TransferProxyHttpExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of(DataProxyManager.FEATURE, DataAddressResolver.FEATURE);
+        return Set.of(DataProxyManager.FEATURE, DataAddressResolver.FEATURE, ProxyEntryHandlerRegistry.FEATURE);
     }
 
     @Override
@@ -30,6 +31,9 @@ public class TransferProxyHttpExtension implements ServiceExtension {
 
         var manager = context.getService(DataProxyManager.class);
         manager.addProxy(RestDataProxy.DESTINATION_TYPE_HTTP, new RestDataProxy(controller.getRootPath(), context.getConnectorId(), issuedTokens));
+
+        var registry = context.getService(ProxyEntryHandlerRegistry.class);
+        registry.put(RestDataProxy.DESTINATION_TYPE_HTTP, new RestProxyEntryHandler(context.getMonitor()));
 
     }
 }

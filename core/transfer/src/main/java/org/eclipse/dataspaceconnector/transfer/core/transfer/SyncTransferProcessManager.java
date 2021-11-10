@@ -6,11 +6,16 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntry;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandler;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
 import java.net.ConnectException;
+import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 import static java.util.UUID.randomUUID;
@@ -22,11 +27,15 @@ public class SyncTransferProcessManager implements TransferProcessManager {
     private final DataProxyManager dataProxyManager;
     private final TransferProcessStore transferProcessStore;
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
+    private final Map<String, ProxyEntryHandler> proxyEntryHandlers;
+    private final TypeManager typeManager;
 
-    public SyncTransferProcessManager(DataProxyManager dataProxyManager, TransferProcessStore transferProcessStore, RemoteMessageDispatcherRegistry dispatcherRegistry) {
+    public SyncTransferProcessManager(DataProxyManager dataProxyManager, TransferProcessStore transferProcessStore, RemoteMessageDispatcherRegistry dispatcherRegistry, Map<String, ProxyEntryHandler> proxyEntryHandlers, TypeManager typeManager) {
         this.dataProxyManager = dataProxyManager;
         this.transferProcessStore = transferProcessStore;
         this.dispatcherRegistry = dispatcherRegistry;
+        this.proxyEntryHandlers = proxyEntryHandlers;
+        this.typeManager = typeManager;
     }
 
     @Override
@@ -45,10 +54,13 @@ public class SyncTransferProcessManager implements TransferProcessManager {
                 return TransferResponse.Builder.newInstance().error(transferProcess.getErrorDetail()).id(dataRequest.getId()).status(ResponseStatus.FATAL_ERROR).build();
             }
 
-            // if there is a handler for this particular transfer type, return the result of this handler, otherwise return the
+            var proxyEntry = convert(result);
+
+            // if there is one or more handlers for this particular transfer type, return the result of these handlers, otherwise return the
             // raw proxy object
-            
-            return TransferResponse.Builder.newInstance().data(result).id(dataRequest.getId()).status(ResponseStatus.OK).build();
+            var handler = Optional.ofNullable(proxyEntryHandlers.get(proxyEntry.getType()));
+            var proxyConversionResult = handler.map(peh -> peh.apply(proxyEntry)).orElse(proxyEntry);
+            return TransferResponse.Builder.newInstance().data(proxyConversionResult).id(dataRequest.getId()).status(ResponseStatus.OK).build();
         } catch (Exception ex) {
             var status = isRetryable(ex.getCause()) ? ResponseStatus.ERROR_RETRY : ResponseStatus.FATAL_ERROR;
             return TransferResponse.Builder.newInstance().id(dataRequest.getId()).status(status).error(ex.getMessage()).build();
@@ -68,6 +80,10 @@ public class SyncTransferProcessManager implements TransferProcessManager {
             return TransferResponse.Builder.newInstance().id(process.getId()).data(proxyData).status(ResponseStatus.OK).build();
         }
         return TransferResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.FATAL_ERROR).build();
+    }
+
+    private ProxyEntry convert(Object result) {
+        return typeManager.readValue(typeManager.writeValueAsString(result), ProxyEntry.class);
     }
 
     private boolean isRetryable(Throwable ex) {
