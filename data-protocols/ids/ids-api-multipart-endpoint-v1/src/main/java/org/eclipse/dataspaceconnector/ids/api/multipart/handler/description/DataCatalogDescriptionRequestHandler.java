@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,8 +42,7 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
         this.dataCatalogService = dataCatalogService;
     }
 
-    @Override
-    protected DataCatalog retrieveObject(@NotNull IdsId idsId) {
-        return dataCatalogService.getDataCatalog();
+    protected DataCatalog retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult) {
+        return dataCatalogService.getDataCatalog(verificationResult);
     }
 }

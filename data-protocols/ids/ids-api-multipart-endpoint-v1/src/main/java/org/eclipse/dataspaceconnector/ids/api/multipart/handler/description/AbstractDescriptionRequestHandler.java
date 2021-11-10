@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +55,10 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
     }
 
     @Override
-    public MultipartResponse handle(@NotNull DescriptionRequestMessage descriptionRequestMessage, @Nullable String payload) {
+    public final MultipartResponse handle(
+            @NotNull DescriptionRequestMessage descriptionRequestMessage,
+            @NotNull VerificationResult verificationResult,
+            @Nullable String payload) {
         Objects.requireNonNull(descriptionRequestMessage);
 
         URI uri = descriptionRequestMessage.getRequestedElement();
@@ -78,7 +82,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        T retrievedObject = retrieveObject(idsId);
+        T retrievedObject = retrieveObject(idsId, verificationResult);
         if (retrievedObject == null) {
             return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
@@ -106,5 +110,5 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                 .build();
     }
 
-    protected abstract T retrieveObject(IdsId idsId);
+    protected abstract T retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult);
 }

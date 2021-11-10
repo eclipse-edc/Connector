@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -36,7 +37,7 @@ public class UriToIdsIdTransformer implements IdsTypeTransformer<URI, IdsId> {
     }
 
     @Override
-    public @Nullable IdsId transform(URI object, TransformerContext context) {
+    public @Nullable IdsId transform(URI object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;

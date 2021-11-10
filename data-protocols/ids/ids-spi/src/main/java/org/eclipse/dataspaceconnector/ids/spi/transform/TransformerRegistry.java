@@ -13,6 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.ids.spi.transform;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Dispatches to {@link IdsTypeTransformer}s to bidirectionally convert between IDS and EDC types.
  */
@@ -26,12 +28,12 @@ public interface TransformerRegistry {
     /**
      * Transforms the object and any contained types, returning its transformed representation or null if the operation cannot be completed.
      *
-     * @param object     the instance to transform
-     * @param outputType the transformed output type
      * @param <INPUT>    the instance type
      * @param <OUTPUT>   the transformed object type
+     * @param object     the instance to transform
+     * @param outputType the transformed output type
      * @return the transform result
      */
-    <INPUT, OUTPUT> TransformResult<OUTPUT> transform(INPUT object, Class<OUTPUT> outputType);
+    <INPUT, OUTPUT> TransformResult<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType);
 
 }

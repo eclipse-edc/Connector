@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -43,7 +44,7 @@ public class SecurityProfileToSecurityProfileTransformer implements IdsTypeTrans
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.SecurityProfile transform(SecurityProfile object, TransformerContext context) {
+    public @Nullable de.fraunhofer.iais.eis.SecurityProfile transform(SecurityProfile object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;

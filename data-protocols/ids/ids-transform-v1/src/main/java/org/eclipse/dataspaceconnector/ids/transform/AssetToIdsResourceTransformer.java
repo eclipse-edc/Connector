@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -45,7 +46,7 @@ public class AssetToIdsResourceTransformer implements IdsTypeTransformer<Asset, 
     }
 
     @Override
-    public @Nullable Resource transform(Asset object, TransformerContext context) {
+    public @Nullable Resource transform(Asset object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;

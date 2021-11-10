@@ -15,9 +15,12 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
+import de.fraunhofer.iais.eis.BinaryOperator;
+import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
+import de.fraunhofer.iais.eis.util.RdfResource;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
@@ -25,9 +28,16 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
+import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
+import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.Duty;
+import org.eclipse.dataspaceconnector.policy.model.Expression;
+import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -63,15 +73,33 @@ class IdsTransformServiceExtensionTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
+                    Arguments.arguments(Action.class, de.fraunhofer.iais.eis.Action.class),
+
                     Arguments.arguments(Asset.class, Artifact.class),
                     Arguments.arguments(Asset.class, Representation.class),
                     Arguments.arguments(Asset.class, Resource.class),
 
+                    Arguments.arguments(OfferedAsset.class, Resource.class),
+
                     Arguments.arguments(Connector.class, de.fraunhofer.iais.eis.Connector.class),
+
+                    Arguments.arguments(ContractOffer.class, de.fraunhofer.iais.eis.ContractOffer.class),
 
                     Arguments.arguments(DataCatalog.class, ResourceCatalog.class),
 
+                    Arguments.arguments(Duty.class, de.fraunhofer.iais.eis.Duty.class),
+
+                    Arguments.arguments(Expression.class, LeftOperand.class),
+
+                    Arguments.arguments(Expression.class, RdfResource.class),
+
                     Arguments.arguments(IdsId.class, URI.class),
+
+                    Arguments.arguments(Expression.class, RdfResource.class),
+
+                    Arguments.arguments(IdsId.class, URI.class),
+
+                    Arguments.arguments(Operator.class, BinaryOperator.class),
 
                     Arguments.arguments(URI.class, IdsId.class)
             );
@@ -130,7 +158,7 @@ class IdsTransformServiceExtensionTest {
         }
 
         @Override
-        public <INPUT, OUTPUT> TransformResult<OUTPUT> transform(INPUT object, Class<OUTPUT> outputType) {
+        public <INPUT, OUTPUT> TransformResult<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType) {
             throw new RuntimeException("Not intended to be used within this Test");
         }
     }

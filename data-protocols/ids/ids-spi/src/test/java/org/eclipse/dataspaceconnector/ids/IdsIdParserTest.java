@@ -20,24 +20,37 @@ class IdsIdParserTest {
     };
 
     private static final String[] LEGAL_IDS = {
-            "urn:contract:ctr1234",
-            "urn:contractoffer:ctro1234",
-            "urn:connector:http://example.com",
-            "urn:catalog:https://example.com/catalog1",
+            "urn:artifact:artifact_id12345",
             "urn:artifact:https://example.com/catalog1/artifact/abc",
+            "urn:catalog:catalog_id12345",
+            "urn:catalog:https://example.com/catalog1",
+            "urn:connector:connector_id12345",
+            "urn:connector:http://example.com",
+            "urn:constraint:constraint_id12345",
+            "urn:contract:contract_id12345",
+            "urn:contract:ctr1234",
+            "urn:contractoffer:contractoffer_id12345",
+            "urn:contractoffer:ctro1234",
+            "urn:mediatype:application/json",
+            "urn:mediatype:mediatype_id12345",
+            "urn:message:message_id12345",
+            "urn:participant:participant_id12345",
+            "urn:permission:permission_id12345",
+            "urn:prohibition:prohibition_id12345",
             "urn:representation:https://example.com/catalog1/artifact/abc/repr.json",
+            "urn:representation:representation_id12345",
             "urn:resource:https://example.com/catalog1/artifact/abc/repr/resource.json",
-            "urn:mediatype:application/json"
+            "urn:resource:resource_id12345"
     };
 
-    @ParameterizedTest(name = "{index} {0} is 30 days long")
+    @ParameterizedTest(name = "[index] parse legal id '{0}'")
     @ArgumentsSource(LegalIdsArgumentsProvider.class)
     void parseLegal(String string) {
         IdsId result = IdsIdParser.parse(string);
         Assertions.assertNotNull(result);
     }
 
-    @ParameterizedTest
+    @ParameterizedTest(name = "[index] parse illegal id '{0}'")
     @ArgumentsSource(IllegalIdsArgumentsProvider.class)
     void parseIllegal(String string) {
         Assertions.assertThrows(IllegalArgumentException.class, () -> IdsIdParser.parse(string));

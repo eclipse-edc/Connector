@@ -38,7 +38,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -73,7 +73,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of(IdentityService.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
+        return Set.of(IdentityService.FEATURE, "edc:core:contract", "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
     }
 
     @Override
@@ -100,8 +100,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
             throw new EdcException(String.join(", ", settingErrors));
         }
 
-
-        AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
+        ContractOfferService contractOfferService = serviceExtensionContext.getService(ContractOfferService.class);
 
         TransformerRegistry transformerRegistry = createTransformerRegistry();
         serviceExtensionContext.registerService(TransformerRegistry.class, transformerRegistry);
@@ -109,7 +108,8 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         ConnectorVersionProvider connectorVersionProvider = createConnectorVersionProvider();
         serviceExtensionContext.registerService(ConnectorVersionProvider.class, connectorVersionProvider);
 
-        DataCatalogService dataCatalogService = createDataCatalogService(dataCatalogId, assetIndex);
+        DataCatalogService dataCatalogService = createDataCatalogService(dataCatalogId, contractOfferService);
+
         serviceExtensionContext.registerService(DataCatalogService.class, dataCatalogService);
 
         ConnectorService connectorService = createConnectorService(connectorServiceSettings, connectorVersionProvider, dataCatalogService);
@@ -172,11 +172,11 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
     private DataCatalogService createDataCatalogService(
             String dataCatalogId,
-            AssetIndex assetIndex) {
+            ContractOfferService contractOfferService) {
         return new DataCatalogServiceImpl(
                 monitor,
                 dataCatalogId,
-                assetIndex
+                contractOfferService
         );
     }
 

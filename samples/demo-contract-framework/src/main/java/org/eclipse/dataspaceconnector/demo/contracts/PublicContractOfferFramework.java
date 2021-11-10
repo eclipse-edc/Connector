@@ -23,9 +23,6 @@ import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFrameworkQuery;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferTemplate;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.OfferedAsset;
-import org.eclipse.dataspaceconnector.spi.types.domain.policy.CommonActionTypes;
 
 import java.util.Collections;
 import java.util.stream.Stream;
@@ -44,7 +41,7 @@ public class PublicContractOfferFramework implements ContractOfferFramework {
         INSTANCE;
 
         @Override
-        public Stream<ContractOffer> getTemplatedOffers(Stream<Asset> assets) {
+        public Stream<org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer> getTemplatedOffers(Stream<Asset> assets) {
             return assets.map(this::createContractOffer);
         }
 
@@ -53,11 +50,11 @@ public class PublicContractOfferFramework implements ContractOfferFramework {
             return AssetSelectorExpression.SELECT_ALL;
         }
 
-        private ContractOffer createContractOffer(Asset asset) {
-            ContractOffer.Builder builder = ContractOffer.Builder.newInstance();
+        private org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer createContractOffer(Asset asset) {
+            org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder builder = org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder.newInstance();
 
             Action action = Action.Builder.newInstance()
-                    .type(CommonActionTypes.ALL)
+                    .type("USE")
                     .build();
 
             Policy.Builder policyBuilder = Policy.Builder.newInstance()
@@ -70,14 +67,11 @@ public class PublicContractOfferFramework implements ContractOfferFramework {
             policyBuilder.permissions(Collections.singletonList(rule));
 
             Policy policy = policyBuilder.build();
-            OfferedAsset offeredAsset = OfferedAsset.Builder.newInstance()
-                    .asset(asset)
+
+            return builder
+                    .assets(Collections.singletonList(asset))
                     .policy(policy)
                     .build();
-
-            builder.assets(Collections.singletonList(offeredAsset));
-
-            return builder.build();
         }
     }
 }

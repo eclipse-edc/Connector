@@ -242,7 +242,7 @@ public class MultipartControllerTest {
         }
 
         @Override
-        public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
+        public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull VerificationResult verificationResult) {
             return MultipartResponse.Builder.newInstance().header(message).payload(payload).build();
         }
     }
@@ -255,7 +255,7 @@ public class MultipartControllerTest {
         }
 
         @Override
-        public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest) {
+        public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull VerificationResult verificationResult) {
             return null;
         }
     }

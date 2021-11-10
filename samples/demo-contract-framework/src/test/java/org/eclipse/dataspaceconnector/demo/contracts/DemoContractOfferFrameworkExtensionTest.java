@@ -56,7 +56,7 @@ public class DemoContractOfferFrameworkExtensionTest {
 
         assertThat(contractOffers).hasSize(1).element(0)
                 .extracting("assets").asList().element(0)
-                .extracting("asset").extracting("properties").extracting(Asset.PROPERTY_ID)
+                .extracting("properties").extracting(Asset.PROPERTY_ID)
                 .isEqualTo("anId");
     }
 

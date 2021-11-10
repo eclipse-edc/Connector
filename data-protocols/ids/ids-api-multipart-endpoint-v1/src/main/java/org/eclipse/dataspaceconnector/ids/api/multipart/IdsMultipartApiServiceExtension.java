@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -94,6 +95,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         ConnectorService connectorService = serviceExtensionContext.getService(ConnectorService.class);
         AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
         TransformerRegistry transformerRegistry = serviceExtensionContext.getService(TransformerRegistry.class);
+        ContractOfferService contractOfferService = serviceExtensionContext.getService(ContractOfferService.class);
 
         String connectorId = resolveConnectorId(serviceExtensionContext);
 
@@ -101,7 +103,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
         DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry);
         RepresentationDescriptionRequestHandler representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        ResourceDescriptionRequestHandler resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
+        ResourceDescriptionRequestHandler resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
         ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
 
         // create request handler

@@ -15,10 +15,12 @@
 package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
+import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQueryResponse;
+import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -36,37 +38,46 @@ class DataCatalogServiceImplTest {
 
     // mocks
     private Monitor monitor;
-    private AssetIndex assetIndex;
+    private ContractOfferService contractOfferService;
 
     @BeforeEach
     void setUp() {
         monitor = EasyMock.createMock(Monitor.class);
-        assetIndex = EasyMock.createMock(AssetIndex.class);
-
-        dataCatalogService = new DataCatalogServiceImpl(monitor, CATALOG_ID, assetIndex);
+        contractOfferService = EasyMock.createMock(ContractOfferService.class);
+        dataCatalogService = new DataCatalogServiceImpl(monitor, CATALOG_ID, contractOfferService);
     }
 
     @Test
     void getDataCatalog() {
         // prepare
-        List<Asset> assets = Arrays.asList(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
-        EasyMock.expect(assetIndex.queryAssets(EasyMock.anyObject(AssetSelectorExpression.class)))
-                .andReturn(assets.stream());
+        VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
+
+        List<org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer> offers = Arrays.asList(
+                org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder.newInstance()
+                        .policy(Policy.Builder.newInstance().build())
+                        .build(),
+                org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder.newInstance()
+                        .policy(Policy.Builder.newInstance().build())
+                        .build());
+        ContractOfferQueryResponse response = EasyMock.createMock(ContractOfferQueryResponse.class);
+        EasyMock.expect(response.getContractOfferStream()).andReturn(offers.stream());
+        EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.anyObject(ContractOfferQuery.class)))
+                .andReturn(response);
 
         // record
-        EasyMock.replay(monitor, assetIndex);
+        EasyMock.replay(monitor, response, contractOfferService);
 
         // invoke
-        var result = dataCatalogService.getDataCatalog();
+        var result = dataCatalogService.getDataCatalog(verificationResult);
 
         // verify
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
-        assertThat(result.getAssets()).hasSameElementsAs(assets);
+        assertThat(result.getContractOffers()).hasSameElementsAs(offers);
     }
 
     @AfterEach
     void tearDown() {
-        EasyMock.verify(monitor, assetIndex);
+        EasyMock.verify(monitor);
     }
 }

@@ -2,10 +2,9 @@ package org.eclipse.dataspaceconnector.ids.spi.types;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URI;
 import java.util.List;
 import java.util.Objects;
 
@@ -15,25 +14,25 @@ import java.util.Objects;
 @JsonDeserialize(builder = DataCatalog.Builder.class)
 public class DataCatalog {
     private final String id;
-    private final List<Asset> assets;
+    private final List<ContractOffer> contractOffers;
 
-    private DataCatalog(@NotNull String id, @NotNull List<Asset> assets) {
+    private DataCatalog(@NotNull String id, @NotNull List<ContractOffer> contractOffers) {
         this.id = Objects.requireNonNull(id);
-        this.assets = Objects.requireNonNull(assets);
+        this.contractOffers = Objects.requireNonNull(contractOffers);
     }
 
     public String getId() {
         return id;
     }
 
-    public List<Asset> getAssets() {
-        return assets;
+    public List<ContractOffer> getContractOffers() {
+        return contractOffers;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private String id;
-        private List<Asset> assets;
+        private List<ContractOffer> contractOffers;
 
         public static Builder newInstance() {
             return new Builder();
@@ -44,13 +43,13 @@ public class DataCatalog {
             return this;
         }
 
-        public Builder assets(List<Asset> assets) {
-            this.assets = assets;
+        public Builder contractOffers(List<ContractOffer> contractOffers) {
+            this.contractOffers = contractOffers;
             return this;
         }
 
         public DataCatalog build() {
-            return new DataCatalog(id, assets);
+            return new DataCatalog(id, contractOffers);
         }
 
     }

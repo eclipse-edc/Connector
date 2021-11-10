@@ -26,7 +26,7 @@ import java.util.stream.Stream;
 public class ContractOfferQueryResponse {
     private final Stream<ContractOffer> contractOfferStream;
 
-    public ContractOfferQueryResponse(final Stream<ContractOffer> contractOfferStream) {
+    public ContractOfferQueryResponse(Stream<ContractOffer> contractOfferStream) {
         this.contractOfferStream = contractOfferStream;
     }
 

@@ -25,10 +25,14 @@ dependencies {
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
 
-    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
-
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
+
+    testImplementation("net.javacrumbs.json-unit:json-unit-assertj:2.28.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.28.0")
+    testImplementation("net.javacrumbs.json-unit:json-unit:2.28.0")
+    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(project(":core:protocol:web"))
 }
 
 publishing {

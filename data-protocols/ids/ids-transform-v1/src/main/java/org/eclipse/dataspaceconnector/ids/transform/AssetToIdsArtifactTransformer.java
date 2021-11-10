@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
@@ -42,7 +43,7 @@ public class AssetToIdsArtifactTransformer implements IdsTypeTransformer<Asset, 
     }
 
     @Override
-    public @Nullable Artifact transform(Asset object, TransformerContext context) {
+    public @Nullable Artifact transform(Asset object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;

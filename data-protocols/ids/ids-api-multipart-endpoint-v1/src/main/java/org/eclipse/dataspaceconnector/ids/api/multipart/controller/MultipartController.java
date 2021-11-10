@@ -106,7 +106,7 @@ public class MultipartController {
                             messageTypeNotSupported(header, connectorId))).build();
         }
 
-        MultipartResponse multipartResponse = handler.handleRequest(multipartRequest);
+        MultipartResponse multipartResponse = handler.handleRequest(multipartRequest, verificationResult);
         if (multipartResponse != null) {
             return Response.ok(
                     createFormDataMultiPart(multipartResponse)).build();

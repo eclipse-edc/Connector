@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
+import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
@@ -43,8 +44,10 @@ public class ConnectorServiceImpl implements ConnectorService {
     }
 
     @NotNull
-    public Connector getConnector() {
-        DataCatalog dataCatalog = dataCatalogService.getDataCatalog();
+    public Connector getConnector(@NotNull VerificationResult verificationResult) {
+        Objects.requireNonNull(verificationResult);
+
+        DataCatalog dataCatalog = dataCatalogService.getDataCatalog(verificationResult);
 
         return Connector.Builder
                 .newInstance()
@@ -53,7 +56,7 @@ public class ConnectorServiceImpl implements ConnectorService {
                 .description(connectorServiceSettings.getDescription())
                 .connectorVersion(connectorVersionProvider.getVersion())
                 .securityProfile(connectorServiceSettings.getSecurityProfile())
-                .dataCatalogs(dataCatalog != null ? Collections.singletonList(dataCatalog) : Collections.emptyList())
+                .dataCatalogs(Collections.singletonList(dataCatalog))
                 .endpoint(connectorServiceSettings.getEndpoint())
                 .maintainer(connectorServiceSettings.getMaintainer())
                 .curator(connectorServiceSettings.getCurator())

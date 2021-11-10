@@ -47,7 +47,6 @@ class AssetToIdsResourceTransformerTest {
         context = EasyMock.createMock(TransformerContext.class);
     }
 
-
     @Test
     void testThrowsNullPointerExceptionForAll() {
         EasyMock.replay(asset, context);

@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021 Daimler TSS GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Daimler TSS GmbH - Initial API and Implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
@@ -7,6 +21,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Assertions;
@@ -74,7 +89,8 @@ public class RepresentationDescriptionRequestHandlerTest {
 
     @Test
     public void testSimpleSuccessPath() {
-        var result = representationDescriptionRequestHandler.handle(descriptionRequestMessage, null);
+        VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
+        var result = representationDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, null);
 
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getHeader());
