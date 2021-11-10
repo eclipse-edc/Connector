@@ -14,11 +14,14 @@
 
 package org.eclipse.dataspaceconnector.ids.core;
 
+import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.core.daps.DapsServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.message.DataRequestMessageSender;
-import org.eclipse.dataspaceconnector.ids.core.message.IdsRemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.ids.core.message.IdsMultipartRemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.ids.core.message.IdsRestRemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.ids.core.message.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.message.QueryMessageSender;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsPolicyServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
@@ -157,13 +160,19 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         var monitor = context.getMonitor();
 
-        var dispatcher = new IdsRemoteMessageDispatcher();
+        //TODO get from context
+        var serializer = new Serializer();
 
-        dispatcher.register(new QueryMessageSender(connectorId, identityService, httpClient, mapper, monitor));
-        dispatcher.register(new DataRequestMessageSender(connectorId, identityService, processStore, vault, httpClient, mapper, monitor));
+        var restDispatcher = new IdsRestRemoteMessageDispatcher();
+        restDispatcher.register(new QueryMessageSender(connectorId, identityService, httpClient, mapper, monitor));
+        restDispatcher.register(new DataRequestMessageSender(connectorId, identityService, processStore, vault, httpClient, mapper, monitor));
+
+        var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
+        multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, serializer, monitor, identityService));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
-        registry.register(dispatcher);
+        registry.register(restDispatcher);
+        registry.register(multipartDispatcher);
     }
 
     private TransformerRegistry createTransformerRegistry() {
