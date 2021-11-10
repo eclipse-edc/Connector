@@ -148,6 +148,7 @@ public class ArtifactRequestController {
         var response = processManager.initiateProviderRequest(dataRequest);
 
         if (response.succeeded()) {
+            monitor.info("Data transfer request initiated");
             ArtifactResponseMessageBuilder messageBuilder = new ArtifactResponseMessageBuilder();
             ArtifactResponseMessage build = messageBuilder.build();
             build.setProperty(DATA_OBJECT_KEY, response.getData());

@@ -10,11 +10,13 @@ public class ProxyEntry implements Polymorphic {
 
     private final String url;
     private final String token;
+    private final String type;
 
     @JsonCreator
-    public ProxyEntry(@JsonProperty("url") String rootPath, @JsonProperty("token") String token) {
+    public ProxyEntry(@JsonProperty("url") String rootPath, @JsonProperty("token") String token, String type) {
         url = rootPath;
         this.token = token;
+        this.type = type;
     }
 
     public String getUrl() {
@@ -30,5 +32,9 @@ public class ProxyEntry implements Polymorphic {
         return "ProxyEntry{" +
                 "url='" + url + '\'' +
                 '}';
+    }
+
+    public String getType() {
+        return type;
     }
 }

@@ -38,12 +38,16 @@ public class SyncTransferProcessManager implements TransferProcessManager {
         var future = dispatcherRegistry.send(Object.class, dataRequest, transferProcess::getId);
         try {
             var result = future.join();
-            transferProcess= transferProcessStore.find(transferProcess.getId());
-            if(transferProcess.getState()== TransferProcessStates.ERROR.code()){
+            // reload from store, could have been modified
+            transferProcess = transferProcessStore.find(transferProcess.getId());
+
+            if (transferProcess.getState() == TransferProcessStates.ERROR.code()) {
                 return TransferResponse.Builder.newInstance().error(transferProcess.getErrorDetail()).id(dataRequest.getId()).status(ResponseStatus.FATAL_ERROR).build();
             }
 
-//            transferProcessStore.update(transferProcess);
+            // if there is a handler for this particular transfer type, return the result of this handler, otherwise return the
+            // raw proxy object
+            
             return TransferResponse.Builder.newInstance().data(result).id(dataRequest.getId()).status(ResponseStatus.OK).build();
         } catch (Exception ex) {
             var status = isRetryable(ex.getCause()) ? ResponseStatus.ERROR_RETRY : ResponseStatus.FATAL_ERROR;

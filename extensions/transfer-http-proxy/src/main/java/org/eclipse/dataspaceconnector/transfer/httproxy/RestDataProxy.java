@@ -40,6 +40,6 @@ public class RestDataProxy implements DataProxy {
 
         String base64Jwt = jwt.serialize();
         issuedTokens.add(base64Jwt);
-        return new ProxyEntry(path, base64Jwt);
+        return new ProxyEntry(path, base64Jwt, request.getDestinationType());
     }
 }
