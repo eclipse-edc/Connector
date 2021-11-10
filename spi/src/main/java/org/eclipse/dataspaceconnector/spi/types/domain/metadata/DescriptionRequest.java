@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.metadata;
 
-import java.net.URI;
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
+
+import java.net.URI;
+import java.util.Objects;
 
 public class DescriptionRequest implements RemoteMessage {
 
