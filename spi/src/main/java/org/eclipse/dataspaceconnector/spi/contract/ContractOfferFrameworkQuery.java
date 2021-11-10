@@ -14,21 +14,20 @@
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
-import java.security.Principal;
+import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 
 /**
  * The {@link ContractOfferFrameworkQuery} narrows down the number of queried {@link ContractOfferTemplate}.
  */
 public class ContractOfferFrameworkQuery {
 
-    // TODO define who the principal is and rename it (promisee, assigne, recipient, daps token, etc.?)
-    private Principal principal;
+    private VerificationResult verificationResult;
 
     private ContractOfferFrameworkQuery() {
     }
 
-    public Principal getPrincipal() {
-        return principal;
+    public VerificationResult getVerificationResult() {
+        return verificationResult;
     }
 
     public static Builder builder() {
@@ -36,7 +35,7 @@ public class ContractOfferFrameworkQuery {
     }
 
     public static final class Builder {
-        private Principal principal;
+        private VerificationResult verificationResult;
 
         private Builder() {
         }
@@ -45,14 +44,14 @@ public class ContractOfferFrameworkQuery {
             return new Builder();
         }
 
-        public Builder principal(final Principal principal) {
-            this.principal = principal;
+        public Builder verificationResult(final VerificationResult verificationResult) {
+            this.verificationResult = verificationResult;
             return this;
         }
 
         public ContractOfferFrameworkQuery build() {
             final ContractOfferFrameworkQuery contractOfferFrameworkQuery = new ContractOfferFrameworkQuery();
-            contractOfferFrameworkQuery.principal = this.principal;
+            contractOfferFrameworkQuery.verificationResult = this.verificationResult;
             return contractOfferFrameworkQuery;
         }
     }

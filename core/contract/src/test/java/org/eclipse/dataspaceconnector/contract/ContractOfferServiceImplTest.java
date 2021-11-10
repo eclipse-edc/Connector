@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.contract;
 
+import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
@@ -24,9 +26,11 @@ import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferTemplate;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -110,6 +114,50 @@ class ContractOfferServiceImplTest {
         assertThat(response.getContractOfferStream()).isEmpty();
 
         verify(contractOfferFramework, assetIndex, contractOfferTemplate);
+    }
+
+
+    @Test
+    void testTargetAssetFilter() {
+
+        // given
+        ContractOfferTemplate t1 = mock(ContractOfferTemplate.class);
+        AssetSelectorExpression s1 = AssetSelectorExpression.Builder.newInstance().build();
+        ContractOfferTemplate t2 = mock(ContractOfferTemplate.class);
+        AssetSelectorExpression s2 = AssetSelectorExpression.Builder.newInstance().build();
+
+        Asset a1 = Asset.Builder.newInstance().id("a1").build();
+        ContractOffer o1 = ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build()).assets(Collections.singletonList(a1)).build();
+        ContractOffer o1Copy = ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build()).assets(Collections.singletonList(a1)).build();
+        Asset a2 = Asset.Builder.newInstance().id("a2").build();
+        ContractOffer o2 = ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build()).assets(Collections.singletonList(a2)).build();
+
+        // expect
+        EasyMock.expect(t1.getSelectorExpression()).andReturn(s1);
+        EasyMock.expect(t2.getSelectorExpression()).andReturn(s2);
+
+        EasyMock.expect(contractOfferFramework.queryTemplates(isA(ContractOfferFrameworkQuery.class)))
+                .andReturn(Stream.of(t1, t2));
+
+        Stream<Asset> stream1 = Stream.of(a1);
+        Stream<Asset> stream2 = Stream.of(a2);
+        EasyMock.expect(assetIndex.queryAssets(s1)).andReturn(stream1);
+        EasyMock.expect(assetIndex.queryAssets(s2)).andReturn(stream2);
+
+        EasyMock.expect(t1.getTemplatedOffers(stream1)).andReturn(Stream.of(o1, o1Copy));
+        EasyMock.expect(t2.getTemplatedOffers(stream2)).andReturn(Stream.of(o2));
+
+        replay(contractOfferFramework, assetIndex, t1, t2);
+
+        // invocation
+        ContractOfferQuery contractOfferQuery = ContractOfferQuery.builder().targetAsset(a1.getId()).build();
+        ContractOfferQueryResponse response = contractOfferService.queryContractOffers(contractOfferQuery);
+
+        // verification
+        assertThat(response).isNotNull();
+        Assertions.assertEquals(2, response.getContractOfferStream().count());
+
+        verify(contractOfferFramework, assetIndex, t1, t2);
     }
 
     @Test

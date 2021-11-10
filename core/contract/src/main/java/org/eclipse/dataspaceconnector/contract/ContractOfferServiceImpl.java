@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public class ContractOfferServiceImpl implements ContractOfferService {
@@ -54,8 +55,12 @@ public class ContractOfferServiceImpl implements ContractOfferService {
                         contractOfferFramework.queryTemplates(contractOfferFrameworkQuery))
                 .orElseGet(Stream::empty);
 
+        Predicate<ContractOffer> targetAssetFilter = contractOffer -> contractOfferQuery.getTargetAssetIds().isEmpty() ||
+                contractOffer.getAssets().stream().anyMatch(a -> contractOfferQuery.getTargetAssetIds().contains(a.getId()));
+
         return new ContractOfferQueryResponse(contractOfferTemplates
-                .flatMap(this::createContractOfferFromTemplate));
+                .flatMap(this::createContractOfferFromTemplate)
+                .filter(targetAssetFilter));
     }
 
     private Stream<ContractOffer> createContractOfferFromTemplate(
@@ -67,15 +72,14 @@ public class ContractOfferServiceImpl implements ContractOfferService {
         }
 
         return Stream.empty();
-
     }
 
     private ContractOfferFrameworkQuery createContractOfferFrameworkQuery(
             ContractOfferQuery contractOfferQuery) {
         ContractOfferFrameworkQuery.Builder builder = ContractOfferFrameworkQuery.builder();
 
-        Optional.ofNullable(contractOfferQuery.getPrincipal())
-                .ifPresent(builder::principal);
+        Optional.ofNullable(contractOfferQuery.getVerificationResult())
+                .ifPresent(builder::verificationResult);
 
         return builder.build();
     }

@@ -102,6 +102,9 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
                 iter.previous().shutdown();
             }
         }
+
+        // clear the systemExtensions map to prevent it from piling up between subsequent runs
+        systemExtensions.clear();
     }
 
     @Override

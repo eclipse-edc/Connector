@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.ids.spi.transform;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -34,5 +35,5 @@ public interface IdsTypeTransformer<INPUT, OUTPUT> {
      * Transforms the object.
      */
     @Nullable
-    OUTPUT transform(INPUT object, TransformerContext context);
+    OUTPUT transform(@Nullable INPUT object, @NotNull TransformerContext context);
 }

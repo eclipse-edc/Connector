@@ -56,6 +56,11 @@ public class IdsId {
             return this;
         }
 
+        public Builder value(int value) {
+            this.value = String.valueOf(value);
+            return this;
+        }
+
         public IdsId build() {
             return new IdsId(type, value);
         }

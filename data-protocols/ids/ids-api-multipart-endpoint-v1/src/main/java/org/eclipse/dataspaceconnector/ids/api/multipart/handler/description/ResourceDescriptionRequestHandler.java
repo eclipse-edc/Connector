@@ -18,20 +18,29 @@ import de.fraunhofer.iais.eis.Resource;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
+import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-public class ResourceDescriptionRequestHandler extends AbstractDescriptionRequestHandler<Asset, Resource> {
+public class ResourceDescriptionRequestHandler extends AbstractDescriptionRequestHandler<OfferedAsset, Resource> {
     private final AssetIndex assetIndex;
+    private final ContractOfferService contractOfferService;
 
     public ResourceDescriptionRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull AssetIndex assetIndex,
+            @NotNull ContractOfferService contractOfferService,
             @NotNull TransformerRegistry transformerRegistry) {
         super(
                 connectorId,
@@ -41,11 +50,14 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
                 Resource.class
         );
         this.assetIndex = Objects.requireNonNull(assetIndex);
+        this.contractOfferService = Objects.requireNonNull(contractOfferService);
     }
 
+    protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult) {
+        Asset asset = assetIndex.findById(idsId.getValue());
+        ContractOfferQuery contractOfferQuery = ContractOfferQuery.Builder.newInstance().targetAsset(asset.getId()).verificationResult(verificationResult).build();
+        List<ContractOffer> targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery).getContractOfferStream().collect(Collectors.toList());
 
-    @Override
-    protected Asset retrieveObject(@NotNull IdsId idsId) {
-        return assetIndex.findById(idsId.getValue());
+        return new OfferedAsset(asset, targetingContractOffers);
     }
 }

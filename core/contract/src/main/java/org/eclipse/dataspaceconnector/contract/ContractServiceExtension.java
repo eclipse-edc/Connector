@@ -26,7 +26,7 @@ import java.util.Set;
 public class ContractServiceExtension implements ServiceExtension {
     private static final String NAME = "Core Contract Service Extension";
     private static final String[] PROVIDES = {
-            ContractOfferService.class.getName()
+            "edc:core:contract"
     };
 
     private Monitor monitor;

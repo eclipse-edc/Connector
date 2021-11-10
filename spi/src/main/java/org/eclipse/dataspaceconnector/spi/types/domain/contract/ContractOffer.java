@@ -17,6 +17,8 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -24,7 +26,7 @@ import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.Objects;
 
 /**
  * A contract offer is exchanged between a providing and a consuming connector. It describes
@@ -33,7 +35,15 @@ import java.util.Optional;
 @JsonDeserialize(builder = ContractOffer.Builder.class)
 public class ContractOffer {
 
-    private List<OfferedAsset> assets;
+    /**
+     * The policy that describes the usage conditions of the assets
+     */
+    private Policy policy;
+
+    /**
+     * The offered assets@
+     */
+    private List<Asset> assets;
 
     /**
      * The participant who provides the offered data
@@ -97,15 +107,19 @@ public class ContractOffer {
     }
 
     @NotNull
-    public List<OfferedAsset> getAssets() {
-        return Optional.ofNullable(assets)
-                .map(Collections::unmodifiableList)
-                .orElseGet(Collections::emptyList);
+    public List<Asset> getAssets() {
+        return assets == null ? Collections.emptyList() : Collections.unmodifiableList(assets);
+    }
+
+    @NotNull
+    public Policy getPolicy() {
+        return policy;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private List<OfferedAsset> offeredAsset;
+        private List<Asset> assets;
+        private Policy policy;
         private URI provider;
         private URI consumer;
         private ZonedDateTime offerStart;
@@ -131,8 +145,8 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder assets(List<OfferedAsset> offeredAsset) {
-            this.offeredAsset = offeredAsset;
+        public Builder assets(List<Asset> assets) {
+            this.assets = assets;
             return this;
         }
 
@@ -156,9 +170,17 @@ public class ContractOffer {
             return this;
         }
 
+        public Builder policy(Policy policy) {
+            this.policy = policy;
+            return this;
+        }
+
         public ContractOffer build() {
+            Objects.requireNonNull(this.policy);
+
             ContractOffer offer = new ContractOffer();
-            offer.assets = this.offeredAsset;
+            offer.policy = this.policy;
+            offer.assets = this.assets;
             offer.provider = this.provider;
             offer.consumer = this.consumer;
             offer.offerStart = this.offerStart;

@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BaseConnectorBuilder;
-import de.fraunhofer.iais.eis.ConnectorEndpoint;
+import de.fraunhofer.iais.eis.ConnectorEndpointBuilder;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.SecurityProfile;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
@@ -47,7 +48,7 @@ public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Co
 
     @Nullable
     @Override
-    public de.fraunhofer.iais.eis.Connector transform(Connector object, TransformerContext context) {
+    public de.fraunhofer.iais.eis.Connector transform(Connector object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
@@ -85,9 +86,9 @@ public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Co
             builder._securityProfile_(securityProfile);
         }
 
-        ConnectorEndpoint connectorEndpoint = context.transform(object.getEndpoint(), ConnectorEndpoint.class);
-        if (connectorEndpoint != null) {
-            builder._hasDefaultEndpoint_(connectorEndpoint);
+        URI uriEndpoint = object.getEndpoint();
+        if (uriEndpoint != null) {
+            builder._hasDefaultEndpoint_(new ConnectorEndpointBuilder()._accessURL_(uriEndpoint).build());
         }
 
         String dataSpaceConnectorVersion = object.getConnectorVersion();

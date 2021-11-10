@@ -14,7 +14,10 @@
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
-import java.security.Principal;
+import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+
+import java.util.ArrayList;
+import java.util.List;
 
 // TODO: add pagination attributes
 
@@ -24,39 +27,66 @@ import java.security.Principal;
  */
 public class ContractOfferQuery {
 
-    // TODO: decide whether either use org.eclipse.dataspaceconnector.spi.iam.VerificationResult or introduce
-    //       container principal object wrapping org.eclipse.dataspaceconnector.spi.iam.VerificationResult
-    private Principal principal;
+    private VerificationResult verificationResult;
+    private List<String> targetAssetIds;
 
     private ContractOfferQuery() {
     }
 
-    public Principal getPrincipal() {
-        return principal;
+    /**
+     * Tell the query to filter out all {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer} that are not intended for the connector, the {@link VerificationResult} was created for.
+     *
+     * @return verification result of the requesting connector
+     */
+    public VerificationResult getVerificationResult() {
+        return verificationResult;
     }
 
     public static ContractOfferQuery.Builder builder() {
         return ContractOfferQuery.Builder.newInstance();
     }
 
+    /**
+     * Tell the query to filter out all {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer} that don't contain at least one of the target assets.
+     * An empty list applies no filter.
+     *
+     * @return list of target assets
+     */
+    public List<String> getTargetAssetIds() {
+        return targetAssetIds;
+    }
+
     public static final class Builder {
-        private Principal principal;
+        private VerificationResult verificationResult;
+        private List<String> assets;
 
         private Builder() {
+            assets = new ArrayList<>();
         }
 
-        public static ContractOfferQuery.Builder newInstance() {
+        public static Builder newInstance() {
             return new ContractOfferQuery.Builder();
         }
 
-        public ContractOfferQuery.Builder principal(final Principal principal) {
-            this.principal = principal;
+        public Builder verificationResult(final VerificationResult verificationResult) {
+            this.verificationResult = verificationResult;
+            return this;
+        }
+
+        public Builder targetAsset(String assetId) {
+            this.assets.add(assetId);
+            return this;
+        }
+
+        public Builder targetAssets(List<String> assetIds) {
+            this.assets.addAll(assetIds);
             return this;
         }
 
         public ContractOfferQuery build() {
             final ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
-            contractOfferQuery.principal = this.principal;
+            contractOfferQuery.verificationResult = this.verificationResult;
+            contractOfferQuery.targetAssetIds = this.assets;
             return contractOfferQuery;
         }
     }
