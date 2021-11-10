@@ -27,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
@@ -36,7 +35,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,7 +51,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 
-public class TransferProcessManagerImpl extends TransferProcessObservable implements TransferProcessManager {
+public class AsyncTransferProcessManager extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
@@ -66,9 +64,9 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private Monitor monitor;
     private ExecutorService executor;
     private StatusCheckerRegistry statusCheckerRegistry;
-    private DataProxyManager dataProxyManager;
 
-    private TransferProcessManagerImpl() {
+
+    private AsyncTransferProcessManager() {
 
     }
 
@@ -96,41 +94,6 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return initiateRequest(PROVIDER, dataRequest);
     }
 
-    @Override
-    public TransferResponse initiateProviderRequestSync(DataRequest dataRequest) {
-        //create a transfer process in the COMPLETED state
-        var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(PROVIDER).build();
-        transferProcessStore.create(process);
-        invokeForEach(l -> l.completed(process));
-
-        var dataProxy = dataProxyManager.getProxy(dataRequest);
-        if (dataProxy != null) {
-            var proxyData = dataProxy.getData(dataRequest);
-            return TransferResponse.Builder.newInstance().id(process.getId()).data(proxyData).status(ResponseStatus.OK).build();
-        }
-        return TransferResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.FATAL_ERROR).build();
-    }
-
-    @Override
-    public TransferInitiateResult initiateConsumerRequestSync(DataRequest dataRequest) {
-        var id = UUID.randomUUID().toString();
-        var transferProcess = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.REQUESTED.code()).type(CONSUMER).build();
-        transferProcessStore.create(transferProcess);
-        invokeForEach(l -> l.requested(transferProcess));
-
-        var future = dispatcherRegistry.send(Object.class, dataRequest, transferProcess::getId);
-        try {
-
-            var result = future.join();
-            transferProcess.transitionInProgress();
-            transferProcess.transitionCompleted();
-            transferProcessStore.update(transferProcess);
-            return TransferResponse.Builder.newInstance().data(result).id(dataRequest.getId()).status(ResponseStatus.OK).build();
-        } catch (RuntimeException ex) {
-            return TransferResponse.Builder.newInstance().id(dataRequest.getId()).status(ResponseStatus.ERROR_RETRY).error(ex.getMessage()).build();
-        }
-    }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
@@ -367,10 +330,10 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     }
 
     public static class Builder {
-        private final TransferProcessManagerImpl manager;
+        private final AsyncTransferProcessManager manager;
 
         private Builder() {
-            manager = new TransferProcessManagerImpl();
+            manager = new AsyncTransferProcessManager();
         }
 
         public static Builder newInstance() {
@@ -412,17 +375,12 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             return this;
         }
 
-        public Builder dataProxyRegistry(DataProxyManager registry) {
-            manager.dataProxyManager = registry;
-            return this;
-        }
-
         public Builder statusCheckerRegistry(StatusCheckerRegistry statusCheckerRegistry) {
             manager.statusCheckerRegistry = statusCheckerRegistry;
             return this;
         }
 
-        public TransferProcessManagerImpl build() {
+        public AsyncTransferProcessManager build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
             Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");

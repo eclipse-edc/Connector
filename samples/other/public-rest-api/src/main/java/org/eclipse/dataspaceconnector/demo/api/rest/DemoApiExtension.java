@@ -19,7 +19,7 @@ public class DemoApiExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("dataspaceconnector:transferprocessstore", "edc:catalog-service");
+        return Set.of(TransferProcessStore.FEATURE, "edc:catalog-service");
     }
 
     @Override

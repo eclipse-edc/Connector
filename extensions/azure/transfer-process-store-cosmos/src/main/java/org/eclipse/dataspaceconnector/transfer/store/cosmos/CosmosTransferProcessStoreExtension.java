@@ -37,7 +37,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of("dataspaceconnector:transferprocessstore");
+        return Set.of(TransferProcessStore.FEATURE);
     }
 
     @Override

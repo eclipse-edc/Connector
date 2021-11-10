@@ -36,9 +36,11 @@ import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.AsyncTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.SyncTransferProcessManager;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerDelegate;
 
 import java.util.Set;
 
@@ -50,7 +52,8 @@ public class CoreTransferExtension implements ServiceExtension {
 
     private ServiceExtensionContext context;
     private ProvisionManagerImpl provisionManager;
-    private TransferProcessManagerImpl processManager;
+    private TransferProcessManagerDelegate processManager;
+    private TransferProcessStore transferProcessStore;
 
     @Override
     public String name() {
@@ -61,6 +64,11 @@ public class CoreTransferExtension implements ServiceExtension {
     public Set<String> provides() {
         return Set.of("dataspaceconnector:statuschecker", "dataspaceconnector:dispatcher", "dataspaceconnector:manifestgenerator",
                 "dataspaceconnector:transfer-process-manager", "dataspaceconnector:transfer-process-observable", DataProxyManager.FEATURE);
+    }
+
+    @Override
+    public Set<String> requires() {
+        return Set.of(TransferProcessStore.FEATURE);
     }
 
     @Override
@@ -99,24 +107,29 @@ public class CoreTransferExtension implements ServiceExtension {
         var dataProxyRegistry = new DataProxyManagerImpl();
         context.registerService(DataProxyManager.class, dataProxyRegistry);
 
-        processManager = TransferProcessManagerImpl.Builder.newInstance()
+
+        transferProcessStore = context.getService(TransferProcessStore.class);
+        var asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)
                 .provisionManager(provisionManager)
                 .dispatcherRegistry(dispatcherRegistry)
                 .statusCheckerRegistry(statusCheckerRegistry)
-                .dataProxyRegistry(dataProxyRegistry)
                 .monitor(monitor)
                 .build();
+        var syncMgr = new SyncTransferProcessManager(dataProxyRegistry, transferProcessStore, dispatcherRegistry);
+
+        processManager = new TransferProcessManagerDelegate(asyncMgr, syncMgr);
 
         context.registerService(TransferProcessManager.class, processManager);
-        context.registerService(TransferProcessObservable.class, processManager);
+        context.registerService(TransferProcessObservable.class, asyncMgr);
+
     }
 
     @Override
     public void start() {
-        var transferProcessStore = context.getService(TransferProcessStore.class);
+
 
         provisionManager.start(transferProcessStore);
         processManager.start(transferProcessStore);

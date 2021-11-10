@@ -19,6 +19,7 @@ import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.ArtifactResponseMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.TokenFormat;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
@@ -101,9 +102,13 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
 
         var processId = context.getProcessId();
 
-        var serializedToken = vault.resolveSecret(dataRequest.getDataDestination().getKeyName());
-        if (serializedToken != null) {
-            artifactMessage.setProperty("dataspaceconnector-destination-token", serializedToken);
+        var keyName = dataRequest.getDataDestination().getKeyName();
+        // there might not be a keyname, e.g. with PULL style data transfers
+        if (keyName != null) {
+            var serializedToken = vault.resolveSecret(keyName);
+            if (serializedToken != null) {
+                artifactMessage.setProperty("dataspaceconnector-destination-token", serializedToken);
+            }
         }
         artifactMessage.setProperty("dataspaceconnector-is-synch-request", dataRequest.isSyncRequest());
 
@@ -139,13 +144,27 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
                         monitor.severe("Received not authorized from connector for process: " + processId);
                     }
                     // Fatal error
-                    transferProcess.transitionError("General error, HTTP response code: " + r.code());
+                    var rejectionMsg = extractRejectionMessage(r);
+                    String message = rejectionMsg != null ?
+                            String.format("IDS Rejection: '%s', code %s", rejectionMsg.getRejectionReason().name(), r.code()) :
+                            "General error, HTTP response code: " + r.code();
+                    monitor.severe(message);
+                    transferProcess.transitionError(message);
                 }
                 transferProcessStore.update(transferProcess);
                 return null;
             }
         }));
         return future;
+    }
+
+    private RejectionMessage extractRejectionMessage(Response r) {
+        try {
+            return mapper.readValue(r.body().string(), RejectionMessage.class);
+        } catch (IOException ex) {
+            monitor.severe("Could not read body of response", ex);
+            return null;
+        }
     }
 
     private Object extractArtifactResponse(Response httpResponse) {

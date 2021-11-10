@@ -26,6 +26,8 @@ import java.util.Set;
  */
 public interface TransferProcessStore {
 
+    String FEATURE = "dataspaceconnector:transferprocessstore";
+
     TransferProcess find(String id);
 
     @Nullable

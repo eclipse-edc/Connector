@@ -54,11 +54,11 @@ import static org.easymock.EasyMock.partialMockBuilder;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-class TransferProcessManagerImplConsumerTest {
+class AsyncTransferProcessManagerImplConsumerTest {
 
     private static final long TIMEOUT = 5;
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
-    private TransferProcessManagerImpl transferProcessManager;
+    private AsyncTransferProcessManager transferProcessManager;
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private StatusCheckerRegistry statusCheckerRegistry;
@@ -80,7 +80,7 @@ class TransferProcessManagerImplConsumerTest {
                 .addMockedMethod("success").strictMock();
 
 
-        transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
+        transferProcessManager = AsyncTransferProcessManager.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(dataFlowManager)
                 .waitStrategy(waitStrategyMock)
