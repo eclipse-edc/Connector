@@ -14,7 +14,7 @@ public class RestProxyEntryHandler implements ProxyEntryHandler {
     @Override
     public Object apply(ProxyEntry restProxyEntry) {
         monitor.info("RestProxyEntryHandler accepted entry");
-        monitor.info(String.format("Will issue a GET request to %s ", restProxyEntry.getUrl()));
+        monitor.info(String.format("Will issue a GET request to %s ", restProxyEntry.getProperties().get("url")));
         return restProxyEntry;
     }
 

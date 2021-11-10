@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -40,6 +41,10 @@ public class RestDataProxy implements DataProxy {
 
         String base64Jwt = jwt.serialize();
         issuedTokens.add(base64Jwt);
-        return new ProxyEntry(path, base64Jwt, request.getDestinationType());
+        return ProxyEntry.Builder.newInstance()
+                .type(request.getDestinationType())
+                .properties(Map.of("url", path, "token", base64Jwt))
+                .build();
     }
+
 }
