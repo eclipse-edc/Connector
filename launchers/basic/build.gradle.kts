@@ -23,17 +23,11 @@ val jupiterVersion: String by project
 dependencies {
     implementation(project(":core"))
     implementation(project(":data-protocols:ids"))
-    implementation(project(":extensions:azure:blob"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))
-
-    //FIXME for testing only: spin up a runtime that contains an FCC
-    implementation(project(":extensions:catalog:federated-catalog-cache"))
-    implementation(project(":extensions:in-memory:fcc-node-directory-memory"))
-    implementation(project(":extensions:in-memory:fcc-catalogquery-adapter-registry-memory"))
 }
 
 application {
