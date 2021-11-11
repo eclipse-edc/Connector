@@ -59,7 +59,7 @@ public class SyncTransferProcessManager implements TransferProcessManager {
             // if there is one or more handlers for this particular transfer type, return the result of these handlers, otherwise return the
             // raw proxy object
             var handler = Optional.ofNullable(proxyEntryHandlers.get(proxyEntry.getType()));
-            var proxyConversionResult = handler.map(peh -> peh.apply(proxyEntry)).orElse(proxyEntry);
+            var proxyConversionResult = handler.map(peh -> peh.accept(dataRequest, proxyEntry)).orElse(proxyEntry);
             return TransferResponse.Builder.newInstance().data(proxyConversionResult).id(dataRequest.getId()).status(ResponseStatus.OK).build();
         } catch (Exception ex) {
             var status = isRetryable(ex.getCause()) ? ResponseStatus.ERROR_RETRY : ResponseStatus.FATAL_ERROR;

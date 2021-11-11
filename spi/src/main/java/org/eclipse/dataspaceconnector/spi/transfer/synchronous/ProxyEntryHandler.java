@@ -1,7 +1,8 @@
 package org.eclipse.dataspaceconnector.spi.transfer.synchronous;
 
-import java.util.function.Function;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 @FunctionalInterface
-public interface ProxyEntryHandler extends Function<ProxyEntry, Object> {
+public interface ProxyEntryHandler {
+    Object accept(DataRequest originalRequest, ProxyEntry proxyEntry);
 }

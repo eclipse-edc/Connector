@@ -148,7 +148,7 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
                     String message = rejectionMsg != null ?
                             String.format("IDS Rejection: '%s', code %s", rejectionMsg.getRejectionReason().name(), r.code()) :
                             "General error, HTTP response code: " + r.code();
-                    monitor.severe(message);
+                    monitor.info(message);
                     transferProcess.transitionError(message);
                 }
                 transferProcessStore.update(transferProcess);

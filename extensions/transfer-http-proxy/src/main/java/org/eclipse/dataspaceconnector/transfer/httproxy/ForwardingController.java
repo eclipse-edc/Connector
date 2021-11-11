@@ -58,9 +58,9 @@ public class ForwardingController {
         monitor.info("Validate token for proxy");
         if (bearerToken == null) {
             monitor.severe("No token supplied with request");
-            return Response.status(Response.Status.BAD_REQUEST).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity("no Bearer token supplied").build();
         }
-        if (tokenValid(bearerToken)) {
+        if (!tokenValid(bearerToken)) {
             return Response.status(Response.Status.UNAUTHORIZED).build();
         }
 
@@ -90,7 +90,7 @@ public class ForwardingController {
 
             try (var response = client.newCall(request.build()).execute()) {
                 if (response.isSuccessful()) {
-                    return Response.ok(response.body().toString()).build();
+                    return Response.ok(response.body().string()).build();
                 }
                 return Response.status(response.code(), response.message()).build();
             } catch (IOException ex) {
@@ -119,9 +119,13 @@ public class ForwardingController {
     }
 
     private boolean tokenValid(String bearerToken) {
+        if (!bearerToken.contains("Bearer")) {
+            return false;
+        }
+        bearerToken = bearerToken.replace("Bearer", "").trim();
         return tokenExists(bearerToken) &&
                 isValidJwt(bearerToken) &&
-                tokenExpired(bearerToken);
+                !tokenExpired(bearerToken);
     }
 
     private boolean isValidJwt(String bearerToken) {

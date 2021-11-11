@@ -33,7 +33,7 @@ public class TransferProxyHttpExtension implements ServiceExtension {
         manager.addProxy(RestDataProxy.DESTINATION_TYPE_HTTP, new RestDataProxy(controller.getRootPath(), context.getConnectorId(), issuedTokens));
 
         var registry = context.getService(ProxyEntryHandlerRegistry.class);
-        registry.put(RestDataProxy.DESTINATION_TYPE_HTTP, new RestProxyEntryHandler(context.getMonitor()));
+        registry.put(RestDataProxy.DESTINATION_TYPE_HTTP, new RestProxyEntryHandler(context.getMonitor(), context.getService(OkHttpClient.class)));
 
     }
 }
