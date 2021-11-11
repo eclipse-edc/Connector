@@ -66,9 +66,8 @@ public class PermissionToPermissionTransformer implements IdsTypeTransformer<Per
         }
 
         if (object.getDuty() != null) {
-            // TODO Fix after the issue in the Information Model, asking about non-compliance between IDS and ODRL, is resolved
-            // Link https://github.com/International-Data-Spaces-Association/InformationModel/issues/523
-            context.reportProblem("Not supported transformation: EDC-Duty to IDS Pre-/Post-Duty");
+            var duty = context.transform(object.getDuty(), de.fraunhofer.iais.eis.Duty.class);
+            permissionBuilder._preDuty_(new ArrayList<>(Collections.singletonList(duty)));
         }
 
         return permissionBuilder.build();

@@ -85,10 +85,8 @@ public class PermissionToPermissionTransformerTest {
         EasyMock.expect(permission.getAction()).andReturn(edcAction).anyTimes();
         EasyMock.expect(context.transform(EasyMock.eq(edcAction), EasyMock.eq(de.fraunhofer.iais.eis.Action.class))).andReturn(idsAction);
         EasyMock.expect(context.transform(EasyMock.eq(edcConstraint), EasyMock.eq(de.fraunhofer.iais.eis.Constraint.class))).andReturn(idsConstraint);
+        EasyMock.expect(context.transform(EasyMock.eq(edcDuty), EasyMock.eq(de.fraunhofer.iais.eis.Duty.class))).andReturn(idsDuty);
         EasyMock.expect(context.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(PERMISSION_ID);
-
-        context.reportProblem(EasyMock.anyString());
-        EasyMock.expectLastCall().once();
 
         // record
         EasyMock.replay(permission, context);
