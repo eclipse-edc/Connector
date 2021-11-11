@@ -44,12 +44,12 @@ public class AssetDocument extends CosmosDocument<Asset> {
         return sanitizedProperties;
     }
 
-    private static Map<String, Object> sanitizeProperties(Asset asset) {
-        return asset.getProperties().entrySet().stream()
-                .collect(Collectors.toMap(entry -> sanitizeKey(entry.getKey()), Map.Entry::getValue));
+    public static String sanitize(String key) {
+        return key.replace(':', '_');
     }
 
-    private static String sanitizeKey(String key) {
-        return key.replace(':', '_');
+    private static Map<String, Object> sanitizeProperties(Asset asset) {
+        return asset.getProperties().entrySet().stream()
+                .collect(Collectors.toMap(entry -> sanitize(entry.getKey()), Map.Entry::getValue));
     }
 }

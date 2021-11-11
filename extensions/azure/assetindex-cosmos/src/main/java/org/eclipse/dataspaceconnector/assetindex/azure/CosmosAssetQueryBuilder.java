@@ -44,6 +44,10 @@ public class CosmosAssetQueryBuilder {
             }
         }
 
+        private static String formatValue(String value) {
+            return "'" + value + "'";
+        }
+
         public String getWhere() {
             return where;
         }
@@ -56,16 +60,13 @@ public class CosmosAssetQueryBuilder {
             if (!SUPPORTED_OPERATOR.contains(criterion.getOperator())) {
                 throw new EdcException("Cannot build SqlParameter for operator: " + criterion.getOperator());
             }
-            String param = "@" + criterion.getOperandLeft();
+            String field = AssetDocument.sanitize(criterion.getOperandLeft().toString());
+            String param = "@" + field;
             where += parameters.isEmpty() ? " WHERE" : " AND";
-            parameters.add(new SqlParameter(param, criterion.getOperandRight()));
+            parameters.add(new SqlParameter(param, criterion.getOperandRight().toString()));
             where += String.join(" " + criterion.getOperator() + " ",
-                    " " + PATH_TO_PROPERTIES + "." + criterion.getOperandLeft(),
+                    " " + PATH_TO_PROPERTIES + "." + field,
                     formatValue((String) criterion.getOperandRight()));
-        }
-
-        private static String formatValue(String value) {
-            return "'" + value + "'";
         }
     }
 }

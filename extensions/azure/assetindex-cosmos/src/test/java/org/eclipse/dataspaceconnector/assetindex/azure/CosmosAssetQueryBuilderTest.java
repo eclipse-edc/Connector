@@ -26,7 +26,7 @@ class CosmosAssetQueryBuilderTest {
     }
 
     @Test
-    void queryWithConditions() {
+    void queryWithFilerOnProperty() {
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
                 .whenEquals("id", "id-test")
                 .whenEquals("name", "name-test")
@@ -35,6 +35,18 @@ class CosmosAssetQueryBuilderTest {
         SqlQuerySpec query = builder.from(expression);
 
         assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.sanitizedProperties.id = 'id-test' AND AssetDocument.sanitizedProperties.name = 'name-test'");
+    }
+
+    @Test
+    void queryWithFilerOnPropertyWithIllegalArgs() {
+        AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
+                .whenEquals("test:id", "id-test")
+                .whenEquals("test:name", "name-test")
+                .build();
+
+        SqlQuerySpec query = builder.from(expression);
+
+        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.sanitizedProperties.test_id = 'id-test' AND AssetDocument.sanitizedProperties.test_name = 'name-test'");
     }
 
     @Test

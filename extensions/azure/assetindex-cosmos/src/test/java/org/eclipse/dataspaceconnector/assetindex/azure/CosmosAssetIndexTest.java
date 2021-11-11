@@ -148,7 +148,7 @@ class CosmosAssetIndexTest {
         String id1 = UUID.randomUUID().toString();
         String id2 = UUID.randomUUID().toString();
         // let's verify that the query actually contains the proper WHERE clause
-        expect(api.queryItems(matches(".*WHERE AssetDocument.*" + Asset.PROPERTY_NAME + " = 'somename'"))).andReturn(List.of(createDocument(id1), createDocument(id2)));
+        expect(api.queryItems(matches(".*WHERE AssetDocument.* = 'somename'"))).andReturn(List.of(createDocument(id1), createDocument(id2)));
 
         replay(api);
 

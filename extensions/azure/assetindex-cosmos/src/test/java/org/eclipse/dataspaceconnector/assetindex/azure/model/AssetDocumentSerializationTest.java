@@ -47,6 +47,7 @@ class AssetDocumentSerializationTest {
                 .contains("\"asset:prop:contenttype\":\"application/json\"")
                 .contains("\"foo\":\"bar\"")
                 .contains("\"sanitizedProperties\":")
+                .contains("\"id\":\"id-test\"")
                 .contains("\"asset_prop_id\":\"id-test\"")
                 .contains("\"asset_prop_name\":\"node-test\"");
     }

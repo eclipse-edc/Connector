@@ -70,6 +70,14 @@ class CosmosAssetIndexIntegrationTest {
         }
     }
 
+    @AfterAll
+    static void deleteDatabase() {
+        if (database != null) {
+            CosmosDatabaseResponse delete = database.delete();
+            assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
+        }
+    }
+
     @BeforeEach
     void setUp() {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
@@ -119,7 +127,32 @@ class CosmosAssetIndexIntegrationTest {
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
 
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
-                .whenEquals("asset_prop_id", "456")
+                .whenEquals(Asset.PROPERTY_ID, "456")
+                .build();
+
+        List<Asset> assets = assetIndex.queryAssets(expression).collect(Collectors.toList());
+
+        assertThat(assets).hasSize(1)
+                .allSatisfy(asset -> assertThat(asset.getId()).isEqualTo("456"));
+    }
+
+    @Test
+    void queryAssets_filterOnPropertyContainingIllegalArgs() {
+        Asset asset1 = Asset.Builder.newInstance()
+                .id("123")
+                .property("test:value", "world")
+                .build();
+
+        Asset asset2 = Asset.Builder.newInstance()
+                .id("456")
+                .property("test:value", "bar")
+                .build();
+
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
+
+        AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
+                .whenEquals("test:value", "bar")
                 .build();
 
         List<Asset> assets = assetIndex.queryAssets(expression).collect(Collectors.toList());
@@ -153,13 +186,5 @@ class CosmosAssetIndexIntegrationTest {
     void teardown() {
         CosmosContainerResponse delete = container.delete();
         assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
-    }
-
-    @AfterAll
-    static void deleteDatabase() {
-        if (database != null) {
-            CosmosDatabaseResponse delete = database.delete();
-            assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
-        }
     }
 }
