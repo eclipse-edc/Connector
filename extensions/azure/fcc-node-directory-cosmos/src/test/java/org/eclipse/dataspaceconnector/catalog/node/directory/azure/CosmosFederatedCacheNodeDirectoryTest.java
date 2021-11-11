@@ -1,120 +1,110 @@
-/*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
- *
- *  This program and the accompanying materials are made available under the
- *  terms of the Apache License, Version 2.0 which is available at
- *  https://www.apache.org/licenses/LICENSE-2.0
- *
- *  SPDX-License-Identifier: Apache-2.0
- *
- *  Contributors:
- *       Microsoft Corporation - initial API and implementation
- *
- */
-
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
-import com.azure.cosmos.ConsistencyLevel;
-import com.azure.cosmos.CosmosClientBuilder;
-import com.azure.cosmos.CosmosContainer;
-import com.azure.cosmos.CosmosDatabase;
-import com.azure.cosmos.models.CosmosContainerResponse;
-import com.azure.cosmos.models.CosmosDatabaseResponse;
-import com.azure.cosmos.models.PartitionKey;
-import com.azure.cosmos.util.CosmosPagedIterable;
 import net.jodah.failsafe.RetryPolicy;
+import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
-import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
+import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.expectLastCall;
+import static org.easymock.EasyMock.replay;
+import static org.easymock.EasyMock.reset;
+import static org.easymock.EasyMock.strictMock;
+import static org.easymock.EasyMock.verify;
 
-@IntegrationTest
 class CosmosFederatedCacheNodeDirectoryTest {
 
-    public static final String REGION = "westeurope";
-    private static final String ACCOUNT_NAME = "cosmos-itest";
-    private static final String DATABASE_NAME = "connector-itest";
-    private static final String CONTAINER_NAME = "CosmosFederatedCatalogNodeStoreTest";
-    private static CosmosContainer container;
-    private static CosmosDatabase database;
-    private final String partitionKey = "testpartition";
-    private CosmosFederatedCacheNodeDirectory store;
-    private TypeManager typeManager;
+    private static final String PARTITION_KEY = "partition-test";
 
-    @BeforeAll
-    static void prepareCosmosClient() {
-        var key = propOrEnv("COSMOS_KEY", null);
-        if (key != null) {
-            var client = new CosmosClientBuilder()
-                    .key(key)
-                    .preferredRegions(Collections.singletonList(REGION))
-                    .consistencyLevel(ConsistencyLevel.SESSION)
-                    .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
-                    .buildClient();
-
-            CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
-            database = client.getDatabase(response.getProperties().getId());
-        }
-    }
+    private CosmosDbApi api;
+    private CosmosFederatedCacheNodeDirectory directory;
 
     @BeforeEach
-    void setUp() {
-        assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
-        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(CONTAINER_NAME, "/partitionKey");
-        container = database.getContainer(containerIfNotExists.getProperties().getId());
-        typeManager = new TypeManager();
-        typeManager.registerTypes(FederatedCacheNode.class, FederatedCacheNodeDocument.class);
-        store = new CosmosFederatedCacheNodeDirectory(container, partitionKey, typeManager, new RetryPolicy<>());
-    }
-
-    @Test
-    void create() {
-        FederatedCacheNode node = new FederatedCacheNode(UUID.randomUUID().toString(), "http://test.com", Arrays.asList("rest", "ids"));
-        store.insert(node);
-
-        CosmosPagedIterable<Object> documents = container.readAllItems(new PartitionKey(partitionKey), Object.class);
-        assertThat(documents).hasSize(1)
-                .allSatisfy(obj -> {
-                    var doc = convert(obj);
-                    assertThat(doc.getWrappedInstance()).isEqualTo(node);
-                    assertThat(doc.getPartitionKey()).isEqualTo(partitionKey);
-                });
-    }
-
-    @Test
-    void getAll() {
-        List<FederatedCacheNode> nodes = Arrays.asList(
-                new FederatedCacheNode("test1", "http://test1.com", Collections.singletonList("ids")),
-                new FederatedCacheNode("test2", "http://test2.com", Collections.singletonList("rest"))
-        );
-        container.createItem(
-                new FederatedCacheNodeDocument(nodes.get(0), "partition-test"));
-        container.createItem(
-                new FederatedCacheNodeDocument(nodes.get(1), "partition-test"));
-
-        List<FederatedCacheNode> result = store.getAll();
-        assertThat(result).isEqualTo(nodes);
+    public void setUp() {
+        TypeManager typeManager = new TypeManager();
+        typeManager.registerTypes(FederatedCacheNodeDocument.class, FederatedCacheNode.class);
+        RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(1);
+        api = strictMock(CosmosDbApi.class);
+        directory = new CosmosFederatedCacheNodeDirectory(api, PARTITION_KEY, typeManager, retryPolicy);
     }
 
     @AfterEach
-    void teardown() {
-        CosmosContainerResponse delete = container.delete();
-        assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
+    public void tearDown() {
+        reset(api);
     }
 
-    private FederatedCacheNodeDocument convert(Object obj) {
-        return typeManager.readValue(typeManager.writeValueAsBytes(obj), FederatedCacheNodeDocument.class);
+    @Test
+    void insert() {
+        FederatedCacheNode node = createNode();
+        api.createItem(anyObject(FederatedCacheNodeDocument.class));
+
+        List<FederatedCacheNodeDocument> documents = new ArrayList<>();
+        expectLastCall().andAnswer(() -> {
+            FederatedCacheNodeDocument passedNode = (FederatedCacheNodeDocument) EasyMock.getCurrentArguments()[0];
+            documents.add(passedNode);
+            return null;
+        });
+
+        replay(api);
+
+        directory.insert(node);
+
+        assertThat(documents)
+                .hasSize(1)
+                .allSatisfy(doc -> {
+                    assertThat(doc.getPartitionKey()).isEqualTo(PARTITION_KEY);
+                    assertNodesAreEqual(doc.getWrappedInstance(), node);
+                });
+
+        verify(api);
+    }
+
+    @Test
+    void queryAll() {
+        int nbNodes = 2;
+        List<FederatedCacheNode> nodes = new ArrayList<>();
+        for (int i = 0; i < nbNodes; i++) {
+            nodes.add(createNode());
+        }
+        List<Object> documents = nodes.stream()
+                .map(CosmosFederatedCacheNodeDirectoryTest::createDocument)
+                .collect(Collectors.toList());
+
+        expect(api.queryAllItems()).andReturn(documents);
+
+        replay(api);
+
+        List<FederatedCacheNode> result = directory.getAll();
+        assertThat(result).hasSize(nbNodes);
+        nodes.forEach(expected -> assertThat(result).anySatisfy(node -> assertNodesAreEqual(expected, node)));
+
+        verify(api);
+    }
+
+    private static void assertNodesAreEqual(FederatedCacheNode node1, FederatedCacheNode node2) {
+        assertThat(node1.getName()).isEqualTo(node2.getName());
+        assertThat(node1.getTargetUrl()).isEqualTo(node2.getTargetUrl());
+        assertThat(node1.getSupportedProtocols()).isEqualTo(node2.getSupportedProtocols());
+    }
+
+    private static FederatedCacheNodeDocument createDocument(FederatedCacheNode node) {
+        return new FederatedCacheNodeDocument(node, PARTITION_KEY);
+    }
+
+    private static FederatedCacheNode createNode() {
+        return new FederatedCacheNode(UUID.randomUUID().toString(), UUID.randomUUID().toString(), Collections.singletonList(UUID.randomUUID().toString()));
     }
 }

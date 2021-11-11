@@ -42,13 +42,12 @@ import static de.fraunhofer.iais.eis.RejectionReason.NOT_FOUND;
 import static de.fraunhofer.iais.eis.RejectionReason.TEMPORARILY_NOT_AVAILABLE;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
-import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 /**
  * Receives incoming data transfer requests and processes them.
  */
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 @Path("/ids")
 public class ArtifactRequestController {
     private static final String TOKEN_KEY = "dataspaceconnector-destination-token";
@@ -96,7 +95,7 @@ public class ArtifactRequestController {
             return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_FOUND).build()).build();
         }
 
-        var policy = policyRegistry.resolvePolicy((String) asset.getProperty(POLICY_ID));
+        var policy = policyRegistry.resolvePolicy(asset.getPolicyId());
         if (policy == null) {
             monitor.severe("Policy not found for artifact: " + dataUrn);
             return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new RejectionMessageBuilder()._rejectionReason_(TEMPORARILY_NOT_AVAILABLE).build()).build();

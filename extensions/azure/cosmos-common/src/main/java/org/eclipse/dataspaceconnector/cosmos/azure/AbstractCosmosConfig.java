@@ -2,20 +2,28 @@ package org.eclipse.dataspaceconnector.cosmos.azure;
 
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Objects;
 
 public abstract class AbstractCosmosConfig {
 
-    public static final String DEFAULT_REGION = "West US";
+    @EdcSetting
+    private static final String DEFAULT_PARTITION_KEY_SETTING = "edc.cosmos.partition-key";
+    @EdcSetting
+    private static final String DEFAULT_QUERY_METRICS_ENABLED_SETTING = "edc.cosmos.query-metrics-enabled";
+
+    public static final String DEFAULT_REGION = "westeurope";
     private static final String DEFAULT_PARTITION_KEY = "dataspaceconnector";
+
 
     private final String containerName;
     private final String partitionKey;
     private final String accountName;
     private final String preferredRegion;
     private final String dbName;
+    private final boolean queryMetricsEnabled;
 
     /**
      * Create a config object to interact with a Cosmos database.
@@ -30,6 +38,7 @@ public abstract class AbstractCosmosConfig {
         this.partitionKey = context.getSetting(getPartitionKeySetting(), DEFAULT_PARTITION_KEY);
         this.preferredRegion = context.getSetting(getCosmosPreferredRegionSetting(), DEFAULT_REGION);
         this.containerName = context.getSetting(getContainerNameSetting(), null);
+        this.queryMetricsEnabled = Boolean.parseBoolean(context.getSetting(getQueryMetricsEnabledSetting(), "true"));
 
         assertNotBlank(accountName);
         assertNotBlank(dbName);
@@ -41,11 +50,6 @@ public abstract class AbstractCosmosConfig {
         return containerName;
     }
 
-    /**
-     * This is the partition key that CosmosDB uses for r/w distribution. Contrary to what CosmosDB suggests, this
-     * key should be the same for all local (=clustered) connectors, otherwise queries in stored procedures might
-     * produce incomplete results.
-     */
     public String getPartitionKey() {
         return partitionKey;
     }
@@ -62,15 +66,25 @@ public abstract class AbstractCosmosConfig {
         return dbName;
     }
 
+    public boolean isQueryMetricsEnabled() {
+        return queryMetricsEnabled;
+    }
+
     protected abstract String getAccountNameSetting();
 
     protected abstract String getDbNameSetting();
 
-    protected abstract String getPartitionKeySetting();
-
     protected abstract String getCosmosPreferredRegionSetting();
 
     protected abstract String getContainerNameSetting();
+
+    protected String getPartitionKeySetting() {
+        return DEFAULT_PARTITION_KEY_SETTING;
+    }
+
+    protected String getQueryMetricsEnabledSetting() {
+        return DEFAULT_QUERY_METRICS_ENABLED_SETTING;
+    }
 
     private static void assertNotBlank(String test) {
         if (StringUtils.isNullOrEmpty(test)) {

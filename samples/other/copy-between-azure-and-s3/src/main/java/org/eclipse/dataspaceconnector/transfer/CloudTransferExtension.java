@@ -20,7 +20,6 @@ import java.util.List;
 
 import static java.util.Arrays.asList;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
-import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 public class CloudTransferExtension implements ServiceExtension {
     public static final String USE_EU_POLICY = "use-eu";
@@ -51,7 +50,7 @@ public class CloudTransferExtension implements ServiceExtension {
                             .property("blobname", "azure.png")
                             .build();
 
-                    Asset asset = Asset.Builder.newInstance().id(filename).property(POLICY_ID, USE_US_OR_EU_POLICY).build();
+                    Asset asset = Asset.Builder.newInstance().id(filename).policyId(USE_US_OR_EU_POLICY).build();
 
                     assetIndex.insert(asset, dataAddress);
                 });

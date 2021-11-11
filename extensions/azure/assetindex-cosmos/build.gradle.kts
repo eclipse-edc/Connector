@@ -21,14 +21,17 @@ val cosmosSdkVersion: String by project
 dependencies {
     api(project(":spi"))
     api(project(":common:util"))
+    api(project(":extensions:azure:cosmos-common"))
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
+
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 
 publishing {
     publications {
-        create<MavenPublication>("azure.cosmos-common") {
-            artifactId = "azure.cosmos-common"
+        create<MavenPublication>("azure.cosmos.assetindex") {
+            artifactId = "azure.cosmos.assetindex"
             from(components["java"])
         }
     }

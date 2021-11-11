@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import java.util.Set;
 
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
-import static org.eclipse.dataspaceconnector.spi.types.domain.asset.AssetProperties.POLICY_ID;
 
 public class FileTransferExtension implements ServiceExtension {
 
@@ -63,7 +62,7 @@ public class FileTransferExtension implements ServiceExtension {
                 .build();
 
         String assetId = "test-document";
-        Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
+        Asset asset = Asset.Builder.newInstance().id(assetId).policyId(USE_EU_POLICY).build();
 
         loader.insert(asset, dataAddress);
     }

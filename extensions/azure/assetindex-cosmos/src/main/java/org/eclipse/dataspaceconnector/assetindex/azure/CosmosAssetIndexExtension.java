@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
+package org.eclipse.dataspaceconnector.assetindex.azure;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
-import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
+import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -27,17 +27,17 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.util.Set;
 
 /**
- * Provides a persistent implementation of the {@link FederatedCacheNodeDirectory} using CosmosDB.
+ * Provides a persistent implementation of the {@link org.eclipse.dataspaceconnector.spi.asset.AssetIndex} using CosmosDB.
  */
-public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtension {
+public class CosmosAssetIndexExtension implements ServiceExtension {
 
-    private static final String NAME = "CosmosDB Federated Cache Node Directory";
+    private static final String NAME = "CosmosDB Asset Index";
 
     private Monitor monitor;
 
     @Override
     public Set<String> provides() {
-        return Set.of(FederatedCacheNodeDirectory.FEATURE);
+        return Set.of(AssetIndex.FEATURE);
     }
 
     @Override
@@ -45,14 +45,13 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
         monitor = context.getMonitor();
         monitor.info(String.format("Initializing %s extension...", NAME));
 
-        var configuration = new FederatedCacheNodeDirectoryCosmosConfig(context);
+        var configuration = new AssetIndexCosmosConfig(context);
         Vault vault = context.getService(Vault.class);
 
         CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
-        FederatedCacheNodeDirectory directory = new CosmosFederatedCacheNodeDirectory(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class));
-        context.registerService(FederatedCacheNodeDirectory.class, directory);
+        context.registerService(AssetIndex.class, new CosmosAssetIndex(cosmosDbApi, context.getTypeManager(), context.getService(RetryPolicy.class)));
 
-        context.getTypeManager().registerTypes(FederatedCacheNodeDocument.class);
+        context.getTypeManager().registerTypes(AssetDocument.class);
         monitor.info(String.format("Initialized %s extension", NAME));
     }
 

@@ -18,35 +18,21 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 
-/**
- * This is a wrapper solely used to store {@link org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode} objects in an Azure CosmosDB.
- * Some features or requirements of CosmosDB don't fit into a {@link org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode}'s data model,
- * such as the "partition key", which is required by CosmosDB to achieve a better distribution of read/write load.
- *
- * @see org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode
- */
 @JsonTypeName("dataspaceconnector:federatedcatalognodedocument")
-public class FederatedCacheNodeDocument {
+public class FederatedCacheNodeDocument extends CosmosDocument<FederatedCacheNode> {
 
-    @JsonProperty
-    private final FederatedCacheNode wrappedInstance;
-
-    @JsonProperty
-    private final String partitionKey;
+    private final String id;
 
     @JsonCreator
     public FederatedCacheNodeDocument(@JsonProperty("wrappedInstance") FederatedCacheNode wrappedInstance,
                                       @JsonProperty("partitionKey") String partitionKey) {
-        this.wrappedInstance = wrappedInstance;
-        this.partitionKey = partitionKey;
+        super(wrappedInstance, partitionKey);
+        id = wrappedInstance.getName();
     }
 
-    public String getPartitionKey() {
-        return partitionKey;
-    }
-
-    public FederatedCacheNode getWrappedInstance() {
-        return wrappedInstance;
+    public String getId() {
+        return id;
     }
 }
