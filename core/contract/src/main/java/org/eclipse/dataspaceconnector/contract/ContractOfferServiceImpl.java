@@ -9,79 +9,51 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Microsoft Corporation - Refactoring
  *
  */
-
 package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFrameworkQuery;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQueryResponse;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferTemplate;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.participant.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
-import java.util.Optional;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public class ContractOfferServiceImpl implements ContractOfferService {
+import static java.util.Collections.emptyMap;
+import static java.util.stream.Collectors.toList;
 
-    private final ContractOfferFramework contractOfferFramework;
+/**
+ * Implementation of the {@link ContractOfferService}.
+ */
+public class ContractOfferServiceImpl implements ContractOfferService {
+    private final ContractOfferFramework contractFramework;
     private final AssetIndex assetIndex;
 
-    public ContractOfferServiceImpl(
-            ContractOfferFramework contractOfferFramework,
-            AssetIndex assetIndex
-    ) {
-        Objects.requireNonNull(contractOfferFramework, "ContractOfferFramework must not be null!");
-        Objects.requireNonNull(assetIndex, "AssetIndex must not be null!");
+    public ContractOfferServiceImpl(ContractOfferFramework framework, AssetIndex assetIndex) {
+        Objects.requireNonNull(framework, "ContractOfferFramework must not be null");
+        Objects.requireNonNull(assetIndex, "AssetIndex must not be null");
 
-        this.contractOfferFramework = contractOfferFramework;
+        this.contractFramework = framework;
         this.assetIndex = assetIndex;
     }
 
     @Override
-    public ContractOfferQueryResponse queryContractOffers(ContractOfferQuery contractOfferQuery) {
-        ContractOfferFrameworkQuery contractOfferFrameworkQuery =
-                createContractOfferFrameworkQuery(contractOfferQuery);
+    @NotNull
+    public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
+        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var definitions = contractFramework.definitionsFor(agent);
 
-        Stream<ContractOfferTemplate> contractOfferTemplates = Optional.ofNullable(
-                        contractOfferFramework.queryTemplates(contractOfferFrameworkQuery))
-                .orElseGet(Stream::empty);
-
-        // TODO Filtering like this is quite expensive. Find a better way
-        Predicate<ContractOffer> targetAssetFilter = contractOffer -> contractOfferQuery.getTargetAssetIds().isEmpty() ||
-                contractOffer.getAssets().stream().anyMatch(a -> contractOfferQuery.getTargetAssetIds().contains(a.getId()));
-
-        return new ContractOfferQueryResponse(contractOfferTemplates
-                .flatMap(this::createContractOfferFromTemplate)
-                .filter(targetAssetFilter));
+        // FIXME the design of ContractOffer#assets(List<Asset> assets) forces all assets from AssetIndex to be materialized in memory; this needs to be fixed
+        return definitions.map(definition -> {
+            var assets = assetIndex.queryAssets(definition.getAssetSelectorExpression());
+            return ContractOffer.Builder.newInstance().policy(definition.getUsagePolicy()).assets(assets.collect(toList())).build();
+        });
     }
 
-    private Stream<ContractOffer> createContractOfferFromTemplate(
-            ContractOfferTemplate contractOfferTemplate) {
-        AssetSelectorExpression selectorExpression = contractOfferTemplate.getSelectorExpression();
-        if (selectorExpression != null) {
-            Stream<Asset> assetStream = assetIndex.queryAssets(selectorExpression);
-            return contractOfferTemplate.getTemplatedOffers(assetStream);
-        }
-
-        return Stream.empty();
-    }
-
-    private ContractOfferFrameworkQuery createContractOfferFrameworkQuery(
-            ContractOfferQuery contractOfferQuery) {
-        ContractOfferFrameworkQuery.Builder builder = ContractOfferFrameworkQuery.builder();
-
-        Optional.ofNullable(contractOfferQuery.getVerificationResult())
-                .ifPresent(builder::verificationResult);
-
-        return builder.build();
-    }
 }

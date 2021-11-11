@@ -17,16 +17,15 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQueryResponse;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -52,20 +51,17 @@ class DataCatalogServiceImplTest {
         // prepare
         VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
 
-        List<org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer> offers = Arrays.asList(
-                org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder.newInstance()
+        var offers = Arrays.asList(
+                ContractOffer.Builder.newInstance()
                         .policy(Policy.Builder.newInstance().build())
                         .build(),
-                org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder.newInstance()
+                ContractOffer.Builder.newInstance()
                         .policy(Policy.Builder.newInstance().build())
                         .build());
-        ContractOfferQueryResponse response = EasyMock.createMock(ContractOfferQueryResponse.class);
-        EasyMock.expect(response.getContractOfferStream()).andReturn(offers.stream());
-        EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.anyObject(ContractOfferQuery.class)))
-                .andReturn(response);
+        EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.anyObject(ContractOfferQuery.class))).andReturn(offers.stream());
 
         // record
-        EasyMock.replay(monitor, response, contractOfferService);
+        EasyMock.replay(monitor, contractOfferService);
 
         // invoke
         var result = dataCatalogService.getDataCatalog(verificationResult);

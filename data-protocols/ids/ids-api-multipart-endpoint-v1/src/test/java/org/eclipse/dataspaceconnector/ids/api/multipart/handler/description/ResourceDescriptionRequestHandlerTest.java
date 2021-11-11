@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQueryResponse;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -55,7 +54,7 @@ public class ResourceDescriptionRequestHandlerTest {
     private AssetIndex assetIndex;
     private Resource resource;
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
+    @SuppressWarnings({"rawtypes", "unchecked"})
     @BeforeEach
     public void setup() throws URISyntaxException {
         monitor = EasyMock.createMock(Monitor.class);
@@ -93,12 +92,12 @@ public class ResourceDescriptionRequestHandlerTest {
 
         EasyMock.expect(assetIndex.findById(EasyMock.anyString())).andReturn(EasyMock.createMock(Asset.class));
 
-        var resourceResult = (TransformResult) EasyMock.createMock(TransformResult.class);
+        @SuppressWarnings("rawtypes") TransformResult resourceResult = EasyMock.createMock(TransformResult.class);
         EasyMock.expect(resourceResult.getOutput()).andReturn(resource);
         EasyMock.expect(resourceResult.hasProblems()).andReturn(false);
         EasyMock.expect(transformerRegistry.transform(EasyMock.isA(OfferedAsset.class), EasyMock.eq(Resource.class))).andReturn(resourceResult);
 
-        EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.isA(ContractOfferQuery.class))).andReturn(new ContractOfferQueryResponse(Stream.empty()));
+        EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.isA(ContractOfferQuery.class))).andReturn(Stream.empty());
 
         EasyMock.replay(assetIndex, contractOfferService, transformerRegistry, descriptionRequestMessage, resourceResult);
 

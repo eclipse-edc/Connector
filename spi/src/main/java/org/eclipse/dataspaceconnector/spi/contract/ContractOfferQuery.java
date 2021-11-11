@@ -9,84 +9,50 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *
+ *       Microsoft Corporation - Refactoring
  */
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
-
-import java.util.ArrayList;
-import java.util.List;
-
-// TODO: add pagination attributes
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 
 /**
- * The {@link ContractOfferFrameworkQuery} narrows down the number of
- * queried {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer}.
+ * A query that returns contract offers for the given parameters.
+ *
+ * TODO: add pagination attributes. These should be a numeric skip value and a limit size.
  */
 public class ContractOfferQuery {
-
-    private VerificationResult verificationResult;
-    private List<String> targetAssetIds;
+    private ClaimToken claimToken;
 
     private ContractOfferQuery() {
     }
 
-    /**
-     * Tell the query to filter out all {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer} that are not intended for the connector, the {@link VerificationResult} was created for.
-     *
-     * @return verification result of the requesting connector
-     */
-    public VerificationResult getVerificationResult() {
-        return verificationResult;
+    public ClaimToken getClaimToken() {
+        return claimToken;
     }
 
     public static ContractOfferQuery.Builder builder() {
         return ContractOfferQuery.Builder.newInstance();
     }
 
-    /**
-     * Tell the query to filter out all {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer} that don't contain at least one of the target assets.
-     * An empty list applies no filter.
-     *
-     * @return list of target assets
-     */
-    public List<String> getTargetAssetIds() {
-        return targetAssetIds;
-    }
-
     public static final class Builder {
-        private VerificationResult verificationResult;
-        private List<String> assets;
+        private ClaimToken claimToken;
 
         private Builder() {
-            assets = new ArrayList<>();
         }
 
         public static Builder newInstance() {
             return new ContractOfferQuery.Builder();
         }
 
-        public Builder verificationResult(final VerificationResult verificationResult) {
-            this.verificationResult = verificationResult;
-            return this;
-        }
-
-        public Builder targetAsset(String assetId) {
-            this.assets.add(assetId);
-            return this;
-        }
-
-        public Builder targetAssets(List<String> assetIds) {
-            this.assets.addAll(assetIds);
+        public Builder claimToken(ClaimToken claimToken) {
+            this.claimToken = claimToken;
             return this;
         }
 
         public ContractOfferQuery build() {
             final ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
-            contractOfferQuery.verificationResult = this.verificationResult;
-            contractOfferQuery.targetAssetIds = this.assets;
+            contractOfferQuery.claimToken = this.claimToken;
             return contractOfferQuery;
         }
     }
