@@ -9,7 +9,7 @@ import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DescriptionRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +39,7 @@ public class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatc
 
     @Test
     void test() throws Exception {
-        var request = DescriptionRequest.Builder.newInstance()
+        var request = MetadataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)

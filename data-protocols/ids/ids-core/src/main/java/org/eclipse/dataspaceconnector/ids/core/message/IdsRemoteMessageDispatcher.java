@@ -33,9 +33,6 @@ public abstract class IdsRemoteMessageDispatcher implements RemoteMessageDispatc
     }
 
     @Override
-    public abstract String protocol();
-
-    @Override
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
         Objects.requireNonNull(message, "Message was null");
         IdsMessageSender<RemoteMessage, ?> handler = (IdsMessageSender<RemoteMessage, ?>) senders.get(message.getClass());

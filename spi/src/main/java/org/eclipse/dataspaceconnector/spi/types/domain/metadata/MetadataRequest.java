@@ -20,14 +20,14 @@ import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import java.net.URI;
 import java.util.Objects;
 
-public class DescriptionRequest implements RemoteMessage {
+public class MetadataRequest implements RemoteMessage {
 
     private String protocol;
     private String connectorId;
     private String connectorAddress;
-    private URI requestedElement;
+    private URI requestedAsset;
 
-    private DescriptionRequest() { }
+    private MetadataRequest() { }
 
     @Override
     public String getProtocol() {
@@ -42,15 +42,15 @@ public class DescriptionRequest implements RemoteMessage {
         return connectorAddress;
     }
 
-    public URI getRequestedElement() {
-        return requestedElement;
+    public URI getRequestedAsset() {
+        return requestedAsset;
     }
 
     public static class Builder {
-        private final DescriptionRequest descriptionRequest;
+        private final MetadataRequest metadataRequest;
 
         private Builder() {
-            this.descriptionRequest = new DescriptionRequest();
+            this.metadataRequest = new MetadataRequest();
         }
 
         @JsonCreator
@@ -59,30 +59,30 @@ public class DescriptionRequest implements RemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            descriptionRequest.protocol = protocol;
+            metadataRequest.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            descriptionRequest.connectorId = connectorId;
+            metadataRequest.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            descriptionRequest.connectorAddress = connectorAddress;
+            metadataRequest.connectorAddress = connectorAddress;
             return this;
         }
 
         public Builder elementId(URI elementId) {
-            descriptionRequest.requestedElement = elementId;
+            metadataRequest.requestedAsset = elementId;
             return this;
         }
 
-        public DescriptionRequest build() {
-            Objects.requireNonNull(descriptionRequest.protocol, "protocol");
-            Objects.requireNonNull(descriptionRequest.connectorId, "connectorId");
-            Objects.requireNonNull(descriptionRequest.connectorAddress, "connectorAddress");
-            return descriptionRequest;
+        public MetadataRequest build() {
+            Objects.requireNonNull(metadataRequest.protocol, "protocol");
+            Objects.requireNonNull(metadataRequest.connectorId, "connectorId");
+            Objects.requireNonNull(metadataRequest.connectorAddress, "connectorAddress");
+            return metadataRequest;
         }
     }
 

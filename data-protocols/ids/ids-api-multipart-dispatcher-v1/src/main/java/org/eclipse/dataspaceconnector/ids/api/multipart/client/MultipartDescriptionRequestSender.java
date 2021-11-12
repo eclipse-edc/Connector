@@ -34,6 +34,7 @@ import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
+import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import de.fraunhofer.iais.eis.TokenFormat;
 import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
@@ -53,12 +54,12 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DescriptionRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 
 import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
-public class MultipartDescriptionRequestSender implements IdsMessageSender<DescriptionRequest, MultipartDescriptionResponse> {
+public class MultipartDescriptionRequestSender implements IdsMessageSender<MetadataRequest, MultipartDescriptionResponse> {
 
     private static final String JSON = "application/json";
     private static final String VERSION = "4.0.0";
@@ -93,14 +94,14 @@ public class MultipartDescriptionRequestSender implements IdsMessageSender<Descr
     }
 
     @Override
-    public Class<DescriptionRequest> messageType() {
-        return DescriptionRequest.class;
+    public Class<MetadataRequest> messageType() {
+        return MetadataRequest.class;
     }
 
     @Override
-    public CompletableFuture<MultipartDescriptionResponse> send(DescriptionRequest descriptionRequest,
-                                          MessageContext context) {
-        var recipientConnectorId = descriptionRequest.getConnectorId();
+    public CompletableFuture<MultipartDescriptionResponse> send(MetadataRequest metadataRequest,
+                                                                MessageContext context) {
+        var recipientConnectorId = metadataRequest.getConnectorId();
         var tokenResult = identityService.obtainClientCredentials(recipientConnectorId);
         var token = new DynamicAttributeTokenBuilder()
                 ._tokenFormat_(TokenFormat.JWT)
@@ -114,12 +115,12 @@ public class MultipartDescriptionRequestSender implements IdsMessageSender<Descr
                 ._issuerConnector_(this.connectorId)
                 ._senderAgent_(this.connectorId)
                 ._recipientConnector_(Util.asList(URI.create(recipientConnectorId)))
-                ._requestedElement_(descriptionRequest.getRequestedElement())
+                ._requestedElement_(metadataRequest.getRequestedAsset())
                 .build();
 
         CompletableFuture<MultipartDescriptionResponse> future = new CompletableFuture<>();
 
-        var connectorAddress = descriptionRequest.getConnectorAddress();
+        var connectorAddress = metadataRequest.getConnectorAddress();
         var requestUrl = HttpUrl.parse(connectorAddress);
         if (requestUrl == null) {
             future.completeExceptionally(new IllegalArgumentException("Connector address not specified"));
@@ -222,6 +223,9 @@ public class MultipartDescriptionRequestSender implements IdsMessageSender<Descr
                         case "ids:BaseConnector":
                             //payload = serializer.deserialize(payloadString, BaseConnector.class);
                             payload = OBJECT_MAPPER.readValue(payloadString, BaseConnector.class);
+                            break;
+                        case "ids:ResourceCatalog":
+                            payload = serializer.deserialize(payloadString, ResourceCatalog.class);
                             break;
                         case "ids:Resource":
                             payload = serializer.deserialize(payloadString, Resource.class);
