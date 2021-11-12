@@ -68,8 +68,9 @@ public class ForwardingController {
         var dataAddress = dataAddressResolver.resolveForAsset(assetId);
 
         if (dataAddress == null) {
-            monitor.warning("Asset with ID " + assetId + " not found");
-            return Response.status(Response.Status.NOT_FOUND).build();
+            var msg = "No DataAddress found for Asset with ID" + assetId;
+            monitor.warning(msg);
+            return Response.status(Response.Status.NOT_FOUND).entity(msg).build();
         }
 
         if (dataAddress.getProperty(PROPERTY_TARGET_URL) != null) {
