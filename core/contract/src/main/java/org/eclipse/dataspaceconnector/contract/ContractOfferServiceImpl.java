@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.participant.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 

@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.contract.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
-import org.eclipse.dataspaceconnector.spi.participant.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

@@ -14,8 +14,6 @@
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
-import org.eclipse.dataspaceconnector.spi.participant.ParticipantAgent;
-
 import java.util.stream.Stream;
 
 /**

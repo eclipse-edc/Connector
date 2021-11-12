@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.contract;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -25,15 +26,13 @@ import java.util.Set;
 
 public class ContractServiceExtension implements ServiceExtension {
     private static final String NAME = "Core Contract Service Extension";
-    private static final String[] PROVIDES = {
-            "edc:core:contract"
-    };
+    private static final Set<String> PROVIDES = Set.of("edc:core:contract");
 
     private Monitor monitor;
 
     @Override
     public final Set<String> provides() {
-        return Set.of(PROVIDES);
+        return PROVIDES;
     }
 
     @Override
@@ -74,18 +73,12 @@ public class ContractServiceExtension implements ServiceExtension {
             contractOfferFramework = new NullContractOfferFramework();
         }
 
-        /*
-         * Contract offer service calculates contract offers using a variety of contract offer frameworks
-         * ad the given asset index.
-         */
-        final ContractOfferService contractOfferService = new ContractOfferServiceImpl(
-                contractOfferFramework,
-                assetIndex
-        );
+        // Contract offer service calculates contract offers using a variety of contract offer frameworks and the given asset index.
+        ContractOfferService contractOfferService = new ContractOfferServiceImpl(contractOfferFramework, assetIndex);
 
-        /*
-         * Register the just created contract offer service to the service extension context.
-         */
+        // Register the created contract offer service with the service extension context.
         serviceExtensionContext.registerService(ContractOfferService.class, contractOfferService);
+
+        serviceExtensionContext.registerService(ParticipantAgentService.class, new ParticipantAgentServiceImpl());
     }
 }
