@@ -34,6 +34,7 @@ import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.S
 public class PublicContractOfferFramework implements ContractOfferFramework {
 
     @Override
+    @NotNull
     public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
         return Stream.of(new ContractDefinition(createPolicy(), SELECT_ALL));
     }

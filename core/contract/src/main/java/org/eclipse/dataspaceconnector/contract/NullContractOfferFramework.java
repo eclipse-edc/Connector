@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.contract;
 import org.eclipse.dataspaceconnector.spi.contract.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgent;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
@@ -12,6 +13,7 @@ import java.util.stream.Stream;
 public class NullContractOfferFramework implements ContractOfferFramework {
 
     @Override
+    @NotNull
     public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
         return Stream.empty();
     }

@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.stream.Stream;
 
 /**
@@ -26,6 +28,7 @@ public interface ContractOfferFramework {
     /**
      * Returns the definitions for the given participant agent.
      */
+    @NotNull
     Stream<ContractDefinition> definitionsFor(ParticipantAgent agent);
 
 
