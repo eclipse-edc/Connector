@@ -23,8 +23,6 @@ import java.util.List;
 
 /**
  * A query that returns contract offers for the given parameters.
- *
- * TODO: add pagination attributes. These should be a numeric skip value and a limit size.
  */
 public class ContractOfferQuery {
     private ClaimToken claimToken;
