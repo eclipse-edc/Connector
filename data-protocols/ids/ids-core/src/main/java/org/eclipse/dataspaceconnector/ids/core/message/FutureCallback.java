@@ -26,7 +26,7 @@ import java.util.function.Function;
 /**
  * Shim from OK HTTP to the future returned by the ids dispatcher.
  */
-class FutureCallback<T> implements Callback {
+public class FutureCallback<T> implements Callback {
     private final CompletableFuture<T> future;
     private final Function<Response, T> handler;
 

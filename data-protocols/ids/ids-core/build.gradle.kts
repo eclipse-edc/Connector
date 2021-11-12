@@ -26,7 +26,6 @@ dependencies {
     api(project(":data-protocols:ids:ids-spi"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
-    api("de.fraunhofer.iais.eis.ids:infomodel-serializer:${infoModelVersion}")
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":core:policy:policy-engine"))
