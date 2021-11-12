@@ -46,6 +46,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     @Override
     @NotNull
     public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
+        // TODO integrate the ParticipantAgentService in a later PR
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
         var definitions = contractFramework.definitionsFor(agent);
 
