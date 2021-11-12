@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  * Some features or requirements of CosmosDB don't fit into an object data model,
  * such as the "partition key", which is required by CosmosDB to achieve a better distribution of read/write load.
  */
-public class CosmosDocument<T> {
+public abstract class CosmosDocument<T> {
 
     @JsonProperty
     private final T wrappedInstance;
@@ -30,4 +30,6 @@ public class CosmosDocument<T> {
     public T getWrappedInstance() {
         return wrappedInstance;
     }
+
+    public abstract String getId();
 }

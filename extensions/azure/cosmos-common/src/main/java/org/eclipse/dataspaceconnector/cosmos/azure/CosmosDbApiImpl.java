@@ -12,6 +12,8 @@ import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
 import com.azure.cosmos.models.PartitionKey;
+import com.azure.cosmos.models.SqlParameter;
+import com.azure.cosmos.models.SqlQuerySpec;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -26,24 +28,20 @@ public class CosmosDbApiImpl implements CosmosDbApi {
 
     private static final String HOST_TEMPLATE = "https://%s.documents.azure.com:443/";
 
-    private final PartitionKey partitionKey;
     private final CosmosItemRequestOptions itemRequestOptions;
     private final CosmosQueryRequestOptions queryRequestOptions;
     private final CosmosContainer container;
 
-    public CosmosDbApiImpl(@NotNull CosmosContainer container, @NotNull String partitionKey, boolean isQueryMetricsEnabled) {
-        if (partitionKey.isEmpty()) {
-            throw new EdcException("Partition key cannot be empty");
-        }
-        this.partitionKey = new PartitionKey(partitionKey);
+    public CosmosDbApiImpl(@NotNull CosmosContainer container, boolean isQueryMetricsEnabled) {
         queryRequestOptions = new CosmosQueryRequestOptions();
         queryRequestOptions.setQueryMetricsEnabled(isQueryMetricsEnabled);
         itemRequestOptions = new CosmosItemRequestOptions();
+
         this.container = container;
     }
 
     public CosmosDbApiImpl(@NotNull Vault vault, @NotNull AbstractCosmosConfig config) {
-        this(getContainer(vault, config), config.getPartitionKey(), config.isQueryMetricsEnabled());
+        this(getContainer(vault, config), config.isQueryMetricsEnabled());
     }
 
     private static void handleResponse(CosmosItemResponse<?> response) {
@@ -84,9 +82,10 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void createItem(Object item) {
+    public void createItem(CosmosDocument<?> item) {
         try {
-            CosmosItemResponse<Object> response = container.createItem(item, partitionKey, itemRequestOptions);
+            // we don't need to supply a partition key, it will be extracted from the CosmosDocument
+            CosmosItemResponse<Object> response = container.upsertItem(item, itemRequestOptions);
             handleResponse(response);
         } catch (CosmosException e) {
             throw new EdcException(e);
@@ -95,9 +94,22 @@ public class CosmosDbApiImpl implements CosmosDbApi {
 
     @Override
     public @Nullable Object queryItemById(String id) {
+        var query = new SqlQuerySpec("SELECT * FROM c WHERE c.id = @id", new SqlParameter("@id", id));
+
+        try {
+            var list = container.queryItems(query, queryRequestOptions, Object.class).stream().collect(Collectors.toList());
+            return list.isEmpty() ? null : list.get(0);
+        } catch (CosmosException e) {
+            throw new EdcException(e);
+        }
+
+    }
+
+    @Override
+    public @Nullable Object queryItemById(String id, String partitionKey) {
         CosmosItemResponse<Object> response;
         try {
-            response = container.readItem(id, partitionKey, itemRequestOptions, Object.class);
+            response = container.readItem(id, new PartitionKey(partitionKey), itemRequestOptions, Object.class);
         } catch (NotFoundException e) {
             return null;
         } catch (CosmosException e) {
@@ -108,9 +120,19 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public List<Object> queryAllItems() {
+    public List<Object> queryAllItems(String partitionKey) {
         try {
-            return container.readAllItems(partitionKey, queryRequestOptions, Object.class).stream().collect(Collectors.toList());
+            return container.readAllItems(new PartitionKey(partitionKey), queryRequestOptions, Object.class).stream().collect(Collectors.toList());
+        } catch (CosmosException e) {
+            throw new EdcException(e);
+        }
+    }
+
+    @Override
+    public List<Object> queryAllItems() {
+        var query = new SqlQuerySpec("SELECT * FROM c");
+        try {
+            return container.queryItems(query, queryRequestOptions, Object.class).stream().collect(Collectors.toList());
         } catch (CosmosException e) {
             throw new EdcException(e);
         }

@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -52,6 +53,7 @@ class CosmosAssetIndexIntegrationTest {
     private static final String TEST_PARTITION_KEY = "test-partitionkey";
     private static CosmosContainer container;
     private static CosmosDatabase database;
+    private final DataAddress dataAddress = DataAddress.Builder.newInstance().type("testtype").build();
     private CosmosAssetIndex assetIndex;
 
     @BeforeAll
@@ -85,8 +87,8 @@ class CosmosAssetIndexIntegrationTest {
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(Asset.class, AssetDocument.class);
-        CosmosDbApi api = new CosmosDbApiImpl(container, TEST_PARTITION_KEY, true);
-        assetIndex = new CosmosAssetIndex(api, typeManager, new RetryPolicy<>());
+        CosmosDbApi api = new CosmosDbApiImpl(container, true);
+        assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>());
     }
 
     @Test
@@ -101,8 +103,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("foo", "bar")
                 .build();
 
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         List<Asset> assets = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL).collect(Collectors.toList());
 
@@ -123,8 +125,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("test", "bar")
                 .build();
 
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
                 .whenEquals(Asset.PROPERTY_ID, "456")
@@ -148,8 +150,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("test:value", "bar")
                 .build();
 
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
                 .whenEquals("test:value", "bar")
@@ -173,8 +175,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("test", "bar")
                 .build();
 
-        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY));
-        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         Asset asset = assetIndex.findById("456");
 

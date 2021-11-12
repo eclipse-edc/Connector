@@ -6,9 +6,13 @@ import java.util.List;
 
 public interface CosmosDbApi {
 
-    void createItem(Object item);
+    void createItem(CosmosDocument<?> item);
 
     @Nullable Object queryItemById(String id);
+
+    @Nullable Object queryItemById(String id, String partitionKey);
+
+    List<Object> queryAllItems(String partitionKey);
 
     List<Object> queryAllItems();
 

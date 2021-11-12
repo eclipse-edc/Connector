@@ -34,7 +34,7 @@ class CosmosAssetQueryBuilderTest {
 
         SqlQuerySpec query = builder.from(expression);
 
-        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.sanitizedProperties.id = 'id-test' AND AssetDocument.sanitizedProperties.name = 'name-test'");
+        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.id = 'id-test' AND AssetDocument.wrappedInstance.name = 'name-test'");
     }
 
     @Test
@@ -46,7 +46,7 @@ class CosmosAssetQueryBuilderTest {
 
         SqlQuerySpec query = builder.from(expression);
 
-        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.sanitizedProperties.test_id = 'id-test' AND AssetDocument.sanitizedProperties.test_name = 'name-test'");
+        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.test_id = 'id-test' AND AssetDocument.wrappedInstance.test_name = 'name-test'");
     }
 
     @Test

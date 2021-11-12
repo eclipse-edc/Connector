@@ -15,33 +15,36 @@
 package org.eclipse.dataspaceconnector.assetindex.azure.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
 @JsonTypeName("dataspaceconnector:assetdocument")
-public class AssetDocument extends CosmosDocument<Asset> {
+public class AssetDocument extends CosmosDocument<Map<String, Object>> {
     private final String id;
-    private final Map<String, Object> sanitizedProperties;
+    private final DataAddress dataAddress;
+
+    public AssetDocument(Asset wrappedInstance,
+                         String partitionKey,
+                         DataAddress dataAddress) {
+        super(sanitizeProperties(wrappedInstance), partitionKey);
+        id = wrappedInstance.getId();
+        this.dataAddress = dataAddress;
+    }
 
     @JsonCreator
-    public AssetDocument(@JsonProperty("wrappedInstance") Asset wrappedInstance,
-                         @JsonProperty("partitionKey") String partitionKey) {
+    public AssetDocument(@JsonProperty("wrappedInstance") Map<String, Object> wrappedInstance,
+                         @JsonProperty("partitionKey") String partitionKey,
+                         @JsonProperty("dataAddress") DataAddress dataAddress) {
         super(wrappedInstance, partitionKey);
-        id = wrappedInstance.getId();
-        sanitizedProperties = sanitizeProperties(wrappedInstance);
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public Map<String, Object> getSanitizedProperties() {
-        return sanitizedProperties;
+        id = wrappedInstance.get("asset_prop_id").toString();
+        this.dataAddress = dataAddress;
     }
 
     public static String sanitize(String key) {
@@ -51,5 +54,31 @@ public class AssetDocument extends CosmosDocument<Asset> {
     private static Map<String, Object> sanitizeProperties(Asset asset) {
         return asset.getProperties().entrySet().stream()
                 .collect(Collectors.toMap(entry -> sanitize(entry.getKey()), Map.Entry::getValue));
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    @JsonIgnore
+    public Asset getWrappedAsset() {
+        return Asset.Builder.newInstance()
+                .id(id)
+                .properties(restoreProperties())
+                .build();
+    }
+
+    public DataAddress getDataAddress() {
+        return dataAddress;
+    }
+
+    private Map<String, Object> restoreProperties() {
+        var map = getWrappedInstance();
+
+        return map.entrySet().stream().collect(Collectors.toMap(entry -> unsanitize(entry.getKey()), Map.Entry::getValue));
+    }
+
+    private String unsanitize(String key) {
+        return key.replace("_", ":");
     }
 }

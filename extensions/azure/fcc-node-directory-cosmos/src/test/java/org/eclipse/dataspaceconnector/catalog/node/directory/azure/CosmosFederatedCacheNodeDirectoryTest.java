@@ -18,6 +18,7 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
@@ -31,6 +32,20 @@ class CosmosFederatedCacheNodeDirectoryTest {
 
     private CosmosDbApi api;
     private CosmosFederatedCacheNodeDirectory directory;
+
+    private static void assertNodesAreEqual(FederatedCacheNode node1, FederatedCacheNode node2) {
+        assertThat(node1.getName()).isEqualTo(node2.getName());
+        assertThat(node1.getTargetUrl()).isEqualTo(node2.getTargetUrl());
+        assertThat(node1.getSupportedProtocols()).isEqualTo(node2.getSupportedProtocols());
+    }
+
+    private static FederatedCacheNodeDocument createDocument(FederatedCacheNode node) {
+        return new FederatedCacheNodeDocument(node, PARTITION_KEY);
+    }
+
+    private static FederatedCacheNode createNode() {
+        return new FederatedCacheNode(UUID.randomUUID().toString(), UUID.randomUUID().toString(), Collections.singletonList(UUID.randomUUID().toString()));
+    }
 
     @BeforeEach
     public void setUp() {
@@ -83,7 +98,7 @@ class CosmosFederatedCacheNodeDirectoryTest {
                 .map(CosmosFederatedCacheNodeDirectoryTest::createDocument)
                 .collect(Collectors.toList());
 
-        expect(api.queryAllItems()).andReturn(documents);
+        expect(api.queryAllItems(anyString())).andReturn(documents);
 
         replay(api);
 
@@ -92,19 +107,5 @@ class CosmosFederatedCacheNodeDirectoryTest {
         nodes.forEach(expected -> assertThat(result).anySatisfy(node -> assertNodesAreEqual(expected, node)));
 
         verify(api);
-    }
-
-    private static void assertNodesAreEqual(FederatedCacheNode node1, FederatedCacheNode node2) {
-        assertThat(node1.getName()).isEqualTo(node2.getName());
-        assertThat(node1.getTargetUrl()).isEqualTo(node2.getTargetUrl());
-        assertThat(node1.getSupportedProtocols()).isEqualTo(node2.getSupportedProtocols());
-    }
-
-    private static FederatedCacheNodeDocument createDocument(FederatedCacheNode node) {
-        return new FederatedCacheNodeDocument(node, PARTITION_KEY);
-    }
-
-    private static FederatedCacheNode createNode() {
-        return new FederatedCacheNode(UUID.randomUUID().toString(), UUID.randomUUID().toString(), Collections.singletonList(UUID.randomUUID().toString()));
     }
 }

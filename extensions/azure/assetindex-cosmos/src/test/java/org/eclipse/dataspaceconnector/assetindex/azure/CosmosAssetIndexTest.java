@@ -42,12 +42,13 @@ import static org.easymock.EasyMock.verify;
 
 class CosmosAssetIndexTest {
 
+    private static final String TEST_PARTITION_KEY = "test-partition-key";
     private CosmosDbApi api;
     private TypeManager typeManager;
     private RetryPolicy<Object> retryPolicy;
 
     private static AssetDocument createDocument(String id) {
-        return new AssetDocument(Asset.Builder.newInstance().id(id).build(), "partitionkey-test");
+        return new AssetDocument(Asset.Builder.newInstance().id(id).build(), "partitionkey-test", null);
     }
 
     @BeforeEach
@@ -67,15 +68,15 @@ class CosmosAssetIndexTest {
     void inputValidation() {
         // null cosmos api
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(null, null, retryPolicy));
+                .isThrownBy(() -> new CosmosAssetIndex(null, TEST_PARTITION_KEY, null, retryPolicy));
 
         // type manager is null
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(api, null, retryPolicy));
+                .isThrownBy(() -> new CosmosAssetIndex(api, TEST_PARTITION_KEY, null, retryPolicy));
 
         // retry policy is null
         assertThatExceptionOfType(NullPointerException.class)
-                .isThrownBy(() -> new CosmosAssetIndex(api, typeManager, null));
+                .isThrownBy(() -> new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, null));
     }
 
     @Test
@@ -86,10 +87,10 @@ class CosmosAssetIndexTest {
 
         replay(api);
 
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy);
 
         Asset actualAsset = assetIndex.findById(id);
-        assertThat(actualAsset.getProperties()).isEqualTo(document.getWrappedInstance().getProperties());
+        assertThat(actualAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
 
         verify(api);
     }
@@ -103,7 +104,7 @@ class CosmosAssetIndexTest {
 
         replay(api);
 
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy);
 
         assertThatExceptionOfType(EdcException.class).isThrownBy(() -> assetIndex.findById(id));
 
@@ -117,7 +118,7 @@ class CosmosAssetIndexTest {
 
         replay(api);
 
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy);
 
         Asset actualAsset = assetIndex.findById(id);
         assertThat(actualAsset).isNull();
@@ -133,7 +134,7 @@ class CosmosAssetIndexTest {
 
         replay(api);
 
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy);
 
         List<Asset> assets = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL).collect(Collectors.toList());
         assertThat(assets)
@@ -152,7 +153,7 @@ class CosmosAssetIndexTest {
 
         replay(api);
 
-        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, typeManager, retryPolicy);
+        CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy);
 
         var selectByName = AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "somename").build();
         List<Asset> assets = assetIndex.queryAssets(selectByName).collect(Collectors.toList());

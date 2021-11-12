@@ -6,7 +6,9 @@ import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
+import org.jetbrains.annotations.NotNull;
 
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -14,7 +16,7 @@ import java.util.List;
 
 public class CosmosAssetQueryBuilder {
 
-    private static final String PROPERTIES_FIELD = "sanitizedProperties";
+    private static final String PROPERTIES_FIELD = "wrappedInstance";
     private static final String PATH_TO_PROPERTIES = String.join(".", AssetDocument.class.getSimpleName(), PROPERTIES_FIELD);
 
     public CosmosAssetQueryBuilder() {
@@ -23,9 +25,25 @@ public class CosmosAssetQueryBuilder {
     }
 
     private static void assertClassContainsField(Class<?> clazz, String fieldName) {
-        if (Arrays.stream(clazz.getDeclaredFields()).noneMatch(field -> field.getName().equals(fieldName))) {
+        if (getDeclaredFields(clazz).stream().noneMatch(field -> field.getName().equals(fieldName))) {
             throw new EdcException("Cannot find field " + fieldName + " in class " + clazz.getSimpleName());
         }
+    }
+
+    @NotNull
+    private static List<Field> getDeclaredFields(Class<?> clazz) {
+        var fields = new ArrayList<Field>();
+        return getAllFields(fields, clazz);
+    }
+
+    public static List<Field> getAllFields(List<Field> fields, Class<?> type) {
+        fields.addAll(Arrays.asList(type.getDeclaredFields()));
+
+        if (type.getSuperclass() != null) {
+            getAllFields(fields, type.getSuperclass());
+        }
+
+        return fields;
     }
 
     public SqlQuerySpec from(AssetSelectorExpression expression) {
