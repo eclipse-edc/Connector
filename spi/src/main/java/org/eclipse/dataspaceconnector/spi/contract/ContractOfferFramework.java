@@ -14,17 +14,22 @@
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.stream.Stream;
 
 /**
- * A {@link ContractOfferFramework} yields logic to compute contractually regulated offered assets.
+ * Returns {@link ContractDefinition} for a given participant agent.
  *
- * <p>The {@link ContractOfferFramework} shall be implemented by extensions to
- * provide substantial contract offer templates. The {@link ContractOfferService}
- * uses several {@link ContractOfferFramework} instances to enrich its functionality.
+ * A runtime extension may implement custom logic to determine which contract definitions are returned.
  */
 public interface ContractOfferFramework {
 
-    Stream<ContractOfferTemplate> queryTemplates(ContractOfferFrameworkQuery query);
+    /**
+     * Returns the definitions for the given participant agent.
+     */
+    @NotNull
+    Stream<ContractDefinition> definitionsFor(ParticipantAgent agent);
+
 
 }

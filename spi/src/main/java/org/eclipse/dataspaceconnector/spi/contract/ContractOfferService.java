@@ -14,13 +14,20 @@
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.stream.Stream;
+
 /**
- * The ContractOfferService may be used by extensions to resolve existing contract offers.
+ * Resolves contract offers.
  */
 public interface ContractOfferService {
 
-    // TODO add pagination
-    // TODO async. messages
-    ContractOfferQueryResponse queryContractOffers(final ContractOfferQuery contractOfferQuery);
+    /**
+     * Resolves contract offers.
+     */
+    @NotNull
+    Stream<ContractOffer> queryContractOffers(ContractOfferQuery query);
 
 }

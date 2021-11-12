@@ -9,23 +9,24 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *
+ *       Microsoft Corporation - Refactoring
  */
-
 package org.eclipse.dataspaceconnector.demo.contracts;
 
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
-import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFrameworkQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferTemplate;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgent;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
+import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 /**
  * Creates free of use contract offers for all assets.
@@ -33,45 +34,15 @@ import java.util.stream.Stream;
 public class PublicContractOfferFramework implements ContractOfferFramework {
 
     @Override
-    public Stream<ContractOfferTemplate> queryTemplates(ContractOfferFrameworkQuery query) {
-        return Stream.of(FixtureContractOfferTemplate.INSTANCE);
+    @NotNull
+    public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
+        return Stream.of(new ContractDefinition(createPolicy(), SELECT_ALL));
     }
 
-    enum FixtureContractOfferTemplate implements ContractOfferTemplate {
-        INSTANCE;
-
-        @Override
-        public Stream<org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer> getTemplatedOffers(Stream<Asset> assets) {
-            return assets.map(this::createContractOffer);
-        }
-
-        @Override
-        public AssetSelectorExpression getSelectorExpression() {
-            return AssetSelectorExpression.SELECT_ALL;
-        }
-
-        private org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer createContractOffer(Asset asset) {
-            org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder builder = org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder.newInstance();
-
-            Action action = Action.Builder.newInstance()
-                    .type("USE")
-                    .build();
-
-            Policy.Builder policyBuilder = Policy.Builder.newInstance()
-                    .type(PolicyType.CONTRACT);
-
-            Permission rule = Permission.Builder.newInstance()
-                    .action(action)
-                    .constraints(Collections.emptyList())
-                    .build();
-            policyBuilder.permissions(Collections.singletonList(rule));
-
-            Policy policy = policyBuilder.build();
-
-            return builder
-                    .assets(Collections.singletonList(asset))
-                    .policy(policy)
-                    .build();
-        }
+    @NotNull
+    private Policy createPolicy() {
+        var action = Action.Builder.newInstance().type("USE").build();
+        var rule = Permission.Builder.newInstance().action(action).constraints(emptyList()).build();
+        return Policy.Builder.newInstance().type(PolicyType.CONTRACT).permissions(List.of(rule)).build();
     }
 }

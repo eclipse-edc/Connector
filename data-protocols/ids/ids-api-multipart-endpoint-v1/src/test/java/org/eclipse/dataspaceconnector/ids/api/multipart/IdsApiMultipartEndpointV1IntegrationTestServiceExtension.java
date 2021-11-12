@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQueryResponse;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -34,6 +33,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
@@ -46,6 +46,8 @@ import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.Collections.emptyList;
 
 class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
@@ -106,14 +108,15 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public ContractOfferQueryResponse queryContractOffers(ContractOfferQuery contractOfferQuery) {
-            List<org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer> contractOffers = assets.stream()
+        @NotNull
+        public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
+            List<ContractOffer> contractOffers = assets.stream()
                     .map(Collections::singletonList)
-                    .map(assets -> org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder.newInstance()
+                    .map(assets -> ContractOffer.Builder.newInstance()
                             .policy(createEverythingAllowedPolicy())
                             .assets(assets).build())
                     .collect(Collectors.toList());
-            return new ContractOfferQueryResponse(contractOffers.stream());
+            return contractOffers.stream();
         }
 
         private Policy createEverythingAllowedPolicy() {
@@ -143,7 +146,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
         @Override
         public @NotNull List<TransferProcess> nextForState(int state, int max) {
-            return null;
+            return emptyList();
         }
 
         @Override

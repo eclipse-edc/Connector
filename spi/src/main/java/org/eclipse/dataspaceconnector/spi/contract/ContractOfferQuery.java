@@ -9,84 +9,94 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *
+ *       Microsoft Corporation - Refactoring
  */
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.asset.Criterion;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
-// TODO: add pagination attributes
-
 /**
- * The {@link ContractOfferFrameworkQuery} narrows down the number of
- * queried {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer}.
+ * A query that returns contract offers for the given parameters.
  */
 public class ContractOfferQuery {
-
-    private VerificationResult verificationResult;
-    private List<String> targetAssetIds;
+    private ClaimToken claimToken;
+    private List<Criterion> criteria;
+    private long offset;
+    private long limit;
 
     private ContractOfferQuery() {
     }
 
-    /**
-     * Tell the query to filter out all {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer} that are not intended for the connector, the {@link VerificationResult} was created for.
-     *
-     * @return verification result of the requesting connector
-     */
-    public VerificationResult getVerificationResult() {
-        return verificationResult;
+    public ClaimToken getClaimToken() {
+        return claimToken;
+    }
+
+    public List<Criterion> getCriteria() {
+        return criteria;
+    }
+
+    public long getOffset() {
+        return offset;
+    }
+
+    public long getLimit() {
+        return limit;
     }
 
     public static ContractOfferQuery.Builder builder() {
         return ContractOfferQuery.Builder.newInstance();
     }
 
-    /**
-     * Tell the query to filter out all {@link org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer} that don't contain at least one of the target assets.
-     * An empty list applies no filter.
-     *
-     * @return list of target assets
-     */
-    public List<String> getTargetAssetIds() {
-        return targetAssetIds;
-    }
-
     public static final class Builder {
-        private VerificationResult verificationResult;
-        private List<String> assets;
+        private ClaimToken claimToken;
+        private long offset;
+        private long limit;
+        private List<Criterion> criteria = new ArrayList<>();
 
         private Builder() {
-            assets = new ArrayList<>();
         }
 
         public static Builder newInstance() {
             return new ContractOfferQuery.Builder();
         }
 
-        public Builder verificationResult(final VerificationResult verificationResult) {
-            this.verificationResult = verificationResult;
+        public Builder claimToken(ClaimToken claimToken) {
+            this.claimToken = claimToken;
             return this;
         }
 
-        public Builder targetAsset(String assetId) {
-            this.assets.add(assetId);
+        public Builder criterion(Criterion criterion) {
+            this.criteria.add(criterion);
             return this;
         }
 
-        public Builder targetAssets(List<String> assetIds) {
-            this.assets.addAll(assetIds);
+        public Builder criteria(Collection<Criterion> criteria) {
+            this.criteria.addAll(criteria);
+            return this;
+        }
+
+        public Builder offset(long offset) {
+            this.offset = offset;
+            return this;
+        }
+
+        public Builder limit(long limit) {
+            this.limit = limit;
             return this;
         }
 
         public ContractOfferQuery build() {
-            final ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
-            contractOfferQuery.verificationResult = this.verificationResult;
-            contractOfferQuery.targetAssetIds = this.assets;
+            ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
+            contractOfferQuery.claimToken = this.claimToken;
+            contractOfferQuery.offset = this.offset;
+            contractOfferQuery.limit = this.limit;
+            contractOfferQuery.criteria = this.criteria;
             return contractOfferQuery;
         }
     }

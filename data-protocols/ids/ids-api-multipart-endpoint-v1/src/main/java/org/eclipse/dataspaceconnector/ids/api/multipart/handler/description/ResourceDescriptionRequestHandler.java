@@ -30,7 +30,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.toList;
 
 public class ResourceDescriptionRequestHandler extends AbstractDescriptionRequestHandler<OfferedAsset, Resource> {
     private final AssetIndex assetIndex;
@@ -55,8 +56,11 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
 
     protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult) {
         Asset asset = assetIndex.findById(idsId.getValue());
-        ContractOfferQuery contractOfferQuery = ContractOfferQuery.Builder.newInstance().targetAsset(asset.getId()).verificationResult(verificationResult).build();
-        List<ContractOffer> targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery).getContractOfferStream().collect(Collectors.toList());
+        ContractOfferQuery contractOfferQuery = ContractOfferQuery.Builder.newInstance().claimToken(verificationResult.token()).build();
+
+        // FIXME: This is temporary until we add criterion to the query and filter in the AssetIndex
+        List<ContractOffer> targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery)
+                .filter(offer -> offer.getAssets().stream().anyMatch(entry -> entry.getId().equals(asset.getId()))).collect(toList());
 
         return new OfferedAsset(asset, targetingContractOffers);
     }

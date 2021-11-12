@@ -11,8 +11,8 @@ import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
 
 import java.util.stream.Collectors;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 @Path("/offers")
 public class ContractOfferController {
 
@@ -25,11 +25,7 @@ public class ContractOfferController {
     @GET
     public Response getOffers() {
         ContractOfferQuery query = ContractOfferQuery.builder().build();
-
-        var offers = contractOfferService.queryContractOffers(query)
-                .getContractOfferStream()
-                .collect(Collectors.toList());
-
+        var offers = contractOfferService.queryContractOffers(query).collect(Collectors.toList());
         return Response.ok(offers).build();
     }
 
