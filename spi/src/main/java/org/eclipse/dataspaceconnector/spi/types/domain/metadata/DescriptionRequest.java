@@ -82,7 +82,6 @@ public class DescriptionRequest implements RemoteMessage {
             Objects.requireNonNull(descriptionRequest.protocol, "protocol");
             Objects.requireNonNull(descriptionRequest.connectorId, "connectorId");
             Objects.requireNonNull(descriptionRequest.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(descriptionRequest.requestedElement, "elementId");
             return descriptionRequest;
         }
     }
