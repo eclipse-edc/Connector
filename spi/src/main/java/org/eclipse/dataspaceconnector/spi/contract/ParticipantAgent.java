@@ -21,7 +21,7 @@ import java.util.Map;
  * Represents a system running on behalf of a dataspace participant.
  *
  * A ParticipantAgent is not the same as a Participant since the former may have claims and attributes that are distinct from the latter. For example, the Acme organization may
- * have connector systems deployed in different geographical regions. While Acme may possess the claim/attribute Partner=GOLD, only the connector running in the EU will have the '
+ * have connector systems deployed in different geographical regions. While Acme may possess the claim/attribute Partner=GOLD, only the connector running in the EU will have the 
  * claim Region=EU.
  *
  * Claims are verifiable claims presented to the current runtime by the ParticipantAgent system, typically as part of a security token or credential store. Attributes are
