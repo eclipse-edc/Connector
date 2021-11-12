@@ -14,7 +14,12 @@
 
 package org.eclipse.dataspaceconnector.spi.contract;
 
+import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * A query that returns contract offers for the given parameters.
@@ -23,6 +28,9 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
  */
 public class ContractOfferQuery {
     private ClaimToken claimToken;
+    private List<Criterion> criteria;
+    private long offset;
+    private long limit;
 
     private ContractOfferQuery() {
     }
@@ -31,12 +39,27 @@ public class ContractOfferQuery {
         return claimToken;
     }
 
+    public List<Criterion> getCriteria() {
+        return criteria;
+    }
+
+    public long getOffset() {
+        return offset;
+    }
+
+    public long getLimit() {
+        return limit;
+    }
+
     public static ContractOfferQuery.Builder builder() {
         return ContractOfferQuery.Builder.newInstance();
     }
 
     public static final class Builder {
         private ClaimToken claimToken;
+        private long offset;
+        private long limit;
+        private List<Criterion> criteria = new ArrayList<>();
 
         private Builder() {
         }
@@ -50,9 +73,32 @@ public class ContractOfferQuery {
             return this;
         }
 
+        public Builder criterion(Criterion criterion) {
+            this.criteria.add(criterion);
+            return this;
+        }
+
+        public Builder criteria(Collection<Criterion> criteria) {
+            this.criteria.addAll(criteria);
+            return this;
+        }
+
+        public Builder offset(long offset) {
+            this.offset = offset;
+            return this;
+        }
+
+        public Builder limit(long limit) {
+            this.limit = limit;
+            return this;
+        }
+
         public ContractOfferQuery build() {
-            final ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
+            ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
             contractOfferQuery.claimToken = this.claimToken;
+            contractOfferQuery.offset = this.offset;
+            contractOfferQuery.limit = this.limit;
+            contractOfferQuery.criteria = this.criteria;
             return contractOfferQuery;
         }
     }
