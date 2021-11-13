@@ -20,12 +20,12 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract;
+package org.eclipse.dataspaceconnector.spi.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;

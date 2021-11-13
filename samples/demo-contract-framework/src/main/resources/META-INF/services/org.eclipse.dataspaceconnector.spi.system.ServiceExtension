@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.dataspaceconnector.demo.contracts.DemoContractOfferFrameworkExtension
+org.eclipse.dataspaceconnector.demo.contract.offer.DemoContractOfferFrameworkExtension
 

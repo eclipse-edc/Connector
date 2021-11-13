@@ -8,16 +8,16 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import javax.xml.datatype.DatatypeConfigurationException;
+import javax.xml.datatype.DatatypeFactory;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
 import java.util.Objects;
-import javax.xml.datatype.DatatypeConfigurationException;
-import javax.xml.datatype.DatatypeFactory;
 
 public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransformer<ContractOffer, de.fraunhofer.iais.eis.ContractOffer> {
 

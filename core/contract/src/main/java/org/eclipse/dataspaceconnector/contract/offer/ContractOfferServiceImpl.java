@@ -12,14 +12,14 @@
  *       Microsoft Corporation - Refactoring
  *
  */
-package org.eclipse.dataspaceconnector.contract;
+package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentService;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;

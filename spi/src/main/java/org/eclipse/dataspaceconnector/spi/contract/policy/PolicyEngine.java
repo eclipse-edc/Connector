@@ -11,10 +11,10 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.policy;
+package org.eclipse.dataspaceconnector.spi.contract.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentService;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 
 /**
  * Evaluates policies.

@@ -1,8 +1,8 @@
-package org.eclipse.dataspaceconnector.contract;
+package org.eclipse.dataspaceconnector.contract.offer;
 
-import org.eclipse.dataspaceconnector.spi.contract.ContractDefinition;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
-import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;

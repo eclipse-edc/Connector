@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract;
+package org.eclipse.dataspaceconnector.spi.contract.agent;
 
 import org.jetbrains.annotations.NotNull;
 

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.demo.contracts;
+package org.eclipse.dataspaceconnector.demo.contract.offer;
 
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -30,6 +30,7 @@ import java.util.Objects;
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/assets")
+@Deprecated
 public class AssetIndexController {
 
     private final AssetIndexLoader assetIndexLoader;

@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.policy;
+package org.eclipse.dataspaceconnector.spi.contract.policy;
 
 import java.util.ArrayList;
 import java.util.Collections;

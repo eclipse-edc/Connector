@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,7 +27,7 @@ import java.util.Objects;
 /**
  * AssetSelectorExpressions are using labels to qualify a subset of all Assets in the {@link AssetIndex}.
  * Mostly, this will be used in the
- * {@link org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework}.
+ * {@link ContractOfferFramework}.
  * <p>
  * If an AssetSelectorExpression does not contain any criteria, it selects no Assets. If all Assets are to be selected,
  * the {@link AssetSelectorExpression#SELECT_ALL} constant must be used.

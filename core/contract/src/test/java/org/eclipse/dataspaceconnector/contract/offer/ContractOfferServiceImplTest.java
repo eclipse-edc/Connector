@@ -12,18 +12,18 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract;
+package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.contract.ContractDefinition;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgent;
-import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentService;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;

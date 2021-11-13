@@ -12,13 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.demo.contracts;
+package org.eclipse.dataspaceconnector.demo.contract.offer;
 
-import org.eclipse.dataspaceconnector.contract.ContractOfferServiceImpl;
+import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
-import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
