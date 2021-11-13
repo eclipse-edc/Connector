@@ -15,10 +15,10 @@
 package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 

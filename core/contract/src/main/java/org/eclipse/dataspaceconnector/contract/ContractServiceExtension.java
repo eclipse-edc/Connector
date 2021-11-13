@@ -18,9 +18,9 @@ import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.NullContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
