@@ -18,27 +18,29 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.stream.Stream;
 
-import static java.util.Collections.emptyMap;
 import static java.util.stream.Collectors.toList;
 
 /**
  * Implementation of the {@link ContractOfferService}.
  */
 public class ContractOfferServiceImpl implements ContractOfferService {
+    private final ParticipantAgentService agentService;
     private final ContractOfferFramework contractFramework;
     private final AssetIndex assetIndex;
 
-    public ContractOfferServiceImpl(ContractOfferFramework framework, AssetIndex assetIndex) {
+    public ContractOfferServiceImpl(ParticipantAgentService agentService, ContractOfferFramework framework, AssetIndex assetIndex) {
+        Objects.requireNonNull(agentService, "ParticipantAgentService must not be null");
         Objects.requireNonNull(framework, "ContractOfferFramework must not be null");
         Objects.requireNonNull(assetIndex, "AssetIndex must not be null");
 
+        this.agentService = agentService;
         this.contractFramework = framework;
         this.assetIndex = assetIndex;
     }
@@ -46,8 +48,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     @Override
     @NotNull
     public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
-        // TODO integrate the ParticipantAgentService in a later PR
-        var agent = new ParticipantAgent(emptyMap(), emptyMap());
+        var agent = agentService.createFor(query.getClaimToken());
         var definitions = contractFramework.definitionsFor(agent);
 
         // FIXME the design of ContractOffer#assets(List<Asset> assets) forces all assets from AssetIndex to be materialized in memory; this needs to be fixed

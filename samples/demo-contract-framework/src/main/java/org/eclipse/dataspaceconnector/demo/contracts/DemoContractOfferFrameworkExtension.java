@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.contract.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -27,16 +28,8 @@ import java.util.Set;
 
 public class DemoContractOfferFrameworkExtension implements ServiceExtension {
     private static final String NAME = "Demo Contract Offer Framework Extension";
-    private static final String[] PROVIDES = {
-            ContractOfferFramework.class.getName()
-    };
 
     private Monitor monitor;
-
-    @Override
-    public final Set<String> provides() {
-        return Set.of(PROVIDES);
-    }
 
     @Override
     public Set<String> requires() {
@@ -50,10 +43,11 @@ public class DemoContractOfferFrameworkExtension implements ServiceExtension {
         var contractOfferFramework = new PublicContractOfferFramework();
         context.registerService(ContractOfferFramework.class, contractOfferFramework);
 
+        var agentService = context.getService(ParticipantAgentService.class);
         var assetIndex = context.getService(AssetIndex.class);
         var webService = context.getService(WebService.class);
         var assetIndexLoader = context.getService(AssetIndexLoader.class);
-        var contractOfferService = new ContractOfferServiceImpl(contractOfferFramework, assetIndex);
+        var contractOfferService = new ContractOfferServiceImpl(agentService, contractOfferFramework, assetIndex);
 
         webService.registerController(new AssetIndexController(assetIndexLoader));
         webService.registerController(new ContractOfferController(contractOfferService));

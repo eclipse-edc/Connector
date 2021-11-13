@@ -73,12 +73,14 @@ public class ContractServiceExtension implements ServiceExtension {
             contractOfferFramework = new NullContractOfferFramework();
         }
 
+        var agentService = new ParticipantAgentServiceImpl();
+        serviceExtensionContext.registerService(ParticipantAgentService.class, agentService);
+
         // Contract offer service calculates contract offers using a variety of contract offer frameworks and the given asset index.
-        ContractOfferService contractOfferService = new ContractOfferServiceImpl(contractOfferFramework, assetIndex);
+        ContractOfferService contractOfferService = new ContractOfferServiceImpl(agentService, contractOfferFramework, assetIndex);
 
         // Register the created contract offer service with the service extension context.
         serviceExtensionContext.registerService(ContractOfferService.class, contractOfferService);
 
-        serviceExtensionContext.registerService(ParticipantAgentService.class, new ParticipantAgentServiceImpl());
     }
 }

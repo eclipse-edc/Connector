@@ -20,7 +20,9 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
+import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -43,6 +45,7 @@ public class DemoContractOfferFrameworkExtensionTest {
     @BeforeEach
     void setUp(EdcExtension extension) {
         extension.registerSystemExtension(ConfigurationExtension.class, testConfiguration());
+        extension.registerServiceMock(ParticipantAgentService.class, EasyMock.createMock(ParticipantAgentService.class));
     }
 
     @Test
