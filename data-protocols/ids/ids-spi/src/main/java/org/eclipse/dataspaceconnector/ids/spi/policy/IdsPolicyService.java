@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
  * Policy evaluation is performed by a provider connector when a consumer connector requests an artifact using {@link #evaluateRequest(String, String, ClaimToken, Policy)} and
  * when a consumer connector receives an offer from a provider using {@link #evaluateOffer(String, String, Policy)}.
  */
+@Deprecated
 public interface IdsPolicyService {
 
     /**
