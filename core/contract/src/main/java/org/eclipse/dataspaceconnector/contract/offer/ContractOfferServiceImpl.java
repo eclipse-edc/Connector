@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
@@ -32,16 +33,16 @@ import static java.util.stream.Collectors.toList;
  */
 public class ContractOfferServiceImpl implements ContractOfferService {
     private final ParticipantAgentService agentService;
-    private final ContractOfferFramework contractFramework;
+    private final Supplier<ContractOfferFramework> frameworkSupplier;
     private final AssetIndex assetIndex;
 
-    public ContractOfferServiceImpl(ParticipantAgentService agentService, ContractOfferFramework framework, AssetIndex assetIndex) {
+    public ContractOfferServiceImpl(ParticipantAgentService agentService, Supplier<ContractOfferFramework> frameworkSupplier, AssetIndex assetIndex) {
         Objects.requireNonNull(agentService, "ParticipantAgentService must not be null");
-        Objects.requireNonNull(framework, "ContractOfferFramework must not be null");
+        Objects.requireNonNull(frameworkSupplier, "ContractOfferFramework must not be null");
         Objects.requireNonNull(assetIndex, "AssetIndex must not be null");
 
         this.agentService = agentService;
-        this.contractFramework = framework;
+        this.frameworkSupplier = frameworkSupplier;
         this.assetIndex = assetIndex;
     }
 
@@ -49,7 +50,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     @NotNull
     public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
         var agent = agentService.createFor(query.getClaimToken());
-        var definitions = contractFramework.definitionsFor(agent);
+        var definitions = frameworkSupplier.get().definitionsFor(agent);
 
         // FIXME the design of ContractOffer#assets(List<Asset> assets) forces all assets from AssetIndex to be materialized in memory; this needs to be fixed
         return definitions.map(definition -> {

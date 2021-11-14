@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class ContractServiceExtension implements ServiceExtension {
     private static final String NAME = "Core Contract Service Extension";
@@ -62,28 +63,49 @@ public class ContractServiceExtension implements ServiceExtension {
         monitor.info(String.format("Shutdown %s", NAME));
     }
 
-    private void registerServices(ServiceExtensionContext serviceExtensionContext) {
+    private void registerServices(ServiceExtensionContext context) {
 
-        AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class, true);
+        var assetIndex = context.getService(AssetIndex.class, true);
         if (assetIndex == null) {
             monitor.warning("No AssetIndex registered. Register one to create Contract Offers.");
             assetIndex = new NullAssetIndex();
         }
 
-        ContractOfferFramework contractOfferFramework = serviceExtensionContext.getService(ContractOfferFramework.class, true);
-        if (contractOfferFramework == null) {
-            monitor.warning("No ContractOfferFramework registered. Register one to create Contract Offers.");
-            contractOfferFramework = new NullContractOfferFramework();
-        }
-
         var agentService = new ParticipantAgentServiceImpl();
-        serviceExtensionContext.registerService(ParticipantAgentService.class, agentService);
+        context.registerService(ParticipantAgentService.class, agentService);
 
-        // Contract offer service calculates contract offers using a variety of contract offer frameworks and the given asset index.
-        ContractOfferService contractOfferService = new ContractOfferServiceImpl(agentService, contractOfferFramework, assetIndex);
+        // Lazily load the contract offer framework into this core module since the implementation is provided by an extension that will require other core services
+        var cofSupplier = new CofSupplier(context, monitor);
+        var contractOfferService = new ContractOfferServiceImpl(agentService, cofSupplier, assetIndex);
 
         // Register the created contract offer service with the service extension context.
-        serviceExtensionContext.registerService(ContractOfferService.class, contractOfferService);
+        context.registerService(ContractOfferService.class, contractOfferService);
 
+    }
+
+    private static class CofSupplier implements Supplier<ContractOfferFramework> {
+        private final ServiceExtensionContext context;
+        private final Monitor monitor;
+        private ContractOfferFramework cachedFramework;
+
+        public CofSupplier(ServiceExtensionContext context, Monitor monitor) {
+            this.context = context;
+            this.monitor = monitor;
+        }
+
+        @Override
+        public ContractOfferFramework get() {
+            // Note this implementation is purposely not synchronized or reliant on volatiles in favor of runtime lookup performance; at worst, multiple copies of a null
+            // contract offer framework will be instantiated, which has no operational impact.
+            if (cachedFramework != null) {
+                cachedFramework = context.getService(ContractOfferFramework.class, true);
+                if (cachedFramework == null) {
+                    monitor.warning("No ContractOfferFramework registered. Register one to create Contract Offers.");
+                    cachedFramework = new NullContractOfferFramework();
+                }
+            }
+            return cachedFramework;
+
+        }
     }
 }
