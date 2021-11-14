@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.contract.policy;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -84,21 +83,26 @@ public class PolicyEngineImplScenariosTest {
     }
 
     /**
-     * Shows how to handle literal types that are serialized JSON objects.
+     * Shows how to handle literal types that are JSON objects.
      */
     @Test
     void verifyConnectorUse() {
         var mapper = new ObjectMapper();
         policyEngine.registerFunction(Permission.class, CONNECTOR_CONSTRAINT, (operator, value, permission, context) -> {
-            try {
-                @SuppressWarnings("unchecked") var deserialized = (List<Map<String, String>>) mapper.readValue(value, List.class);
-                for (Map<String, String> entry : deserialized) {
-                    if ("connector1".equals(entry.get("value"))) {
-                        return true;
-                    }
-                }
-            } catch (JsonProcessingException e) {
+            if (!(value instanceof List)) {
+                context.reportProblem("Unsupported right operand type: " + value.getClass().getName());
                 return false;
+            }
+            var deserialized = (List<?>) value;
+            for (Object entry : deserialized) {
+                if (!(entry instanceof Map)) {
+                    context.reportProblem("Unsupported right operand element type: " + entry.getClass().getName());
+                    return false;
+                }
+                @SuppressWarnings("unchecked") var deserializedEntry = (Map<Object, Object>) entry;
+                if ("connector1".equals(deserializedEntry.get("value"))) {
+                    return true;
+                }
             }
             return false;
         });

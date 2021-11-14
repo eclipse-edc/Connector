@@ -27,10 +27,10 @@ public interface AtomicConstraintFunction<R extends Rule> {
      * Performs the evaluation.
      *
      * @param operator the operation
-     * @param rightValue the right-side expression for the constraint
+     * @param rightValue the right-side expression for the constraint; the concrete type may be a string, primitive or object such as a JSON-LD encoded collection.
      * @param rule the rule associated with the constraint
      * @param context the policy context
      */
-    boolean evaluate(Operator operator, String rightValue, R rule, PolicyContext context);
+    boolean evaluate(Operator operator, Object rightValue, R rule, PolicyContext context);
 
 }
