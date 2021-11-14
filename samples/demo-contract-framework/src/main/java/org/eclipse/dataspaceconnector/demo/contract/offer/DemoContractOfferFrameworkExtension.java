@@ -26,7 +26,7 @@ public class DemoContractOfferFrameworkExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
-    public void initialize(final ServiceExtensionContext context) {
+    public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
         var policyEngine = context.getService(PolicyEngine.class);
