@@ -69,7 +69,7 @@ class ExpressionToRdfResourceTransformerTest {
     void testSuccessfulMap() {
         // prepare
         var value = "COUNT";
-        EasyMock.expect(expression.getValue()).andReturn(value);
+        EasyMock.expect(expression.asString()).andReturn(value);
 
         // record
         EasyMock.replay(expression, context);

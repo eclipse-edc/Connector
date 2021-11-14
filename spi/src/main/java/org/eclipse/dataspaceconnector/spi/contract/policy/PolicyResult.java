@@ -34,4 +34,8 @@ public class PolicyResult {
     public boolean valid() {
         return problems.isEmpty();
     }
+
+    public List<String> getProblems() {
+        return problems;
+    }
 }

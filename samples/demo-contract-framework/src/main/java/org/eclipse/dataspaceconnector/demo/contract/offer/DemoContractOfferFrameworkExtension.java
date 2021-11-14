@@ -14,17 +14,11 @@
 
 package org.eclipse.dataspaceconnector.demo.contract.offer;
 
-import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
-import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 public class DemoContractOfferFrameworkExtension implements ServiceExtension {
     private static final String NAME = "Demo Contract Offer Framework Extension";
@@ -32,25 +26,13 @@ public class DemoContractOfferFrameworkExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
-    public Set<String> requires() {
-        return Set.of(AssetIndex.FEATURE, "edc:webservice");
-    }
-
-    @Override
     public void initialize(final ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        var contractOfferFramework = new PublicContractOfferFramework();
-        context.registerService(ContractOfferFramework.class, contractOfferFramework);
+        var policyEngine = context.getService(PolicyEngine.class);
 
-        var agentService = context.getService(ParticipantAgentService.class);
-        var assetIndex = context.getService(AssetIndex.class);
-        var webService = context.getService(WebService.class);
-        var assetIndexLoader = context.getService(AssetIndexLoader.class);
-        var contractOfferService = new ContractOfferServiceImpl(agentService, contractOfferFramework, assetIndex);
-
-        webService.registerController(new AssetIndexController(assetIndexLoader));
-        webService.registerController(new ContractOfferController(contractOfferService));
+        var offerFramework = new DynamicPolicyContractOfferFramework(policyEngine, monitor);
+        context.registerService(ContractOfferFramework.class, offerFramework);
 
         monitor.info(String.format("Initialized %s", NAME));
     }

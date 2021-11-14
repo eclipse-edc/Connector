@@ -14,23 +14,30 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
+import org.jetbrains.annotations.NotNull;
+
 /**
  * A literal value used as an expression.
  */
 public class LiteralExpression extends Expression {
-    private final String value;
+    private final Object value;
 
-    public LiteralExpression(String value) {
+    public LiteralExpression(Object value) {
         this.value = value;
     }
 
-    public String getValue() {
+    public Object getValue() {
         return value;
     }
 
     @Override
     public String toString() {
-        return "'" + value + "'";
+        return value + "'";
+    }
+
+    @NotNull
+    public String asString() {
+        return value == null ? "null" : value.toString();
     }
 
     @Override

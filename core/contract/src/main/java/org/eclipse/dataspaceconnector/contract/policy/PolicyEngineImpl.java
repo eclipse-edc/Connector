@@ -67,11 +67,11 @@ public class PolicyEngineImpl implements PolicyEngine {
 
         constraintFunctions.forEach(entry -> {
             if (Duty.class.isAssignableFrom(entry.type)) {
-                evalBuilder.dutyFunction(entry.key, (operator, value, duty) -> entry.function.evaluate(operator, (String) value, duty, context));
+                evalBuilder.dutyFunction(entry.key, (operator, value, duty) -> entry.function.evaluate(operator, value, duty, context));
             } else if (Permission.class.isAssignableFrom(entry.type)) {
-                evalBuilder.permissionFunction(entry.key, (operator, value, permission) -> entry.function.evaluate(operator, (String) value, permission, context));
+                evalBuilder.permissionFunction(entry.key, (operator, value, permission) -> entry.function.evaluate(operator, value, permission, context));
             } else if (Prohibition.class.isAssignableFrom(entry.type)) {
-                evalBuilder.prohibitionFunction(entry.key, (operator, value, prohibition) -> entry.function.evaluate(operator, (String) value, prohibition, context));
+                evalBuilder.prohibitionFunction(entry.key, (operator, value, prohibition) -> entry.function.evaluate(operator, value, prohibition, context));
             }
         });
 

@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.contract.policy;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -83,32 +82,21 @@ public class PolicyEngineImplScenariosTest {
     }
 
     /**
-     * Shows how to handle literal types that are JSON objects.
+     * Shows how to handle literal types that are derived from JSON objects.
      */
     @Test
     void verifyConnectorUse() {
-        var mapper = new ObjectMapper();
         policyEngine.registerFunction(Permission.class, CONNECTOR_CONSTRAINT, (operator, value, permission, context) -> {
             if (!(value instanceof List)) {
                 context.reportProblem("Unsupported right operand type: " + value.getClass().getName());
                 return false;
             }
-            var deserialized = (List<?>) value;
-            for (Object entry : deserialized) {
-                if (!(entry instanceof Map)) {
-                    context.reportProblem("Unsupported right operand element type: " + entry.getClass().getName());
-                    return false;
-                }
-                @SuppressWarnings("unchecked") var deserializedEntry = (Map<Object, Object>) entry;
-                if ("connector1".equals(deserializedEntry.get("value"))) {
-                    return true;
-                }
-            }
-            return false;
+            //noinspection rawtypes
+            return ((List) value).contains("connector1");
         });
 
         var left = new LiteralExpression(CONNECTOR_CONSTRAINT);
-        var right = new LiteralExpression("[{\"value\": \"connector1\", \"type\":\"xsd:string\"}]");
+        var right = new LiteralExpression(List.of("connector1"));
         var connectorConstraint = AtomicConstraint.Builder.newInstance().leftExpression(left).operator(IN).rightExpression(right).build();
         var usePermission = Permission.Builder.newInstance().action(USE_ACTION).constraint(connectorConstraint).build();
 
