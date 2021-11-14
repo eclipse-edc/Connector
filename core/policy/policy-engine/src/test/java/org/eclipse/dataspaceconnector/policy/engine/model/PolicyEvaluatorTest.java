@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.policy.engine.model;
 
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluator;
-import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -30,67 +30,106 @@ class PolicyEvaluatorTest {
 
     @Test
     void verifySimpleEval() {
-        AtomicConstraint constraint = createLiteralAtomicConstraint("foo", "foo");
+        var constraint = createLiteralAtomicConstraint("foo", "foo");
 
-        Duty duty = Duty.Builder.newInstance().constraint(constraint).build();
-        Policy policy = Policy.Builder.newInstance().duty(duty).build();
+        var duty = Duty.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().duty(duty).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().build();
+        var evaluator = PolicyEvaluator.Builder.newInstance().build();
         assertTrue(evaluator.evaluate(policy).valid());
     }
 
     @Test
     void verifyProhibitionNotEqualEval() {
-        AtomicConstraint constraint = createLiteralAtomicConstraint("baz", "bar");
+        var constraint = createLiteralAtomicConstraint("baz", "bar");
 
-        Prohibition prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
-        Policy policy = Policy.Builder.newInstance().prohibition(prohibition).build();
+        var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().build();
+        var evaluator = PolicyEvaluator.Builder.newInstance().build();
         assertTrue(evaluator.evaluate(policy).valid());
     }
 
     @Test
     void verifyPermissionNotEqualEval() {
-        AtomicConstraint constraint = createLiteralAtomicConstraint("baz", "bar");
+        var constraint = createLiteralAtomicConstraint("baz", "bar");
 
-        Permission permission = Permission.Builder.newInstance().constraint(constraint).build();
-        Policy policy = Policy.Builder.newInstance().permission(permission).build();
+        var permission = Permission.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().build();
+        var evaluator = PolicyEvaluator.Builder.newInstance().build();
         assertFalse(evaluator.evaluate(policy).valid());
     }
 
     @Test
     void verifyPermissionFunctions() {
-        AtomicConstraint constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
 
-        Permission permission = Permission.Builder.newInstance().constraint(constraint).build();
-        Policy policy = Policy.Builder.newInstance().permission(permission).build();
+        var permission = Permission.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().permissionFunction("toResolve", (operator, value, p) -> "foo".equals(value)).build();
+        var evaluator = PolicyEvaluator.Builder.newInstance().permissionFunction("toResolve", (operator, value, p) -> "foo".equals(value)).build();
         assertTrue(evaluator.evaluate(policy).valid());
     }
 
     @Test
     void verifyDutyFunctions() {
-        AtomicConstraint constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
 
-        Duty duty = Duty.Builder.newInstance().constraint(constraint).build();
-        Policy policy = Policy.Builder.newInstance().duty(duty).build();
+        var duty = Duty.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().duty(duty).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().dutyFunction("toResolve", (operator, value, d) -> "foo".equals(value)).build();
+        var evaluator = PolicyEvaluator.Builder.newInstance().dutyFunction("toResolve", (operator, value, d) -> "foo".equals(value)).build();
         assertTrue(evaluator.evaluate(policy).valid());
     }
 
     @Test
     void verifyProhibitionFunctions() {
-        AtomicConstraint constraint = createLiteralAtomicConstraint("toResolve", "foo");
+        var constraint = createLiteralAtomicConstraint("toResolve", "foo");
 
-        Prohibition prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
-        Policy policy = Policy.Builder.newInstance().prohibition(prohibition).build();
+        var prohibition = Prohibition.Builder.newInstance().constraint(constraint).build();
+        var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
 
-        PolicyEvaluator evaluator = PolicyEvaluator.Builder.newInstance().prohibitionFunction("toResolve", (operator, value, pr) -> !"foo".equals(value)).build();
+        var evaluator = PolicyEvaluator.Builder.newInstance().prohibitionFunction("toResolve", (operator, value, pr) -> !"foo".equals(value)).build();
         assertTrue(evaluator.evaluate(policy).valid());
+    }
+
+    @Test
+    void verifyPermissionRuleFunctions() {
+        var permission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("USE").build()).build();
+        var policy = Policy.Builder.newInstance().permission(permission).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance().permissionRuleFunction((p) -> true).build();
+        assertTrue(evaluator.evaluate(policy).valid());
+
+        evaluator = PolicyEvaluator.Builder.newInstance().permissionRuleFunction((p) -> false).build();
+        assertFalse(evaluator.evaluate(policy).valid());
+
+    }
+
+    @Test
+    void verifyProhibitionRuleFunctions() {
+        var prohibition = Prohibition.Builder.newInstance().action(Action.Builder.newInstance().type("DENY").build()).build();
+        var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance().prohibitionRuleFunction((p) -> true).build();
+        assertFalse(evaluator.evaluate(policy).valid());  // prohibition triggered, fail
+
+        evaluator = PolicyEvaluator.Builder.newInstance().prohibitionRuleFunction((p) -> false).build();
+        assertTrue(evaluator.evaluate(policy).valid()); // prohibition not triggered, succeed
+
+    }
+
+    @Test
+    void verifyDutyRuleFunctions() {
+        var duty = Duty.Builder.newInstance().action(Action.Builder.newInstance().type("DELETE").build()).build();
+        var policy = Policy.Builder.newInstance().duty(duty).build();
+
+        var evaluator = PolicyEvaluator.Builder.newInstance().dutyRuleFunction((p) -> true).build();
+        assertTrue(evaluator.evaluate(policy).valid());
+
+        evaluator = PolicyEvaluator.Builder.newInstance().dutyRuleFunction((p) -> false).build();
+        assertFalse(evaluator.evaluate(policy).valid());
+
     }
 }

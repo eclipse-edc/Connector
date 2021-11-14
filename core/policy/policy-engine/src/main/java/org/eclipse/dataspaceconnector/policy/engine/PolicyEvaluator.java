@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
+import org.eclipse.dataspaceconnector.policy.model.RuleFunction;
 import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
 
 import java.util.ArrayList;
@@ -36,15 +37,22 @@ import java.util.Objects;
 
 /**
  * Evaluates a policy.
+ *
  * A policy evaluator is used to build evaluation engines that perform tasks such as verifying if a {@link Policy} is satisfied by a client system presenting signed credentials.
  * Implementation-specific functionality is contributed by registering {@link AtomicConstraintFunction}s using {@link Builder#permissionFunction(String, AtomicConstraintFunction)},
  * {@link Builder#prohibitionFunction(String, AtomicConstraintFunction)}, and  {@link Builder#dutyFunction(String, AtomicConstraintFunction)}.
  */
 public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Boolean>, Constraint.Visitor<Boolean>, Expression.Visitor<Object> {
     private final List<RuleProblem> ruleProblems = new ArrayList<>();
+
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> permissionFunctions = new HashMap<>();
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> dutyFunctions = new HashMap<>();
     private final Map<String, AtomicConstraintFunction<Object, ? extends Rule, Boolean>> prohibitionFunctions = new HashMap<>();
+
+    private final List<RuleFunction<Permission>> permissionRuleFunctions = new ArrayList<>();
+    private final List<RuleFunction<Duty>> dutyRuleFunctions = new ArrayList<>();
+    private final List<RuleFunction<Prohibition>> prohibitionRuleFunctions = new ArrayList<>();
+
     private Rule ruleContext; // the current rule being evaluated or null
 
     private PolicyEvaluator() {
@@ -64,6 +72,12 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
     @Override
     public Boolean visitPermission(Permission permission) {
+        for (RuleFunction<Permission> function : permissionRuleFunctions) {
+            if (!function.evaluate(permission)) {
+                ruleProblems.add(RuleProblem.Builder.newInstance().rule(permission).description("Evalution failed for: " + permission.toString()).build());
+                return false;
+            }
+        }
         try {
             if (permission.getDuty() != null) {
                 ruleContext = permission.getDuty();
@@ -80,6 +94,12 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
     @Override
     public Boolean visitProhibition(Prohibition prohibition) {
+        for (RuleFunction<Prohibition> function : prohibitionRuleFunctions) {
+            if (function.evaluate(prohibition)) {
+                ruleProblems.add(RuleProblem.Builder.newInstance().rule(prohibition).description("Evalution failed for: " + prohibition.toString()).build());
+                return false;
+            }
+        }
         try {
             ruleContext = prohibition;
             return visitRule(prohibition);
@@ -90,6 +110,12 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
     @Override
     public Boolean visitDuty(Duty duty) {
+        for (RuleFunction<Duty> function : dutyRuleFunctions) {
+            if (!function.evaluate(duty)) {
+                ruleProblems.add(RuleProblem.Builder.newInstance().rule(duty).description("Evalution failed for: " + duty.toString()).build());
+                return false;
+            }
+        }
         try {
             ruleContext = duty;
             return visitRule(duty);
@@ -210,6 +236,21 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
 
         public Builder prohibitionFunction(String key, AtomicConstraintFunction<Object, Prohibition, Boolean> function) {
             evaluator.prohibitionFunctions.put(key, function);
+            return this;
+        }
+
+        public Builder permissionRuleFunction(RuleFunction<Permission> function) {
+            evaluator.permissionRuleFunctions.add(function);
+            return this;
+        }
+
+        public Builder dutyRuleFunction(RuleFunction<Duty> function) {
+            evaluator.dutyRuleFunctions.add(function);
+            return this;
+        }
+
+        public Builder prohibitionRuleFunction(RuleFunction<Prohibition> function) {
+            evaluator.prohibitionRuleFunctions.add(function);
             return this;
         }
 

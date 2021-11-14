@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.policy.engine;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -34,5 +36,10 @@ public class PolicyEvaluationResult {
 
     public boolean valid() {
         return problems.isEmpty();
+    }
+
+    @NotNull
+    public List<RuleProblem> getProblems() {
+        return problems;
     }
 }
