@@ -53,7 +53,6 @@ public class PolicyEngineImpl implements PolicyEngine {
         }
 
         var evalBuilder = PolicyEvaluator.Builder.newInstance();
-        var evaluator = evalBuilder.build();
 
         ruleFunctions.forEach(entry -> {
             if (Duty.class.isAssignableFrom(entry.type)) {
@@ -75,6 +74,7 @@ public class PolicyEngineImpl implements PolicyEngine {
             }
         });
 
+        var evaluator = evalBuilder.build();
         var result = evaluator.evaluate(policy);
         if (result.valid()) {
             for (BiFunction<Policy, PolicyContext, Boolean> validator : postValidators) {
