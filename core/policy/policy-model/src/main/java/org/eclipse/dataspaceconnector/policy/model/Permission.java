@@ -16,17 +16,25 @@ package org.eclipse.dataspaceconnector.policy.model;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import static java.util.stream.Collectors.joining;
 
 /**
  * Allows an action if its constraints are satisfied.
  */
 public class Permission extends Rule {
-    private Duty duty;
+    private final List<Duty> duties;
+
+    private Permission() {
+        this.duties = new ArrayList<>();
+    }
 
     @Nullable
-    public Duty getDuty() {
-        return duty;
+    public List<Duty> getDuties() {
+        return Collections.unmodifiableList(duties);
     }
 
     @Override
@@ -50,8 +58,16 @@ public class Permission extends Rule {
         }
 
         public Builder duty(Duty duty) {
-            rule.duty = duty;
-            rule.duty.setParentPermission(rule);
+            duty.setParentPermission(rule);
+            rule.duties.add(duty);
+            return this;
+        }
+
+        public Builder duties(List<Duty> duties) {
+            for (var duty : duties) {
+                duty.setParentPermission(rule);
+            }
+            rule.duties.addAll(duties);
             return this;
         }
 

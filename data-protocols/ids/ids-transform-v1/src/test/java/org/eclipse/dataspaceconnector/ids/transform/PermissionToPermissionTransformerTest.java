@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021 Daimler TSS GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Daimler TSS GmbH - Initial Implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.easymock.EasyMock;
@@ -81,7 +95,7 @@ public class PermissionToPermissionTransformerTest {
         EasyMock.expect(permission.getAssignee()).andReturn(ASSIGNEE);
 
         EasyMock.expect(permission.getConstraints()).andReturn(Collections.singletonList(edcConstraint)).anyTimes();
-        EasyMock.expect(permission.getDuty()).andReturn(edcDuty).anyTimes();
+        EasyMock.expect(permission.getDuties()).andReturn(Collections.singletonList(edcDuty)).anyTimes();
         EasyMock.expect(permission.getAction()).andReturn(edcAction).anyTimes();
         EasyMock.expect(context.transform(EasyMock.eq(edcAction), EasyMock.eq(de.fraunhofer.iais.eis.Action.class))).andReturn(idsAction);
         EasyMock.expect(context.transform(EasyMock.eq(edcConstraint), EasyMock.eq(de.fraunhofer.iais.eis.Constraint.class))).andReturn(idsConstraint);
