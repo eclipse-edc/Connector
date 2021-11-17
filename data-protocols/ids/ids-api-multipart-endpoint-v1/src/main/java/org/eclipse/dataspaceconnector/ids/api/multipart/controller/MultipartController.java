@@ -14,6 +14,12 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.controller;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.RequestMessage;
 import jakarta.ws.rs.Consumes;
@@ -25,6 +31,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
@@ -32,6 +39,8 @@ import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.List;
 import java.util.Objects;
 
@@ -53,6 +62,10 @@ public class MultipartController {
     private final List<Handler> multipartHandlers;
     private final String connectorId;
 
+    // TODO needs to be replaced by an objectmapper capable to write proper IDS JSON-LD
+    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+    private final ObjectMapper objectMapper;
+
     public MultipartController(
             @NotNull String connectorId,
             @NotNull IdentityService identityService,
@@ -60,6 +73,14 @@ public class MultipartController {
         this.identityService = Objects.requireNonNull(identityService);
         this.multipartHandlers = Objects.requireNonNull(multipartHandlers);
         this.connectorId = Objects.requireNonNull(connectorId);
+
+        objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ"));
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     }
 
     @POST
@@ -128,11 +149,11 @@ public class MultipartController {
     private FormDataMultiPart createFormDataMultiPart(Object header, Object payload) {
         FormDataMultiPart multiPart = new FormDataMultiPart();
         if (header != null) {
-            multiPart.bodyPart(new FormDataBodyPart(HEADER, header, MediaType.APPLICATION_JSON_TYPE));
+            multiPart.bodyPart(new FormDataBodyPart(HEADER, toJson(header), MediaType.APPLICATION_JSON_TYPE));
         }
 
         if (payload != null) {
-            multiPart.bodyPart(new FormDataBodyPart(PAYLOAD, payload, MediaType.APPLICATION_JSON_TYPE));
+            multiPart.bodyPart(new FormDataBodyPart(PAYLOAD, toJson(payload), MediaType.APPLICATION_JSON_TYPE));
         }
 
         return multiPart;
@@ -146,5 +167,13 @@ public class MultipartController {
         }
 
         return null;
+    }
+
+    private byte[] toJson(Object object) {
+        try {
+            return objectMapper.writeValueAsBytes(object);
+        } catch (JsonProcessingException e) {
+            throw new EdcException(e);
+        }
     }
 }
