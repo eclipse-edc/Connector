@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.schema;
 
 import org.eclipse.dataspaceconnector.schema.policy.PolicySchema;
+import org.eclipse.dataspaceconnector.spi.schema.SchemaRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 

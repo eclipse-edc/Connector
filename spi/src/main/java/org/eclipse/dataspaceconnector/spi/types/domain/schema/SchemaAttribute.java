@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.schema;
+package org.eclipse.dataspaceconnector.spi.types.domain.schema;
 
 public class SchemaAttribute {
     private String name;

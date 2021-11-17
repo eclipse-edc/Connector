@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.schema;
 
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.Schema;
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.SchemaAttribute;
+
 public abstract class DataSchema extends Schema {
     //marker class to allow filtering etc.
 

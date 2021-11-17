@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.schema;
 
+import org.eclipse.dataspaceconnector.spi.schema.SchemaRegistry;
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.Schema;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;

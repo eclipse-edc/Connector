@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.schema.policy;
 
-import org.eclipse.dataspaceconnector.schema.Schema;
-import org.eclipse.dataspaceconnector.schema.SchemaAttribute;
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.Schema;
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.SchemaAttribute;
 
 public class PolicySchema extends Schema {
     public static String TYPE = "dataspaceconnector:policy";

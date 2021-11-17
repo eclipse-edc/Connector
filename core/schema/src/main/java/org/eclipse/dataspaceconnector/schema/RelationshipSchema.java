@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.schema;
 
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.Schema;
+
 /**
  * Schema for relations between catalog entities, e.g. in Atlas
  */

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.schema.s3;
 
-import org.eclipse.dataspaceconnector.schema.SchemaRegistry;
+import org.eclipse.dataspaceconnector.spi.schema.SchemaRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -29,7 +29,6 @@ public class BucketSchemaExtension implements ServiceExtension {
         sr.register(new AmazonS3HasPolicyRelationshipSchema());
 
         monitor.info("Initialized S3 Bucket Schemas");
-
     }
 }
 

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.schema.azure;
 
-import org.eclipse.dataspaceconnector.schema.SchemaRegistry;
+import org.eclipse.dataspaceconnector.spi.schema.SchemaRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 

@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.schema.s3;
 
 
 import org.eclipse.dataspaceconnector.schema.DataSchema;
-import org.eclipse.dataspaceconnector.schema.SchemaAttribute;
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.SchemaAttribute;
 
 public class S3BucketSchema extends DataSchema {
 
