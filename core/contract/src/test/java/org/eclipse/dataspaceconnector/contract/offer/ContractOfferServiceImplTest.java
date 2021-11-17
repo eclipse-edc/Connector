@@ -78,7 +78,8 @@ class ContractOfferServiceImplTest {
         var contractDefinition = new ContractDefinition(Policy.Builder.newInstance().build(), AssetSelectorExpression.SELECT_ALL);
         EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         EasyMock.expect(contractOfferFramework.definitionsFor(EasyMock.isA(ParticipantAgent.class))).andReturn(Stream.of(contractDefinition));
-        EasyMock.expect(assetIndex.queryAssets(EasyMock.isA(AssetSelectorExpression.class))).andReturn(Stream.of(Asset.Builder.newInstance().build()));
+        var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
+        EasyMock.expect(assetIndex.queryAssets(EasyMock.isA(AssetSelectorExpression.class))).andReturn(assetStream);
 
         EasyMock.replay(agentService, contractOfferFramework, assetIndex);
 
@@ -86,7 +87,7 @@ class ContractOfferServiceImplTest {
 
         // collect() instead of count() forces iteration
         //noinspection SimplifyStreamApiCallChains
-        assertThat((int) contractOfferService.queryContractOffers(query).collect(Collectors.toList()).size()).isEqualTo(1);
+        assertThat((int) contractOfferService.queryContractOffers(query).collect(Collectors.toList()).size()).isEqualTo(2);
 
         EasyMock.verify(contractOfferFramework, assetIndex);
     }

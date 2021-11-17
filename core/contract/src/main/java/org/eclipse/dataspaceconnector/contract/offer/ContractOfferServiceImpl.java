@@ -22,11 +22,10 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
-
-import static java.util.stream.Collectors.toList;
 
 /**
  * Implementation of the {@link ContractOfferService}.
@@ -52,10 +51,9 @@ public class ContractOfferServiceImpl implements ContractOfferService {
         var agent = agentService.createFor(query.getClaimToken());
         var definitions = frameworkSupplier.get().definitionsFor(agent);
 
-        // FIXME the design of ContractOffer#assets(List<Asset> assets) forces all assets from AssetIndex to be materialized in memory; this needs to be fixed
-        return definitions.map(definition -> {
+        return definitions.flatMap(definition -> {
             var assets = assetIndex.queryAssets(definition.getAssetSelectorExpression());
-            return ContractOffer.Builder.newInstance().policy(definition.getUsagePolicy()).assets(assets.collect(toList())).build();
+            return assets.map(asset -> ContractOffer.Builder.newInstance().policy(definition.getUsagePolicy()).assets(List.of(asset)).build());
         });
     }
 
