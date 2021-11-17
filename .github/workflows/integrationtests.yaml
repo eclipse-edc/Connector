@@ -30,6 +30,19 @@ jobs:
           COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
         run: ./gradlew extensions:azure:transfer-process-store-cosmos:check
 
+      - name: Cosmos-based Asset Index test
+        env:
+          RUN_INTEGRATION_TEST: true
+          COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
+        run: ./gradlew extensions:azure:assetindex-cosmos:check
+
+
+      - name: Cosmos-based FCN Directory test
+        env:
+          RUN_INTEGRATION_TEST: true
+          COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
+        run: ./gradlew extensions:azure:fcc-node-directory-cosmos:check
+
   Aws-Integration-Test:
     # run only on upstream repo
     if: github.repository_owner == 'eclipse-dataspaceconnector'
