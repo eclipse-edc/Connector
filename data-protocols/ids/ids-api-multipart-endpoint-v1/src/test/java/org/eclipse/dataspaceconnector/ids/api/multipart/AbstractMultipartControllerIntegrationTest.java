@@ -58,6 +58,8 @@ import java.util.concurrent.atomic.AtomicReference;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
+    // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
+    //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     {
@@ -66,8 +68,8 @@ abstract class AbstractMultipartControllerIntegrationTest {
         DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
         OBJECT_MAPPER.setDateFormat(df);
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        SimpleModule module = new SimpleModule();
-        OBJECT_MAPPER.registerModule(module);
+        OBJECT_MAPPER.configure(SerializationFeature.WRITE_SINGLE_ELEM_ARRAYS_UNWRAPPED, true);
+        OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     }
 
     public static final String HEADER = "header";

@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.Constraint;
 import de.fraunhofer.iais.eis.DutyBuilder;
 import de.fraunhofer.iais.eis.util.ConstraintViolationException;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
@@ -26,8 +25,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Objects;
 
 public class DutyToDutyTransformer implements IdsTypeTransformer<Duty, de.fraunhofer.iais.eis.Duty> {
@@ -49,33 +46,32 @@ public class DutyToDutyTransformer implements IdsTypeTransformer<Duty, de.fraunh
             return null;
         }
 
-        var idsId = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.PERMISSION).build();
-        var id = context.transform(idsId, URI.class);
-        var dutyBuilder = new DutyBuilder(id);
+        IdsId idsId = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.PERMISSION).build();
+        URI id = context.transform(idsId, URI.class);
+        DutyBuilder dutyBuilder = new DutyBuilder(id);
 
-        var idsConstraints = new ArrayList<Constraint>();
-        for (var edcConstraint : object.getConstraints()) {
-            var idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
-            idsConstraints.add(idsConstraint);
+        for (org.eclipse.dataspaceconnector.policy.model.Constraint edcConstraint : object.getConstraints()) {
+            de.fraunhofer.iais.eis.Constraint idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
+            dutyBuilder._constraint_(idsConstraint);
         }
-        dutyBuilder._constraint_(idsConstraints);
 
-        var target = object.getTarget();
+        String target = object.getTarget();
         if (target != null) {
             dutyBuilder._target_(URI.create(target));
         }
 
-        var assigner = object.getAssigner();
+        String assigner = object.getAssigner();
         if (assigner != null) {
-            dutyBuilder._assigner_(new ArrayList<>(Collections.singletonList(URI.create(assigner))));
-        }
-        var assignee = object.getAssignee();
-        if (assignee != null) {
-            dutyBuilder._assignee_(new ArrayList<>(Collections.singletonList(URI.create(assignee))));
+            dutyBuilder._assigner_(URI.create(assigner));
         }
 
-        var action = context.transform(object.getAction(), de.fraunhofer.iais.eis.Action.class);
-        dutyBuilder._action_(new ArrayList<>(Collections.singletonList(action)));
+        String assignee = object.getAssignee();
+        if (assignee != null) {
+            dutyBuilder._assignee_(URI.create(assignee));
+        }
+
+        de.fraunhofer.iais.eis.Action action = context.transform(object.getAction(), de.fraunhofer.iais.eis.Action.class);
+        dutyBuilder._action_(action);
 
         de.fraunhofer.iais.eis.Duty duty;
         try {

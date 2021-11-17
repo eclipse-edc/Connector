@@ -1,8 +1,23 @@
+/*
+ *  Copyright (c) 2021 Daimler TSS GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Daimler TSS GmbH - Initial Implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.Constraint;
 import de.fraunhofer.iais.eis.ProhibitionBuilder;
+import de.fraunhofer.iais.eis.util.ConstraintViolationException;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
@@ -12,8 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Objects;
 
 public class ProhibitionToProhibitionTransformer implements IdsTypeTransformer<Prohibition, de.fraunhofer.iais.eis.Prohibition> {
@@ -35,35 +48,43 @@ public class ProhibitionToProhibitionTransformer implements IdsTypeTransformer<P
             return null;
         }
 
-        var constraints = new ArrayList<Constraint>();
-        for (var edcConstraint : object.getConstraints()) {
-            var idsConstraint = context.transform(edcConstraint, Constraint.class);
-            constraints.add(idsConstraint);
+        IdsId idsId = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.PROHIBITION).build();
+        URI id = context.transform(idsId, URI.class);
+        ProhibitionBuilder prohibitionBuilder = new ProhibitionBuilder(id);
+
+        Action action = context.transform(object.getAction(), Action.class);
+        if (action != null) {
+            prohibitionBuilder._action_(action);
         }
 
-        var idsId = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.PROHIBITION).build();
-        var id = context.transform(idsId, URI.class);
-        var prohibitionBuilder = new ProhibitionBuilder(id);
-
-        var action = context.transform(object.getAction(), Action.class);
-        var assinger = object.getAssigner();
-        if (assinger != null) {
-            prohibitionBuilder._assigner_(new ArrayList<>(Collections.singletonList(URI.create(assinger))));
+        String assigner = object.getAssigner();
+        if (assigner != null) {
+            prohibitionBuilder._assigner_(URI.create(assigner));
         }
 
-        var assignee = object.getAssignee();
+        String assignee = object.getAssignee();
         if (assignee != null) {
-            prohibitionBuilder._assignee_(new ArrayList<>(Collections.singletonList(URI.create(assignee))));
+            prohibitionBuilder._assignee_(URI.create(assignee));
         }
 
-        var target = object.getTarget();
+        String target = object.getTarget();
         if (target != null) {
             prohibitionBuilder._target_(URI.create(target));
         }
 
-        prohibitionBuilder._action_(new ArrayList<>(Collections.singletonList(action)));
-        prohibitionBuilder._constraint_(constraints);
+        for (org.eclipse.dataspaceconnector.policy.model.Constraint edcConstraint : object.getConstraints()) {
+            Constraint idsConstraint = context.transform(edcConstraint, Constraint.class);
+            prohibitionBuilder._constraint_(idsConstraint);
+        }
 
-        return prohibitionBuilder.build();
+        de.fraunhofer.iais.eis.Prohibition prohibition;
+        try {
+            prohibition = prohibitionBuilder.build();
+        } catch (ConstraintViolationException e) {
+            context.reportProblem(String.format("Failed to build IDS prohibition: %s", e.getMessage()));
+            prohibition = null;
+        }
+
+        return prohibition;
     }
 }
