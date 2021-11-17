@@ -16,8 +16,8 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;

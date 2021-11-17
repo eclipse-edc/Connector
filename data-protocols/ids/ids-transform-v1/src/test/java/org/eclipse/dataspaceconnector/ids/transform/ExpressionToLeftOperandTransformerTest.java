@@ -69,7 +69,7 @@ class ExpressionToLeftOperandTransformerTest {
     @Test
     void testSuccessfulMap() {
         // prepare
-        EasyMock.expect(expression.getValue()).andReturn("COUNT");
+        EasyMock.expect(expression.asString()).andReturn("COUNT");
 
         // record
         EasyMock.replay(expression, context);

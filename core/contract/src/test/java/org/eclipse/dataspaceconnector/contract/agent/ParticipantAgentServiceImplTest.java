@@ -11,10 +11,10 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.contract;
+package org.eclipse.dataspaceconnector.contract.agent;
 
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.spi.contract.ParticipantAgentServiceExtension;
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentServiceExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.junit.jupiter.api.Test;
 

@@ -45,7 +45,7 @@ public class ExpressionToRdfResourceTransformer implements IdsTypeTransformer<Ex
 
         String value = null;
         if (object instanceof LiteralExpression) {
-            value = ((LiteralExpression) object).getValue();
+            value = ((LiteralExpression) object).asString();
         }
 
         return value == null ? new RdfResource() : new RdfResource(value);

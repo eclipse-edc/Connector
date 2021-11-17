@@ -24,12 +24,10 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * AssetSelectorExpressions are using labels to qualify a subset of all Assets in the {@link AssetIndex}.
- * Mostly, this will be used in the
- * {@link org.eclipse.dataspaceconnector.spi.contract.ContractOfferFramework}.
+ * Selects a group of assets based on the given criteria.
  * <p>
- * If an AssetSelectorExpression does not contain any criteria, it selects no Assets. If all Assets are to be selected,
- * the {@link AssetSelectorExpression#SELECT_ALL} constant must be used.
+ * If an AssetSelectorExpression does not contain any criteria, no assets are selected. If all Assets are to be selected, the {@link AssetSelectorExpression#SELECT_ALL} constant
+ * must be used.
  */
 @JsonDeserialize(builder = AssetSelectorExpression.Builder.class)
 public final class AssetSelectorExpression {
@@ -97,10 +95,9 @@ public final class AssetSelectorExpression {
         }
 
         /**
-         * Convenience method to express equality checks. Is equivalent to
-         * {@code Builder.withConstraint(key, "=", value)}
+         * Convenience method to express equality checks. Is equivalent to {@code Builder.withConstraint(key, "=", value)}
          *
-         * @param key   left-hand operand
+         * @param key left-hand operand
          * @param value right-hand operand
          */
         @JsonIgnore

@@ -12,7 +12,7 @@
  *       Microsoft Corporation - Refactoring
  */
 
-package org.eclipse.dataspaceconnector.spi.contract;
+package org.eclipse.dataspaceconnector.spi.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;

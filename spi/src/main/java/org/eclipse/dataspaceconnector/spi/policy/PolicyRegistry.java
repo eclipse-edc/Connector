@@ -22,6 +22,7 @@ import java.util.Collection;
 /**
  * A registry of known policies.
  */
+@Deprecated
 public interface PolicyRegistry {
 
     String FEATURE = "edc:policy:registry";

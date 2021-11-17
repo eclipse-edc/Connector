@@ -48,7 +48,7 @@ public class ExpressionToLeftOperandTransformer implements IdsTypeTransformer<Ex
             return null;
         }
 
-        var value = ((LiteralExpression) object).getValue();
+        var value = ((LiteralExpression) object).asString();
         LeftOperand leftOperand;
         try {
             leftOperand = LeftOperand.valueOf(value);

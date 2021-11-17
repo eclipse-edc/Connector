@@ -12,24 +12,22 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.contract;
+package org.eclipse.dataspaceconnector.spi.contract.offer;
 
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
 /**
- * Returns {@link ContractDefinition} for a given participant agent.
- *
- * A runtime extension may implement custom logic to determine which contract definitions are returned.
+ * Resolves contract offers.
  */
-public interface ContractOfferFramework {
+public interface ContractOfferService {
 
     /**
-     * Returns the definitions for the given participant agent.
+     * Resolves contract offers.
      */
     @NotNull
-    Stream<ContractDefinition> definitionsFor(ParticipantAgent agent);
-
+    Stream<ContractOffer> queryContractOffers(ContractOfferQuery query);
 
 }

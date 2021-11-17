@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -11,26 +11,23 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-
-package org.eclipse.dataspaceconnector.policy.engine;
-
-import org.jetbrains.annotations.NotNull;
+package org.eclipse.dataspaceconnector.spi.contract.policy;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
 /**
- * The result of policy evaluation. If all rules are satisfied, the result will be valid.
+ * The result of a policy evaluation operation.
  */
-public class PolicyEvaluationResult {
-    private final List<RuleProblem> problems;
+public class PolicyResult {
+    private final List<String> problems;
 
-    public PolicyEvaluationResult() {
+    public PolicyResult() {
         problems = Collections.emptyList();
     }
 
-    public PolicyEvaluationResult(List<RuleProblem> problems) {
+    public PolicyResult(List<String> problems) {
         this.problems = new ArrayList<>(problems);
     }
 
@@ -38,8 +35,7 @@ public class PolicyEvaluationResult {
         return problems.isEmpty();
     }
 
-    @NotNull
-    public List<RuleProblem> getProblems() {
+    public List<String> getProblems() {
         return problems;
     }
 }
