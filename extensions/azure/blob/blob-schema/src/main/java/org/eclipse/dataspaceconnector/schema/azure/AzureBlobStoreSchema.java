@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.schema.azure;
 
 
 import org.eclipse.dataspaceconnector.schema.DataSchema;
-import org.eclipse.dataspaceconnector.schema.SchemaAttribute;
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.SchemaAttribute;
 
 public class AzureBlobStoreSchema extends DataSchema {
 

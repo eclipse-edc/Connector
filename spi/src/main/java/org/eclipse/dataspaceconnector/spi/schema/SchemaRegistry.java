@@ -12,7 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.schema;
+package org.eclipse.dataspaceconnector.spi.schema;
+
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.Schema;
 
 import java.util.Collection;
 

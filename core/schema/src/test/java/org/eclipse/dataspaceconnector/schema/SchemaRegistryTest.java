@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.schema;
 
+import org.eclipse.dataspaceconnector.spi.schema.SchemaRegistry;
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.Schema;
+import org.eclipse.dataspaceconnector.spi.types.domain.schema.SchemaAttribute;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
