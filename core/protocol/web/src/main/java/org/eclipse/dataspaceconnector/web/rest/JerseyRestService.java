@@ -64,7 +64,7 @@ public class JerseyRestService implements WebService {
             resourceConfig.registerInstances(new Binder());
 
             resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
-
+            resourceConfig.register(new CorsFilter());
             resourceConfig.register(MultiPartFeature.class);
 
             // Register the Jersey container with Jetty
