@@ -48,6 +48,16 @@ public class LoadCommand implements Runnable {
         }
     }
 
+    //needed for testing
+    void setParseAssets(Boolean parseAssets) {
+        this.parseAssets = parseAssets;
+    }
+
+    // needed for testing
+    void setFile(File file) {
+        this.file = file;
+    }
+
     private Collection<AssetEntry> tryReadAsAssetRecords(String json) {
         var tr = new TypeReference<Collection<AssetEntry>>() {
         };

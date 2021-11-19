@@ -1,10 +1,8 @@
 package org.eclipse.dataspaceconnector.dataloader.cli;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.system.runtime.BaseRuntime;
-import org.jetbrains.annotations.NotNull;
 import picocli.CommandLine;
 
 public class DataLoaderRuntime extends BaseRuntime {
@@ -13,7 +11,12 @@ public class DataLoaderRuntime extends BaseRuntime {
         var runtime = new DataLoaderRuntime();
         var context = runtime.boot();
         var typeManager = context.getTypeManager();
-        var assetSink = context.getService(AssetLoader.class);
+        var assetSink = context.getService(AssetLoader.class, true);
+
+        if (assetSink == null) {
+            context.getMonitor().severe("No AssetLoader was configured - please check your build file!");
+            System.exit(-1);
+        }
 
         var exitCode = new CommandLine(new LoadCommand(typeManager.getMapper(), assetSink)).execute(args);
         System.exit(exitCode);
@@ -22,11 +25,5 @@ public class DataLoaderRuntime extends BaseRuntime {
     @Override
     protected String getRuntimeName(ServiceExtensionContext context) {
         return "DataLoader Runtime";
-    }
-
-    @Override
-    protected @NotNull Monitor createMonitor() {
-        return new Monitor() {
-        };
     }
 }
