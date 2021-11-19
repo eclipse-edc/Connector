@@ -24,10 +24,11 @@ dependencies {
     implementation(project(":core:bootstrap"))
     implementation(project(":extensions:dataloading:dataloading-asset"))
 
-    // uncomment the following two lines to use the CosmosDB-based Asset index:
+    // uncomment the following lines to use the CosmosDB-based Asset index:
     //
     // implementation(project(":extensions:azure:assetindex-cosmos"))
     // implementation(project(":extensions:filesystem:configuration-fs"))
+    // implementation(project(":extensions:azure:vault"))
 
     // alternatively uncomment the following line to use the in-memory AssetIndex
     //
