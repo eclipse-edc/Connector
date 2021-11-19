@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.demo.contract.offer;
+package org.eclipse.dataspaceconnector.demo.contract.service;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
@@ -20,8 +20,8 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
-class DynamicPolicyContractOfferFrameworkTest {
-    private DynamicPolicyContractOfferFramework framework;
+class DynamicPolicyContractDefinitionServiceTest {
+    private DynamicPolicyContractDefinitionService dynamicPolicyContractDefinitionService;
     private PolicyEngine policyEngine;
 
     @Test
@@ -30,12 +30,12 @@ class DynamicPolicyContractOfferFrameworkTest {
         var descriptor1 = ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build();
         var descriptor2 = ContractDescriptor.Builder.newInstance().id("2").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build();
 
-        framework.load(List.of(descriptor1, descriptor2));
+        dynamicPolicyContractDefinitionService.load(List.of(descriptor1, descriptor2));
 
-        assertThat(framework.getLoadedDescriptors().size()).isEqualTo(2);
+        assertThat(dynamicPolicyContractDefinitionService.getLoadedDescriptors().size()).isEqualTo(2);
 
-        framework.remove(List.of("1"));
-        assertThat(framework.getLoadedDescriptors()).contains(descriptor2);
+        dynamicPolicyContractDefinitionService.remove(List.of("1"));
+        assertThat(dynamicPolicyContractDefinitionService.getLoadedDescriptors()).contains(descriptor2);
     }
 
     @Test
@@ -48,9 +48,9 @@ class DynamicPolicyContractOfferFrameworkTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        framework.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        dynamicPolicyContractDefinitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
 
-        assertThat(framework.definitionsFor(agent).count()).isEqualTo(1);
+        assertThat(dynamicPolicyContractDefinitionService.definitionsFor(agent).count()).isEqualTo(1);
 
         verify(policyEngine);
     }
@@ -65,9 +65,9 @@ class DynamicPolicyContractOfferFrameworkTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        framework.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        dynamicPolicyContractDefinitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
 
-        assertThat(framework.definitionsFor(agent)).isEmpty();
+        assertThat(dynamicPolicyContractDefinitionService.definitionsFor(agent)).isEmpty();
 
         verify(policyEngine);
     }
@@ -83,9 +83,9 @@ class DynamicPolicyContractOfferFrameworkTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        framework.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        dynamicPolicyContractDefinitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
 
-        assertThat(framework.definitionsFor(agent)).isEmpty();
+        assertThat(dynamicPolicyContractDefinitionService.definitionsFor(agent)).isEmpty();
 
         verify(policyEngine);
     }
@@ -93,6 +93,6 @@ class DynamicPolicyContractOfferFrameworkTest {
     @BeforeEach
     void setUp() {
         policyEngine = createMock(PolicyEngine.class);
-        framework = new DynamicPolicyContractOfferFramework(policyEngine, createNiceMock(Monitor.class));
+        dynamicPolicyContractDefinitionService = new DynamicPolicyContractDefinitionService(policyEngine, createNiceMock(Monitor.class));
     }
 }

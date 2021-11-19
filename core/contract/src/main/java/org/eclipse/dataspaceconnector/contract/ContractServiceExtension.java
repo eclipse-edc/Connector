@@ -16,10 +16,10 @@ package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
-import org.eclipse.dataspaceconnector.contract.offer.NullContractOfferFramework;
+import org.eclipse.dataspaceconnector.contract.offer.NullContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -83,10 +83,10 @@ public class ContractServiceExtension implements ServiceExtension {
 
     }
 
-    private static class CofSupplier implements Supplier<ContractOfferFramework> {
+    private static class CofSupplier implements Supplier<ContractDefinitionService> {
         private final ServiceExtensionContext context;
         private final Monitor monitor;
-        private ContractOfferFramework cachedFramework;
+        private ContractDefinitionService cachedFramework;
 
         public CofSupplier(ServiceExtensionContext context, Monitor monitor) {
             this.context = context;
@@ -94,14 +94,14 @@ public class ContractServiceExtension implements ServiceExtension {
         }
 
         @Override
-        public ContractOfferFramework get() {
+        public ContractDefinitionService get() {
             // Note this implementation is purposely not synchronized or reliant on volatiles in favor of runtime lookup performance; at worst, multiple copies of a null
             // contract offer framework will be instantiated, which has no operational impact.
             if (cachedFramework != null) {
-                cachedFramework = context.getService(ContractOfferFramework.class, true);
+                cachedFramework = context.getService(ContractDefinitionService.class, true);
                 if (cachedFramework == null) {
-                    monitor.warning("No ContractOfferFramework registered. Register one to create Contract Offers.");
-                    cachedFramework = new NullContractOfferFramework();
+                    monitor.warning("No ContractDefinitionService registered. Register one to create Contract Offers.");
+                    cachedFramework = new NullContractDefinitionService();
                 }
             }
             return cachedFramework;

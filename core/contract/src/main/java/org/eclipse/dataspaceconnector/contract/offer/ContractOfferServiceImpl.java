@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -32,12 +32,12 @@ import java.util.stream.Stream;
  */
 public class ContractOfferServiceImpl implements ContractOfferService {
     private final ParticipantAgentService agentService;
-    private final Supplier<ContractOfferFramework> frameworkSupplier;
+    private final Supplier<ContractDefinitionService> frameworkSupplier;
     private final AssetIndex assetIndex;
 
-    public ContractOfferServiceImpl(ParticipantAgentService agentService, Supplier<ContractOfferFramework> frameworkSupplier, AssetIndex assetIndex) {
+    public ContractOfferServiceImpl(ParticipantAgentService agentService, Supplier<ContractDefinitionService> frameworkSupplier, AssetIndex assetIndex) {
         Objects.requireNonNull(agentService, "ParticipantAgentService must not be null");
-        Objects.requireNonNull(frameworkSupplier, "ContractOfferFramework must not be null");
+        Objects.requireNonNull(frameworkSupplier, "ContractDefinitionService must not be null");
         Objects.requireNonNull(assetIndex, "AssetIndex must not be null");
 
         this.agentService = agentService;
