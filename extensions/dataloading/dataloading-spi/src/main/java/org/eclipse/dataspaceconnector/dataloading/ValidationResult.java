@@ -12,12 +12,9 @@ public class ValidationResult {
         return new ValidationResult(error);
     }
 
-    public boolean isValid() {
-        return error == null;
-    }
 
     public boolean isInvalid() {
-        return !isValid();
+        return error != null;
     }
 
     public String getError() {

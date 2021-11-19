@@ -7,6 +7,11 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Class to facilitate validation and ingestion of objects into a backing data store (i.e. the {@link DataSink}).
+ *
+ * @param <T> The type of objects that are to be ingested.
+ */
 public class DataLoader<T> {
     private Collection<Function<T, ValidationResult>> validationPredicates;
     private DataSink<T> sink;
@@ -15,9 +20,15 @@ public class DataLoader<T> {
         validationPredicates = new ArrayList<>();
     }
 
+    /**
+     * Inserts one item into the backing store if all validations pass.
+     *
+     * @param item The item to insert.
+     * @throws ValidationException when one or more validations fail.
+     */
     public void insert(T item) {
         // see that the item satisfies all predicates
-        var failedValidations = validate(item).filter(vr -> !vr.isValid())
+        var failedValidations = validate(item).filter(ValidationResult::isInvalid)
                 .collect(Collectors.toUnmodifiableList());
 
         // throw exception if item does not pass all validations
@@ -28,6 +39,16 @@ public class DataLoader<T> {
         sink.accept(item);
     }
 
+    /**
+     * Accepts a collection of items into the backing store if they all pass validation. If even a single item fails validation, the
+     * entire collection is rejected with a {@link ValidationException}.
+     * <p>
+     * Note that this does NOT implement transactional semantics in the database-sense. This means that if all items pass validation,
+     * they are inserted one by one.
+     *
+     * @param items a Collection of items
+     * @throws ValidationException when on or more items fail validation
+     */
     public void insertAll(Collection<T> items) {
 
         var allValidationResults = items.stream().flatMap(this::validate);

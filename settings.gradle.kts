@@ -100,6 +100,7 @@ include(":launchers:junit")
 include(":launchers:test")
 include(":launchers:ids-connector")
 include(":launchers:registration-service-app")
+include(":launchers:data-loader-cli")
 
 // modules for code samples
 include(":samples:demo-contract-framework")
