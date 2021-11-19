@@ -12,16 +12,16 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.demo.contract.offer;
+package org.eclipse.dataspaceconnector.demo.contract.service;
 
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-public class DemoContractOfferFrameworkExtension implements ServiceExtension {
-    private static final String NAME = "Demo Contract Offer Framework Extension";
+public class DemoContractDefinitionServiceExtension implements ServiceExtension {
+    private static final String NAME = "Demo Contract Offer Service Extension";
 
     private Monitor monitor;
 
@@ -31,8 +31,8 @@ public class DemoContractOfferFrameworkExtension implements ServiceExtension {
 
         var policyEngine = context.getService(PolicyEngine.class);
 
-        var offerFramework = new DynamicPolicyContractOfferFramework(policyEngine, monitor);
-        context.registerService(ContractOfferFramework.class, offerFramework);
+        var contractDefinitionService = new DynamicPolicyContractDefinitionService(policyEngine, monitor);
+        context.registerService(ContractDefinitionService.class, contractDefinitionService);
 
         monitor.info(String.format("Initialized %s", NAME));
     }

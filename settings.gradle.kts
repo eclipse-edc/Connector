@@ -100,7 +100,7 @@ include(":launchers:ids-connector")
 include(":launchers:registration-service-app")
 
 // modules for code samples
-include(":samples:demo-contract-framework")
+include(":samples:demo-contract-service")
 include(":samples:other:commandline:consumer")
 include(":samples:other:commandline:consumer-runtime")
 include(":samples:other:copy-file-to-s3bucket")

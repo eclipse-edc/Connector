@@ -12,11 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.demo.contract.offer;
+package org.eclipse.dataspaceconnector.demo.contract.service;
 
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.jetbrains.annotations.NotNull;
@@ -27,7 +27,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.assertj.core.api.Assertions.assertThat;
 
 @ExtendWith(EdcExtension.class)
-public class DemoContractOfferFrameworkExtensionTest {
+public class DemoContractDefinitionServiceExtensionTest {
 
     private static final String HTTP_PORT = "9999";
 
@@ -38,8 +38,8 @@ public class DemoContractOfferFrameworkExtensionTest {
     }
 
     @Test
-    void testBoot(ContractOfferFramework framework) {
-        assertThat(framework).isNotNull();
+    void testBoot(ContractDefinitionService contractDefinitionService) {
+        assertThat(contractDefinitionService).isNotNull();
     }
 
     @NotNull

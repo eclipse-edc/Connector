@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferFramework;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -41,35 +41,35 @@ import static org.easymock.EasyMock.verify;
 
 class ContractOfferServiceImplTest {
 
-    private ContractOfferFramework contractOfferFramework;
+    private ContractDefinitionService contractDefinitionService;
     private AssetIndex assetIndex;
     private ContractOfferService contractOfferService;
     private ParticipantAgentService agentService;
 
     @BeforeEach
     void setUp() {
-        contractOfferFramework = mock(ContractOfferFramework.class);
+        contractDefinitionService = mock(ContractDefinitionService.class);
         assetIndex = mock(AssetIndex.class);
         agentService = mock(ParticipantAgentService.class);
 
-        contractOfferService = new ContractOfferServiceImpl(agentService, () -> contractOfferFramework, assetIndex);
+        contractOfferService = new ContractOfferServiceImpl(agentService, () -> contractDefinitionService, assetIndex);
     }
 
     @Test
     void testConstructorNullParametersThrowingIllegalArgumentException() {
-        replay(contractOfferFramework, assetIndex);
+        replay(contractDefinitionService, assetIndex);
 
         // just eval all constructor parameters are mandatory and lead to NPE
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(null, () -> contractOfferFramework, assetIndex))
+        assertThatThrownBy(() -> new ContractOfferServiceImpl(null, () -> contractDefinitionService, assetIndex))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, () -> contractOfferFramework, null))
+        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, () -> contractDefinitionService, null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, null, assetIndex))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, null, null))
                 .isInstanceOf(NullPointerException.class);
 
-        verify(contractOfferFramework, assetIndex);
+        verify(contractDefinitionService, assetIndex);
     }
 
 
@@ -77,11 +77,11 @@ class ContractOfferServiceImplTest {
     void testFullFlow() {
         var contractDefinition = new ContractDefinition(Policy.Builder.newInstance().build(), AssetSelectorExpression.SELECT_ALL);
         EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        EasyMock.expect(contractOfferFramework.definitionsFor(EasyMock.isA(ParticipantAgent.class))).andReturn(Stream.of(contractDefinition));
+        EasyMock.expect(contractDefinitionService.definitionsFor(EasyMock.isA(ParticipantAgent.class))).andReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
         EasyMock.expect(assetIndex.queryAssets(EasyMock.isA(AssetSelectorExpression.class))).andReturn(assetStream);
 
-        EasyMock.replay(agentService, contractOfferFramework, assetIndex);
+        EasyMock.replay(agentService, contractDefinitionService, assetIndex);
 
         ContractOfferQuery query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
 
@@ -89,6 +89,6 @@ class ContractOfferServiceImplTest {
         //noinspection SimplifyStreamApiCallChains
         assertThat((int) contractOfferService.queryContractOffers(query).collect(Collectors.toList()).size()).isEqualTo(2);
 
-        EasyMock.verify(contractOfferFramework, assetIndex);
+        EasyMock.verify(contractDefinitionService, assetIndex);
     }
 }

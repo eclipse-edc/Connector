@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  *
  * A runtime extension may implement custom logic to determine which contract definitions are returned.
  */
-public interface ContractOfferFramework {
+public interface ContractDefinitionService {
 
     /**
      * Returns the definitions for the given participant agent.

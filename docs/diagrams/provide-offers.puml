@@ -35,7 +35,7 @@ actor Actor as "Actor"
 
 box EDC Provider #ProviderColor
     participant AssetIndex as "AssetIndex (MetadataStorage)" #lightblue
-    participant Framework as "ContractOfferFramework"
+    participant Framework as "ContractDefinitionService"
     participant EventRegistry as "EventRegistry"
     participant IDS as "IDS Services\n(Controller, Dispatcher, ...)"
 end box
