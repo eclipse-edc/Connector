@@ -1,0 +1,11 @@
+---
+- client_id: 8B:DE:EE:4C:7C:2D:7B:93:51:2F:FD:A0:D3:53:4C:58:CA:9D:70:C2:keyid:CB:8C:C7:B6:85:79:A8:23:A6:CB:15:AB:17:50:2F:E6:65:43:5D:E8
+  name: test client
+  redirect_uri: 
+  allowed_scopes:
+  - omejdn:write
+  - openid
+  - idsc:IDS_CONNECTOR_ATTRIBUTES_ALL
+  attributes:
+  - key: omejdn
+  - value: admin
