@@ -3,13 +3,13 @@ package org.eclipse.dataspaceconnector.metadata.memory;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
+import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.AbstractMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -17,74 +17,76 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class InMemoryAssetIndexLoaderTest {
+public class InMemoryAssetLoaderLoaderTest {
 
-    private AssetIndexLoader assetIndexLoader;
+    private AssetLoader assetLoader;
 
     @Test
-    void insert() {
+    void accept() {
         var asset = createAsset("test-asset", UUID.randomUUID().toString());
         var dataAddress = createDataAddress(asset);
-        assetIndexLoader.insert(asset, dataAddress);
+        assetLoader.accept(asset, dataAddress);
 
-        assertThat(((InMemoryAssetIndex) assetIndexLoader).getAssets()).hasSize(1);
-        assertThat(((InMemoryAssetIndex) assetIndexLoader).getDataAddresses()).hasSize(1);
+        assertThat(((InMemoryAssetLoader) assetLoader).getAssets()).hasSize(1);
+        assertThat(((InMemoryAssetLoader) assetLoader).getDataAddresses()).hasSize(1);
     }
 
     @Test
-    void insert_illegalParams() {
+    void accept_illegalParams() {
         var dataAddress = DataAddress.Builder.newInstance().build();
-        assertThatThrownBy(() -> assetIndexLoader.insert(null, dataAddress)).isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> assetIndexLoader.insert(createAsset("testasset", "testid"), null)).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> assetLoader.accept(null, dataAddress)).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> assetLoader.accept(createAsset("testasset", "testid"), null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
-    void insert_exists() {
+    void accept_exists() {
         var asset = createAsset("test-asset", UUID.randomUUID().toString());
         var dataAddress = createDataAddress(asset);
-        assetIndexLoader.insert(asset, dataAddress);
+        assetLoader.accept(asset, dataAddress);
         DataAddress dataAddress1 = createDataAddress(asset);
-        assetIndexLoader.insert(asset, dataAddress1);
+        assetLoader.accept(asset, dataAddress1);
 
         //assert that this replaces the previous data address
-        assertThat(((InMemoryAssetIndex) assetIndexLoader).getAssets()).hasSize(1).containsValue(asset);
-        assertThat(((InMemoryAssetIndex) assetIndexLoader).getDataAddresses()).hasSize(1).containsValue(dataAddress1);
+        assertThat(((InMemoryAssetLoader) assetLoader).getAssets()).hasSize(1).containsValue(asset);
+        assertThat(((InMemoryAssetLoader) assetLoader).getDataAddresses()).hasSize(1).containsValue(dataAddress1);
 
     }
 
     @Test
-    void insertAll() {
+    void acceptAll() {
         var asset1 = createAsset("asset1", "id1");
         var asset2 = createAsset("asset2", "id2");
 
         var address1 = createDataAddress(asset1);
         var address2 = createDataAddress(asset2);
 
-        assetIndexLoader.insertAll(List.of(new AbstractMap.SimpleEntry<>(asset1, address1), new AbstractMap.SimpleEntry<>(asset2, address2)));
+        List.of(new AssetEntry(asset1, address1), new AssetEntry(asset2, address2))
+                .forEach(entry -> assetLoader.accept(entry));
 
-        assertThat(((InMemoryAssetIndex) assetIndexLoader).getAssets()).hasSize(2);
-        assertThat(((InMemoryAssetIndex) assetIndexLoader).getDataAddresses()).hasSize(2);
+        assertThat(((InMemoryAssetLoader) assetLoader).getAssets()).hasSize(2);
+        assertThat(((InMemoryAssetLoader) assetLoader).getDataAddresses()).hasSize(2);
 
     }
 
     @Test
-    void insertAll_oneExists_shouldOverwrite() {
+    void acceptAll_oneExists_shouldOverwrite() {
         var asset1 = createAsset("asset1", "id1");
 
         var address1 = createDataAddress(asset1);
         var address2 = createDataAddress(asset1);
 
-        assetIndexLoader.insertAll(List.of(new AbstractMap.SimpleEntry<>(asset1, address1), new AbstractMap.SimpleEntry<>(asset1, address2)));
+        List.of(new AssetEntry(asset1, address1), new AssetEntry(asset1, address2))
+                .forEach(entry -> assetLoader.accept(entry));
 
         // only one address/asset combo should exist
-        assertThat(((InMemoryAssetIndex) assetIndexLoader).getAssets()).hasSize(1);
-        assertThat(((InMemoryAssetIndex) assetIndexLoader).getDataAddresses()).hasSize(1).containsValue(address2).containsKeys(asset1.getId());
+        assertThat(((InMemoryAssetLoader) assetLoader).getAssets()).hasSize(1);
+        assertThat(((InMemoryAssetLoader) assetLoader).getDataAddresses()).hasSize(1).containsValue(address2).containsKeys(asset1.getId());
 
     }
 
     @BeforeEach
     void setup() {
-        assetIndexLoader = new InMemoryAssetIndex(new CriterionToPredicateConverter());
+        assetLoader = new InMemoryAssetLoader(new CriterionToPredicateConverter());
     }
 
     private Asset createAsset(String name, String id) {

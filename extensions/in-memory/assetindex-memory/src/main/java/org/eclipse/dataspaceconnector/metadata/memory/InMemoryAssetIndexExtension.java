@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.metadata.memory;
 
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -28,16 +28,16 @@ public class InMemoryAssetIndexExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(AssetIndex.FEATURE, DataAddressResolver.FEATURE, AssetIndexLoader.FEATURE);
+        return Set.of(AssetIndex.FEATURE, DataAddressResolver.FEATURE, AssetLoader.FEATURE);
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
-        var service = new InMemoryAssetIndex(new CriterionToPredicateConverter());
+        var service = new InMemoryAssetLoader(new CriterionToPredicateConverter());
         context.registerService(AssetIndex.class, service);
-        context.registerService(AssetIndexLoader.class, service);
+        context.registerService(AssetLoader.class, service);
         context.registerService(DataAddressResolver.class, service);
 
         monitor.info("Initialized In-Memory Asset Index extension");

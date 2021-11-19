@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -19,21 +19,14 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":extensions:dataloading:dataloading-asset"))
-}
-publishing {
-    publications {
-        create<MavenPublication>("in-memory.assetindex") {
-            artifactId = "in-memory.assetindex"
-            from(components["java"])
-        }
-    }
+    implementation(project(":common:util"))
+
 }
 
 publishing {
     publications {
-        create<MavenPublication>("in-memory.asset-index") {
-            artifactId = "in-memory.asset-index"
+        create<MavenPublication>("transfer-functions.core") {
+            artifactId = "transfer-functions.core"
             from(components["java"])
         }
     }

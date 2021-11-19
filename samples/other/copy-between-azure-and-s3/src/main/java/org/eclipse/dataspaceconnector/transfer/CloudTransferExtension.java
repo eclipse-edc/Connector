@@ -1,12 +1,12 @@
 package org.eclipse.dataspaceconnector.transfer;
 
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -39,7 +39,7 @@ public class CloudTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        AssetIndexLoader assetIndex = context.getService(AssetIndexLoader.class);
+        AssetLoader assetIndex = context.getService(AssetLoader.class);
 
         asList("azure.png", "doc1.txt", "pinup.webp", "index.jpg")
                 .forEach(filename -> {
@@ -52,7 +52,7 @@ public class CloudTransferExtension implements ServiceExtension {
 
                     Asset asset = Asset.Builder.newInstance().id(filename).policyId(USE_US_OR_EU_POLICY).build();
 
-                    assetIndex.insert(asset, dataAddress);
+                    assetIndex.accept(asset, dataAddress);
                 });
     }
 

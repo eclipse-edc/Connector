@@ -1,12 +1,12 @@
 package org.eclipse.dataspaceconnector.extensions.api;
 
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -53,7 +53,7 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        AssetIndexLoader loader = context.getService(AssetIndexLoader.class);
+        AssetLoader loader = context.getService(AssetLoader.class);
 
         DataAddress dataAddress = DataAddress.Builder.newInstance()
                 .property("type", "File")
@@ -64,6 +64,6 @@ public class FileTransferExtension implements ServiceExtension {
         String assetId = "test-document";
         Asset asset = Asset.Builder.newInstance().id(assetId).policyId(USE_EU_POLICY).build();
 
-        loader.insert(asset, dataAddress);
+        loader.accept(asset, dataAddress);
     }
 }
