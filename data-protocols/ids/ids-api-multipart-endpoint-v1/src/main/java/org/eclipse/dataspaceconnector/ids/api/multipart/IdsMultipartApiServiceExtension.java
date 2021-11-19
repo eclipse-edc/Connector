@@ -14,6 +14,11 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
@@ -39,6 +44,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 
+import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -121,7 +127,16 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(descriptionHandler);
 
         // create & register controller
-        MultipartController multipartController = new MultipartController(connectorId, identityService, handlers);
+        // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
+        //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
+        MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
         webService.registerController(multipartController);
     }
 
