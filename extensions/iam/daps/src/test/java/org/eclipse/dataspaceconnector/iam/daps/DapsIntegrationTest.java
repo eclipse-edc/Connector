@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.iam.daps;
 
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.junit.launcher.MockVault;
 import org.eclipse.dataspaceconnector.security.fs.FsCertificateResolver;
 import org.eclipse.dataspaceconnector.security.fs.FsPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -25,9 +26,7 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -37,7 +36,6 @@ import java.net.URL;
 import java.security.KeyStore;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -95,25 +93,4 @@ class DapsIntegrationTest {
         }
     }
 
-    protected static class MockVault implements Vault {
-        private final Map<String, String> secrets = new ConcurrentHashMap<>();
-
-        @Override
-        public @Nullable
-        String resolveSecret(String key) {
-            return secrets.get(key);
-        }
-
-        @Override
-        public VaultResponse storeSecret(String key, String value) {
-            secrets.put(key, value);
-            return VaultResponse.OK;
-        }
-
-        @Override
-        public VaultResponse deleteSecret(String key) {
-            secrets.remove(key);
-            return VaultResponse.OK;
-        }
-    }
 }
