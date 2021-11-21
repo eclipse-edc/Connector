@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.catalog.directory;
+package org.eclipse.dataspaceconnector.catalog.cache.query;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
@@ -14,7 +14,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-class InMemoryCacheQueryAdapterRegistry implements CacheQueryAdapterRegistry {
+public class CacheQueryAdapterRegistryImpl implements CacheQueryAdapterRegistry {
 
     private final Set<CacheQueryAdapter> registry = new CopyOnWriteArraySet<>();
 

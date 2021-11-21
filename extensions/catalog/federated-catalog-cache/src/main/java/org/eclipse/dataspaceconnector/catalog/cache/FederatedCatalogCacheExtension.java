@@ -5,6 +5,8 @@ import org.eclipse.dataspaceconnector.catalog.cache.controller.CatalogController
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.loader.LoaderManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerImpl;
+import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterRegistryImpl;
+import org.eclipse.dataspaceconnector.catalog.cache.query.CatalogQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.DefaultCacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
@@ -51,18 +53,21 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(Crawler.FEATURE, LoaderManager.FEATURE, QueryEngine.FEATURE);
+        return Set.of(Crawler.FEATURE, LoaderManager.FEATURE, QueryEngine.FEATURE,
+                CatalogQueryAdapterRegistry.FEATURE, CacheQueryAdapterRegistry.FEATURE);
     }
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:retry-policy", FederatedCacheNodeDirectory.FEATURE, CatalogQueryAdapterRegistry.FEATURE, CacheQueryAdapterRegistry.FEATURE, "edc:webservice", FederatedCacheStore.FEATURE);
+        return Set.of("edc:retry-policy", FederatedCacheNodeDirectory.FEATURE,
+                "edc:webservice", FederatedCacheStore.FEATURE);
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         // QUERY SUBSYSTEM
-        var queryAdapterRegistry = context.getService(CacheQueryAdapterRegistry.class);
+        var queryAdapterRegistry = new CacheQueryAdapterRegistryImpl();
+        context.registerService(CacheQueryAdapterRegistry.class, queryAdapterRegistry);
 
         var store = context.getService(FederatedCacheStore.class);
         queryAdapterRegistry.register(new DefaultCacheQueryAdapter(store));
@@ -73,7 +78,10 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         var catalogController = new CatalogController(monitor, queryEngine);
         webService.registerController(catalogController);
 
+
         // CRAWLER SUBSYSTEM
+        context.registerService(CatalogQueryAdapterRegistry.class, new CatalogQueryAdapterRegistryImpl());
+
         updateResponseQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_LENGTH);
 
         //todo: maybe get this from a database or somewhere else?

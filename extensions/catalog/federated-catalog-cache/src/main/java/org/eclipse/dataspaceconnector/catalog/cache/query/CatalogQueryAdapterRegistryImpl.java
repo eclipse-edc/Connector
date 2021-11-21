@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.catalog.directory;
+package org.eclipse.dataspaceconnector.catalog.cache.query;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapterRegistry;
@@ -10,11 +10,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class InMemoryCatalogQueryAdapterRegistry implements CatalogQueryAdapterRegistry {
+public class CatalogQueryAdapterRegistryImpl implements CatalogQueryAdapterRegistry {
 
     private final Map<String, List<CatalogQueryAdapter>> map;
 
-    InMemoryCatalogQueryAdapterRegistry() {
+    public CatalogQueryAdapterRegistryImpl() {
         map = new ConcurrentHashMap<>();
     }
 
