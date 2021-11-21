@@ -3,9 +3,9 @@ package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.DefaultWorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
-import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
-import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
+import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateRequest;
@@ -45,11 +45,11 @@ class CrawlerImplTest {
     public static final int JOIN_WAIT_TIME = 100;
     public static final int WORK_QUEUE_POLL_TIMEOUT = 500;
     private CrawlerImpl crawler;
-    private CatalogQueryAdapter protocolAdapterMock;
+    private NodeQueryAdapter protocolAdapterMock;
     private ArrayBlockingQueue<UpdateResponse> queue;
     private Monitor monitorMock;
     private WorkItemQueue workQueue;
-    private CatalogQueryAdapterRegistry registry;
+    private NodeQueryAdapterRegistry registry;
     private CrawlerErrorHandler errorHandlerMock;
     private ExecutorService executorService;
 
@@ -57,11 +57,11 @@ class CrawlerImplTest {
     void setUp() {
         executorService = Executors.newSingleThreadExecutor();
         errorHandlerMock = mock(CrawlerErrorHandler.class);
-        protocolAdapterMock = strictMock(CatalogQueryAdapter.class);
+        protocolAdapterMock = strictMock(NodeQueryAdapter.class);
         queue = new ArrayBlockingQueue<>(QUEUE_CAPACITY);
         monitorMock = niceMock(Monitor.class);
         workQueue = new DefaultWorkItemQueue(10);
-        registry = niceMock(CatalogQueryAdapterRegistry.class);
+        registry = niceMock(NodeQueryAdapterRegistry.class);
         expect(registry.findForProtocol(anyString())).andReturn(Collections.singletonList(protocolAdapterMock));
         replay(registry);
         crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), registry, () -> Duration.ofMillis(WORK_QUEUE_POLL_TIMEOUT), errorHandlerMock);
@@ -121,7 +121,7 @@ class CrawlerImplTest {
     void shouldInsertInQueue_onlySuccessfulProtocolRequests() throws InterruptedException {
 
         var l = new CountDownLatch(2);
-        CatalogQueryAdapter secondAdapter = strictMock(CatalogQueryAdapter.class);
+        NodeQueryAdapter secondAdapter = strictMock(NodeQueryAdapter.class);
         reset(registry);
         expect(registry.findForProtocol(anyString())).andReturn(Arrays.asList(protocolAdapterMock, secondAdapter));
         expectLastCall();

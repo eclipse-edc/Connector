@@ -7,12 +7,12 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Takes an {@link UpdateRequest}, sends it to the intended endpoint using a particular application protocol (e.g. IDS) to get that
+ * Takes an {@link UpdateRequest}, sends it to the intended FCN endpoint using a particular application protocol (e.g. IDS) to get that
  * endpoint's catalog.
  * <p>
  * For example, an {@code IdsProtocolAdapter} would perform an IDS Description Request to whatever URL is contained in the {@code UpdateRequest}
  * and return the response to that.
  */
-public interface CatalogQueryAdapter {
+public interface NodeQueryAdapter {
     CompletableFuture<UpdateResponse> sendRequest(UpdateRequest request);
 }

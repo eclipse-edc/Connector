@@ -4,8 +4,8 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.DefaultWorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
-import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
+import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.ExecutionPlan;
@@ -58,7 +58,7 @@ class PartitionManagerImplIntegrationTest {
         signallingWorkItemQueue = new SignalingWorkItemQueue(WORK_ITEM_COUNT + 1, queueListener);
         staticWorkLoad = IntStream.range(0, WORK_ITEM_COUNT).mapToObj(i -> createWorkItem()).collect(Collectors.toList());
 
-        CatalogQueryAdapter adapterMock = niceMock(CatalogQueryAdapter.class);
+        NodeQueryAdapter adapterMock = niceMock(NodeQueryAdapter.class);
         expect(adapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse())).times(WORK_ITEM_COUNT);
         replay(adapterMock);
 
