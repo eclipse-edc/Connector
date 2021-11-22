@@ -1,21 +1,25 @@
 package org.eclipse.dataspaceconnector.cosmos.azure;
 
-import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import java.util.ArrayList;
 import java.util.Objects;
+
+import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.common.string.StringUtils.isNullOrBlank;
 
 public abstract class AbstractCosmosConfig {
 
+    public static final String DEFAULT_REGION = "westeurope";
     @EdcSetting
     private static final String DEFAULT_PARTITION_KEY_SETTING = "edc.cosmos.partition-key";
     @EdcSetting
     private static final String DEFAULT_QUERY_METRICS_ENABLED_SETTING = "edc.cosmos.query-metrics-enabled";
-
-    public static final String DEFAULT_REGION = "westeurope";
     private static final String DEFAULT_PARTITION_KEY = "dataspaceconnector";
+    private static Monitor monitor;
 
 
     private final String containerName;
@@ -32,18 +36,35 @@ public abstract class AbstractCosmosConfig {
      */
     protected AbstractCosmosConfig(ServiceExtensionContext context) {
         Objects.requireNonNull(context);
+        monitor = context.getMonitor();
 
-        this.accountName = context.getSetting(getAccountNameSetting(), null);
-        this.dbName = context.getSetting(getDbNameSetting(), null);
-        this.partitionKey = context.getSetting(getPartitionKeySetting(), DEFAULT_PARTITION_KEY);
-        this.preferredRegion = context.getSetting(getCosmosPreferredRegionSetting(), DEFAULT_REGION);
-        this.containerName = context.getSetting(getContainerNameSetting(), null);
-        this.queryMetricsEnabled = Boolean.parseBoolean(context.getSetting(getQueryMetricsEnabledSetting(), "true"));
+        accountName = context.getSetting(getAccountNameSetting(), null);
+        dbName = context.getSetting(getDbNameSetting(), null);
+        partitionKey = context.getSetting(getPartitionKeySetting(), DEFAULT_PARTITION_KEY);
+        preferredRegion = context.getSetting(getCosmosPreferredRegionSetting(), DEFAULT_REGION);
+        containerName = context.getSetting(getContainerNameSetting(), null);
+        queryMetricsEnabled = Boolean.parseBoolean(context.getSetting(getQueryMetricsEnabledSetting(), "true"));
 
-        assertNotBlank(accountName);
-        assertNotBlank(dbName);
-        assertNotBlank(partitionKey);
-        assertNotBlank(preferredRegion);
+        var errors = new ArrayList<String>();
+
+        if (isNullOrBlank(accountName)) {
+            errors.add(getAccountNameSetting());
+        }
+        if (isNullOrBlank(dbName)) {
+            errors.add(getDbNameSetting());
+
+        }
+        if (isNullOrBlank(partitionKey)) {
+            errors.add(getPartitionKeySetting());
+        }
+        if (isNullOrBlank(preferredRegion)) {
+            errors.add(getCosmosPreferredRegionSetting());
+        }
+
+        if (!errors.isEmpty()) {
+            var str = format("The following configuration parameters cannot be empty: [%s]", String.join(", ", errors));
+            throw new EdcException(str);
+        }
     }
 
     public String getContainerName() {
@@ -86,9 +107,4 @@ public abstract class AbstractCosmosConfig {
         return DEFAULT_QUERY_METRICS_ENABLED_SETTING;
     }
 
-    private static void assertNotBlank(String test) {
-        if (StringUtils.isNullOrEmpty(test)) {
-            throw new EdcException("'" + test + "' cannot be null or empty!");
-        }
-    }
 }

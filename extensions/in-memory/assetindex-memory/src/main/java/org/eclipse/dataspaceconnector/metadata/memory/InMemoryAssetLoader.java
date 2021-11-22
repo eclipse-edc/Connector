@@ -14,8 +14,9 @@
 
 package org.eclipse.dataspaceconnector.metadata.memory;
 
+import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -34,13 +35,13 @@ import java.util.stream.Stream;
 /**
  * An ephemeral asset index, that is also a DataAddressResolver and an AssetIndexLoader
  */
-public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, AssetIndexLoader {
+public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, AssetLoader {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
     private final CriterionToPredicateConverter predicateFactory;
     private final ReentrantReadWriteLock lock;
 
-    public InMemoryAssetIndex(CriterionToPredicateConverter predicateFactory) {
+    public InMemoryAssetLoader(CriterionToPredicateConverter predicateFactory) {
         this.predicateFactory = predicateFactory;
         //fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
@@ -90,26 +91,6 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     }
 
     @Override
-    public void insert(Asset asset, DataAddress address) {
-        lock.writeLock().lock();
-        try {
-            add(asset, address);
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    @Override
-    public void insertAll(List<Map.Entry<Asset, DataAddress>> entries) {
-        lock.writeLock().lock();
-        try {
-            entries.forEach(entry -> add(entry.getKey(), entry.getValue()));
-        } finally {
-            lock.writeLock().unlock();
-        }
-    }
-
-    @Override
     public DataAddress resolveForAsset(String assetId) {
         Objects.requireNonNull(assetId, "assetId");
         lock.readLock().lock();
@@ -129,6 +110,21 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
 
     public Map<String, DataAddress> getDataAddresses() {
         return Collections.unmodifiableMap(dataAddresses);
+    }
+
+    @Override
+    public void accept(AssetEntry item) {
+        lock.writeLock().lock();
+        try {
+            add(item.getAsset(), item.getDataAddress());
+        } finally {
+            lock.writeLock().unlock();
+        }
+    }
+
+    @Override
+    public void accept(Asset asset, DataAddress dataAddress) {
+        accept(new AssetEntry(asset, dataAddress));
     }
 
     /**

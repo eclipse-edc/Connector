@@ -91,6 +91,8 @@ include(":extensions:catalog:federated-catalog-cache")
 include(":extensions:catalog:federated-catalog-spi")
 include(":extensions:transfer-functions:transfer-functions-spi")
 include(":extensions:transfer-functions:transfer-functions-core")
+include(":extensions:dataloading:dataloading-spi")
+include(":extensions:dataloading:dataloading-asset")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
@@ -98,6 +100,7 @@ include(":launchers:junit")
 include(":launchers:test")
 include(":launchers:ids-connector")
 include(":launchers:registration-service-app")
+include(":launchers:data-loader-cli")
 
 // modules for code samples
 include(":samples:demo-contract-service")

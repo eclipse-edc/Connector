@@ -15,12 +15,12 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class InMemoryDataAddressResolverTest {
-    private InMemoryAssetIndex resolver;
+    private InMemoryAssetLoader resolver;
 
 
     @BeforeEach
     void setUp() {
-        resolver = new InMemoryAssetIndex(new CriterionToPredicateConverter());
+        resolver = new InMemoryAssetLoader(new CriterionToPredicateConverter());
     }
 
     @Test
@@ -28,7 +28,7 @@ class InMemoryDataAddressResolverTest {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
         DataAddress address = createDataAddress(testAsset);
-        resolver.insert(testAsset, address);
+        resolver.accept(testAsset, address);
 
         Assertions.assertThat(resolver.resolveForAsset(testAsset.getId())).isEqualTo(address);
     }
@@ -38,7 +38,7 @@ class InMemoryDataAddressResolverTest {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
         DataAddress address = createDataAddress(testAsset);
-        resolver.insert(testAsset, address);
+        resolver.accept(testAsset, address);
 
         assertThatThrownBy(() -> resolver.resolveForAsset(null)).isInstanceOf(NullPointerException.class);
     }
