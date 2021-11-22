@@ -15,6 +15,7 @@ package org.eclipse.dataspaceconnector.demo.contract.service;
 
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionResult;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -46,7 +47,20 @@ public class DynamicPolicyContractDefinitionService implements ContractDefinitio
     @Override
     public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
         return descriptors.stream().filter(descriptor -> evaluatePolicies(descriptor, agent))
-                .map(descriptor -> new ContractDefinition(descriptor.getUsagePolicy(), descriptor.getSelectorExpression()));
+                .map(descriptor -> new ContractDefinition(descriptor.getId(), descriptor.getUsagePolicy(), descriptor.getSelectorExpression()));
+    }
+
+    @NotNull
+    public ContractDefinitionResult definitionFor(ParticipantAgent agent, String descriptorId) {
+        var descriptorOptional = descriptors.stream().filter(d -> d.getId().equals(descriptorId)).findFirst();
+        if (descriptorOptional.isPresent()) {
+            var descriptor = descriptorOptional.get();
+            if (evaluatePolicies(descriptor, agent)) {
+                var definition = new ContractDefinition(descriptor.getId(), descriptor.getUsagePolicy(), descriptor.getSelectorExpression());
+                return new ContractDefinitionResult(definition);
+            }
+        }
+        return ContractDefinitionResult.INVALID;
     }
 
     /**

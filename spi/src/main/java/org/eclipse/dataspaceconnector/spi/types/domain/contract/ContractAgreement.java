@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -160,7 +161,7 @@ public class ContractAgreement {
         private long contractSigningDate;
         private long contractStartDate;
         private long contractEndDate;
-        private List<String> assetIds;
+        private List<String> assetIds = Collections.emptyList();
         private Policy policy;
 
         public static Builder newInstance() {

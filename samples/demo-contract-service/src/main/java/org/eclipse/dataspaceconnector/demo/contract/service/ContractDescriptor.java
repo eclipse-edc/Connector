@@ -15,6 +15,7 @@ package org.eclipse.dataspaceconnector.demo.contract.service;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.jetbrains.annotations.NotNull;
 
 import static java.util.Objects.requireNonNull;
 
@@ -41,6 +42,7 @@ public class ContractDescriptor {
         return accessControlPolicy;
     }
 
+    @NotNull
     public String getId() {
         return id;
     }

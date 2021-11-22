@@ -90,6 +90,26 @@ class DynamicPolicyContractDefinitionServiceTest {
         verify(policyEngine);
     }
 
+    @Test
+    void verifyDefinitionFor() {
+        var agent = new ParticipantAgent(Map.of(), Map.of());
+
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult()).times(2); // access and usage policy first check
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult(List.of("invalid"))); // access policy second check
+
+        replay(policyEngine);
+
+        var policy = Policy.Builder.newInstance().build();
+
+        dynamicPolicyContractDefinitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+
+        assertThat(dynamicPolicyContractDefinitionService.definitionFor(agent, "1").getDefinition()).isNotNull();
+        assertThat(dynamicPolicyContractDefinitionService.definitionFor(agent, "1").invalid()).isTrue();
+        assertThat(dynamicPolicyContractDefinitionService.definitionFor(agent, "nodescriptor").invalid()).isTrue();
+
+        verify(policyEngine);
+    }
+
     @BeforeEach
     void setUp() {
         policyEngine = createMock(PolicyEngine.class);
