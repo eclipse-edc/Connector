@@ -44,9 +44,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 class DapsIntegrationTest {
 
     private static final String AUDIENCE_IDS_CONNECTORS_ALL = "idsc:IDS_CONNECTORS_ALL";
-    private static final String CLIENT_ID = "8B:DE:EE:4C:7C:2D:7B:93:51:2F:FD:A0:D3:53:4C:58:CA:9D:70:C2:keyid:CB:8C:C7:B6:85:79:A8:23:A6:CB:15:AB:17:50:2F:E6:65:43:5D:E8";
+    private static final String CLIENT_ID = "68:99:2E:D4:13:2D:FD:3A:66:6B:85:DE:FB:98:2E:2D:FD:E7:83:D7";
     private static final String CLIENT_KEYSTORE_KEY_ALIAS = "1";
-    private static final String CLIENT_KEYSTORE_PASSWORD = "password";
+    private static final String CLIENT_KEYSTORE_PASSWORD = "1234";
     private static final String DAPS_URL = "http://localhost:4567";
 
     private final Map<String, String> configuration = Map.of(
@@ -60,7 +60,7 @@ class DapsIntegrationTest {
 
     @BeforeEach
     protected void before(EdcExtension extension) {
-        KeyStore clientKeystore = readKeystoreFromResources("plugfest-keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
+        KeyStore clientKeystore = readKeystoreFromResources("keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
 
         extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) configuration::get);
         extension.registerServiceMock(Vault.class, new MockVault());
