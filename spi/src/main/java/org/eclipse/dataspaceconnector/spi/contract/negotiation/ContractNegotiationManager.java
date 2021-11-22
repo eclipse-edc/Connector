@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 
 /**
- * Manages contract negotiations on a client or provider. Subtypes define client- and provider-specific operations.
+ * Manages contract negotiations on a consumer or provider. Subtypes define consumer- and provider-specific operations.
  *
  * All operations are idempotent.
  */

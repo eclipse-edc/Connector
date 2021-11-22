@@ -24,15 +24,15 @@ import org.jetbrains.annotations.NotNull;
 public interface ContractValidationService {
 
     /**
-     * Validates and sanitizes the contract offer for the client represented by the given claims.
+     * Validates and sanitizes the contract offer for the consumer represented by the given claims.
      *
-     * The original offer must be validated and sanitized to avoid policy and asset injection attacks by malicious clients.
+     * The original offer must be validated and sanitized to avoid policy and asset injection attacks by malicious consumers.
      */
     @NotNull
     OfferValidationResult validate(ClaimToken token, ContractOffer offer);
 
     /**
-     * Validates the contract agreement for the client, which must be the contract counter-party.
+     * Validates the contract agreement for the consumer, which must be the contract counter-party.
      */
     boolean validate(ClaimToken token, ContractAgreement agreement);
 }

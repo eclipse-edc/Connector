@@ -39,7 +39,7 @@ public class NegotiationResponse {
         FATAL_ERROR,
 
         /**
-         * The client that requested this operation submitted an invalid negotiation state check.
+         * The consumer that requested this operation submitted an invalid negotiation state check.
          */
         INVALID_STATE
     }

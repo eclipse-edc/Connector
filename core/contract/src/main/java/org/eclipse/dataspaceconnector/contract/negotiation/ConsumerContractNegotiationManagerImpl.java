@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ClientContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -24,12 +24,12 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse.Status.OK;
 
 /**
- * Implementation of the {@link ClientContractNegotiationManager}.
+ * Implementation of the {@link ConsumerContractNegotiationManager}.
  */
-public class ClientContractNegotiationManagerImpl implements ClientContractNegotiationManager {
+public class ConsumerContractNegotiationManagerImpl implements ConsumerContractNegotiationManager {
     private ContractNegotiationStore store;
 
-    public ClientContractNegotiationManagerImpl(ContractNegotiationStore store) {
+    public ConsumerContractNegotiationManagerImpl(ContractNegotiationStore store) {
         this.store = store;
     }
 

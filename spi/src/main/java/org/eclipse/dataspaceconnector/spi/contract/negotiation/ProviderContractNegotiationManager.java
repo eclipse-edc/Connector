@@ -24,18 +24,18 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 public interface ProviderContractNegotiationManager extends ContractNegotiationManager {
 
     /**
-     * A contract negotiation has been requested by the client represented with the given claims.
+     * A contract negotiation has been requested by the consumer represented with the given claims.
      */
     NegotiationResponse requested(ClaimToken token, String correlationId, ContractOffer offer);
 
     /**
-     * A new offer was made by the client represented by the claim token.
+     * A new offer was made by the consumer represented by the claim token.
      */
     NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer offer, String hash);
 
     /**
-     * Confirms a contract negotiation after it has been approved by both counter-parties. A final contract will be sent to the client.
+     * Confirms a contract negotiation after it has been approved by both counter-parties. A final contract will be sent to the consumer.
      */
-    NegotiationResponse clientApproved(String negotiationId, String hash);
+    NegotiationResponse consumerApproved(String negotiationId, String hash);
 
 }

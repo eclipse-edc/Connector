@@ -34,7 +34,7 @@ public interface ContractNegotiationStore {
     ContractNegotiation find(String negotiationId);
 
     /**
-     * Returns the contract negotiation for the correlation id provided by the client or null.
+     * Returns the contract negotiation for the correlation id provided by the consumer or null.
      */
     @Nullable
     ContractNegotiation findForCorrelationId(String correlationId);

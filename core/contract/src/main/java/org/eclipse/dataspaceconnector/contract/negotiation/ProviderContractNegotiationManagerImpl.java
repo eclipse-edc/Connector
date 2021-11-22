@@ -39,7 +39,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
 
     @Override
-    public NegotiationResponse clientApproved(String negotiationId, String hash) {
+    public NegotiationResponse consumerApproved(String negotiationId, String hash) {
         throw new UnsupportedOperationException();
     }
 }

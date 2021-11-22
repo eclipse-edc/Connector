@@ -18,11 +18,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreemen
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 /**
- * Manages contract negotiations on the client.
+ * Manages contract negotiations on the consumer participant.
  *
  * All operations are idempotent.
  */
-public interface ClientContractNegotiationManager extends ContractNegotiationManager {
+public interface ConsumerContractNegotiationManager extends ContractNegotiationManager {
 
     /**
      * Initiates a contract negotiation for the given provider offer. The offer will have been obtained from a previous contract offer request sent to the provider.
