@@ -49,7 +49,7 @@ public class CosmosFederatedCacheNodeDirectory implements FederatedCacheNodeDire
 
     @Override
     public List<FederatedCacheNode> getAll() {
-        var response = with(retryPolicy).get(cosmosDbApi::queryAllItems);
+        var response = with(retryPolicy).get(() -> cosmosDbApi.queryAllItems(partitionKey));
         return response.stream()
                 .map(databaseDocument -> typeManager.readValue(typeManager.writeValueAsString(databaseDocument), FederatedCacheNodeDocument.class))
                 .map(FederatedCacheNodeDocument::getWrappedInstance)

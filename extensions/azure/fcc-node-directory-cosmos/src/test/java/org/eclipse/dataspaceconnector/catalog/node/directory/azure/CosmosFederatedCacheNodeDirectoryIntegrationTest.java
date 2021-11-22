@@ -45,8 +45,8 @@ import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationF
 
 @IntegrationTest
 class CosmosFederatedCacheNodeDirectoryIntegrationTest {
-    private static final String TEST_ID = UUID.randomUUID().toString();
     public static final String REGION = "westeurope";
+    private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String TEST_PARTITION_KEY = "test-partitionkey";
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
@@ -72,6 +72,20 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
         }
     }
 
+    private static boolean assertNodesAreEqual(FederatedCacheNode node1, FederatedCacheNode node2) {
+        return node1.getName().equals(node2.getName()) &&
+                node1.getTargetUrl().equals(node2.getTargetUrl()) &&
+                node1.getSupportedProtocols().equals(node2.getSupportedProtocols());
+    }
+
+    @AfterAll
+    static void deleteDatabase() {
+        if (database != null) {
+            CosmosDatabaseResponse delete = database.delete();
+            assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
+        }
+    }
+
     @BeforeEach
     void setUp() {
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
@@ -79,7 +93,7 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         typeManager = new TypeManager();
         typeManager.registerTypes(FederatedCacheNode.class, FederatedCacheNodeDocument.class);
-        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(container, TEST_PARTITION_KEY, true);
+        CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(container, true);
         store = new CosmosFederatedCacheNodeDirectory(cosmosDbApi, TEST_PARTITION_KEY, typeManager, new RetryPolicy<>());
     }
 
@@ -111,27 +125,13 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
                 .anyMatch(node -> assertNodesAreEqual(node, node2));
     }
 
-    private static boolean assertNodesAreEqual(FederatedCacheNode node1, FederatedCacheNode node2) {
-        return node1.getName().equals(node2.getName()) &&
-                node1.getTargetUrl().equals(node2.getTargetUrl()) &&
-                node1.getSupportedProtocols().equals(node2.getSupportedProtocols());
-    }
-
-    private FederatedCacheNodeDocument convert(Object obj) {
-        return typeManager.readValue(typeManager.writeValueAsBytes(obj), FederatedCacheNodeDocument.class);
-    }
-
     @AfterEach
     void teardown() {
         CosmosContainerResponse delete = container.delete();
         assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
     }
 
-    @AfterAll
-    static void deleteDatabase() {
-        if (database != null) {
-            CosmosDatabaseResponse delete = database.delete();
-            assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
-        }
+    private FederatedCacheNodeDocument convert(Object obj) {
+        return typeManager.readValue(typeManager.writeValueAsBytes(obj), FederatedCacheNodeDocument.class);
     }
 }
