@@ -36,13 +36,9 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     private final AssetIndex assetIndex;
 
     public ContractOfferServiceImpl(ParticipantAgentService agentService, Supplier<ContractDefinitionService> frameworkSupplier, AssetIndex assetIndex) {
-        Objects.requireNonNull(agentService, "ParticipantAgentService must not be null");
-        Objects.requireNonNull(frameworkSupplier, "ContractDefinitionService must not be null");
-        Objects.requireNonNull(assetIndex, "AssetIndex must not be null");
-
-        this.agentService = agentService;
-        this.frameworkSupplier = frameworkSupplier;
-        this.assetIndex = assetIndex;
+        this.agentService = Objects.requireNonNull(agentService, "ParticipantAgentService must not be null");
+        this.frameworkSupplier = Objects.requireNonNull(frameworkSupplier, "ContractDefinitionService must not be null");
+        this.assetIndex = Objects.requireNonNull(assetIndex, "AssetIndex must not be null");
     }
 
     @Override
@@ -53,7 +49,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
 
         return definitions.flatMap(definition -> {
             var assets = assetIndex.queryAssets(definition.getAssetSelectorExpression());
-            return assets.map(asset -> ContractOffer.Builder.newInstance().policy(definition.getUsagePolicy()).assets(List.of(asset)).build());
+            return assets.map(asset -> ContractOffer.Builder.newInstance().id(definition.getId()).policy(definition.getUsagePolicy()).assets(List.of(asset)).build());
         });
     }
 

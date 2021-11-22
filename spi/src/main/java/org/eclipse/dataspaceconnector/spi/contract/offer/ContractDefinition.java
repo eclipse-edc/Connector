@@ -21,16 +21,22 @@ import java.util.Objects;
 
 /**
  * Defines the parameters of a contract. Namely, the usage policy and asset selector that identifies the set of assets the contract applies to.
+ *
+ * Note that the id must be a UUID.
  */
 public class ContractDefinition {
+    private final String id;
     private final Policy usagePolicy;
     private final AssetSelectorExpression assetSelectorExpression;
 
-    public ContractDefinition(@NotNull Policy usagePolicy, @NotNull AssetSelectorExpression expression) {
-        Objects.requireNonNull(usagePolicy);
-        Objects.requireNonNull(expression);
-        this.assetSelectorExpression = expression;
-        this.usagePolicy = usagePolicy;
+    public ContractDefinition(@NotNull String id, @NotNull Policy usagePolicy, @NotNull AssetSelectorExpression expression) {
+        this.id = Objects.requireNonNull(id);
+        this.usagePolicy = Objects.requireNonNull(usagePolicy);
+        this.assetSelectorExpression = Objects.requireNonNull(expression);
+    }
+
+    public String getId() {
+        return id;
     }
 
     @NotNull

@@ -32,5 +32,10 @@ public interface ContractDefinitionService {
     @NotNull
     Stream<ContractDefinition> definitionsFor(ParticipantAgent agent);
 
-
+    /**
+     * Returns a contract definition for the agent associated with the given contract definition id. If the definition does not exist or the agent is not authorized, the result
+     * will indicate the request is invalid.
+     */
+    @NotNull
+    ContractDefinitionResult definitionFor(ParticipantAgent agent, String definitionId);
 }

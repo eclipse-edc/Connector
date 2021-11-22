@@ -29,11 +29,11 @@ import java.util.List;
 import java.util.Objects;
 
 /**
- * A contract offer is exchanged between a providing and a consuming connector. It describes
- * the which assets the consumer may use, and the rules and policies that apply to each asset.
+ * A contract offer is exchanged between two participant agents. It describes the which assets the consumer may use, and the rules and policies that apply to each asset.
  */
 @JsonDeserialize(builder = ContractOffer.Builder.class)
 public class ContractOffer {
+    private String id;
 
     /**
      * The policy that describes the usage conditions of the assets
@@ -41,7 +41,7 @@ public class ContractOffer {
     private Policy policy;
 
     /**
-     * The offered assets@
+     * The offered assets
      */
     private List<Asset> assets;
 
@@ -73,7 +73,9 @@ public class ContractOffer {
      */
     private ZonedDateTime contractEnd;
 
-    private ContractOffer() {
+    @NotNull
+    public String getId() {
+        return id;
     }
 
     @Nullable
@@ -116,10 +118,14 @@ public class ContractOffer {
         return policy;
     }
 
+    private ContractOffer() {
+    }
+
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private List<Asset> assets;
         private Policy policy;
+        private String id;
         private URI provider;
         private URI consumer;
         private ZonedDateTime offerStart;
@@ -133,6 +139,11 @@ public class ContractOffer {
         @JsonCreator
         public static Builder newInstance() {
             return new Builder();
+        }
+
+        public Builder id(String id) {
+            this.id = id;
+            return this;
         }
 
         public Builder provider(URI provider) {
@@ -177,8 +188,10 @@ public class ContractOffer {
 
         public ContractOffer build() {
             Objects.requireNonNull(this.policy);
+            Objects.requireNonNull(this.id);
 
             ContractOffer offer = new ContractOffer();
+            offer.id = this.id;
             offer.policy = this.policy;
             offer.assets = this.assets;
             offer.provider = this.provider;

@@ -114,6 +114,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
                     .map(Collections::singletonList)
                     .map(assets -> ContractOffer.Builder.newInstance()
                             .policy(createEverythingAllowedPolicy())
+                            .id("1")
                             .assets(assets).build())
                     .collect(Collectors.toList());
             return contractOffers.stream();
