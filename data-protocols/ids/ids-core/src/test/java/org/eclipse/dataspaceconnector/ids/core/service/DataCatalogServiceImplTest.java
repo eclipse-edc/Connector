@@ -54,9 +54,11 @@ class DataCatalogServiceImplTest {
         var offers = Arrays.asList(
                 ContractOffer.Builder.newInstance()
                         .policy(Policy.Builder.newInstance().build())
+                        .id("1")
                         .build(),
                 ContractOffer.Builder.newInstance()
                         .policy(Policy.Builder.newInstance().build())
+                        .id("1")
                         .build());
         EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.anyObject(ContractOfferQuery.class))).andReturn(offers.stream());
 
