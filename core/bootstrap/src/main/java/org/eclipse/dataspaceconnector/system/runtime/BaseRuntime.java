@@ -48,7 +48,7 @@ public class BaseRuntime {
     /**
      * Main entry point to runtime initialization. Calls all methods.
      */
-    protected ServiceExtensionContext boot() {
+    protected void boot() {
         var typeManager = createTypeManager();
         monitor = createMonitor();
         MonitorProvider.setInstance(monitor);
@@ -69,7 +69,6 @@ public class BaseRuntime {
         }
         monitor.info(format("%s ready", name));
 
-        return context;
     }
 
     /**

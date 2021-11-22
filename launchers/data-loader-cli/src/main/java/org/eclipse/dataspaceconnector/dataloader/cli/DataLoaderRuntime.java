@@ -20,10 +20,11 @@ import picocli.CommandLine;
 
 public class DataLoaderRuntime extends BaseRuntime {
 
+    private static ServiceExtensionContext context;
+
     public static void main(String[] args) {
         var runtime = new DataLoaderRuntime();
-        var context = runtime.boot();
-        var typeManager = context.getTypeManager();
+        runtime.boot();
         var assetSink = context.getService(AssetLoader.class, true);
 
         if (assetSink == null) {
@@ -31,12 +32,19 @@ public class DataLoaderRuntime extends BaseRuntime {
             System.exit(-1);
         }
 
-        var exitCode = new CommandLine(new LoadCommand(typeManager.getMapper(), assetSink)).execute(args);
+        var exitCode = new CommandLine(new LoadCommand(context.getTypeManager().getMapper(), assetSink)).execute(args);
         System.exit(exitCode);
+    }
+
+    @Override
+    protected void initializeContext(ServiceExtensionContext context) {
+        super.initializeContext(context);
+        DataLoaderRuntime.context = context;
     }
 
     @Override
     protected String getRuntimeName(ServiceExtensionContext context) {
         return "DataLoader Runtime";
     }
+
 }
