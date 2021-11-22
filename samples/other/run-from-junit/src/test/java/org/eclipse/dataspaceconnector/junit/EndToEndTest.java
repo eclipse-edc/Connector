@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.junit;
 
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.security.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
@@ -25,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
@@ -43,11 +45,12 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.easymock.EasyMock.mock;
+
 @ExtendWith(EdcExtension.class)
 public class EndToEndTest {
 
     @Test
-    @Disabled
     void processConsumerRequest(TransferProcessManager processManager, RemoteMessageDispatcherRegistry dispatcherRegistry) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -82,7 +85,6 @@ public class EndToEndTest {
     }
 
     @Test
-    @Disabled
     void processProviderRequest(TransferProcessManager processManager, DataFlowManager dataFlowManager) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
 
@@ -115,6 +117,7 @@ public class EndToEndTest {
 
     @BeforeEach
     void before(EdcExtension extension) {
+        extension.registerSystemExtension(VaultExtension.class, new NullVaultExtension());
         extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
             @Override
             public Set<String> provides() {
