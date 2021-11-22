@@ -1,7 +1,7 @@
-package org.eclipse.dataspaceconnector.catalog.directory;
+package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
-import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
-import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapterRegistry;
+import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -10,17 +10,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-class InMemoryCatalogQueryAdapterRegistry implements CatalogQueryAdapterRegistry {
+public class NodeQueryAdapterRegistryImpl implements NodeQueryAdapterRegistry {
 
-    private final Map<String, List<CatalogQueryAdapter>> map;
+    private final Map<String, List<NodeQueryAdapter>> map;
 
-    InMemoryCatalogQueryAdapterRegistry() {
+    public NodeQueryAdapterRegistryImpl() {
         map = new ConcurrentHashMap<>();
     }
 
 
     @Override
-    public Collection<CatalogQueryAdapter> findForProtocol(String protocolName) {
+    public Collection<NodeQueryAdapter> findForProtocol(String protocolName) {
         if (!map.containsKey(protocolName)) {
             return Collections.emptyList();
         }
@@ -28,7 +28,7 @@ class InMemoryCatalogQueryAdapterRegistry implements CatalogQueryAdapterRegistry
     }
 
     @Override
-    public void register(String protocolName, CatalogQueryAdapter adapter) {
+    public void register(String protocolName, NodeQueryAdapter adapter) {
         if (!map.containsKey(protocolName)) {
             map.put(protocolName, new ArrayList<>());
         }
@@ -36,7 +36,7 @@ class InMemoryCatalogQueryAdapterRegistry implements CatalogQueryAdapterRegistry
     }
 
     @Override
-    public void unregister(String protocolName, CatalogQueryAdapter adapter) {
+    public void unregister(String protocolName, NodeQueryAdapter adapter) {
         if (map.containsKey(protocolName)) {
             map.get(protocolName).remove(adapter);
 

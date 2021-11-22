@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.catalog.spi.model;
 
 
-import org.eclipse.dataspaceconnector.catalog.spi.CatalogQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 
 /**
- * {@link CatalogQueryAdapter}s accept {@code UpdateRequests} to send out catalog queries
+ * {@link NodeQueryAdapter}s accept {@code UpdateRequests} to send out catalog queries
  */
 public class UpdateRequest {
     private final String nodeUrl;

@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.catalog.directory;
+package org.eclipse.dataspaceconnector.catalog.cache.query;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
@@ -45,7 +45,7 @@ class InMemoryFccQueryAdapterRegistryTest {
     private static final CachedAsset ASSET_DEF = CachedAsset.Builder.newInstance().id("DEF").build();
     private static final CachedAsset ASSET_XYZ = CachedAsset.Builder.newInstance().id("XYZ").build();
 
-    private InMemoryCacheQueryAdapterRegistry registry;
+    private CacheQueryAdapterRegistryImpl registry;
 
     @Test
     void getAllAdapters() {
@@ -74,7 +74,7 @@ class InMemoryFccQueryAdapterRegistryTest {
 
     @BeforeEach
     public void setUp() {
-        registry = new InMemoryCacheQueryAdapterRegistry();
+        registry = new CacheQueryAdapterRegistryImpl();
     }
 
     @Test
