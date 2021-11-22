@@ -41,7 +41,7 @@ public class IdsResourceToAssetTransformerTest {
     private static final BigInteger ASSET_BYTESIZE = BigInteger.valueOf(5);
 
     // subject
-    private IdsResourceToAssetTransformer idsResourceToAssetTransformer;
+    private IdsResourceToAssetTransformer transformer;
 
     // mocks
     private Resource resource;
@@ -49,7 +49,7 @@ public class IdsResourceToAssetTransformerTest {
 
     @BeforeEach
     void setUp() {
-        idsResourceToAssetTransformer = new IdsResourceToAssetTransformer();
+        transformer = new IdsResourceToAssetTransformer();
         Artifact artifact = new ArtifactBuilder()._byteSize_(ASSET_BYTESIZE)._fileName_(ASSET_FILENAME).build();
 
         var representation = new RepresentationBuilder()
@@ -66,7 +66,7 @@ public class IdsResourceToAssetTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsResourceToAssetTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -75,7 +75,7 @@ public class IdsResourceToAssetTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsResourceToAssetTransformer.transform(resource, null);
+            transformer.transform(resource, null);
         });
     }
 
@@ -83,7 +83,7 @@ public class IdsResourceToAssetTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(context);
 
-        var result = idsResourceToAssetTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -94,7 +94,7 @@ public class IdsResourceToAssetTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = idsResourceToAssetTransformer.transform(resource, context);
+        var result = transformer.transform(resource, context);
 
         // verify
         Assertions.assertNotNull(result);

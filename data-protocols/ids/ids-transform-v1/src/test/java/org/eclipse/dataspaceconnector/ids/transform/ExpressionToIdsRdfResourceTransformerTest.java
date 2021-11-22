@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ExpressionToRdfResourceTransformerTest {
+class ExpressionToIdsRdfResourceTransformerTest {
 
     // subject
-    private ExpressionToRdfResourceTransformer transformer;
+    private ExpressionToIdsRdfResourceTransformer transformer;
 
     // mocks
     private LiteralExpression expression;
@@ -33,7 +33,7 @@ class ExpressionToRdfResourceTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new ExpressionToRdfResourceTransformer();
+        transformer = new ExpressionToIdsRdfResourceTransformer();
         expression = EasyMock.createMock(LiteralExpression.class);
         context = EasyMock.createMock(TransformerContext.class);
     }

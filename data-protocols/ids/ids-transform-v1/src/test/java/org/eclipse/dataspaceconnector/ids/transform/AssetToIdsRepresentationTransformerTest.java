@@ -39,10 +39,9 @@ class AssetToIdsRepresentationTransformerTest {
     private static final String REPRESENTATION_ID = "test_id";
     private static final URI REPRESENTATION_ID_URI = URI.create("urn:representation:1");
     private static final String ASSET_FILE_EXTENSION = "file_extension";
-    private static final MediaType MEDIA_TYPE = new CustomMediaTypeBuilder()._filenameExtension_(ASSET_FILE_EXTENSION).build();
 
     // subject
-    private AssetToIdsRepresentationTransformer assetToIdsRepresentationTransformer;
+    private AssetToIdsRepresentationTransformer transformer;
 
     // mocks
     private Asset asset;
@@ -50,7 +49,7 @@ class AssetToIdsRepresentationTransformerTest {
 
     @BeforeEach
     void setUp() {
-        assetToIdsRepresentationTransformer = new AssetToIdsRepresentationTransformer();
+        transformer = new AssetToIdsRepresentationTransformer();
         asset = EasyMock.createMock(Asset.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -60,7 +59,7 @@ class AssetToIdsRepresentationTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToIdsRepresentationTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -69,7 +68,7 @@ class AssetToIdsRepresentationTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToIdsRepresentationTransformer.transform(asset, null);
+            transformer.transform(asset, null);
         });
     }
 
@@ -77,7 +76,7 @@ class AssetToIdsRepresentationTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(asset, context);
 
-        var result = assetToIdsRepresentationTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -102,7 +101,7 @@ class AssetToIdsRepresentationTransformerTest {
         EasyMock.replay(asset, context);
 
         // invoke
-        var result = assetToIdsRepresentationTransformer.transform(asset, context);
+        var result = transformer.transform(asset, context);
 
         // verify
         Assertions.assertNotNull(result);
@@ -130,7 +129,7 @@ class AssetToIdsRepresentationTransformerTest {
         EasyMock.replay(asset, context);
 
         // invoke
-        Representation result = assetToIdsRepresentationTransformer.transform(asset, context);
+        Representation result = transformer.transform(asset, context);
 
         // verify
         Assertions.assertNotNull(result);

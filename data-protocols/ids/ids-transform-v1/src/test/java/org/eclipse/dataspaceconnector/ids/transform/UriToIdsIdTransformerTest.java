@@ -31,14 +31,14 @@ class UriToIdsIdTransformerTest {
     private static final URI URI = java.net.URI.create("urn:artifact:32d39d70-68f7-44f3-b8b2-27550f2081f4");
 
     // subject
-    private UriToIdsIdTransformer uriToIdsIdTransformer;
+    private UriToIdsIdTransformer transformer;
 
     // mocks
     private TransformerContext context;
 
     @BeforeEach
     public void setup() {
-        uriToIdsIdTransformer = new UriToIdsIdTransformer();
+        transformer = new UriToIdsIdTransformer();
         context = EasyMock.createMock(TransformerContext.class);
     }
 
@@ -47,7 +47,7 @@ class UriToIdsIdTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            uriToIdsIdTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -56,7 +56,7 @@ class UriToIdsIdTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            uriToIdsIdTransformer.transform(URI, null);
+            transformer.transform(URI, null);
         });
     }
 
@@ -64,7 +64,7 @@ class UriToIdsIdTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(context);
 
-        var result = uriToIdsIdTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -79,7 +79,7 @@ class UriToIdsIdTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = uriToIdsIdTransformer.transform(URI, context);
+        var result = transformer.transform(URI, context);
 
         // verify
         Assertions.assertNotNull(result);

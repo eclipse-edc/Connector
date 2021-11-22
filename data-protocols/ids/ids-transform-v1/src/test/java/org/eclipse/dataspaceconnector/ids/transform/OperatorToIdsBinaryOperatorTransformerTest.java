@@ -30,17 +30,17 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class OperatorToBinaryOperatorTransformerTest {
+class OperatorToIdsBinaryOperatorTransformerTest {
 
     // subject
-    private OperatorToBinaryOperatorTransformer operatorToBinaryOperatorTransformer;
+    private OperatorToIdsBinaryOperatorTransformer transformer;
 
     // mocks
     private TransformerContext transformerContext;
 
     @BeforeEach
     void setUp() {
-        operatorToBinaryOperatorTransformer = new OperatorToBinaryOperatorTransformer();
+        transformer = new OperatorToIdsBinaryOperatorTransformer();
 
         transformerContext = EasyMock.mock(TransformerContext.class);
     }
@@ -54,7 +54,7 @@ class OperatorToBinaryOperatorTransformerTest {
 
         EasyMock.replay(transformerContext);
 
-        var result = operatorToBinaryOperatorTransformer.transform(source, transformerContext);
+        var result = transformer.transform(source, transformerContext);
 
         assertThat(result).isEqualTo(expected);
     }

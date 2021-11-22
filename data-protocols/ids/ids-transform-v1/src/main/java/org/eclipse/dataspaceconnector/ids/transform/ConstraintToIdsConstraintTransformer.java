@@ -30,7 +30,7 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.util.Objects;
 
-public class ConstraintToConstraintTransformer implements IdsTypeTransformer<Constraint, de.fraunhofer.iais.eis.Constraint> {
+public class ConstraintToIdsConstraintTransformer implements IdsTypeTransformer<Constraint, de.fraunhofer.iais.eis.Constraint> {
 
     @Override
     public Class<Constraint> getInputType() {

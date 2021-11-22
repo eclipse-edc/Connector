@@ -28,14 +28,14 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
-public class ProhibitionToProhibitionTransformerTest {
+public class ProhibitionToIdsProhibitionTransformerTest {
 
     private static final String TARGET = "https://target.com";
     private static final String ASSIGNER = "https://assigner.com";
     private static final String ASSIGNEE = "https://assignee.com";
 
     // subject
-    private ProhibitionToProhibitionTransformer prohibitionToProhibitionTransformer;
+    private ProhibitionToIdsProhibitionTransformer transformer;
 
     // mocks
     private Prohibition prohibition;
@@ -43,7 +43,7 @@ public class ProhibitionToProhibitionTransformerTest {
 
     @BeforeEach
     void setUp() {
-        prohibitionToProhibitionTransformer = new ProhibitionToProhibitionTransformer();
+        transformer = new ProhibitionToIdsProhibitionTransformer();
         prohibition = EasyMock.createMock(Prohibition.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -53,7 +53,7 @@ public class ProhibitionToProhibitionTransformerTest {
         EasyMock.replay(prohibition, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            prohibitionToProhibitionTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -62,7 +62,7 @@ public class ProhibitionToProhibitionTransformerTest {
         EasyMock.replay(prohibition, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            prohibitionToProhibitionTransformer.transform(prohibition, null);
+            transformer.transform(prohibition, null);
         });
     }
 
@@ -70,7 +70,7 @@ public class ProhibitionToProhibitionTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(prohibition, context);
 
-        var result = prohibitionToProhibitionTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -97,7 +97,7 @@ public class ProhibitionToProhibitionTransformerTest {
         EasyMock.replay(prohibition, context);
 
         // invoke
-        var result = prohibitionToProhibitionTransformer.transform(prohibition, context);
+        var result = transformer.transform(prohibition, context);
 
         // verify
         Assertions.assertNotNull(result);

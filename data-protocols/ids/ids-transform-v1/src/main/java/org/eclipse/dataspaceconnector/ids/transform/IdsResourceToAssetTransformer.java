@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.Representation;
+import de.fraunhofer.iais.eis.RepresentationInstance;
 import de.fraunhofer.iais.eis.Resource;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -26,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -62,22 +64,24 @@ public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resourc
 
         var assetBuilder = Asset.Builder.newInstance().id(idsId.getValue());
 
-        if (object.getRepresentation() != null && object.getRepresentation().size() == 1 &&
-                object.getRepresentation().get(0) instanceof Representation) {
-            var representation = (Representation) object.getRepresentation().get(0);
+        Iterator<Representation> representationIterator;
+        if ((object.getRepresentation() != null) && (representationIterator = object.getRepresentation().iterator()).hasNext()) {
+            var representation = representationIterator.next();
 
             if (representation.getMediaType() != null) {
                 assetBuilder.property(TransformKeys.KEY_ASSET_FILE_EXTENSION, representation.getMediaType().getFilenameExtension());
             }
 
-            // if there is only one artifact we can take some properties from there
-            if (representation.getInstance() != null && representation.getInstance().size() == 1 &&
-                    representation.getInstance().get(0) instanceof Artifact) {
-                var artifact = (Artifact) representation.getInstance().get(0);
-                assetBuilder.property(TransformKeys.KEY_ASSET_FILE_NAME, artifact.getFileName());
-                assetBuilder.property(TransformKeys.KEY_ASSET_BYTE_SIZE, artifact.getByteSize());
+            Iterator<RepresentationInstance> representationInstanceIterator;
+            if ((representation.getInstance() != null) && (representationInstanceIterator = representation.getInstance().iterator()).hasNext()) {
+                // if there is only one artifact we can take some properties from there
+                var representationInstance = representationInstanceIterator.next();
+                if (representationInstance instanceof Artifact) {
+                    var artifact = (Artifact) representation.getInstance().get(0);
+                    assetBuilder.property(TransformKeys.KEY_ASSET_FILE_NAME, artifact.getFileName());
+                    assetBuilder.property(TransformKeys.KEY_ASSET_BYTE_SIZE, artifact.getByteSize());
+                }
             }
-
         }
 
         return assetBuilder.build();

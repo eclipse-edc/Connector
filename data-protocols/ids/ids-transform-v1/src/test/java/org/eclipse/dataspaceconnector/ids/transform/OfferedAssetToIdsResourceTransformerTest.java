@@ -37,7 +37,7 @@ class OfferedAssetToIdsResourceTransformerTest {
     private static final URI RESOURCE_ID_URI = URI.create("urn:resource:1");
 
     // subject
-    private OfferedAssetToIdsResourceTransformer assetToIdsResourceTransformer;
+    private OfferedAssetToIdsResourceTransformer transformer;
 
     // mocks
     private Asset asset;
@@ -47,7 +47,7 @@ class OfferedAssetToIdsResourceTransformerTest {
 
     @BeforeEach
     void setUp() {
-        assetToIdsResourceTransformer = new OfferedAssetToIdsResourceTransformer();
+        transformer = new OfferedAssetToIdsResourceTransformer();
         asset = EasyMock.createMock(Asset.class);
         contractOffer = EasyMock.createMock(ContractOffer.class);
         assetAndPolicy = new OfferedAsset(asset, Collections.singletonList(contractOffer));
@@ -59,7 +59,7 @@ class OfferedAssetToIdsResourceTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToIdsResourceTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -68,7 +68,7 @@ class OfferedAssetToIdsResourceTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToIdsResourceTransformer.transform(assetAndPolicy, null);
+            transformer.transform(assetAndPolicy, null);
         });
     }
 
@@ -76,7 +76,7 @@ class OfferedAssetToIdsResourceTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(asset, context);
 
-        var result = assetToIdsResourceTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -101,7 +101,7 @@ class OfferedAssetToIdsResourceTransformerTest {
         EasyMock.replay(asset, context);
 
         // invoke
-        var result = assetToIdsResourceTransformer.transform(assetAndPolicy, context);
+        var result = transformer.transform(assetAndPolicy, context);
 
         // verify
         Assertions.assertNotNull(result);

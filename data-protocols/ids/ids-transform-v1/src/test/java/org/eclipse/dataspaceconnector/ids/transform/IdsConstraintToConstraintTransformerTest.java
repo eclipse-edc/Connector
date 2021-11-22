@@ -34,7 +34,7 @@ public class IdsConstraintToConstraintTransformerTest {
     private static final URI CONSTRAINT_ID = URI.create("https://constraint.com");
 
     // subject
-    private IdsConstraintToConstraintTransformer idsConstraintToConstraintTransformer;
+    private IdsConstraintToConstraintTransformer transformer;
 
     // mocks
     private de.fraunhofer.iais.eis.Constraint idsConstraint;
@@ -42,7 +42,7 @@ public class IdsConstraintToConstraintTransformerTest {
 
     @BeforeEach
     void setUp() {
-        idsConstraintToConstraintTransformer = new IdsConstraintToConstraintTransformer();
+        transformer = new IdsConstraintToConstraintTransformer();
         idsConstraint = new de.fraunhofer.iais.eis.ConstraintBuilder(CONSTRAINT_ID)
                 ._leftOperand_(LeftOperand.PURPOSE)
                 ._operator_(BinaryOperator.EQ)
@@ -56,7 +56,7 @@ public class IdsConstraintToConstraintTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsConstraintToConstraintTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -65,7 +65,7 @@ public class IdsConstraintToConstraintTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsConstraintToConstraintTransformer.transform(idsConstraint, null);
+            transformer.transform(idsConstraint, null);
         });
     }
 
@@ -73,7 +73,7 @@ public class IdsConstraintToConstraintTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(context);
 
-        var result = idsConstraintToConstraintTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -89,7 +89,7 @@ public class IdsConstraintToConstraintTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = (AtomicConstraint) idsConstraintToConstraintTransformer.transform(idsConstraint, context);
+        var result = (AtomicConstraint) transformer.transform(idsConstraint, context);
 
         // verify
         Assertions.assertNotNull(result);

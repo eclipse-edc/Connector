@@ -23,10 +23,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ExpressionToLeftOperandTransformerTest {
+class ExpressionToIdsLeftOperandTransformerTest {
 
     // subject
-    private ExpressionToLeftOperandTransformer transformer;
+    private ExpressionToIdsLeftOperandTransformer transformer;
 
     // mocks
     private LiteralExpression expression;
@@ -34,7 +34,7 @@ class ExpressionToLeftOperandTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new ExpressionToLeftOperandTransformer();
+        transformer = new ExpressionToIdsLeftOperandTransformer();
         expression = EasyMock.createMock(LiteralExpression.class);
         context = EasyMock.createMock(TransformerContext.class);
     }

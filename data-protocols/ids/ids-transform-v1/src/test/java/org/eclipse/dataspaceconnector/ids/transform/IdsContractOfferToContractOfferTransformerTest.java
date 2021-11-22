@@ -40,7 +40,7 @@ public class IdsContractOfferToContractOfferTransformerTest {
     private static final XMLGregorianCalendar CONTRACT_END = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar(2021, Calendar.FEBRUARY, 2));
 
     // subject
-    private IdsContractOfferToContractOfferTransformer idsContractOfferToContractOfferTransformer;
+    private IdsContractOfferToContractOfferTransformer transformer;
 
     // mocks
     private de.fraunhofer.iais.eis.ContractOffer idsContractOffer;
@@ -51,7 +51,7 @@ public class IdsContractOfferToContractOfferTransformerTest {
 
     @BeforeEach
     void setUp() {
-        idsContractOfferToContractOfferTransformer = new IdsContractOfferToContractOfferTransformer();
+        transformer = new IdsContractOfferToContractOfferTransformer();
         idsPermission = new de.fraunhofer.iais.eis.PermissionBuilder().build();
         idsProhibition = new de.fraunhofer.iais.eis.ProhibitionBuilder().build();
         idsDuty = new de.fraunhofer.iais.eis.DutyBuilder().build();
@@ -72,7 +72,7 @@ public class IdsContractOfferToContractOfferTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsContractOfferToContractOfferTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -81,7 +81,7 @@ public class IdsContractOfferToContractOfferTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsContractOfferToContractOfferTransformer.transform(idsContractOffer, null);
+            transformer.transform(idsContractOffer, null);
         });
     }
 
@@ -89,7 +89,7 @@ public class IdsContractOfferToContractOfferTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(context);
 
-        var result = idsContractOfferToContractOfferTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -111,7 +111,7 @@ public class IdsContractOfferToContractOfferTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = idsContractOfferToContractOfferTransformer.transform(idsContractOffer, context);
+        var result = transformer.transform(idsContractOffer, context);
 
         // verify
         Assertions.assertNotNull(result);

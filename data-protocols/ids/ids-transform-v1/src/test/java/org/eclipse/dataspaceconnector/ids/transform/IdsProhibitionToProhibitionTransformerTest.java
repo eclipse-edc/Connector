@@ -39,7 +39,7 @@ public class IdsProhibitionToProhibitionTransformerTest {
     private static final URI ASSIGNEE_URI = URI.create(ASSIGNEE);
 
     // subject
-    private IdsProhibitionToProhibitionTransformer idsProhibitionToProhibitionTransformer;
+    private IdsProhibitionToProhibitionTransformer transformer;
 
     // mocks
     private de.fraunhofer.iais.eis.Prohibition idsPermission;
@@ -48,7 +48,7 @@ public class IdsProhibitionToProhibitionTransformerTest {
 
     @BeforeEach
     void setUp() {
-        idsProhibitionToProhibitionTransformer = new IdsProhibitionToProhibitionTransformer();
+        transformer = new IdsProhibitionToProhibitionTransformer();
         idsConstraint = new ConstraintBuilder().build();
         idsPermission = new de.fraunhofer.iais.eis.ProhibitionBuilder()
                 ._action_(new ArrayList<>(Collections.singletonList(de.fraunhofer.iais.eis.Action.USE)))
@@ -65,7 +65,7 @@ public class IdsProhibitionToProhibitionTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsProhibitionToProhibitionTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -74,7 +74,7 @@ public class IdsProhibitionToProhibitionTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsProhibitionToProhibitionTransformer.transform(idsPermission, null);
+            transformer.transform(idsPermission, null);
         });
     }
 
@@ -82,7 +82,7 @@ public class IdsProhibitionToProhibitionTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(context);
 
-        var result = idsProhibitionToProhibitionTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -99,7 +99,7 @@ public class IdsProhibitionToProhibitionTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = idsProhibitionToProhibitionTransformer.transform(idsPermission, context);
+        var result = transformer.transform(idsPermission, context);
 
         // verify
         Assertions.assertNotNull(result);

@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - Initial API and Implementation
+ *       Daimler TSS GmbH - Initial Implementation
  *
  */
 
@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
-class DutyToDutyTransformerTest {
+public class PermissionToIdsPermissionTransformerTest {
 
     private static final URI PERMISSION_ID = URI.create("urn:permission:456uz984390236s");
     private static final String TARGET = "https://target.com";
@@ -39,22 +40,22 @@ class DutyToDutyTransformerTest {
     private static final URI ASSIGNEE_URI = URI.create(ASSIGNEE);
 
     // subject
-    private DutyToDutyTransformer transformer;
+    private PermissionToIdsPermissionTransformer transformer;
 
     // mocks
-    private Duty duty;
+    private Permission permission;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
-        transformer = new DutyToDutyTransformer();
-        duty = EasyMock.createMock(Duty.class);
+        transformer = new PermissionToIdsPermissionTransformer();
+        permission = EasyMock.createMock(Permission.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(duty, context);
+        EasyMock.replay(permission, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
@@ -63,16 +64,16 @@ class DutyToDutyTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(duty, context);
+        EasyMock.replay(permission, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(duty, null);
+            transformer.transform(permission, null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(duty, context);
+        EasyMock.replay(permission, context);
 
         var result = transformer.transform(null, context);
 
@@ -80,28 +81,32 @@ class DutyToDutyTransformerTest {
     }
 
     @Test
-    void testSuccessfulMap() {
+    void testSuccessfulSimple() {
         // prepare
         Action edcAction = EasyMock.createMock(Action.class);
         de.fraunhofer.iais.eis.Action idsAction = de.fraunhofer.iais.eis.Action.READ;
         Constraint edcConstraint = EasyMock.createMock(Constraint.class);
         de.fraunhofer.iais.eis.Constraint idsConstraint = EasyMock.createMock(de.fraunhofer.iais.eis.Constraint.class);
+        Duty edcDuty = EasyMock.createMock(Duty.class);
+        de.fraunhofer.iais.eis.Duty idsDuty = EasyMock.createMock(de.fraunhofer.iais.eis.Duty.class);
 
-        EasyMock.expect(duty.getTarget()).andReturn(TARGET);
-        EasyMock.expect(duty.getAssigner()).andReturn(ASSIGNER);
-        EasyMock.expect(duty.getAssignee()).andReturn(ASSIGNEE);
+        EasyMock.expect(permission.getTarget()).andReturn(TARGET);
+        EasyMock.expect(permission.getAssigner()).andReturn(ASSIGNER);
+        EasyMock.expect(permission.getAssignee()).andReturn(ASSIGNEE);
 
-        EasyMock.expect(duty.getConstraints()).andReturn(Collections.singletonList(edcConstraint));
-        EasyMock.expect(duty.getAction()).andReturn(edcAction);
+        EasyMock.expect(permission.getConstraints()).andReturn(Collections.singletonList(edcConstraint)).anyTimes();
+        EasyMock.expect(permission.getDuties()).andReturn(Collections.singletonList(edcDuty)).anyTimes();
+        EasyMock.expect(permission.getAction()).andReturn(edcAction).anyTimes();
         EasyMock.expect(context.transform(EasyMock.eq(edcAction), EasyMock.eq(de.fraunhofer.iais.eis.Action.class))).andReturn(idsAction);
         EasyMock.expect(context.transform(EasyMock.eq(edcConstraint), EasyMock.eq(de.fraunhofer.iais.eis.Constraint.class))).andReturn(idsConstraint);
+        EasyMock.expect(context.transform(EasyMock.eq(edcDuty), EasyMock.eq(de.fraunhofer.iais.eis.Duty.class))).andReturn(idsDuty);
         EasyMock.expect(context.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(PERMISSION_ID);
 
         // record
-        EasyMock.replay(duty, context);
+        EasyMock.replay(permission, context);
 
         // invoke
-        var result = transformer.transform(duty, context);
+        var result = transformer.transform(permission, context);
 
         // verify
         Assertions.assertNotNull(result);
@@ -118,8 +123,7 @@ class DutyToDutyTransformerTest {
     }
 
     @AfterEach
-    void tearDown() {
-        EasyMock.verify(duty, context);
+    void teardown() {
+        EasyMock.verify(permission, context);
     }
-
 }

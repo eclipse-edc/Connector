@@ -25,7 +25,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class OperatorToBinaryOperatorTransformer implements IdsTypeTransformer<Operator, BinaryOperator> {
+public class OperatorToIdsBinaryOperatorTransformer implements IdsTypeTransformer<Operator, BinaryOperator> {
     private static final Map<Operator, BinaryOperator> MAPPING = new HashMap<>() {
         {
             put(Operator.EQ, BinaryOperator.EQUALS);

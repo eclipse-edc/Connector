@@ -28,11 +28,15 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
+import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
+import org.eclipse.dataspaceconnector.policy.model.Permission;
+import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -79,9 +83,9 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(Asset.class, Representation.class),
                     Arguments.arguments(Asset.class, Resource.class),
 
-                    Arguments.arguments(OfferedAsset.class, Resource.class),
-
                     Arguments.arguments(Connector.class, de.fraunhofer.iais.eis.Connector.class),
+
+                    Arguments.arguments(Constraint.class, de.fraunhofer.iais.eis.Constraint.class),
 
                     Arguments.arguments(ContractOffer.class, de.fraunhofer.iais.eis.ContractOffer.class),
 
@@ -90,16 +94,33 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(Duty.class, de.fraunhofer.iais.eis.Duty.class),
 
                     Arguments.arguments(Expression.class, LeftOperand.class),
-
                     Arguments.arguments(Expression.class, RdfResource.class),
+
+                    Arguments.arguments(Artifact.class, Asset.class),
+
+                    Arguments.arguments(de.fraunhofer.iais.eis.Constraint.class, Constraint.class),
+
+                    Arguments.arguments(de.fraunhofer.iais.eis.ContractOffer.class, ContractOffer.class),
 
                     Arguments.arguments(IdsId.class, URI.class),
 
-                    Arguments.arguments(Expression.class, RdfResource.class),
+                    Arguments.arguments(de.fraunhofer.iais.eis.Permission.class, Permission.class),
 
-                    Arguments.arguments(IdsId.class, URI.class),
+                    Arguments.arguments(de.fraunhofer.iais.eis.Prohibition.class, Prohibition.class),
+
+                    Arguments.arguments(Representation.class, Asset.class),
+
+                    Arguments.arguments(Resource.class, Asset.class),
+
+                    Arguments.arguments(OfferedAsset.class, Resource.class),
 
                     Arguments.arguments(Operator.class, BinaryOperator.class),
+
+                    Arguments.arguments(Permission.class, de.fraunhofer.iais.eis.Permission.class),
+
+                    Arguments.arguments(Prohibition.class, de.fraunhofer.iais.eis.Prohibition.class),
+
+                    Arguments.arguments(SecurityProfile.class, de.fraunhofer.iais.eis.SecurityProfile.class),
 
                     Arguments.arguments(URI.class, IdsId.class)
             );

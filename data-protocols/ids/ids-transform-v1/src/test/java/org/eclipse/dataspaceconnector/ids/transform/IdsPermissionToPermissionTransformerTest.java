@@ -40,7 +40,7 @@ public class IdsPermissionToPermissionTransformerTest {
     private static final URI ASSIGNEE_URI = URI.create(ASSIGNEE);
 
     // subject
-    private IdsPermissionToPermissionTransformer idsPermissionToPermissionTransformer;
+    private IdsPermissionToPermissionTransformer transformer;
 
     // mocks
     private de.fraunhofer.iais.eis.Permission idsPermission;
@@ -50,7 +50,7 @@ public class IdsPermissionToPermissionTransformerTest {
 
     @BeforeEach
     void setUp() {
-        idsPermissionToPermissionTransformer = new IdsPermissionToPermissionTransformer();
+        transformer = new IdsPermissionToPermissionTransformer();
         idsDuty = new DutyBuilder().build();
         idsConstraint = new ConstraintBuilder().build();
         idsPermission = new de.fraunhofer.iais.eis.PermissionBuilder()
@@ -69,7 +69,7 @@ public class IdsPermissionToPermissionTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsPermissionToPermissionTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -78,7 +78,7 @@ public class IdsPermissionToPermissionTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsPermissionToPermissionTransformer.transform(idsPermission, null);
+            transformer.transform(idsPermission, null);
         });
     }
 
@@ -86,7 +86,7 @@ public class IdsPermissionToPermissionTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(context);
 
-        var result = idsPermissionToPermissionTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -104,7 +104,7 @@ public class IdsPermissionToPermissionTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = idsPermissionToPermissionTransformer.transform(idsPermission, context);
+        var result = transformer.transform(idsPermission, context);
 
         // verify
         Assertions.assertNotNull(result);

@@ -40,7 +40,7 @@ public class IdsRepresentationToAssetTransformerTest {
     private static final BigInteger ASSET_BYTESIZE = BigInteger.valueOf(5);
 
     // subject
-    private IdsRepresentationToAssetTransformer idsRepresentationToAssetTransformer;
+    private IdsRepresentationToAssetTransformer transformer;
 
     // mocks
     private Representation representation;
@@ -48,7 +48,7 @@ public class IdsRepresentationToAssetTransformerTest {
 
     @BeforeEach
     void setUp() {
-        idsRepresentationToAssetTransformer = new IdsRepresentationToAssetTransformer();
+        transformer = new IdsRepresentationToAssetTransformer();
         Artifact artifact = new ArtifactBuilder()._byteSize_(ASSET_BYTESIZE)._fileName_(ASSET_FILENAME).build();
 
         representation = new RepresentationBuilder(REPRESENTATION_URI)
@@ -63,7 +63,7 @@ public class IdsRepresentationToAssetTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsRepresentationToAssetTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -72,7 +72,7 @@ public class IdsRepresentationToAssetTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsRepresentationToAssetTransformer.transform(representation, null);
+            transformer.transform(representation, null);
         });
     }
 
@@ -80,7 +80,7 @@ public class IdsRepresentationToAssetTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(context);
 
-        var result = idsRepresentationToAssetTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -91,7 +91,7 @@ public class IdsRepresentationToAssetTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = idsRepresentationToAssetTransformer.transform(representation, context);
+        var result = transformer.transform(representation, context);
 
         // verify
         Assertions.assertNotNull(result);

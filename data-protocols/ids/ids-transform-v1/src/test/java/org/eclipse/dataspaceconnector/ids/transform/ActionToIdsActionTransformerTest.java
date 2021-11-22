@@ -22,10 +22,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ActionToActionTransformerTest {
+class ActionToIdsActionTransformerTest {
 
     // subject
-    private ActionToActionTransformer transformer;
+    private ActionToIdsActionTransformer transformer;
 
     // mocks
     private Action action;
@@ -33,7 +33,7 @@ class ActionToActionTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new ActionToActionTransformer();
+        transformer = new ActionToIdsActionTransformer();
         action = EasyMock.createMock(Action.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
