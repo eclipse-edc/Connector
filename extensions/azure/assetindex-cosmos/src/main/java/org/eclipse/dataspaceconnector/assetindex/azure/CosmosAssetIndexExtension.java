@@ -18,8 +18,8 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -39,7 +39,7 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
 
     @Override
     public Set<String> provides() {
-        return Set.of(AssetIndex.FEATURE, AssetIndexLoader.FEATURE, DataAddressResolver.FEATURE);
+        return Set.of(AssetIndex.FEATURE, AssetLoader.FEATURE, DataAddressResolver.FEATURE);
     }
 
     @Override
@@ -53,7 +53,7 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
         CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
         var assetIndex = new CosmosAssetIndex(cosmosDbApi, configuration.getPartitionKey(), context.getTypeManager(), context.getService(RetryPolicy.class));
         context.registerService(AssetIndex.class, assetIndex);
-        context.registerService(AssetIndexLoader.class, assetIndex);
+        context.registerService(AssetLoader.class, assetIndex);
         context.registerService(DataAddressResolver.class, assetIndex);
 
         context.getTypeManager().registerTypes(AssetDocument.class);

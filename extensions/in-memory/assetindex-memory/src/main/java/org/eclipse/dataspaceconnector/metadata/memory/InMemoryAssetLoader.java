@@ -33,7 +33,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * An ephemeral asset index, that is also a DataAddressResolver and an AssetIndexLoader
+ * An ephemeral asset index, that is also a DataAddressResolver and an AssetLoader
  */
 public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, AssetLoader {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();

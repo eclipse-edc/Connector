@@ -18,23 +18,22 @@ import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
+import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndexLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 import static net.jodah.failsafe.Failsafe.with;
 
-public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetIndexLoader {
+public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetLoader {
 
     private final CosmosDbApi assetDb;
     private final String partitionKey;
@@ -82,15 +81,14 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetI
     }
 
     @Override
-    public void insert(Asset asset, DataAddress address) {
-        var assetDocument = new AssetDocument(asset, partitionKey, address);
+    public void accept(Asset asset, DataAddress dataAddress) {
+        var assetDocument = new AssetDocument(asset, partitionKey, dataAddress);
         assetDb.createItem(assetDocument);
     }
 
     @Override
-    public void insertAll(List<Map.Entry<Asset, DataAddress>> entries) {
-        // no transaction here, just for now
-        entries.forEach(e -> insert(e.getKey(), e.getValue()));
+    public void accept(AssetEntry item) {
+        accept(item.getAsset(), item.getDataAddress());
     }
 
     // we need to read the AssetDocument as Object, because no custom JSON deserialization can be registered
