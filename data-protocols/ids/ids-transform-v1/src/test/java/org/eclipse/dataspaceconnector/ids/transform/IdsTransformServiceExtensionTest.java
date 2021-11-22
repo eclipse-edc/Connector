@@ -78,50 +78,32 @@ class IdsTransformServiceExtensionTest {
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
                     Arguments.arguments(Action.class, de.fraunhofer.iais.eis.Action.class),
-
+                    Arguments.arguments(Artifact.class, Asset.class),
                     Arguments.arguments(Asset.class, Artifact.class),
                     Arguments.arguments(Asset.class, Representation.class),
                     Arguments.arguments(Asset.class, Resource.class),
-
+                    Arguments.arguments(BinaryOperator.class, Operator.class),
                     Arguments.arguments(Connector.class, de.fraunhofer.iais.eis.Connector.class),
-
                     Arguments.arguments(Constraint.class, de.fraunhofer.iais.eis.Constraint.class),
-
                     Arguments.arguments(ContractOffer.class, de.fraunhofer.iais.eis.ContractOffer.class),
-
                     Arguments.arguments(DataCatalog.class, ResourceCatalog.class),
-
+                    Arguments.arguments(de.fraunhofer.iais.eis.Constraint.class, Constraint.class),
+                    Arguments.arguments(de.fraunhofer.iais.eis.ContractOffer.class, ContractOffer.class),
+                    Arguments.arguments(de.fraunhofer.iais.eis.Permission.class, Permission.class),
+                    Arguments.arguments(de.fraunhofer.iais.eis.Prohibition.class, Prohibition.class),
                     Arguments.arguments(Duty.class, de.fraunhofer.iais.eis.Duty.class),
-
                     Arguments.arguments(Expression.class, LeftOperand.class),
                     Arguments.arguments(Expression.class, RdfResource.class),
-
-                    Arguments.arguments(Artifact.class, Asset.class),
-
-                    Arguments.arguments(de.fraunhofer.iais.eis.Constraint.class, Constraint.class),
-
-                    Arguments.arguments(de.fraunhofer.iais.eis.ContractOffer.class, ContractOffer.class),
-
                     Arguments.arguments(IdsId.class, URI.class),
-
-                    Arguments.arguments(de.fraunhofer.iais.eis.Permission.class, Permission.class),
-
-                    Arguments.arguments(de.fraunhofer.iais.eis.Prohibition.class, Prohibition.class),
-
-                    Arguments.arguments(Representation.class, Asset.class),
-
-                    Arguments.arguments(Resource.class, Asset.class),
-
+                    Arguments.arguments(LeftOperand.class, Expression.class),
                     Arguments.arguments(OfferedAsset.class, Resource.class),
-
                     Arguments.arguments(Operator.class, BinaryOperator.class),
-
                     Arguments.arguments(Permission.class, de.fraunhofer.iais.eis.Permission.class),
-
                     Arguments.arguments(Prohibition.class, de.fraunhofer.iais.eis.Prohibition.class),
-
+                    Arguments.arguments(RdfResource.class, Expression.class),
+                    Arguments.arguments(Representation.class, Asset.class),
+                    Arguments.arguments(Resource.class, Asset.class),
                     Arguments.arguments(SecurityProfile.class, de.fraunhofer.iais.eis.SecurityProfile.class),
-
                     Arguments.arguments(URI.class, IdsId.class)
             );
         }

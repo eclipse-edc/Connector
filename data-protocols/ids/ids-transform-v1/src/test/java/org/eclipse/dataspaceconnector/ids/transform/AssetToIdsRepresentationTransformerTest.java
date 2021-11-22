@@ -16,8 +16,6 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.ArtifactBuilder;
-import de.fraunhofer.iais.eis.CustomMediaTypeBuilder;
-import de.fraunhofer.iais.eis.MediaType;
 import de.fraunhofer.iais.eis.Representation;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;

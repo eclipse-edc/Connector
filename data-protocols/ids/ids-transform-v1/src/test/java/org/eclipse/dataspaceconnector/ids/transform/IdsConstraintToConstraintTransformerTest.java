@@ -20,6 +20,7 @@ import de.fraunhofer.iais.eis.util.RdfResource;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
+import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.junit.jupiter.api.AfterEach;
@@ -79,23 +80,32 @@ public class IdsConstraintToConstraintTransformerTest {
     }
 
     @Test
-    void testSuccessfulMap() {
+    void testTransform() {
         // prepare
-        var leftExpression = new LiteralExpression(LeftOperand.PURPOSE.name());
-        var rightExpression = new LiteralExpression("hello");
-        var operator = Operator.EQ;
+        var expectedLeftExpression = new LiteralExpression("left");
+        var expectedRightExpression = new LiteralExpression("right");
+
+        EasyMock.expect(context.transform(EasyMock.anyObject(LeftOperand.class), EasyMock.eq(Expression.class)))
+                .andReturn(expectedLeftExpression);
+        EasyMock.expect(context.transform(EasyMock.anyObject(BinaryOperator.class), EasyMock.eq(Operator.class)))
+                .andReturn(Operator.EQ);
+        EasyMock.expect(context.transform(EasyMock.anyObject(RdfResource.class), EasyMock.eq(Expression.class)))
+                .andReturn(expectedRightExpression);
 
         // record
         EasyMock.replay(context);
+
 
         // invoke
         var result = (AtomicConstraint) transformer.transform(idsConstraint, context);
 
         // verify
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(leftExpression, result.getLeftExpression());
-        Assertions.assertEquals(rightExpression, result.getRightExpression());
-        Assertions.assertEquals(operator, result.getOperator());
+        Assertions.assertNotNull(result.getLeftExpression());
+        Assertions.assertEquals(result.getLeftExpression(), expectedLeftExpression);
+        Assertions.assertNotNull(result.getOperator());
+        Assertions.assertNotNull(result.getRightExpression());
+        Assertions.assertEquals(result.getRightExpression(), expectedRightExpression);
     }
 
     @AfterEach
