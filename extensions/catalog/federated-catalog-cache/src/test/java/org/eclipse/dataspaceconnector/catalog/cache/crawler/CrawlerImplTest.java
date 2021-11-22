@@ -2,7 +2,6 @@ package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.DefaultWorkItemQueue;
-import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapterRegistry;
@@ -195,7 +194,7 @@ class CrawlerImplTest {
     @Test
     void shouldErrorOut_whenNoProtocolAdapterFound() throws InterruptedException {
 
-        crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), new TestProtocolAdapterRegistry(), () -> Duration.ofMillis(500), errorHandlerMock);
+        crawler = new CrawlerImpl(workQueue, monitorMock, queue, createRetryPolicy(), new NodeQueryAdapterRegistryImpl(), () -> Duration.ofMillis(500), errorHandlerMock);
 
         workQueue.put(createWorkItem());
         var l = new CountDownLatch(1);

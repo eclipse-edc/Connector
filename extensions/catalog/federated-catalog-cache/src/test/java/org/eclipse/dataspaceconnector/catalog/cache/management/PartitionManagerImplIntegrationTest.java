@@ -2,8 +2,8 @@ package org.eclipse.dataspaceconnector.catalog.cache.management;
 
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.cache.DefaultWorkItemQueue;
-import org.eclipse.dataspaceconnector.catalog.cache.TestProtocolAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
+import org.eclipse.dataspaceconnector.catalog.cache.crawler.NodeQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
@@ -62,7 +62,8 @@ class PartitionManagerImplIntegrationTest {
         expect(adapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse())).times(WORK_ITEM_COUNT);
         replay(adapterMock);
 
-        TestProtocolAdapterRegistry registry = new TestProtocolAdapterRegistry(adapterMock);
+        var registry = new NodeQueryAdapterRegistryImpl();
+        registry.register("test-protocol", adapterMock);
 
         BlockingQueue<UpdateResponse> loaderQueueMock = niceMock(BlockingQueue.class);
         generatorFunction = workItemQueue -> CrawlerImpl.Builder.newInstance()
