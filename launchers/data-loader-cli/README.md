@@ -15,10 +15,19 @@ java -jar <path-to-jar> --assets <path-to-file.json>
 
 ## A few things to notice
 
-- by default no `AssetIndex` implementation is configured! Please adapt the `build.gradle.kts` file to suit your
-  particular needs! The app _will_ log an error if you don't do this.
-- If a database-backed AssetIndex is used, you'll likely also need a configuration extension plus a vault extension to
-  handle credentials.
+- by default an `AssetIndex` based on CosmosDB is configured. Please adapt the `build.gradle.kts` file to suit your
+  particular needs! 
+- Please add a `*.properties` file that contains the following properties. The app _will not_ function properly unless you do this.
+  - `edc.vault.clientid=<az-clientid>`
+  - `edc.vault.tenantid=<az-tenantid>`
+  - `edc.vault.certificate=/path/to/cert.pfx`
+  - `edc.vault.name=<vault-name>`
+  - `edc.assetindex.cosmos.account-name=<cosmos-account>`
+  - `edc.assetindex.cosmos.database-name=<cosmos-db-name>`
+  - `edc.cosmos.partition-key=<partition-key>`
+  - `edc.assetindex.cosmos.preferred-region=westeurope`
+  - `edc.assetindex.cosmos.container-name=<container-name>`
+  - `edc.cosmos.query-metrics-enabled=true`
 - The commandline tool is intended to run as standalone program
 - Currently only Asset/DataEntry objects are supported, more commands will follow. This might change the synopsis of the
   tool.
