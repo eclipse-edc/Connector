@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.InMemoryContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -24,20 +25,7 @@ import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.S
 class ContractDefinitionServiceImplTest {
     private ContractDefinitionServiceImpl definitionService;
     private PolicyEngine policyEngine;
-
-    @Test
-    void verifyCrudOperations() {
-        var policy = Policy.Builder.newInstance().build();
-        var definition1 = ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
-        var definition2 = ContractDefinition.Builder.newInstance().id("2").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
-
-        definitionService.load(List.of(definition1, definition2));
-
-        assertThat(definitionService.getLoadedDefinitions().size()).isEqualTo(2);
-
-        definitionService.remove(List.of("1"));
-        assertThat(definitionService.getLoadedDefinitions()).contains(definition2);
-    }
+    private InMemoryContractDefinitionStore definitionStore;
 
     @Test
     void verifySatisfiesPolicies() {
@@ -49,7 +37,7 @@ class ContractDefinitionServiceImplTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        definitionService.load(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionStore.save(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         assertThat(definitionService.definitionsFor(agent).count()).isEqualTo(1);
 
@@ -66,7 +54,7 @@ class ContractDefinitionServiceImplTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        definitionService.load(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
 
@@ -84,7 +72,7 @@ class ContractDefinitionServiceImplTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        definitionService.load(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
 
@@ -102,7 +90,7 @@ class ContractDefinitionServiceImplTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        definitionService.load(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
 
         assertThat(definitionService.definitionFor(agent, "1").getDefinition()).isNotNull();
         assertThat(definitionService.definitionFor(agent, "1").invalid()).isTrue();
@@ -114,6 +102,8 @@ class ContractDefinitionServiceImplTest {
     @BeforeEach
     void setUp() {
         policyEngine = createMock(PolicyEngine.class);
+        definitionStore = new InMemoryContractDefinitionStore();
         definitionService = new ContractDefinitionServiceImpl(policyEngine, createNiceMock(Monitor.class));
+        definitionService.initialize(definitionStore);
     }
 }

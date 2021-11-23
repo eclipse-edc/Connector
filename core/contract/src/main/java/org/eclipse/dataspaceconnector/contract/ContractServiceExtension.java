@@ -21,6 +21,8 @@ import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.InMemoryContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -33,6 +35,8 @@ public class ContractServiceExtension implements ServiceExtension {
     private static final Set<String> PROVIDES = Set.of("edc:core:contract");
 
     private Monitor monitor;
+    private ServiceExtensionContext context;
+    private ContractDefinitionServiceImpl definitionService;
 
     @Override
     public final Set<String> provides() {
@@ -45,16 +49,19 @@ public class ContractServiceExtension implements ServiceExtension {
     }
 
     @Override
-    public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        monitor = serviceExtensionContext.getMonitor();
+    public void initialize(ServiceExtensionContext context) {
+        monitor = context.getMonitor();
+        this.context = context;
 
-        registerServices(serviceExtensionContext);
+        registerServices(context);
 
         monitor.info(String.format("Initialized %s", NAME));
     }
 
     @Override
     public void start() {
+        // load the store in the start method so it can be overridden by an extension
+        definitionService.initialize(context.getService(ContractDefinitionStore.class));
         monitor.info(String.format("Started %s", NAME));
     }
 
@@ -77,7 +84,10 @@ public class ContractServiceExtension implements ServiceExtension {
         var policyEngine = new PolicyEngineImpl();
         context.registerService(PolicyEngine.class, policyEngine);
 
-        var definitionService = new ContractDefinitionServiceImpl(policyEngine, monitor);
+        var definitionsStore = new InMemoryContractDefinitionStore();
+        context.registerService(ContractDefinitionStore.class, definitionsStore);
+
+        definitionService = new ContractDefinitionServiceImpl(policyEngine, monitor);
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
 
         // Register the created contract offer service with the service extension context.

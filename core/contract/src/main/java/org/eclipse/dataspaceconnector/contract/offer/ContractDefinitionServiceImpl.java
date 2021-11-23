@@ -16,14 +16,12 @@ package org.eclipse.dataspaceconnector.contract.offer;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionResult;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -36,22 +34,26 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     private final PolicyEngine policyEngine;
     private final Monitor monitor;
 
-    private List<ContractDefinition> definitions = new CopyOnWriteArrayList<>();
+    private ContractDefinitionStore definitionStore;
 
     public ContractDefinitionServiceImpl(PolicyEngine policyEngine, Monitor monitor) {
         this.policyEngine = policyEngine;
         this.monitor = monitor;
     }
 
+    public void initialize(ContractDefinitionStore store) {
+        this.definitionStore = store;
+    }
+
     @NotNull
     @Override
     public Stream<ContractDefinition> definitionsFor(ParticipantAgent agent) {
-        return definitions.stream().filter(definition -> evaluatePolicies(definition, agent));
+        return definitionStore.findAll().stream().filter(definition -> evaluatePolicies(definition, agent));
     }
 
     @NotNull
     public ContractDefinitionResult definitionFor(ParticipantAgent agent, String definitionId) {
-        var definitionOptional = definitions.stream().filter(d -> d.getId().equals(definitionId)).findFirst();
+        var definitionOptional = definitionStore.findAll().stream().filter(d -> d.getId().equals(definitionId)).findFirst();
         if (definitionOptional.isPresent()) {
             var definition = definitionOptional.get();
             if (evaluatePolicies(definition, agent)) {
@@ -59,27 +61,6 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
             }
         }
         return ContractDefinitionResult.INVALID;
-    }
-
-    /**
-     * Loads {@link ContractDefinition}s into the system.
-     */
-    public void load(Collection<ContractDefinition> definitions) {
-        this.definitions.addAll(definitions);
-    }
-
-    /**
-     * Removes definitions matching the collection of ids.
-     */
-    public void remove(Collection<String> definitionIds) {
-        definitionIds.forEach(id -> this.definitions.removeIf(definition -> definition.getId().equals(id)));
-    }
-
-    /**
-     * Returns the active definitions.
-     */
-    public @NotNull List<ContractDefinition> getLoadedDefinitions() {
-        return definitions;
     }
 
     /**
