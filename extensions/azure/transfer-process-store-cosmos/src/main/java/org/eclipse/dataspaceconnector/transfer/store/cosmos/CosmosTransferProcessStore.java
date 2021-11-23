@@ -71,7 +71,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
      *                     produce incomplete results.
      * @param connectorId  A name for the connector that must be unique in the local storage context. That means that all connectors e.g.
      *                     in a local K8s cluster must have unique names. The connectorId is used to lock transfer processes so that no
-     * @param retryPolicy
+     * @param retryPolicy  A general retry policy for the CosmosAPI
      */
     public CosmosTransferProcessStore(CosmosContainer container, TypeManager typeManager, String partitionKey, String connectorId, RetryPolicy<Object> retryPolicy) {
 
