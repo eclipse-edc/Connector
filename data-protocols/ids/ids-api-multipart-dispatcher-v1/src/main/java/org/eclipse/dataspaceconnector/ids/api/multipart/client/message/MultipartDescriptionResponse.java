@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.message;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ModelClass;
 import de.fraunhofer.iais.eis.ResponseMessage;
+
+import java.util.Objects;
 
 public class MultipartDescriptionResponse implements MultipartResponse<ModelClass> {
 

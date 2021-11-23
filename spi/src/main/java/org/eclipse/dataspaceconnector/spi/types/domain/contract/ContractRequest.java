@@ -14,10 +14,10 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.contract;
 
-import java.util.Objects;
-
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
+
+import java.util.Objects;
 
 public class ContractRequest implements RemoteMessage {
 

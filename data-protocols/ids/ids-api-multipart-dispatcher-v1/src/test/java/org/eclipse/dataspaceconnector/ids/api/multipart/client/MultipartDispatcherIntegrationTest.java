@@ -14,11 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
-import java.net.URI;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
 import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
@@ -50,6 +45,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;

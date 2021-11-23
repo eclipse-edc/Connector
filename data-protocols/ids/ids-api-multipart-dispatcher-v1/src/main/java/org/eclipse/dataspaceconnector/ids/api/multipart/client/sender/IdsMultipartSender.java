@@ -14,14 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URI;
-import java.net.http.HttpHeaders;
-import java.util.Objects;
-import java.util.concurrent.CompletableFuture;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
@@ -45,6 +37,14 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
+
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpHeaders;
+import java.util.Objects;
+import java.util.concurrent.CompletableFuture;
 
 public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
 
@@ -140,7 +140,7 @@ public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements 
         // Build multipart payload part
         MultipartBody.Part payloadPart = null;
         if (payload != null) {
-            var payloadRequestBody= RequestBody.create(payload,
+            var payloadRequestBody = RequestBody.create(payload,
                     okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
 
             var payloadPartHeaders = new Headers.Builder()

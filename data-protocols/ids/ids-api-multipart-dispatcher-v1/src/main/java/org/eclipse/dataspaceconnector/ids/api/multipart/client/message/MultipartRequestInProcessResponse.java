@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.message;
 
-import java.util.Objects;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import de.fraunhofer.iais.eis.Message;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
 
 //TODO define return type
 public class MultipartRequestInProcessResponse implements MultipartResponse<String> {

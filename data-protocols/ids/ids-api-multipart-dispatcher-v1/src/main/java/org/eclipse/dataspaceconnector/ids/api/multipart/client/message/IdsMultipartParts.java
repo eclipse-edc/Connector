@@ -15,10 +15,10 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.message;
 
+import org.jetbrains.annotations.Nullable;
+
 import java.io.InputStream;
 import java.util.Objects;
-
-import org.jetbrains.annotations.Nullable;
 
 public class IdsMultipartParts {
 

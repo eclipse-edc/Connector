@@ -14,8 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
-import java.net.URI;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
@@ -36,6 +34,8 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
+
+import java.net.URI;
 
 import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 

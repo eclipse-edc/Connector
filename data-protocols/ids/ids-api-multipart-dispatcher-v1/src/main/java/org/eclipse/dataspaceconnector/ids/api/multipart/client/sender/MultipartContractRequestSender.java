@@ -14,8 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
-import java.net.URI;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOffer;
 import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
@@ -30,6 +28,8 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRequest;
+
+import java.net.URI;
 
 public class MultipartContractRequestSender extends IdsMultipartSender<ContractRequest, MultipartRequestInProcessResponse> {
 

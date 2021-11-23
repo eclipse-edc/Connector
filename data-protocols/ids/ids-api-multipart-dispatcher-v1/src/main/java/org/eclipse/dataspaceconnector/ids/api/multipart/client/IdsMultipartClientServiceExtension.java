@@ -14,10 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
-import java.text.SimpleDateFormat;
-import java.util.Objects;
-import java.util.Set;
-
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -41,6 +37,10 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
+
+import java.text.SimpleDateFormat;
+import java.util.Objects;
+import java.util.Set;
 
 public class IdsMultipartClientServiceExtension implements ServiceExtension {
 
