@@ -34,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
+import java.util.Objects;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
@@ -75,7 +76,9 @@ public abstract class AbstractS3Test {
 
     protected @NotNull AWSCredentials getCredentials() {
         var accessKeyId = propOrEnv("S3_ACCESS_KEY_ID", null);
+        Objects.requireNonNull(accessKeyId, "S3_ACCESS_KEY_ID cannot be null!");
         var secretKey = propOrEnv("S3_SECRET_ACCESS_KEY", null);
+        Objects.requireNonNull(secretKey, "S3_SECRET_ACCESS_KEY cannot be null");
 
         return new BasicAWSCredentials(accessKeyId, secretKey);
     }
