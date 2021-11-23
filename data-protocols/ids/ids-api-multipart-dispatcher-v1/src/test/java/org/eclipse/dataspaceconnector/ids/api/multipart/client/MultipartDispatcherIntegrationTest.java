@@ -29,6 +29,7 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartArtifactRequestSender;
@@ -55,11 +56,8 @@ import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregoria
 
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
-    private MultipartDescriptionRequestSender descriptionRequestSender;
-    private MultipartArtifactRequestSender artifactRequestSender;
-    private MultipartContractRequestSender contractRequestSender;
-    private MultipartContractAgreementSender contractAgreementSender;
     private TransformerRegistry transformerRegistry;
+    private IdsMultipartRemoteMessageDispatcher multipartDispatcher;
 
     @Override
     protected Map<String, String> getSystemProperties() {
@@ -75,12 +73,16 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     void init() {
         Monitor monitor = EasyMock.createNiceMock(Monitor.class);
         EasyMock.replay(monitor);
+
         transformerRegistry = EasyMock.createNiceMock(TransformerRegistry.class);
+
         var httpClient = new OkHttpClient.Builder().build();
-        descriptionRequestSender = new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService);
-        artifactRequestSender = new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry);
-        contractRequestSender = new MultipartContractRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry);
-        contractAgreementSender = new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry);
+
+        multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
+        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartContractRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
     }
 
     @Test
@@ -91,7 +93,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(Protocols.IDS_MULTIPART)
                 .build();
 
-        MultipartDescriptionResponse result = descriptionRequestSender.send(request, null).get();
+        MultipartDescriptionResponse result = multipartDispatcher
+                .send(MultipartDescriptionResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -121,7 +124,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .dataDestination(dataDestination)
                 .build();
 
-        MultipartRequestInProcessResponse result = artifactRequestSender.send(request, null).get();
+        MultipartRequestInProcessResponse result = multipartDispatcher
+                .send(MultipartRequestInProcessResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -149,7 +153,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .contractOffer(contractOffer)
                 .build();
 
-        MultipartRequestInProcessResponse result = contractRequestSender.send(request, null).get();
+        MultipartRequestInProcessResponse result = multipartDispatcher
+                .send(MultipartRequestInProcessResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -177,7 +182,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .contractAgreement(contractAgreement)
                 .build();
 
-        MultipartRequestInProcessResponse result = contractAgreementSender.send(request, null).get();
+        MultipartRequestInProcessResponse result = multipartDispatcher
+                .send(MultipartRequestInProcessResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
