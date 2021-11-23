@@ -60,7 +60,6 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         Monitor monitor = EasyMock.createNiceMock(Monitor.class);
         EasyMock.replay(monitor);
         transformerRegistry = EasyMock.createNiceMock(TransformerRegistry.class);
-        EasyMock.replay(transformerRegistry);
         var httpClient = new OkHttpClient.Builder().build();
         descriptionRequestSender = new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService);
         artifactRequestSender = new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry);
