@@ -81,8 +81,12 @@ public class S3StatusChecker implements StatusChecker {
                     .getStageAsync(() -> s3client.listObjects(rq))
                     .join();
             return response.contents().stream().anyMatch(s3object -> s3object.key().endsWith(".complete"));
-        } catch (S3Exception ex) {
-            return false;
+        } catch (CompletionException ex) {
+            if (ex.getCause() instanceof S3Exception) {
+                return false;
+            } else {
+                throw ex;
+            }
         }
     }
 
