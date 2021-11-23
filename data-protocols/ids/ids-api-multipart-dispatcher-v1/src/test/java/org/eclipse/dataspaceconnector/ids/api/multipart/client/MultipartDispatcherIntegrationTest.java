@@ -8,6 +8,7 @@ import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;

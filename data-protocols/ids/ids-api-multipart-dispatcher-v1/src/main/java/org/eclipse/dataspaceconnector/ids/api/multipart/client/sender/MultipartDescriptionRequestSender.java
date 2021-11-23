@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client;
+package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,6 +42,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
 import org.eclipse.dataspaceconnector.spi.EdcException;
