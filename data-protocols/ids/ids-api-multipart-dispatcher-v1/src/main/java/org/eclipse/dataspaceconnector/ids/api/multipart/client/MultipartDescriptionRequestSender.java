@@ -18,26 +18,20 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.nio.charset.StandardCharsets;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.module.SimpleModule;
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
+import de.fraunhofer.iais.eis.ModelClass;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import de.fraunhofer.iais.eis.TokenFormat;
-import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
 import de.fraunhofer.iais.eis.util.Util;
 import jakarta.ws.rs.core.MediaType;
 import okhttp3.Headers;
@@ -61,34 +55,21 @@ import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregoria
 
 public class MultipartDescriptionRequestSender implements IdsMessageSender<MetadataRequest, MultipartDescriptionResponse> {
 
-    private static final String JSON = "application/json";
     private static final String VERSION = "4.0.0";
     private final URI connectorId;
     private final OkHttpClient httpClient;
-    private final Serializer serializer;
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private final ObjectMapper objectMapper;
     private final Monitor monitor;
     private final IdentityService identityService;
 
-    //TODO
-    {
-        OBJECT_MAPPER.registerModule(new JavaTimeModule()); // configure ISO 8601 time de/serialization
-        OBJECT_MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false); // serialize dates in ISO 8601 format
-        DateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
-        OBJECT_MAPPER.setDateFormat(df);
-        OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        SimpleModule module = new SimpleModule();
-        OBJECT_MAPPER.registerModule(module);
-    }
-
     public MultipartDescriptionRequestSender(String connectorId,
                                              OkHttpClient httpClient,
-                                             Serializer serializer,
+                                             ObjectMapper objectMapper,
                                              Monitor monitor,
                                              IdentityService identityService) {
         this.connectorId = URI.create(connectorId);
         this.httpClient = httpClient;
-        this.serializer = serializer;
+        this.objectMapper = objectMapper;
         this.monitor = monitor;
         this.identityService = identityService;
     }
@@ -127,25 +108,14 @@ public class MultipartDescriptionRequestSender implements IdsMessageSender<Metad
             return future;
         }
 
-//        MultipartBody requestBody;
-//        try {
-//            requestBody = new MultipartBody.Builder()
-//                    .setType(okhttp3.MediaType.get(MediaType.MULTIPART_FORM_DATA))
-//                    .addFormDataPart("header", serializer.serialize(descriptionRequestMessage))
-//                    .build();
-//        } catch (IOException exception) {
-//            future.completeExceptionally(new IOException("Failed to serialize message header", exception));
-//            return future;
-//        }
-
-        Headers headers = new Headers.Builder()
+        var headers = new Headers.Builder()
                 .add("Content-Disposition", "form-data; name=\"header\"")
                 .build();
 
         RequestBody requestBody;
         try {
             requestBody = RequestBody.create(
-                    OBJECT_MAPPER.writeValueAsString(descriptionRequestMessage),
+                    objectMapper.writeValueAsString(descriptionRequestMessage),
                     okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
         } catch (IOException exception) {
             future.completeExceptionally(exception);
@@ -172,7 +142,6 @@ public class MultipartDescriptionRequestSender implements IdsMessageSender<Metad
                         if (body == null) {
                             future.completeExceptionally(new EdcException("Received an empty body response from connector"));
                         } else {
-                            //TODO should be deserialized
                             return parsePayload(body);
                         }
                     } catch (Exception e) {
@@ -194,47 +163,45 @@ public class MultipartDescriptionRequestSender implements IdsMessageSender<Metad
 
     private MultipartDescriptionResponse parsePayload(final ResponseBody body) throws Exception {
         ResponseMessage header = null;
-        Object payload = null;
-        try (MultipartReader multipartReader = new MultipartReader(Objects.requireNonNull(body))) {
+        ModelClass payload = null;
+        try (var multipartReader = new MultipartReader(Objects.requireNonNull(body))) {
             MultipartReader.Part part;
             while ((part = multipartReader.nextPart()) != null) {
-                HttpHeaders httpHeaders = HttpHeaders.of(
+                var httpHeaders = HttpHeaders.of(
                         part.headers().toMultimap(),
                         (a, b) -> a.equalsIgnoreCase("Content-Disposition")
                 );
 
-                String value = httpHeaders.firstValue("Content-Disposition").orElse(null);
+                var value = httpHeaders.firstValue("Content-Disposition").orElse(null);
                 if (value == null) {
                     continue;
                 }
 
-                ContentDisposition contentDisposition = new ContentDisposition(value);
-                String multipartName = contentDisposition.getParameters().get("name");
+                var contentDisposition = new ContentDisposition(value);
+                var multipartName = contentDisposition.getParameters().get("name");
 
                 if ("header".equalsIgnoreCase(multipartName)) {
                     var headerString = new String(part.body().readByteArray(), StandardCharsets.UTF_8);
-                    //header = serializer.deserialize(headerString, ResponseMessage.class);
-                    header = OBJECT_MAPPER.readValue(headerString, ResponseMessage.class);
+                    header = objectMapper.readValue(headerString, ResponseMessage.class);
                 } else if ("payload".equalsIgnoreCase(multipartName)) {
                     var payloadString = new String(part.body().readByteArray(), StandardCharsets.UTF_8);
-                    var payloadJson = OBJECT_MAPPER.readTree(payloadString);
+                    var payloadJson = objectMapper.readTree(payloadString);
                     var type = payloadJson.get("@type");
                     switch (type.textValue()) {
                         case "ids:BaseConnector":
-                            //payload = serializer.deserialize(payloadString, BaseConnector.class);
-                            payload = OBJECT_MAPPER.readValue(payloadString, BaseConnector.class);
+                            payload = objectMapper.readValue(payloadString, BaseConnector.class);
                             break;
                         case "ids:ResourceCatalog":
-                            payload = serializer.deserialize(payloadString, ResourceCatalog.class);
+                            payload = objectMapper.readValue(payloadString, ResourceCatalog.class);
                             break;
                         case "ids:Resource":
-                            payload = serializer.deserialize(payloadString, Resource.class);
+                            payload = objectMapper.readValue(payloadString, Resource.class);
                             break;
                         case "ids:Representation":
-                            payload = serializer.deserialize(payloadString, Representation.class);
+                            payload = objectMapper.readValue(payloadString, Representation.class);
                             break;
                         case "ids:Artifact":
-                            payload = serializer.deserialize(payloadString, Artifact.class);
+                            payload = objectMapper.readValue(payloadString, Artifact.class);
                             break;
                         default: throw new EdcException("Unknown type");
                     }
@@ -242,7 +209,9 @@ public class MultipartDescriptionRequestSender implements IdsMessageSender<Metad
             }
         }
 
-        //TODO use builder
-        return new MultipartDescriptionResponse(header, payload);
+        return MultipartDescriptionResponse.Builder.newInstance()
+                .header(header)
+                .payload(payload)
+                .build();
     }
 }

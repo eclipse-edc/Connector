@@ -1,9 +1,14 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
+import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.Set;
 
-import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
@@ -47,10 +52,19 @@ public class IdsMultipartClientServiceExtension implements ServiceExtension {
         var httpClient = context.getService(OkHttpClient.class);
         var identityService = context.getService(IdentityService.class);
 
-        var serializer = new Serializer();
+        // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
+        //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
+        // create & register sender and dispatcher
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, serializer, monitor, identityService));
+        multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(multipartDispatcher);

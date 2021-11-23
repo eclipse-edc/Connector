@@ -28,13 +28,9 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQuery;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferQueryResponse;
-import org.eclipse.dataspaceconnector.spi.contract.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -42,6 +38,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
@@ -97,14 +94,16 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
 
         @Override
-        public ContractOfferQueryResponse queryContractOffers(ContractOfferQuery contractOfferQuery) {
-            List<org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer> contractOffers = assets.stream()
+        @NotNull
+        public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
+            List<ContractOffer> contractOffers = assets.stream()
                     .map(Collections::singletonList)
-                    .map(assets -> org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractOffer.Builder.newInstance()
+                    .map(assets -> ContractOffer.Builder.newInstance()
                             .policy(createEverythingAllowedPolicy())
+                            .id("1")
                             .assets(assets).build())
                     .collect(Collectors.toList());
-            return new ContractOfferQueryResponse(contractOffers.stream());
+            return contractOffers.stream();
         }
 
         private Policy createEverythingAllowedPolicy() {

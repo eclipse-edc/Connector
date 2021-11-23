@@ -4,7 +4,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import de.fraunhofer.iais.eis.ids.jsonld.Serializer;
+import de.fraunhofer.iais.eis.BaseConnector;
+import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
@@ -15,7 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
+class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private MultipartDescriptionRequestSender sender;
 
@@ -34,7 +35,7 @@ public class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatc
         Monitor monitor = EasyMock.createNiceMock(Monitor.class);
         EasyMock.replay(monitor);
         var httpClient = new OkHttpClient.Builder().build();
-        sender = new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, new Serializer(), monitor, identityService);
+        sender = new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService);
     }
 
     @Test
@@ -47,6 +48,10 @@ public class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatc
         var result = sender.send(request, null).get();
 
         assertThat(result).isNotNull();
+        assertThat(result.getHeader()).isNotNull();
+        assertThat(result.getHeader()).isInstanceOf(DescriptionResponseMessage.class);
+        assertThat(result.getPayload()).isNotNull();
+        assertThat(result.getPayload()).isInstanceOf(BaseConnector.class);
     }
 
 }
