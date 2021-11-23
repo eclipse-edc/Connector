@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
 import java.util.concurrent.CompletableFuture;
 
