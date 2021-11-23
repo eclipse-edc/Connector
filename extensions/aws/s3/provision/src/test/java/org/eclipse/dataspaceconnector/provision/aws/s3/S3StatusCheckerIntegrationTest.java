@@ -32,16 +32,18 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.awaitility.Awaitility.await;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
 
 @IntegrationTest
-class S3StatusCheckerTest extends AbstractS3Test {
+class S3StatusCheckerIntegrationTest extends AbstractS3Test {
     private static final String PROCESS_ID = UUID.randomUUID().toString();
     private S3StatusChecker checker;
 
@@ -67,7 +69,7 @@ class S3StatusCheckerTest extends AbstractS3Test {
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
 
         //act-assert
-        assertThat(checker.isComplete(createTransferProcess(bucketName), emptyList())).isTrue();
+        await().atMost(10, TimeUnit.SECONDS).until(() -> checker.isComplete(createTransferProcess(bucketName), emptyList()));
     }
 
     @Test
@@ -92,7 +94,7 @@ class S3StatusCheckerTest extends AbstractS3Test {
         //act-assert
         TransferProcess tp = createTransferProcess(bucketName);
         S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
-        assertThat(checker.isComplete(tp, Collections.singletonList(provisionedResource))).isTrue();
+        await().atMost(10, TimeUnit.SECONDS).until(() -> checker.isComplete(tp, Collections.singletonList(provisionedResource)));
     }
 
     @Test

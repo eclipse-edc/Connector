@@ -39,7 +39,7 @@ import static org.easymock.EasyMock.replay;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 @IntegrationTest
-class ObjectContainerStatusCheckerTest extends AbstractAzureBlobTest {
+class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest {
 
     private File helloTxt;
     private ObjectContainerStatusChecker checker;

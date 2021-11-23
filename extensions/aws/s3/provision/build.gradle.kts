@@ -28,6 +28,7 @@ dependencies {
 
     testImplementation(testFixtures(project(":common:util")))
     testImplementation(testFixtures(project(":extensions:aws:aws-test")))
+    testImplementation("org.awaitility:awaitility:4.1.1")
 
 }
 

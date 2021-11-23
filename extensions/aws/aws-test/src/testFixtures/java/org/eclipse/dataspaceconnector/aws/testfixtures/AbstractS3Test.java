@@ -34,6 +34,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
+import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -68,7 +69,8 @@ public abstract class AbstractS3Test {
 
     @NotNull
     protected String createBucketName() {
-        return "test-bucket-" + System.currentTimeMillis() + "-" + REGION;
+        var rnd = UUID.randomUUID().toString();
+        return "test-bucket-" + rnd + "-" + REGION;
     }
 
     protected @NotNull AWSCredentials getCredentials() {

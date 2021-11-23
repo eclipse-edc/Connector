@@ -59,7 +59,7 @@ import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationF
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
 
 @IntegrationTest
-class CosmosTransferProcessStoreTest {
+class CosmosTransferProcessStoreIntegrationTest {
 
     private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String DATABASE_NAME = "transferprocessstore-itest";

@@ -41,7 +41,7 @@ public abstract class AbstractAzureBlobTest {
     public void setupClient() {
 
         testRunId = UUID.randomUUID().toString();
-        containerName = "fetch-azure-processor-" + testRunId;
+        containerName = "storage-container-" + testRunId;
 
         if (blobServiceClient == null || !reuseClient) {
             var accountSas = getSasToken();
