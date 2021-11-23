@@ -14,9 +14,14 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 /**
  * A leaf constraint containing a left expression, right expression, and operator triple that can be evaluated.
  */
+@JsonDeserialize(builder = AtomicConstraint.Builder.class)
 public class AtomicConstraint extends Constraint {
     private Expression leftExpression;
     private Expression rightExpression;
@@ -44,6 +49,7 @@ public class AtomicConstraint extends Constraint {
         return "Constraint " + leftExpression + " " + operator.toString() + " " + rightExpression;
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final AtomicConstraint constraint;
 
@@ -51,6 +57,7 @@ public class AtomicConstraint extends Constraint {
             constraint = new AtomicConstraint();
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }

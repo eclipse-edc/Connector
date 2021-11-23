@@ -11,8 +11,10 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract.offer;
+package org.eclipse.dataspaceconnector.spi.types.domain.contract.offer;
 
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.jetbrains.annotations.NotNull;
@@ -30,6 +32,7 @@ import java.util.Objects;
  *
  * Note that the id must be a UUID.
  */
+@JsonDeserialize(builder = ContractDefinition.Builder.class)
 public class ContractDefinition {
     private String id;
     private Policy accessPolicy;
@@ -58,6 +61,7 @@ public class ContractDefinition {
     private ContractDefinition() {
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private ContractDefinition definition;
 

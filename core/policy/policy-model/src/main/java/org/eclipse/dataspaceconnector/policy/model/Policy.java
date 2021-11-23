@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.policy.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -26,6 +28,7 @@ import java.util.UUID;
 /**
  * A collection of permissions, prohibitions, and obligations associated with an asset. Subtypes are defined by {@link PolicyType}.
  */
+@JsonDeserialize(builder = Policy.Builder.class)
 public class Policy extends Identifiable {
 
     private final List<Permission> permissions = new ArrayList<>();
@@ -92,6 +95,7 @@ public class Policy extends Identifiable {
         R visitPolicy(Policy policy);
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final Policy policy;
 
@@ -103,6 +107,7 @@ public class Policy extends Identifiable {
             return new Builder();
         }
 
+        @JsonProperty("uid")
         public Builder id(String id) {
             policy.uid = id;
             return this;
@@ -133,6 +138,7 @@ public class Policy extends Identifiable {
             return this;
         }
 
+        @JsonProperty("obligations")
         public Builder duties(List<Duty> duties) {
             policy.obligations.addAll(duties);
             return this;
@@ -158,6 +164,12 @@ public class Policy extends Identifiable {
             return this;
         }
 
+        public Builder inheritsFrom(String inheritsFrom) {
+            policy.inheritsFrom = inheritsFrom;
+            return this;
+        }
+
+        @JsonProperty("@type")
         public Builder type(PolicyType type) {
             policy.type = type;
             return this;

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.policy.model;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Map;
@@ -22,6 +23,7 @@ import java.util.Map;
 /**
  * The types of {@link Policy}.
  */
+@JsonFormat(shape = JsonFormat.Shape.OBJECT)
 public enum PolicyType {
     SET("set"), OFFER("offer"), CONTRACT("contract");
 

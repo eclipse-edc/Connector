@@ -13,6 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.offer;
 
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+
 /**
  * The result of searching for a specific contract definition.
  */

@@ -14,15 +14,18 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * A literal value used as an expression.
  */
+@JsonTypeName("dataspaceconnector:literalexpression")
 public class LiteralExpression extends Expression {
     private final Object value;
 
-    public LiteralExpression(Object value) {
+    public LiteralExpression(@JsonProperty("value") Object value) {
         this.value = value;
     }
 

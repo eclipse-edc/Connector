@@ -14,12 +14,15 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A permission, prohibition, or duty contained in a {@link Policy}.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "edctype")
 public abstract class Rule extends Identifiable {
 
     public interface Visitor<R> {
