@@ -19,12 +19,14 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ResponseMessage;
+import org.jetbrains.annotations.Nullable;
 
 //TODO define return type
 public class MultipartArtifactResponse implements MultipartResponse<String> {
 
     private ResponseMessage header;
 
+    @Nullable
     private String payload;
 
     private MultipartArtifactResponse() { }
@@ -35,7 +37,7 @@ public class MultipartArtifactResponse implements MultipartResponse<String> {
     }
 
     @Override
-    public String getPayload() {
+    public @Nullable String getPayload() {
         return payload;
     }
 
@@ -56,14 +58,13 @@ public class MultipartArtifactResponse implements MultipartResponse<String> {
             return this;
         }
 
-        public Builder payload(String payload) {
+        public Builder payload(@Nullable String payload) {
             this.artifactResponse.payload = payload;
             return this;
         }
 
         public MultipartArtifactResponse build() {
             Objects.requireNonNull(artifactResponse.header, "header");
-            Objects.requireNonNull(artifactResponse.payload, "payload");
             return artifactResponse;
         }
     }

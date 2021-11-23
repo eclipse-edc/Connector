@@ -64,7 +64,7 @@ public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements 
 
     protected abstract String getConnectorAddress(M request);
 
-    protected abstract Message buildMessageHeader(M request, DynamicAttributeToken token);
+    protected abstract Message buildMessageHeader(M request, DynamicAttributeToken token) throws Exception;
 
     protected String buildMessagePayload(M request) {
         return null;
@@ -96,7 +96,13 @@ public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements 
         }
 
         // Build IDS message header
-        var message = buildMessageHeader(request, token);
+        Message message;
+        try {
+            message = buildMessageHeader(request, token);
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+            return future;
+        }
 
         // Build multipart header part
         var headerPartHeaders = new Headers.Builder()
