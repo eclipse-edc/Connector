@@ -101,7 +101,6 @@ include(":launchers:registration-service-app")
 include(":launchers:data-loader-cli")
 
 // modules for code samples
-include(":samples:demo-contract-service")
 include(":samples:other:commandline:consumer")
 include(":samples:other:commandline:consumer-runtime")
 include(":samples:other:copy-file-to-s3bucket")

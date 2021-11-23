@@ -11,7 +11,7 @@
  *       Daimler TSS GmbH - Initial API and Implementation
  *       Microsoft Corporation - Refactoring
  */
-package org.eclipse.dataspaceconnector.demo.contract.service;
+package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
@@ -32,13 +32,13 @@ import static java.lang.String.format;
  * Determines the contract definitions applicable to a {@link ParticipantAgent} by evaluating the access control and usage policies associated with a set of assets as defined by
  * {@link ContractDescriptor}s. On the distinction between access control and usage policy, see {@link ContractDescriptor}.
  */
-public class DynamicPolicyContractDefinitionService implements ContractDefinitionService {
+public class ContractDefinitionServiceImpl implements ContractDefinitionService {
     private final PolicyEngine policyEngine;
     private final Monitor monitor;
 
     private List<ContractDescriptor> descriptors = new CopyOnWriteArrayList<>();
 
-    public DynamicPolicyContractDefinitionService(PolicyEngine policyEngine, Monitor monitor) {
+    public ContractDefinitionServiceImpl(PolicyEngine policyEngine, Monitor monitor) {
         this.policyEngine = policyEngine;
         this.monitor = monitor;
     }

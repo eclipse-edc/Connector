@@ -52,7 +52,7 @@ class ContractOfferServiceImplTest {
         assetIndex = mock(AssetIndex.class);
         agentService = mock(ParticipantAgentService.class);
 
-        contractOfferService = new ContractOfferServiceImpl(agentService, () -> contractDefinitionService, assetIndex);
+        contractOfferService = new ContractOfferServiceImpl(agentService, contractDefinitionService, assetIndex);
     }
 
     @Test
@@ -60,9 +60,9 @@ class ContractOfferServiceImplTest {
         replay(contractDefinitionService, assetIndex);
 
         // just eval all constructor parameters are mandatory and lead to NPE
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(null, () -> contractDefinitionService, assetIndex))
+        assertThatThrownBy(() -> new ContractOfferServiceImpl(null, contractDefinitionService, assetIndex))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, () -> contractDefinitionService, null))
+        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, contractDefinitionService, null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, null, assetIndex))
                 .isInstanceOf(NullPointerException.class);

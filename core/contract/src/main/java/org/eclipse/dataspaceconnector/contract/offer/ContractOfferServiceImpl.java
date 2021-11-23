@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 /**
@@ -32,12 +31,12 @@ import java.util.stream.Stream;
  */
 public class ContractOfferServiceImpl implements ContractOfferService {
     private final ParticipantAgentService agentService;
-    private final Supplier<ContractDefinitionService> frameworkSupplier;
+    private final ContractDefinitionService definitionService;
     private final AssetIndex assetIndex;
 
-    public ContractOfferServiceImpl(ParticipantAgentService agentService, Supplier<ContractDefinitionService> frameworkSupplier, AssetIndex assetIndex) {
+    public ContractOfferServiceImpl(ParticipantAgentService agentService, ContractDefinitionService definitionService, AssetIndex assetIndex) {
         this.agentService = Objects.requireNonNull(agentService, "ParticipantAgentService must not be null");
-        this.frameworkSupplier = Objects.requireNonNull(frameworkSupplier, "ContractDefinitionService must not be null");
+        this.definitionService = Objects.requireNonNull(definitionService, "ContractDefinitionService must not be null");
         this.assetIndex = Objects.requireNonNull(assetIndex, "AssetIndex must not be null");
     }
 
@@ -45,7 +44,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
     @NotNull
     public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
         var agent = agentService.createFor(query.getClaimToken());
-        var definitions = frameworkSupplier.get().definitionsFor(agent);
+        var definitions = definitionService.definitionsFor(agent);
 
         return definitions.flatMap(definition -> {
             var assets = assetIndex.queryAssets(definition.getAssetSelectorExpression());
