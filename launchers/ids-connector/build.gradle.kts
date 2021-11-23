@@ -39,6 +39,7 @@ dependencies {
     implementation(project(":extensions:iam:iam-mock"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:api:control"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
