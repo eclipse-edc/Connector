@@ -27,7 +27,8 @@ public class MultipartDescriptionResponse implements MultipartResponse<ModelClas
 
     private ModelClass payload;
 
-    private MultipartDescriptionResponse() { }
+    private MultipartDescriptionResponse() {
+    }
 
     @Override
     public Message getHeader() {

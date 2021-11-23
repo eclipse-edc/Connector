@@ -37,8 +37,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
 
 import java.net.URI;
 
-import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
-
 public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, MultipartDescriptionResponse> {
 
     public MultipartDescriptionRequestSender(String connectorId,
@@ -102,7 +100,8 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
                 case "ids:Artifact":
                     payload = objectMapper.readValue(payloadString, Artifact.class);
                     break;
-                default: throw new EdcException("Unknown type");
+                default:
+                    throw new EdcException("Unknown type");
             }
         }
 

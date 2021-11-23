@@ -22,10 +22,10 @@ import java.util.Objects;
 
 public class IdsMultipartParts {
 
-    InputStream header;
+    private InputStream header;
 
     @Nullable
-    InputStream payload;
+    private InputStream payload;
 
     public InputStream getHeader() {
         return header;

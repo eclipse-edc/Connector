@@ -23,12 +23,13 @@ import java.util.Objects;
 //TODO define return type
 public class MultipartRequestInProcessResponse implements MultipartResponse<String> {
 
-    Message header;
+    private Message header;
 
     @Nullable
     private String payload;
 
-    private MultipartRequestInProcessResponse() { }
+    private MultipartRequestInProcessResponse() {
+    }
 
     @Override
     public Message getHeader() {
