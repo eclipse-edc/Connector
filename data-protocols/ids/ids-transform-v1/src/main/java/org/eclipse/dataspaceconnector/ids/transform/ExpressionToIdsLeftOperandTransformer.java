@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class ExpressionToLeftOperandTransformer implements IdsTypeTransformer<Expression, LeftOperand> {
+public class ExpressionToIdsLeftOperandTransformer implements IdsTypeTransformer<Expression, LeftOperand> {
 
     @Override
     public Class<Expression> getInputType() {

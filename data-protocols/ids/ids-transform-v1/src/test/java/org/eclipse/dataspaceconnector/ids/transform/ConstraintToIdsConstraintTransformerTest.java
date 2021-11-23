@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021 Daimler TSS GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Daimler TSS GmbH - Initial Implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
@@ -18,12 +32,12 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
-public class ConstraintToConstraintTransformerTest {
+public class ConstraintToIdsConstraintTransformerTest {
 
     private static final URI CONSTRAINT_ID = URI.create("https://constraint.com");
 
     // subject
-    private ConstraintToConstraintTransformer constraintToConstraintTransformer;
+    private ConstraintToIdsConstraintTransformer transformer;
 
     // mocks
     private AtomicConstraint constraint;
@@ -31,7 +45,7 @@ public class ConstraintToConstraintTransformerTest {
 
     @BeforeEach
     void setUp() {
-        constraintToConstraintTransformer = new ConstraintToConstraintTransformer();
+        transformer = new ConstraintToIdsConstraintTransformer();
         constraint = EasyMock.createMock(AtomicConstraint.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -41,7 +55,7 @@ public class ConstraintToConstraintTransformerTest {
         EasyMock.replay(constraint, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            constraintToConstraintTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -50,7 +64,7 @@ public class ConstraintToConstraintTransformerTest {
         EasyMock.replay(constraint, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            constraintToConstraintTransformer.transform(constraint, null);
+            transformer.transform(constraint, null);
         });
     }
 
@@ -58,7 +72,7 @@ public class ConstraintToConstraintTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(constraint, context);
 
-        var result = constraintToConstraintTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -75,7 +89,7 @@ public class ConstraintToConstraintTransformerTest {
         EasyMock.replay(constraint, context);
 
         // invoke
-        var result = constraintToConstraintTransformer.transform(nonAtomicConstraint, context);
+        var result = transformer.transform(nonAtomicConstraint, context);
 
         // verify
         Assertions.assertNull(result);
@@ -106,7 +120,7 @@ public class ConstraintToConstraintTransformerTest {
         EasyMock.replay(constraint, context);
 
         // invoke
-        var result = constraintToConstraintTransformer.transform(constraint, context);
+        var result = transformer.transform(constraint, context);
 
         // verify
         Assertions.assertNotNull(result);

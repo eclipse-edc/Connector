@@ -46,4 +46,17 @@ public class LiteralExpression extends Expression {
     }
 
 
+    @Override
+    public int hashCode() {
+        return value.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof LiteralExpression) {
+            return ((LiteralExpression) obj).value.equals(value);
+        }
+
+        return false;
+    }
 }

@@ -14,40 +14,43 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.util.RdfResource;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.eclipse.dataspaceconnector.policy.model.Expression;
-import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
-public class ExpressionToRdfResourceTransformer implements IdsTypeTransformer<Expression, RdfResource> {
+public class ActionToIdsActionTransformer implements IdsTypeTransformer<Action, de.fraunhofer.iais.eis.Action> {
 
     @Override
-    public Class<Expression> getInputType() {
-        return Expression.class;
+    public Class<Action> getInputType() {
+        return Action.class;
     }
 
     @Override
-    public Class<RdfResource> getOutputType() {
-        return RdfResource.class;
+    public Class<de.fraunhofer.iais.eis.Action> getOutputType() {
+        return de.fraunhofer.iais.eis.Action.class;
     }
 
     @Override
-    public @Nullable RdfResource transform(Expression object, @NotNull TransformerContext context) {
+    public @Nullable de.fraunhofer.iais.eis.Action transform(Action object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
         }
 
-        String value = null;
-        if (object instanceof LiteralExpression) {
-            value = ((LiteralExpression) object).asString();
+        var type = object.getType();
+
+        de.fraunhofer.iais.eis.Action idsAction;
+        try {
+            idsAction = de.fraunhofer.iais.eis.Action.valueOf(type);
+        } catch (IllegalArgumentException e) {
+            context.reportProblem(String.format("Encountered undefined action type: %s", type));
+            idsAction = null;
         }
 
-        return value == null ? new RdfResource() : new RdfResource(value);
+        return idsAction;
     }
 }

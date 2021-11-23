@@ -27,7 +27,7 @@ import org.jetbrains.annotations.Nullable;
 import java.net.URI;
 import java.util.Objects;
 
-public class DutyToDutyTransformer implements IdsTypeTransformer<Duty, de.fraunhofer.iais.eis.Duty> {
+public class DutyToIdsDutyTransformer implements IdsTypeTransformer<Duty, de.fraunhofer.iais.eis.Duty> {
 
     @Override
     public Class<Duty> getInputType() {

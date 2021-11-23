@@ -16,31 +16,31 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ExpressionToRdfResourceTransformerTest {
+class ActionToIdsActionTransformerTest {
 
     // subject
-    private ExpressionToRdfResourceTransformer transformer;
+    private ActionToIdsActionTransformer transformer;
 
     // mocks
-    private LiteralExpression expression;
+    private Action action;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
-        transformer = new ExpressionToRdfResourceTransformer();
-        expression = EasyMock.createMock(LiteralExpression.class);
+        transformer = new ActionToIdsActionTransformer();
+        action = EasyMock.createMock(Action.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(expression, context);
+        EasyMock.replay(action, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
@@ -49,16 +49,16 @@ class ExpressionToRdfResourceTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(expression, context);
+        EasyMock.replay(action, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(expression, null);
+            transformer.transform(action, null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(expression, context);
+        EasyMock.replay(action, context);
 
         var result = transformer.transform(null, context);
 
@@ -68,23 +68,21 @@ class ExpressionToRdfResourceTransformerTest {
     @Test
     void testSuccessfulMap() {
         // prepare
-        var value = "COUNT";
-        EasyMock.expect(expression.asString()).andReturn(value);
+        EasyMock.expect(action.getType()).andReturn("USE");
 
         // record
-        EasyMock.replay(expression, context);
+        EasyMock.replay(action, context);
 
         // invoke
-        var result = transformer.transform(expression, context);
+        var result = transformer.transform(action, context);
 
         // verify
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(value, result.getValue());
+        Assertions.assertEquals(de.fraunhofer.iais.eis.Action.USE, result);
     }
 
     @AfterEach
     void tearDown() {
-        EasyMock.verify(expression, context);
+        EasyMock.verify(action, context);
     }
-
 }

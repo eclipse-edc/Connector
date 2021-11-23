@@ -8,43 +8,39 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Daimler TSS GmbH - Initial Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - Initial API and Implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
-import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
-
-class UriToIdsIdTransformerTest {
-
-    private static final IdsType IDS_ID_TYPE = IdsType.ARTIFACT;
-    private static final String IDS_ID_VALUE = "32d39d70-68f7-44f3-b8b2-27550f2081f4";
-    private static final URI URI = java.net.URI.create("urn:artifact:32d39d70-68f7-44f3-b8b2-27550f2081f4");
+class ExpressionToIdsRdfResourceTransformerTest {
 
     // subject
-    private UriToIdsIdTransformer transformer;
+    private ExpressionToIdsRdfResourceTransformer transformer;
 
     // mocks
+    private LiteralExpression expression;
     private TransformerContext context;
 
     @BeforeEach
-    public void setup() {
-        transformer = new UriToIdsIdTransformer();
+    void setUp() {
+        transformer = new ExpressionToIdsRdfResourceTransformer();
+        expression = EasyMock.createMock(LiteralExpression.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
+        EasyMock.replay(expression, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
@@ -53,16 +49,16 @@ class UriToIdsIdTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
+        EasyMock.replay(expression, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(URI, null);
+            transformer.transform(expression, null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
+        EasyMock.replay(expression, context);
 
         var result = transformer.transform(null, context);
 
@@ -70,20 +66,25 @@ class UriToIdsIdTransformerTest {
     }
 
     @Test
-    void testSuccessfulSimple() {
-        //prepare
-        var idsId = IdsId.Builder.newInstance().type(IDS_ID_TYPE).value(IDS_ID_VALUE).build();
-        EasyMock.expect(context.transform(EasyMock.eq(URI), EasyMock.eq(IdsId.class))).andReturn(idsId);
+    void testSuccessfulMap() {
+        // prepare
+        var value = "COUNT";
+        EasyMock.expect(expression.asString()).andReturn(value);
 
         // record
-        EasyMock.replay(context);
+        EasyMock.replay(expression, context);
 
         // invoke
-        var result = transformer.transform(URI, context);
+        var result = transformer.transform(expression, context);
 
         // verify
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(IDS_ID_TYPE, result.getType());
-        Assertions.assertEquals(IDS_ID_VALUE, result.getValue());
+        Assertions.assertEquals(value, result.getValue());
     }
+
+    @AfterEach
+    void tearDown() {
+        EasyMock.verify(expression, context);
+    }
+
 }

@@ -28,7 +28,7 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
-class DutyToDutyTransformerTest {
+class DutyToIdsDutyTransformerTest {
 
     private static final URI PERMISSION_ID = URI.create("urn:permission:456uz984390236s");
     private static final String TARGET = "https://target.com";
@@ -39,7 +39,7 @@ class DutyToDutyTransformerTest {
     private static final URI ASSIGNEE_URI = URI.create(ASSIGNEE);
 
     // subject
-    private DutyToDutyTransformer transformer;
+    private DutyToIdsDutyTransformer transformer;
 
     // mocks
     private Duty duty;
@@ -47,7 +47,7 @@ class DutyToDutyTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new DutyToDutyTransformer();
+        transformer = new DutyToIdsDutyTransformer();
         duty = EasyMock.createMock(Duty.class);
         context = EasyMock.createMock(TransformerContext.class);
     }

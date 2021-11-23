@@ -24,7 +24,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class SecurityProfileToSecurityProfileTransformer implements IdsTypeTransformer<SecurityProfile, de.fraunhofer.iais.eis.SecurityProfile> {
+public class SecurityProfileToIdsSecurityProfileTransformer implements IdsTypeTransformer<SecurityProfile, de.fraunhofer.iais.eis.SecurityProfile> {
     private static final Map<SecurityProfile, de.fraunhofer.iais.eis.SecurityProfile> MAPPING = new HashMap<>() {
         {
             put(SecurityProfile.BASE_SECURITY_PROFILE, de.fraunhofer.iais.eis.SecurityProfile.BASE_SECURITY_PROFILE);

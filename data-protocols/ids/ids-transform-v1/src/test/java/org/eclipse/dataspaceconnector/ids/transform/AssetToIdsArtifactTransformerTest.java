@@ -38,7 +38,7 @@ class AssetToIdsArtifactTransformerTest {
     private static final BigInteger ASSET_BYTESIZE = BigInteger.valueOf(5);
 
     // subject
-    private AssetToIdsArtifactTransformer assetToIdsArtifactTransformer;
+    private AssetToIdsArtifactTransformer transformer;
 
     // mocks
     private Asset asset;
@@ -46,7 +46,7 @@ class AssetToIdsArtifactTransformerTest {
 
     @BeforeEach
     void setUp() {
-        assetToIdsArtifactTransformer = new AssetToIdsArtifactTransformer();
+        transformer = new AssetToIdsArtifactTransformer();
         asset = EasyMock.createMock(Asset.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -56,7 +56,7 @@ class AssetToIdsArtifactTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToIdsArtifactTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -65,7 +65,7 @@ class AssetToIdsArtifactTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToIdsArtifactTransformer.transform(asset, null);
+            transformer.transform(asset, null);
         });
     }
 
@@ -73,7 +73,7 @@ class AssetToIdsArtifactTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(asset, context);
 
-        var result = assetToIdsArtifactTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -94,7 +94,7 @@ class AssetToIdsArtifactTransformerTest {
         EasyMock.replay(asset, context);
 
         // invoke
-        var result = assetToIdsArtifactTransformer.transform(asset, context);
+        var result = transformer.transform(asset, context);
 
         // verify
         Assertions.assertNotNull(result);
@@ -120,7 +120,7 @@ class AssetToIdsArtifactTransformerTest {
         EasyMock.replay(asset, context);
 
         // invoke
-        var result = assetToIdsArtifactTransformer.transform(asset, context);
+        var result = transformer.transform(asset, context);
 
         // verify
         Assertions.assertNotNull(result);

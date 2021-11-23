@@ -8,40 +8,37 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - Initial API and Implementation
+ *       Daimler TSS GmbH - Initial Implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import de.fraunhofer.iais.eis.LeftOperand;
+import de.fraunhofer.iais.eis.Action;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ExpressionToLeftOperandTransformerTest {
+public class IdsActionToActionTransformTest {
 
     // subject
-    private ExpressionToLeftOperandTransformer transformer;
+    private IdsActionToActionTransform transformer;
 
     // mocks
-    private LiteralExpression expression;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
-        transformer = new ExpressionToLeftOperandTransformer();
-        expression = EasyMock.createMock(LiteralExpression.class);
+        transformer = new IdsActionToActionTransform();
         context = EasyMock.createMock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(expression, context);
+        EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
@@ -50,16 +47,16 @@ class ExpressionToLeftOperandTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(expression, context);
+        EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(expression, null);
+            transformer.transform(Action.USE, null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(expression, context);
+        EasyMock.replay(context);
 
         var result = transformer.transform(null, context);
 
@@ -68,23 +65,17 @@ class ExpressionToLeftOperandTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // prepare
-        EasyMock.expect(expression.asString()).andReturn("COUNT");
-
-        // record
-        EasyMock.replay(expression, context);
-
+        EasyMock.replay(context);
         // invoke
-        var result = transformer.transform(expression, context);
+        var result = transformer.transform(Action.USE, context);
 
         // verify
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(LeftOperand.COUNT, result);
+        Assertions.assertEquals("USE", result.getType());
     }
 
     @AfterEach
     void tearDown() {
-        EasyMock.verify(expression, context);
+        EasyMock.verify(context);
     }
-
 }

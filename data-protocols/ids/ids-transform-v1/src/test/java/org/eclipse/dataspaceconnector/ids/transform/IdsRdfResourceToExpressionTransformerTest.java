@@ -8,39 +8,41 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - Initial API and Implementation
+ *       Daimler TSS GmbH - Initial Implementation
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import de.fraunhofer.iais.eis.util.RdfResource;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.eclipse.dataspaceconnector.policy.model.Action;
+import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-class ActionToActionTransformerTest {
+class IdsRdfResourceToExpressionTransformerTest {
+    private static final String VALUE = "COUNT";
+    private RdfResource rdfResource;
 
     // subject
-    private ActionToActionTransformer transformer;
+    private IdsRdfResourceToExpressionTransformer transformer;
 
     // mocks
-    private Action action;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
-        transformer = new ActionToActionTransformer();
-        action = EasyMock.createMock(Action.class);
+        transformer = new IdsRdfResourceToExpressionTransformer();
+        rdfResource = new RdfResource(VALUE);
         context = EasyMock.createMock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(action, context);
+        EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
@@ -49,16 +51,16 @@ class ActionToActionTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(action, context);
+        EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(action, null);
+            transformer.transform(rdfResource, null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(action, context);
+        EasyMock.replay(context);
 
         var result = transformer.transform(null, context);
 
@@ -67,22 +69,21 @@ class ActionToActionTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // prepare
-        EasyMock.expect(action.getType()).andReturn("USE");
-
         // record
-        EasyMock.replay(action, context);
+        EasyMock.replay(context);
 
         // invoke
-        var result = transformer.transform(action, context);
+        var result = transformer.transform(rdfResource, context);
 
         // verify
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(de.fraunhofer.iais.eis.Action.USE, result);
+        Assertions.assertTrue(result instanceof LiteralExpression);
+        Assertions.assertEquals(((LiteralExpression) result).getValue(), VALUE);
     }
 
     @AfterEach
     void tearDown() {
-        EasyMock.verify(action, context);
+        EasyMock.verify(context);
     }
+
 }

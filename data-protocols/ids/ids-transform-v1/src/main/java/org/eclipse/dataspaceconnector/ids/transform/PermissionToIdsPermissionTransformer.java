@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import de.fraunhofer.iais.eis.Duty;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.util.ConstraintViolationException;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
@@ -26,10 +27,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Objects;
 
-public class PermissionToPermissionTransformer implements IdsTypeTransformer<Permission, de.fraunhofer.iais.eis.Permission> {
+public class PermissionToIdsPermissionTransformer implements IdsTypeTransformer<Permission, de.fraunhofer.iais.eis.Permission> {
 
     @Override
     public Class<Permission> getInputType() {
@@ -53,7 +55,7 @@ public class PermissionToPermissionTransformer implements IdsTypeTransformer<Per
         PermissionBuilder permissionBuilder = new PermissionBuilder(id);
 
         for (Constraint edcConstraint : object.getConstraints()) {
-            de.fraunhofer.iais.eis.Constraint idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
+            var idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
             permissionBuilder._constraint_(idsConstraint);
         }
 
@@ -73,13 +75,17 @@ public class PermissionToPermissionTransformer implements IdsTypeTransformer<Per
         }
 
         if (object.getAction() != null) {
-            de.fraunhofer.iais.eis.Action action = context.transform(object.getAction(), de.fraunhofer.iais.eis.Action.class);
+            var action = context.transform(object.getAction(), de.fraunhofer.iais.eis.Action.class);
             permissionBuilder._action_(action);
         }
 
-        if (object.getDuty() != null) {
-            de.fraunhofer.iais.eis.Duty duty = context.transform(object.getDuty(), de.fraunhofer.iais.eis.Duty.class);
-            permissionBuilder._preDuty_(duty);
+        if (object.getDuties() != null) {
+            var duties = new ArrayList<Duty>();
+            for (var edcDuty : object.getDuties()) {
+                var duty = context.transform(edcDuty, Duty.class);
+                duties.add(duty);
+            }
+            permissionBuilder._preDuty_(duties);
         }
 
         de.fraunhofer.iais.eis.Permission permission;

@@ -34,7 +34,7 @@ class AssetToIdsResourceTransformerTest {
     private static final URI RESOURCE_ID_URI = URI.create("urn:resource:1");
 
     // subject
-    private AssetToIdsResourceTransformer assetToIdsResourceTransformer;
+    private AssetToIdsResourceTransformer transformer;
 
     // mocks
     private Asset asset;
@@ -42,7 +42,7 @@ class AssetToIdsResourceTransformerTest {
 
     @BeforeEach
     void setUp() {
-        assetToIdsResourceTransformer = new AssetToIdsResourceTransformer();
+        transformer = new AssetToIdsResourceTransformer();
         asset = EasyMock.createMock(Asset.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -52,7 +52,7 @@ class AssetToIdsResourceTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToIdsResourceTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -61,7 +61,7 @@ class AssetToIdsResourceTransformerTest {
         EasyMock.replay(asset, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            assetToIdsResourceTransformer.transform(asset, null);
+            transformer.transform(asset, null);
         });
     }
 
@@ -69,7 +69,7 @@ class AssetToIdsResourceTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(asset, context);
 
-        var result = assetToIdsResourceTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -93,7 +93,7 @@ class AssetToIdsResourceTransformerTest {
         EasyMock.replay(asset, context);
 
         // invoke
-        var result = assetToIdsResourceTransformer.transform(asset, context);
+        var result = transformer.transform(asset, context);
 
         // verify
         Assertions.assertNotNull(result);

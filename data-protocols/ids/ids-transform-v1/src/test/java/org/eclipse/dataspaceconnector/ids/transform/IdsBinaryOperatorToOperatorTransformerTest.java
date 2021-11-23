@@ -30,31 +30,31 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class OperatorToBinaryOperatorTransformerTest {
+class IdsBinaryOperatorToOperatorTransformerTest {
 
     // subject
-    private OperatorToBinaryOperatorTransformer operatorToBinaryOperatorTransformer;
+    private IdsBinaryOperatorToOperatorTransformer transformer;
 
     // mocks
     private TransformerContext transformerContext;
 
     @BeforeEach
     void setUp() {
-        operatorToBinaryOperatorTransformer = new OperatorToBinaryOperatorTransformer();
+        transformer = new IdsBinaryOperatorToOperatorTransformer();
 
         transformerContext = EasyMock.mock(TransformerContext.class);
     }
 
     @ParameterizedTest
-    @ArgumentsSource(TransformParameterArgumentSource.class)
-    void transform(Operator source, BinaryOperator expected) {
+    @ArgumentsSource(IdsBinaryOperatorToOperatorTransformerTest.TransformParameterArgumentSource.class)
+    void transform(BinaryOperator source, Operator expected) {
         if (expected == null) {
             transformerContext.reportProblem(EasyMock.anyString());
         }
 
         EasyMock.replay(transformerContext);
 
-        var result = operatorToBinaryOperatorTransformer.transform(source, transformerContext);
+        var result = transformer.transform(source, transformerContext);
 
         assertThat(result).isEqualTo(expected);
     }
@@ -64,13 +64,13 @@ class OperatorToBinaryOperatorTransformerTest {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
             return Stream.of(
-                    Arguments.arguments(Operator.EQ, BinaryOperator.EQUALS),
-                    Arguments.arguments(Operator.GT, BinaryOperator.GT),
-                    Arguments.arguments(Operator.GEQ, BinaryOperator.GTEQ),
-                    Arguments.arguments(Operator.LT, BinaryOperator.LT),
-                    Arguments.arguments(Operator.LEQ, BinaryOperator.LTEQ),
-                    Arguments.arguments(Operator.IN, BinaryOperator.IN),
-                    Arguments.arguments(Operator.NEQ, null));
+                    Arguments.arguments(BinaryOperator.EQUALS, Operator.EQ),
+                    Arguments.arguments(BinaryOperator.EQ, Operator.EQ),
+                    Arguments.arguments(BinaryOperator.GT, Operator.GT),
+                    Arguments.arguments(BinaryOperator.GTEQ, Operator.GEQ),
+                    Arguments.arguments(BinaryOperator.LT, Operator.LT),
+                    Arguments.arguments(BinaryOperator.LTEQ, Operator.LEQ),
+                    Arguments.arguments(BinaryOperator.IN, Operator.IN));
         }
     }
 

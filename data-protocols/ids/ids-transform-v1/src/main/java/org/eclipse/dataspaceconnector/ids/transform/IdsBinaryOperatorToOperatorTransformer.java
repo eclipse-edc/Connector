@@ -25,41 +25,42 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
-public class OperatorToBinaryOperatorTransformer implements IdsTypeTransformer<Operator, BinaryOperator> {
-    private static final Map<Operator, BinaryOperator> MAPPING = new HashMap<>() {
+public class IdsBinaryOperatorToOperatorTransformer implements IdsTypeTransformer<BinaryOperator, Operator> {
+    private static final Map<BinaryOperator, Operator> MAPPING = new HashMap<>() {
         {
-            put(Operator.EQ, BinaryOperator.EQUALS);
-            put(Operator.GT, BinaryOperator.GT);
-            put(Operator.GEQ, BinaryOperator.GTEQ);
-            put(Operator.LT, BinaryOperator.LT);
-            put(Operator.LEQ, BinaryOperator.LTEQ);
-            put(Operator.IN, BinaryOperator.IN);
+            put(BinaryOperator.EQUALS, Operator.EQ);
+            put(BinaryOperator.EQ, Operator.EQ);
+            put(BinaryOperator.GT, Operator.GT);
+            put(BinaryOperator.GTEQ, Operator.GEQ);
+            put(BinaryOperator.LT, Operator.LT);
+            put(BinaryOperator.LTEQ, Operator.LEQ);
+            put(BinaryOperator.IN, Operator.IN);
         }
     };
 
     @Override
-    public Class<Operator> getInputType() {
-        return Operator.class;
-    }
-
-    @Override
-    public Class<BinaryOperator> getOutputType() {
+    public Class<BinaryOperator> getInputType() {
         return BinaryOperator.class;
     }
 
     @Override
-    public @Nullable BinaryOperator transform(Operator object, @NotNull TransformerContext context) {
+    public Class<Operator> getOutputType() {
+        return Operator.class;
+    }
+
+    @Override
+    public @Nullable Operator transform(@Nullable BinaryOperator object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
         }
 
-        BinaryOperator binaryOperator = MAPPING.get(object);
-        if (binaryOperator != null) {
-            return binaryOperator;
+        Operator operator = MAPPING.get(object);
+        if (operator != null) {
+            return operator;
         }
 
-        context.reportProblem(String.format("Can not transform %s to IDS BinaryOperator", object.name()));
+        context.reportProblem(String.format("cannot transform IDS operator %s", object));
 
         return null;
     }

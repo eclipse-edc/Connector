@@ -28,7 +28,7 @@ class IdsIdToUriTransformerTest {
     private static final String IDS_ID_VALUE = "1c6865e0-80ca-4811-bcf0-fcad250b538f";
 
     // subject
-    private IdsIdToUriTransformer idsIdToUriTransformer;
+    private IdsIdToUriTransformer transformer;
 
     // mocks
     private IdsId idsId;
@@ -36,7 +36,7 @@ class IdsIdToUriTransformerTest {
 
     @BeforeEach
     public void setup() {
-        idsIdToUriTransformer = new IdsIdToUriTransformer();
+        transformer = new IdsIdToUriTransformer();
         idsId = EasyMock.createMock(IdsId.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -47,7 +47,7 @@ class IdsIdToUriTransformerTest {
         EasyMock.replay(idsId, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsIdToUriTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -56,7 +56,7 @@ class IdsIdToUriTransformerTest {
         EasyMock.replay(idsId, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            idsIdToUriTransformer.transform(idsId, null);
+            transformer.transform(idsId, null);
         });
     }
 
@@ -64,7 +64,7 @@ class IdsIdToUriTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(idsId, context);
 
-        var result = idsIdToUriTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -80,7 +80,7 @@ class IdsIdToUriTransformerTest {
         EasyMock.replay(idsId, context);
 
         // invoke
-        var result = idsIdToUriTransformer.transform(idsId, context);
+        var result = transformer.transform(idsId, context);
 
         // verify
         Assertions.assertNotNull(result);

@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021 Daimler TSS GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Daimler TSS GmbH - Initial Implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.easymock.EasyMock;
@@ -20,7 +34,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
 
     // subject
-    private ContractOfferToIdsContractOfferTransformer contractOfferToIdsContractOfferTransformer;
+    private ContractOfferToIdsContractOfferTransformer transformer;
 
     // mocks
     private Policy policy;
@@ -29,7 +43,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
 
     @BeforeEach
     void setUp() {
-        contractOfferToIdsContractOfferTransformer = new ContractOfferToIdsContractOfferTransformer();
+        transformer = new ContractOfferToIdsContractOfferTransformer();
         contractOffer = EasyMock.createMock(ContractOffer.class);
         policy = EasyMock.createMock(Policy.class);
         context = EasyMock.createMock(TransformerContext.class);
@@ -42,7 +56,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         EasyMock.replay(contractOffer, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            contractOfferToIdsContractOfferTransformer.transform(null, null);
+            transformer.transform(null, null);
         });
     }
 
@@ -51,7 +65,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         EasyMock.replay(contractOffer, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            contractOfferToIdsContractOfferTransformer.transform(contractOffer, null);
+            transformer.transform(contractOffer, null);
         });
     }
 
@@ -59,7 +73,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
     void testReturnsNull() {
         EasyMock.replay(contractOffer, context);
 
-        var result = contractOfferToIdsContractOfferTransformer.transform(null, context);
+        var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
     }
@@ -95,7 +109,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         EasyMock.replay(contractOffer, policy, context);
 
         // invoke
-        var result = contractOfferToIdsContractOfferTransformer.transform(contractOffer, context);
+        var result = transformer.transform(contractOffer, context);
 
         // verify
         Assertions.assertNotNull(result);

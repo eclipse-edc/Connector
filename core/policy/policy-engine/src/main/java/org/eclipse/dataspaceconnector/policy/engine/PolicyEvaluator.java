@@ -79,10 +79,12 @@ public class PolicyEvaluator implements Policy.Visitor<Boolean>, Rule.Visitor<Bo
             }
         }
         try {
-            if (permission.getDuty() != null) {
-                ruleContext = permission.getDuty();
-                if (!visitRule(permission.getDuty())) {
-                    return false;
+            if (permission.getDuties() != null) {
+                for (var duty : permission.getDuties()) {
+                    ruleContext = duty;
+                    if (!visitRule(duty)) {
+                        return false;
+                    }
                 }
             }
             ruleContext = permission;
