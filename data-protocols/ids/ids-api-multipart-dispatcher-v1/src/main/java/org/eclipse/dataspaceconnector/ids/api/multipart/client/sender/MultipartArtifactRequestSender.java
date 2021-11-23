@@ -15,18 +15,14 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
 import java.net.URI;
-import java.net.http.HttpHeaders;
-import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.ResponseMessage;
 import de.fraunhofer.iais.eis.util.Util;
-import okhttp3.MultipartReader;
 import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -35,7 +31,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.glassfish.jersey.media.multipart.ContentDisposition;
 
 public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
 
@@ -92,31 +87,11 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
     }
 
     @Override
-    protected MultipartRequestInProcessResponse getResponseContent(ResponseBody body) throws Exception {
-        ResponseMessage header = null;
+    protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+        Message header = objectMapper.readValue(parts.getHeader(), Message.class);
         String payload = null;
-        try (var multipartReader = new MultipartReader(Objects.requireNonNull(body))) {
-            MultipartReader.Part part;
-            while ((part = multipartReader.nextPart()) != null) {
-                var httpHeaders = HttpHeaders.of(
-                        part.headers().toMultimap(),
-                        (a, b) -> a.equalsIgnoreCase("Content-Disposition")
-                );
-
-                var value = httpHeaders.firstValue("Content-Disposition").orElse(null);
-                if (value == null) {
-                    continue;
-                }
-
-                var contentDisposition = new ContentDisposition(value);
-                var multipartName = contentDisposition.getParameters().get("name");
-
-                if ("header".equalsIgnoreCase(multipartName)) {
-                    header = objectMapper.readValue(part.body().inputStream(), ResponseMessage.class);
-                } else if ("payload".equalsIgnoreCase(multipartName)) {
-                    payload = objectMapper.readValue(part.body().inputStream(), String.class);
-                }
-            }
+        if (parts.getPayload() != null) {
+            payload = new String(parts.getPayload().readAllBytes());
         }
 
         return MultipartRequestInProcessResponse.Builder.newInstance()

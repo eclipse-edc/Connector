@@ -18,7 +18,6 @@ import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.ResponseMessage;
 import org.jetbrains.annotations.Nullable;
 
 //TODO define return type
@@ -53,7 +52,7 @@ public class MultipartRequestInProcessResponse implements MultipartResponse<Stri
             return new Builder();
         }
 
-        public Builder header(ResponseMessage header) {
+        public Builder header(Message header) {
             this.requestInProcessResponse.header = header;
             return this;
         }

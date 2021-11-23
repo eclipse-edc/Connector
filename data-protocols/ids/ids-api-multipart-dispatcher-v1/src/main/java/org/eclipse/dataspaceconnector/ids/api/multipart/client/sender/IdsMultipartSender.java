@@ -14,8 +14,12 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.net.http.HttpHeaders;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,10 +31,12 @@ import jakarta.ws.rs.core.MediaType;
 import okhttp3.Headers;
 import okhttp3.HttpUrl;
 import okhttp3.MultipartBody;
+import okhttp3.MultipartReader;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -38,6 +44,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
+import org.glassfish.jersey.media.multipart.ContentDisposition;
 
 public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
 
@@ -70,7 +77,7 @@ public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements 
         return null;
     }
 
-    protected abstract R getResponseContent(ResponseBody body) throws Exception;
+    protected abstract R getResponseContent(IdsMultipartParts parts) throws Exception;
 
     @Override
     public CompletableFuture<R> send(M request, MessageContext context) {
@@ -170,7 +177,8 @@ public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements 
                         if (body == null) {
                             future.completeExceptionally(new EdcException("Received an empty body response from connector"));
                         } else {
-                            return getResponseContent(body);
+                            IdsMultipartParts parts = extractResponseParts(body);
+                            return getResponseContent(parts);
                         }
                     } catch (Exception e) {
                         future.completeExceptionally(e);
@@ -187,6 +195,39 @@ public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements 
             }
         }));
         return future;
+    }
+
+    private IdsMultipartParts extractResponseParts(ResponseBody body) throws Exception {
+        InputStream header = null;
+        InputStream payload = null;
+        try (var multipartReader = new MultipartReader(Objects.requireNonNull(body))) {
+            MultipartReader.Part part;
+            while ((part = multipartReader.nextPart()) != null) {
+                var httpHeaders = HttpHeaders.of(
+                        part.headers().toMultimap(),
+                        (a, b) -> a.equalsIgnoreCase("Content-Disposition")
+                );
+
+                var value = httpHeaders.firstValue("Content-Disposition").orElse(null);
+                if (value == null) {
+                    continue;
+                }
+
+                var contentDisposition = new ContentDisposition(value);
+                var multipartName = contentDisposition.getParameters().get("name");
+
+                if ("header".equalsIgnoreCase(multipartName)) {
+                    header = new ByteArrayInputStream(part.body().readByteArray());
+                } else if ("payload".equalsIgnoreCase(multipartName)) {
+                    payload = new ByteArrayInputStream(part.body().readByteArray());
+                }
+            }
+        }
+
+        return IdsMultipartParts.Builder.newInstance()
+                .header(header)
+                .payload(payload)
+                .build();
     }
 
 }

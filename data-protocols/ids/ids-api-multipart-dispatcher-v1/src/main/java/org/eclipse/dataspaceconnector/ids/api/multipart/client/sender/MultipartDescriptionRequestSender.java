@@ -15,10 +15,8 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
 import java.net.URI;
-import java.net.http.HttpHeaders;
-import java.nio.charset.StandardCharsets;
-import java.util.Objects;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.Artifact;
 import de.fraunhofer.iais.eis.BaseConnector;
@@ -31,15 +29,13 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import de.fraunhofer.iais.eis.util.Util;
-import okhttp3.MultipartReader;
 import okhttp3.OkHttpClient;
-import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
-import org.glassfish.jersey.media.multipart.ContentDisposition;
 
 import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
@@ -82,50 +78,31 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
     }
 
     @Override
-    protected MultipartDescriptionResponse getResponseContent(ResponseBody body) throws Exception {
-        ResponseMessage header = null;
+    protected MultipartDescriptionResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+        ResponseMessage header = objectMapper.readValue(parts.getHeader(), ResponseMessage.class);
+
         ModelClass payload = null;
-        try (var multipartReader = new MultipartReader(Objects.requireNonNull(body))) {
-            MultipartReader.Part part;
-            while ((part = multipartReader.nextPart()) != null) {
-                var httpHeaders = HttpHeaders.of(
-                        part.headers().toMultimap(),
-                        (a, b) -> a.equalsIgnoreCase("Content-Disposition")
-                );
-
-                var value = httpHeaders.firstValue("Content-Disposition").orElse(null);
-                if (value == null) {
-                    continue;
-                }
-
-                var contentDisposition = new ContentDisposition(value);
-                var multipartName = contentDisposition.getParameters().get("name");
-
-                if ("header".equalsIgnoreCase(multipartName)) {
-                    header = objectMapper.readValue(part.body().inputStream(), ResponseMessage.class);
-                } else if ("payload".equalsIgnoreCase(multipartName)) {
-                    var payloadString = new String(part.body().readByteArray(), StandardCharsets.UTF_8);
-                    var payloadJson = objectMapper.readTree(payloadString);
-                    var type = payloadJson.get("@type");
-                    switch (type.textValue()) {
-                        case "ids:BaseConnector":
-                            payload = objectMapper.readValue(payloadString, BaseConnector.class);
-                            break;
-                        case "ids:ResourceCatalog":
-                            payload = objectMapper.readValue(payloadString, ResourceCatalog.class);
-                            break;
-                        case "ids:Resource":
-                            payload = objectMapper.readValue(payloadString, Resource.class);
-                            break;
-                        case "ids:Representation":
-                            payload = objectMapper.readValue(payloadString, Representation.class);
-                            break;
-                        case "ids:Artifact":
-                            payload = objectMapper.readValue(payloadString, Artifact.class);
-                            break;
-                        default: throw new EdcException("Unknown type");
-                    }
-                }
+        if (parts.getPayload() != null) {
+            String payloadString = new String(parts.getPayload().readAllBytes());
+            JsonNode payloadJson = objectMapper.readTree(payloadString);
+            JsonNode type = payloadJson.get("@type");
+            switch (type.textValue()) {
+                case "ids:BaseConnector":
+                    payload = objectMapper.readValue(payloadString, BaseConnector.class);
+                    break;
+                case "ids:ResourceCatalog":
+                    payload = objectMapper.readValue(payloadString, ResourceCatalog.class);
+                    break;
+                case "ids:Resource":
+                    payload = objectMapper.readValue(payloadString, Resource.class);
+                    break;
+                case "ids:Representation":
+                    payload = objectMapper.readValue(payloadString, Representation.class);
+                    break;
+                case "ids:Artifact":
+                    payload = objectMapper.readValue(payloadString, Artifact.class);
+                    break;
+                default: throw new EdcException("Unknown type");
             }
         }
 
