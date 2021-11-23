@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import java.text.SimpleDateFormat;
@@ -11,10 +25,13 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.dispatcher.IdsMultipartRemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartArtifactRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartContractRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -65,8 +82,12 @@ public class IdsMultipartClientServiceExtension implements ServiceExtension {
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
         // create & register sender and dispatcher
+        var transformerRegistry = context.getService(TransformerRegistry.class);
+
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
         multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartContractRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(multipartDispatcher);

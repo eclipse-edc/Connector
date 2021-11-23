@@ -19,18 +19,26 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.BaseConnector;
+import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
+import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartDescriptionResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartArtifactRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartContractRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -38,11 +46,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private MultipartDescriptionRequestSender descriptionRequestSender;
     private MultipartArtifactRequestSender artifactRequestSender;
+    private MultipartContractRequestSender contractRequestSender;
     private TransformerRegistry transformerRegistry;
 
     @Override
@@ -63,6 +73,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         var httpClient = new OkHttpClient.Builder().build();
         descriptionRequestSender = new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService);
         artifactRequestSender = new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry);
+        contractRequestSender = new MultipartContractRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry);
     }
 
     @Test
@@ -72,7 +83,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .build();
-        var result = descriptionRequestSender.send(request, null).get();
+        MultipartDescriptionResponse result = descriptionRequestSender.send(request, null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -101,7 +112,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .asset(asset)
                 .dataDestination(dataDestination)
                 .build();
-        var result = artifactRequestSender.send(request, null).get();
+        MultipartRequestInProcessResponse result = artifactRequestSender.send(request, null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -111,4 +122,41 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result.getPayload()).isNull();
     }
 
+    @Test
+    void testSendContractRequestMessage() throws Exception {
+        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
+        EasyMock.replay(contractOffer);
+
+        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
+                .andReturn(new TransformResult<>(getIdsContractOffer()));
+        EasyMock.replay(transformerRegistry);
+
+        var request = ContractRequest.Builder.newInstance()
+                .connectorId(CONNECTOR_ID)
+                .connectorAddress(getUrl())
+                .protocol(Protocols.IDS_MULTIPART)
+                .contractOffer(contractOffer)
+                .build();
+        MultipartRequestInProcessResponse result = contractRequestSender.send(request, null).get();
+
+        assertThat(result).isNotNull();
+        assertThat(result.getHeader()).isNotNull();
+
+        //TODO revise when handler for ArtifactRequestMessage exists
+        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
+        assertThat(result.getPayload()).isNull();
+    }
+
+    private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {
+        return new ContractOfferBuilder()
+                ._contractDate_(gregorianNow())
+                ._contractStart_(gregorianNow())
+                ._contractEnd_(gregorianNow())
+                ._consumer_(URI.create("consumer"))
+                ._provider_(URI.create("provider"))
+                ._permission_(new PermissionBuilder()
+                        ._action_(Action.USE)
+                        .build())
+                .build();
+    }
 }
