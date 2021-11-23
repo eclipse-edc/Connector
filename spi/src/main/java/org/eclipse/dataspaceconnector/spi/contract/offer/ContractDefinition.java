@@ -20,32 +20,81 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Objects;
 
 /**
- * Defines the parameters of a contract. Namely, the usage policy and asset selector that identifies the set of assets the contract applies to.
+ * Defines the parameters of a contract.
+ *
+ * The {@link AssetSelectorExpression} defines which assets this contract applies to. Access policy defines the non-public requirements for accessing a set of assets
+ * governed by the contract. These requirements are therefore not advertised to the agent. For example, access control policy may require an agent to be in a business partner tier.
+ * Contract policy defines the requirements governing use an agent must follow when accessing the data. This policy is advertised to agents as part of a contract.
+ *
+ * A participant agent may access a contract (and its associated assets) if the union of the access policy and contract policy is satisfied by the agent.
  *
  * Note that the id must be a UUID.
  */
 public class ContractDefinition {
-    private final String id;
-    private final Policy usagePolicy;
-    private final AssetSelectorExpression assetSelectorExpression;
-
-    public ContractDefinition(@NotNull String id, @NotNull Policy usagePolicy, @NotNull AssetSelectorExpression expression) {
-        this.id = Objects.requireNonNull(id);
-        this.usagePolicy = Objects.requireNonNull(usagePolicy);
-        this.assetSelectorExpression = Objects.requireNonNull(expression);
-    }
+    private String id;
+    private Policy accessPolicy;
+    private Policy contractPolicy;
+    private AssetSelectorExpression selectorExpression;
 
     public String getId() {
         return id;
     }
 
     @NotNull
-    public Policy getUsagePolicy() {
-        return usagePolicy;
+    public Policy getAccessPolicy() {
+        return accessPolicy;
     }
 
     @NotNull
-    public AssetSelectorExpression getAssetSelectorExpression() {
-        return assetSelectorExpression;
+    public Policy getContractPolicy() {
+        return contractPolicy;
+    }
+
+    @NotNull
+    public AssetSelectorExpression getSelectorExpression() {
+        return selectorExpression;
+    }
+
+    private ContractDefinition() {
+    }
+
+    public static class Builder {
+        private ContractDefinition definition;
+
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder id(String id) {
+            definition.id = id;
+            return this;
+        }
+
+        public Builder accessPolicy(Policy policy) {
+            definition.accessPolicy = policy;
+            return this;
+        }
+
+        public Builder contractPolicy(Policy policy) {
+            definition.contractPolicy = policy;
+            return this;
+        }
+
+        public Builder selectorExpression(AssetSelectorExpression expression) {
+            definition.selectorExpression = expression;
+            return this;
+        }
+
+        public ContractDefinition build() {
+            Objects.requireNonNull(definition.id);
+            Objects.requireNonNull(definition.accessPolicy);
+            Objects.requireNonNull(definition.contractPolicy);
+            Objects.requireNonNull(definition.selectorExpression);
+            return definition;
+        }
+
+        private Builder() {
+            definition = new ContractDefinition();
+        }
     }
 }

@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -27,15 +28,15 @@ class ContractDefinitionServiceImplTest {
     @Test
     void verifyCrudOperations() {
         var policy = Policy.Builder.newInstance().build();
-        var descriptor1 = ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build();
-        var descriptor2 = ContractDescriptor.Builder.newInstance().id("2").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build();
+        var definition1 = ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
+        var definition2 = ContractDefinition.Builder.newInstance().id("2").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build();
 
-        definitionService.load(List.of(descriptor1, descriptor2));
+        definitionService.load(List.of(definition1, definition2));
 
-        assertThat(definitionService.getLoadedDescriptors().size()).isEqualTo(2);
+        assertThat(definitionService.getLoadedDefinitions().size()).isEqualTo(2);
 
         definitionService.remove(List.of("1"));
-        assertThat(definitionService.getLoadedDescriptors()).contains(descriptor2);
+        assertThat(definitionService.getLoadedDefinitions()).contains(definition2);
     }
 
     @Test
@@ -48,7 +49,7 @@ class ContractDefinitionServiceImplTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        definitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionService.load(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         assertThat(definitionService.definitionsFor(agent).count()).isEqualTo(1);
 
@@ -65,7 +66,7 @@ class ContractDefinitionServiceImplTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        definitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionService.load(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
 
@@ -83,7 +84,7 @@ class ContractDefinitionServiceImplTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        definitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionService.load(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
 
@@ -101,11 +102,11 @@ class ContractDefinitionServiceImplTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        definitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionService.load(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         assertThat(definitionService.definitionFor(agent, "1").getDefinition()).isNotNull();
         assertThat(definitionService.definitionFor(agent, "1").invalid()).isTrue();
-        assertThat(definitionService.definitionFor(agent, "nodescriptor").invalid()).isTrue();
+        assertThat(definitionService.definitionFor(agent, "nodefinition").invalid()).isTrue();
 
         verify(policyEngine);
     }

@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.contract.validation;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
@@ -20,7 +21,6 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 class ContractValidationServiceImplTest {
     private ContractValidationServiceImpl validationService;
@@ -36,7 +36,14 @@ class ContractValidationServiceImplTest {
 
         var newPolicy = Policy.Builder.newInstance().build();
 
-        var definitionResult = new ContractDefinitionResult(new ContractDefinition("1", newPolicy, SELECT_ALL));
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicy(Policy.Builder.newInstance().build())
+                .contractPolicy(newPolicy)
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .build();
+        var definitionResult = new ContractDefinitionResult(contractDefinition);
+
         EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(definitionResult);
 
         //noinspection unchecked
@@ -63,7 +70,14 @@ class ContractValidationServiceImplTest {
 
         var newPolicy = Policy.Builder.newInstance().build();
 
-        var definitionResult = new ContractDefinitionResult(new ContractDefinition("1", newPolicy, SELECT_ALL));
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicy(Policy.Builder.newInstance().build())
+                .contractPolicy(newPolicy)
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .build();
+        var definitionResult = new ContractDefinitionResult(contractDefinition);
+
         EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(definitionResult);
 
         EasyMock.replay(agentService, definitionService, assetIndex);

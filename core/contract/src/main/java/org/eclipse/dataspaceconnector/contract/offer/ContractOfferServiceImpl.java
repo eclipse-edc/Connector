@@ -47,8 +47,8 @@ public class ContractOfferServiceImpl implements ContractOfferService {
         var definitions = definitionService.definitionsFor(agent);
 
         return definitions.flatMap(definition -> {
-            var assets = assetIndex.queryAssets(definition.getAssetSelectorExpression());
-            return assets.map(asset -> ContractOffer.Builder.newInstance().id(definition.getId()).policy(definition.getUsagePolicy()).assets(List.of(asset)).build());
+            var assets = assetIndex.queryAssets(definition.getSelectorExpression());
+            return assets.map(asset -> ContractOffer.Builder.newInstance().id(definition.getId()).policy(definition.getContractPolicy()).assets(List.of(asset)).build());
         });
     }
 

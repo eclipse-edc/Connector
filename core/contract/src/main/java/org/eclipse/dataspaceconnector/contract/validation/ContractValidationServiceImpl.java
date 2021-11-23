@@ -70,7 +70,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         // sanitize the assets
         var assets = assetIndex.queryAssets(criteria);
 
-        var sanitizedUsagePolicy = contractDefinition.getUsagePolicy();
+        var sanitizedUsagePolicy = contractDefinition.getContractPolicy();
         var validatedOffer = ContractOffer.Builder.newInstance().id(offer.getId()).assets(assets.collect(toList())).policy(sanitizedUsagePolicy).build();
         return new OfferValidationResult(validatedOffer);
     }
@@ -91,7 +91,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     @NotNull
     private ArrayList<Criterion> createCriteria(ContractOffer offer, ContractDefinition contractDefinition) {
         var assetIds = offer.getAssets().stream().map(Asset::getId).collect(joining(","));
-        var criteria = new ArrayList<>(contractDefinition.getAssetSelectorExpression().getCriteria());
+        var criteria = new ArrayList<>(contractDefinition.getSelectorExpression().getCriteria());
         var criterion = new Criterion("id", "IN", assetIds);
         criteria.add(criterion);
         return criteria;

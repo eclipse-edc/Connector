@@ -75,7 +75,13 @@ class ContractOfferServiceImplTest {
 
     @Test
     void testFullFlow() {
-        var contractDefinition = new ContractDefinition("1", Policy.Builder.newInstance().build(), AssetSelectorExpression.SELECT_ALL);
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicy(Policy.Builder.newInstance().build())
+                .contractPolicy(Policy.Builder.newInstance().build())
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .build();
+
         EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         EasyMock.expect(contractDefinitionService.definitionsFor(EasyMock.isA(ParticipantAgent.class))).andReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
