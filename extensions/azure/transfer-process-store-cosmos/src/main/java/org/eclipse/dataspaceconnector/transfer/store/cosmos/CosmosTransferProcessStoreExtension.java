@@ -19,6 +19,7 @@ import com.azure.cosmos.CosmosClient;
 import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -60,7 +61,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("dataspaceconnector:blobstoreapi");
+        return Set.of("dataspaceconnector:blobstoreapi", "edc:retry-policy");
     }
 
     @Override
@@ -110,8 +111,9 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         // get unique connector name
         var connectorId = context.getConnectorId();
 
+        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         monitor.info("CosmosTransferProcessStore will use connector id '" + connectorId + "'");
-        context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(container, context.getTypeManager(), partitionKey, connectorId));
+        context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(container, context.getTypeManager(), partitionKey, connectorId, retryPolicy));
 
         context.getTypeManager().registerTypes(TransferProcessDocument.class);
         monitor.info("Initialized CosmosDB Transfer Process Store extension");

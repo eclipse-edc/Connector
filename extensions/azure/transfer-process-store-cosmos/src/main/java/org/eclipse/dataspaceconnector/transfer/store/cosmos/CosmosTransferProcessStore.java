@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosException;
 import com.azure.cosmos.CosmosStoredProcedure;
+import com.azure.cosmos.implementation.GoneException;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.implementation.RequestRateTooLargeException;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
@@ -25,6 +26,7 @@ import com.azure.cosmos.models.CosmosQueryRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
+import net.jodah.failsafe.FailsafeExecutor;
 import net.jodah.failsafe.Fallback;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -55,7 +57,9 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     private final TypeManager typeManager;
     private final String partitionKey;
     private final String connectorId;
-    private final RetryPolicy<Object> retryPolicy;
+    private final RetryPolicy<Object> generalRetry;
+    private final RetryPolicy<Object> rateLimitRetry;
+    private FailsafeExecutor<Object> failsafeExecutor;
 
     /**
      * Creates a new instance of the CosmosDB-based transfer process store.
@@ -67,9 +71,9 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
      *                     produce incomplete results.
      * @param connectorId  A name for the connector that must be unique in the local storage context. That means that all connectors e.g.
      *                     in a local K8s cluster must have unique names. The connectorId is used to lock transfer processes so that no
-     *                     duplicate processing happens.
+     * @param retryPolicy
      */
-    public CosmosTransferProcessStore(CosmosContainer container, TypeManager typeManager, String partitionKey, String connectorId) {
+    public CosmosTransferProcessStore(CosmosContainer container, TypeManager typeManager, String partitionKey, String connectorId, RetryPolicy<Object> retryPolicy) {
 
         this.container = container;
         this.typeManager = typeManager;
@@ -77,9 +81,13 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         this.connectorId = connectorId;
         tracingOptions = new CosmosQueryRequestOptions();
         tracingOptions.setQueryMetricsEnabled(true);
-        retryPolicy = new RetryPolicy<>()
+        rateLimitRetry = new RetryPolicy<>()
                 .handle(RequestRateTooLargeException.class)
                 .withMaxRetries(1).withDelay(Duration.ofSeconds(5));
+
+        generalRetry = retryPolicy;
+
+        failsafeExecutor = with(rateLimitRetry, generalRetry);
     }
 
     @Override
@@ -88,11 +96,11 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         try {
             // we need to read the TransferProcessDocument as Object, because no custom JSON deserialization can be registered
             // with the CosmosDB SDK, so it would not know about subtypes, etc.
-            CosmosItemResponse<Object> response = with(retryPolicy).get(() -> container.readItem(id, new PartitionKey(partitionKey), options, Object.class));
+            CosmosItemResponse<Object> response = failsafeExecutor.get(() -> container.readItem(id, new PartitionKey(partitionKey), options, Object.class));
             var obj = response.getItem();
 
             return convertObject(obj).getWrappedInstance();
-        } catch (NotFoundException ex) {
+        } catch (NotFoundException | GoneException ex) {
             return null;
         }
 
@@ -103,7 +111,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         var query = "SELECT * FROM TransferProcessDocument WHERE TransferProcessDocument.dataRequest.id = '" + transferId + "'";
 
         try {
-            var response = with(retryPolicy).get(() -> container.queryItems(query, tracingOptions, Object.class));
+            var response = failsafeExecutor.get(() -> container.queryItems(query, tracingOptions, Object.class));
             return response.stream()
                     .map(this::convertObject)
                     .map(pd -> pd.getWrappedInstance().getId()).findFirst().orElse(null);
@@ -122,7 +130,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         var options = new CosmosStoredProcedureRequestOptions();
         options.setPartitionKey(new PartitionKey(partitionKey));
 
-        var rawJson = with(Fallback.of((String) null), retryPolicy).get(() -> {
+        var rawJson = with(Fallback.of((String) null), rateLimitRetry, generalRetry).get(() -> {
             CosmosStoredProcedureResponse response = sproc.execute(params, options);
             return response.getResponseAsString();
         });
@@ -152,7 +160,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         //todo: configure indexing
         var document = TransferProcessDocument.from(process, partitionKey);
         try {
-            var response = with(retryPolicy).get(() -> container.createItem(document, new PartitionKey(partitionKey), options));
+            var response = failsafeExecutor.get(() -> container.createItem(document, new PartitionKey(partitionKey), options));
             handleResponse(response);
         } catch (CosmosException cme) {
             throw new EdcException(cme);
@@ -164,7 +172,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         var document = TransferProcessDocument.from(process, partitionKey);
         try {
             lease(process.getId(), getConnectorId());
-            var response = with(retryPolicy).get(() -> container.upsertItem(document, new PartitionKey(partitionKey), new CosmosItemRequestOptions()));
+            var response = failsafeExecutor.get(() -> container.upsertItem(document, new PartitionKey(partitionKey), new CosmosItemRequestOptions()));
             handleResponse(response);
             release(process.getId(), getConnectorId());
         } catch (CosmosException cme) {
@@ -176,7 +184,8 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     public void delete(String processId) {
         try {
             lease(processId, getConnectorId());
-            var response = with(retryPolicy).get(() -> container.deleteItem(processId, new PartitionKey(partitionKey), new CosmosItemRequestOptions()));
+            failsafeExecutor = failsafeExecutor;
+            var response = failsafeExecutor.get(() -> container.deleteItem(processId, new PartitionKey(partitionKey), new CosmosItemRequestOptions()));
             handleResponse(response);
             release(processId, getConnectorId());
         } catch (NotFoundException ignored) {
@@ -237,7 +246,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         var options = new CosmosStoredProcedureRequestOptions();
         options.setPartitionKey(new PartitionKey(partitionKey));
 
-        var code = with(retryPolicy).get(() -> {
+        var code = failsafeExecutor.get(() -> {
             var response = sproc.execute(args, options);
             return response.getStatusCode();
         });
