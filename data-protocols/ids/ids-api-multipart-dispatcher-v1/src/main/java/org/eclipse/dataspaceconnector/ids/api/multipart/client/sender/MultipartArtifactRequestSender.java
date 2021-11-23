@@ -27,7 +27,7 @@ import de.fraunhofer.iais.eis.util.Util;
 import okhttp3.MultipartReader;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartArtifactResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -37,7 +37,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 
-public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartArtifactResponse> {
+public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
 
     private final TransformerRegistry transformerRegistry;
 
@@ -92,7 +92,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
     }
 
     @Override
-    protected MultipartArtifactResponse getResponseContent(ResponseBody body) throws Exception {
+    protected MultipartRequestInProcessResponse getResponseContent(ResponseBody body) throws Exception {
         ResponseMessage header = null;
         String payload = null;
         try (var multipartReader = new MultipartReader(Objects.requireNonNull(body))) {
@@ -119,7 +119,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
             }
         }
 
-        return MultipartArtifactResponse.Builder.newInstance()
+        return MultipartRequestInProcessResponse.Builder.newInstance()
                 .header(header)
                 .payload(payload)
                 .build();

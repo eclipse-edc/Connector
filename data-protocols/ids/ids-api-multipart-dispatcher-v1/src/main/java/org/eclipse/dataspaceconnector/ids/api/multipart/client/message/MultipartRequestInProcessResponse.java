@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Fraunhofer Institute for Software and Systems Engineering
+ *  Copyright (c) 2021 Fraunhofer Institute for Software and Systems Engineering
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -22,14 +22,14 @@ import de.fraunhofer.iais.eis.ResponseMessage;
 import org.jetbrains.annotations.Nullable;
 
 //TODO define return type
-public class MultipartArtifactResponse implements MultipartResponse<String> {
+public class MultipartRequestInProcessResponse implements MultipartResponse<String> {
 
-    private ResponseMessage header;
+    Message header;
 
     @Nullable
     private String payload;
 
-    private MultipartArtifactResponse() { }
+    private MultipartRequestInProcessResponse() { }
 
     @Override
     public Message getHeader() {
@@ -42,10 +42,10 @@ public class MultipartArtifactResponse implements MultipartResponse<String> {
     }
 
     public static class Builder {
-        private final MultipartArtifactResponse artifactResponse;
+        private final MultipartRequestInProcessResponse requestInProcessResponse;
 
         private Builder() {
-            this.artifactResponse = new MultipartArtifactResponse();
+            this.requestInProcessResponse = new MultipartRequestInProcessResponse();
         }
 
         @JsonCreator
@@ -54,18 +54,18 @@ public class MultipartArtifactResponse implements MultipartResponse<String> {
         }
 
         public Builder header(ResponseMessage header) {
-            this.artifactResponse.header = header;
+            this.requestInProcessResponse.header = header;
             return this;
         }
 
         public Builder payload(@Nullable String payload) {
-            this.artifactResponse.payload = payload;
+            this.requestInProcessResponse.payload = payload;
             return this;
         }
 
-        public MultipartArtifactResponse build() {
-            Objects.requireNonNull(artifactResponse.header, "header");
-            return artifactResponse;
+        public MultipartRequestInProcessResponse build() {
+            Objects.requireNonNull(requestInProcessResponse.header, "header");
+            return requestInProcessResponse;
         }
     }
 
