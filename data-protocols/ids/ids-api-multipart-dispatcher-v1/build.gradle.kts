@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *
  */
 val infoModelVersion: String by project
