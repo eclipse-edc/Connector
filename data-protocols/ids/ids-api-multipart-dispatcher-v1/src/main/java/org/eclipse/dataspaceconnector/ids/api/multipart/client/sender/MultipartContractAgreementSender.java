@@ -19,8 +19,8 @@ import java.net.http.HttpHeaders;
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.ContractOffer;
-import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
+import de.fraunhofer.iais.eis.ContractAgreement;
+import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ResponseMessage;
@@ -33,41 +33,41 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.AgreementRequest;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
 
-public class MultipartContractRequestSender extends IdsMultipartSender<ContractRequest, MultipartRequestInProcessResponse> {
+public class MultipartContractAgreementSender extends IdsMultipartSender<AgreementRequest, MultipartRequestInProcessResponse> {
 
     private final TransformerRegistry transformerRegistry;
 
-    public MultipartContractRequestSender(String connectorId,
-                                          OkHttpClient httpClient,
-                                          ObjectMapper objectMapper,
-                                          Monitor monitor,
-                                          IdentityService identityService,
-                                          TransformerRegistry transformerRegistry) {
+    public MultipartContractAgreementSender(String connectorId,
+                                            OkHttpClient httpClient,
+                                            ObjectMapper objectMapper,
+                                            Monitor monitor,
+                                            IdentityService identityService,
+                                            TransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService);
         this.transformerRegistry = transformerRegistry;
     }
 
     @Override
-    public Class<ContractRequest> messageType() {
-        return ContractRequest.class;
+    public Class<AgreementRequest> messageType() {
+        return AgreementRequest.class;
     }
 
     @Override
-    protected String getConnectorId(ContractRequest request) {
+    protected String getConnectorId(AgreementRequest request) {
         return request.getConnectorId();
     }
 
     @Override
-    protected String getConnectorAddress(ContractRequest request) {
+    protected String getConnectorAddress(AgreementRequest request) {
         return request.getConnectorAddress();
     }
 
     @Override
-    protected Message buildMessageHeader(ContractRequest request, DynamicAttributeToken token) throws Exception {
-        return new ContractRequestMessageBuilder()
+    protected Message buildMessageHeader(AgreementRequest request, DynamicAttributeToken token) throws Exception {
+        return new ContractAgreementMessageBuilder()
                 ._modelVersion_(VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
@@ -78,15 +78,15 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractR
     }
 
     @Override
-    protected String buildMessagePayload(ContractRequest request) throws Exception {
-        var contractOffer = request.getContractOffer();
-        var transformationResult = transformerRegistry.transform(contractOffer, ContractOffer.class);
+    protected String buildMessagePayload(AgreementRequest request) throws Exception {
+        var contractAgreement = request.getContractAgreement();
+        var transformationResult = transformerRegistry.transform(contractAgreement, ContractAgreement.class);
         if (transformationResult.hasProblems()) {
             throw new EdcException("Failed to create artifact ID from asset.");
         }
 
-        var idsContractOffer = transformationResult.getOutput();
-        return objectMapper.writeValueAsString(idsContractOffer);
+        var idsContractAgreement = transformationResult.getOutput();
+        return objectMapper.writeValueAsString(idsContractAgreement);
     }
 
     @Override
@@ -122,4 +122,6 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractR
                 .payload(payload)
                 .build();
     }
+
+
 }

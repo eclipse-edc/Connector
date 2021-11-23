@@ -26,6 +26,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartArtifactRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartContractAgreementSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartContractRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
@@ -88,6 +89,7 @@ public class IdsMultipartClientServiceExtension implements ServiceExtension {
         multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService));
         multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartContractAgreementSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(multipartDispatcher);
