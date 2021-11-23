@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -20,11 +20,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.dispatcher.IdsMultipartRemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartArtifactRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartContractAgreementSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartContractRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartDescriptionRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -42,13 +41,13 @@ import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.Set;
 
-public class IdsMultipartClientServiceExtension implements ServiceExtension {
+public class IdsMultipartDispatcherServiceExtension implements ServiceExtension {
 
     @EdcSetting
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
-    private static final String NAME = "IDS Multipart Client API extension";
+    private static final String NAME = "IDS Multipart Dispatcher API extension";
 
     private Monitor monitor;
 

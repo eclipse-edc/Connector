@@ -56,7 +56,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
     @Override
     public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore");
+        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", "dataspaceconnector:dispatcher");
     }
 
     @Override

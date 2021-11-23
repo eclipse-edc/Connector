@@ -13,33 +13,43 @@
  */
 
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.message;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.util.Objects;
 
-public class IdsMultipartParts {
+class IdsMultipartParts {
 
-    private InputStream header;
+    private final InputStream header;
 
     @Nullable
-    private InputStream payload;
+    private final InputStream payload;
 
+    IdsMultipartParts(@NotNull InputStream header, @Nullable InputStream payload) {
+        this.header = header;
+        this.payload = payload;
+    }
+
+    @NotNull
     public InputStream getHeader() {
         return header;
     }
 
-    public @Nullable InputStream getPayload() {
+    @Nullable
+    public InputStream getPayload() {
         return payload;
     }
 
     public static class Builder {
-        private final IdsMultipartParts parts;
+        private InputStream header;
+
+        @Nullable
+        private InputStream payload;
 
         private Builder() {
-            this.parts = new IdsMultipartParts();
         }
 
         public static Builder newInstance() {
@@ -47,18 +57,18 @@ public class IdsMultipartParts {
         }
 
         public Builder header(InputStream header) {
-            this.parts.header = header;
+            this.header = header;
             return this;
         }
 
         public Builder payload(InputStream payload) {
-            this.parts.payload = payload;
+            this.payload = payload;
             return this;
         }
 
         public IdsMultipartParts build() {
-            Objects.requireNonNull(parts.header);
-            return parts;
+            Objects.requireNonNull(header, "header");
+            return new IdsMultipartParts(header, payload);
         }
     }
 

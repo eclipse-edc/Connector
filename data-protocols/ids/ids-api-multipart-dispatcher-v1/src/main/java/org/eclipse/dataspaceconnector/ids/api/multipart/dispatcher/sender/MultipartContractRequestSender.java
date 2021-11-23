@@ -12,37 +12,40 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractOffer;
 import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.util.Util;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.IdsMultipartParts;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRequest;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.Objects;
 
 public class MultipartContractRequestSender extends IdsMultipartSender<ContractRequest, MultipartRequestInProcessResponse> {
 
     private final TransformerRegistry transformerRegistry;
 
-    public MultipartContractRequestSender(String connectorId,
-                                          OkHttpClient httpClient,
-                                          ObjectMapper objectMapper,
-                                          Monitor monitor,
-                                          IdentityService identityService,
-                                          TransformerRegistry transformerRegistry) {
+    public MultipartContractRequestSender(@NotNull String connectorId,
+                                          @NotNull OkHttpClient httpClient,
+                                          @NotNull ObjectMapper objectMapper,
+                                          @NotNull Monitor monitor,
+                                          @NotNull IdentityService identityService,
+                                          @NotNull TransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService);
-        this.transformerRegistry = transformerRegistry;
+
+        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
     }
 
     @Override
@@ -51,24 +54,24 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractR
     }
 
     @Override
-    protected String getConnectorId(ContractRequest request) {
+    protected String retrieveRemoteConnectorId(ContractRequest request) {
         return request.getConnectorId();
     }
 
     @Override
-    protected String getConnectorAddress(ContractRequest request) {
+    protected String retrieveRemoteConnectorAddress(ContractRequest request) {
         return request.getConnectorAddress();
     }
 
     @Override
     protected Message buildMessageHeader(ContractRequest request, DynamicAttributeToken token) throws Exception {
         return new ContractRequestMessageBuilder()
-                ._modelVersion_(VERSION)
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
-                ._issuerConnector_(this.connectorId)
-                ._senderAgent_(this.connectorId)
-                ._recipientConnector_(Util.asList(URI.create(request.getConnectorId())))
+                ._issuerConnector_(getConnectorId())
+                ._senderAgent_(getConnectorId())
+                ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
     }
 
@@ -81,12 +84,12 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractR
         }
 
         var idsContractOffer = transformationResult.getOutput();
-        return objectMapper.writeValueAsString(idsContractOffer);
+        return getObjectMapper().writeValueAsString(idsContractOffer);
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = objectMapper.readValue(parts.getHeader(), Message.class);
+        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

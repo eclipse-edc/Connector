@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.dispatcher;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher;
 
 import org.eclipse.dataspaceconnector.ids.core.message.IdsRemoteMessageDispatcher;
 

@@ -12,39 +12,41 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.message;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ModelClass;
 import de.fraunhofer.iais.eis.ResponseMessage;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
 public class MultipartDescriptionResponse implements MultipartResponse<ModelClass> {
 
-    private ResponseMessage header;
+    private final ResponseMessage header;
+    private final ModelClass payload;
 
-    private ModelClass payload;
-
-    private MultipartDescriptionResponse() {
+    private MultipartDescriptionResponse(@NotNull ResponseMessage header, @NotNull ModelClass payload) {
+        this.header = header;
+        this.payload = payload;
     }
 
     @Override
-    public Message getHeader() {
+    public @NotNull Message getHeader() {
         return header;
     }
 
     @Override
-    public ModelClass getPayload() {
+    public @NotNull ModelClass getPayload() {
         return payload;
     }
 
     public static class Builder {
-        private final MultipartDescriptionResponse descriptionResponse;
+        private ResponseMessage header;
+        private ModelClass payload;
 
         private Builder() {
-            this.descriptionResponse = new MultipartDescriptionResponse();
         }
 
         @JsonCreator
@@ -53,19 +55,19 @@ public class MultipartDescriptionResponse implements MultipartResponse<ModelClas
         }
 
         public Builder header(ResponseMessage header) {
-            this.descriptionResponse.header = header;
+            this.header = header;
             return this;
         }
 
         public Builder payload(ModelClass payload) {
-            this.descriptionResponse.payload = payload;
+            this.payload = payload;
             return this;
         }
 
         public MultipartDescriptionResponse build() {
-            Objects.requireNonNull(descriptionResponse.header, "header");
-            Objects.requireNonNull(descriptionResponse.payload, "payload");
-            return descriptionResponse;
+            Objects.requireNonNull(header, "header");
+            Objects.requireNonNull(payload, "payload");
+            return new MultipartDescriptionResponse(header, payload);
         }
     }
 

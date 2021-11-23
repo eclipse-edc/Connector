@@ -12,38 +12,40 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.util.Util;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.IdsMultipartParts;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.util.Collections;
+import java.util.Objects;
 
 public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
 
     private final TransformerRegistry transformerRegistry;
 
-    public MultipartArtifactRequestSender(String connectorId,
-                                          OkHttpClient httpClient,
-                                          ObjectMapper objectMapper,
-                                          Monitor monitor,
-                                          IdentityService identityService,
-                                          TransformerRegistry transformerRegistry) {
+    public MultipartArtifactRequestSender(@NotNull String connectorId,
+                                          @NotNull OkHttpClient httpClient,
+                                          @NotNull ObjectMapper objectMapper,
+                                          @NotNull Monitor monitor,
+                                          @NotNull IdentityService identityService,
+                                          @NotNull TransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService);
-        this.transformerRegistry = transformerRegistry;
+        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
     }
 
     @Override
@@ -52,17 +54,17 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
     }
 
     @Override
-    protected String getConnectorId(DataRequest request) {
+    protected String retrieveRemoteConnectorId(DataRequest request) {
         return request.getConnectorId();
     }
 
     @Override
-    protected String getConnectorAddress(DataRequest request) {
+    protected String retrieveRemoteConnectorAddress(DataRequest request) {
         return request.getConnectorAddress();
     }
 
     @Override
-    protected Message buildMessageHeader(DataRequest request, DynamicAttributeToken token) throws Exception {
+    protected Message buildMessageHeader(DataRequest request, DynamicAttributeToken token) {
         var asset = request.getAsset();
         IdsId id = IdsId.Builder.newInstance()
                 .value(asset.getId())
@@ -76,19 +78,19 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         var artifactId = transformationResult.getOutput();
 
         return new ArtifactRequestMessageBuilder()
-                ._modelVersion_(VERSION)
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
-                ._issuerConnector_(this.connectorId)
-                ._senderAgent_(this.connectorId)
-                ._recipientConnector_(Util.asList(URI.create(request.getConnectorId())))
+                ._issuerConnector_(getConnectorId())
+                ._senderAgent_(getConnectorId())
+                ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._requestedArtifact_(artifactId)
                 .build();
     }
 
     @Override
     protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
-        Message header = objectMapper.readValue(parts.getHeader(), Message.class);
+        Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());

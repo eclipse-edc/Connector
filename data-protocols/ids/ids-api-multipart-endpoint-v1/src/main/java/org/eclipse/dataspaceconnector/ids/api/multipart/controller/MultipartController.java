@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.controller;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
+import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RequestMessage;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
@@ -80,9 +81,9 @@ public class MultipartController {
                             malformedMessage(null, connectorId))).build();
         }
 
-        RequestMessage header;
+        Message header;
         try {
-            header = objectMapper.readValue(headerInputStream, RequestMessage.class);
+            header = objectMapper.readValue(headerInputStream, Message.class);
         } catch (IOException e) {
             return Response.ok(
                     createFormDataMultiPart(

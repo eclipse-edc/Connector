@@ -19,8 +19,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import de.fraunhofer.iais.eis.DynamicAttributeToken;
-import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
@@ -58,8 +56,6 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     }
 
-    public static final String HEADER = "header";
-    public static final String PAYLOAD = "payload";
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
     private static final List<Asset> ASSETS = new LinkedList<>();
 
@@ -116,9 +112,4 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     }
 
     protected abstract Map<String, String> getSystemProperties();
-
-    protected DynamicAttributeToken getDynamicAttributeToken() {
-        return new DynamicAttributeTokenBuilder()._tokenValue_("fake").build();
-    }
-
 }

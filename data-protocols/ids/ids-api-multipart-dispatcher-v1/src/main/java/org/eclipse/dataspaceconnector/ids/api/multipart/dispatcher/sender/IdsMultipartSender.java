@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
@@ -28,15 +28,17 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.IdsMultipartParts;
 import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.glassfish.jersey.media.multipart.ContentDisposition;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -46,30 +48,46 @@ import java.net.http.HttpHeaders;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
+abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
+    private final URI connectorId;
+    private final OkHttpClient httpClient;
+    private final ObjectMapper objectMapper;
+    private final Monitor monitor;
+    private final IdentityService identityService;
 
-    protected static final String VERSION = "4.0.0";
-    protected final URI connectorId;
-    protected final OkHttpClient httpClient;
-    protected final ObjectMapper objectMapper;
-    protected final Monitor monitor;
-    protected final IdentityService identityService;
-
-    protected IdsMultipartSender(String connectorId,
-                                 OkHttpClient httpClient,
-                                 ObjectMapper objectMapper,
-                                 Monitor monitor,
-                                 IdentityService identityService) {
-        this.connectorId = URI.create(connectorId);
-        this.httpClient = httpClient;
-        this.objectMapper = objectMapper;
-        this.monitor = monitor;
-        this.identityService = identityService;
+    protected IdsMultipartSender(@NotNull String connectorId,
+                                 @NotNull OkHttpClient httpClient,
+                                 @NotNull ObjectMapper objectMapper,
+                                 @NotNull Monitor monitor,
+                                 @NotNull IdentityService identityService) {
+        this.connectorId = createConnectorIdUri(Objects.requireNonNull(connectorId, "connectorId"));
+        this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
+        this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
+        this.monitor = Objects.requireNonNull(monitor, "monitor");
+        this.identityService = Objects.requireNonNull(identityService, "identityService");
     }
 
-    protected abstract String getConnectorId(M request);
+    private static URI createConnectorIdUri(String connectorId) {
+        return URI.create(String.join(
+                IdsIdParser.DELIMITER,
+                IdsIdParser.SCHEME,
+                IdsType.CONNECTOR.getValue(),
+                connectorId));
+    }
 
-    protected abstract String getConnectorAddress(M request);
+    @NotNull
+    protected ObjectMapper getObjectMapper() {
+        return objectMapper;
+    }
+
+    @NotNull
+    protected URI getConnectorId() {
+        return connectorId;
+    }
+
+    protected abstract String retrieveRemoteConnectorId(M request);
+
+    protected abstract String retrieveRemoteConnectorAddress(M request);
 
     protected abstract Message buildMessageHeader(M request, DynamicAttributeToken token) throws Exception;
 
@@ -82,7 +100,7 @@ public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements 
     @Override
     public CompletableFuture<R> send(M request, MessageContext context) {
         // Get connector ID
-        var recipientConnectorId = getConnectorId(request);
+        var recipientConnectorId = retrieveRemoteConnectorId(request);
 
         // Get Dynamic Attribute Token
         var tokenResult = identityService.obtainClientCredentials(recipientConnectorId);
@@ -95,7 +113,7 @@ public abstract class IdsMultipartSender<M extends RemoteMessage, R> implements 
         CompletableFuture<R> future = new CompletableFuture<>();
 
         // Get recipient address
-        var connectorAddress = getConnectorAddress(request);
+        var connectorAddress = retrieveRemoteConnectorAddress(request);
         var requestUrl = HttpUrl.parse(connectorAddress);
         if (requestUrl == null) {
             future.completeExceptionally(new IllegalArgumentException("Connector address not specified"));

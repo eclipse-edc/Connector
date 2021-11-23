@@ -12,10 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.message;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import de.fraunhofer.iais.eis.Message;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
@@ -23,16 +24,18 @@ import java.util.Objects;
 //TODO define return type
 public class MultipartRequestInProcessResponse implements MultipartResponse<String> {
 
-    private Message header;
+    private final Message header;
 
     @Nullable
-    private String payload;
+    private final String payload;
 
-    private MultipartRequestInProcessResponse() {
+    private MultipartRequestInProcessResponse(@NotNull Message header, @Nullable String payload) {
+        this.header = header;
+        this.payload = payload;
     }
 
     @Override
-    public Message getHeader() {
+    public @NotNull Message getHeader() {
         return header;
     }
 
@@ -42,10 +45,10 @@ public class MultipartRequestInProcessResponse implements MultipartResponse<Stri
     }
 
     public static class Builder {
-        private final MultipartRequestInProcessResponse requestInProcessResponse;
+        private Message header;
+        private String payload;
 
         private Builder() {
-            this.requestInProcessResponse = new MultipartRequestInProcessResponse();
         }
 
         @JsonCreator
@@ -54,18 +57,18 @@ public class MultipartRequestInProcessResponse implements MultipartResponse<Stri
         }
 
         public Builder header(Message header) {
-            this.requestInProcessResponse.header = header;
+            this.header = header;
             return this;
         }
 
         public Builder payload(@Nullable String payload) {
-            this.requestInProcessResponse.payload = payload;
+            this.payload = payload;
             return this;
         }
 
         public MultipartRequestInProcessResponse build() {
-            Objects.requireNonNull(requestInProcessResponse.header, "header");
-            return requestInProcessResponse;
+            Objects.requireNonNull(header, "header");
+            return new MultipartRequestInProcessResponse(header, payload);
         }
     }
 

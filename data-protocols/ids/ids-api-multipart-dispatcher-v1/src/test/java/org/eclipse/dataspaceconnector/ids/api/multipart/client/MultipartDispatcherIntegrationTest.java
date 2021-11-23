@@ -24,13 +24,13 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.dispatcher.IdsMultipartRemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartDescriptionResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartRequestInProcessResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartArtifactRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartContractAgreementSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartContractRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.sender.MultipartDescriptionRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -191,10 +191,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         //TODO revise when handler for ArtifactRequestMessage exists
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
 
-        //TODO MultipartController tries to deserialize to RequestMessage, but ContractAgreementMessage is a ResponseMessage
-        //  => should actually be RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.MALFORMED_MESSAGE);
+                .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertThat(result.getPayload()).isNull();
     }
 

@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -26,24 +26,25 @@ import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
-import de.fraunhofer.iais.eis.util.Util;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.IdsMultipartParts;
-import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartDescriptionResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
+import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
+import java.util.Collections;
 
 public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, MultipartDescriptionResponse> {
 
-    public MultipartDescriptionRequestSender(String connectorId,
-                                             OkHttpClient httpClient,
-                                             ObjectMapper objectMapper,
-                                             Monitor monitor,
-                                             IdentityService identityService) {
+    public MultipartDescriptionRequestSender(@NotNull String connectorId,
+                                             @NotNull OkHttpClient httpClient,
+                                             @NotNull ObjectMapper objectMapper,
+                                             @NotNull Monitor monitor,
+                                             @NotNull IdentityService identityService) {
         super(connectorId, httpClient, objectMapper, monitor, identityService);
     }
 
@@ -53,30 +54,32 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
     }
 
     @Override
-    protected String getConnectorId(MetadataRequest request) {
+    protected String retrieveRemoteConnectorId(MetadataRequest request) {
         return request.getConnectorId();
     }
 
     @Override
-    protected String getConnectorAddress(MetadataRequest request) {
+    protected String retrieveRemoteConnectorAddress(MetadataRequest request) {
         return request.getConnectorAddress();
     }
 
     @Override
     protected Message buildMessageHeader(MetadataRequest request, DynamicAttributeToken token) {
         return new DescriptionRequestMessageBuilder()
-                ._modelVersion_(VERSION)
+                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
-                ._issuerConnector_(this.connectorId)
-                ._senderAgent_(this.connectorId)
-                ._recipientConnector_(Util.asList(URI.create(request.getConnectorId())))
+                ._issuerConnector_(getConnectorId())
+                ._senderAgent_(getConnectorId())
+                ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._requestedElement_(request.getRequestedAsset())
                 .build();
     }
 
     @Override
     protected MultipartDescriptionResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+        ObjectMapper objectMapper = getObjectMapper();
+
         ResponseMessage header = objectMapper.readValue(parts.getHeader(), ResponseMessage.class);
 
         ModelClass payload = null;
@@ -101,7 +104,7 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
                     payload = objectMapper.readValue(payloadString, Artifact.class);
                     break;
                 default:
-                    throw new EdcException("Unknown type");
+                    throw new EdcException(String.format("Unknown type: %s", type.textValue()));
             }
         }
 

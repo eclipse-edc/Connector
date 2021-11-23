@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.ids.api.multipart.client.message;
+package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message;
 
 import de.fraunhofer.iais.eis.Message;
 
