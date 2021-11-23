@@ -16,19 +16,26 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.client.sender;
 
 import java.net.URI;
 import java.net.http.HttpHeaders;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iais.eis.Artifact;
+import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.ModelClass;
+import de.fraunhofer.iais.eis.Representation;
+import de.fraunhofer.iais.eis.Resource;
+import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import de.fraunhofer.iais.eis.util.Util;
 import okhttp3.MultipartReader;
 import okhttp3.OkHttpClient;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.ids.api.multipart.client.message.MultipartDescriptionResponse;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
@@ -97,7 +104,27 @@ public class MultipartDescriptionRequestSender extends IdsMultipartSender<Metada
                 if ("header".equalsIgnoreCase(multipartName)) {
                     header = objectMapper.readValue(part.body().inputStream(), ResponseMessage.class);
                 } else if ("payload".equalsIgnoreCase(multipartName)) {
-                    payload = objectMapper.readValue(part.body().inputStream(), ModelClass.class);
+                    var payloadString = new String(part.body().readByteArray(), StandardCharsets.UTF_8);
+                    var payloadJson = objectMapper.readTree(payloadString);
+                    var type = payloadJson.get("@type");
+                    switch (type.textValue()) {
+                        case "ids:BaseConnector":
+                            payload = objectMapper.readValue(payloadString, BaseConnector.class);
+                            break;
+                        case "ids:ResourceCatalog":
+                            payload = objectMapper.readValue(payloadString, ResourceCatalog.class);
+                            break;
+                        case "ids:Resource":
+                            payload = objectMapper.readValue(payloadString, Resource.class);
+                            break;
+                        case "ids:Representation":
+                            payload = objectMapper.readValue(payloadString, Representation.class);
+                            break;
+                        case "ids:Artifact":
+                            payload = objectMapper.readValue(payloadString, Artifact.class);
+                            break;
+                        default: throw new EdcException("Unknown type");
+                    }
                 }
             }
         }
