@@ -60,11 +60,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         // validate the offer against the original definition, which includes policy verification
-        var definitionResult = definitionServiceSupplier.get().definitionFor(agent, contractIdTokens[DEFINITION_PART]);
-        if (definitionResult.invalid()) {
+        var contractDefinition = definitionServiceSupplier.get().definitionFor(agent, contractIdTokens[DEFINITION_PART]);
+        if (contractDefinition == null) {
             return OfferValidationResult.INVALID;
         }
-        var contractDefinition = definitionResult.getDefinition();
         var criteria = createCriteria(offer, contractDefinition);
 
         // sanitize the assets
@@ -83,8 +82,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             // not a valid id
             return false;
         }
-        var definitionResult = definitionServiceSupplier.get().definitionFor(agent, tokens[DEFINITION_PART]);
-        return !definitionResult.invalid();
+        return definitionServiceSupplier.get().definitionFor(agent, tokens[DEFINITION_PART]) != null;
         // TODO validate counter-party
     }
 

@@ -14,13 +14,13 @@
 package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionResult;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
@@ -51,16 +51,16 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
         return definitionStore.findAll().stream().filter(definition -> evaluatePolicies(definition, agent));
     }
 
-    @NotNull
-    public ContractDefinitionResult definitionFor(ParticipantAgent agent, String definitionId) {
+    @Nullable
+    public ContractDefinition definitionFor(ParticipantAgent agent, String definitionId) {
         var definitionOptional = definitionStore.findAll().stream().filter(d -> d.getId().equals(definitionId)).findFirst();
         if (definitionOptional.isPresent()) {
             var definition = definitionOptional.get();
             if (evaluatePolicies(definition, agent)) {
-                return new ContractDefinitionResult(definition);
+                return definition;
             }
         }
-        return ContractDefinitionResult.INVALID;
+        return null;
     }
 
     /**

@@ -6,7 +6,6 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionResult;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
@@ -42,9 +41,8 @@ class ContractValidationServiceImplTest {
                 .contractPolicy(newPolicy)
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
-        var definitionResult = new ContractDefinitionResult(contractDefinition);
 
-        EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(definitionResult);
+        EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(contractDefinition);
 
         //noinspection unchecked
         EasyMock.expect(assetIndex.queryAssets(EasyMock.isA(List.class))).andReturn(Stream.of());
@@ -76,9 +74,8 @@ class ContractValidationServiceImplTest {
                 .contractPolicy(newPolicy)
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
-        var definitionResult = new ContractDefinitionResult(contractDefinition);
 
-        EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(definitionResult);
+        EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(contractDefinition);
 
         EasyMock.replay(agentService, definitionService, assetIndex);
 

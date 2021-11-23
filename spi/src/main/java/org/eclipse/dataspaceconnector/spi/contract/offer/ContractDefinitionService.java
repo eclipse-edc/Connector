@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.spi.contract.offer;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.stream.Stream;
 
@@ -37,6 +38,6 @@ public interface ContractDefinitionService {
      * Returns a contract definition for the agent associated with the given contract definition id. If the definition does not exist or the agent is not authorized, the result
      * will indicate the request is invalid.
      */
-    @NotNull
-    ContractDefinitionResult definitionFor(ParticipantAgent agent, String definitionId);
+    @Nullable
+    ContractDefinition definitionFor(ParticipantAgent agent, String definitionId);
 }

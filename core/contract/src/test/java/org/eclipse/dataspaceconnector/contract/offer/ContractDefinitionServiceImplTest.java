@@ -92,9 +92,9 @@ class ContractDefinitionServiceImplTest {
 
         definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
 
-        assertThat(definitionService.definitionFor(agent, "1").getDefinition()).isNotNull();
-        assertThat(definitionService.definitionFor(agent, "1").invalid()).isTrue();
-        assertThat(definitionService.definitionFor(agent, "nodefinition").invalid()).isTrue();
+        assertThat(definitionService.definitionFor(agent, "1")).isNotNull();
+        assertThat(definitionService.definitionFor(agent, "1")).isNull();
+        assertThat(definitionService.definitionFor(agent, "nodefinition")).isNull();
 
         verify(policyEngine);
     }
