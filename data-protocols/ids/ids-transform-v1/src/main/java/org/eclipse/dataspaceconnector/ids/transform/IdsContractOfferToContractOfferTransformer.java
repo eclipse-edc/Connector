@@ -85,6 +85,7 @@ public class IdsContractOfferToContractOfferTransformer implements IdsTypeTransf
         policyBuilder.permissions(edcPermissions);
 
         var contractOfferBuilder = ContractOffer.Builder.newInstance();
+        contractOfferBuilder.id(object.getId().toString()); //fixme: is this correct?
         contractOfferBuilder.policy(policyBuilder.build());
         contractOfferBuilder.consumer(object.getConsumer());
         contractOfferBuilder.provider(object.getProvider());
