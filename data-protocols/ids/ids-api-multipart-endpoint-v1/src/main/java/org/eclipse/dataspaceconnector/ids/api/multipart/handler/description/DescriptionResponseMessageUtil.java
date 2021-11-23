@@ -51,7 +51,7 @@ class DescriptionResponseMessageUtil {
         builder._issuerConnector_(connectorIdUri);
         builder._senderAgent_(connectorIdUri);
 
-        builder._issued_(CalendarUtil.gregorianNow());
+        //builder._issued_(CalendarUtil.gregorianNow()); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
 
         if (correlationMessage != null) {
             URI id = correlationMessage.getId();
