@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.cosmos.azure;
 
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.List;
 
 public interface CosmosDbApi {
@@ -17,4 +18,8 @@ public interface CosmosDbApi {
     List<Object> queryAllItems();
 
     List<Object> queryItems(String query);
+
+    void deleteItem(String id);
+
+    void createItems(Collection<CosmosDocument<?>> definitions);
 }
