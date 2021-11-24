@@ -21,6 +21,10 @@ import org.jetbrains.annotations.Nullable;
 import java.io.InputStream;
 import java.util.Objects;
 
+/**
+ * Container object for the header and payload part of an IDS multipart response as
+ * {@link InputStream}s, so that they can easily be parsed to the correct form.
+ */
 class IdsMultipartParts {
 
     private final InputStream header;

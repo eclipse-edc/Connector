@@ -48,6 +48,12 @@ import java.net.http.HttpHeaders;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Abstract class for sending IDS multipart messages.
+ *
+ * @param <M> the RemoteMessage type sent by the sub class.
+ * @param <R> the response type returned by the sub class.
+ */
 abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMessageSender<M, R> {
     private final URI connectorId;
     private final OkHttpClient httpClient;
@@ -85,18 +91,61 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         return connectorId;
     }
 
+    /**
+     * Returns the ID of the recipient connector.
+     *
+     * @param request the request.
+     * @return the recipient connector's ID.
+     */
     protected abstract String retrieveRemoteConnectorId(M request);
 
+    /**
+     * Returns the address of the recipient connector, which is the destination for the multipart
+     * message.
+     *
+     * @param request the request.
+     * @return the recipient connector's address.
+     */
     protected abstract String retrieveRemoteConnectorAddress(M request);
 
+    /**
+     * Builds the IDS multipart header for the request.
+     *
+     * @param request the request.
+     * @param token the dynamic attribute token.
+     * @return the message header.
+     * @throws Exception if building the message header fails.
+     */
     protected abstract Message buildMessageHeader(M request, DynamicAttributeToken token) throws Exception;
 
+    /**
+     * Builds the IDS multipart payload for the request.
+     *
+     * @param request the request.
+     * @return the message payload.
+     * @throws Exception if building the message payload fails.
+     */
     protected String buildMessagePayload(M request) throws Exception {
         return null;
     }
 
+    /**
+     * Reads and parses the IDS multipart response.
+     *
+     * @param parts container object for response header and payload {@link InputStream}s.
+     * @return an instance of the sub class's return type.
+     * @throws Exception if parsing the response fails.
+     */
     protected abstract R getResponseContent(IdsMultipartParts parts) throws Exception;
 
+    /**
+     * Builds and sends the IDS multipart request. Reads header and payload as {@link InputStream}
+     * from the multipart response.
+     *
+     * @param request the request.
+     * @param context the message context.
+     * @return the response as {@link CompletableFuture}.
+     */
     @Override
     public CompletableFuture<R> send(M request, MessageContext context) {
         // Get connector ID
@@ -215,6 +264,14 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         return future;
     }
 
+    /**
+     * Parses the multipart response. Extracts header and payload as input stream and wraps them
+     * in a container object.
+     *
+     * @param body the response body.
+     * @return a container holding the {@link InputStream}s for response header and payload.
+     * @throws Exception if parsing the response fails.
+     */
     private IdsMultipartParts extractResponseParts(ResponseBody body) throws Exception {
         InputStream header = null;
         InputStream payload = null;

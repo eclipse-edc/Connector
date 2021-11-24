@@ -33,6 +33,10 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
 
+/**
+ * IdsMultipartSender implementation for data requests. Sends IDS ContractAgreementMessages and
+ * expects an IDS RequestInProcessMessage as the response.
+ */
 public class MultipartContractAgreementSender extends IdsMultipartSender<AgreementRequest, MultipartRequestInProcessResponse> {
 
     private final TransformerRegistry transformerRegistry;

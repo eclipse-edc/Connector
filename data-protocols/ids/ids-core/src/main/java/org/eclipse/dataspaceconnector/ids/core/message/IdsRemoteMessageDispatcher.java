@@ -24,6 +24,10 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+/**
+ * Abstract class for IDS message dispatchers, as the IDS dispatchers for protocols multipart and
+ * rest differ only in their implementation of the protocol() method.
+ */
 public abstract class IdsRemoteMessageDispatcher implements RemoteMessageDispatcher {
 
     private final Map<Class<? extends RemoteMessage>, IdsMessageSender<? extends RemoteMessage, ?>> senders = new HashMap<>();

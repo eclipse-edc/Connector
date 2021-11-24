@@ -34,6 +34,10 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
 
+/**
+ * IdsMultipartSender implementation for data requests. Sends IDS ArtifactRequestMessages and
+ * expects an IDS RequestInProcessMessage as the response.
+ */
 public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
 
     private final TransformerRegistry transformerRegistry;

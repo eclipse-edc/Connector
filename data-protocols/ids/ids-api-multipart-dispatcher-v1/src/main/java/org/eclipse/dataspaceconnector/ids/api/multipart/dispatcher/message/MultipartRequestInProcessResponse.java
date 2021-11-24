@@ -22,6 +22,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 //TODO define return type
+
+/**
+ * Models a multipart response for an IDS RequestInProcessMessage. As the EDC communicates mostly
+ * asynchronously, this message is the expected response for most request messages.
+ */
 public class MultipartRequestInProcessResponse implements MultipartResponse<String> {
 
     private final Message header;

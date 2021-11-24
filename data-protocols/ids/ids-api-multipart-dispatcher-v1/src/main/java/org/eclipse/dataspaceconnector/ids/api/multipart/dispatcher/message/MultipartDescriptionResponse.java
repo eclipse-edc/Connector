@@ -22,6 +22,12 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
+/**
+ * Models a multipart response for an IDS DescriptionResponseMessage. This message is the expected
+ * response for MetadataRequests/IDS DescriptionRequestMessages and contains Infomodel metadata
+ * in the payload. Therefore {@link ModelClass}, which is the super class for all Infomodel classes,
+ * is set as the payload type.
+ */
 public class MultipartDescriptionResponse implements MultipartResponse<ModelClass> {
 
     private final ResponseMessage header;
