@@ -9,12 +9,14 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - minor modifications
  *
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 /**
@@ -27,7 +29,7 @@ public interface ConsumerContractNegotiationManager extends ContractNegotiationM
     /**
      * Initiates a contract negotiation for the given provider offer. The offer will have been obtained from a previous contract offer request sent to the provider.
      */
-    NegotiationResponse initiate(ContractOffer offer);
+    NegotiationResponse initiate(ContractOfferRequest request);
 
     /**
      * An offer was received from the provider.

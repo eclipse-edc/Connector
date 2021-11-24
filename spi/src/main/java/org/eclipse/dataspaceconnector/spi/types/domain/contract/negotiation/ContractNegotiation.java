@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *
  */
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation;
@@ -20,7 +21,9 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +34,10 @@ import static java.util.stream.Collectors.joining;
 
 /**
  * Represents a contract negotiation.
+ *
+ * Note: This implements the negotiation process that is started by a consumer. For some use cases,
+ * it may be interesting to initiate the contract negotiation as a provider.
+ *
  * <p>
  * TODO: This is only placeholder
  * TODO: Implement state transitions
@@ -53,6 +60,7 @@ public class ContractNegotiation {
     private int state;
     private int stateCount;
     private long stateTimestamp;
+    private String errorDetail;
 
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
@@ -107,6 +115,10 @@ public class ContractNegotiation {
         contractOffers.add(offer);
     }
 
+    public String getErrorDetail() {
+        return errorDetail;
+    }
+
     /**
      * Returns the finalized agreement or null if the negotiation has not been confirmed.
      */
@@ -133,6 +145,76 @@ public class ContractNegotiation {
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
     }
 
+    /**
+     * Change state from unsaved to requesting.
+     */
+    public void transitionRequesting() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no REQUESTING state");
+        }
+        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.UNSAVED);
+    }
+
+    /**
+     * Change state from requesting to requested.
+     */
+    public void transitionRequested() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no REQUESTED state");
+        }
+        transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
+    }
+
+    /**
+     * Change state from unsaved to offering.
+     */
+    public void transitionProviderOffering() {
+        if (Type.CONSUMER == type) {
+            throw new IllegalStateException("Consumer processes have no PROVIDER_OFFERING state");
+        }
+        transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.UNSAVED);
+    }
+
+    /**
+     * Change state from offering to offered.
+     */
+    public void transitionProviderOffered() {
+        if (Type.CONSUMER == type) {
+            throw new IllegalStateException("Consumer processes have no PROVIDER_OFFERED state");
+        }
+        transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
+    }
+
+    /**
+     * Change state from unsaved to declining.
+     */
+    public void transitionDecliningFromUnsaved() {
+        transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.UNSAVED);
+    }
+
+    /**
+     * Change state from declining to declined.
+     */
+    public void transitionDeclining() {
+        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING);
+    }
+
+    public void transitionConsumerOffering() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no CONSUMER_OFFERING state");
+        }
+        transition(ContractNegotiationStates.CONSUMER_OFFERING, ContractNegotiationStates.REQUESTED);
+    }
+
+    public void transitionConsumerOffered() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no CONSUMER_OFFERED state");
+        }
+        transition(ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
+    }
+
+    // TODO add all combinations from state diagramm
+
     private void checkState(int... legalStates) {
         for (var legalState : legalStates) {
             if (state == legalState) {
@@ -141,6 +223,33 @@ public class ContractNegotiation {
         }
         var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
         throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", this.state, values));
+    }
+
+    public void transitionError(@Nullable String errorDetail) {
+        state = ContractNegotiationStates.ERROR.code();
+        this.errorDetail = errorDetail;
+        stateCount = 1;
+        updateStateTimestamp();
+    }
+
+
+    public void rollbackState(ContractNegotiationStates state) {
+        this.state = state.code();
+        stateCount = 1;
+        updateStateTimestamp();
+    }
+
+    public void updateStateTimestamp() {
+        stateTimestamp = Instant.now().toEpochMilli();
+    }
+
+    private void transition(ContractNegotiationStates end, ContractNegotiationStates... starts) {
+        if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
+            throw new IllegalStateException(format("Cannot transition from state %s to %s", ContractNegotiationStates.from(state), ContractNegotiationStates.from(end.code())));
+        }
+        stateCount = state == end.code() ? stateCount + 1 : 1;
+        state = end.code();
+        updateStateTimestamp();
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -211,6 +320,5 @@ public class ContractNegotiation {
             }
             return negotiation;
         }
-
     }
 }
