@@ -21,13 +21,13 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Set;
 
-import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions.ABS_SPATIAL_POSITION;
-import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions.PARTNER_LEVEL;
-
 /**
  * Registers test policy functions.
  */
 public class IdsPolicyExtension implements ServiceExtension {
+
+    public static String ABS_SPATIAL_POSITION = "ids:absoluteSpatialPosition";
+    public static String PARTNER_LEVEL = "ids:partnerLevel";
 
     @Override
     public Set<String> requires() {

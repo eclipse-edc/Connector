@@ -24,7 +24,6 @@ public interface IdsPolicyExpressions {
     String PAY_AMOUNT = "idsc:PAY_AMOUNT";
 
     String ABS_SPATIAL_POSITION = "ids:absoluteSpatialPosition";
-    String PARTNER_LEVEL = "ids:partnerLevel";
 
     LiteralExpression ABS_SPATIAL_POSITION_EXPRESSION = new LiteralExpression(ABS_SPATIAL_POSITION);
 
