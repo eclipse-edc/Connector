@@ -20,6 +20,8 @@ import org.slf4j.IMarkerFactory;
 import org.slf4j.Marker;
 import org.slf4j.event.Level;
 import org.slf4j.helpers.AbstractLogger;
+import org.slf4j.helpers.BasicMarkerFactory;
+import org.slf4j.helpers.NOPMDCAdapter;
 import org.slf4j.spi.MDCAdapter;
 import org.slf4j.spi.SLF4JServiceProvider;
 
@@ -28,6 +30,9 @@ import org.slf4j.spi.SLF4JServiceProvider;
  */
 public class MonitorProvider implements SLF4JServiceProvider {
     private static Monitor INSTANCE;
+    private IMarkerFactory markerFactory = new BasicMarkerFactory();
+    private MDCAdapter mdcAdapter = new NOPMDCAdapter();
+
 
     public static void setInstance(Monitor monitor) {
         INSTANCE = monitor;
@@ -40,12 +45,12 @@ public class MonitorProvider implements SLF4JServiceProvider {
 
     @Override
     public IMarkerFactory getMarkerFactory() {
-        return null;
+        return markerFactory;
     }
 
     @Override
     public MDCAdapter getMDCAdapter() {
-        return null;
+        return mdcAdapter;
     }
 
     @Override

@@ -26,8 +26,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-functions.core") {
-            artifactId = "transfer-functions.core"
+        create<MavenPublication>("dataloading.asset") {
+            artifactId = "dataloading.contract-def"
             from(components["java"])
         }
     }

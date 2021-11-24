@@ -34,7 +34,7 @@ import java.util.Collections;
 import java.util.Objects;
 
 /**
- * IdsMultipartSender implementation for data requests. Sends IDS ContractAgreementMessages and
+ * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
 public class MultipartContractAgreementSender extends IdsMultipartSender<AgreementRequest, MultipartRequestInProcessResponse> {
@@ -83,7 +83,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Agreeme
         var contractAgreement = request.getContractAgreement();
         var transformationResult = transformerRegistry.transform(contractAgreement, ContractAgreement.class);
         if (transformationResult.hasProblems()) {
-            throw new EdcException("Failed to create artifact ID from asset.");
+            throw new EdcException("Failed to create IDS contract agreement");
         }
 
         var idsContractAgreement = transformationResult.getOutput();

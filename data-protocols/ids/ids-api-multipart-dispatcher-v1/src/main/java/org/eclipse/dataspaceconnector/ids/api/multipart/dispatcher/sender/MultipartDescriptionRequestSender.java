@@ -39,7 +39,7 @@ import java.net.URI;
 import java.util.Collections;
 
 /**
- * IdsMultipartSender implementation for data requests. Sends IDS DescriptionRequestMessages and
+ * IdsMultipartSender implementation for metadata requests. Sends IDS DescriptionRequestMessages and
  * expects an IDS DescriptionResponseMessage as the response.
  */
 public class MultipartDescriptionRequestSender extends IdsMultipartSender<MetadataRequest, MultipartDescriptionResponse> {
