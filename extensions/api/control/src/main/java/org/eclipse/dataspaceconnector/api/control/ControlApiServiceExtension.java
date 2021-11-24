@@ -4,6 +4,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.Set;
@@ -16,7 +17,7 @@ public class ControlApiServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:webservice", "dataspaceconnector:transferprocessstore");
+        return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager");
     }
 
     @Override
@@ -24,8 +25,8 @@ public class ControlApiServiceExtension implements ServiceExtension {
         monitor = serviceExtensionContext.getMonitor();
 
         WebService webService = serviceExtensionContext.getService(WebService.class);
-        TransferProcessStore transferProcessStore = serviceExtensionContext.getService(TransferProcessStore.class);
-        webService.registerController(new ClientController(transferProcessStore));
+        TransferProcessManager transferProcessManager = serviceExtensionContext.getService(TransferProcessManager.class);
+        webService.registerController(new ClientController(transferProcessManager));
 
         monitor.info(String.format("Initialized %s", NAME));
     }

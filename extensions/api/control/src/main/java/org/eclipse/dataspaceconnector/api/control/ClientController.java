@@ -18,15 +18,12 @@ package org.eclipse.dataspaceconnector.api.control;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -37,33 +34,21 @@ import java.util.Objects;
 @Path("/control")
 public class ClientController {
 
-    private static final String CONSUMER_ID = "urn:connector:consumer";
+    private final TransferProcessManager transferProcessManager;
 
-    private final TransferProcessStore transferProcessStore;
-
-    public ClientController(@NotNull TransferProcessStore transferProcessStore) {
-        this.transferProcessStore = Objects.requireNonNull(transferProcessStore);
+    public ClientController(@NotNull TransferProcessManager transferProcessManager) {
+        this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
     }
 
     @POST
-    @Path("transfer/{id}") // TODO extend params when requirements are clear. This will probably require the Id of an contract and the asset id. Plus maybe additional parameters for the data address properties
-    public Response addTransfer(@PathParam("id") String id, @QueryParam("provider") String provider) {
+    @Path("transfer")
+    public Response addTransfer(DataRequest dataRequest) {
 
-        DataAddress dataAddress = DataAddress.Builder.newInstance()
-                .type("TODO")
-                .property("TODO", "TODO")
-                .build();
-        DataRequest dataRequest = DataRequest.Builder.newInstance()
-                .dataDestination(dataAddress)
-                .connectorAddress(provider)
-                .connectorId(CONSUMER_ID)
-                .build();
-        TransferProcess transferProcess = TransferProcess.Builder.newInstance()
-                .id(id)
-                .dataRequest(dataRequest)
-                .build();
+        if (dataRequest == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
 
-        transferProcessStore.create(transferProcess);
-        return Response.ok(transferProcess).build();
+        TransferInitiateResponse response = transferProcessManager.initiateConsumerRequest(dataRequest);
+        return Response.ok(response.getId()).build();
     }
 }

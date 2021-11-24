@@ -62,7 +62,7 @@ public class TransferFunctionsCoreHttpTest {
                 .id(UUID.randomUUID().toString())
                 .protocol("ids")
                 .destinationType("foo")
-                .asset(asset)
+                .assetId(asset.getId())
                 .managedResources(false)
                 .dataDestination(DataAddress.Builder.newInstance().type("test-protocol1").build())
                 .connectorId("test").build();

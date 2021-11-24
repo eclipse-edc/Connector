@@ -22,8 +22,8 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
 public class ConsumerApiController {
 
@@ -57,7 +57,7 @@ public class ConsumerApiController {
                 .connectorAddress(connectorAddress) //the address of the provider connector
                 .protocol("ids-rest") //must be ids-rest
                 .connectorId("consumer")
-                .asset(Asset.Builder.newInstance().id(filename).policyId("use-eu").build())
+                .assetId(Asset.Builder.newInstance().id(filename).policyId("use-eu").build().getId())
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type("File") //the provider uses this to select the correct DataFlowController
                         .property("path", destinationPath) //where we want the file to be stored
