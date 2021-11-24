@@ -88,7 +88,18 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc1);
         container.createItem(doc2);
 
+        store.reload();
         assertThat(store.findAll()).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
+    }
+
+    @Test
+    void findAll_noReload() {
+        var doc1 = generateDocument();
+        var doc2 = generateDocument();
+        container.createItem(doc1);
+        container.createItem(doc2);
+
+        assertThat(store.findAll()).isEmpty();
     }
 
     @Test

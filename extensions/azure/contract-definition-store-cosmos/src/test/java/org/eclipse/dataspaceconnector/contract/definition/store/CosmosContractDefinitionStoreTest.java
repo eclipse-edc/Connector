@@ -41,8 +41,18 @@ class CosmosContractDefinitionStoreTest {
         expect(cosmosDbApiMock.queryAllItems()).andReturn(List.of(doc1, doc2));
         replay(cosmosDbApiMock);
 
+        store.reload();
         var all = store.findAll();
         assertThat(all).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
+        verify(cosmosDbApiMock);
+    }
+
+    @Test
+    void findAll_noReload() {
+        replay(cosmosDbApiMock);
+
+        var all = store.findAll();
+        assertThat(all).isEmpty();
         verify(cosmosDbApiMock);
     }
 
@@ -56,6 +66,21 @@ class CosmosContractDefinitionStoreTest {
         var def = generateDefinition();
         store.save(def);
         assertThat(documentCapture.getValue().getWrappedInstance()).isEqualTo(def);
+        verify(cosmosDbApiMock);
+    }
+
+    @Test
+    void save_verifyWriteThrough() {
+        Capture<ContractDefinitionDocument> documentCapture = newCapture();
+        cosmosDbApiMock.createItem(capture(documentCapture));
+        expectLastCall().times(1);
+        // cosmosDbApiQueryMock.queryAllItems() should never be called
+        replay(cosmosDbApiMock);
+
+        var def = generateDefinition();
+        store.save(def); //should write through the cache
+        var all = store.findAll();
+        assertThat(all).isNotEmpty().containsExactlyInAnyOrder(documentCapture.getValue().getWrappedInstance());
         verify(cosmosDbApiMock);
     }
 
