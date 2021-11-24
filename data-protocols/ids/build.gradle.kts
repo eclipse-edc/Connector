@@ -25,6 +25,7 @@ dependencies {
     api(project(":data-protocols:ids:ids-api-transfer"))
     api(project(":data-protocols:ids:ids-policy-mock"))
     api(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
+    api(project(":data-protocols:ids:ids-api-multipart-dispatcher-v1"))
 }
 
 publishing {

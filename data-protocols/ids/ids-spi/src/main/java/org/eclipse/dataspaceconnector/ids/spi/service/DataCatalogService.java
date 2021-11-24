@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
-import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
 import org.jetbrains.annotations.NotNull;
 
 /**

@@ -32,6 +32,7 @@ import org.eclipse.dataspaceconnector.ids.core.message.FutureCallback;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsMessageSender;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
@@ -60,17 +61,20 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
     private final ObjectMapper objectMapper;
     private final Monitor monitor;
     private final IdentityService identityService;
+    private final TransformerRegistry transformerRegistry;
 
     protected IdsMultipartSender(@NotNull String connectorId,
                                  @NotNull OkHttpClient httpClient,
                                  @NotNull ObjectMapper objectMapper,
                                  @NotNull Monitor monitor,
-                                 @NotNull IdentityService identityService) {
+                                 @NotNull IdentityService identityService,
+                                 @NotNull TransformerRegistry transformerRegistry) {
         this.connectorId = createConnectorIdUri(Objects.requireNonNull(connectorId, "connectorId"));
         this.httpClient = Objects.requireNonNull(httpClient, "httpClient");
         this.objectMapper = Objects.requireNonNull(objectMapper, "objectMapper");
         this.monitor = Objects.requireNonNull(monitor, "monitor");
         this.identityService = Objects.requireNonNull(identityService, "identityService");
+        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
     }
 
     private static URI createConnectorIdUri(String connectorId) {
@@ -79,6 +83,11 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 IdsIdParser.SCHEME,
                 IdsType.CONNECTOR.getValue(),
                 connectorId));
+    }
+
+    @NotNull
+    protected TransformerRegistry getTransformerRegistry() {
+        return transformerRegistry;
     }
 
     @NotNull
@@ -112,7 +121,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
      * Builds the IDS multipart header for the request.
      *
      * @param request the request.
-     * @param token the dynamic attribute token.
+     * @param token   the dynamic attribute token.
      * @return the message header.
      * @throws Exception if building the message header fails.
      */
@@ -261,6 +270,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 return null;
             }
         }));
+
         return future;
     }
 

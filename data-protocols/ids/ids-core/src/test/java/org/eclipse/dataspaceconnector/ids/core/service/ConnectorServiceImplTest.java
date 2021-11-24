@@ -16,11 +16,11 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
-import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

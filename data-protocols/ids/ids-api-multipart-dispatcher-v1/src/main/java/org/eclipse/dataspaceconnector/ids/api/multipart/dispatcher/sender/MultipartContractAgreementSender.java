@@ -31,7 +31,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.Objects;
 
 /**
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
@@ -39,16 +38,13 @@ import java.util.Objects;
  */
 public class MultipartContractAgreementSender extends IdsMultipartSender<AgreementRequest, MultipartRequestInProcessResponse> {
 
-    private final TransformerRegistry transformerRegistry;
-
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
                                             @NotNull ObjectMapper objectMapper,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
                                             @NotNull TransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService);
-        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
+        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
     }
 
     @Override
@@ -81,7 +77,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Agreeme
     @Override
     protected String buildMessagePayload(AgreementRequest request) throws Exception {
         var contractAgreement = request.getContractAgreement();
-        var transformationResult = transformerRegistry.transform(contractAgreement, ContractAgreement.class);
+        var transformationResult = getTransformerRegistry().transform(contractAgreement, ContractAgreement.class);
         if (transformationResult.hasProblems()) {
             throw new EdcException("Failed to create IDS contract agreement");
         }

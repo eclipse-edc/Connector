@@ -19,9 +19,9 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
-import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
 import org.jetbrains.annotations.NotNull;
 
 public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionRequestHandler<DataCatalog, ResourceCatalog> {

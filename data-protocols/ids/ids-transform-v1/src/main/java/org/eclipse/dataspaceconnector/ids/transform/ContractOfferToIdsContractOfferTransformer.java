@@ -81,7 +81,7 @@ public class ContractOfferToIdsContractOfferTransformer implements IdsTypeTransf
             }
         }
 
-        var idsId = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.CONTRACT_OFFER).build();
+        var idsId = IdsId.Builder.newInstance().value(object.getId()).type(IdsType.CONTRACT_OFFER).build();
         var id = context.transform(idsId, URI.class);
         ContractOfferBuilder contractOfferBuilder = new ContractOfferBuilder(id);
 

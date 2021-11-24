@@ -32,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.Objects;
 
 /**
  * IdsMultipartSender implementation for data requests. Sends IDS ArtifactRequestMessages and
@@ -40,16 +39,13 @@ import java.util.Objects;
  */
 public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
 
-    private final TransformerRegistry transformerRegistry;
-
     public MultipartArtifactRequestSender(@NotNull String connectorId,
                                           @NotNull OkHttpClient httpClient,
                                           @NotNull ObjectMapper objectMapper,
                                           @NotNull Monitor monitor,
                                           @NotNull IdentityService identityService,
                                           @NotNull TransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService);
-        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
+        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
     }
 
     @Override
@@ -74,7 +70,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 .value(asset.getId())
                 .type(IdsType.ARTIFACT)
                 .build();
-        var transformationResult = transformerRegistry.transform(id, URI.class);
+        var transformationResult = getTransformerRegistry().transform(id, URI.class);
         if (transformationResult.hasProblems()) {
             throw new EdcException("Failed to create artifact ID from asset.");
         }

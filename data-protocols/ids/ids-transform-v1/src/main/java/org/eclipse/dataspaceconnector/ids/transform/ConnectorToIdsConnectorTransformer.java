@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
-import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

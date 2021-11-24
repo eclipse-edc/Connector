@@ -49,12 +49,34 @@ public class TransformerRegistryImpl implements TransformerRegistry {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     private <INPUT, OUTPUT> @Nullable OUTPUT transform(INPUT object, Class<OUTPUT> outputType, TransformerContext context) {
         Objects.requireNonNull(object);
-        var key = new TransformKey(object.getClass(), outputType);
-        var idsTypeTransformer = (IdsTypeTransformer) transformers.get(key);
+
+        IdsTypeTransformer idsTypeTransformer = findEligibleTransformer(object, outputType);
         if (idsTypeTransformer == null) {
-            throw new EdcException("Transformer not found for pair:" + key); // this is a programming error
+            throw new EdcException("Transformer not found for pair:" + new TransformKey(object.getClass(), outputType)); // this is a programming error
         }
         return outputType.cast(idsTypeTransformer.transform(object, context));
+    }
+
+    @SuppressWarnings({ "unchecked" })
+    private <INPUT, OUTPUT> IdsTypeTransformer<INPUT, OUTPUT> findEligibleTransformer(INPUT object, Class<OUTPUT> outputType) {
+        IdsTypeTransformer<INPUT, OUTPUT> idsTypeTransformer;
+
+        Class<?> inputClass = object.getClass();
+        do {
+            idsTypeTransformer = (IdsTypeTransformer<INPUT, OUTPUT>) transformers.get(new TransformKey(inputClass, outputType));
+            if (idsTypeTransformer == null) {
+                for (Class<?> anInterface : inputClass.getInterfaces()) {
+                    idsTypeTransformer = (IdsTypeTransformer<INPUT, OUTPUT>) transformers.get(new TransformKey(anInterface, outputType));
+                    if (idsTypeTransformer != null) {
+                        break;
+                    }
+                }
+            }
+
+            inputClass = inputClass.getSuperclass();
+        } while (inputClass != null && idsTypeTransformer == null);
+
+        return idsTypeTransformer;
     }
 
     private static class TransformKey {

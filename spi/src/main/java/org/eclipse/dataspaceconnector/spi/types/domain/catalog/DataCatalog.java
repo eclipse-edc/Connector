@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.ids.spi.types;
+package org.eclipse.dataspaceconnector.spi.types.domain.catalog;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;

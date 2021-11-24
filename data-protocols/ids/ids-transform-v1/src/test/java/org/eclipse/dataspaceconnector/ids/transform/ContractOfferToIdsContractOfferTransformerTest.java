@@ -30,7 +30,8 @@ import java.net.URI;
 import java.util.Collections;
 
 public class ContractOfferToIdsContractOfferTransformerTest {
-    private static final URI OFFER_ID = URI.create("urn:offer:456uz984390236s");
+    private static final String CONTRACT_OFFER_ID = "456uz984390236s";
+    private static final URI OFFER_ID = URI.create("urn:offer:" + CONTRACT_OFFER_ID);
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
 
     // subject
@@ -89,6 +90,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         Duty edcObligation = EasyMock.createMock(Duty.class);
         de.fraunhofer.iais.eis.Duty idsObligation = EasyMock.createMock(de.fraunhofer.iais.eis.Duty.class);
 
+        EasyMock.expect(contractOffer.getId()).andReturn(CONTRACT_OFFER_ID);
         EasyMock.expect(contractOffer.getProvider()).andReturn(PROVIDER_URI);
         EasyMock.expect(contractOffer.getConsumer()).andReturn(null);
         EasyMock.expect(contractOffer.getContractStart()).andReturn(null);

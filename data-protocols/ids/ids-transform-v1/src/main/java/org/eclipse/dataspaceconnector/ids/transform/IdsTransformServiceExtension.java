@@ -72,6 +72,7 @@ public class IdsTransformServiceExtension implements ServiceExtension {
                 new IdsRdfResourceToExpressionTransformer(),
                 new IdsRepresentationToAssetTransformer(),
                 new IdsResourceToAssetTransformer(),
+                new IdsResourceCatalogToDataCatalogTransformer(),
                 new OfferedAssetToIdsResourceTransformer(),
                 new OperatorToIdsBinaryOperatorTransformer(),
                 new PermissionToIdsPermissionTransformer(),
