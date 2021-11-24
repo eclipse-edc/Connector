@@ -105,7 +105,7 @@ public final class RejectionMessageUtil {
 
         builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
         builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
-        builder._issued_(CalendarUtil.gregorianNow());
+        //builder._issued_(CalendarUtil.gregorianNow()); TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
 
         if (connectorId != null) {
             connectorId = String.join(

@@ -18,7 +18,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.core.daps.DapsServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.message.DataRequestMessageSender;
-import org.eclipse.dataspaceconnector.ids.core.message.IdsRemoteMessageDispatcher;
+import org.eclipse.dataspaceconnector.ids.core.message.IdsRestRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.core.message.QueryMessageSender;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsPolicyServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
@@ -157,13 +157,12 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         var monitor = context.getMonitor();
 
-        var dispatcher = new IdsRemoteMessageDispatcher();
-
-        dispatcher.register(new QueryMessageSender(connectorId, identityService, httpClient, mapper, monitor));
-        dispatcher.register(new DataRequestMessageSender(connectorId, identityService, processStore, vault, httpClient, mapper, monitor));
+        var restDispatcher = new IdsRestRemoteMessageDispatcher();
+        restDispatcher.register(new QueryMessageSender(connectorId, identityService, httpClient, mapper, monitor));
+        restDispatcher.register(new DataRequestMessageSender(connectorId, identityService, processStore, vault, httpClient, mapper, monitor));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
-        registry.register(dispatcher);
+        registry.register(restDispatcher);
     }
 
     private TransformerRegistry createTransformerRegistry() {

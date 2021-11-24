@@ -30,8 +30,10 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
+import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
@@ -72,7 +74,10 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
     }
 
     @Override
-    public CompletableFuture<Void> send(DataRequest dataRequest, MessageContext context) {
+    public CompletableFuture<Void> send(@NotNull DataRequest dataRequest, @NotNull MessageContext context) {
+        Objects.requireNonNull(dataRequest, "dataRequest");
+        Objects.requireNonNull(context, "messageContext");
+
         var connectorId = dataRequest.getConnectorId();
 
         var tokenResult = identityService.obtainClientCredentials(connectorId);
