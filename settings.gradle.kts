@@ -93,6 +93,7 @@ include(":extensions:transfer-functions:transfer-functions-spi")
 include(":extensions:transfer-functions:transfer-functions-core")
 include(":extensions:dataloading:dataloading-spi")
 include(":extensions:dataloading:dataloading-asset")
+include(":extensions:dataloading:dataloading-contractdef")
 include(":extensions:policy:ids-policy")
 
 // modules for launchers, i.e. runnable compositions of the app

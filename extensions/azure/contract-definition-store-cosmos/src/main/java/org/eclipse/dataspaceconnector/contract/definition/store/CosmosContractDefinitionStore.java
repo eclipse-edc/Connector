@@ -19,6 +19,11 @@ import java.util.stream.Collectors;
 
 import static net.jodah.failsafe.Failsafe.with;
 
+/**
+ * Implementation of the {@link ContractDefinitionStore} based on CosmosDB. This store implements simple write-through
+ * caching mechanics: read operations (e.g. findAll) hit the cache, while write operations affect both the cache AND the
+ * database.
+ */
 public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     private final CosmosDbApi cosmosDbApi;
     private final TypeManager typeManager;
@@ -43,7 +48,7 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     public void save(Collection<ContractDefinition> definitions) {
         lock.writeLock().lock();
         try {
-            cosmosDbApi.createItems(definitions.stream().map(this::convertToDocument).collect(Collectors.toList()));
+            with(retryPolicy).run(() -> cosmosDbApi.createItems(definitions.stream().map(this::convertToDocument).collect(Collectors.toList())));
             definitions.forEach(this::storeInCache);
         } finally {
             lock.writeLock().unlock();
@@ -54,7 +59,7 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     public void save(ContractDefinition definition) {
         lock.writeLock().lock();
         try {
-            cosmosDbApi.createItem(convertToDocument(definition));
+            with(retryPolicy).run(() -> cosmosDbApi.createItem(convertToDocument(definition)));
             storeInCache(definition);
         } finally {
             lock.writeLock().unlock();
@@ -80,9 +85,11 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     @Override
     public void reload() {
         lock.readLock().lock();
-
         try {
-            var databaseObjects = with(retryPolicy).get((CheckedSupplier<List<Object>>) cosmosDbApi::queryAllItems)
+            // this reloads ALL items from the database. We might want something more elaborate in the future, especially
+            // if large amounts of ContractDefinitions need to be held in memory
+            var databaseObjects = with(retryPolicy)
+                    .get((CheckedSupplier<List<Object>>) cosmosDbApi::queryAllItems)
                     .stream()
                     .map(this::convert)
                     .collect(Collectors.toMap(ContractDefinition::getId, cd -> cd));

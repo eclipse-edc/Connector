@@ -15,21 +15,21 @@ public class CosmosContractDefinitionStoreConfig extends AbstractCosmosConfig {
 
     @Override
     protected String getAccountNameSetting() {
-        return null;
+        return "edc.contractdefinitionstore.cosmos.account-name";
     }
 
     @Override
     protected String getDbNameSetting() {
-        return null;
+        return "edc.contractdefinitionstore.cosmos.database-name";
     }
 
     @Override
     protected String getCosmosPreferredRegionSetting() {
-        return null;
+        return "edc.contractdefinitionstore.cosmos.preferred-region";
     }
 
     @Override
     protected String getContainerNameSetting() {
-        return null;
+        return "edc.contractdefinitionstore.cosmos.container-name";
     }
 }

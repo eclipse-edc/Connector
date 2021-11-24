@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.dataloader.cli;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
+import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.system.runtime.BaseRuntime;
 import picocli.CommandLine;
@@ -26,13 +27,18 @@ public class DataLoaderRuntime extends BaseRuntime {
         var runtime = new DataLoaderRuntime();
         runtime.boot();
         var assetSink = context.getService(AssetLoader.class, true);
+        var contractsSink = context.getService(ContractDefinitionLoader.class, true);
 
         if (assetSink == null) {
-            context.getMonitor().severe("No AssetLoader was configured - please check your build file!");
+            context.getMonitor().severe("No AssetLoader was configured - loading assets will not work. Please check your build file!");
+            System.exit(-1);
+        }
+        if (contractsSink == null) {
+            context.getMonitor().severe("No ContractDefinition loader was configured - loading ContractDefinitions will not work. Please check your build file!");
             System.exit(-1);
         }
 
-        var exitCode = new CommandLine(new LoadCommand(context.getTypeManager().getMapper(), assetSink)).execute(args);
+        var exitCode = new CommandLine(new LoadCommand(context.getTypeManager().getMapper(), assetSink, contractsSink)).execute(args);
         System.exit(exitCode);
     }
 
