@@ -17,6 +17,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.exc.MismatchedInputException;
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
+import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
+import org.eclipse.dataspaceconnector.dataloading.DataSink;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -34,34 +37,34 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFi
 class LoadCommandTest {
     private LoadCommand loadCommand;
     private AssetLoader assetLoaderMock;
+    private DataSink<ContractDefinition> contractsSinkMock;
 
     @BeforeEach
     void setUp() {
         assetLoaderMock = strictMock(AssetLoader.class);
-        loadCommand = new LoadCommand(new ObjectMapper(), assetLoaderMock);
+        contractsSinkMock = strictMock(ContractDefinitionLoader.class);
+        loadCommand = new LoadCommand(new ObjectMapper(), assetLoaderMock, contractsSinkMock);
 
     }
 
     @Test
-    void runCommand() {
+    void runCommand_assets() {
         assetLoaderMock.accept(anyObject(AssetEntry.class));
         expectLastCall().times(10);
         replay(assetLoaderMock);
 
         var file = getFileFromResourceName("assets.json");
-        loadCommand.setFile(file);
-        loadCommand.setParseAssets(true);
+        loadCommand.setParseAssets(file);
 
         loadCommand.run();
         verify(assetLoaderMock);
     }
 
     @Test
-    void runCommand_noFlagSet() {
+    void runCommand_assets_noFlagSet() {
         replay(assetLoaderMock);
 
         var file = getFileFromResourceName("assets.json");
-        loadCommand.setFile(file);
         loadCommand.setParseAssets(null);
 
         assertThatThrownBy(() -> loadCommand.run()).isInstanceOf(IllegalArgumentException.class);
@@ -69,41 +72,83 @@ class LoadCommandTest {
     }
 
     @Test
-    void runCommand_flagNotTrue() {
-        replay(assetLoaderMock);
-
-        var file = getFileFromResourceName("assets.json");
-        loadCommand.setFile(file);
-        loadCommand.setParseAssets(false);
-
-        assertThatThrownBy(() -> loadCommand.run()).isInstanceOf(IllegalArgumentException.class);
-        verify(assetLoaderMock);
-    }
-
-
-    @Test
-    void runCommand_fileNotValidContent() {
+    void runCommand_assets_fileNotValidContent() {
         replay(assetLoaderMock);
 
         var file = getFileFromResourceName("invalidContent.json");
-        loadCommand.setFile(file);
-        loadCommand.setParseAssets(true);
+        loadCommand.setParseAssets(file);
 
         assertThatThrownBy(() -> loadCommand.run()).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(MismatchedInputException.class);
         verify(assetLoaderMock);
     }
 
-
     @Test
-    void runCommand_fileNotExist() {
+    void runCommand_assets_fileNotExist() {
         replay(assetLoaderMock);
 
         var file = new File("/not/exist/foo.json");
-        loadCommand.setFile(file);
-        loadCommand.setParseAssets(true);
+        loadCommand.setParseAssets(file);
 
         assertThatThrownBy(() -> loadCommand.run()).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(NoSuchFileException.class);
         verify(assetLoaderMock);
+    }
+
+    @Test
+    void runCommand_contracts() {
+        contractsSinkMock.accept(anyObject(ContractDefinition.class));
+        expectLastCall().times(10);
+        replay(contractsSinkMock, assetLoaderMock);
+
+        var file = getFileFromResourceName("contracts.json");
+        loadCommand.setParseContracts(file);
+
+        loadCommand.run();
+        verify(contractsSinkMock, assetLoaderMock);
+    }
+
+    @Test
+    void runCommand_contracts_noFlagSet() {
+        replay(assetLoaderMock, contractsSinkMock);
+
+        loadCommand.setParseContracts(null);
+
+        assertThatThrownBy(() -> loadCommand.run()).isInstanceOf(IllegalArgumentException.class);
+        verify(assetLoaderMock, contractsSinkMock);
+    }
+
+    @Test
+    void runCommand_contracts_fileNotValidContent() {
+        replay(assetLoaderMock, contractsSinkMock);
+
+        var file = getFileFromResourceName("invalidContent.json");
+        loadCommand.setParseContracts(file);
+
+        assertThatThrownBy(() -> loadCommand.run()).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(MismatchedInputException.class);
+        verify(assetLoaderMock, contractsSinkMock);
+    }
+
+    @Test
+    void runCommand_contracts_fileNotExist() {
+        replay(assetLoaderMock, contractsSinkMock);
+
+        var file = new File("/not/exist/foo.json");
+        loadCommand.setParseContracts(file);
+
+        assertThatThrownBy(() -> loadCommand.run()).isInstanceOf(RuntimeException.class).hasRootCauseInstanceOf(NoSuchFileException.class);
+        verify(assetLoaderMock, contractsSinkMock);
+    }
+
+    @Test
+    void runCommand_bothFlagsSet_throwsException() {
+        replay(assetLoaderMock, contractsSinkMock);
+
+        var file1 = getFileFromResourceName("assets.json");
+        var file2 = getFileFromResourceName("contracts.json");
+
+        loadCommand.setParseAssets(file1);
+        loadCommand.setParseContracts(file2);
+
+        assertThatThrownBy(() -> loadCommand.run()).isInstanceOf(IllegalArgumentException.class);
     }
 
 

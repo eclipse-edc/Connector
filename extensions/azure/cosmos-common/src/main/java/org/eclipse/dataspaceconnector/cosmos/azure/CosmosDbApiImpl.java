@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -146,4 +147,26 @@ public class CosmosDbApiImpl implements CosmosDbApi {
             throw new EdcException(e);
         }
     }
+
+    @Override
+    public void deleteItem(String id) {
+
+        // we need to query the item first, because delete-by-id requires a partition key, which we might not have available here
+        var item = queryItemById(id);
+        if (item == null) {
+            throw new NotFoundException("An object with the ID " + id + " could not be found!");
+        }
+        try {
+            container.deleteItem(item, itemRequestOptions).getItem();
+        } catch (CosmosException e) {
+            throw new EdcException(e);
+        }
+    }
+
+    @Override
+    public void createItems(Collection<CosmosDocument<?>> definitions) {
+        definitions.forEach(this::createItem);
+    }
+
+
 }

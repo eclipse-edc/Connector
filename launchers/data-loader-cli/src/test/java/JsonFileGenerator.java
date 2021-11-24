@@ -13,8 +13,11 @@
  */
 
 import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -27,7 +30,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 @Disabled
-public class AssetEntryGenerator {
+public class JsonFileGenerator {
 
     @Test
     void createAssetEntries() throws IOException {
@@ -35,6 +38,24 @@ public class AssetEntryGenerator {
                 .collect(Collectors.toUnmodifiableList());
         var json = new TypeManager().getMapper().writeValueAsString(entries);
         Files.write(Path.of("/home/paul/Documents/assets.json"), json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    @Test
+    void createContractDefinitions() throws IOException {
+        var entries = IntStream.range(0, 10).mapToObj(this::createContractDefinition)
+                .collect(Collectors.toUnmodifiableList());
+        var json = new TypeManager().getMapper().writeValueAsString(entries);
+        Files.write(Path.of("/home/paul/Documents/contracts.json"), json.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private ContractDefinition createContractDefinition(int i) {
+
+        return ContractDefinition.Builder.newInstance()
+                .id("ContractDefinition_" + i)
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .contractPolicy(Policy.Builder.newInstance().id("CP_" + i).build())
+                .accessPolicy(Policy.Builder.newInstance().id("AP_" + i).build())
+                .build();
     }
 
     private DataAddress createDataAddress(int i) {

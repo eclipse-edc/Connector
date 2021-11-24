@@ -23,13 +23,13 @@ import java.util.Objects;
 
 /**
  * Defines the parameters of a contract.
- *
+ * <p>
  * The {@link AssetSelectorExpression} defines which assets this contract applies to. Access policy defines the non-public requirements for accessing a set of assets
  * governed by the contract. These requirements are therefore not advertised to the agent. For example, access control policy may require an agent to be in a business partner tier.
  * Contract policy defines the requirements governing use an agent must follow when accessing the data. This policy is advertised to agents as part of a contract.
- *
+ * <p>
  * A participant agent may access a contract (and its associated assets) if the union of the access policy and contract policy is satisfied by the agent.
- *
+ * <p>
  * Note that the id must be a UUID.
  */
 @JsonDeserialize(builder = ContractDefinition.Builder.class)
@@ -38,6 +38,9 @@ public class ContractDefinition {
     private Policy accessPolicy;
     private Policy contractPolicy;
     private AssetSelectorExpression selectorExpression;
+
+    private ContractDefinition() {
+    }
 
     public String getId() {
         return id;
@@ -58,12 +61,45 @@ public class ContractDefinition {
         return selectorExpression;
     }
 
-    private ContractDefinition() {
+    @Override
+    public int hashCode() {
+        int result = id.hashCode();
+        result = 31 * result + accessPolicy.hashCode();
+        result = 31 * result + contractPolicy.hashCode();
+        result = 31 * result + selectorExpression.hashCode();
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        ContractDefinition that = (ContractDefinition) o;
+
+        if (!id.equals(that.id)) {
+            return false;
+        }
+        if (!accessPolicy.equals(that.accessPolicy)) {
+            return false;
+        }
+        if (!contractPolicy.equals(that.contractPolicy)) {
+            return false;
+        }
+        return selectorExpression.equals(that.selectorExpression);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
-        private ContractDefinition definition;
+        private final ContractDefinition definition;
+
+        private Builder() {
+            definition = new ContractDefinition();
+        }
 
         public static Builder newInstance() {
             return new Builder();
@@ -95,10 +131,6 @@ public class ContractDefinition {
             Objects.requireNonNull(definition.contractPolicy);
             Objects.requireNonNull(definition.selectorExpression);
             return definition;
-        }
-
-        private Builder() {
-            definition = new ContractDefinition();
         }
     }
 }

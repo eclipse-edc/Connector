@@ -23,9 +23,9 @@ val jupiterVersion: String by project
 dependencies {
     implementation(project(":core:bootstrap"))
     implementation(project(":extensions:dataloading:dataloading-asset"))
+    implementation(project(":extensions:dataloading:dataloading-contractdef"))
 
-    // uncomment the following lines to use the CosmosDB-based Asset index:
-    //
+    // the following lines enable the CosmosDB-based AssetIndex
     implementation(project(":extensions:azure:assetindex-cosmos"))
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:azure:vault"))
@@ -33,6 +33,10 @@ dependencies {
     // alternatively uncomment the following line to use the in-memory AssetIndex
     //
     // implementation(project(":extensions:in-memory:assetindex-memory"))
+
+    // the following line enables the Cosmos-DB based ContractDefinitionStore
+    implementation(project(":extensions:azure:contract-definition-store-cosmos"))
+
 
     // lightweight lib for CLI args
     implementation("info.picocli:picocli:4.6.2")

@@ -23,6 +23,8 @@ import java.util.Collection;
  */
 public interface ContractDefinitionStore {
 
+    String FEATURE = "edc:contractdefinition:store";
+
     /**
      * Returns all the definitions in the store.
      */
