@@ -24,6 +24,7 @@ val rsApi: String by project
 dependencies {
     implementation(project(":core:bootstrap"))
     implementation(project(":core:transfer"))
+    implementation(project(":core:contract"))
     implementation(project(":core:protocol:web"))
     implementation(project(":core:policy:policy-model"))
     implementation(project(":core:policy:policy-engine"))
@@ -39,6 +40,7 @@ dependencies {
     implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:05-file-transfer-cloud:transfer-file"))
+    implementation(project(":samples:05-file-transfer-cloud:data-seeder"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

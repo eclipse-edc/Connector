@@ -109,7 +109,7 @@ public class ArtifactRequestHandler implements Handler {
         }
 
         ContractAgreement contractAgreement = ContractAgreement.Builder.newInstance()
-                .id(contractDefinition.get().getId())
+                .id(contractDefinition.get().getId() + ":" + UUID.randomUUID())
                 .policy(contractDefinition.get().getContractPolicy())
                 .contractEndDate(Instant.now().getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())

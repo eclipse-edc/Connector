@@ -138,7 +138,7 @@ resource "azurerm_key_vault_secret" "blobstorekey" {
 
 // the AWS access credentials
 resource "azurerm_key_vault_secret" "aws-keyid" {
-  name         = "dataspaceconnector-aws-access-key"
+  name         = "edc-aws-access-key"
   value        = aws_iam_access_key.access_key.id
   key_vault_id = azurerm_key_vault.main-vault.id
   depends_on = [
@@ -146,7 +146,7 @@ resource "azurerm_key_vault_secret" "aws-keyid" {
 }
 
 resource "azurerm_key_vault_secret" "aws-secret" {
-  name         = "dataspaceconnector-aws-secret-access-key"
+  name         = "edc-aws-secret-access-key"
   value        = aws_iam_access_key.access_key.secret
   key_vault_id = azurerm_key_vault.main-vault.id
   depends_on = [
