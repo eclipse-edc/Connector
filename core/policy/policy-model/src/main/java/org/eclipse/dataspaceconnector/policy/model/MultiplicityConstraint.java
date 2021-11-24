@@ -14,12 +14,15 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * A collection of child constraints. Subclasses define the semantics for when this constraint is satisfied.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "edctype")
 public abstract class MultiplicityConstraint extends Constraint {
     protected List<Constraint> constraints = new ArrayList<>();
 

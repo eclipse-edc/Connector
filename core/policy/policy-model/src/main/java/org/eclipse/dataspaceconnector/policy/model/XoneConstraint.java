@@ -14,7 +14,11 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
-import java.util.ArrayList;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonTypeName;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import java.util.List;
 
 import static java.util.stream.Collectors.joining;
@@ -22,8 +26,9 @@ import static java.util.stream.Collectors.joining;
 /**
  * A collection of child constraints where exactly one must be satisfied for the constraint to be satisfied.
  */
+@JsonDeserialize(builder = XoneConstraint.Builder.class)
+@JsonTypeName("dataspaceconnector:xone")
 public class XoneConstraint extends MultiplicityConstraint {
-    private List<Constraint> constraints = new ArrayList<>();
 
     public List<Constraint> getConstraints() {
         return constraints;
@@ -39,8 +44,10 @@ public class XoneConstraint extends MultiplicityConstraint {
         return "Xone constraint: [" + constraints.stream().map(Object::toString).collect(joining(",")) + "]";
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends MultiplicityConstraint.Builder<XoneConstraint, Builder> {
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }

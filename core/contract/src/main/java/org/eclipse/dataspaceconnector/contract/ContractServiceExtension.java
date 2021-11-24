@@ -15,24 +15,28 @@
 package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
+import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
-import org.eclipse.dataspaceconnector.contract.offer.NullContractDefinitionService;
+import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.InMemoryContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class ContractServiceExtension implements ServiceExtension {
     private static final String NAME = "Core Contract Service Extension";
     private static final Set<String> PROVIDES = Set.of("edc:core:contract");
 
     private Monitor monitor;
+    private ServiceExtensionContext context;
+    private ContractDefinitionServiceImpl definitionService;
 
     @Override
     public final Set<String> provides() {
@@ -45,16 +49,19 @@ public class ContractServiceExtension implements ServiceExtension {
     }
 
     @Override
-    public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        monitor = serviceExtensionContext.getMonitor();
+    public void initialize(ServiceExtensionContext context) {
+        monitor = context.getMonitor();
+        this.context = context;
 
-        registerServices(serviceExtensionContext);
+        registerServices(context);
 
         monitor.info(String.format("Initialized %s", NAME));
     }
 
     @Override
     public void start() {
+        // load the store in the start method so it can be overridden by an extension
+        definitionService.initialize(context.getService(ContractDefinitionStore.class));
         monitor.info(String.format("Started %s", NAME));
     }
 
@@ -74,38 +81,18 @@ public class ContractServiceExtension implements ServiceExtension {
         var agentService = new ParticipantAgentServiceImpl();
         context.registerService(ParticipantAgentService.class, agentService);
 
-        // Lazily load the contract offer framework into this core module since the implementation is provided by an extension that will require other core services
-        var cofSupplier = new CofSupplier(context, monitor);
-        var contractOfferService = new ContractOfferServiceImpl(agentService, cofSupplier, assetIndex);
+        var policyEngine = new PolicyEngineImpl();
+        context.registerService(PolicyEngine.class, policyEngine);
+
+        var definitionsStore = new InMemoryContractDefinitionStore();
+        context.registerService(ContractDefinitionStore.class, definitionsStore);
+
+        definitionService = new ContractDefinitionServiceImpl(policyEngine, monitor);
+        var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
 
         // Register the created contract offer service with the service extension context.
         context.registerService(ContractOfferService.class, contractOfferService);
 
     }
 
-    private static class CofSupplier implements Supplier<ContractDefinitionService> {
-        private final ServiceExtensionContext context;
-        private final Monitor monitor;
-        private ContractDefinitionService cachedFramework;
-
-        public CofSupplier(ServiceExtensionContext context, Monitor monitor) {
-            this.context = context;
-            this.monitor = monitor;
-        }
-
-        @Override
-        public ContractDefinitionService get() {
-            // Note this implementation is purposely not synchronized or reliant on volatiles in favor of runtime lookup performance; at worst, multiple copies of a null
-            // contract offer framework will be instantiated, which has no operational impact.
-            if (cachedFramework != null) {
-                cachedFramework = context.getService(ContractDefinitionService.class, true);
-                if (cachedFramework == null) {
-                    monitor.warning("No ContractDefinitionService registered. Register one to create Contract Offers.");
-                    cachedFramework = new NullContractDefinitionService();
-                }
-            }
-            return cachedFramework;
-
-        }
-    }
 }

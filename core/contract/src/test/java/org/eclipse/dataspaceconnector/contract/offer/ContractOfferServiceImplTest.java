@@ -20,12 +20,12 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -52,7 +52,7 @@ class ContractOfferServiceImplTest {
         assetIndex = mock(AssetIndex.class);
         agentService = mock(ParticipantAgentService.class);
 
-        contractOfferService = new ContractOfferServiceImpl(agentService, () -> contractDefinitionService, assetIndex);
+        contractOfferService = new ContractOfferServiceImpl(agentService, contractDefinitionService, assetIndex);
     }
 
     @Test
@@ -60,9 +60,9 @@ class ContractOfferServiceImplTest {
         replay(contractDefinitionService, assetIndex);
 
         // just eval all constructor parameters are mandatory and lead to NPE
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(null, () -> contractDefinitionService, assetIndex))
+        assertThatThrownBy(() -> new ContractOfferServiceImpl(null, contractDefinitionService, assetIndex))
                 .isInstanceOf(NullPointerException.class);
-        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, () -> contractDefinitionService, null))
+        assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, contractDefinitionService, null))
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, null, assetIndex))
                 .isInstanceOf(NullPointerException.class);
@@ -75,7 +75,13 @@ class ContractOfferServiceImplTest {
 
     @Test
     void testFullFlow() {
-        var contractDefinition = new ContractDefinition("1", Policy.Builder.newInstance().build(), AssetSelectorExpression.SELECT_ALL);
+        var contractDefinition = ContractDefinition.Builder.newInstance()
+                .id("1")
+                .accessPolicy(Policy.Builder.newInstance().build())
+                .contractPolicy(Policy.Builder.newInstance().build())
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .build();
+
         EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         EasyMock.expect(contractDefinitionService.definitionsFor(EasyMock.isA(ParticipantAgent.class))).andReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());

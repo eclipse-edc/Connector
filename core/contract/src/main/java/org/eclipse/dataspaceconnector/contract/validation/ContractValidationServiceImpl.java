@@ -16,13 +16,13 @@ package org.eclipse.dataspaceconnector.contract.validation;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,17 +60,16 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         }
 
         // validate the offer against the original definition, which includes policy verification
-        var definitionResult = definitionServiceSupplier.get().definitionFor(agent, contractIdTokens[DEFINITION_PART]);
-        if (definitionResult.invalid()) {
+        var contractDefinition = definitionServiceSupplier.get().definitionFor(agent, contractIdTokens[DEFINITION_PART]);
+        if (contractDefinition == null) {
             return OfferValidationResult.INVALID;
         }
-        var contractDefinition = definitionResult.getDefinition();
         var criteria = createCriteria(offer, contractDefinition);
 
         // sanitize the assets
         var assets = assetIndex.queryAssets(criteria);
 
-        var sanitizedUsagePolicy = contractDefinition.getUsagePolicy();
+        var sanitizedUsagePolicy = contractDefinition.getContractPolicy();
         var validatedOffer = ContractOffer.Builder.newInstance().id(offer.getId()).assets(assets.collect(toList())).policy(sanitizedUsagePolicy).build();
         return new OfferValidationResult(validatedOffer);
     }
@@ -83,15 +82,14 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             // not a valid id
             return false;
         }
-        var definitionResult = definitionServiceSupplier.get().definitionFor(agent, tokens[DEFINITION_PART]);
-        return !definitionResult.invalid();
+        return definitionServiceSupplier.get().definitionFor(agent, tokens[DEFINITION_PART]) != null;
         // TODO validate counter-party
     }
 
     @NotNull
     private ArrayList<Criterion> createCriteria(ContractOffer offer, ContractDefinition contractDefinition) {
         var assetIds = offer.getAssets().stream().map(Asset::getId).collect(joining(","));
-        var criteria = new ArrayList<>(contractDefinition.getAssetSelectorExpression().getCriteria());
+        var criteria = new ArrayList<>(contractDefinition.getSelectorExpression().getCriteria());
         var criterion = new Criterion("id", "IN", assetIds);
         criteria.add(criterion);
         return criteria;

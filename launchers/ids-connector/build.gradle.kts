@@ -34,8 +34,6 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    //implementation(project(":samples:demo-asset-index"))
-    implementation(project(":samples:demo-contract-service"))
     implementation(project(":extensions:iam:iam-mock"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))

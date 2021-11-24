@@ -14,9 +14,12 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+
 /**
  * An expression or set of expressions that refines a permission, prohibitions, or duty.
  */
+@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "edctype")
 public abstract class Constraint {
 
     public interface Visitor<R> {

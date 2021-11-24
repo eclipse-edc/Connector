@@ -14,11 +14,16 @@
 
 package org.eclipse.dataspaceconnector.policy.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
 import static java.util.stream.Collectors.joining;
 
 /**
  * A collection of child constraints where all must be satisfied for the constraint to be satisfied.
  */
+@JsonDeserialize(builder = AndConstraint.Builder.class)
 public class AndConstraint extends MultiplicityConstraint {
 
     private AndConstraint() {
@@ -34,12 +39,14 @@ public class AndConstraint extends MultiplicityConstraint {
         return "And constraint: [" + constraints.stream().map(Object::toString).collect(joining(",")) + "]";
     }
 
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends MultiplicityConstraint.Builder<AndConstraint, Builder> {
 
         private Builder() {
             constraint = new AndConstraint();
         }
 
+        @JsonCreator
         public static Builder newInstance() {
             return new Builder();
         }

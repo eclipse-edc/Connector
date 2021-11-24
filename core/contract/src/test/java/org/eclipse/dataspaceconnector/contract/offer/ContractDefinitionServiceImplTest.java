@@ -1,10 +1,12 @@
-package org.eclipse.dataspaceconnector.demo.contract.service;
+package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.InMemoryContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -20,23 +22,10 @@ import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
-class DynamicPolicyContractDefinitionServiceTest {
-    private DynamicPolicyContractDefinitionService dynamicPolicyContractDefinitionService;
+class ContractDefinitionServiceImplTest {
+    private ContractDefinitionServiceImpl definitionService;
     private PolicyEngine policyEngine;
-
-    @Test
-    void verifyCrudOperations() {
-        var policy = Policy.Builder.newInstance().build();
-        var descriptor1 = ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build();
-        var descriptor2 = ContractDescriptor.Builder.newInstance().id("2").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build();
-
-        dynamicPolicyContractDefinitionService.load(List.of(descriptor1, descriptor2));
-
-        assertThat(dynamicPolicyContractDefinitionService.getLoadedDescriptors().size()).isEqualTo(2);
-
-        dynamicPolicyContractDefinitionService.remove(List.of("1"));
-        assertThat(dynamicPolicyContractDefinitionService.getLoadedDescriptors()).contains(descriptor2);
-    }
+    private InMemoryContractDefinitionStore definitionStore;
 
     @Test
     void verifySatisfiesPolicies() {
@@ -48,9 +37,9 @@ class DynamicPolicyContractDefinitionServiceTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        dynamicPolicyContractDefinitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionStore.save(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
-        assertThat(dynamicPolicyContractDefinitionService.definitionsFor(agent).count()).isEqualTo(1);
+        assertThat(definitionService.definitionsFor(agent).count()).isEqualTo(1);
 
         verify(policyEngine);
     }
@@ -65,9 +54,9 @@ class DynamicPolicyContractDefinitionServiceTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        dynamicPolicyContractDefinitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
 
-        assertThat(dynamicPolicyContractDefinitionService.definitionsFor(agent)).isEmpty();
+        assertThat(definitionService.definitionsFor(agent)).isEmpty();
 
         verify(policyEngine);
     }
@@ -83,9 +72,9 @@ class DynamicPolicyContractDefinitionServiceTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        dynamicPolicyContractDefinitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
 
-        assertThat(dynamicPolicyContractDefinitionService.definitionsFor(agent)).isEmpty();
+        assertThat(definitionService.definitionsFor(agent)).isEmpty();
 
         verify(policyEngine);
     }
@@ -101,11 +90,11 @@ class DynamicPolicyContractDefinitionServiceTest {
 
         var policy = Policy.Builder.newInstance().build();
 
-        dynamicPolicyContractDefinitionService.load(List.of(ContractDescriptor.Builder.newInstance().id("1").accessControlPolicy(policy).usagePolicy(policy).selectorExpression(SELECT_ALL).build()));
+        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
 
-        assertThat(dynamicPolicyContractDefinitionService.definitionFor(agent, "1").getDefinition()).isNotNull();
-        assertThat(dynamicPolicyContractDefinitionService.definitionFor(agent, "1").invalid()).isTrue();
-        assertThat(dynamicPolicyContractDefinitionService.definitionFor(agent, "nodescriptor").invalid()).isTrue();
+        assertThat(definitionService.definitionFor(agent, "1")).isNotNull();
+        assertThat(definitionService.definitionFor(agent, "1")).isNull();
+        assertThat(definitionService.definitionFor(agent, "nodefinition")).isNull();
 
         verify(policyEngine);
     }
@@ -113,6 +102,8 @@ class DynamicPolicyContractDefinitionServiceTest {
     @BeforeEach
     void setUp() {
         policyEngine = createMock(PolicyEngine.class);
-        dynamicPolicyContractDefinitionService = new DynamicPolicyContractDefinitionService(policyEngine, createNiceMock(Monitor.class));
+        definitionStore = new InMemoryContractDefinitionStore();
+        definitionService = new ContractDefinitionServiceImpl(policyEngine, createNiceMock(Monitor.class));
+        definitionService.initialize(definitionStore);
     }
 }
