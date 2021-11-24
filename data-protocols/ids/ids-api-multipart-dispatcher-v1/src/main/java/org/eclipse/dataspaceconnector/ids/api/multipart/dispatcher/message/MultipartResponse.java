@@ -11,12 +11,14 @@ public interface MultipartResponse<T> {
 
     /**
      * Returns the response header.
+     *
      * @return the response header.
      */
     Message getHeader();
 
     /**
      * Returns the response payload.
+     *
      * @return the response payload.
      */
     T getPayload();
