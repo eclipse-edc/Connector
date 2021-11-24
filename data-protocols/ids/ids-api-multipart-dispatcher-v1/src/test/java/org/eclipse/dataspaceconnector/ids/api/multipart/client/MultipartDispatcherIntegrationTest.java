@@ -26,9 +26,11 @@ import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
@@ -38,6 +40,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.AgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
@@ -83,6 +86,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService));
     }
 
     @Test
@@ -130,7 +134,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        //TODO revise when handler for ArtifactRequestMessage exists
+        // TODO revise when handler for ArtifactRequestMessage exists
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
                 .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
@@ -159,7 +163,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        //TODO revise when handler for ArtifactRequestMessage exists
+        // TODO revise when handler for ContractRequestMessage exists
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
                 .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
@@ -188,9 +192,32 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        //TODO revise when handler for ArtifactRequestMessage exists
+        // TODO revise when handler for ContractAgreementMessage exists
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
 
+        assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
+                .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
+        assertThat(result.getPayload()).isNull();
+    }
+
+    @Test
+    void testSendContractRejectionMessage() throws Exception {
+        var rejection = ContractRejection.Builder.newInstance()
+                .connectorId(CONNECTOR_ID)
+                .connectorAddress(getUrl())
+                .protocol(Protocols.IDS_MULTIPART)
+                .rejectionReason("Modified policy in contract offer.")
+                .correlatedContractId(UUID.randomUUID().toString())
+                .build();
+
+        MultipartMessageProcessedResponse result = multipartDispatcher
+                .send(MultipartMessageProcessedResponse.class, rejection, () -> null).get();
+
+        assertThat(result).isNotNull();
+        assertThat(result.getHeader()).isNotNull();
+
+        // TODO revise when handler for ContractRejectionMessage exists
+        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
                 .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
         assertThat(result.getPayload()).isNull();

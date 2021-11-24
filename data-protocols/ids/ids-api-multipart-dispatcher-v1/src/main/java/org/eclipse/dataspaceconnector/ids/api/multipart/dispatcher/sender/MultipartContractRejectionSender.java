@@ -15,18 +15,22 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.ContractAgreement;
-import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
+import de.fraunhofer.iais.eis.ContractOffer;
+import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
+import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.util.TypedLiteral;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.AgreementRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -34,75 +38,63 @@ import java.util.Collections;
 import java.util.Objects;
 
 /**
- * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
+ * IdsMultipartSender implementation for contract rejections. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractAgreementSender extends IdsMultipartSender<AgreementRequest, MultipartRequestInProcessResponse> {
+public class MultipartContractRejectionSender extends IdsMultipartSender<ContractRejection, MultipartMessageProcessedResponse> {
 
-    private final TransformerRegistry transformerRegistry;
-
-    public MultipartContractAgreementSender(@NotNull String connectorId,
+    public MultipartContractRejectionSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
                                             @NotNull ObjectMapper objectMapper,
                                             @NotNull Monitor monitor,
-                                            @NotNull IdentityService identityService,
-                                            @NotNull TransformerRegistry transformerRegistry) {
+                                            @NotNull IdentityService identityService) {
         super(connectorId, httpClient, objectMapper, monitor, identityService);
-        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
     }
 
     @Override
-    public Class<AgreementRequest> messageType() {
-        return AgreementRequest.class;
+    public Class<ContractRejection> messageType() {
+        return ContractRejection.class;
     }
 
     @Override
-    protected String retrieveRemoteConnectorId(AgreementRequest request) {
-        return request.getConnectorId();
+    protected String retrieveRemoteConnectorId(ContractRejection rejection) {
+        return rejection.getConnectorId();
     }
 
     @Override
-    protected String retrieveRemoteConnectorAddress(AgreementRequest request) {
-        return request.getConnectorAddress();
+    protected String retrieveRemoteConnectorAddress(ContractRejection rejection) {
+        return rejection.getConnectorAddress();
     }
 
     @Override
-    protected Message buildMessageHeader(AgreementRequest request, DynamicAttributeToken token) throws Exception {
-        return new ContractAgreementMessageBuilder()
+    protected Message buildMessageHeader(ContractRejection rejection, DynamicAttributeToken token) throws Exception {
+        return new ContractRejectionMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
                 ._senderAgent_(getConnectorId())
-                ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
+                ._recipientConnector_(Collections.singletonList(URI.create(rejection.getConnectorId())))
+                ._contractRejectionReason_(new TypedLiteral(rejection.getRejectionReason()))
                 .build();
     }
 
     @Override
-    protected String buildMessagePayload(AgreementRequest request) throws Exception {
-        var contractAgreement = request.getContractAgreement();
-        var transformationResult = transformerRegistry.transform(contractAgreement, ContractAgreement.class);
-        if (transformationResult.hasProblems()) {
-            throw new EdcException("Failed to create IDS contract agreement");
-        }
-
-        var idsContractAgreement = transformationResult.getOutput();
-        return getObjectMapper().writeValueAsString(idsContractAgreement);
+    protected String buildMessagePayload(ContractRejection rejection) throws Exception {
+        return rejection.getRejectionReason();
     }
 
     @Override
-    protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+    protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
         Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
         }
 
-        return MultipartRequestInProcessResponse.Builder.newInstance()
+        return MultipartMessageProcessedResponse.Builder.newInstance()
                 .header(header)
                 .payload(payload)
                 .build();
     }
-
-
 }
