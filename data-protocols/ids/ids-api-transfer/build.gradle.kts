@@ -32,8 +32,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-protocols.ids.api-transfer") {
-            artifactId = "data-protocols.ids-api-transfer"
+        create<MavenPublication>("ids.ids.api-transfer") {
+            artifactId = "ids.ids-api-transfer"
             from(components["java"])
         }
     }
