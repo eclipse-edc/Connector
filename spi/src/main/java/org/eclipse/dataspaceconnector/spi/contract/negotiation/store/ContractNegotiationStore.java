@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

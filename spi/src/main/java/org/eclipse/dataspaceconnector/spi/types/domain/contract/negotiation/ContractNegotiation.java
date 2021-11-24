@@ -17,7 +17,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -39,16 +39,23 @@ import static java.util.stream.Collectors.joining;
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation {
-    private final Type type = Type.CLIENT;
-    private List<ContractOffer> contractOffers = new ArrayList<>();
+    public enum Type {
+        CONSUMER, PROVIDER
+    }
+
     private String id;
     private String correlationId;
     private String counterPartyId;
     private String protocol;
+
+    private Type type = Type.CONSUMER;
+
     private int state;
     private int stateCount;
     private long stateTimestamp;
+
     private ContractAgreement contractAgreement;
+    private List<ContractOffer> contractOffers = new ArrayList<>();
 
     public Type getType() {
         return type;
@@ -133,11 +140,7 @@ public class ContractNegotiation {
             }
         }
         var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
-        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", state, values));
-    }
-
-    public enum Type {
-        CLIENT, PROVIDER
+        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", this.state, values));
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -203,12 +206,11 @@ public class ContractNegotiation {
             Objects.requireNonNull(negotiation.id);
             Objects.requireNonNull(negotiation.counterPartyId);
             Objects.requireNonNull(negotiation.protocol);
-            if (Type.CLIENT == negotiation.type) {
+            if (Type.CONSUMER == negotiation.type) {
                 Objects.requireNonNull(negotiation.correlationId);
             }
             return negotiation;
         }
-
 
     }
 }

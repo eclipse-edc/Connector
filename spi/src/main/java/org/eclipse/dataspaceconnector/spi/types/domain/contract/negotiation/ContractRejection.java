@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.types.domain.contract;
+package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 

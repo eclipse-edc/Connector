@@ -12,19 +12,18 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.types.domain.contract;
+package org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
-public class ContractRequest implements RemoteMessage {
+public class ContractAgreementRequest implements RemoteMessage {
 
     private String protocol;
     private String connectorId;
     private String connectorAddress;
-    private ContractOffer contractOffer;
+    private ContractAgreement contractAgreement;
 
     @Override
     public String getProtocol() {
@@ -39,15 +38,15 @@ public class ContractRequest implements RemoteMessage {
         return connectorAddress;
     }
 
-    public ContractOffer getContractOffer() {
-        return contractOffer;
+    public ContractAgreement getContractAgreement() {
+        return contractAgreement;
     }
 
     public static class Builder {
-        private final ContractRequest contractRequest;
+        private final ContractAgreementRequest contractAgreementRequest;
 
         private Builder() {
-            this.contractRequest = new ContractRequest();
+            this.contractAgreementRequest = new ContractAgreementRequest();
         }
 
         public static Builder newInstance() {
@@ -55,31 +54,31 @@ public class ContractRequest implements RemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            this.contractRequest.protocol = protocol;
+            this.contractAgreementRequest.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            this.contractRequest.connectorId = connectorId;
+            this.contractAgreementRequest.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            this.contractRequest.connectorAddress = connectorAddress;
+            this.contractAgreementRequest.connectorAddress = connectorAddress;
             return this;
         }
 
-        public Builder contractOffer(ContractOffer contractOffer) {
-            this.contractRequest.contractOffer = contractOffer;
+        public Builder contractAgreement(ContractAgreement contractAgreement) {
+            this.contractAgreementRequest.contractAgreement = contractAgreement;
             return this;
         }
 
-        public ContractRequest build() {
-            Objects.requireNonNull(contractRequest.protocol, "protocol");
-            Objects.requireNonNull(contractRequest.connectorId, "connectorId");
-            Objects.requireNonNull(contractRequest.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractRequest.contractOffer, "contractOffer");
-            return contractRequest;
+        public ContractAgreementRequest build() {
+            Objects.requireNonNull(contractAgreementRequest.protocol, "protocol");
+            Objects.requireNonNull(contractAgreementRequest.connectorId, "connectorId");
+            Objects.requireNonNull(contractAgreementRequest.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractAgreementRequest.contractAgreement, "contractAgreement");
+            return contractAgreementRequest;
         }
     }
 }
