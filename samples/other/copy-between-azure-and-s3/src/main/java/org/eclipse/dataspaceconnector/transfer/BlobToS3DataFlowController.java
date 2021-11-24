@@ -34,7 +34,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
     @Override
     public boolean canHandle(DataRequest dataRequest) {
 
-        String sourceType = dataAddressResolver.resolveForAsset(dataRequest.getAsset().getId()).getType();
+        String sourceType = dataAddressResolver.resolveForAsset(dataRequest.getAssetId()).getType();
         String destinationType = dataRequest.getDestinationType();
 
         return verifyType(sourceType) && verifyType(destinationType);
@@ -42,7 +42,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
-        DataAddress source = dataAddressResolver.resolveForAsset(dataRequest.getAsset().getId());
+        DataAddress source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
         String destinationType = dataRequest.getDestinationType();
 
         var destSecretName = dataRequest.getDataDestination().getKeyName();
@@ -59,7 +59,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
 
         var data = reader.read(source);
 
-        writer.write(dataRequest.getDataDestination(), dataRequest.getAsset().getId(), data, secret);
+        writer.write(dataRequest.getDataDestination(), dataRequest.getAssetId(), data, secret);
 
         return DataFlowInitiateResponse.OK;
     }

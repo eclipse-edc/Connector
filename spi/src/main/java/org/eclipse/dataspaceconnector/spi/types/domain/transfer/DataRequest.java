@@ -19,7 +19,6 @@ import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 /**
@@ -38,7 +37,9 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private String connectorId;
 
-    private Asset asset;
+    private String assetId;
+
+    private String contractId;
 
     private DataAddress dataDestination;
 
@@ -69,7 +70,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     /**
-     * The protocol-specific address of the provider connector.
+     * The protocol-specific address of the other connector.
      */
     public String getConnectorAddress() {
         return connectorAddress;
@@ -91,10 +92,18 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     /**
-     * The requested asset.
+     * The id of the requested asset.
      */
-    public Asset getAsset() {
-        return asset;
+    public String getAssetId() {
+        return assetId;
+    }
+
+
+    /**
+     * The id of the requested contract.
+     */
+    public String getContractId() {
+        return contractId;
     }
 
     /**
@@ -122,7 +131,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .connectorAddress(connectorAddress)
                 .protocol(protocol)
                 .connectorId(connectorId)
-                .asset(asset)
+                .assetId(assetId)
+                .contractId(contractId)
                 .dataAddress(dataDestination)
                 .transferType(transferType)
                 .managedResources(managedResources)
@@ -175,8 +185,13 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder asset(Asset asset) {
-            request.asset = asset;
+        public Builder assetId(String assetId) {
+            request.assetId = assetId;
+            return this;
+        }
+
+        public Builder contractId(String contractId) {
+            request.contractId = contractId;
             return this;
         }
 

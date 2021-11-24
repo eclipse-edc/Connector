@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
@@ -37,11 +38,15 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
@@ -66,6 +71,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Override
     public Set<String> requires() {
         return Set.of(IdentityService.FEATURE,
+                "dataspaceconnector:transferprocessstore",
                 "edc:ids:core",
                 "edc:ids:transform:v1");
     }
@@ -102,6 +108,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
         TransformerRegistry transformerRegistry = serviceExtensionContext.getService(TransformerRegistry.class);
         ContractOfferService contractOfferService = serviceExtensionContext.getService(ContractOfferService.class);
+        ContractDefinitionStore contractDefinitionStore = serviceExtensionContext.getService(ContractDefinitionStore.class);
 
         String connectorId = resolveConnectorId(serviceExtensionContext);
 
@@ -111,6 +118,17 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         RepresentationDescriptionRequestHandler representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
         ResourceDescriptionRequestHandler resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
         ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
+
+        // create & register controller
+        // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
+        //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
+        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
         // create request handler
         DescriptionHandler descriptionHandler = new DescriptionHandler(
@@ -126,16 +144,13 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         List<Handler> handlers = new LinkedList<>();
         handlers.add(descriptionHandler);
 
+        TransferProcessStore transferProcessStore = serviceExtensionContext.getService(TransferProcessStore.class);
+        ContractValidationService contractValidationService = serviceExtensionContext.getService(ContractValidationService.class);
+        Vault vault = serviceExtensionContext.getService(Vault.class);
+        ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractDefinitionStore, contractValidationService, transferProcessStore, vault);
+        handlers.add(artifactRequestHandler);
+
         // create & register controller
-        // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
-        //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new JavaTimeModule());
-        objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
-        objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
-        objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
         MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
         webService.registerController(multipartController);
     }
@@ -164,4 +179,5 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
         return value;
     }
+
 }

@@ -45,7 +45,7 @@ class ObjectStorageDefinitionConsumerGeneratorTest {
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
         var asset = Asset.Builder.newInstance().build();
-        var dr = DataRequest.Builder.newInstance().dataDestination(destination).asset(asset).build();
+        var dr = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
         var tp = TransferProcess.Builder.newInstance().dataRequest(dr).id(randomUUID().toString()).build();
 
 
@@ -64,7 +64,7 @@ class ObjectStorageDefinitionConsumerGeneratorTest {
                 .property(AzureBlobStoreSchema.ACCOUNT_NAME, "test-account")
                 .build();
         var asset = Asset.Builder.newInstance().build();
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination).asset(asset).build();
+        var dataRequest = DataRequest.Builder.newInstance().dataDestination(destination).assetId(asset.getId()).build();
         var tp = TransferProcess.Builder.newInstance().dataRequest(dataRequest).id(randomUUID().toString()).build();
 
         ResourceDefinition def = generator.generate(tp);
