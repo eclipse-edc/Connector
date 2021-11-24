@@ -24,6 +24,7 @@ val rsApi: String by project
 dependencies {
     implementation(project(":core:bootstrap"))
     implementation(project(":core:transfer"))
+    implementation(project(":core:contract"))
     implementation(project(":core:protocol:web"))
     implementation(project(":core:policy:policy-model"))
     implementation(project(":core:policy:policy-engine"))
@@ -37,6 +38,8 @@ dependencies {
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:azure:vault"))
     implementation(project(":extensions:aws:s3:provision"))
+
+    implementation(project(":extensions:api:control"))
 
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))
