@@ -63,7 +63,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
     private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String DATABASE_NAME = "transferprocessstore-itest";
-    private final static String CONTAINER_PREFIX = "container_";
+    private static final String CONTAINER_PREFIX = "container_";
     private static CosmosContainer container;
     private static CosmosDatabase database;
     private final String partitionKey = "testpartition";
