@@ -65,13 +65,9 @@ public class AssetToIdsRepresentationTransformer implements IdsTypeTransformer<A
         representationBuilder._instance_(new ArrayList<>(Collections.singletonList(artifact)));
 
         Map<String, Object> properties = object.getProperties();
-        if (properties == null) {
-            context.reportProblem("Asset properties null");
-        } else {
+        if (properties != null) {
             Object propertyValue = properties.get(TransformKeys.KEY_ASSET_FILE_EXTENSION);
-            if (propertyValue == null) {
-                context.reportProblem(String.format("Asset property %s is null", TransformKeys.KEY_ASSET_FILE_EXTENSION));
-            } else {
+            if (propertyValue != null) {
                 if (propertyValue instanceof String) {
                     representationBuilder._mediaType_(new CustomMediaTypeBuilder()._filenameExtension_((String) propertyValue).build());
                 } else {

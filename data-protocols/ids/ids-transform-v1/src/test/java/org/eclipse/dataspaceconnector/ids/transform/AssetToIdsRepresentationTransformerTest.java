@@ -92,9 +92,6 @@ class AssetToIdsRepresentationTransformerTest {
         IdsId id = IdsId.Builder.newInstance().value(REPRESENTATION_ID).type(IdsType.REPRESENTATION).build();
         EasyMock.expect(context.transform(EasyMock.eq(id), EasyMock.eq(URI.class))).andReturn(REPRESENTATION_ID_URI);
 
-        context.reportProblem(EasyMock.anyString());
-        EasyMock.expectLastCall().atLeastOnce();
-
         // record
         EasyMock.replay(asset, context);
 
