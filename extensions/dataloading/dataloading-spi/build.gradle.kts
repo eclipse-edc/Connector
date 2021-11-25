@@ -25,8 +25,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-functions.core") {
-            artifactId = "transfer-functions.core"
+        create<MavenPublication>("dataloading.spi") {
+            artifactId = "dataloading.spi"
             from(components["java"])
         }
     }
