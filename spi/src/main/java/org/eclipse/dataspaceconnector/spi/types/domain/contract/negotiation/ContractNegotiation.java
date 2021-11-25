@@ -151,6 +151,15 @@ public class ContractNegotiation {
     }
 
     /**
+     * Sets the agreement for this negotiation.
+     *
+     * @param agreement the agreement.
+     */
+    public void setContractAgreement(ContractAgreement agreement) {
+        this.contractAgreement = agreement;
+    }
+
+    /**
      * Change state from unsaved to requesting.
      */
     public void transitionRequesting() {
