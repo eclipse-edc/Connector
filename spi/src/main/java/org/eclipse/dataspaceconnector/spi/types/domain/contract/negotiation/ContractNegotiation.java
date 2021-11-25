@@ -182,9 +182,10 @@ public class ContractNegotiation {
      */
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no REQUESTED state");
+            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.UNSAVED);
+        } else {
+            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
         }
-        transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
     }
 
     public void transitionOffered() {
@@ -196,10 +197,35 @@ public class ContractNegotiation {
     }
 
     /**
-     * Change state from declining to declined.
+     * Change state to declining.
      */
     public void transitionDeclining() {
-        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING);
+        transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED);
+    }
+
+    /**
+     * Change state to declined.
+     */
+    public void transitionDeclined() {
+        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONFIRMED);
+    }
+
+    /**
+     * Change state to confirming.
+     */
+    public void transitionConfirming() {
+        transition(ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED);
+    }
+
+    /**
+     * Change state to confirmed.
+     */
+    public void transitionConfirmed() {
+        transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONSUMER_APPROVED);
+    }
+
+    public void transitionConsumerApproved() {
+        transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.PROVIDER_OFFERED);
     }
 
     /**
@@ -209,7 +235,7 @@ public class ContractNegotiation {
         if (Type.CONSUMER == type) {
             throw new IllegalStateException("Consumer processes have no PROVIDER_OFFERING state");
         }
-        transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.UNSAVED);
+        transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.REQUESTED);
     }
 
     /**
