@@ -321,6 +321,11 @@ public class ContractNegotiation {
             return this;
         }
 
+        public Builder type(Type type) {
+            negotiation.type = type;
+            return this;
+        }
+
         public ContractNegotiation build() {
             Objects.requireNonNull(negotiation.id);
             Objects.requireNonNull(negotiation.counterPartyId);
