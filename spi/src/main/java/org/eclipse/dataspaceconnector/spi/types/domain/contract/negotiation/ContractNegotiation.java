@@ -125,6 +125,14 @@ public class ContractNegotiation {
     }
 
     /**
+     * Returns the last offer in the list of contract offers.
+     */
+    public ContractOffer getLastContractOffer() {
+        var size = contractOffers.size();
+        return contractOffers.get(size - 1);
+    }
+
+    /**
      * Returns the finalized agreement or null if the negotiation has not been confirmed.
      */
     public ContractAgreement getContractAgreement() {
