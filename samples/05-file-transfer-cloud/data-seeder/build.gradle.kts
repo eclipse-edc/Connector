@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2021 Daimler TSS GmbH
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Microsoft Corporation - initial API and implementation
+ *       Daimler TSS GmbH - Initial API and Implementation
  *
  */
 
@@ -16,18 +16,8 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":spi"))
-    implementation(project(":common:util"))
 
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("dataloading.spi") {
-            artifactId = "dataloading.spi"
-            from(components["java"])
-        }
-    }
+    api(project(":extensions:dataloading:dataloading-asset"))
 }

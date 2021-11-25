@@ -35,7 +35,7 @@ The cloud resources hosted in Azure require a certificate for authentication, so
 ```bash
 # create certificate:
 openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
-# create pfx file, we'll need this later
+# create pfx file, we'll need this later (without password)
 openssl pkcs12 -export -in cert.pem -inkey key.pem -out cert.pfx    
 ```
 
@@ -75,6 +75,20 @@ edc.vault.clientid=<client_id>
 edc.vault.tenantid=<tenant_id>
 edc.vault.certificate=<path_to_pfx_file>
 edc.vault.name=<vault-name>
+```
+
+## Update data seeder
+
+Put the storage account name into the DataAddress builder of the `FakeSetup` class.
+
+```
+DataAddress.Builder.newInstance()
+   .type("AzureStorage")
+   .property("account", "<storage-account-name>")
+   .property("container", "src-container")
+   .property("blobname", "test-document.txt")
+   .keyName("<storage-account-name>-key1")
+   .build();
 ```
 
 ## Take a look at the updated `transfer-file` and `api` module
@@ -127,3 +141,38 @@ curl -X DELETE http://localhost:9191/api/datarequest/<UUID>
 
 Deprovisioning is not necessary per se, but it will do some cleanup, delete the temporary AWS role and the S3 bucket, so
 it's generally advisable to do it.
+
+### Alternative: IDS Multipart
+
+The data transfer can also be initiated using IDS multipart.
+
+
+Create a `request.json` file with the following content
+```json
+{
+  "edctype": "dataspaceconnector:datarequest",
+  "id": null,
+  "processId": null,
+  "connectorAddress": "http://localhost:8181/api/ids/multipart",
+  "protocol": "ids-multipart",
+  "connectorId": "consumer",
+  "assetId": "1",
+  "contractId": "1",
+  "dataDestination": {
+    "properties": {
+      "region": "us-east-1"
+    },
+    "type": "AmazonS3"
+  },
+  "managedResources": true,
+  "transferType": {
+    "contentType": "application/octet-stream",
+    "isFinite": true
+  },
+  "destinationType": "AmazonS3"
+}
+```
+
+```bash
+curl -X POST -H "Content-Type: application/json" -d @request.json http://localhost:9191/api/control/transfer
+```

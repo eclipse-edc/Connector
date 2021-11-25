@@ -92,6 +92,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
         definitionService = new ContractDefinitionServiceImpl(policyEngine, monitor);
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
+        context.registerService(ContractDefinitionService.class, definitionService);
 
         // Register the created contract offer service with the service extension context.
         context.registerService(ContractOfferService.class, contractOfferService);

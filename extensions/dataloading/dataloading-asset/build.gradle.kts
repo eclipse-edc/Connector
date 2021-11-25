@@ -27,7 +27,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("dataloading.asset") {
-            artifactId = "dataloading.contract-def"
+            artifactId = "dataloading.asset"
             from(components["java"])
         }
     }
