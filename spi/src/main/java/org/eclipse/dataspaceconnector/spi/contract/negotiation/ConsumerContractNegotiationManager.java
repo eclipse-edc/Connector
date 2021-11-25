@@ -29,7 +29,7 @@ public interface ConsumerContractNegotiationManager extends ContractNegotiationM
     /**
      * Initiates a contract negotiation for the given provider offer. The offer will have been obtained from a previous contract offer request sent to the provider.
      */
-    NegotiationResponse initiate(ContractOfferRequest request);
+    NegotiationResponse initiate(ContractOfferRequest contractOffer);
 
     /**
      * An offer was received from the provider.
