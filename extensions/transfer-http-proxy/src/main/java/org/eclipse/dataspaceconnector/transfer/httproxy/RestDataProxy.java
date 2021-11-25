@@ -43,7 +43,7 @@ public class RestDataProxy implements DataProxy {
         issuedTokens.add(base64Jwt);
         return ProxyEntry.Builder.newInstance()
                 .type(request.getDestinationType())
-                .properties(Map.of("url", path + "/" + request.getAsset().getId(), "token", base64Jwt))
+                .properties(Map.of("url", path + "/" + request.getAssetId(), "token", base64Jwt))
                 .build();
     }
 
