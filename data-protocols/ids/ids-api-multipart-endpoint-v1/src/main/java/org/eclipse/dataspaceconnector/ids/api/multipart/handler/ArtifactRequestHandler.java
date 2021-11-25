@@ -95,6 +95,12 @@ public class ArtifactRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
+        // NOTICE
+        //
+        // Please note that the code below is just a workaround until the contract negotiation and the corresponding
+        // contracts are in place. Until then this workaround makes it possible to initiate a data transfer
+        // based on a valid contract offer.
+
         URI contractUri = artifactRequestMessage.getTransferContract();
         IdsId contractIdsId = IdsIdParser.parse(contractUri.toString());
         if (contractIdsId.getType() != IdsType.CONTRACT) {
@@ -119,8 +125,8 @@ public class ArtifactRequestHandler implements Handler {
                 .build();
 
         // TODO Assert that the Asset is part of the contract
+        // TODO Assert that the contract date is valid
 
-        // TODO Try this out when all pieces are combined
         boolean isContractValid = contractValidationService.validate(verificationResult.token(), contractAgreement);
         if (!isContractValid) {
             monitor.info("ArtifactRequestHandler: Contract Validation Invalid");
