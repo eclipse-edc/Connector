@@ -67,7 +67,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
                 .id(UUID.randomUUID().toString())
                 .protocol("loopback")
                 .destinationType(PUSH_STREAM_HTTP)
-                .asset(asset)
+                .assetId(asset.getId())
                 .dataDestination(destinationWs)
                 .connectorId("test").build();
 
@@ -104,7 +104,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
                 .id(UUID.randomUUID().toString())
                 .protocol("loopback")
                 .destinationType(PUSH_STREAM_HTTP)
-                .asset(asset)
+                .assetId(asset.getId())
                 .dataDestination(destinationHttp)
                 .connectorId("test").build();
 

@@ -22,6 +22,7 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
+import de.fraunhofer.iais.eis.ResponseMessage;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
@@ -38,6 +39,7 @@ import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.AgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
@@ -80,11 +82,12 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         transformerRegistry = EasyMock.createNiceMock(TransformerRegistry.class);
 
+        Vault vault = EasyMock.niceMock(Vault.class);
         var httpClient = new OkHttpClient.Builder().build();
 
         multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
         multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
@@ -119,14 +122,17 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         EasyMock.replay(dataDestination);
 
         EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
-                .andReturn(new TransformResult<>(URI.create("artifactId")));
+                .andReturn(new TransformResult<>(URI.create("urn:artifact:1")));
+        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
+                .andReturn(new TransformResult<>(URI.create("urn:contract:1")));
         EasyMock.replay(transformerRegistry);
 
         var request = DataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
-                .asset(asset)
+                .assetId(asset.getId())
+                .contractId("1")
                 .dataDestination(dataDestination)
                 .build();
 
@@ -136,10 +142,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        // TODO revise when handler for ArtifactRequestMessage exists
-        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
-        assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
+        //TODO revise when handler for ArtifactRequestMessage exists
+        assertThat(result.getHeader()).isInstanceOf(ResponseMessage.class);
         assertThat(result.getPayload()).isNull();
     }
 

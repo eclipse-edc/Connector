@@ -18,20 +18,24 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * IdsMultipartSender implementation for data requests. Sends IDS ArtifactRequestMessages and
@@ -39,13 +43,17 @@ import java.util.Collections;
  */
 public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
 
+    private final Vault vault;
+
     public MultipartArtifactRequestSender(@NotNull String connectorId,
                                           @NotNull OkHttpClient httpClient,
                                           @NotNull ObjectMapper objectMapper,
                                           @NotNull Monitor monitor,
+                                          @NotNull Vault vault,
                                           @NotNull IdentityService identityService,
                                           @NotNull TransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+        this.vault = Objects.requireNonNull(vault);
     }
 
     @Override
@@ -65,17 +73,26 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
 
     @Override
     protected Message buildMessageHeader(DataRequest request, DynamicAttributeToken token) {
-        var asset = request.getAsset();
-        IdsId id = IdsId.Builder.newInstance()
-                .value(asset.getId())
+        IdsId artifactIdsId = IdsId.Builder.newInstance()
+                .value(request.getAssetId())
                 .type(IdsType.ARTIFACT)
                 .build();
-        var transformationResult = getTransformerRegistry().transform(id, URI.class);
-        if (transformationResult.hasProblems()) {
+        IdsId contractIdsId = IdsId.Builder.newInstance()
+                .value(request.getContractId())
+                .type(IdsType.CONTRACT)
+                .build();
+        var artifactTransformationResult = getTransformerRegistry().transform(artifactIdsId, URI.class);
+        if (artifactTransformationResult.hasProblems()) {
             throw new EdcException("Failed to create artifact ID from asset.");
         }
 
-        var artifactId = transformationResult.getOutput();
+        var contractTransformationResult = getTransformerRegistry().transform(contractIdsId, URI.class);
+        if (artifactTransformationResult.hasProblems()) {
+            throw new EdcException("Failed to create contract ID from asset.");
+        }
+
+        var artifactId = artifactTransformationResult.getOutput();
+        var contractId = contractTransformationResult.getOutput();
 
         return new ArtifactRequestMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
@@ -85,7 +102,23 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 ._senderAgent_(getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._requestedArtifact_(artifactId)
+                ._transferContract_(contractId)
                 .build();
+    }
+
+    @Override
+    protected String buildMessagePayload(DataRequest request) throws Exception {
+
+        ArtifactRequestMessagePayload.Builder requestPayloadBuilder = ArtifactRequestMessagePayload.Builder.newInstance()
+                .dataDestination(request.getDataDestination());
+
+        if (request.getDataDestination().getKeyName() != null) {
+            String secret = vault.resolveSecret(request.getDataDestination().getKeyName());
+            requestPayloadBuilder = requestPayloadBuilder.secret(secret);
+        }
+
+        ObjectMapper objectMapper = getObjectMapper();
+        return objectMapper.writeValueAsString(requestPayloadBuilder.build());
     }
 
     @Override
@@ -94,6 +127,12 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
+        }
+
+        if (header instanceof RequestInProcessMessage) {
+            // TODO Update TransferProcess State Machine
+        } else {
+            // TODO Update TransferProcess State Machine
         }
 
         return MultipartRequestInProcessResponse.Builder.newInstance()

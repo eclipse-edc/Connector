@@ -53,7 +53,7 @@ public class S3toS3TransferFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
-        var source = dataAddressResolver.resolveForAsset(dataRequest.getAsset().getId());
+        var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
 
         final String sourceKey = source.getKeyName();
         final String sourceBucketName = source.getProperty(S3BucketSchema.BUCKET_NAME);

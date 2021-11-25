@@ -8,8 +8,45 @@ All content reflects the current state of discussion, not final decisions.
 
 # Client API Extension
 
-## API
+## Initiate Data Transfer
 
-### CURL Examples
+To initiate the data transfer send a data request to the API endpoint.
 
-TBD 
+### Example
+
+Create a `request.json` file and add the content below.
+
+```json
+{
+  "edctype": "dataspaceconnector:datarequest",
+  "id": null,
+  "processId": null,
+  "connectorAddress": "http://localhost:8181/api/ids/multipart",
+  "protocol": "ids-multipart",
+  "connectorId": "consumer",
+  "assetId": "1",
+  "contractId": "1",
+  "dataDestination": {
+    "properties": {
+      "container": "consumer",
+      "keyName": "consumer-blob-storage-key",
+      "type": "AzureStorage",
+      "account": "edc101",
+      "blobname": "received.txt"
+    },
+    "keyName": "consumer-blob-storage-key",
+    "type": "AzureStorage"
+  },
+  "managedResources": true,
+  "transferType": {
+    "contentType": "application/octet-stream",
+    "isFinite": true
+  },
+  "destinationType": "AzureStorage"
+}
+```
+
+Send the following CURL command using the command line. Adjust the content of the request and the control URL as
+required.
+
+`curl -X POST -H "Content-Type: application/json" -d @request.json http://localhost:8181/api/control/transfer`

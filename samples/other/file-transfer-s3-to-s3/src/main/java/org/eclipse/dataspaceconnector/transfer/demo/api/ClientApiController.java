@@ -112,7 +112,7 @@ public class ClientApiController {
     private DataRequest createRequest(
             final String connector,
             final String id,
-            final Asset artifactId,
+            final Asset asset,
             final String destinationBucket,
             final String destinationName,
             final String destinationRegion
@@ -121,7 +121,7 @@ public class ClientApiController {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")
-                .asset(artifactId)
+                .assetId(asset.getId())
                 .connectorId(connector)
                 .connectorAddress(composeConnectorAddress(connector))
                 .dataDestination(DataAddress.Builder.newInstance()

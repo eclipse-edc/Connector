@@ -35,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
@@ -72,6 +73,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         var connectorId = resolveConnectorId(context);
         var httpClient = context.getService(OkHttpClient.class);
         var identityService = context.getService(IdentityService.class);
+        var vault = context.getService(Vault.class);
 
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
         //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
@@ -87,8 +89,8 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         var transformerRegistry = context.getService(TransformerRegistry.class);
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
+        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractAgreementSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractRejectionSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));

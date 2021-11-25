@@ -234,7 +234,7 @@ public class ConsumerRunner {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")
-                .asset(asset)
+                .assetId(asset.getId())
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .destinationType(S3BucketSchema.TYPE).build();
@@ -244,7 +244,7 @@ public class ConsumerRunner {
         return DataRequest.Builder.newInstance()
                 .id(id)
                 .protocol("ids-rest")
-                .asset(asset)
+                .assetId(asset.getId())
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)
                 .dataDestination(DataAddress.Builder.newInstance()

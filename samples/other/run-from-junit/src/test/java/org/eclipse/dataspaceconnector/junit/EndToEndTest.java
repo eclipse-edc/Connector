@@ -74,7 +74,7 @@ public class EndToEndTest {
         var connectorId = "https://test";
 
         var entry = Asset.Builder.newInstance().id(artifactId).build();
-        var request = DataRequest.Builder.newInstance().protocol("ids-rest").asset(entry)
+        var request = DataRequest.Builder.newInstance().protocol("ids-rest").assetId(entry.getId())
                 .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").build();
 
         processManager.initiateConsumerRequest(request);
@@ -105,7 +105,7 @@ public class EndToEndTest {
         var connectorId = "https://test";
 
         var asset = Asset.Builder.newInstance().id(artifactId).build();
-        var request = DataRequest.Builder.newInstance().protocol("ids-rest").asset(asset)
+        var request = DataRequest.Builder.newInstance().protocol("ids-rest").assetId(asset.getId())
                 .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").id(UUID.randomUUID().toString()).build();
 
         processManager.initiateProviderRequest(request);

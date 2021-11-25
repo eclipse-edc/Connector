@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
+import kotlin.NotImplementedError;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -22,6 +23,9 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
+import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
@@ -33,12 +37,16 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -68,6 +76,8 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         context.registerService(RemoteMessageDispatcherRegistry.class, new FakeRemoteMessageDispatcherRegistry());
         context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
         context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
+        context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
+        context.registerService(ContractValidationService.class, new FakeContractValidationService());
     }
 
     private static class FakeIdentityService implements IdentityService {
@@ -193,6 +203,54 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
             return null;
+        }
+    }
+
+    private static class FakeContractDefinitionStore implements ContractDefinitionStore {
+
+        private final List<ContractDefinition> contractDefinitions = new ArrayList<>();
+
+        @Override
+        public @NotNull Collection<ContractDefinition> findAll() {
+            return contractDefinitions;
+        }
+
+        @Override
+        public void save(Collection<ContractDefinition> definitions) {
+            contractDefinitions.addAll(definitions);
+        }
+
+        @Override
+        public void save(ContractDefinition definition) {
+            contractDefinitions.add(definition);
+        }
+
+        @Override
+        public void update(ContractDefinition definition) {
+            throw new NotImplementedError();
+        }
+
+        @Override
+        public void delete(String id) {
+            throw new NotImplementedError();
+        }
+
+        @Override
+        public void reload() {
+            throw new NotImplementedError();
+        }
+    }
+
+    private static class FakeContractValidationService implements ContractValidationService {
+
+        @Override
+        public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer) {
+            return new OfferValidationResult(ContractOffer.Builder.newInstance().build());
+        }
+
+        @Override
+        public boolean validate(ClaimToken token, ContractAgreement agreement) {
+            return true;
         }
     }
 }

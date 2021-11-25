@@ -20,7 +20,7 @@ class DataRequestTest {
         var id = UUID.randomUUID().toString();
         var asset = Asset.Builder.newInstance().build();
 
-        assertThrows(IllegalArgumentException.class, () -> DataRequest.Builder.newInstance().id(id).asset(asset).build());
+        assertThrows(IllegalArgumentException.class, () -> DataRequest.Builder.newInstance().id(id).assetId(asset.getId()).build());
     }
 
 }
