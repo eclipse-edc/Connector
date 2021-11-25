@@ -53,6 +53,7 @@ public class ContractNegotiation {
     private String id;
     private String correlationId;
     private String counterPartyId;
+    private String counterPartyAddress;
     private String protocol;
 
     private Type type = Type.CONSUMER;
@@ -75,6 +76,10 @@ public class ContractNegotiation {
 
     public String getCounterPartyId() {
         return counterPartyId;
+    }
+
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
     }
 
     /**
@@ -295,6 +300,11 @@ public class ContractNegotiation {
             return this;
         }
 
+        public Builder counterPartyAddress(String address) {
+            negotiation.counterPartyAddress = address;
+            return this;
+        }
+
         public Builder correlationId(String id) {
             negotiation.correlationId = id;
             return this;
@@ -314,8 +324,9 @@ public class ContractNegotiation {
         public ContractNegotiation build() {
             Objects.requireNonNull(negotiation.id);
             Objects.requireNonNull(negotiation.counterPartyId);
+            Objects.requireNonNull(negotiation.counterPartyAddress);
             Objects.requireNonNull(negotiation.protocol);
-            if (Type.CONSUMER == negotiation.type) {
+            if (Type.PROVIDER == negotiation.type) {
                 Objects.requireNonNull(negotiation.correlationId);
             }
             return negotiation;
