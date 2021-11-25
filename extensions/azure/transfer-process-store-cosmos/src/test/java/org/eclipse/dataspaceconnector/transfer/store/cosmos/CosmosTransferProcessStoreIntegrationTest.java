@@ -29,6 +29,7 @@ import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
 import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -37,11 +38,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProcessDocument;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -56,15 +59,15 @@ import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationF
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
 
 @IntegrationTest
-class CosmosTransferProcessStoreTest {
+class CosmosTransferProcessStoreIntegrationTest {
 
     private static final String ACCOUNT_NAME = "cosmos-itest";
-    private static final String DATABASE_NAME = "connector-itest";
-    private static final String CONTAINER_NAME = "CosmosTransferProcessStoreTest";
+    private static final String DATABASE_NAME = "transferprocessstore-itest";
     private static CosmosContainer container;
     private static CosmosDatabase database;
     private final String partitionKey = "testpartition";
     private final String connectorId = "test-connector";
+    private String containerName = "container_";
     private CosmosTransferProcessStore store;
     private TypeManager typeManager;
 
@@ -85,16 +88,26 @@ class CosmosTransferProcessStoreTest {
         }
     }
 
+    @AfterAll
+    static void cleanup() {
+        if (database != null) {
+            var response = database.delete();
+            assertThat(response.getStatusCode()).isBetween(200, 400);
+        }
+    }
+
     @BeforeEach
     void setUp() {
+        containerName += UUID.randomUUID().toString();
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
-        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(CONTAINER_NAME, "/partitionKey");
+        CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
         uploadStoredProcedure(container, "nextForState");
         uploadStoredProcedure(container, "lease");
         typeManager = new TypeManager();
         typeManager.registerTypes(DataRequest.class);
-        store = new CosmosTransferProcessStore(container, typeManager, partitionKey, connectorId);
+        var retryPolicy = new RetryPolicy<>().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS);
+        store = new CosmosTransferProcessStore(container, typeManager, partitionKey, connectorId, retryPolicy);
     }
 
     @Test

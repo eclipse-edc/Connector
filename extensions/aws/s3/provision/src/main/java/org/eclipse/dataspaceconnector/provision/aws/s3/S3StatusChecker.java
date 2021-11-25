@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
 import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.S3Exception;
 
 import java.util.List;
 import java.util.concurrent.CompletionException;
@@ -72,13 +73,21 @@ public class S3StatusChecker implements StatusChecker {
     }
 
     private boolean checkBucket(String bucketName, String region) {
-        var s3client = clientProvider.clientFor(S3AsyncClient.class, region);
+        try {
+            var s3client = clientProvider.clientFor(S3AsyncClient.class, region);
 
-        var rq = ListObjectsRequest.builder().bucket(bucketName).build();
-        var response = Failsafe.with(retryPolicy)
-                .getStageAsync(() -> s3client.listObjects(rq))
-                .join();
-        return response.contents().stream().anyMatch(s3object -> s3object.key().endsWith(".complete"));
+            var rq = ListObjectsRequest.builder().bucket(bucketName).build();
+            var response = Failsafe.with(retryPolicy)
+                    .getStageAsync(() -> s3client.listObjects(rq))
+                    .join();
+            return response.contents().stream().anyMatch(s3object -> s3object.key().endsWith(".complete"));
+        } catch (CompletionException ex) {
+            if (ex.getCause() instanceof S3Exception) {
+                return false;
+            } else {
+                throw ex;
+            }
+        }
     }
 
 }
