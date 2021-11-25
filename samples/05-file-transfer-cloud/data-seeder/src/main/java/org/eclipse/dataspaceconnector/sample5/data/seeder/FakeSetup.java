@@ -44,20 +44,20 @@ public class FakeSetup {
         Asset asset = Asset.Builder.newInstance().id("1").build();
         DataAddress dataAddress = DataAddress.Builder.newInstance()
                 .type("AzureStorage")
-                .property("account", "<storage-account-name>")
+                .property("account", "edcnikpinstorage")
                 .property("container", "src-container")
                 .property("blobname", "test-document.txt")
-                .keyName("<storage-account-name>-key1")
+                .keyName("edcnikpinstorage-key1")
                 .build();
         assetIndexLoader.accept(asset, dataAddress);
 
         Asset asset2 = Asset.Builder.newInstance().id("2").build();
         DataAddress dataAddress2 = DataAddress.Builder.newInstance()
                 .type("AzureStorage")
-                .property("account", "<storage-account-name>")
+                .property("account", "edcnikpinstorage")
                 .property("container", "src-container")
                 .property("blobname", "test-document.txt")
-                .keyName("<storage-account-name>-key1")
+                .keyName("edcnikpinstorage-key1")
                 .build();
         assetIndexLoader.accept(asset2, dataAddress2);
 
@@ -87,14 +87,14 @@ public class FakeSetup {
                 .id("1")
                 .accessPolicy(publicPolicy)
                 .contractPolicy(publicPolicy)
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("id", "1").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "1").build())
                 .build();
 
         ContractDefinition contractDefinition2 = ContractDefinition.Builder.newInstance()
                 .id("2")
                 .accessPolicy(publicPolicy2)
                 .contractPolicy(publicPolicy2)
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("id", "2").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "2").build())
                 .build();
 
         contractDefinitionStore.save(contractDefinition1);
