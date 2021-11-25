@@ -63,11 +63,11 @@ class CosmosTransferProcessStoreIntegrationTest {
 
     private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String DATABASE_NAME = "transferprocessstore-itest";
+    private static final String CONTAINER_PREFIX = "container_";
     private static CosmosContainer container;
     private static CosmosDatabase database;
     private final String partitionKey = "testpartition";
     private final String connectorId = "test-connector";
-    private String containerName = "container_";
     private CosmosTransferProcessStore store;
     private TypeManager typeManager;
 
@@ -98,7 +98,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
     @BeforeEach
     void setUp() {
-        containerName += UUID.randomUUID().toString();
+        var containerName = CONTAINER_PREFIX + UUID.randomUUID();
         assertThat(database).describedAs("CosmosDB database is null - did something go wrong during initialization?").isNotNull();
         CosmosContainerResponse containerIfNotExists = database.createContainerIfNotExists(containerName, "/partitionKey");
         container = database.getContainer(containerIfNotExists.getProperties().getId());
