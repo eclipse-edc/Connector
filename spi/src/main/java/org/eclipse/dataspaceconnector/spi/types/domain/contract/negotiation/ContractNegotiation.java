@@ -203,7 +203,7 @@ public class ContractNegotiation {
     }
 
     public void transitionApproving() {
-        transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.PROVIDER_OFFERED);
+        transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
     }
 
     public void transitionApproved() {
