@@ -26,8 +26,7 @@ dependencies {
 
     testFixturesImplementation(project(":common:util"))
 
-    testFixturesApi(platform("com.amazonaws:aws-java-sdk-bom:1.11.1018"))
-    testFixturesApi("com.amazonaws:aws-java-sdk-s3")
+    testFixturesApi("software.amazon.awssdk:s3:${awsVersion}")
 
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

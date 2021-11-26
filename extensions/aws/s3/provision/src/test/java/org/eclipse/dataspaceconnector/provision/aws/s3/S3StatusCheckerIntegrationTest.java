@@ -22,15 +22,12 @@ import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
-import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
 import java.time.temporal.ChronoUnit;
-import java.util.Collections;
+import java.util.List;
 import java.util.UUID;
 import java.util.function.Supplier;
 
@@ -45,8 +42,10 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFi
 
 @IntegrationTest
 class S3StatusCheckerIntegrationTest extends AbstractS3Test {
+
     public static final int ONE_MINUTE_MILLIS = 1000 * 60;
     private static final String PROCESS_ID = UUID.randomUUID().toString();
+
     private S3StatusChecker checker;
 
     @BeforeEach
@@ -54,10 +53,7 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
         RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(3).withBackoff(200, 1000, ChronoUnit.MILLIS);
         ClientProvider providerMock = mock(ClientProvider.class);
         expect(providerMock.clientFor(eq(S3AsyncClient.class), anyString()))
-
-                .andReturn(S3AsyncClient.builder()
-                        .region(Region.of(REGION))
-                        .credentialsProvider(() -> AwsBasicCredentials.create(credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey())).build())
+                .andReturn(client)
                 .anyTimes();
         replay(providerMock);
         checker = new S3StatusChecker(providerMock, retryPolicy);
@@ -65,55 +61,56 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
 
     @Test
     void isComplete_noResources_whenNotComplete() {
-        assertThat(checker.isComplete(createTransferProcess(bucketName), emptyList())).isFalse();
+        var complete = checker.isComplete(createTransferProcess(bucketName), emptyList());
+
+        assertThat(complete).isFalse();
     }
 
     @Test
     void isComplete_noResources_whenComplete() throws InterruptedException {
-        //arrange
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
+        var transferProcess = createTransferProcess(bucketName);
 
-        var tp = createTransferProcess(bucketName);
-        var hasCompleted = waitUntil(() -> checker.isComplete(tp, emptyList()), ONE_MINUTE_MILLIS);
+        var hasCompleted = waitUntil(() -> checker.isComplete(transferProcess, emptyList()), ONE_MINUTE_MILLIS);
+
         assertThat(hasCompleted).isTrue();
     }
 
     @Test
     void isComplete_noResources_whenBucketNotExist() {
-        assertThat(checker.isComplete(createTransferProcess(bucketName), emptyList())).isFalse();
+        var complete = checker.isComplete(createTransferProcess(bucketName), emptyList());
+
+        assertThat(complete).isFalse();
     }
 
     @Test
     void isComplete_withResources_whenNotComplete() {
+        var transferProcess = createTransferProcess(bucketName);
+        var provisionedResource = createProvisionedResource(transferProcess);
 
-        TransferProcess tp = createTransferProcess(bucketName);
-        S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
+        var complete = checker.isComplete(transferProcess, List.of(provisionedResource));
 
-        assertThat(checker.isComplete(tp, Collections.singletonList(provisionedResource))).isFalse();
+        assertThat(complete).isFalse();
     }
 
     @Test
     void isComplete_withResources_whenComplete() throws InterruptedException {
-        //arrange
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
-
-        //act-assert
         TransferProcess tp = createTransferProcess(bucketName);
-        S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
+
         var hasCompleted = waitUntil(() -> checker.isComplete(tp, emptyList()), ONE_MINUTE_MILLIS);
+
         assertThat(hasCompleted).isTrue();
     }
 
     @Test
     void isComplete_withResources_whenBucketNotExist() {
-        TransferProcess tp = createTransferProcess(bucketName);
-        S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
-        assertThat(checker.isComplete(tp, Collections.singletonList(provisionedResource))).isFalse();
-    }
+        var transferProcess = createTransferProcess(bucketName);
+        var provisionedResource = createProvisionedResource(transferProcess);
 
-    @Override
-    protected @NotNull String createBucketName() {
-        return "s3-checker-test-" + PROCESS_ID + "-" + REGION;
+        boolean complete = checker.isComplete(transferProcess, List.of(provisionedResource));
+
+        assertThat(complete).isFalse();
     }
 
     private boolean waitUntil(Supplier<Boolean> conditionSupplier, long maxTimeMillis) throws InterruptedException {
@@ -132,12 +129,12 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
         return complete;
     }
 
-    private S3BucketProvisionedResource createProvisionedResource(TransferProcess tp) {
+    private S3BucketProvisionedResource createProvisionedResource(TransferProcess transferProcess) {
         return S3BucketProvisionedResource.Builder.newInstance()
                 .bucketName(bucketName)
                 .region(REGION)
                 .resourceDefinitionId(UUID.randomUUID().toString())
-                .transferProcessId(tp.getId())
+                .transferProcessId(transferProcess.getId())
                 .id(UUID.randomUUID().toString())
                 .build();
     }
