@@ -69,16 +69,17 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public Set<String> provides() {
+        return Set.of("edc:ids:api:multipart:endpoint:v1");
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of(IdentityService.FEATURE,
                 "dataspaceconnector:transferprocessstore",
                 "edc:ids:core",
+                ContractDefinitionStore.FEATURE,
                 "edc:ids:transform:v1");
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:ids:api:multipart:endpoint:v1");
     }
 
     @Override
