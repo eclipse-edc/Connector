@@ -64,7 +64,12 @@ public class ContractServiceExtension implements ServiceExtension {
     @Override
     public void start() {
         // load the store in the start method so it can be overridden by an extension
-        definitionService.initialize(context.getService(ContractDefinitionStore.class));
+        var store = context.getService(ContractDefinitionStore.class, true);
+        if (store == null) {
+            store = new InMemoryContractDefinitionStore();
+            context.registerService(ContractDefinitionStore.class, store);
+        }
+        definitionService.initialize(store);
         monitor.info(String.format("Started %s", NAME));
     }
 
@@ -86,9 +91,6 @@ public class ContractServiceExtension implements ServiceExtension {
 
         var policyEngine = new PolicyEngineImpl();
         context.registerService(PolicyEngine.class, policyEngine);
-
-        var definitionsStore = new InMemoryContractDefinitionStore();
-        context.registerService(ContractDefinitionStore.class, definitionsStore);
 
         definitionService = new ContractDefinitionServiceImpl(policyEngine, monitor);
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
