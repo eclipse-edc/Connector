@@ -34,8 +34,6 @@ dependencies {
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:protocol:web"))
 
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":core:contract"))
 }
 
 publishing {

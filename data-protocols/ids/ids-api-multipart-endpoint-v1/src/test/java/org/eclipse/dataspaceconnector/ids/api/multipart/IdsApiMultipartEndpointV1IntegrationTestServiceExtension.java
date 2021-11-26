@@ -66,7 +66,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
     @Override
     public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore");
+        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", ContractDefinitionStore.FEATURE);
     }
 
     @Override
