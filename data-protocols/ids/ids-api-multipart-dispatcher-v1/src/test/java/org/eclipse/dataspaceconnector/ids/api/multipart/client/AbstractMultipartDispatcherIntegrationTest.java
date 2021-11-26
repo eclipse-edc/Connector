@@ -45,7 +45,8 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
     //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
-    protected IdentityService identityService;
+    private static final AtomicReference<Integer> PORT = new AtomicReference<>();
+    private static final List<Asset> ASSETS = new LinkedList<>();
 
     static {
         OBJECT_MAPPER.registerModule(new JavaTimeModule());
@@ -57,8 +58,26 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
     }
 
-    private static final AtomicReference<Integer> PORT = new AtomicReference<>();
-    private static final List<Asset> ASSETS = new LinkedList<>();
+    protected IdentityService identityService;
+
+    private static int findUnallocatedServerPort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
+    @AfterEach
+    void after() {
+        ASSETS.clear();
+
+        for (String key : getSystemProperties().keySet()) {
+            System.clearProperty(key);
+        }
+
+        PORT.set(null);
+    }
 
     @BeforeEach
     protected void before(EdcExtension extension) {
@@ -81,31 +100,12 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
                 new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService));
     }
 
-    @AfterEach
-    void after() {
-        ASSETS.clear();
-
-        for (String key : getSystemProperties().keySet()) {
-            System.clearProperty(key);
-        }
-
-        PORT.set(null);
-    }
-
     protected void addAsset(Asset asset) {
         ASSETS.add(asset);
     }
 
     protected int getPort() {
         return PORT.get();
-    }
-
-    private static int findUnallocatedServerPort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
     }
 
     protected String getUrl() {

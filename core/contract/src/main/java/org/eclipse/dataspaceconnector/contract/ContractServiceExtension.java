@@ -35,7 +35,6 @@ import java.util.Set;
 
 public class ContractServiceExtension implements ServiceExtension {
     private static final String NAME = "Core Contract Service Extension";
-    private static final Set<String> PROVIDES = Set.of("edc:core:contract", ContractDefinitionStore.FEATURE);
 
     private Monitor monitor;
     private ServiceExtensionContext context;
@@ -43,7 +42,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public final Set<String> provides() {
-        return PROVIDES;
+        return Set.of("edc:core:contract", ContractDefinitionStore.FEATURE);
     }
 
     @Override
