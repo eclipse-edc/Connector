@@ -108,8 +108,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
         OfferValidationResult result = validationService.validate(token, request.getContractOffer());
         if (result.invalid()) {
-            //TODO how to decide whether to decline or send counter offer?
-            negotiation.transitionDeclining(); //TODO error detail
+            if (result.isCounterOfferAvailable()) {
+                negotiation.addContractOffer(result.getValidatedOffer());
+                negotiation.transitionOffering();
+            } else {
+                negotiation.transitionDeclining(); //TODO error detail
+            }
+
             negotiationStore.update(negotiation);
             return new NegotiationResponse(OK, negotiation);
         }
@@ -126,8 +131,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
         OfferValidationResult result = validationService.validate(token, offer);
         if (result.invalid()) {
-            //TODO how to decide whether to decline or counter offer?
-            negotiation.transitionDeclining(); //TODO set error detail
+            if (result.isCounterOfferAvailable()) {
+                negotiation.addContractOffer(result.getValidatedOffer());
+                negotiation.transitionOffering();
+            } else {
+                negotiation.transitionDeclining(); //TODO set error detail
+            }
+
             negotiationStore.update(negotiation);
             return new NegotiationResponse(OK, negotiation);
         }
@@ -150,8 +160,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
 
         negotiation.setContractAgreement(agreement);
-        negotiation.transitionApproved(); // TODO Shouldn't this be confirming?
-        negotiationStore.update(negotiation);
+
+        var currentState = ContractNegotiationStates.from(negotiation.getState());
+        if (currentState == ContractNegotiationStates.PROVIDER_OFFERED) {
+            negotiation.transitionConfirming();
+            negotiationStore.update(negotiation);
+        }
+        // Otherwise already has state confirmed, no further action required
+
         return new NegotiationResponse(OK, negotiation);
     }
 
@@ -162,11 +178,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
                 int declining = checkDeclining();
 
-                int consumerApproved = checkConsumerApproved();
-
                 int confirming = checkConfirming();
 
-                if (providerOffering + declining + consumerApproved + confirming == 0) {
+                if (providerOffering + declining + confirming == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
                 waitStrategy.success();
@@ -193,8 +207,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var offeringNegotiations = negotiationStore.nextForState(ContractNegotiationStates.PROVIDER_OFFERING.code(), batchSize);
 
         for (var negotiation: offeringNegotiations) {
-            //TODO where is current offer constructed?
-            var currentOffer = negotiation.getContractOffers().get(negotiation.getContractOffers().size() - 1);
+            var currentOffer = negotiation.getLastContractOffer();
 
             var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
                     .protocol(negotiation.getProtocol())
@@ -244,32 +257,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
 
         return decliningNegotiations.size();
-    }
-
-    private int checkConsumerApproved() {
-        var consumerApprovedNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONSUMER_APPROVED.code(), batchSize);
-
-        for (var negotiation: consumerApprovedNegotiations) {
-            ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
-                    .protocol(negotiation.getProtocol())
-                    .connectorId(negotiation.getCounterPartyId())
-                    .connectorAddress(negotiation.getCounterPartyAddress())
-                    .contractAgreement(negotiation.getContractAgreement())
-                    .build();
-
-            //TODO response type (cannot be specific zu multipart)
-            var response = dispatcherRegistry.send(Object.class, request, () -> null);
-
-            if (response.isCompletedExceptionally()) {
-                negotiation.transitionApproved();
-                continue;
-            }
-
-            negotiation.transitionConfirmed();
-            negotiationStore.update(negotiation);
-        }
-
-        return consumerApprovedNegotiations.size();
     }
 
     private int checkConfirming() {
