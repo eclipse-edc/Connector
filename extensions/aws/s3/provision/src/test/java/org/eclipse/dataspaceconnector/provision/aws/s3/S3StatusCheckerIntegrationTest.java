@@ -14,7 +14,9 @@
 
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
+import com.amazonaws.auth.AWSSessionCredentials;
 import net.jodah.failsafe.RetryPolicy;
+import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
@@ -26,6 +28,8 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsSessionCredentials;
+import software.amazon.awssdk.core.SdkClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 
@@ -38,7 +42,9 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
+import static org.easymock.EasyMock.isA;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
 import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFileFromResourceName;
@@ -52,11 +58,13 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
     void setup() {
         RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(3).withBackoff(200, 1000, ChronoUnit.MILLIS);
         ClientProvider providerMock = mock(ClientProvider.class);
-        expect(providerMock.clientFor(S3AsyncClient.class, anyString()))
-                .anyTimes()
-                .andReturn(S3AsyncClient.builder()
-                        .region(Region.of(REGION))
-                        .credentialsProvider(() -> AwsBasicCredentials.create(credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey())).build());
+        S3AsyncClient client = S3AsyncClient.builder()
+                .region(Region.of(REGION))
+                .credentialsProvider(() -> AwsBasicCredentials.create(credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey()))
+                .build();
+        expect(providerMock.clientFor(eq(S3AsyncClient.class), anyString()))
+                .andReturn(client)
+                .anyTimes();
         replay(providerMock);
         checker = new S3StatusChecker(providerMock, retryPolicy);
     }
@@ -91,13 +99,13 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
 
     @Test
     void isComplete_withResources_whenComplete() {
-        //arrange
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
+        TransferProcess transferProcess = createTransferProcess(bucketName);
+        S3BucketProvisionedResource provisionedResource = createProvisionedResource(transferProcess);
 
-        //act-assert
-        TransferProcess tp = createTransferProcess(bucketName);
-        S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
-        await().atMost(10, TimeUnit.SECONDS).until(() -> checker.isComplete(tp, Collections.singletonList(provisionedResource)));
+        await().atMost(10, TimeUnit.SECONDS).until(() ->
+                checker.isComplete(transferProcess, Collections.singletonList(provisionedResource))
+        );
     }
 
     @Test
