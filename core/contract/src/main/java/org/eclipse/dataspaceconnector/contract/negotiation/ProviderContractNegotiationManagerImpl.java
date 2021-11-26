@@ -150,7 +150,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
 
         negotiation.setContractAgreement(agreement);
-        negotiation.transitionConsumerApproved();
+        negotiation.transitionApproved(); // TODO Shouldn't this be confirming?
         negotiationStore.update(negotiation);
         return new NegotiationResponse(OK, negotiation);
     }
@@ -177,7 +177,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 active.set(false);
                 break;
             } catch (Throwable e) {
-                monitor.severe("Error caught in transfer process manager", e);
+                monitor.severe("Error caught in provider contract negotiation manager", e);
                 try {
                     Thread.sleep(waitStrategy.retryInMillis());
                 } catch (InterruptedException e2) {
@@ -207,11 +207,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             var response = dispatcherRegistry.send(Object.class, contractOfferRequest, () -> null);
 
             if (response.isCompletedExceptionally()) {
-                negotiation.transitionProviderOffering();
+                negotiation.transitionOffering();
                 continue;
             }
 
-            negotiation.transitionProviderOffered();
+            negotiation.transitionOffered();
             negotiationStore.update(negotiation);
         }
 
@@ -261,7 +261,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             var response = dispatcherRegistry.send(Object.class, request, () -> null);
 
             if (response.isCompletedExceptionally()) {
-                negotiation.transitionConsumerApproved();
+                negotiation.transitionApproved();
                 continue;
             }
 

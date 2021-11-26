@@ -188,19 +188,33 @@ public class ContractNegotiation {
         }
     }
 
+    public void transitionOffering() {
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.CONSUMER_OFFERING, ContractNegotiationStates.REQUESTED);
+        }
+        transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.REQUESTED);
+    }
+
     public void transitionOffered() {
-        if (Type.PROVIDER == type) {
-            transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
-        } else {
+        if (Type.CONSUMER == type) {
             transition(ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERING);
         }
+        transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
+    }
+
+    public void transitionApproving() {
+        transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.PROVIDER_OFFERED);
+    }
+
+    public void transitionApproved() {
+        transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.PROVIDER_OFFERED);
     }
 
     /**
      * Change state to declining.
      */
     public void transitionDeclining() {
-        transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED);
+        transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_APPROVED);
     }
 
     /**
@@ -221,94 +235,8 @@ public class ContractNegotiation {
      * Change state to confirmed.
      */
     public void transitionConfirmed() {
-        transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONSUMER_APPROVED);
+        transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED);
     }
-
-    public void transitionConsumerApproved() {
-        transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.PROVIDER_OFFERED);
-    }
-
-    /**
-     * Change state from unsaved to offering.
-     */
-    public void transitionProviderOffering() {
-        if (Type.CONSUMER == type) {
-            throw new IllegalStateException("Consumer processes have no PROVIDER_OFFERING state");
-        }
-        transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.REQUESTED);
-    }
-
-    /**
-     * Change state from offering to offered.
-     */
-    public void transitionProviderOffered() {
-        if (Type.CONSUMER == type) {
-            throw new IllegalStateException("Consumer processes have no PROVIDER_OFFERED state");
-        }
-        transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
-    }
-
-    /**
-     * Change state from requested to declining.
-     */
-    public void transitionDecliningFromRequested() {
-        if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no REQUESTED state");
-        }
-        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.REQUESTED);
-    }
-
-    /**
-     * Change state from offered to declining.
-     */
-    public void transitionDecliningFromOffered() {
-        if (Type.PROVIDER == type) {
-            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.PROVIDER_OFFERED);
-        } else {
-            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.CONSUMER_OFFERED);
-        }
-    }
-
-    /**
-     * Change state from requested to confirmed.
-     */
-    public void transitionConfirmedFromRequested() {
-        if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no REQUESTED state");
-        }
-        transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.REQUESTED);
-    }
-
-    /**
-     * Change state from offered to confirmed/consumer approved.
-     */
-    public void transitionConfirmedFromOffered() {
-        if (Type.PROVIDER == type) {
-            transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.PROVIDER_OFFERED);
-        } else {
-            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONSUMER_OFFERED);
-        }
-    }
-
-    /**
-     * Change state from approved or confirmed to declining.
-     */
-    public void transitionDecliningFromApproved() {
-        if (Type.PROVIDER == type) {
-            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.CONFIRMED);
-        } else {
-            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.CONSUMER_APPROVED);
-        }
-    }
-
-    public void transitionConsumerOffering() {
-        if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no CONSUMER_OFFERING state");
-        }
-        transition(ContractNegotiationStates.CONSUMER_OFFERING, ContractNegotiationStates.REQUESTED);
-    }
-
-    // TODO add all combinations from state diagram
 
     private void checkState(int... legalStates) {
         for (var legalState : legalStates) {
