@@ -29,6 +29,7 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation(project(":core:policy:policy-engine"))
+    testImplementation("com.github.javafaker:javafaker:1.0.2")
 }
 
 

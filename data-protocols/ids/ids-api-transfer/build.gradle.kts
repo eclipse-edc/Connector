@@ -14,6 +14,7 @@
 
 val infoModelVersion: String by project
 val rsApi: String by project
+val jerseyVersion: String by project
 
 plugins {
     `java-library`
@@ -27,6 +28,9 @@ dependencies {
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
+    testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
+    testImplementation("com.github.javafaker:javafaker:1.0.2")
 
 }
 
