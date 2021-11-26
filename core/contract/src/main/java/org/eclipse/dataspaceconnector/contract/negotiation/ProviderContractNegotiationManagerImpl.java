@@ -92,14 +92,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
 
     @Override
-    public NegotiationResponse requested(ClaimToken token, String correlationId, String counterPartyId,
-                                         String counterPartyAddress, String protocol, ContractOffer offer) {
+    public NegotiationResponse requested(ClaimToken token, String correlationId, ContractOfferRequest request) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(correlationId)
-                .counterPartyId(counterPartyId)
-                .counterPartyAddress(counterPartyAddress)
-                .protocol(protocol)
+                .counterPartyId(request.getConnectorId())
+                .counterPartyAddress(request.getConnectorAddress())
+                .protocol(request.getProtocol())
                 .state(0)
                 .stateCount(0)
                 .stateTimestamp(Instant.now().toEpochMilli())
@@ -107,7 +106,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .build();
         negotiationStore.create(negotiation); //TODO should transition state to requested
 
-        OfferValidationResult result = validationService.validate(token, offer);
+        OfferValidationResult result = validationService.validate(token, request.getContractOffer());
         if (result.invalid()) {
             //TODO how to decide whether to decline or send counter offer?
             negotiation.transitionDeclining(); //TODO error detail

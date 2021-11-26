@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 /**
@@ -28,8 +29,7 @@ public interface ProviderContractNegotiationManager extends ContractNegotiationM
     /**
      * A contract negotiation has been requested by the consumer represented with the given claims.
      */
-    NegotiationResponse requested(ClaimToken token, String correlationId, String counterPartyId,
-                                  String counterPartyAddress, String protocol, ContractOffer offer);
+    NegotiationResponse requested(ClaimToken token, String correlationId, ContractOfferRequest request);
 
     /**
      * A new offer was made by the consumer represented by the claim token.
