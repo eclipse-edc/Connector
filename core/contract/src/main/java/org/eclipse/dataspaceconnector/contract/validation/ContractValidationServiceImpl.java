@@ -72,7 +72,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
         var sanitizedUsagePolicy = contractDefinition.getContractPolicy();
         var validatedOffer = ContractOffer.Builder.newInstance().id(offer.getId()).assets(assets.collect(toList())).policy(sanitizedUsagePolicy).build();
-        return new OfferValidationResult(validatedOffer);
+        return new OfferValidationResult(validatedOffer, null);
     }
 
     @Override
