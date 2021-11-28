@@ -38,6 +38,7 @@ import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.easymock.EasyMock.anyString;
+import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
@@ -52,11 +53,12 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
     void setup() {
         RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(3).withBackoff(200, 1000, ChronoUnit.MILLIS);
         ClientProvider providerMock = mock(ClientProvider.class);
-        expect(providerMock.clientFor(S3AsyncClient.class, anyString()))
-                .anyTimes()
+        expect(providerMock.clientFor(eq(S3AsyncClient.class), anyString()))
+
                 .andReturn(S3AsyncClient.builder()
                         .region(Region.of(REGION))
-                        .credentialsProvider(() -> AwsBasicCredentials.create(credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey())).build());
+                        .credentialsProvider(() -> AwsBasicCredentials.create(credentials.getAWSAccessKeyId(), credentials.getAWSSecretKey())).build())
+                .anyTimes();
         replay(providerMock);
         checker = new S3StatusChecker(providerMock, retryPolicy);
     }
