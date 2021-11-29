@@ -33,8 +33,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("aws.s3.provision") {
-            artifactId = "aws.s3.provision"
+        create<MavenPublication>("s3-provision") {
+            artifactId = "s3-provision"
             from(components["java"])
         }
     }

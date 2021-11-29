@@ -13,8 +13,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("iam.dummy-credentials-verifier") {
-            artifactId = "iam.dummy-credentials-verifier"
+        create<MavenPublication>("dummy-credentials-verifier") {
+            artifactId = "dummy-credentials-verifier"
             from(components["java"])
         }
     }

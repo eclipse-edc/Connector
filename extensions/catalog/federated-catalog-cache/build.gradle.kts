@@ -37,8 +37,8 @@ tasks.withType<Test> {
 }
 publishing {
     publications {
-        create<MavenPublication>("catalog.cache") {
-            artifactId = "catalog.cache"
+        create<MavenPublication>("catalog-cache") {
+            artifactId = "catalog-cache"
             from(components["java"])
         }
     }

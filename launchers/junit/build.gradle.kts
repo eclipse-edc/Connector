@@ -34,8 +34,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("junit.launcher") {
-            artifactId = "launcher.junit"
+        create<MavenPublication>("junit-launcher") {
+            artifactId = "junit-launcher"
             from(components["java"])
         }
     }

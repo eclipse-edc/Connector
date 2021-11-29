@@ -26,8 +26,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("core.bootstrap") {
-            artifactId = "core.bootstrap"
+        create<MavenPublication>("core-bootstrap") {
+            artifactId = "core-bootstrap"
             from(components["java"])
         }
     }

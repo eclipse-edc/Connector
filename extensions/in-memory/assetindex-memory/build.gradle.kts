@@ -23,17 +23,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("in-memory.assetindex") {
-            artifactId = "in-memory.assetindex"
-            from(components["java"])
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("in-memory.asset-index") {
-            artifactId = "in-memory.asset-index"
+        create<MavenPublication>("assetindex-memory") {
+            artifactId = "assetindex-memory"
             from(components["java"])
         }
     }

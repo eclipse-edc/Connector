@@ -32,8 +32,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure.blob.provision") {
-            artifactId = "azure.blob.provision"
+        create<MavenPublication>("blob-provision") {
+            artifactId = "blob-provision"
             from(components["java"])
         }
     }

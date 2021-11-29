@@ -33,13 +33,3 @@ dependencies {
     testImplementation(testFixtures(project(":launchers:junit")))
 
 }
-
-
-//publishing {
-//    publications {
-//        create<MavenPublication>("samples.streaming") {
-//            artifactId = "dataspaceconnector.samples.streaming"
-//            from(components["java"])
-//        }
-//    }
-//}

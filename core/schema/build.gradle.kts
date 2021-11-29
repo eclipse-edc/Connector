@@ -22,8 +22,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("core.schema") {
-            artifactId = "core.schema"
+        create<MavenPublication>("schema") {
+            artifactId = "schema"
             from(components["java"])
         }
     }

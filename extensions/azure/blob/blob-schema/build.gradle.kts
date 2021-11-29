@@ -28,8 +28,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure.blob.schema") {
-            artifactId = "azure.blob.schema"
+        create<MavenPublication>("blob-schema") {
+            artifactId = "blob-schema"
             from(components["java"])
         }
     }

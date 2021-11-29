@@ -11,8 +11,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("iam.identity-did-spi") {
-            artifactId = "iam.identity-did-spi"
+        create<MavenPublication>("identity-did-spi") {
+            artifactId = "identity-did-spi"
             from(components["java"])
         }
     }

@@ -26,8 +26,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("iam.iam-mock") {
-            artifactId = "iam.iam-mock"
+        create<MavenPublication>("iam-mock") {
+            artifactId = "iam-mock"
             from(components["java"])
         }
     }

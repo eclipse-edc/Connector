@@ -23,8 +23,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("in-memory.policy-registry") {
-            artifactId = "in-memory.policy-registry"
+        create<MavenPublication>("policy-registry-memory") {
+            artifactId = "policy-registry-memory"
             from(components["java"])
         }
     }

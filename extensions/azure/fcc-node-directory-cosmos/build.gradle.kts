@@ -31,8 +31,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure.cosmos.fcc-node-dir") {
-            artifactId = "azure.cosmos.fcc-node-dir"
+        create<MavenPublication>("fcc-node-directory-cosmos") {
+            artifactId = "fcc-node-directory-cosmos"
             from(components["java"])
         }
     }
