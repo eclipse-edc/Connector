@@ -46,6 +46,7 @@ import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.jetbrains.annotations.NotNull;
 
@@ -144,10 +145,10 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         List<Handler> handlers = new LinkedList<>();
         handlers.add(descriptionHandler);
 
-        TransferProcessStore transferProcessStore = serviceExtensionContext.getService(TransferProcessStore.class);
+        TransferProcessManager transferProcessManager = serviceExtensionContext.getService(TransferProcessManager.class);
         ContractValidationService contractValidationService = serviceExtensionContext.getService(ContractValidationService.class);
         Vault vault = serviceExtensionContext.getService(Vault.class);
-        ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractDefinitionStore, contractValidationService, transferProcessStore, vault);
+        ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractDefinitionStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
 
         // create & register controller
