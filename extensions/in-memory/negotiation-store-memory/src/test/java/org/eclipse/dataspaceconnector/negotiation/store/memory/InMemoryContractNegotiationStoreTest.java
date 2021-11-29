@@ -93,12 +93,12 @@ class InMemoryContractNegotiationStoreTest {
 
         List<ContractNegotiation> found = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 1);
         assertEquals(1, found.size());
-//        assertEquals(negotiation2, found.get(0)); TODO
+        assertEquals(negotiation2, found.get(0));
 
         found = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 3);
         assertEquals(2, found.size());
-//        assertEquals(negotiation2, found.get(0));
-//        assertEquals(negotiation1, found.get(1));
+        assertEquals(negotiation2, found.get(0));
+        assertEquals(negotiation1, found.get(1));
     }
 
     @Test
