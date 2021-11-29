@@ -107,7 +107,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .stateTimestamp(Instant.now().toEpochMilli())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
-        negotiationStore.create(negotiation); //TODO should transition state to requested
+        negotiationStore.create(negotiation);
         monitor.debug(String.format("Created ContractNegotiation %s.", negotiation.getId()));
 
         return processIncomingOffer(negotiation, token, request.getContractOffer());

@@ -69,7 +69,12 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     @Override
     public void create(ContractNegotiation negotiation) {
         writeLock(() -> {
-            negotiation.transitionRequesting(); // TODO Only on consumer side?
+            if (ContractNegotiation.Type.CONSUMER.equals(negotiation.getType())) {
+                negotiation.transitionRequesting();
+            } else {
+                negotiation.transitionRequested();
+            }
+
             delete(negotiation.getId());
             ContractNegotiation internalCopy = negotiation.copy();
             processesById.put(negotiation.getId(), internalCopy);
