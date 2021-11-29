@@ -40,7 +40,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("ids.api-multipart-endpoint-v1") {
-            artifactId = "ids.ids-api-multipart-endpoint-v1"
+            artifactId = "ids.api-multipart-endpoint-v1"
             from(components["java"])
         }
     }
