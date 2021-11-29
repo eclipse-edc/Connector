@@ -72,7 +72,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Override
     public Set<String> requires() {
         return Set.of(IdentityService.FEATURE,
-                "dataspaceconnector:transferprocessstore",
+                "dataspaceconnector:transfer-process-manager",
                 "edc:ids:core",
                 "edc:ids:transform:v1");
     }
