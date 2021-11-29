@@ -15,12 +15,12 @@
 package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
+import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,14 +46,14 @@ class ConnectorServiceImplTest {
     private Monitor monitor;
     private ConnectorServiceSettings connectorServiceSettings;
     private ConnectorVersionProvider connectorVersionProvider;
-    private DataCatalogService dataCatalogService;
+    private CatalogService dataCatalogService;
 
     @BeforeEach
     void setUp() {
         monitor = EasyMock.createMock(Monitor.class);
         connectorServiceSettings = EasyMock.createMock(ConnectorServiceSettings.class);
         connectorVersionProvider = EasyMock.createMock(ConnectorVersionProvider.class);
-        dataCatalogService = EasyMock.createMock(DataCatalogService.class);
+        dataCatalogService = EasyMock.createMock(CatalogService.class);
 
         connectorService = new ConnectorServiceImpl(monitor, connectorServiceSettings, connectorVersionProvider, dataCatalogService);
     }
@@ -62,7 +62,7 @@ class ConnectorServiceImplTest {
     void getConnector() {
         // prepare
         VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
-        DataCatalog dataCatalog = EasyMock.createMock(DataCatalog.class);
+        Catalog dataCatalog = EasyMock.createMock(Catalog.class);
 
         EasyMock.expect(dataCatalogService.getDataCatalog(EasyMock.isA(VerificationResult.class))).andReturn(dataCatalog);
         EasyMock.expect(connectorServiceSettings.getId()).andReturn(CONNECTOR_ID);

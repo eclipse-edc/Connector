@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -35,11 +35,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class DataCatalogToIdsResourceCatalogTransformer implements IdsTypeTransformer<DataCatalog, ResourceCatalog> {
+public class CatalogToIdsResourceCatalogTransformer implements IdsTypeTransformer<Catalog, ResourceCatalog> {
 
     @Override
-    public Class<DataCatalog> getInputType() {
-        return DataCatalog.class;
+    public Class<Catalog> getInputType() {
+        return Catalog.class;
     }
 
     @Override
@@ -48,7 +48,7 @@ public class DataCatalogToIdsResourceCatalogTransformer implements IdsTypeTransf
     }
 
     @Override
-    public @Nullable ResourceCatalog transform(DataCatalog object, @NotNull TransformerContext context) {
+    public @Nullable ResourceCatalog transform(Catalog object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;

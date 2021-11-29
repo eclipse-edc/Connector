@@ -29,8 +29,8 @@ import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.CatalogRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -45,7 +45,7 @@ import java.util.Map;
  * IdsMultipartSender implementation for connector catalog requests. Sends IDS DescriptionRequestMessages and
  * expects an IDS DescriptionResponseMessage as the response.
  */
-public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender<CatalogRequest, DataCatalog> {
+public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender<CatalogRequest, Catalog> {
 
     public MultipartCatalogDescriptionRequestSender(@NotNull String connectorId,
                                                     @NotNull OkHttpClient httpClient,
@@ -84,7 +84,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     }
 
     @Override
-    protected DataCatalog getResponseContent(IdsMultipartParts parts) throws Exception {
+    protected Catalog getResponseContent(IdsMultipartParts parts) throws Exception {
         ObjectMapper objectMapper = getObjectMapper();
 
         if (parts.getPayload() == null) {
@@ -124,7 +124,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             }
         }
 
-        TransformResult<DataCatalog> transformResult = getTransformerRegistry().transform(resourceCatalog, DataCatalog.class);
+        TransformResult<Catalog> transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
 
         if (transformResult.hasProblems()) {
             throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getProblems())));

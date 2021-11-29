@@ -17,20 +17,20 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
+import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
-public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionRequestHandler<DataCatalog, ResourceCatalog> {
-    private final DataCatalogService dataCatalogService;
+public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionRequestHandler<Catalog, ResourceCatalog> {
+    private final CatalogService dataCatalogService;
 
     public DataCatalogDescriptionRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull DataCatalogService dataCatalogService,
+            @NotNull CatalogService dataCatalogService,
             @NotNull TransformerRegistry transformerRegistry) {
         super(
                 connectorId,
@@ -42,7 +42,7 @@ public class DataCatalogDescriptionRequestHandler extends AbstractDescriptionReq
         this.dataCatalogService = dataCatalogService;
     }
 
-    protected DataCatalog retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult) {
+    protected Catalog retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult) {
         return dataCatalogService.getDataCatalog(verificationResult);
     }
 }

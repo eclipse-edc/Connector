@@ -11,12 +11,12 @@ import java.util.Objects;
 /**
  * DTO representing IDS Data Catalog
  */
-@JsonDeserialize(builder = DataCatalog.Builder.class)
-public class DataCatalog {
+@JsonDeserialize(builder = Catalog.Builder.class)
+public class Catalog {
     private final String id;
     private final List<ContractOffer> contractOffers;
 
-    private DataCatalog(@NotNull String id, @NotNull List<ContractOffer> contractOffers) {
+    private Catalog(@NotNull String id, @NotNull List<ContractOffer> contractOffers) {
         this.id = Objects.requireNonNull(id);
         this.contractOffers = Objects.requireNonNull(contractOffers);
     }
@@ -48,8 +48,8 @@ public class DataCatalog {
             return this;
         }
 
-        public DataCatalog build() {
-            return new DataCatalog(id, contractOffers);
+        public Catalog build() {
+            return new Catalog(id, contractOffers);
         }
 
     }

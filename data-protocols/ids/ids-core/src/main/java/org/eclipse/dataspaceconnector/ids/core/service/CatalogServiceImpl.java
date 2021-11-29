@@ -14,24 +14,24 @@
 
 package org.eclipse.dataspaceconnector.ids.core.service;
 
-import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
+import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
 import static java.util.stream.Collectors.toList;
 
-public class DataCatalogServiceImpl implements DataCatalogService {
+public class CatalogServiceImpl implements CatalogService {
     private final Monitor monitor;
     private final String dataCatalogId;
     private final ContractOfferService contractOfferService;
 
-    public DataCatalogServiceImpl(
+    public CatalogServiceImpl(
             @NotNull Monitor monitor,
             @NotNull String dataCatalogId,
             @NotNull ContractOfferService contractOfferService) {
@@ -47,10 +47,10 @@ public class DataCatalogServiceImpl implements DataCatalogService {
      */
     @Override
     @NotNull
-    public DataCatalog getDataCatalog(VerificationResult verificationResult) {
+    public Catalog getDataCatalog(VerificationResult verificationResult) {
         var query = ContractOfferQuery.Builder.newInstance().claimToken(verificationResult.token()).build();
         var offerStream = contractOfferService.queryContractOffers(query);
 
-        return DataCatalog.Builder.newInstance().id(dataCatalogId).contractOffers(offerStream.collect(toList())).build();
+        return Catalog.Builder.newInstance().id(dataCatalogId).contractOffers(offerStream.collect(toList())).build();
     }
 }

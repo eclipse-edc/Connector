@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -69,7 +69,7 @@ public class ConnectorToIdsConnectorTransformer implements IdsTypeTransformer<Co
 
         if (object.getDataCatalogs() != null) {
             ArrayList<ResourceCatalog> catalogs = new ArrayList<>();
-            for (DataCatalog dataCatalog : object.getDataCatalogs()) {
+            for (Catalog dataCatalog : object.getDataCatalogs()) {
                 ResourceCatalog catalog = context.transform(dataCatalog, ResourceCatalog.class);
                 if (catalog != null) {
                     catalogs.add(catalog);

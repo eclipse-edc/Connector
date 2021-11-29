@@ -39,7 +39,7 @@ import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -86,7 +86,7 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(Connector.class, de.fraunhofer.iais.eis.Connector.class),
                     Arguments.arguments(Constraint.class, de.fraunhofer.iais.eis.Constraint.class),
                     Arguments.arguments(ContractOffer.class, de.fraunhofer.iais.eis.ContractOffer.class),
-                    Arguments.arguments(DataCatalog.class, ResourceCatalog.class),
+                    Arguments.arguments(Catalog.class, ResourceCatalog.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Constraint.class, Constraint.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.ContractOffer.class, ContractOffer.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Permission.class, Permission.class),
@@ -103,7 +103,7 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(RdfResource.class, Expression.class),
                     Arguments.arguments(Representation.class, Asset.class),
                     Arguments.arguments(Resource.class, Asset.class),
-                    Arguments.arguments(ResourceCatalog.class, DataCatalog.class),
+                    Arguments.arguments(ResourceCatalog.class, Catalog.class),
                     Arguments.arguments(SecurityProfile.class, de.fraunhofer.iais.eis.SecurityProfile.class),
                     Arguments.arguments(URI.class, IdsId.class)
             );

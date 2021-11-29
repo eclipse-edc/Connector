@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -34,25 +34,25 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 
-public class IdsResourceCatalogToDataCatalogTransformer implements IdsTypeTransformer<ResourceCatalog, DataCatalog> {
+public class IdsResourceCatalogToDataCatalogTransformer implements IdsTypeTransformer<ResourceCatalog, Catalog> {
     @Override
     public Class<ResourceCatalog> getInputType() {
         return ResourceCatalog.class;
     }
 
     @Override
-    public Class<DataCatalog> getOutputType() {
-        return DataCatalog.class;
+    public Class<Catalog> getOutputType() {
+        return Catalog.class;
     }
 
     @Override
-    public @Nullable DataCatalog transform(@Nullable ResourceCatalog object, @NotNull TransformerContext context) {
+    public @Nullable Catalog transform(@Nullable ResourceCatalog object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
         }
 
-        DataCatalog.Builder builder = DataCatalog.Builder.newInstance();
+        Catalog.Builder builder = Catalog.Builder.newInstance();
 
         builder.id(object.getId().toString());
 

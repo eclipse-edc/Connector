@@ -1,13 +1,13 @@
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * The IDS service is able to create a description of the EDC data catalog.
  */
-public interface DataCatalogService {
+public interface CatalogService {
 
     /**
      * Provides the data catalog
@@ -15,5 +15,5 @@ public interface DataCatalogService {
      * @return data catalog
      */
     @NotNull
-    DataCatalog getDataCatalog(VerificationResult verificationResult);
+    Catalog getDataCatalog(VerificationResult verificationResult);
 }

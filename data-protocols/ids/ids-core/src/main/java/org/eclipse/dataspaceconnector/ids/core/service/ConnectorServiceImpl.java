@@ -14,13 +14,13 @@
 
 package org.eclipse.dataspaceconnector.ids.core.service;
 
+import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.catalog.DataCatalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -30,13 +30,13 @@ public class ConnectorServiceImpl implements ConnectorService {
     private final Monitor monitor;
     private final ConnectorServiceSettings connectorServiceSettings;
     private final ConnectorVersionProvider connectorVersionProvider;
-    private final DataCatalogService dataCatalogService;
+    private final CatalogService dataCatalogService;
 
     public ConnectorServiceImpl(
             @NotNull Monitor monitor,
             @NotNull ConnectorServiceSettings connectorServiceSettings,
             @NotNull ConnectorVersionProvider connectorVersionProvider,
-            @NotNull DataCatalogService dataCatalogService) {
+            @NotNull CatalogService dataCatalogService) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorServiceSettings = Objects.requireNonNull(connectorServiceSettings);
         this.connectorVersionProvider = Objects.requireNonNull(connectorVersionProvider);
@@ -47,7 +47,7 @@ public class ConnectorServiceImpl implements ConnectorService {
     public Connector getConnector(@NotNull VerificationResult verificationResult) {
         Objects.requireNonNull(verificationResult);
 
-        DataCatalog dataCatalog = dataCatalogService.getDataCatalog(verificationResult);
+        Catalog catalog = dataCatalogService.getDataCatalog(verificationResult);
 
         return Connector.Builder
                 .newInstance()
@@ -56,7 +56,7 @@ public class ConnectorServiceImpl implements ConnectorService {
                 .description(connectorServiceSettings.getDescription())
                 .connectorVersion(connectorVersionProvider.getVersion())
                 .securityProfile(connectorServiceSettings.getSecurityProfile())
-                .dataCatalogs(Collections.singletonList(dataCatalog))
+                .dataCatalogs(Collections.singletonList(catalog))
                 .endpoint(connectorServiceSettings.getEndpoint())
                 .maintainer(connectorServiceSettings.getMaintainer())
                 .curator(connectorServiceSettings.getCurator())

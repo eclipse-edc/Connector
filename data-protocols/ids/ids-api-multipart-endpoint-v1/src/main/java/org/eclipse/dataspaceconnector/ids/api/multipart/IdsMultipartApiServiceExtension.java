@@ -31,8 +31,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.Reso
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -103,7 +103,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private void registerControllers(ServiceExtensionContext serviceExtensionContext) {
         WebService webService = serviceExtensionContext.getService(WebService.class);
         IdentityService identityService = serviceExtensionContext.getService(IdentityService.class);
-        DataCatalogService dataCatalogService = serviceExtensionContext.getService(DataCatalogService.class);
+        CatalogService dataCatalogService = serviceExtensionContext.getService(CatalogService.class);
         ConnectorService connectorService = serviceExtensionContext.getService(ConnectorService.class);
         AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
         TransformerRegistry transformerRegistry = serviceExtensionContext.getService(TransformerRegistry.class);

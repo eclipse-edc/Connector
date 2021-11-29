@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.spi.types.domain.metadata;
+package org.eclipse.dataspaceconnector.spi.types.domain.catalog;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
