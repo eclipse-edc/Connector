@@ -11,15 +11,10 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
 
 import static net.jodah.failsafe.Failsafe.with;
@@ -33,17 +28,13 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     private final CosmosDbApi cosmosDbApi;
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
-    private final AtomicReference<Map<String, ContractDefinition>> objectCache;
     private final String connectorId;
-    private final ReentrantReadWriteLock lock; //used to synchronize write operations to the cache and the DB
 
     public CosmosContractNegotiationStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String connectorId) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
         this.connectorId = connectorId;
-        objectCache = new AtomicReference<>(new ConcurrentHashMap<>());
-        lock = new ReentrantReadWriteLock(true);
     }
 
     @Override
@@ -93,15 +84,6 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
         };
         var list = typeManager.readValue(rawJson, typeRef);
         return list.stream().map(this::toNegotiation).collect(Collectors.toList());
-    }
-
-    private void storeInCache(ContractDefinition definition) {
-        objectCache.get().put(definition.getId(), definition);
-    }
-
-    @NotNull
-    private ContractNegotiationDocument convertToDocument(ContractNegotiation negotiation) {
-        return new ContractNegotiationDocument(negotiation);
     }
 
 
