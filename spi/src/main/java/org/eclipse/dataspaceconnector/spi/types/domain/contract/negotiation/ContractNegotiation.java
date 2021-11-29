@@ -192,15 +192,17 @@ public class ContractNegotiation {
     public void transitionOffering() {
         if (Type.CONSUMER == type) {
             transition(ContractNegotiationStates.CONSUMER_OFFERING, ContractNegotiationStates.REQUESTED);
+        } else {
+            transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.REQUESTED);
         }
-        transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.REQUESTED);
     }
 
     public void transitionOffered() {
         if (Type.CONSUMER == type) {
             transition(ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERING);
+        } else {
+            transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
         }
-        transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
     }
 
     public void transitionApproving() {
@@ -222,7 +224,7 @@ public class ContractNegotiation {
      * Change state to declined.
      */
     public void transitionDeclined() {
-        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONFIRMED);
+        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONFIRMED);
     }
 
     /**
