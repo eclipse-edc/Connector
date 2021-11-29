@@ -38,6 +38,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse.Status.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse.Status.OK;
 
 /**
@@ -79,6 +80,10 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     @Override
     public NegotiationResponse declined(ClaimToken token, String negotiationId) {
         var negotiation = negotiationStore.find(negotiationId);
+        if (negotiation == null) {
+            return new NegotiationResponse(FATAL_ERROR);
+        }
+
         negotiation.transitionDeclined();
         negotiationStore.update(negotiation);
         monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
@@ -109,6 +114,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     @Override
     public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer offer, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
+        if (negotiation == null) {
+            return new NegotiationResponse(FATAL_ERROR);
+        }
 
         return processIncomingOffer(negotiation, token, offer);
     }
@@ -141,6 +149,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     @Override
     public NegotiationResponse consumerApproved(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
+        if (negotiation == null) {
+            return new NegotiationResponse(FATAL_ERROR);
+        }
 
         boolean validationPassed = validationService.validate(token, agreement);
         if (!validationPassed) {
