@@ -18,6 +18,9 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateNegotiation;
+
 class ContractNegotiationDocumentSerializationTest {
 
     private TypeManager typeManager;
@@ -31,28 +34,27 @@ class ContractNegotiationDocumentSerializationTest {
 
     @Test
     void testSerialization() {
-        //        var def = generateNegotiation();
-        //        var pk = def.getAccessPolicy().getUid();
-        //
-        //        var document = new ContractNegotiationDocument(def);
-        //
-        //        String s = typeManager.writeValueAsString(document);
-        //
-        //        assertThat(s).isNotNull()
-        //                .contains("\"selectorExpression\":{\"criteria\":[{\"left\":\"somekey\",\"op\":\"=\",\"right\":\"someval\"}]}}")
-        //                .contains("wrappedInstance")
-        //                .contains("\"id\":\"" + def.getId() + "\"")
-        //                .contains("\"partitionKey\":\"" + pk + "\"");
+        var def = generateNegotiation();
+        var pk = def.getState();
+
+        var document = new ContractNegotiationDocument(def);
+
+        String s = typeManager.writeValueAsString(document);
+
+        assertThat(s).isNotNull()
+                .contains("wrappedInstance")
+                .contains("\"id\":\"" + def.getId() + "\"")
+                .contains("\"partitionKey\":\"" + pk + "\"");
     }
 
     @Test
     void testDeserialization() {
-        //        var def = generateNegotiation();
-        //
-        //        var document = new ContractNegotiationDocument(def);
-        //        String json = typeManager.writeValueAsString(document);
-        //
-        //        var transferProcessDeserialized = typeManager.readValue(json, ContractNegotiationDocument.class);
-        //        assertThat(transferProcessDeserialized).usingRecursiveComparison().isEqualTo(document);
+        var def = generateNegotiation();
+
+        var document = new ContractNegotiationDocument(def);
+        String json = typeManager.writeValueAsString(document);
+
+        var transferProcessDeserialized = typeManager.readValue(json, ContractNegotiationDocument.class);
+        assertThat(transferProcessDeserialized).usingRecursiveComparison().isEqualTo(document);
     }
 }
