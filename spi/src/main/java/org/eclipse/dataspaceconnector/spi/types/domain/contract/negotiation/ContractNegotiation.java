@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -35,8 +36,8 @@ import static java.util.stream.Collectors.joining;
 /**
  * Represents a contract negotiation.
  *
- * Note: This implements the negotiation process that is started by a consumer. For some use cases,
- * it may be interesting to initiate the contract negotiation as a provider.
+ * Note: This class implements the negotiation process that is started by a consumer. For some use
+ * cases, it may be interesting to initiate the contract negotiation as a provider.
  *
  * <p>
  * TODO: This is only placeholder
@@ -262,6 +263,12 @@ public class ContractNegotiation {
         updateStateTimestamp();
     }
 
+    public ContractNegotiation copy() {
+        return ContractNegotiation.Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
+                .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
+                .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement).contractOffers(contractOffers).build();
+    }
+
     public void updateStateTimestamp() {
         stateTimestamp = Instant.now().toEpochMilli();
     }
@@ -341,6 +348,21 @@ public class ContractNegotiation {
 
         public Builder type(Type type) {
             negotiation.type = type;
+            return this;
+        }
+
+        public Builder errorDetail(String errorDetail) {
+            negotiation.errorDetail = errorDetail;
+            return this;
+        }
+
+        public Builder contractAgreement(ContractAgreement contractAgreement) {
+            negotiation.contractAgreement = contractAgreement;
+            return this;
+        }
+
+        public Builder contractOffers(List<ContractOffer> contractOffers) {
+            negotiation.contractOffers = contractOffers;
             return this;
         }
 
