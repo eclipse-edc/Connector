@@ -15,14 +15,14 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
@@ -31,7 +31,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -40,10 +39,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse.Status.OK;
+import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.OK;
 
 /**
  * Implementation of the {@link ConsumerContractNegotiationManager}.
@@ -61,7 +59,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private ContractValidationService validationService;
 
     private int batchSize = 5;
-    private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private Monitor monitor;
     private ExecutorService executor;
 
@@ -332,7 +330,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             manager = new ConsumerContractNegotiationManagerImpl();
         }
 
-        public Builder newInstance() {
+        public static Builder newInstance() {
             return new Builder();
         }
 
@@ -361,7 +359,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return this;
         }
 
-        public Builder waitStrategy(TransferWaitStrategy waitStrategy) {
+        public Builder waitStrategy(NegotiationWaitStrategy waitStrategy) {
             manager.waitStrategy = waitStrategy;
             return this;
         }

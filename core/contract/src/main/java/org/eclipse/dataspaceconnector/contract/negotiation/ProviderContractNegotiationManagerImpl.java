@@ -14,7 +14,8 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -40,8 +41,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse.Status.FATAL_ERROR;
-import static org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse.Status.OK;
+import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.OK;
 
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
@@ -51,7 +52,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
-    private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
 
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
@@ -335,7 +336,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             manager = new ProviderContractNegotiationManagerImpl();
         }
 
-        public Builder newInstance() {
+        public static Builder newInstance() {
             return new Builder();
         }
 
@@ -364,7 +365,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return this;
         }
 
-        public Builder waitStrategy(TransferWaitStrategy waitStrategy) {
+        public Builder waitStrategy(NegotiationWaitStrategy waitStrategy) {
             manager.waitStrategy = waitStrategy;
             return this;
         }

@@ -27,6 +27,8 @@ import java.util.List;
  */
 public interface ContractNegotiationStore {
 
+    String FEATURE = "edc:contractnegotiation:store";
+
     /**
      * Finds the contract negotiation for the id or null.
      */

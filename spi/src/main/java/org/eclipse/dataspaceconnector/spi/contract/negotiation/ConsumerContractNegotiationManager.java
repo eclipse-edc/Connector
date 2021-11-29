@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
