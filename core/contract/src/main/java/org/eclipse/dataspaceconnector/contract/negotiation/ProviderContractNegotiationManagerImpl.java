@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationRes
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
@@ -126,8 +125,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
 
     private NegotiationResponse processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
-        // TODO Check if the offer that should be validated against is in the negotiation object or the ContractDefinitionService
-        OfferValidationResult result = validationService.validate(token, offer);
+        OfferValidationResult result;
+        if (negotiation.getContractOffers().isEmpty()) {
+            result = validationService.validate(token, offer);
+        } else {
+            var lastOffer = negotiation.getLastContractOffer();
+            result = validationService.validate(token, offer, lastOffer);
+        }
+
         if (result.invalid()) {
             if (result.isCounterOfferAvailable()) {
                 negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
