@@ -50,6 +50,12 @@ jobs:
           COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
         run: ./gradlew extensions:azure:contract-definition-store-cosmos:check
 
+      - name: Cosmos-based ContractNegotiationStore Test
+        env:
+          RUN_INTEGRATION_TEST: true
+          COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
+        run: ./gradlew extensions:azure:contract-negotiation-store-cosmos:check
+
   Aws-Integration-Test:
     # run only on upstream repo
     if: github.repository_owner == 'eclipse-dataspaceconnector'
