@@ -47,20 +47,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
     private final AtomicBoolean active = new AtomicBoolean();
 
-    private ContractNegotiationStore negotiationStore;
-    private ContractValidationService validationService;
-
     private int batchSize = 5;
     private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
 
+    private ContractNegotiationStore negotiationStore;
+    private ContractValidationService validationService;
+    private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private Monitor monitor;
     private ExecutorService executor;
 
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
-
     private ProviderContractNegotiationManagerImpl() { }
-
-    //TODO error state
 
     //TODO check state count for retry
 
@@ -124,7 +120,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 negotiation.addContractOffer(result.getValidatedOffer());
                 negotiation.transitionOffering();
             } else {
-                negotiation.transitionDeclining(); //TODO error detail
+                negotiation.transitionDeclining(); //TODO set error detail
             }
 
             negotiationStore.update(negotiation);
@@ -155,10 +151,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new NegotiationResponse(OK, negotiation);
         }
 
-        negotiation.setContractAgreement(agreement);
-
         var currentState = ContractNegotiationStates.from(negotiation.getState());
         if (currentState == ContractNegotiationStates.PROVIDER_OFFERED) {
+            negotiation.setContractAgreement(agreement);
             negotiation.transitionConfirming();
             negotiationStore.update(negotiation);
             monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
@@ -217,7 +212,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .contractOffer(currentOffer)
                     .build();
 
-            //TODO response type (cannot be specific zu multipart)
+            //TODO protocol-independent response type?
             var response = dispatcherRegistry.send(Object.class, contractOfferRequest, () -> null);
 
             if (response.isCompletedExceptionally()) {
@@ -251,7 +246,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .rejectionReason(negotiation.getErrorDetail())
                     .build();
 
-            //TODO response type (cannot be specific zu multipart)
+            //TODO protocol-independent response type?
             var response = dispatcherRegistry.send(Object.class, rejection, () -> null);
 
             if (response.isCompletedExceptionally()) {
@@ -275,7 +270,10 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
 
         for (var negotiation: confirmingNegotiations) {
-            var agreement = negotiation.getContractAgreement(); //TODO where is agreement built?
+            var agreement = negotiation.getContractAgreement();
+
+            //TODO if contract agreement == null, build and set agreement from last offer
+
             ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
                     .protocol(negotiation.getProtocol())
                     .connectorId(negotiation.getCounterPartyId())
@@ -283,7 +281,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .contractAgreement(agreement)
                     .build();
 
-            //TODO response type (cannot be specific zu multipart)
+            //TODO protocol-independent response type?
             var response = dispatcherRegistry.send(Object.class, request, () -> null);
 
             if (response.isCompletedExceptionally()) {
@@ -298,8 +296,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             negotiationStore.update(negotiation);
             monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-
-            //TODO how to check if consumer also approved?
         }
 
         return confirmingNegotiations.size();
