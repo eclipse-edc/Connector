@@ -23,6 +23,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -50,5 +52,20 @@ public class ClientController {
 
         TransferInitiateResponse response = transferProcessManager.initiateConsumerRequest(dataRequest);
         return Response.ok(response.getId()).build();
+    }
+
+    /**
+     * TODO Extend after merging PR #284
+     */
+    @POST
+    @Path("negotiation")
+    public Response initiateNegotiation(ContractOffer contractOffer) { // TODO Change to ContractOfferRequest
+        if (contractOffer == null) {
+            return Response.status(Response.Status.BAD_REQUEST).build();
+        }
+
+        // NegotiationProcessResponse response = contractNegotiationManager.initiate(contractOffer)
+        // return Response.ok(response.getId()).build();
+        return Response.ok().build();
     }
 }
