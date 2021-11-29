@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStoreExtension
+org.eclipse.dataspaceconnector.negotiation.store.memory.InMemoryContractNegotiationStoreExtension
