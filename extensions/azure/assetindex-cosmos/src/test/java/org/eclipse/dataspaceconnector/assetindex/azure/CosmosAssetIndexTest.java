@@ -28,10 +28,11 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
-import static org.easymock.EasyMock.anyObject;
+import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.matches;
@@ -130,7 +131,7 @@ class CosmosAssetIndexTest {
     void queryAssets() {
         String id1 = UUID.randomUUID().toString();
         String id2 = UUID.randomUUID().toString();
-        expect(api.queryItems(anyObject())).andReturn(List.of(createDocument(id1), createDocument(id2)));
+        expect(api.queryItems(anyString())).andReturn(Stream.of(createDocument(id1), createDocument(id2)));
 
         replay(api);
 
@@ -149,7 +150,7 @@ class CosmosAssetIndexTest {
         String id1 = UUID.randomUUID().toString();
         String id2 = UUID.randomUUID().toString();
         // let's verify that the query actually contains the proper WHERE clause
-        expect(api.queryItems(matches(".*WHERE AssetDocument.* = 'somename'"))).andReturn(List.of(createDocument(id1), createDocument(id2)));
+        expect(api.queryItems(matches(".*WHERE AssetDocument.* = 'somename'"))).andReturn(Stream.of(createDocument(id1), createDocument(id2)));
 
         replay(api);
 

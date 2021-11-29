@@ -24,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -118,12 +119,28 @@ public class ContractOffer {
         return policy;
     }
 
-    private ContractOffer() {
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, policy, assets, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ContractOffer that = (ContractOffer) o;
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assets, that.assets) && Objects.equals(provider, that.provider) &&
+                Objects.equals(consumer, that.consumer) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
+                Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private List<Asset> assets;
+        private List<Asset> assets = new ArrayList<>();
         private Policy policy;
         private String id;
         private URI provider;
@@ -162,22 +179,22 @@ public class ContractOffer {
         }
 
         public Builder offerStart(ZonedDateTime date) {
-            this.offerStart = date;
+            offerStart = date;
             return this;
         }
 
         public Builder offerEnd(ZonedDateTime date) {
-            this.offerEnd = date;
+            offerEnd = date;
             return this;
         }
 
         public Builder contractStart(ZonedDateTime date) {
-            this.contractStart = date;
+            contractStart = date;
             return this;
         }
 
         public Builder contractEnd(ZonedDateTime date) {
-            this.contractEnd = date;
+            contractEnd = date;
             return this;
         }
 
@@ -187,19 +204,19 @@ public class ContractOffer {
         }
 
         public ContractOffer build() {
-            Objects.requireNonNull(this.policy);
-            Objects.requireNonNull(this.id);
+            Objects.requireNonNull(policy);
+            Objects.requireNonNull(id);
 
             ContractOffer offer = new ContractOffer();
-            offer.id = this.id;
-            offer.policy = this.policy;
-            offer.assets = this.assets;
-            offer.provider = this.provider;
-            offer.consumer = this.consumer;
-            offer.offerStart = this.offerStart;
-            offer.offerEnd = this.offerEnd;
-            offer.contractStart = this.contractStart;
-            offer.contractEnd = this.contractEnd;
+            offer.id = id;
+            offer.policy = policy;
+            offer.assets = assets;
+            offer.provider = provider;
+            offer.consumer = consumer;
+            offer.offerStart = offerStart;
+            offer.offerEnd = offerEnd;
+            offer.contractStart = contractStart;
+            offer.contractEnd = contractEnd;
             return offer;
         }
     }

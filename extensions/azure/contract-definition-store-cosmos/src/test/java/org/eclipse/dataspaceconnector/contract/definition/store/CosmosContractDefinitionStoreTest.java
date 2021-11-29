@@ -59,7 +59,7 @@ class CosmosContractDefinitionStoreTest {
     @Test
     void save() {
         Capture<ContractDefinitionDocument> documentCapture = newCapture();
-        cosmosDbApiMock.createItem(capture(documentCapture));
+        cosmosDbApiMock.saveItem(capture(documentCapture));
         expectLastCall().times(1);
         replay(cosmosDbApiMock);
 
@@ -72,7 +72,7 @@ class CosmosContractDefinitionStoreTest {
     @Test
     void save_verifyWriteThrough() {
         Capture<ContractDefinitionDocument> documentCapture = newCapture();
-        cosmosDbApiMock.createItem(capture(documentCapture));
+        cosmosDbApiMock.saveItem(capture(documentCapture));
         expectLastCall().times(1);
         // cosmosDbApiQueryMock.queryAllItems() should never be called
         replay(cosmosDbApiMock);
@@ -87,7 +87,7 @@ class CosmosContractDefinitionStoreTest {
     @Test
     void update() {
         Capture<ContractDefinitionDocument> documentCapture = newCapture();
-        cosmosDbApiMock.createItem(capture(documentCapture));
+        cosmosDbApiMock.saveItem(capture(documentCapture));
         expectLastCall().times(1);
         replay(cosmosDbApiMock);
 

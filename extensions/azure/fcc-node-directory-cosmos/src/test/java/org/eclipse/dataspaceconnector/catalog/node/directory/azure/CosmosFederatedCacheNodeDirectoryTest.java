@@ -64,7 +64,7 @@ class CosmosFederatedCacheNodeDirectoryTest {
     @Test
     void insert() {
         FederatedCacheNode node = createNode();
-        api.createItem(anyObject(FederatedCacheNodeDocument.class));
+        api.saveItem(anyObject(FederatedCacheNodeDocument.class));
 
         List<FederatedCacheNodeDocument> documents = new ArrayList<>();
         expectLastCall().andAnswer(() -> {
