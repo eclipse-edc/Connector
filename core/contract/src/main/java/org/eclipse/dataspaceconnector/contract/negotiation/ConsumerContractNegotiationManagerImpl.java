@@ -348,11 +348,6 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return new Builder();
         }
 
-        public Builder negotiationStore(ContractNegotiationStore negotiationStore) {
-            manager.negotiationStore = negotiationStore;
-            return this;
-        }
-
         public Builder validationService(ContractValidationService validationService) {
             manager.validationService = validationService;
             return this;
@@ -384,7 +379,6 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         }
 
         public ConsumerContractNegotiationManagerImpl build() {
-            Objects.requireNonNull(manager.negotiationStore, "contractNegotiationStore");
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");

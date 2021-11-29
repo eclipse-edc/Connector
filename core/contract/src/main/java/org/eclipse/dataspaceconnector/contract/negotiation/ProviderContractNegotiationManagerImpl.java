@@ -344,11 +344,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new Builder();
         }
 
-        public Builder negotiationStore(ContractNegotiationStore negotiationStore) {
-            manager.negotiationStore = negotiationStore;
-            return this;
-        }
-
         public Builder validationService(ContractValidationService validationService) {
             manager.validationService = validationService;
             return this;
@@ -380,7 +375,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
 
         public ProviderContractNegotiationManagerImpl build() {
-            Objects.requireNonNull(manager.negotiationStore, "contractNegotiationStore");
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");

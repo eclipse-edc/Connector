@@ -43,6 +43,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class ContractServiceExtension implements ServiceExtension {
     private static final String NAME = "Core Contract Service Extension";
@@ -54,7 +55,6 @@ public class ContractServiceExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
-    private ContractNegotiationStore contractNegotiationStore;
 
     @Override
     public final Set<String> provides() {
@@ -85,9 +85,9 @@ public class ContractServiceExtension implements ServiceExtension {
         definitionService.initialize(store);
 
         // Start negotiation managers.
-        contractNegotiationStore = context.getService(ContractNegotiationStore.class);
-        consumerNegotiationManager.start(contractNegotiationStore);
-        providerNegotiationManager.start(contractNegotiationStore);
+        var negotiationStore = context.getService(ContractNegotiationStore.class);
+        consumerNegotiationManager.start(negotiationStore);
+        providerNegotiationManager.start(negotiationStore);
 
         // load the store in the start method, so it can be overridden by an extension
         definitionService.initialize(context.getService(ContractDefinitionStore.class));
@@ -140,20 +140,23 @@ public class ContractServiceExtension implements ServiceExtension {
         context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
 
         // negotiation
+        var validationService = new  ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
+        context.registerService(ContractValidationServiceImpl.class, validationService);
+
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
-                .negotiationStore(contractNegotiationStore)
+                .validationService(validationService)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
-                .negotiationStore(contractNegotiationStore)
+                .validationService(validationService)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
