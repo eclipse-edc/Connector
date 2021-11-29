@@ -344,11 +344,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new Builder();
         }
 
-        public Builder negotiationStore(ContractNegotiationStore negotiationStore) {
-            manager.negotiationStore = negotiationStore;
-            return this;
-        }
-
         public Builder validationService(ContractValidationService validationService) {
             manager.validationService = validationService;
             return this;
