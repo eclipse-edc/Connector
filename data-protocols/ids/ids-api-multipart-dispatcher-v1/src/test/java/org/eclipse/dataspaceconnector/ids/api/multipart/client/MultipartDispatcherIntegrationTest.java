@@ -213,7 +213,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .rejectionReason("Modified policy in contract offer.")
-                .correlatedContractId(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
                 .build();
 
         MultipartMessageProcessedResponse result = multipartDispatcher
