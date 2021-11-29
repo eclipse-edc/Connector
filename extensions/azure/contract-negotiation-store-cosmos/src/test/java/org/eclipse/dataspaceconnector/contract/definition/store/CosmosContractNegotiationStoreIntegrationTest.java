@@ -187,6 +187,26 @@ public class CosmosContractNegotiationStoreIntegrationTest {
         });
     }
 
+    @Test
+    void nextForState() {
+    }
+
+    @Test
+    void nextForState_noResult() {
+    }
+
+    @Test
+    void nextForState_leasedByAnother() {
+    }
+
+    @Test
+    void nextForState_leasedBySelf() {
+    }
+
+    @Test
+    void nextForState_leaseByAnotherExpired() {
+    }
+
 
     private ContractNegotiation toNegotiation(Object object) {
         var json = typeManager.writeValueAsString(object);

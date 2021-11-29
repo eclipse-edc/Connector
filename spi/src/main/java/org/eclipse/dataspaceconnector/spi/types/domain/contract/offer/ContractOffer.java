@@ -133,7 +133,9 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assets, that.assets) && Objects.equals(provider, that.provider) && Objects.equals(consumer, that.consumer) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) && Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assets, that.assets) && Objects.equals(provider, that.provider) &&
+                Objects.equals(consumer, that.consumer) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
+                Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
