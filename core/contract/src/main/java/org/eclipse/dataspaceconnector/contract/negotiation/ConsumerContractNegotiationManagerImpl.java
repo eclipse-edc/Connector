@@ -358,11 +358,6 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return this;
         }
 
-        public Builder executorService(ExecutorService executor) {
-            manager.executor = executor;
-            return this;
-        }
-
         public Builder batchSize(int batchSize) {
             manager.batchSize = batchSize;
             return this;
