@@ -26,4 +26,6 @@ public interface CosmosDbApi {
     void deleteItem(String id);
 
     void createItems(Collection<CosmosDocument<?>> definitions);
+
+    <T> String invokeStoredProcedure(String procedureName, String partitionKey, Object... args);
 }

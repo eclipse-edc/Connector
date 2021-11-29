@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.AfterAll;
@@ -26,11 +27,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
@@ -40,6 +44,7 @@ import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunct
 @IntegrationTest
 public class CosmosContractNegotiationStoreIntegrationTest {
     public static final String REGION = "westeurope";
+    public static final String CONNECTOR_ID = "test-connector";
     private static final String TEST_ID = UUID.randomUUID().toString();
     private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String DATABASE_NAME = "connector-itest-" + TEST_ID;
@@ -86,7 +91,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
         typeManager = new TypeManager();
         typeManager.registerTypes(ContractDefinition.class, ContractNegotiationDocument.class);
         CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(container, true);
-        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS));
+        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, new RetryPolicy<>().withMaxRetries(3).withBackoff(1, 5, ChronoUnit.SECONDS), CONNECTOR_ID);
     }
 
     @Test
@@ -189,28 +194,115 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
     @Test
     void nextForState() {
+        var state = ContractNegotiationStates.CONFIRMED;
+        var n = generateNegotiation(state);
+        container.createItem(new ContractNegotiationDocument(n));
+
+        var result = store.nextForState(state.code(), 10);
+        assertThat(result).hasSize(1).containsExactly(n);
     }
 
     @Test
+    void nextForState_exceedsLimit() {
+        var state = ContractNegotiationStates.CONFIRMED;
+        var numElements = 10;
+
+        var preparedNegotiations = IntStream.range(0, numElements)
+                .mapToObj(i -> generateNegotiation(state))
+                .peek(n -> container.createItem(new ContractNegotiationDocument(n)))
+                .collect(Collectors.toList());
+
+        var result = store.nextForState(state.code(), 4);
+        assertThat(result).hasSize(4);
+        assertThat(result).allSatisfy(r -> assertThat(preparedNegotiations).contains(r));
+    }
+
+
+    @Test
     void nextForState_noResult() {
+        var state = ContractNegotiationStates.CONFIRMED;
+        var n = generateNegotiation(state);
+        container.createItem(new ContractNegotiationDocument(n));
+
+        var result = store.nextForState(ContractNegotiationStates.PROVIDER_OFFERING.code(), 10);
+        assertThat(result).isNotNull().isEmpty();
+    }
+
+    @Test
+    void nextForState_onlyReturnsFreeItems() {
+        var state = ContractNegotiationStates.CONFIRMED;
+        var n1 = generateNegotiation(state);
+        var doc1 = new ContractNegotiationDocument(n1);
+        container.createItem(doc1);
+
+        var n2 = generateNegotiation(state);
+        var doc2 = new ContractNegotiationDocument(n2);
+        container.createItem(doc2);
+
+        var n3 = generateNegotiation(state);
+        var doc3 = new ContractNegotiationDocument(n3);
+        doc3.acquireLease("another-connector");
+        container.createItem(doc3);
+
+        var result = store.nextForState(state.code(), 10);
+        assertThat(result)
+                .hasSize(2)
+                .containsExactlyInAnyOrder(n1, n2);
     }
 
     @Test
     void nextForState_leasedByAnother() {
+        var state = ContractNegotiationStates.CONFIRMED;
+        var n = generateNegotiation(state);
+        var doc = new ContractNegotiationDocument(n);
+        doc.acquireLease("another-connector");
+        container.createItem(doc);
+
+        var result = store.nextForState(state.code(), 10);
+        assertThat(result).isEmpty();
     }
 
     @Test
     void nextForState_leasedBySelf() {
+        var state = ContractNegotiationStates.CONFIRMED;
+        var n = generateNegotiation(state);
+        var doc = new ContractNegotiationDocument(n);
+        container.createItem(doc);
+
+        // let's verify that the first invocation correctly sets the lease
+        var result = store.nextForState(state.code(), 10);
+        assertThat(result).hasSize(1); //should contain the lease already
+        var object = container.readAllItems(new PartitionKey(doc.getPartitionKey()), Object.class).stream().findFirst().get();
+        var storedNegotiation = toDocument(object);
+        assertThat(storedNegotiation.getLease()).isNotNull().hasFieldOrPropertyWithValue("leasedBy", CONNECTOR_ID);
+
+        // now lets verify that the second invocation gives us the same result, since we're the leaser
+        result = store.nextForState(state.code(), 10);
+
+        assertThat(result).hasSize(1);
     }
 
     @Test
-    void nextForState_leaseByAnotherExpired() {
+    void nextForState_leaseByAnotherExpired() throws InterruptedException {
+        var state = ContractNegotiationStates.CONFIRMED;
+        var n = generateNegotiation(state);
+        var doc = new ContractNegotiationDocument(n);
+        doc.acquireLease("another-connector", Duration.ofMillis(10));
+        container.createItem(doc);
+
+        Thread.sleep(20); //give the lease time to expire
+
+        var result = store.nextForState(state.code(), 10);
+        assertThat(result).hasSize(1).containsExactly(n);
     }
 
+    private ContractNegotiationDocument toDocument(Object object) {
+        var json = typeManager.writeValueAsString(object);
+        return typeManager.readValue(json, ContractNegotiationDocument.class);
+    }
 
     private ContractNegotiation toNegotiation(Object object) {
-        var json = typeManager.writeValueAsString(object);
-        return typeManager.readValue(json, ContractNegotiationDocument.class).getWrappedInstance();
+        return toDocument(object).getWrappedInstance();
     }
 
     private void uploadStoredProcedure(CosmosContainer container, String name) {

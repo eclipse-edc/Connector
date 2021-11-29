@@ -6,11 +6,14 @@ import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosException;
+import com.azure.cosmos.CosmosStoredProcedure;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
@@ -20,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -176,6 +180,23 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     @Override
     public void createItems(Collection<CosmosDocument<?>> definitions) {
         definitions.forEach(this::saveItem);
+    }
+
+    @Override
+    public <T> String invokeStoredProcedure(String procedureName, String partitionKey, Object... args) {
+        var sproc = getStoredProcedure(procedureName);
+
+        List<Object> params = Arrays.asList(args);
+        var options = new CosmosStoredProcedureRequestOptions();
+        options.setPartitionKey(new PartitionKey(partitionKey));
+
+        CosmosStoredProcedureResponse response = sproc.execute(params, options);
+        return response.getResponseAsString();
+    }
+
+
+    private CosmosStoredProcedure getStoredProcedure(String sprocName) {
+        return container.getScripts().getStoredProcedure(sprocName);
     }
 
 

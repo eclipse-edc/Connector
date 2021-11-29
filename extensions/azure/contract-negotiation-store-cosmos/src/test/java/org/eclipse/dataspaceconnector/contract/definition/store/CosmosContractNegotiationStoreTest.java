@@ -16,7 +16,7 @@ class CosmosContractNegotiationStoreTest {
         cosmosDbApiMock = strictMock(CosmosDbApi.class);
         var typeManager = new TypeManager();
         var retryPolicy = new RetryPolicy<>();
-        store = new CosmosContractNegotiationStore(cosmosDbApiMock, typeManager, retryPolicy);
+        store = new CosmosContractNegotiationStore(cosmosDbApiMock, typeManager, retryPolicy, "test-connector");
     }
 
     //    @Test

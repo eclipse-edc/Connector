@@ -12,6 +12,10 @@ import java.util.UUID;
 public class TestFunctions {
 
     public static ContractNegotiation generateNegotiation() {
+        return generateNegotiation(ContractNegotiationStates.UNSAVED);
+    }
+
+    public static ContractNegotiation generateNegotiation(ContractNegotiationStates state) {
         return ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(UUID.randomUUID().toString())
@@ -26,7 +30,7 @@ public class TestFunctions {
                         .contractStartDate(LocalDate.MIN.toEpochDay())
                         .contractEndDate(LocalDate.MAX.toEpochDay())
                         .id("1:2").build())
-                .state(ContractNegotiationStates.UNSAVED.code())
+                .state(state.code())
                 .build();
     }
 

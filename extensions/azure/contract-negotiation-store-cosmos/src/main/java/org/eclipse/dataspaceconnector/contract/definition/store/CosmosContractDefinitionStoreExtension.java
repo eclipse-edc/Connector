@@ -48,7 +48,7 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
         Vault vault = context.getService(Vault.class);
 
         CosmosDbApi cosmosDbApi = new CosmosDbApiImpl(vault, configuration);
-        var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class));
+        var store = new CosmosContractNegotiationStore(cosmosDbApi, context.getTypeManager(), (RetryPolicy<Object>) context.getService(RetryPolicy.class), context.getConnectorId());
         context.registerService(ContractNegotiationStore.class, store);
 
         context.getTypeManager().registerTypes(ContractNegotiationDocument.class);

@@ -18,10 +18,9 @@ function nextForState(state, limit, connectorId) {
     var collectionLink = collection.getSelfLink();
     var response = context.getResponse();
 
-
     // first query
     var filterQuery = {
-        'query': 'SELECT * FROM ContractNegotiationDocument t WHERE t.state = @state AND (t.lease = null OR t.lease.leasedBy = @leaser) ORDER BY t.stateTimestamp OFFSET 0 LIMIT @limit',
+        'query': 'SELECT * FROM t WHERE t.wrappedInstance.state = @state AND (t.lease = null OR t.lease.leasedBy = @leaser OR (t.lease.leasedAt + t.lease.leaseDuration) < @now) ORDER BY t.wrappedInstance.stateTimestamp OFFSET 0 LIMIT @limit',
         'parameters': [
             {
                 'name': '@state', 'value': parseInt(state, 10)
@@ -31,6 +30,9 @@ function nextForState(state, limit, connectorId) {
             },
             {
                 'name': '@leaser', 'value': connectorId
+            },
+            {
+                'name': '@now', 'value': Date.now()
             }
         ]
     };

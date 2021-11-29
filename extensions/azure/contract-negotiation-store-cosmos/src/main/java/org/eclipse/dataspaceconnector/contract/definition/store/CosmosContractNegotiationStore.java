@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
+import com.fasterxml.jackson.core.type.TypeReference;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
@@ -19,6 +20,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.stream.Collectors;
 
 import static net.jodah.failsafe.Failsafe.with;
 
@@ -32,12 +34,14 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
     private final AtomicReference<Map<String, ContractDefinition>> objectCache;
+    private final String connectorId;
     private final ReentrantReadWriteLock lock; //used to synchronize write operations to the cache and the DB
 
-    public CosmosContractNegotiationStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy) {
+    public CosmosContractNegotiationStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String connectorId) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
+        this.connectorId = connectorId;
         objectCache = new AtomicReference<>(new ConcurrentHashMap<>());
         lock = new ReentrantReadWriteLock(true);
     }
@@ -82,7 +86,13 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
 
     @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-        return null;
+
+        var partitionKey = String.valueOf(state);
+        String rawJson = cosmosDbApi.invokeStoredProcedure("nextForState", partitionKey, state, max, connectorId);
+        var typeRef = new TypeReference<List<Object>>() {
+        };
+        var list = typeManager.readValue(rawJson, typeRef);
+        return list.stream().map(this::toNegotiation).collect(Collectors.toList());
     }
 
     private void storeInCache(ContractDefinition definition) {
