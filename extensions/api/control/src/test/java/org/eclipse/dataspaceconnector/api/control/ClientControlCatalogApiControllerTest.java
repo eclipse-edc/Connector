@@ -3,15 +3,19 @@ package org.eclipse.dataspaceconnector.api.control;
 import io.restassured.RestAssured;
 import io.restassured.path.json.JsonPath;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.eclipse.dataspaceconnector.api.control.ControlApiServiceExtension.EDC_API_CONTROL_AUTH_APIKEY_KEY;
+import static org.eclipse.dataspaceconnector.api.control.ControlApiServiceExtension.EDC_API_CONTROL_AUTH_APIKEY_VALUE;
+
 class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalogApiControllerTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
+    private static final String API_KEY_HEADER = "X-Api-Key";
+    private static final String API_KEY = "apikey";
 
     @Override
     protected Map<String, String> getSystemProperties() {
@@ -19,20 +23,44 @@ class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalog
             {
                 put("web.http.port", String.valueOf(getPort()));
                 put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
+                put(EDC_API_CONTROL_AUTH_APIKEY_KEY, API_KEY_HEADER);
+                put(EDC_API_CONTROL_AUTH_APIKEY_VALUE, API_KEY);
             }
         };
     }
 
-    @BeforeEach
-    void setUp() {
+    @Test
+    void testUnauthorized() {
+        String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/ids/multipart", getUrl()));
 
+        RestAssured.given()
+                .log().all()
+                .when()
+                .get(requestUri)
+                .then()
+                .statusCode(401);
     }
 
     @Test
-    void test() {
+    void testForbidden() {
+        String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/ids/multipart", getUrl()));
+
+        RestAssured.given()
+                .headers(API_KEY_HEADER, "invalidApiKey")
+                .log().all()
+                .when()
+                .get(requestUri)
+                .then()
+                .statusCode(403);
+    }
+
+    @Test
+    void testSuccess() {
         String requestUri = String.format("%s%s", getUrl(), String.format("/api/control/catalog?provider=%s/api/ids/multipart", getUrl()));
 
         JsonPath jsonPath = RestAssured.given()
+                .headers(API_KEY_HEADER, API_KEY)
+                .log().all()
                 .when()
                 .get(requestUri)
                 .then()

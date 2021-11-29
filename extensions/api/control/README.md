@@ -8,6 +8,13 @@ All content reflects the current state of discussion, not final decisions.
 
 # Client API Extension
 
+## Configuration
+
+| Key |  Description | Default |
+|:---|:---|:---|
+| edc.api.control.auth.apikey.key | The HTTP headers name carrying the API key |`X-API-KEY`|
+| edc.api.control.auth.apikey.value | The API-Key expected to be present on incoming HTTP requests | *random value generated during boot time*
+
 ## Initiate Data Transfer
 
 To initiate the data transfer send a data request to the API endpoint.
