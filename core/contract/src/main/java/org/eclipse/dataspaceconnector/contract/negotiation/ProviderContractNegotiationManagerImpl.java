@@ -172,19 +172,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new NegotiationResponse(OK, negotiation);
         }
 
-        var currentState = ContractNegotiationStates.from(negotiation.getState());
-        if (currentState == ContractNegotiationStates.PROVIDER_OFFERED) {
-            negotiation.setContractAgreement(agreement);
-            negotiation.transitionConfirming();
-            negotiationStore.update(negotiation);
-            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
-                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        } else {
-            // Otherwise already has state confirmed, no further action required
-            monitor.debug(String.format("ContractNegotiation %s has been confirmed by consumer. Stays in state %s.",
-                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-        }
-
+        negotiation.setContractAgreement(agreement);
+        negotiation.transitionConfirmed();
+        negotiationStore.update(negotiation);
+        monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return new NegotiationResponse(OK, negotiation);
     }
 
