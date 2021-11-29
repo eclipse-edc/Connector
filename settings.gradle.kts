@@ -95,6 +95,7 @@ include(":extensions:dataloading:dataloading-spi")
 include(":extensions:dataloading:dataloading-asset")
 include(":extensions:dataloading:dataloading-contractdef")
 include(":extensions:policy:ids-policy")
+include(":extensions:jdk-logger-monitor")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
