@@ -133,9 +133,10 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             result = validationService.validate(token, offer, lastOffer);
         }
 
+        negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
+
         if (result.invalid()) {
             if (result.isCounterOfferAvailable()) {
-                negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
                 negotiation.addContractOffer(result.getCounterOffer());
                 monitor.debug("Contract offer received. A counter offer is available");
                 negotiation.transitionOffering();
@@ -151,7 +152,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
 
         // negotiation.addContractOffer(result.getValidatedOffer()); TODO
-        negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
         negotiation.transitionConfirming();
         negotiationStore.update(negotiation);
         monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
