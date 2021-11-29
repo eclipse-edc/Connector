@@ -108,6 +108,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .stateTimestamp(Instant.now().toEpochMilli())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
+
         negotiationStore.create(negotiation);
         monitor.debug(String.format("Created ContractNegotiation %s.", negotiation.getId()));
 
@@ -125,12 +126,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
 
     private NegotiationResponse processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
+        // TODO Check if the offer that should be validated against is in the negotiation object or the ContractDefinitionService
         OfferValidationResult result = validationService.validate(token, offer);
         if (result.invalid()) {
             if (result.isCounterOfferAvailable()) {
-                negotiation.addContractOffer(result.getValidatedOffer());
+                negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
+                negotiation.addContractOffer(result.getCounterOffer());
+                monitor.debug("Contract offer received. A counter offer is available");
                 negotiation.transitionOffering();
             } else {
+                monitor.debug("Contract offer received. Will be rejected");
                 negotiation.transitionDeclining(); //TODO set error detail
             }
 
@@ -140,7 +145,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new NegotiationResponse(OK, negotiation);
         }
 
-        negotiation.addContractOffer(result.getValidatedOffer());
+        // negotiation.addContractOffer(result.getValidatedOffer()); TODO
+        negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
         negotiation.transitionConfirming();
         negotiationStore.update(negotiation);
         monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
@@ -156,6 +162,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new NegotiationResponse(FATAL_ERROR);
         }
 
+        // TODO Validate against another offer?
         boolean validationPassed = validationService.validate(token, agreement);
         if (!validationPassed) {
             negotiation.transitionDeclining(); //TODO set error detail
@@ -250,19 +257,18 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var decliningNegotiations = negotiationStore.nextForState(ContractNegotiationStates.DECLINING.code(), batchSize);
 
         for (var negotiation: decliningNegotiations) {
-            var currentOffer = negotiation.getContractOffers().get(negotiation.getContractOffers().size() - 1);
+            var currentOffer = negotiation.getLastContractOffer();
 
             ContractRejection rejection = ContractRejection.Builder.newInstance()
                     .protocol(negotiation.getProtocol())
                     .connectorId(negotiation.getCounterPartyId())
                     .connectorAddress(negotiation.getCounterPartyAddress())
-                    .correlatedContractId(currentOffer.getId())
+                    .correlationId(negotiation.getId())
                     .rejectionReason(negotiation.getErrorDetail())
                     .build();
 
             //TODO protocol-independent response type?
             var response = dispatcherRegistry.send(Object.class, rejection, () -> null);
-
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionDeclining();
                 negotiationStore.update(negotiation);
@@ -284,7 +290,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
 
         for (var negotiation: confirmingNegotiations) {
-            var agreement = negotiation.getContractAgreement();
+            var agreement = negotiation.getContractAgreement(); // TODO build agreement
 
             if (agreement == null) {
                 var lastOffer = negotiation.getLastContractOffer();
@@ -307,6 +313,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .connectorId(negotiation.getCounterPartyId())
                     .connectorAddress(negotiation.getCounterPartyAddress())
                     .contractAgreement(agreement)
+                    .correlationId(negotiation.getId())
                     .build();
 
             //TODO protocol-independent response type?

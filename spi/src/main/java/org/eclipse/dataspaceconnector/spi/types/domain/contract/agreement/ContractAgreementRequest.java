@@ -23,6 +23,7 @@ public class ContractAgreementRequest implements RemoteMessage {
     private String protocol;
     private String connectorId;
     private String connectorAddress;
+    private String correlationId;
     private ContractAgreement contractAgreement;
 
     @Override
@@ -36,6 +37,10 @@ public class ContractAgreementRequest implements RemoteMessage {
 
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     public ContractAgreement getContractAgreement() {
@@ -68,6 +73,11 @@ public class ContractAgreementRequest implements RemoteMessage {
             return this;
         }
 
+        public Builder correlationId(String correlationId) {
+            this.contractAgreementRequest.correlationId = correlationId;
+            return this;
+        }
+
         public Builder contractAgreement(ContractAgreement contractAgreement) {
             this.contractAgreementRequest.contractAgreement = contractAgreement;
             return this;
@@ -78,6 +88,7 @@ public class ContractAgreementRequest implements RemoteMessage {
             Objects.requireNonNull(contractAgreementRequest.connectorId, "connectorId");
             Objects.requireNonNull(contractAgreementRequest.connectorAddress, "connectorAddress");
             Objects.requireNonNull(contractAgreementRequest.contractAgreement, "contractAgreement");
+            Objects.requireNonNull(contractAgreementRequest.correlationId, "correlationId");
             return contractAgreementRequest;
         }
     }

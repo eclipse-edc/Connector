@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitSt
 
 /**
  * Implements an exponential backoff strategy for failed iterations.
+ * TODO duplicate of class in transfer extension
  */
 public class ExponentialWaitStrategy implements NegotiationWaitStrategy {
     private final long successWaitPeriodMillis;

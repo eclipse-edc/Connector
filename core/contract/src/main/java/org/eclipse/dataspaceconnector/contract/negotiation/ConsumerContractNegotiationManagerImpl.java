@@ -41,6 +41,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.OK;
 
 /**
@@ -90,14 +91,15 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol(contractOffer.getProtocol())
+                .counterPartyId(contractOffer.getConnectorId())
+                .counterPartyAddress(contractOffer.getConnectorAddress())
                 .state(0)
                 .stateCount(0)
                 .stateTimestamp(Instant.now().toEpochMilli())
-                .counterPartyId(contractOffer.getConnectorId())
                 .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
-        negotiationStore.create(negotiation); // TODO should transition state to requesting
+        negotiationStore.create(negotiation);
 
         monitor.debug("Contract negotiation initiated. Process " + negotiation.getId() + " is now " + ContractNegotiationStates.from(negotiation.getState()));
         return new NegotiationResponse(OK, negotiation);
@@ -106,8 +108,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     @Override
     public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
-        var latestOffer = negotiation.getLastContractOffer();
+        if (negotiation == null) {
+            return new NegotiationResponse(FATAL_ERROR);
+        }
 
+        var latestOffer = negotiation.getLastContractOffer();
         try {
             Objects.requireNonNull(latestOffer, "latestOffer");
         } catch (NullPointerException e) {
@@ -142,8 +147,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     @Override
     public NegotiationResponse confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
-        var latestOffer = negotiation.getLastContractOffer();
+        if (negotiation == null) {
+            return new NegotiationResponse(FATAL_ERROR);
+        }
 
+        var latestOffer = negotiation.getLastContractOffer();
         try {
             Objects.requireNonNull(latestOffer, "latestOffer");
         } catch (NullPointerException e) {
@@ -152,7 +160,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         }
 
         var result = validationService.validate(token, agreement, latestOffer);
-        if (result) {
+        if (!result) {
             // TODO Add contract offer possibility.
             monitor.debug("Contract agreement received. Validation failed");
             negotiation.transitionDeclining();
@@ -173,9 +181,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     @Override
     public NegotiationResponse declined(ClaimToken token, String negotiationId) {
         var negotiation = negotiationStore.find(negotiationId);
+        if (negotiation == null) {
+            return new NegotiationResponse(FATAL_ERROR);
+        }
 
         monitor.debug("Contract rejection received. Abort negotiation process");
-        negotiation.transitionDeclining();
+        negotiation.transitionDeclined();
 
         monitor.debug("Negotiation process " + negotiation.getId() + " is now " + ContractNegotiationStates.from(negotiation.getState()));
         return new NegotiationResponse(OK, negotiation);
@@ -187,6 +198,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 .connectorAddress(process.getCounterPartyAddress())
                 .protocol(process.getProtocol())
                 .connectorId(process.getCounterPartyId())
+                .correlationId(process.getId())
                 .build();
 
         // TODO protocol-independent response type?
@@ -244,6 +256,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                     .connectorId(process.getCounterPartyId())
                     .connectorAddress(process.getCounterPartyAddress())
                     .contractAgreement(agreement)
+                    .correlationId(process.getId())
                     .build();
 
             // TODO protocol-independent response type?
@@ -272,7 +285,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                     .protocol(process.getProtocol())
                     .connectorId(process.getCounterPartyId())
                     .connectorAddress(process.getCounterPartyAddress())
-                    .correlatedContractId(offer.getId())
+                    .correlationId(process.getId())
                     .rejectionReason(process.getErrorDetail())
                     .build();
 
@@ -280,6 +293,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             var response = dispatcherRegistry.send(Object.class, rejection, process::getId);
             if (response.isCompletedExceptionally()) {
                 process.transitionDeclining();
+                negotiationStore.update(process);
                 monitor.debug(format("Failed to send contract rejection. Process %s is now %s" + process.getId(), ContractNegotiationStates.from(process.getState())));
                 continue;
             }

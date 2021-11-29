@@ -28,6 +28,7 @@ public class ContractOfferRequest implements RemoteMessage {
     private String protocol;
     private String connectorId;
     private String connectorAddress;
+    private String correlationId;
     private ContractOffer contractOffer;
 
     @Override
@@ -41,6 +42,10 @@ public class ContractOfferRequest implements RemoteMessage {
 
     public String getConnectorAddress() {
         return connectorAddress;
+    }
+
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     public ContractOffer getContractOffer() {
@@ -70,6 +75,11 @@ public class ContractOfferRequest implements RemoteMessage {
 
         public Builder connectorAddress(String connectorAddress) {
             this.contractOfferRequest.connectorAddress = connectorAddress;
+            return this;
+        }
+
+        public Builder correlationId(String correlationId) {
+            this.contractOfferRequest.correlationId = correlationId;
             return this;
         }
 
