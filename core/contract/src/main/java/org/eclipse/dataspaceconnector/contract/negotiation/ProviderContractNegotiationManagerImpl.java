@@ -62,8 +62,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
     //TODO error state
 
-    //TODO logging
-
     //TODO check state count for retry
 
     //TODO validate previous offers against hash?
@@ -87,6 +85,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var negotiation = negotiationStore.find(negotiationId);
         negotiation.transitionDeclined();
         negotiationStore.update(negotiation);
+        monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return new NegotiationResponse(OK);
     }
@@ -105,8 +105,20 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
         negotiationStore.create(negotiation); //TODO should transition state to requested
+        monitor.debug(String.format("Created ContractNegotiation %s.", negotiation.getId()));
 
-        OfferValidationResult result = validationService.validate(token, request.getContractOffer());
+        return processIncomingOffer(negotiation, token, request.getContractOffer());
+    }
+
+    @Override
+    public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer offer, String hash) {
+        var negotiation = negotiationStore.find(negotiationId);
+
+        return processIncomingOffer(negotiation, token, offer);
+    }
+
+    private NegotiationResponse processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
+        OfferValidationResult result = validationService.validate(token, offer);
         if (result.invalid()) {
             if (result.isCounterOfferAvailable()) {
                 negotiation.addContractOffer(result.getValidatedOffer());
@@ -116,35 +128,17 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             }
 
             negotiationStore.update(negotiation);
+            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return new NegotiationResponse(OK, negotiation);
         }
 
         negotiation.addContractOffer(result.getValidatedOffer());
         negotiation.transitionConfirming();
         negotiationStore.update(negotiation);
-        return new NegotiationResponse(OK, negotiation);
-    }
+        monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
-    @Override
-    public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer offer, String hash) {
-        var negotiation = negotiationStore.find(negotiationId);
-
-        OfferValidationResult result = validationService.validate(token, offer);
-        if (result.invalid()) {
-            if (result.isCounterOfferAvailable()) {
-                negotiation.addContractOffer(result.getValidatedOffer());
-                negotiation.transitionOffering();
-            } else {
-                negotiation.transitionDeclining(); //TODO set error detail
-            }
-
-            negotiationStore.update(negotiation);
-            return new NegotiationResponse(OK, negotiation);
-        }
-
-        negotiation.addContractOffer(offer);
-        negotiation.transitionConfirming();
-        negotiationStore.update(negotiation);
         return new NegotiationResponse(OK, negotiation);
     }
 
@@ -156,6 +150,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         if (!validationPassed) {
             negotiation.transitionDeclining(); //TODO set error detail
             negotiationStore.update(negotiation);
+            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return new NegotiationResponse(OK, negotiation);
         }
 
@@ -165,8 +161,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         if (currentState == ContractNegotiationStates.PROVIDER_OFFERED) {
             negotiation.transitionConfirming();
             negotiationStore.update(negotiation);
+            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+        } else {
+            // Otherwise already has state confirmed, no further action required
+            monitor.debug(String.format("ContractNegotiation %s has been confirmed by consumer. Stays in state %s.",
+                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         }
-        // Otherwise already has state confirmed, no further action required
 
         return new NegotiationResponse(OK, negotiation);
     }
@@ -221,11 +222,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionOffering();
+                negotiationStore.update(negotiation);
+                monitor.debug(String.format("ContractNegotiation %s stays in state %s due to error.",
+                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
             }
 
             negotiation.transitionOffered();
             negotiationStore.update(negotiation);
+            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         }
 
         return offeringNegotiations.size();
@@ -250,10 +256,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionDeclining();
+                negotiationStore.update(negotiation);
+                monitor.debug(String.format("ContractNegotiation %s stays in state %s due to error.",
+                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
             }
 
             negotiation.transitionDeclined();
+            negotiationStore.update(negotiation);
+            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         }
 
         return decliningNegotiations.size();
@@ -263,7 +275,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
 
         for (var negotiation: confirmingNegotiations) {
-            var agreement = negotiation.getContractAgreement();
+            var agreement = negotiation.getContractAgreement(); //TODO where is agreement built?
             ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
                     .protocol(negotiation.getProtocol())
                     .connectorId(negotiation.getCounterPartyId())
@@ -276,11 +288,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionConfirming();
+                negotiationStore.update(negotiation);
+                monitor.debug(String.format("ContractNegotiation %s stays in state %s due to error.",
+                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
             }
 
             negotiation.transitionConfirmed();
             negotiationStore.update(negotiation);
+            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
             //TODO how to check if consumer also approved?
         }
