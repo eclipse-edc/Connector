@@ -35,7 +35,6 @@ import java.util.Set;
 
 public class ContractServiceExtension implements ServiceExtension {
     private static final String NAME = "Core Contract Service Extension";
-    private static final Set<String> PROVIDES = Set.of("edc:core:contract");
 
     private Monitor monitor;
     private ServiceExtensionContext context;
@@ -43,7 +42,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public final Set<String> provides() {
-        return PROVIDES;
+        return Set.of("edc:core:contract", ContractDefinitionStore.FEATURE);
     }
 
     @Override
@@ -63,8 +62,10 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        // load the store in the start method so it can be overridden by an extension
-        definitionService.initialize(context.getService(ContractDefinitionStore.class));
+        // load the store in the start method, so it can be overridden by an extension
+
+        var store = context.getService(ContractDefinitionStore.class);
+        definitionService.initialize(store);
         monitor.info(String.format("Started %s", NAME));
     }
 
@@ -87,12 +88,15 @@ public class ContractServiceExtension implements ServiceExtension {
         var policyEngine = new PolicyEngineImpl();
         context.registerService(PolicyEngine.class, policyEngine);
 
-        var definitionsStore = new InMemoryContractDefinitionStore();
-        context.registerService(ContractDefinitionStore.class, definitionsStore);
-
         definitionService = new ContractDefinitionServiceImpl(policyEngine, monitor);
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
         context.registerService(ContractDefinitionService.class, definitionService);
+
+        var store = context.getService(ContractDefinitionStore.class, true);
+        if (store == null) {
+            store = new InMemoryContractDefinitionStore();
+            context.registerService(ContractDefinitionStore.class, store);
+        }
 
         // Register the created contract offer service with the service extension context.
         context.registerService(ContractOfferService.class, contractOfferService);

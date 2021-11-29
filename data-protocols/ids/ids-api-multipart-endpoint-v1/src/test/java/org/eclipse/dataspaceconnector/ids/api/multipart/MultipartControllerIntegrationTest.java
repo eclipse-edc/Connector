@@ -44,17 +44,6 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
                 .build();
     }
 
-    @Override
-    protected Map<String, String> getSystemProperties() {
-        return new HashMap<>() {
-            {
-                put("web.http.port", String.valueOf(getPort()));
-                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
-                put("edc.ids.catalog.id", "urn:catalog:" + CATALOG_ID);
-            }
-        };
-    }
-
     @Test
     void testRequestConnectorSelfDescriptionWithoutId() throws Exception {
         // prepare
@@ -476,5 +465,16 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         jsonPayload.inPath("$.ids:representation[0].ids:instance[0].ids:fileName").isString().isEqualTo("test.txt");
         jsonPayload.inPath("$.ids:representation[0].ids:mediaType.@type").isString().isEqualTo("ids:CustomMediaType");
         jsonPayload.inPath("$.ids:representation[0].ids:mediaType.ids:filenameExtension").isString().matches("txt");
+    }
+
+    @Override
+    protected Map<String, String> getSystemProperties() {
+        return new HashMap<>() {
+            {
+                put("web.http.port", String.valueOf(getPort()));
+                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
+                put("edc.ids.catalog.id", "urn:catalog:" + CATALOG_ID);
+            }
+        };
     }
 }
