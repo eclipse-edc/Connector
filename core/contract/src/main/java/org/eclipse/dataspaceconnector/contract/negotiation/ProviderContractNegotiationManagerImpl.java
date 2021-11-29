@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -37,6 +38,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse.Status.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationResponse.Status.OK;
@@ -283,7 +285,21 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         for (var negotiation: confirmingNegotiations) {
             var agreement = negotiation.getContractAgreement();
 
-            //TODO if contract agreement == null, build and set agreement from last offer
+            if (agreement == null) {
+                var lastOffer = negotiation.getLastContractOffer();
+
+                //TODO move to own service
+                agreement = ContractAgreement.Builder.newInstance()
+                        .id(UUID.randomUUID().toString())
+                        .contractStartDate(lastOffer.getContractStart().toInstant().toEpochMilli())
+                        .contractEndDate(lastOffer.getContractEnd().toInstant().toEpochMilli())
+                        .contractSigningDate(Instant.now().toEpochMilli())
+                        .providerAgentId(lastOffer.getProvider().toString())
+                        .consumerAgentId(lastOffer.getConsumer().toString())
+                        .policy(lastOffer.getPolicy())
+                        .assetIds(lastOffer.getAssets().stream().map(Asset::getId).collect(Collectors.toList()))
+                        .build();
+            }
 
             ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
                     .protocol(negotiation.getProtocol())
