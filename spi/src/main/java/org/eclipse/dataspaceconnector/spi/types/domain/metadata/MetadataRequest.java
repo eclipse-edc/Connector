@@ -15,19 +15,27 @@
 package org.eclipse.dataspaceconnector.spi.types.domain.metadata;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
+import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Objects;
 
+@JsonDeserialize(builder = MetadataRequest.Builder.class)
 public class MetadataRequest implements RemoteMessage {
 
-    private String protocol;
-    private String connectorId;
-    private String connectorAddress;
-    private URI requestedAsset;
+    private final String protocol;
+    private final String connectorId;
+    private final String connectorAddress;
+    private final URI requestedAsset;
 
-    private MetadataRequest() { }
+    private MetadataRequest(@NotNull String protocol, @NotNull String connectorId, @NotNull String connectorAddress, URI requestedAsset) {
+        this.protocol = protocol;
+        this.connectorId = connectorId;
+        this.connectorAddress = connectorAddress;
+        this.requestedAsset = requestedAsset;
+    }
 
     @Override
     public String getProtocol() {
@@ -47,10 +55,12 @@ public class MetadataRequest implements RemoteMessage {
     }
 
     public static class Builder {
-        private final MetadataRequest metadataRequest;
+        private String protocol;
+        private String connectorId;
+        private String connectorAddress;
+        private URI requestedAsset;
 
         private Builder() {
-            this.metadataRequest = new MetadataRequest();
         }
 
         @JsonCreator
@@ -59,31 +69,30 @@ public class MetadataRequest implements RemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            metadataRequest.protocol = protocol;
+            this.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            metadataRequest.connectorId = connectorId;
+            this.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            metadataRequest.connectorAddress = connectorAddress;
+            this.connectorAddress = connectorAddress;
             return this;
         }
 
-        public Builder elementId(URI elementId) {
-            metadataRequest.requestedAsset = elementId;
+        public Builder requestedAsset(URI elementId) {
+            this.requestedAsset = elementId;
             return this;
         }
 
         public MetadataRequest build() {
-            Objects.requireNonNull(metadataRequest.protocol, "protocol");
-            Objects.requireNonNull(metadataRequest.connectorId, "connectorId");
-            Objects.requireNonNull(metadataRequest.connectorAddress, "connectorAddress");
-            return metadataRequest;
+            Objects.requireNonNull(protocol, "protocol");
+            Objects.requireNonNull(connectorId, "connectorId");
+            Objects.requireNonNull(connectorAddress, "connectorAddress");
+            return new MetadataRequest(protocol, connectorId, connectorAddress, requestedAsset);
         }
     }
-
 }

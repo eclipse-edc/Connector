@@ -21,9 +21,9 @@ import org.eclipse.dataspaceconnector.ids.core.message.DataRequestMessageSender;
 import org.eclipse.dataspaceconnector.ids.core.message.IdsRestRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.core.message.QueryMessageSender;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsPolicyServiceImpl;
+import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceSettings;
-import org.eclipse.dataspaceconnector.ids.core.service.DataCatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.transform.TransformerRegistryImpl;
 import org.eclipse.dataspaceconnector.ids.core.version.ConnectorVersionProviderImpl;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
@@ -32,8 +32,8 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
+import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.service.DataCatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -108,9 +108,9 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         ConnectorVersionProvider connectorVersionProvider = createConnectorVersionProvider();
         serviceExtensionContext.registerService(ConnectorVersionProvider.class, connectorVersionProvider);
 
-        DataCatalogService dataCatalogService = createDataCatalogService(dataCatalogId, contractOfferService);
+        CatalogService dataCatalogService = createDataCatalogService(dataCatalogId, contractOfferService);
 
-        serviceExtensionContext.registerService(DataCatalogService.class, dataCatalogService);
+        serviceExtensionContext.registerService(CatalogService.class, dataCatalogService);
 
         ConnectorService connectorService = createConnectorService(connectorServiceSettings, connectorVersionProvider, dataCatalogService);
         serviceExtensionContext.registerService(ConnectorService.class, connectorService);
@@ -169,10 +169,10 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         return new TransformerRegistryImpl();
     }
 
-    private DataCatalogService createDataCatalogService(
+    private CatalogService createDataCatalogService(
             String dataCatalogId,
             ContractOfferService contractOfferService) {
-        return new DataCatalogServiceImpl(
+        return new CatalogServiceImpl(
                 monitor,
                 dataCatalogId,
                 contractOfferService
@@ -182,7 +182,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private ConnectorService createConnectorService(
             ConnectorServiceSettings connectorServiceSettings,
             ConnectorVersionProvider connectorVersionProvider,
-            DataCatalogService dataCatalogService) {
+            CatalogService dataCatalogService) {
 
         return new ConnectorServiceImpl(
                 monitor,

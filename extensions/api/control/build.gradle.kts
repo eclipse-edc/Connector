@@ -25,7 +25,20 @@ dependencies {
     api(project(":spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-    implementation("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
+
+    testImplementation(project(":extensions:in-memory:assetindex-memory"))
+    testImplementation(project(":core:protocol:web"))
+    testImplementation(project(":core:transfer"))
+    testImplementation(project(":core:contract"))
+    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    testImplementation(project(":extensions:in-memory:policy-registry-memory"))
+    testImplementation(project(":extensions:in-memory:assetindex-memory"))
+    testImplementation(project(":data-protocols:ids"))
+    testImplementation(project(":extensions:iam:iam-mock"))
+    testImplementation(project(":extensions:filesystem:configuration-fs"))
+
+    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation("io.rest-assured:rest-assured:4.4.0")
 
     implementation(project(":common:util"))
 }

@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.ids.spi.types;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -18,7 +19,7 @@ public class Connector {
     private final String description;
     private final String connectorVersion;
     private final SecurityProfile securityProfile;
-    private final List<DataCatalog> dataCatalogs;
+    private final List<Catalog> dataCatalogs;
     private final URI endpoint;
     private final URI maintainer;
     private final URI curator;
@@ -29,7 +30,7 @@ public class Connector {
             @Nullable String description,
             @Nullable String connectorVersion,
             @Nullable SecurityProfile securityProfile,
-            @Nullable List<DataCatalog> dataCatalogs,
+            @Nullable List<Catalog> dataCatalogs,
             @Nullable URI endpoint,
             @Nullable URI maintainer,
             @Nullable URI curator) {
@@ -70,7 +71,7 @@ public class Connector {
     }
 
     @Nullable
-    public List<DataCatalog> getDataCatalogs() {
+    public List<Catalog> getDataCatalogs() {
         return dataCatalogs;
     }
 
@@ -96,7 +97,7 @@ public class Connector {
         private String description;
         private String connectorVersion;
         private SecurityProfile securityProfile;
-        private List<DataCatalog> dataCatalogs;
+        private List<Catalog> dataCatalogs;
         private URI endpoint;
         private URI maintainer;
         private URI curator;
@@ -133,7 +134,7 @@ public class Connector {
             return this;
         }
 
-        public Builder dataCatalogs(@Nullable List<DataCatalog> dataCatalogs) {
+        public Builder dataCatalogs(@Nullable List<Catalog> dataCatalogs) {
             this.dataCatalogs = dataCatalogs;
             return this;
         }

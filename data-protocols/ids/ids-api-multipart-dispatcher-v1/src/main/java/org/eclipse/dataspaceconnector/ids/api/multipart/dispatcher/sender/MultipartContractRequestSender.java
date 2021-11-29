@@ -47,7 +47,7 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractR
                                           @NotNull Monitor monitor,
                                           @NotNull IdentityService identityService,
                                           @NotNull TransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService);
+        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
 
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
     }

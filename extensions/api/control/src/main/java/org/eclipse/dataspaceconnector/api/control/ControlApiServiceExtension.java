@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.api.control;
 
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -17,7 +18,7 @@ public class ControlApiServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager");
+        return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:dispatcher");
     }
 
     @Override
@@ -26,7 +27,10 @@ public class ControlApiServiceExtension implements ServiceExtension {
 
         WebService webService = serviceExtensionContext.getService(WebService.class);
         TransferProcessManager transferProcessManager = serviceExtensionContext.getService(TransferProcessManager.class);
+        RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry = serviceExtensionContext.getService(RemoteMessageDispatcherRegistry.class);
+
         webService.registerController(new ClientController(transferProcessManager));
+        webService.registerController(new ClientControlCatalogApiController(remoteMessageDispatcherRegistry));
 
         monitor.info(String.format("Initialized %s", NAME));
     }
@@ -40,5 +44,4 @@ public class ControlApiServiceExtension implements ServiceExtension {
     public void shutdown() {
         monitor.info(String.format("Shutdown %s", NAME));
     }
-
 }

@@ -29,11 +29,11 @@ import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DataCatalogServiceImplTest {
+class CatalogServiceImplTest {
     private static final String CATALOG_ID = "catalogId";
 
     // subject
-    private DataCatalogServiceImpl dataCatalogService;
+    private CatalogServiceImpl dataCatalogService;
 
     // mocks
     private Monitor monitor;
@@ -43,7 +43,7 @@ class DataCatalogServiceImplTest {
     void setUp() {
         monitor = EasyMock.createMock(Monitor.class);
         contractOfferService = EasyMock.createMock(ContractOfferService.class);
-        dataCatalogService = new DataCatalogServiceImpl(monitor, CATALOG_ID, contractOfferService);
+        dataCatalogService = new CatalogServiceImpl(monitor, CATALOG_ID, contractOfferService);
     }
 
     @Test
