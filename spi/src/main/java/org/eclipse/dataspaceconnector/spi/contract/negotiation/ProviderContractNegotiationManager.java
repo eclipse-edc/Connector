@@ -30,7 +30,7 @@ public interface ProviderContractNegotiationManager extends ContractNegotiationM
     /**
      * A contract negotiation has been requested by the consumer represented with the given claims.
      */
-    NegotiationResponse requested(ClaimToken token, String correlationId, ContractOfferRequest request);
+    NegotiationResponse requested(ClaimToken token, ContractOfferRequest request);
 
     /**
      * A new offer was made by the consumer represented by the claim token.

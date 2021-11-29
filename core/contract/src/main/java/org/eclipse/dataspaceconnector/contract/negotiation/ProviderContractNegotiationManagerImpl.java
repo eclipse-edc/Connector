@@ -96,10 +96,10 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
 
     @Override
-    public NegotiationResponse requested(ClaimToken token, String correlationId, ContractOfferRequest request) {
+    public NegotiationResponse requested(ClaimToken token, ContractOfferRequest request) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .correlationId(correlationId)
+                .correlationId(request.getCorrelationId())
                 .counterPartyId(request.getConnectorId())
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
