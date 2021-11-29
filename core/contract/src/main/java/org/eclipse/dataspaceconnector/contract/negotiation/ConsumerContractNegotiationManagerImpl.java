@@ -36,7 +36,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     @Override
     public NegotiationResponse initiate(ContractOffer offer) {
         var contractNegotiation = new ContractNegotiation();
-        store.create(contractNegotiation);
+        store.save(contractNegotiation);
         return new NegotiationResponse(OK, contractNegotiation);
     }
 

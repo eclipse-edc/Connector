@@ -1,13 +1,15 @@
 package org.eclipse.dataspaceconnector.cosmos.azure;
 
+import com.azure.cosmos.models.SqlQuerySpec;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public interface CosmosDbApi {
 
-    void createItem(CosmosDocument<?> item);
+    void saveItem(CosmosDocument<?> item);
 
     @Nullable Object queryItemById(String id);
 
@@ -17,7 +19,9 @@ public interface CosmosDbApi {
 
     List<Object> queryAllItems();
 
-    List<Object> queryItems(String query);
+    Stream<Object> queryItems(SqlQuerySpec querySpec);
+
+    Stream<Object> queryItems(String query);
 
     void deleteItem(String id);
 

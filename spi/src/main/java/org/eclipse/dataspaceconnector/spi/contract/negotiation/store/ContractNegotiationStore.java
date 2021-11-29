@@ -22,7 +22,7 @@ import java.util.List;
 
 /**
  * Stores {@link ContractNegotiation}s and their associated types such as {@link ContractAgreement}s.
- *
+ * <p>
  * TODO: This is work-in-progress
  */
 public interface ContractNegotiationStore {
@@ -46,14 +46,9 @@ public interface ContractNegotiationStore {
     ContractAgreement findContractAgreement(String contractId);
 
     /**
-     * Persists a contract negotiation.
+     * Persists a contract negotiation. This follows UPSERT semantics, so if the object didn't exit before, it's created.
      */
-    void create(ContractNegotiation negotiation);
-
-    /**
-     * Updates a contract negotiation.
-     */
-    void update(ContractNegotiation negotiation);
+    void save(ContractNegotiation negotiation);
 
     /**
      * Removes a contract negotiation for the given id.

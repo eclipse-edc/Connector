@@ -24,6 +24,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CosmosDbApiImpl implements CosmosDbApi {
 
@@ -83,7 +84,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void createItem(CosmosDocument<?> item) {
+    public void saveItem(CosmosDocument<?> item) {
         try {
             // we don't need to supply a partition key, it will be extracted from the CosmosDocument
             CosmosItemResponse<Object> response = container.upsertItem(item, itemRequestOptions);
@@ -140,9 +141,18 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public List<Object> queryItems(String query) {
+    public Stream<Object> queryItems(SqlQuerySpec querySpec) {
         try {
-            return container.queryItems(query, queryRequestOptions, Object.class).stream().collect(Collectors.toList());
+            return container.queryItems(querySpec, queryRequestOptions, Object.class).stream();
+        } catch (CosmosException e) {
+            throw new EdcException(e);
+        }
+    }
+
+    @Override
+    public Stream<Object> queryItems(String query) {
+        try {
+            return container.queryItems(query, queryRequestOptions, Object.class).stream();
         } catch (CosmosException e) {
             throw new EdcException(e);
         }
@@ -165,7 +175,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
 
     @Override
     public void createItems(Collection<CosmosDocument<?>> definitions) {
-        definitions.forEach(this::createItem);
+        definitions.forEach(this::saveItem);
     }
 
 
