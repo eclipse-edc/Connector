@@ -121,6 +121,13 @@ allprojects {
             xml.required.set(false)
         }
     }
+
+    tasks.jar {
+        metaInf {
+            from("${rootProject.projectDir.path}/LICENSE")
+            from("${rootProject.projectDir.path}/NOTICE.md")
+        }
+    }
 }
 
 val test by tasks.getting(Test::class) {
