@@ -54,16 +54,17 @@ public class ContractServiceExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
+    private ContractNegotiationStore contractNegotiationStore;
 
     @Override
     public final Set<String> provides() {
         return Set.of("edc:core:contract", ContractDefinitionStore.FEATURE);
     }
 
-//    @Override
-//    public final Set<String> requires() {
-//        return Set.of(AssetIndex.FEATURE);
-//    }
+    @Override
+    public final Set<String> requires() {
+        return Set.of(AssetIndex.FEATURE);
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -84,7 +85,7 @@ public class ContractServiceExtension implements ServiceExtension {
         definitionService.initialize(store);
 
         // Start negotiation managers.
-        var contractNegotiationStore = context.getService(ContractNegotiationStore.class);
+        contractNegotiationStore = context.getService(ContractNegotiationStore.class);
         consumerNegotiationManager.start(contractNegotiationStore);
         providerNegotiationManager.start(contractNegotiationStore);
 
@@ -138,18 +139,21 @@ public class ContractServiceExtension implements ServiceExtension {
         var dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
         context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
 
+        // negotiation
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
+                .negotiationStore(contractNegotiationStore)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
+                .negotiationStore(contractNegotiationStore)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
