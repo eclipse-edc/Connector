@@ -102,7 +102,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         negotiation.addContractOffer(contractOffer.getContractOffer());
         negotiationStore.create(negotiation);
 
-        monitor.debug(String.format("ContractNegotiation initiated. %s is now in state %s.",
+        monitor.debug(String.format("[Consumer] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return new NegotiationResponse(OK, negotiation);
     }
@@ -118,7 +118,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         try {
             Objects.requireNonNull(latestOffer, "latestOffer");
         } catch (NullPointerException e) {
-            monitor.severe("No offer found for validation. Process id: " + negotiation.getId());
+            monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
             return new NegotiationResponse(NegotiationResponse.Status.FATAL_ERROR, negotiation);
         }
 
@@ -127,21 +127,21 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         if (result.invalid()) {
             if (result.isCounterOfferAvailable()) {
                 negotiation.addContractOffer(result.getCounterOffer());
-                monitor.debug("Contract offer received. A counter offer is available.");
+                monitor.debug("[Consumer] Contract offer received. A counter offer is available.");
                 negotiation.transitionOffering();
             } else {
                 // If no counter offer available + validation result invalid, decline negotiation.
-                monitor.debug("Contract offer received. Will be rejected.");
+                monitor.debug("[Consumer] Contract offer received. Will be rejected.");
                 negotiation.transitionDeclining();
             }
         } else {
             // Offer has been approved.
-            monitor.debug("Contract offer received. Will be approved");
+            monitor.debug("[Consumer] Contract offer received. Will be approved");
             negotiation.transitionApproving();
         }
 
         negotiationStore.update(negotiation);
-        monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return new NegotiationResponse(OK, negotiation);
@@ -158,27 +158,27 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         try {
             Objects.requireNonNull(latestOffer, "latestOffer");
         } catch (NullPointerException e) {
-            monitor.severe("No offer found for validation. Process id: " + negotiation.getId());
+            monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
             return new NegotiationResponse(NegotiationResponse.Status.ERROR_RETRY, negotiation);
         }
 
         var result = validationService.validate(token, agreement, latestOffer);
         if (!result) {
             // TODO Add contract offer possibility.
-            monitor.debug("Contract agreement received. Validation failed.");
+            monitor.debug("[Consumer] Contract agreement received. Validation failed.");
             negotiation.transitionDeclining();
             negotiationStore.update(negotiation);
-            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+            monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return new NegotiationResponse(OK, negotiation);
         }
 
         // Agreement has been approved.
         negotiation.setContractAgreement(agreement); // TODO persist unchecked agreement of provider?
-        monitor.debug("Contract agreement received. Validation successful.");
+        monitor.debug("[Consumer] Contract agreement received. Validation successful.");
         negotiation.transitionConfirmed();
         negotiationStore.update(negotiation);
-        monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return new NegotiationResponse(OK, negotiation);
@@ -191,10 +191,10 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return new NegotiationResponse(FATAL_ERROR);
         }
 
-        monitor.debug("Contract rejection received. Abort negotiation process");
+        monitor.debug("[Consumer] Contract rejection received. Abort negotiation process");
         negotiation.transitionDeclined();
         negotiationStore.update(negotiation);
-        monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+        monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return new NegotiationResponse(OK, negotiation);
     }
@@ -220,13 +220,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             var response = sendOffer(offer, process);
             if (response.isCompletedExceptionally()) {
                 process.transitionRequesting();
-                monitor.debug(format("Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
+                monitor.debug(format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                         offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState())));
                 continue;
             }
 
             process.transitionRequested();
-            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+            monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     process.getId(), ContractNegotiationStates.from(process.getState())));
             negotiationStore.update(process);
         }
@@ -242,13 +242,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             var response = sendOffer(offer, process);
             if (response.isCompletedExceptionally()) {
                 process.transitionOffering();
-                monitor.debug(format("Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
+                monitor.debug(format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                         offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState())));
                 continue;
             }
 
             process.transitionOffered();
-            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+            monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     process.getId(), ContractNegotiationStates.from(process.getState())));
             negotiationStore.update(process);
         }
@@ -285,13 +285,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             var response = dispatcherRegistry.send(Object.class, request, process::getId);
             if (response.isCompletedExceptionally()) {
                 process.transitionApproving();
-                monitor.debug(format("Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
+                monitor.debug(format("[Consumer] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
                         agreement.getId(), process.getId(), ContractNegotiationStates.from(process.getState())));
                 continue;
             }
 
             process.transitionApproved();
-            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+            monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     process.getId(), ContractNegotiationStates.from(process.getState())));
             negotiationStore.update(process);
         }
@@ -318,13 +318,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             if (response.isCompletedExceptionally()) {
                 process.transitionDeclining();
                 negotiationStore.update(process);
-                monitor.debug(format("Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
+                monitor.debug(format("[Consumer] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
                         process.getId(), ContractNegotiationStates.from(process.getState())));
                 continue;
             }
 
             process.transitionDeclined();
-            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
+            monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     process.getId(), ContractNegotiationStates.from(process.getState())));
             negotiationStore.update(process);
         }
