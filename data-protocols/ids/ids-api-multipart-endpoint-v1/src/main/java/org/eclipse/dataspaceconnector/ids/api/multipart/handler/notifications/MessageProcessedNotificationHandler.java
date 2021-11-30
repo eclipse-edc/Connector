@@ -26,15 +26,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
+
 /**
  * This class handles and processes incoming IDS {@link MessageProcessedNotificationMessage}s.
  */
 public class MessageProcessedNotificationHandler implements Handler {
 
     private final Monitor monitor;
+    private final String connectorId;
 
-    public MessageProcessedNotificationHandler(@NotNull Monitor monitor) {
+    public MessageProcessedNotificationHandler(
+            @NotNull Monitor monitor,
+            @NotNull String connectorId) {
         this.monitor = Objects.requireNonNull(monitor);
+        this.connectorId = Objects.requireNonNull(connectorId);
     }
 
     @Override
@@ -54,6 +60,9 @@ public class MessageProcessedNotificationHandler implements Handler {
         monitor.debug(String.format("MessageProcessedNotificationHandler: Received response " +
                 "to message %s. Payload: %s", correlationMessageId, multipartRequest.getPayload()));
 
-        return null; // TODO this will cause a RejectionMessage
+        // TODO null will cause a RejectionMessage
+        return MultipartResponse.Builder.newInstance()
+                .header(internalRecipientError(message, connectorId))
+                .build();
     }
 }

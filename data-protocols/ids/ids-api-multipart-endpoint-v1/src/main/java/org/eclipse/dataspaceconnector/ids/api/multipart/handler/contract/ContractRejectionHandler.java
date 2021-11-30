@@ -26,15 +26,21 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Objects;
 
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
+
 /**
  * This class handles and processes incoming IDS {@link ContractRejectionMessage}s.
  */
 public class ContractRejectionHandler implements Handler {
 
     private final Monitor monitor;
+    private final String connectorId;
 
-    public ContractRejectionHandler(@NotNull Monitor monitor) {
+    public ContractRejectionHandler(
+            @NotNull Monitor monitor,
+            @NotNull String connectorId) {
         this.monitor = Objects.requireNonNull(monitor);
+        this.connectorId = Objects.requireNonNull(connectorId);
     }
 
     @Override
@@ -60,6 +66,9 @@ public class ContractRejectionHandler implements Handler {
         // TODO
         // Abort negotiation process: ProviderContractNegotiationManagerImpl.declined
 
-        return null; // TODO this will cause a RejectionMessage
+        // TODO null will cause a RejectionMessage
+        return MultipartResponse.Builder.newInstance()
+                .header(internalRecipientError(message, connectorId))
+                .build();
     }
 }

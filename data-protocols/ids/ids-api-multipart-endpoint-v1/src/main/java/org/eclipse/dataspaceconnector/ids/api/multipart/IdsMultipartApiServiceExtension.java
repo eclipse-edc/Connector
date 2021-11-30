@@ -164,11 +164,11 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper));
         handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper));
-        handlers.add(new ContractRejectionHandler(monitor));
+        handlers.add(new ContractRejectionHandler(monitor, connectorId));
 
         // create notification message handlers
-        handlers.add(new MessageProcessedNotificationHandler(monitor));
-        handlers.add(new RequestInProcessHandler(monitor));
+        handlers.add(new MessageProcessedNotificationHandler(monitor, connectorId));
+        handlers.add(new RequestInProcessHandler(monitor, connectorId));
 
         // create & register controller
         MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
