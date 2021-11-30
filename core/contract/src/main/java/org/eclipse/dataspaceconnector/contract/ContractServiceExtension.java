@@ -43,7 +43,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class ContractServiceExtension implements ServiceExtension {
     private static final String NAME = "Core Contract Service Extension";
