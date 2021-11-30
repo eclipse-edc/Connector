@@ -137,7 +137,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             }
         } else {
             // Offer has been approved.
-            monitor.debug("[Consumer] Contract offer received. Will be approved");
+            monitor.debug("[Consumer] Contract offer received. Will be approved.");
             negotiation.transitionApproving();
         }
 

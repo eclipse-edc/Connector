@@ -88,6 +88,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
 
         monitor.debug("[Provider] Contract rejection received. Abort negotiation process");
+
+        // Remove agreement if present
+        if (negotiation.getContractAgreement() != null) {
+            negotiation.setContractAgreement(null);
+        }
         negotiation.transitionDeclined();
         negotiationStore.update(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
@@ -155,6 +160,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new NegotiationResponse(OK, negotiation);
         }
 
+        monitor.debug("[Provider] Contract offer received. Will be approved.");
         // negotiation.addContractOffer(result.getValidatedOffer()); TODO
         negotiation.transitionConfirming();
         negotiationStore.update(negotiation);
