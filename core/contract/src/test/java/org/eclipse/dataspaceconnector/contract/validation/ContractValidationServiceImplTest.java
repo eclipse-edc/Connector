@@ -8,6 +8,7 @@ import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -35,6 +36,8 @@ class ContractValidationServiceImplTest {
 
         var newPolicy = Policy.Builder.newInstance().build();
 
+        var asset = Asset.Builder.newInstance().id("1").build();
+
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicy(Policy.Builder.newInstance().build())
@@ -45,12 +48,12 @@ class ContractValidationServiceImplTest {
         EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(contractDefinition);
 
         //noinspection unchecked
-        EasyMock.expect(assetIndex.queryAssets(EasyMock.isA(List.class))).andReturn(Stream.of());
+        EasyMock.expect(assetIndex.queryAssets(EasyMock.isA(List.class))).andReturn(Stream.of(asset));
 
         EasyMock.replay(agentService, definitionService, assetIndex);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = ContractOffer.Builder.newInstance().policy(originalPolicy).id("1:2").build();
+        var offer = ContractOffer.Builder.newInstance().asset(asset).policy(originalPolicy).id("1:2").build();
 
         var result = validationService.validate(claimToken, offer);
 
@@ -80,10 +83,11 @@ class ContractValidationServiceImplTest {
         EasyMock.replay(agentService, definitionService, assetIndex);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var agreement = ContractAgreement.Builder.newInstance().id("1")
+        var agreement = ContractAgreement.Builder.newInstance()
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .policy(originalPolicy)
+                .asset(Asset.Builder.newInstance().build())
                 .contractSigningDate(LocalDate.MIN.toEpochDay())
                 .contractStartDate(LocalDate.MIN.toEpochDay())
                 .contractEndDate(LocalDate.MAX.toEpochDay())

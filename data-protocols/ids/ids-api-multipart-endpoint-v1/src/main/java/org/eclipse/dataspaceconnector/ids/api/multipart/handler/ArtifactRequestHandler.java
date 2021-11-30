@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -110,6 +111,7 @@ public class ArtifactRequestHandler implements Handler {
 
         ContractAgreement contractAgreement = ContractAgreement.Builder.newInstance()
                 .id(contractDefinition.get().getId() + ":" + UUID.randomUUID())
+                .asset(Asset.Builder.newInstance().id(artifactIdsId.getValue()).build())
                 .policy(contractDefinition.get().getContractPolicy())
                 .contractEndDate(Instant.now().getEpochSecond())
                 .contractSigningDate(Instant.now().getEpochSecond())

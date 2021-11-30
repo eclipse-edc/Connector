@@ -24,8 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -41,9 +39,9 @@ public class ContractOffer {
     private Policy policy;
 
     /**
-     * The offered assets
+     * The offered asset
      */
-    private List<Asset> assets;
+    private Asset asset;
 
     /**
      * The participant who provides the offered data
@@ -109,8 +107,8 @@ public class ContractOffer {
     }
 
     @NotNull
-    public List<Asset> getAssets() {
-        return assets == null ? Collections.emptyList() : Collections.unmodifiableList(assets);
+    public Asset getAsset() {
+        return asset;
     }
 
     @NotNull
@@ -123,7 +121,7 @@ public class ContractOffer {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private List<Asset> assets;
+        private Asset asset;
         private Policy policy;
         private String id;
         private URI provider;
@@ -156,8 +154,8 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder assets(List<Asset> assets) {
-            this.assets = assets;
+        public Builder asset(Asset asset) {
+            this.asset = asset;
             return this;
         }
 
@@ -193,7 +191,7 @@ public class ContractOffer {
             ContractOffer offer = new ContractOffer();
             offer.id = this.id;
             offer.policy = this.policy;
-            offer.assets = this.assets;
+            offer.asset = this.asset;
             offer.provider = this.provider;
             offer.consumer = this.consumer;
             offer.offerStart = this.offerStart;

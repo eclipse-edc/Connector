@@ -70,10 +70,10 @@ public class DataCatalogToIdsResourceCatalogTransformer implements IdsTypeTransf
         List<Resource> resources = new LinkedList<>();
         List<ContractOffer> contractOffers = object.getContractOffers();
 
-        List<Asset> distinctAssets = contractOffers.stream().flatMap(c -> c.getAssets().stream()).distinct().collect(Collectors.toList());
+        List<Asset> distinctAssets = contractOffers.stream().map(ContractOffer::getAsset).distinct().collect(Collectors.toList());
 
         for (Asset distinctAsset : distinctAssets) {
-            List<ContractOffer> targetingOffers = contractOffers.stream().filter(c -> c.getAssets().stream().map(Asset::getId).anyMatch(id -> id.equals(distinctAsset.getId()))).collect(Collectors.toList());
+            List<ContractOffer> targetingOffers = contractOffers.stream().filter(c -> c.getAsset().getId().equals(distinctAsset.getId())).collect(Collectors.toList());
 
             OfferedAsset assetAndContractOffers = new OfferedAsset(distinctAsset, targetingOffers);
             Resource resource = context.transform(assetAndContractOffers, Resource.class);

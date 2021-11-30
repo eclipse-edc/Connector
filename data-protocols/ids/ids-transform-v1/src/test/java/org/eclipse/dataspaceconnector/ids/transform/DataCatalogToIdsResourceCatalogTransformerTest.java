@@ -28,7 +28,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -88,8 +87,8 @@ class DataCatalogToIdsResourceCatalogTransformerTest {
 
         EasyMock.expect(a1.getId()).andReturn("a1").anyTimes();
         EasyMock.expect(a2.getId()).andReturn("a2").anyTimes();
-        EasyMock.expect(o1.getAssets()).andReturn(Collections.singletonList(a1)).anyTimes();
-        EasyMock.expect(o2.getAssets()).andReturn(Collections.singletonList(a2)).anyTimes();
+        EasyMock.expect(o1.getAsset()).andReturn(a1).anyTimes();
+        EasyMock.expect(o2.getAsset()).andReturn(a2).anyTimes();
 
         Resource resource = new ResourceBuilder().build();
 

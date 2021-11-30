@@ -113,8 +113,9 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     @Test
     void testSendArtifactRequestMessage() throws Exception {
         var asset = (Asset) EasyMock.createNiceMock(Asset.class);
-        EasyMock.expect(asset.getId()).andReturn("assetId");
+        EasyMock.expect(asset.getId()).andReturn("1");
         EasyMock.replay(asset);
+        addAsset(asset);
 
         var dataDestination = (DataAddress) EasyMock.createNiceMock(DataAddress.class);
         EasyMock.replay(dataDestination);
@@ -129,8 +130,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
-                .assetId(asset.getId())
                 .contractId("1")
+                .assetId(asset.getId())
                 .dataDestination(dataDestination)
                 .build();
 

@@ -18,8 +18,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -33,7 +31,7 @@ public class ContractAgreement {
     private final long contractSigningDate;
     private final long contractStartDate;
     private final long contractEndDate;
-    private final List<String> assetIds;
+    private final Asset asset;
     private final Policy policy;
 
     private ContractAgreement(@NotNull String id,
@@ -42,7 +40,7 @@ public class ContractAgreement {
                               long contractSigningDate,
                               long contractStartDate,
                               long contractEndDate,
-                              @NotNull List<String> assetIds,
+                              @NotNull Asset asset,
                               @NotNull Policy policy) {
         this.id = Objects.requireNonNull(id);
         this.providerAgentId = Objects.requireNonNull(providerAgentId);
@@ -50,7 +48,7 @@ public class ContractAgreement {
         this.contractSigningDate = contractSigningDate;
         this.contractStartDate = contractStartDate;
         this.contractEndDate = contractEndDate;
-        this.assetIds = Objects.requireNonNull(assetIds);
+        this.asset = Objects.requireNonNull(asset);
         this.policy = Objects.requireNonNull(policy);
 
         if (contractSigningDate == 0) {
@@ -134,13 +132,13 @@ public class ContractAgreement {
     }
 
     /**
-     * List of asset identifier that are covered by the {@link ContractAgreement}.
+     * The Asset that is covered by the {@link ContractAgreement}.
      *
-     * @return list of assets
+     * @return asset
      */
     @NotNull
-    public List<String> getAssetIds() {
-        return assetIds;
+    public Asset getAsset() {
+        return asset;
     }
 
     /**
@@ -161,7 +159,7 @@ public class ContractAgreement {
         private long contractSigningDate;
         private long contractStartDate;
         private long contractEndDate;
-        private List<String> assetIds = Collections.emptyList();
+        private Asset asset;
         private Policy policy;
 
         public static Builder newInstance() {
@@ -201,8 +199,8 @@ public class ContractAgreement {
             return this;
         }
 
-        public Builder assetIds(List<String> assetIds) {
-            this.assetIds = assetIds;
+        public Builder asset(Asset asset) {
+            this.asset = asset;
             return this;
         }
 
@@ -212,7 +210,7 @@ public class ContractAgreement {
         }
 
         public ContractAgreement build() {
-            return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, assetIds, policy);
+            return new ContractAgreement(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, asset, policy);
         }
 
     }

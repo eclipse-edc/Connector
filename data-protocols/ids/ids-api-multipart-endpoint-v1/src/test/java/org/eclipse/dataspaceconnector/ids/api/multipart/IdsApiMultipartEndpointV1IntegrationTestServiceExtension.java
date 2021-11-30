@@ -47,12 +47,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
@@ -66,7 +64,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
     @Override
     public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", ContractDefinitionStore.FEATURE);
+        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
     }
 
     @Override
@@ -120,14 +118,13 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         @NotNull
         public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
-            List<ContractOffer> contractOffers = assets.stream()
-                    .map(Collections::singletonList)
-                    .map(assets -> ContractOffer.Builder.newInstance()
-                            .policy(createEverythingAllowedPolicy())
+            return assets.stream().map(asset ->
+                    ContractOffer.Builder.newInstance()
                             .id("1")
-                            .assets(assets).build())
-                    .collect(Collectors.toList());
-            return contractOffers.stream();
+                            .policy(createEverythingAllowedPolicy())
+                            .asset(asset)
+                            .build()
+            );
         }
 
         private Policy createEverythingAllowedPolicy() {

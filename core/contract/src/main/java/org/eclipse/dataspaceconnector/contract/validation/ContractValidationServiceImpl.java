@@ -30,8 +30,6 @@ import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 
@@ -64,13 +62,17 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         if (contractDefinition == null) {
             return OfferValidationResult.INVALID;
         }
-        var criteria = createCriteria(offer, contractDefinition);
 
-        // sanitize the assets
-        var assets = assetIndex.queryAssets(criteria);
+        // take asset from definition and index
+        var criteria = createCriteria(offer, contractDefinition);
+        var targetAssets = assetIndex.queryAssets(criteria);
+        var targetAsset = targetAssets.findFirst().orElse(null);
+        if (targetAsset == null) {
+            return OfferValidationResult.INVALID;
+        }
 
         var sanitizedUsagePolicy = contractDefinition.getContractPolicy();
-        var validatedOffer = ContractOffer.Builder.newInstance().id(offer.getId()).assets(assets.collect(toList())).policy(sanitizedUsagePolicy).build();
+        var validatedOffer = ContractOffer.Builder.newInstance().id(offer.getId()).asset(targetAsset).policy(sanitizedUsagePolicy).build();
         return new OfferValidationResult(validatedOffer);
     }
 
@@ -88,9 +90,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @NotNull
     private ArrayList<Criterion> createCriteria(ContractOffer offer, ContractDefinition contractDefinition) {
-        var assetIds = offer.getAssets().stream().map(Asset::getId).collect(joining(","));
         var criteria = new ArrayList<>(contractDefinition.getSelectorExpression().getCriteria());
-        var criterion = new Criterion("id", "IN", assetIds);
+        var criterion = new Criterion(Asset.PROPERTY_ID, "=", offer.getAsset().getId());
         criteria.add(criterion);
         return criteria;
     }
