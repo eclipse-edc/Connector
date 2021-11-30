@@ -40,6 +40,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.OK;
 
@@ -86,6 +87,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new NegotiationResponse(FATAL_ERROR);
         }
 
+        monitor.debug("Contract rejection received. Abort negotiation process");
         negotiation.transitionDeclined();
         negotiationStore.update(negotiation);
         monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
@@ -109,7 +111,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .build();
 
         negotiationStore.create(negotiation);
-        monitor.debug(String.format("Created ContractNegotiation %s.", negotiation.getId()));
+        monitor.debug(String.format("ContractNegotiation initiated. %s is now in state %s.",
+                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return processIncomingOffer(negotiation, token, request.getContractOffer());
     }
@@ -138,10 +141,10 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         if (result.invalid()) {
             if (result.isCounterOfferAvailable()) {
                 negotiation.addContractOffer(result.getCounterOffer());
-                monitor.debug("Contract offer received. A counter offer is available");
+                monitor.debug("Contract offer received. A counter offer is available.");
                 negotiation.transitionOffering();
             } else {
-                monitor.debug("Contract offer received. Will be rejected");
+                monitor.debug("Contract offer received. Will be rejected.");
                 negotiation.transitionDeclining(); //TODO set error detail
             }
 
@@ -170,6 +173,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         // TODO Validate against another offer?
         boolean validationPassed = validationService.validate(token, agreement);
         if (!validationPassed) {
+            monitor.debug("Contract agreement received. Validation failed.");
             negotiation.transitionDeclining(); //TODO set error detail
             negotiationStore.update(negotiation);
             monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
@@ -177,6 +181,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new NegotiationResponse(OK, negotiation);
         }
 
+        monitor.debug("Contract agreement received. Validation successful.");
         negotiation.setContractAgreement(agreement);
         negotiation.transitionConfirmed();
         negotiationStore.update(negotiation);
@@ -237,8 +242,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionOffering();
                 negotiationStore.update(negotiation);
-                monitor.debug(String.format("ContractNegotiation %s stays in state %s due to error.",
-                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+                monitor.debug(format("Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
+                        currentOffer.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
             }
 
@@ -270,7 +275,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionDeclining();
                 negotiationStore.update(negotiation);
-                monitor.debug(String.format("ContractNegotiation %s stays in state %s due to error.",
+                monitor.debug(format("Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
                         negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
             }
@@ -320,8 +325,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionConfirming();
                 negotiationStore.update(negotiation);
-                monitor.debug(String.format("ContractNegotiation %s stays in state %s due to error.",
-                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+                monitor.debug(format("Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
+                        agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
             }
 
