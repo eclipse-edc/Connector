@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.ContractOffer;
 import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
@@ -82,13 +81,12 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
     @Override
     protected String buildMessagePayload(ContractOfferRequest request) throws Exception {
         var contractOffer = request.getContractOffer();
-        var transformationResult = transformerRegistry.transform(contractOffer, ContractOffer.class);
-        if (transformationResult.hasProblems()) {
-            throw new EdcException("Failed to create IDS contract request");
-        }
 
-        var idsContractOffer = transformationResult.getOutput();
-        return getObjectMapper().writeValueAsString(idsContractOffer);
+        if (request.getType() == ContractRequest.ContractOfferType.INITIAL) {
+            return getObjectMapper().writeValueAsString(createContractRequest(contractOffer));
+        } else {
+            return getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
+        }
     }
 
     @Override
@@ -103,5 +101,23 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
                 .header(header)
                 .payload(payload)
                 .build();
+    }
+
+    private de.fraunhofer.iais.eis.ContractRequest createContractRequest(ContractOffer offer) {
+        var transformationResult = transformerRegistry.transform(offer, de.fraunhofer.iais.eis.ContractRequest.class);
+        if (transformationResult.hasProblems()) {
+            throw new EdcException("Failed to create IDS contract request");
+        }
+
+        return transformationResult.getOutput();
+    }
+
+    private de.fraunhofer.iais.eis.ContractOffer createContractOffer(ContractOffer offer) {
+        var transformationResult = transformerRegistry.transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
+        if (transformationResult.hasProblems()) {
+            throw new EdcException("Failed to create IDS contract offer");
+        }
+
+        return transformationResult.getOutput();
     }
 }

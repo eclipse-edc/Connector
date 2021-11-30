@@ -18,6 +18,7 @@ import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
+import de.fraunhofer.iais.eis.ContractRequestBuilder;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
@@ -33,7 +34,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartCatalogDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRequestSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractOfferSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
@@ -88,7 +89,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
         multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartContractRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
@@ -147,7 +148,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     }
 
     @Test
-    void testSendContractRequestMessage() throws Exception {
+    void testSendContractOfferMessage() throws Exception {
         var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
         EasyMock.replay(contractOffer);
 
@@ -168,10 +169,10 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        // TODO revise when handler for ContractRequestMessage exists
+        // TODO revise when handler for ContractOfferMessage exists
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
+                .isEqualByComparingTo(RejectionReason.BAD_PARAMETERS);
         assertThat(result.getPayload()).isNull();
     }
 
@@ -198,11 +199,10 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        // TODO revise when handler for ContractAgreementMessage exists
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
 
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
+                .isEqualByComparingTo(RejectionReason.BAD_PARAMETERS);
         assertThat(result.getPayload()).isNull();
     }
 
@@ -222,15 +222,27 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        // TODO revise when handler for ContractRejectionMessage exists
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.MESSAGE_TYPE_NOT_SUPPORTED);
+                .isEqualByComparingTo(RejectionReason.BAD_PARAMETERS);
         assertThat(result.getPayload()).isNull();
     }
 
     private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {
         return new ContractOfferBuilder()
+                ._contractDate_(gregorianNow())
+                ._contractStart_(gregorianNow())
+                ._contractEnd_(gregorianNow())
+                ._consumer_(URI.create("consumer"))
+                ._provider_(URI.create("provider"))
+                ._permission_(new PermissionBuilder()
+                        ._action_(Action.USE)
+                        .build())
+                .build();
+    }
+
+    private de.fraunhofer.iais.eis.ContractRequest getIdsContractRequest() {
+        return new ContractRequestBuilder()
                 ._contractDate_(gregorianNow())
                 ._contractStart_(gregorianNow())
                 ._contractEnd_(gregorianNow())

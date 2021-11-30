@@ -25,6 +25,7 @@ import java.util.Objects;
  */
 public class ContractOfferRequest implements RemoteMessage {
 
+    private ContractOfferType type = ContractOfferType.COUNTER_OFFER;
     private String protocol;
     private String connectorId;
     private String connectorAddress;
@@ -46,6 +47,10 @@ public class ContractOfferRequest implements RemoteMessage {
 
     public String getCorrelationId() {
         return correlationId;
+    }
+
+    public ContractOfferType getType() {
+        return type;
     }
 
     public ContractOffer getContractOffer() {
@@ -88,12 +93,22 @@ public class ContractOfferRequest implements RemoteMessage {
             return this;
         }
 
-        public ContractOfferRequest build() {
-            Objects.requireNonNull(contractOfferRequest.protocol, "protocol");
-            Objects.requireNonNull(contractOfferRequest.connectorId, "connectorId");
-            Objects.requireNonNull(contractOfferRequest.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractOfferRequest.contractOffer, "contractOffer");
-            return contractOfferRequest;
+        public Builder type(ContractOfferType type) {
+            this.contractRequest.type = type;
+            return this;
         }
+
+        public ContractRequest build() {
+            Objects.requireNonNull(contractRequest.protocol, "protocol");
+            Objects.requireNonNull(contractRequest.connectorId, "connectorId");
+            Objects.requireNonNull(contractRequest.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractRequest.contractOffer, "contractOffer");
+            return contractRequest;
+        }
+    }
+
+    public enum ContractOfferType {
+        INITIAL,
+        COUNTER_OFFER
     }
 }
