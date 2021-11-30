@@ -144,10 +144,15 @@ it's generally advisable to do it.
 
 ### Alternative: IDS Multipart
 
-The data transfer can also be initiated using IDS multipart.
+The requesting of data offers and data transfer can also be initiated using IDS multipart.
 
 
-Create a `request.json` file with the following content
+Request Data Offers from the provider by running
+```bash
+curl -X GET -H 'X-Api-Key: password' http://localhost:9191/api/control/catalog?provider=http://localhost:8181/api/ids/multipart
+```
+
+To transfer data from the provider create a `request.json` file with the following content
 ```json
 {
   "edctype": "dataspaceconnector:datarequest",
@@ -173,6 +178,8 @@ Create a `request.json` file with the following content
 }
 ```
 
+And then call the control endpoint for data transfer
+
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @request.json http://localhost:9191/api/control/transfer
+curl -X POST -H 'X-Api-Key: password' -H "Content-Type: application/json" -d @request.json http://localhost:9191/api/control/transfer
 ```

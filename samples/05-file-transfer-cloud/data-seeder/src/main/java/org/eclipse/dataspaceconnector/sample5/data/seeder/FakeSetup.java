@@ -44,20 +44,20 @@ public class FakeSetup {
         Asset asset = Asset.Builder.newInstance().id("1").build();
         DataAddress dataAddress = DataAddress.Builder.newInstance()
                 .type("AzureStorage")
-                .property("account", "edcnikpinstorage")
+                .property("account", "<storage-account-name>")
                 .property("container", "src-container")
                 .property("blobname", "test-document.txt")
-                .keyName("edcnikpinstorage-key1")
+                .keyName("<storage-account-name>-key1")
                 .build();
         assetIndexLoader.accept(asset, dataAddress);
 
         Asset asset2 = Asset.Builder.newInstance().id("2").build();
         DataAddress dataAddress2 = DataAddress.Builder.newInstance()
                 .type("AzureStorage")
-                .property("account", "edcnikpinstorage")
+                .property("account", "<storage-account-name>")
                 .property("container", "src-container")
                 .property("blobname", "test-document.txt")
-                .keyName("edcnikpinstorage-key1")
+                .keyName("<storage-account-name>-key1")
                 .build();
         assetIndexLoader.accept(asset2, dataAddress2);
 
