@@ -27,7 +27,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Copied class from transfer process. TODO refactor. Move class to other package to prevent dependencies between extensions.
+ * Copied class from transfer process.
+ * @// FIXME: 30.11.2021 Duplicate of class in transfer extension, move class to other package to prevent dependencies between extensions.
  */
 public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatcherRegistry {
     private final Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
