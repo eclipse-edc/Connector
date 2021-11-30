@@ -188,9 +188,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             //    monitor.debug("[Provider] Contract offer received. A counter offer is available.");
             //    negotiation.transitionOffering();
             //} else {
-                monitor.debug("[Provider] Contract offer received. Will be rejected.");
-                negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
-                negotiation.transitionDeclining();
+            monitor.debug("[Provider] Contract offer received. Will be rejected.");
+            negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
+            negotiation.transitionDeclining();
             //}
 
             negotiationStore.save(negotiation);

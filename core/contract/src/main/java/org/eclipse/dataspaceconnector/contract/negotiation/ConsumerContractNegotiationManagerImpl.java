@@ -142,16 +142,16 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         OfferValidationResult result = validationService.validate(token, contractOffer, latestOffer);
         negotiation.addContractOffer(contractOffer); // TODO persist unchecked offer of provider?
         if (result.invalid()) {
-//            if (result.isCounterOfferAvailable()) {
-//                negotiation.addContractOffer(result.getCounterOffer());
-//                monitor.debug("[Consumer] Contract offer received. A counter offer is available.");
-//                negotiation.transitionOffering();
-//            } else {
-                // If no counter offer available + validation result invalid, decline negotiation.
-                monitor.debug("[Consumer] Contract offer received. Will be rejected.");
-                negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
-                negotiation.transitionDeclining();
-//            }
+            //if (result.isCounterOfferAvailable()) {
+            //    negotiation.addContractOffer(result.getCounterOffer());
+            //    monitor.debug("[Consumer] Contract offer received. A counter offer is available.");
+            //    negotiation.transitionOffering();
+            //} else {
+            // If no counter offer available + validation result invalid, decline negotiation.
+            monitor.debug("[Consumer] Contract offer received. Will be rejected.");
+            negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
+            negotiation.transitionDeclining();
+            //}
         } else {
             // Offer has been approved.
             monitor.debug("[Consumer] Contract offer received. Will be approved.");
