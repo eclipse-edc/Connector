@@ -246,7 +246,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
         @Override
         public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer) {
-            return new OfferValidationResult(ContractOffer.Builder.newInstance().build(), null);
+            return new OfferValidationResult(ContractOffer.Builder.newInstance().build());
         }
 
         @Override
