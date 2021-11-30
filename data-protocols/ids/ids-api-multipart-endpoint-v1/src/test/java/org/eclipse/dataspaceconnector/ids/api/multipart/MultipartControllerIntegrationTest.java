@@ -467,6 +467,72 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         jsonPayload.inPath("$.ids:representation[0].ids:mediaType.ids:filenameExtension").isString().matches("txt");
     }
 
+    @Test
+    void testHandleContractRequest() throws Exception {
+        // prepare
+        String assetId = UUID.randomUUID().toString();
+        Asset asset = Asset.Builder.newInstance()
+                .id(assetId)
+                .property("ids:fileName", "test.txt")
+                .property("ids:byteSize", 10)
+                .property("ids:fileExtension", "txt")
+                .build();
+        addAsset(asset);
+
+        Request request = createRequest(getContractRequestMessage());
+
+        // invoke
+        Response response = httpClient.newCall(request).execute();
+
+        // verify
+        assertThat(response).isNotNull()
+                .extracting(Response::code).isEqualTo(200);
+
+        List<NamedMultipartContent> content = extractNamedMultipartContent(response);
+
+        assertThat(content)
+                .hasSize(2)
+                .extracting(NamedMultipartContent::getName)
+                .containsExactly("header", "payload");
+
+        var header = content.stream().filter(n -> "header".equalsIgnoreCase(n.getName()))
+                .map(NamedMultipartContent::getContent)
+                .findFirst()
+                .orElseThrow();
+
+        var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
+
+        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:DescriptionResponseMessage");
+        jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
+        jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
+        jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
+        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
+        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+
+        var payload = content.stream().filter(n -> "payload".equalsIgnoreCase(n.getName()))
+                .map(NamedMultipartContent::getContent)
+                .findFirst()
+                .orElseThrow();
+
+        var jsonPayload = JsonAssertions.assertThatJson(new String(payload, StandardCharsets.UTF_8));
+
+        jsonPayload.inPath("$.@type").isString().isEqualTo("ids:Resource");
+        jsonPayload.inPath("$.@id").isString().matches("urn:resource:" + assetId);
+        jsonPayload.inPath("$.ids:contractOffer[0].@type").isString().isEqualTo("ids:ContractOffer");
+        jsonPayload.inPath("$.ids:contractOffer[0].@id").isString().matches("urn:contractoffer:.*");
+        jsonPayload.inPath("$.ids:contractOffer[0].ids:permission[0].@type").isString().isEqualTo("ids:Permission");
+        jsonPayload.inPath("$.ids:contractOffer[0].ids:permission[0].@id").isString().matches("urn:permission:.*");
+        jsonPayload.inPath("$.ids:contractOffer[0].ids:permission[0].ids:action[0].@id").isString().matches("https://w3id.org/idsa/code/USE");
+        jsonPayload.inPath("$.ids:representation[0].@type").isString().isEqualTo("ids:Representation");
+        jsonPayload.inPath("$.ids:representation[0].@id").isString().matches("urn:representation:" + assetId);
+        jsonPayload.inPath("$.ids:representation[0].ids:instance[0].@type").isString().isEqualTo("ids:Artifact");
+        jsonPayload.inPath("$.ids:representation[0].ids:instance[0].@id").isString().matches("urn:artifact:" + assetId);
+        jsonPayload.inPath("$.ids:representation[0].ids:instance[0].ids:fileName").isString().isEqualTo("test.txt");
+        jsonPayload.inPath("$.ids:representation[0].ids:mediaType.@type").isString().isEqualTo("ids:CustomMediaType");
+        jsonPayload.inPath("$.ids:representation[0].ids:mediaType.ids:filenameExtension").isString().matches("txt");
+    }
+
     @Override
     protected Map<String, String> getSystemProperties() {
         return new HashMap<>() {

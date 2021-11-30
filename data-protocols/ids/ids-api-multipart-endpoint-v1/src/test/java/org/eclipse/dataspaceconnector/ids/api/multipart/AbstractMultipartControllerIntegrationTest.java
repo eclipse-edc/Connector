@@ -19,6 +19,8 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import de.fraunhofer.iais.eis.ContractRequestMessage;
+import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
@@ -140,6 +142,13 @@ abstract class AbstractMultipartControllerIntegrationTest {
                     URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, idsId.getType().getValue(), idsId.getValue())));
         }
         return builder.build();
+    }
+
+    protected ContractRequestMessage getContractRequestMessage() {
+        return new ContractRequestMessageBuilder()
+                ._correlationMessage_(URI.create("correlationId"))
+                ._securityToken_(getDynamicAttributeToken())
+                .build();
     }
 
     // create the "header" multipart payload

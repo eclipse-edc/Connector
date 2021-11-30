@@ -20,6 +20,7 @@ import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -37,6 +38,8 @@ import java.util.Collections;
  * expects an IDS RequestInProcessMessage as the response.
  */
 public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartRequestInProcessResponse> {
+
+    private final TransformerRegistry transformerRegistry;
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
@@ -87,14 +90,14 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
     }
 
     @Override
-    protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+    protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
         Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
         }
 
-        return MultipartRequestInProcessResponse.Builder.newInstance()
+        return MultipartMessageProcessedResponse.Builder.newInstance()
                 .header(header)
                 .payload(payload)
                 .build();

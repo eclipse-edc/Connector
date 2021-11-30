@@ -19,9 +19,11 @@ import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
+import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
+import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
@@ -102,8 +104,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(Protocols.IDS_MULTIPART)
                 .build();
 
-        MultipartDescriptionResponse result = multipartDispatcher
-                .send(MultipartDescriptionResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartDescriptionResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -135,8 +136,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .dataDestination(dataDestination)
                 .build();
 
-        MultipartRequestInProcessResponse result = multipartDispatcher
-                .send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -156,22 +156,45 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         EasyMock.replay(transformerRegistry);
 
         var request = ContractOfferRequest.Builder.newInstance()
+                .type(ContractRequest.ContractOfferType.COUNTER_OFFER)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractOffer(contractOffer)
                 .build();
 
-        MultipartRequestInProcessResponse result = multipartDispatcher
-                .send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        // TODO revise when handler for ContractOfferMessage exists
-        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
-        assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.BAD_PARAMETERS);
+        assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
+        assertThat(result.getPayload()).isNull();
+    }
+
+    @Test
+    void testSendContractRequestMessage() throws Exception {
+        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
+        EasyMock.replay(contractOffer);
+
+        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
+                .andReturn(new TransformResult<>(getIdsContractOffer()));
+        EasyMock.replay(transformerRegistry);
+
+        var request = ContractRequest.Builder.newInstance()
+                .type(ContractRequest.ContractOfferType.INITIAL)
+                .connectorId(CONNECTOR_ID)
+                .connectorAddress(getUrl())
+                .protocol(Protocols.IDS_MULTIPART)
+                .contractOffer(contractOffer)
+                .build();
+
+        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+
+        assertThat(result).isNotNull();
+        assertThat(result.getHeader()).isNotNull();
+
+        assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
         assertThat(result.getPayload()).isNull();
     }
 
@@ -192,16 +215,12 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("correlationId")
                 .build();
 
-        MultipartRequestInProcessResponse result = multipartDispatcher
-                .send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, request, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
-
-        assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.BAD_PARAMETERS);
+        assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessageImpl.class);
         assertThat(result.getPayload()).isNull();
     }
 
@@ -215,8 +234,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        MultipartMessageProcessedResponse result = multipartDispatcher
-                .send(MultipartMessageProcessedResponse.class, rejection, () -> null).get();
+        var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, rejection, () -> null).get();
 
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
@@ -229,9 +247,6 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
     private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {
         return new ContractOfferBuilder()
-                ._contractDate_(gregorianNow())
-                ._contractStart_(gregorianNow())
-                ._contractEnd_(gregorianNow())
                 ._consumer_(URI.create("consumer"))
                 ._provider_(URI.create("provider"))
                 ._permission_(new PermissionBuilder()
@@ -242,9 +257,6 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
     private de.fraunhofer.iais.eis.ContractAgreement getIdsContractAgreement() {
         return new ContractAgreementBuilder()
-                ._contractDate_(gregorianNow())
-                ._contractStart_(gregorianNow())
-                ._contractEnd_(gregorianNow())
                 ._consumer_(URI.create("consumer"))
                 ._provider_(URI.create("provider"))
                 ._permission_(new PermissionBuilder()

@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iais.eis.ContractOfferMessageBuilder;
+import de.fraunhofer.iais.eis.ContractRequestBuilder;
 import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
@@ -67,15 +69,26 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
     }
 
     @Override
-    protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) throws Exception {
-        return new ContractRequestMessageBuilder()
-                ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
-                //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-                ._securityToken_(token)
-                ._issuerConnector_(getConnectorId())
-                ._senderAgent_(getConnectorId())
-                ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
-                .build();
+    protected Message buildMessageHeader(ContractRequest request, DynamicAttributeToken token) throws Exception {
+        if (request.getType() == ContractOfferRequest.ContractOfferType.INITIAL) {
+            return new ContractRequestMessageBuilder()
+                    ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                    //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                    ._securityToken_(token)
+                    ._issuerConnector_(getConnectorId())
+                    ._senderAgent_(getConnectorId())
+                    ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
+                    .build();
+        } else {
+            return new ContractOfferMessageBuilder()
+                    ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
+                    //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
+                    ._securityToken_(token)
+                    ._issuerConnector_(getConnectorId())
+                    ._senderAgent_(getConnectorId())
+                    ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
+                    .build();
+        }
     }
 
     @Override
@@ -104,12 +117,13 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
     }
 
     private de.fraunhofer.iais.eis.ContractRequest createContractRequest(ContractOffer offer) {
-        var transformationResult = transformerRegistry.transform(offer, de.fraunhofer.iais.eis.ContractRequest.class);
+        var transformationResult = transformerRegistry.transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
         if (transformationResult.hasProblems()) {
             throw new EdcException("Failed to create IDS contract request");
         }
 
-        return transformationResult.getOutput();
+        return createIdsRequestFromOffer(Objects.requireNonNull(transformationResult.getOutput(),
+                "Transformer output is null"));
     }
 
     private de.fraunhofer.iais.eis.ContractOffer createContractOffer(ContractOffer offer) {
@@ -119,5 +133,20 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
         }
 
         return transformationResult.getOutput();
+    }
+
+    private de.fraunhofer.iais.eis.ContractRequest createIdsRequestFromOffer(de.fraunhofer.iais.eis.ContractOffer offer) {
+        return new ContractRequestBuilder()
+                ._consumer_(offer.getConsumer())
+                ._contractAnnex_(offer.getContractAnnex())
+                ._contractDate_(offer.getContractDate())
+                ._contractEnd_(offer.getContractEnd())
+                ._contractDocument_(offer.getContractDocument())
+                ._contractStart_(offer.getContractStart())
+                ._obligation_(offer.getObligation())
+                ._permission_(offer.getPermission())
+                ._prohibition_(offer.getProhibition())
+                ._provider_(offer.getProvider())
+                .build();
     }
 }
