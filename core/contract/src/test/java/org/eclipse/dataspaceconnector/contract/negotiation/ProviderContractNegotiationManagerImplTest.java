@@ -13,13 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -36,12 +29,21 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 class ProviderContractNegotiationManagerImplTest {
 
     private ContractValidationService validationService;
     private ProviderContractNegotiationManagerImpl negotiationManager;
 
     private final Map<String, ContractNegotiation> negotiations = new HashMap<>();
+
+    private String correlationId = "correlationId";
 
     @BeforeEach
     void setUp() throws Exception {
@@ -65,6 +67,15 @@ class ProviderContractNegotiationManagerImplTest {
         EasyMock.expect(negotiationStore.find(EasyMock.anyString())).andAnswer(() -> {
             var id = (String) EasyMock.getCurrentArgument(0);
             return negotiations.get(id);
+        });
+        EasyMock.expect(negotiationStore.findForCorrelationId(EasyMock.anyString())).andAnswer(() -> {
+            var id = (String) EasyMock.getCurrentArgument(0);
+            for (Map.Entry<String, ContractNegotiation> entry : negotiations.entrySet()) {
+                if (entry.getValue().getCorrelationId().equals(id)) {
+                    return entry.getValue();
+                }
+            }
+            return null;
         });
         EasyMock.replay(negotiationStore);
 
@@ -216,7 +227,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .andReturn(validationResult);
         EasyMock.replay(validationService);
 
-        NegotiationResponse result = negotiationManager.offerReceived(token, negotiationId, contractOffer, "hash");
+        NegotiationResponse result = negotiationManager.offerReceived(token, correlationId, contractOffer, "hash");
 
         assertThat(result.getStatus()).isEqualTo(NegotiationResponse.Status.OK);
         assertThat(negotiations).hasSize(1);
@@ -240,7 +251,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .andReturn(validationResult);
         EasyMock.replay(validationService);
 
-        NegotiationResponse result = negotiationManager.offerReceived(token, negotiationId, contractOffer, "hash");
+        NegotiationResponse result = negotiationManager.offerReceived(token, correlationId, contractOffer, "hash");
 
         assertThat(result.getStatus()).isEqualTo(NegotiationResponse.Status.OK);
         assertThat(negotiations).hasSize(1);
@@ -265,7 +276,7 @@ class ProviderContractNegotiationManagerImplTest {
                 .andReturn(validationResult);
         EasyMock.replay(validationService);
 
-        NegotiationResponse result = negotiationManager.offerReceived(token, negotiationId, contractOffer, "hash");
+        NegotiationResponse result = negotiationManager.offerReceived(token, correlationId, contractOffer, "hash");
 
         assertThat(result.getStatus()).isEqualTo(NegotiationResponse.Status.OK);
         assertThat(negotiations).hasSize(1);
@@ -297,32 +308,12 @@ class ProviderContractNegotiationManagerImplTest {
         EasyMock.expect(validationService.validate(token, contractAgreement)).andReturn(true);
         EasyMock.replay(validationService);
 
-        NegotiationResponse result = negotiationManager.consumerApproved(token, negotiationId, contractAgreement, "hash");
+        NegotiationResponse result = negotiationManager.consumerApproved(token, correlationId, contractAgreement, "hash");
 
         assertThat(result.getStatus()).isEqualTo(NegotiationResponse.Status.OK);
         assertThat(negotiations).hasSize(1);
         var negotiation = negotiations.values().iterator().next();
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMED.code());
-        assertThat(negotiation.getContractAgreement()).isEqualTo(contractAgreement);
-    }
-
-    @Test
-    void testConsumerApprovedDeclineAgreement() {
-        var negotiationId = createContractNegotiationProviderOffered();
-
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractAgreement = (ContractAgreement) EasyMock.createNiceMock(ContractAgreement.class);
-        EasyMock.replay(token, contractAgreement);
-
-        EasyMock.expect(validationService.validate(token, contractAgreement)).andReturn(false);
-        EasyMock.replay(validationService);
-
-        NegotiationResponse result = negotiationManager.consumerApproved(token, negotiationId, contractAgreement, "hash");
-
-        assertThat(result.getStatus()).isEqualTo(NegotiationResponse.Status.OK);
-        assertThat(negotiations).hasSize(1);
-        var negotiation = negotiations.values().iterator().next();
-        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
+        assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMING.code());
         assertThat(negotiation.getContractAgreement()).isNull();
     }
 
@@ -332,7 +323,7 @@ class ProviderContractNegotiationManagerImplTest {
         var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
         EasyMock.replay(token);
 
-        NegotiationResponse result = negotiationManager.declined(token, negotiationId);
+        NegotiationResponse result = negotiationManager.declined(token, correlationId);
 
         assertThat(result.getStatus()).isEqualTo(NegotiationResponse.Status.OK);
         assertThat(negotiations).hasSize(1);
@@ -346,7 +337,7 @@ class ProviderContractNegotiationManagerImplTest {
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
-                .correlationId("correlationId")
+                .correlationId(correlationId)
                 .counterPartyId("connectorId")
                 .counterPartyAddress("connectorAddress")
                 .protocol("protocol")

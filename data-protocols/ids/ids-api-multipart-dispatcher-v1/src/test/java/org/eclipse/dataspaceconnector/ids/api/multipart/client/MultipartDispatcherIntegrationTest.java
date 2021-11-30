@@ -190,6 +190,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
+                .correlationId("correlationId")
                 .build();
 
         MultipartRequestInProcessResponse result = multipartDispatcher

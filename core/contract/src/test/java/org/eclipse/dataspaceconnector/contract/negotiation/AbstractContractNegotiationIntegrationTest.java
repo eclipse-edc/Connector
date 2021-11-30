@@ -97,7 +97,11 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
 
         @Override
-        public <Object> CompletableFuture<Object> send(Class<Object> responseType, RemoteMessage message, MessageContext context) {
+        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
+            return (CompletableFuture<T>) send(message);
+        }
+
+        public CompletableFuture<Object> send(RemoteMessage message) {
             NegotiationResponse result;
             if (message instanceof ContractOfferRequest) {
                 var request = (ContractOfferRequest) message;
@@ -135,7 +139,11 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
 
         @Override
-        public <Object> CompletableFuture<Object> send(Class<Object> responseType, RemoteMessage message, MessageContext context) {
+        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
+            return (CompletableFuture<T>) send(message);
+        }
+
+        public CompletableFuture<Object> send(RemoteMessage message) {
             NegotiationResponse result;
             if (message instanceof ContractOfferRequest) {
                 var request = (ContractOfferRequest) message;

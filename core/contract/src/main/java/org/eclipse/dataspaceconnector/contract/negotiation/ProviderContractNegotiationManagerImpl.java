@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
@@ -220,7 +220,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private int checkProviderOffering() {
         var offeringNegotiations = negotiationStore.nextForState(ContractNegotiationStates.PROVIDER_OFFERING.code(), batchSize);
 
-        for (var negotiation: offeringNegotiations) {
+        for (var negotiation : offeringNegotiations) {
             var currentOffer = negotiation.getLastContractOffer();
 
             var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
@@ -254,9 +254,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private int checkDeclining() {
         var decliningNegotiations = negotiationStore.nextForState(ContractNegotiationStates.DECLINING.code(), batchSize);
 
-        for (var negotiation: decliningNegotiations) {
-            var currentOffer = negotiation.getLastContractOffer();
-
+        for (var negotiation : decliningNegotiations) {
             ContractRejection rejection = ContractRejection.Builder.newInstance()
                     .protocol(negotiation.getProtocol())
                     .connectorId(negotiation.getCounterPartyId())
@@ -287,7 +285,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private int checkConfirming() {
         var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
 
-        for (var negotiation: confirmingNegotiations) {
+        for (var negotiation : confirmingNegotiations) {
             var agreement = negotiation.getContractAgreement(); // TODO build agreement
 
             if (agreement == null) {

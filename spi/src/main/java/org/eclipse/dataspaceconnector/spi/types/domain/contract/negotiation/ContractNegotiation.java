@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -210,10 +209,16 @@ public class ContractNegotiation {
     }
 
     public void transitionApproving() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
+        }
         transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
     }
 
     public void transitionApproved() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no CONSUMER_APPROVED state");
+        }
         transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.PROVIDER_OFFERED);
     }
 
@@ -221,20 +226,32 @@ public class ContractNegotiation {
      * Change state to declining.
      */
     public void transitionDeclining() {
-        transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_APPROVED);
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_APPROVED);
+        } else {
+            transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_APPROVED);
+        }
     }
 
     /**
      * Change state to declined.
      */
     public void transitionDeclined() {
-        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.REQUESTED);
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
+        } else {
+            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.REQUESTED);
+        }
+
     }
 
     /**
      * Change state to confirming.
      */
     public void transitionConfirming() {
+        if (Type.CONSUMER == type) {
+            throw new IllegalStateException("Consumer processes have no CONFIRMING state");
+        }
         transition(ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED);
     }
 
@@ -242,7 +259,12 @@ public class ContractNegotiation {
      * Change state to confirmed.
      */
     public void transitionConfirmed() {
-        transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERED);
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED);
+        } else {
+            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING);
+        }
+
     }
 
     private void checkState(int... legalStates) {
