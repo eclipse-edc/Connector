@@ -228,7 +228,7 @@ public class ContractNegotiation {
      * Change state to declined.
      */
     public void transitionDeclined() {
-        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONFIRMED);
+        transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.REQUESTED);
     }
 
     /**
