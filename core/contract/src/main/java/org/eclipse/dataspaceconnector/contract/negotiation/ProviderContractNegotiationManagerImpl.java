@@ -80,6 +80,15 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
     }
 
+    /**
+     * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party.
+     * Transitions the corresponding ContractNegotiation to state DECLINED.
+     *
+     * @param token Claim token of the consumer that sent the rejection.
+     * @param correlationId Id of the ContractNegotiation on consumer side.
+     * @return a {@link NegotiationResponse}: OK, if successfully transitioned to declined;
+     *         FATAL_ERROR, if no match found for Id.
+     */
     @Override
     public NegotiationResponse declined(ClaimToken token, String correlationId) {
         var negotiation = negotiationStore.findForCorrelationId(correlationId);
@@ -101,6 +110,15 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return new NegotiationResponse(OK);
     }
 
+    /**
+     * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and
+     * persisted, which moves it to state REQUESTED. It is then validated and transitioned to
+     * CONFIRMING, PROVIDER_OFFERING or DECLINING.
+     *
+     * @param token Claim token of the consumer that send the contract request.
+     * @param request Container object containing all relevant request parameters.
+     * @return a {@link NegotiationResponse}: OK
+     */
     @Override
     public NegotiationResponse requested(ClaimToken token, ContractOfferRequest request) {
         var negotiation = ContractNegotiation.Builder.newInstance()
@@ -122,6 +140,17 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return processIncomingOffer(negotiation, token, request.getContractOffer());
     }
 
+    /**
+     * Tells this manager that a new contract offer has been received for a
+     * {@link ContractNegotiation}. The offer is validated and the ContractNegotiation is
+     * transitioned to CONFIRMING, PROVIDER_OFFERING or DECLINING.
+     *
+     * @param token Claim token of the consumer that send the contract request.
+     * @param correlationId Id of the ContractNegotiation on consumer side.
+     * @param offer The contract offer.
+     * @param hash A hash of all previous contract offers.
+     * @return a {@link NegotiationResponse}: FATAL_ERROR, if no match found for Id; OK otherwise
+     */
     @Override
     public NegotiationResponse offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
         var negotiation = negotiationStore.findForCorrelationId(correlationId);
@@ -132,6 +161,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return processIncomingOffer(negotiation, token, offer);
     }
 
+    /**
+     * Processes an incoming offer for a {@link ContractNegotiation}. The offer is validated and
+     * the corresponding ContractNegotiation is transitioned to CONFIRMING, PROVIDER_OFFERING or
+     * DECLINING.
+     *
+     * @param negotiation The ContractNegotiation.
+     * @param token Claim token of the consumer that send the contract request.
+     * @param offer The contract offer.
+     * @return a {@link NegotiationResponse}: OK
+     */
     private NegotiationResponse processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
         OfferValidationResult result;
         if (negotiation.getContractOffers().isEmpty()) {
@@ -170,6 +209,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return new NegotiationResponse(OK, negotiation);
     }
 
+    /**
+     * Tells this manager that a previously sent contract offer has been approved by the consumer.
+     * Transitions the corresponding {@link ContractNegotiation} to state CONFIRMING.
+     *
+     * @param token Claim token of the consumer that send the contract request.
+     * @param correlationId Id of the ContractNegotiation on consumer side.
+     * @param agreement Agreement sent by consumer.
+     * @param hash A hash of all previous contract offers.
+     * @return a {@link NegotiationResponse}: FATAL_ERROR, if no match found for Id; OK otherwise
+     */
     @Override
     public NegotiationResponse consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.findForCorrelationId(correlationId);
@@ -185,6 +234,10 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return new NegotiationResponse(OK, negotiation);
     }
 
+    /**
+     * Continuously checks all unfinished {@link ContractNegotiation}s and performs actions based on
+     * their states.
+     */
     private void run() {
         while (active.get()) {
             try {
@@ -217,6 +270,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
     }
 
+    /**
+     * Processes {@link ContractNegotiation}s in state PROVIDER_OFFERING. Tries to send the current
+     * offer to the respective consumer. If this succeeds, the ContractNegotiation is transitioned
+     * to state PROVIDER_OFFERED. Else, it is transitioned to PROVIDER_OFFERING for a retry.
+     *
+     * @return the number of processed ContractNegotiations.
+     */
     private int checkProviderOffering() {
         var offeringNegotiations = negotiationStore.nextForState(ContractNegotiationStates.PROVIDER_OFFERING.code(), batchSize);
 
@@ -251,6 +311,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return offeringNegotiations.size();
     }
 
+    /**
+     * Processes {@link ContractNegotiation}s in state DECLINING. Tries to send a contract rejection
+     * to the respective consumer. If this succeeds, the ContractNegotiation is transitioned
+     * to state DECLINED. Else, it is transitioned to DECLINING for a retry.
+     *
+     * @return the number of processed ContractNegotiations.
+     */
     private int checkDeclining() {
         var decliningNegotiations = negotiationStore.nextForState(ContractNegotiationStates.DECLINING.code(), batchSize);
 
@@ -282,6 +349,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return decliningNegotiations.size();
     }
 
+    /**
+     * Processes {@link ContractNegotiation}s in state CONFIRMING. Tries to send a contract
+     * agreement to the respective consumer. If this succeeds, the ContractNegotiation is
+     * transitioned to state CONFIRMED. Else, it is transitioned to CONFIRMING for a retry.
+     *
+     * @return the number of processed ContractNegotiations.
+     */
     private int checkConfirming() {
         var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
 
@@ -333,6 +407,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return confirmingNegotiations.size();
     }
 
+    /**
+     * Builder for ProviderContractNegotiationManagerImpl.
+     */
     public static class Builder {
         private final ProviderContractNegotiationManagerImpl manager;
 

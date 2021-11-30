@@ -91,6 +91,8 @@ public class ContractNegotiation {
 
     /**
      * Returns the data protocol used for this negotiation.
+     *
+     * @return The protocol.
      */
     @NotNull
     public String getProtocol() {
@@ -99,31 +101,63 @@ public class ContractNegotiation {
 
     /**
      * Returns the current negotiation state.
+     *
+     * @return The current state code.
      */
     public int getState() {
         return state;
     }
 
+    /**
+     * Returns the current state count.
+     *
+     * @return The current state count.
+     */
     public int getStateCount() {
         return stateCount;
     }
 
+    /**
+     * Returns the state timestamp.
+     *
+     * @return The state timestamp.
+     */
     public long getStateTimestamp() {
         return stateTimestamp;
     }
 
+    /**
+     * Returns all contract offers which have been part of the negotiation process.
+     *
+     * @return The contract offers.
+     */
     public List<ContractOffer> getContractOffers() {
         return contractOffers;
     }
 
+    /**
+     * Adds a new contract offer to this negotiation.
+     *
+     * @param offer The offer to add.
+     */
     public void addContractOffer(ContractOffer offer) {
         contractOffers.add(offer);
     }
 
+    /**
+     * Returns the error detail.
+     *
+     * @return The error detail
+     */
     public String getErrorDetail() {
         return errorDetail;
     }
 
+    /**
+     * Sets the error detail.
+     *
+     * @param errorDetail The error detail.
+     */
     public void setErrorDetail(String errorDetail) {
         this.errorDetail = errorDetail;
     }
@@ -172,7 +206,7 @@ public class ContractNegotiation {
     }
 
     /**
-     * Change state from unsaved to requesting.
+     * Transition to state REQUESTING (type consumer only).
      */
     public void transitionRequesting() {
         if (Type.PROVIDER == type) {
@@ -182,7 +216,7 @@ public class ContractNegotiation {
     }
 
     /**
-     * Change state from requesting to requested.
+     * Transition to state REQUESTED.
      */
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
@@ -192,6 +226,9 @@ public class ContractNegotiation {
         }
     }
 
+    /**
+     * Transition to state REQUESTED.
+     */
     public void transitionOffering() {
         if (Type.CONSUMER == type) {
             transition(ContractNegotiationStates.CONSUMER_OFFERING, ContractNegotiationStates.REQUESTED);
@@ -200,6 +237,10 @@ public class ContractNegotiation {
         }
     }
 
+    /**
+     * Transition to state CONSUMER_OFFERED for type consumer and PROVIDER_OFFERED for type
+     * provider.
+     */
     public void transitionOffered() {
         if (Type.CONSUMER == type) {
             transition(ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERING);
@@ -208,6 +249,9 @@ public class ContractNegotiation {
         }
     }
 
+    /**
+     * Transition to state CONSUMER_APPROVING (type consumer only).
+     */
     public void transitionApproving() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
@@ -215,6 +259,9 @@ public class ContractNegotiation {
         transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
     }
 
+    /**
+     * Transition to state CONSUMER_APPROVED (type consumer only).
+     */
     public void transitionApproved() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVED state");
@@ -223,7 +270,7 @@ public class ContractNegotiation {
     }
 
     /**
-     * Change state to declining.
+     * Transition to state DECLINING.
      */
     public void transitionDeclining() {
         if (Type.CONSUMER == type) {
@@ -234,7 +281,7 @@ public class ContractNegotiation {
     }
 
     /**
-     * Change state to declined.
+     * Transition to state DECLINED.
      */
     public void transitionDeclined() {
         if (Type.CONSUMER == type) {
@@ -246,7 +293,7 @@ public class ContractNegotiation {
     }
 
     /**
-     * Change state to confirming.
+     * Transition to state CONFIRMING (type provider only).
      */
     public void transitionConfirming() {
         if (Type.CONSUMER == type) {
@@ -256,7 +303,7 @@ public class ContractNegotiation {
     }
 
     /**
-     * Change state to confirmed.
+     * Transition to state CONFIRMED.
      */
     public void transitionConfirmed() {
         if (Type.CONSUMER == type) {
@@ -277,6 +324,11 @@ public class ContractNegotiation {
         throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", this.state, values));
     }
 
+    /**
+     * Transition to state ERROR.
+     *
+     * @param errorDetail Message describing the error.
+     */
     public void transitionError(@Nullable String errorDetail) {
         state = ContractNegotiationStates.ERROR.code();
         this.errorDetail = errorDetail;
@@ -284,23 +336,42 @@ public class ContractNegotiation {
         updateStateTimestamp();
     }
 
-
+    /**
+     * Reset to an arbitrary state.
+     *
+     * @param state The desired state.
+     */
     public void rollbackState(ContractNegotiationStates state) {
         this.state = state.code();
         stateCount = 1;
         updateStateTimestamp();
     }
 
+    /**
+     * Create a copy of this negotiation.
+     *
+     * @return The copy.
+     */
     public ContractNegotiation copy() {
         return ContractNegotiation.Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
                 .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
                 .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement).contractOffers(contractOffers).build();
     }
 
+    /**
+     * Sets the state timestamp to the current time.
+     */
     public void updateStateTimestamp() {
         stateTimestamp = Instant.now().toEpochMilli();
     }
 
+    /**
+     * Transition to a given end state from an allowed number of previous states. Increases the
+     * state count if transitioned to the same state and updates the state timestamp.
+     *
+     * @param end The desired state.
+     * @param starts The allowed previous states.
+     */
     private void transition(ContractNegotiationStates end, ContractNegotiationStates... starts) {
         if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", ContractNegotiationStates.from(state), ContractNegotiationStates.from(end.code())));
@@ -310,6 +381,12 @@ public class ContractNegotiation {
         updateStateTimestamp();
     }
 
+    /**
+     * Override equals method.
+     *
+     * @param o Object to compare.
+     * @return true, if given object same as this one; false otherwise.
+     */
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -322,6 +399,9 @@ public class ContractNegotiation {
         return id.equals(that.id);
     }
 
+    /**
+     * Builder for ContractNegotiation.
+     */
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final ContractNegotiation negotiation;

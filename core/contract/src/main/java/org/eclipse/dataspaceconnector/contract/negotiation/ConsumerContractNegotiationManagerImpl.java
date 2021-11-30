@@ -85,7 +85,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     }
 
     /**
-     * Method triggered by event.
+     * Initiates a new {@link ContractNegotiation}. The ContractNegotiation is created and
+     * persisted, which moves it to state REQUESTING.
+     *
+     * @param contractOffer Container object containing all relevant request parameters.
+     * @return a {@link NegotiationResponse}: OK
      */
     @Override
     public NegotiationResponse initiate(ContractOfferRequest contractOffer) {
@@ -107,6 +111,19 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return new NegotiationResponse(OK, negotiation);
     }
 
+    /**
+     * Tells this manager that a new contract offer has been received for a
+     * {@link ContractNegotiation}. Validates the offer against the last contract offer for that
+     * ContractNegotiation and transitions the ContractNegotiation to CONSUMER_APPROVING,
+     * CONSUMER_OFFERING or DECLINING.
+     *
+     * @param token Claim token of the consumer that send the contract request.
+     * @param negotiationId Id of the ContractNegotiation.
+     * @param contractOffer The contract offer.
+     * @param hash A hash of all previous contract offers.
+     * @return a {@link NegotiationResponse}: FATAL_ERROR, if no match found for Id or no last
+     *         offer found for negotiation; OK otherwise
+     */
     @Override
     public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
@@ -119,7 +136,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             Objects.requireNonNull(latestOffer, "latestOffer");
         } catch (NullPointerException e) {
             monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
-            return new NegotiationResponse(NegotiationResponse.Status.FATAL_ERROR, negotiation);
+            return new NegotiationResponse(FATAL_ERROR, negotiation);
         }
 
         OfferValidationResult result = validationService.validate(token, contractOffer, latestOffer);
@@ -148,6 +165,18 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return new NegotiationResponse(OK, negotiation);
     }
 
+    /**
+     * Tells this manager that a previously sent contract offer has been confirmed by the provider.
+     * Validates the contract agreement sent by the provider against the last contract offer and
+     * transitions the corresponding {@link ContractNegotiation} to state CONFIRMED or DECLINING.
+     *
+     * @param token Claim token of the consumer that send the contract request.
+     * @param negotiationId Id of the ContractNegotiation.
+     * @param agreement Agreement sent by provider.
+     * @param hash A hash of all previous contract offers.
+     * @return a {@link NegotiationResponse}: FATAL_ERROR, if no match found for Id or no last
+     *         offer found for negotiation; OK otherwise
+     */
     @Override
     public NegotiationResponse confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
@@ -160,7 +189,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             Objects.requireNonNull(latestOffer, "latestOffer");
         } catch (NullPointerException e) {
             monitor.severe("[Consumer] No offer found for validation. Process id: " + negotiation.getId());
-            return new NegotiationResponse(NegotiationResponse.Status.ERROR_RETRY, negotiation);
+            return new NegotiationResponse(FATAL_ERROR, negotiation);
         }
 
         var result = validationService.validate(token, agreement, latestOffer);
@@ -186,6 +215,15 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return new NegotiationResponse(OK, negotiation);
     }
 
+    /**
+     * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party.
+     * Transitions the corresponding ContractNegotiation to state DECLINED.
+     *
+     * @param token Claim token of the consumer that sent the rejection.
+     * @param negotiationId Id of the ContractNegotiation.
+     * @return a {@link NegotiationResponse}: OK, if successfully transitioned to declined;
+     *         FATAL_ERROR, if no match found for Id.
+     */
     @Override
     public NegotiationResponse declined(ClaimToken token, String negotiationId) {
         var negotiation = negotiationStore.find(negotiationId);
@@ -201,6 +239,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return new NegotiationResponse(OK, negotiation);
     }
 
+    /**
+     * Builds and sends a {@link ContractOfferRequest} for a given {@link ContractNegotiation} and
+     * {@link ContractOffer}.
+     *
+     * @param offer The contract offer.
+     * @param process The contract negotiation.
+     * @return The response to the sent message.
+     */
     private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process) {
         var request = ContractOfferRequest.Builder.newInstance()
                 .contractOffer(offer)
@@ -214,6 +260,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return dispatcherRegistry.send(Object.class, request, process::getId);
     }
 
+    /**
+     * Processes {@link ContractNegotiation}s in state REQUESTING. Tries to send the current
+     * offer to the respective provider. If this succeeds, the ContractNegotiation is transitioned
+     * to state REQUESTED. Else, it is transitioned to REQUESTING for a retry.
+     *
+     * @return the number of processed ContractNegotiations.
+     */
     private int sendContractOffers() {
         var processes = negotiationStore.nextForState(ContractNegotiationStates.REQUESTING.code(), batchSize);
 
@@ -236,6 +289,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return processes.size();
     }
 
+    /**
+     * Processes {@link ContractNegotiation}s in state CONSUMER_OFFERING. Tries to send the current
+     * offer to the respective provider. If this succeeds, the ContractNegotiation is transitioned
+     * to state CONSUMER_OFFERED. Else, it is transitioned to CONSUMER_OFFERING for a retry.
+     *
+     * @return the number of processed ContractNegotiations.
+     */
     private int sendCounterOffers() {
         var processes = negotiationStore.nextForState(ContractNegotiationStates.CONSUMER_OFFERING.code(), batchSize);
 
@@ -258,6 +318,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return processes.size();
     }
 
+    /**
+     * Processes {@link ContractNegotiation}s in state CONSUMER_APPROVING. Tries to send a dummy
+     * contract agreement to the respective provider in order to approve the last offer sent by the
+     * provider. If this succeeds, the ContractNegotiation is transitioned to state
+     * CONSUMER_APPROVED. Else, it is transitioned to CONSUMER_APPROVING for a retry.
+     *
+     * @return the number of processed ContractNegotiations.
+     */
     private int approveContractOffers() {
         var processes = negotiationStore.nextForState(ContractNegotiationStates.CONSUMER_APPROVING.code(), batchSize);
 
@@ -301,6 +369,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return processes.size();
     }
 
+    /**
+     * Processes {@link ContractNegotiation}s in state DECLINING. Tries to send a contract rejection
+     * to the respective provider. If this succeeds, the ContractNegotiation is transitioned
+     * to state DECLINED. Else, it is transitioned to DECLINING for a retry.
+     *
+     * @return the number of processed ContractNegotiations.
+     */
     private int declineContractOffers() {
         var processes = negotiationStore.nextForState(ContractNegotiationStates.DECLINING.code(), batchSize);
 
@@ -334,6 +409,10 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return processes.size();
     }
 
+    /**
+     * Continuously checks all unfinished {@link ContractNegotiation}s and performs actions based on
+     * their states.
+     */
     private void run() {
         while (active.get()) {
             try {
@@ -365,6 +444,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         }
     }
 
+    /**
+     * Builder for ConsumerContractNegotiationManagerImpl.
+     */
     public static class Builder {
         private final ConsumerContractNegotiationManagerImpl manager;
 
