@@ -4,6 +4,8 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Objects;
 
+import static java.lang.String.format;
+
 /**
  * This class can be used to form select expressions e.g. in SQL statements. It is a way to express
  * those statements in a generic way.
@@ -63,5 +65,10 @@ public class Criterion {
         }
         Criterion criterion = (Criterion) o;
         return Objects.equals(operandLeft, criterion.operandLeft) && Objects.equals(operator, criterion.operator) && Objects.equals(operandRight, criterion.operandRight);
+    }
+
+    @Override
+    public String toString() {
+        return format("%s %s %s", getOperandLeft(), getOperator(), getOperandRight());
     }
 }

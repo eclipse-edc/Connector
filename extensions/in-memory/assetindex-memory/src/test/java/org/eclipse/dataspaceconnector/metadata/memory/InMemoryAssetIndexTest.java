@@ -10,13 +10,15 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.niceMock;
 
-class InMemoryAssetLoaderIndexTest {
+class InMemoryAssetIndexTest {
     private InMemoryAssetLoader index;
 
     @BeforeEach
@@ -97,6 +99,74 @@ class InMemoryAssetLoaderIndexTest {
         index.accept(testAsset, niceMock(DataAddress.class));
 
         assertThat(index.findById("not-exist")).isNull();
+    }
+
+    @Test
+    void queryAsset_operatorIn() {
+        var testAsset1 = createAsset("foobar");
+        var testAsset2 = createAsset("barbaz");
+        var testAsset3 = createAsset("barbaz");
+        index.accept(testAsset1, niceMock(DataAddress.class));
+        index.accept(testAsset2, niceMock(DataAddress.class));
+        index.accept(testAsset3, niceMock(DataAddress.class));
+
+        var inExpr = format("(  %s )", String.join(", ", List.of(testAsset1.getId(), testAsset2.getId())));
+        var selector = AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .build();
+        var assets = index.queryAssets(selector);
+        assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset1, testAsset2);
+    }
+
+    @Test
+    void queryAsset_operatorIn_notIn() {
+        var testAsset1 = createAsset("foobar");
+        var testAsset2 = createAsset("barbaz");
+        var testAsset3 = createAsset("barbaz");
+        index.accept(testAsset1, niceMock(DataAddress.class));
+        index.accept(testAsset2, niceMock(DataAddress.class));
+        index.accept(testAsset3, niceMock(DataAddress.class));
+
+        var inExpr = format("(  %s )", String.join(", ", List.of("test-id1", "test-id2")));
+        var selector = AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .build();
+        var assets = index.queryAssets(selector);
+        assertThat(assets).isEmpty();
+    }
+
+    @Test
+    void queryAsset_operatorIn_noBrackets() {
+        var testAsset1 = createAsset("foobar");
+        var testAsset2 = createAsset("barbaz");
+        var testAsset3 = createAsset("barbaz");
+        index.accept(testAsset1, niceMock(DataAddress.class));
+        index.accept(testAsset2, niceMock(DataAddress.class));
+        index.accept(testAsset3, niceMock(DataAddress.class));
+
+        var inExpr = String.join(", ", List.of(testAsset1.getId(), testAsset2.getId()));
+        var selector = AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .build();
+        var assets = index.queryAssets(selector);
+        assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset1, testAsset2);
+    }
+
+    @Test
+    void queryAsset_operatorIn_noBracketsNoSpaces() {
+        var testAsset1 = createAsset("foobar");
+        var testAsset2 = createAsset("barbaz");
+        var testAsset3 = createAsset("barbaz");
+        index.accept(testAsset1, niceMock(DataAddress.class));
+        index.accept(testAsset2, niceMock(DataAddress.class));
+        index.accept(testAsset3, niceMock(DataAddress.class));
+
+        var inExpr = String.join(",", List.of(testAsset1.getId(), testAsset2.getId()));
+        var selector = AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .build();
+        var assets = index.queryAssets(selector);
+        assertThat(assets).hasSize(2).containsExactlyInAnyOrder(testAsset1, testAsset2);
     }
 
 

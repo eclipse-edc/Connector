@@ -57,10 +57,23 @@ class CriterionToPredicateConverterTest {
     }
 
     @Test
+    void convert_operatorIn() {
+        var asset = Asset.Builder.newInstance()
+                .name("bob")
+                .version("6.9")
+                .property("test-property", "somevalue")
+                .build();
+        var criterion = new Criterion(Asset.PROPERTY_NAME, "in", "(bob, alice)");
+        var pred = converter.convert(criterion);
+        assertThat(pred).isNotNull().accepts(asset);
+
+    }
+
+    @Test
     void convert_invalidOperator() {
-        var criterion = new Criterion("name", "in", "(bob, alice)");
+        var criterion = new Criterion("name", "GREATER_THAN", "(bob, alice)");
         assertThatThrownBy(() -> converter.convert(criterion)).isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("Operator [in] is not supported by this converter!");
+                .hasMessage("Operator [GREATER_THAN] is not supported by this converter!");
 
     }
 

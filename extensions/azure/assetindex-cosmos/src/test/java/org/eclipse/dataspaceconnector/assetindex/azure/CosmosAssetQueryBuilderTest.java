@@ -28,8 +28,8 @@ class CosmosAssetQueryBuilderTest {
     @Test
     void queryWithFilerOnProperty() {
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
-                .whenEquals("id", "id-test")
-                .whenEquals("name", "name-test")
+                .whenEquals("id", "'id-test'")
+                .whenEquals("name", "'name-test'")
                 .build();
 
         SqlQuerySpec query = builder.from(expression);
@@ -40,8 +40,8 @@ class CosmosAssetQueryBuilderTest {
     @Test
     void queryWithFilerOnPropertyWithIllegalArgs() {
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
-                .whenEquals("test:id", "id-test")
-                .whenEquals("test:name", "name-test")
+                .whenEquals("test:id", "'id-test'")
+                .whenEquals("test:name", "'name-test'")
                 .build();
 
         SqlQuerySpec query = builder.from(expression);

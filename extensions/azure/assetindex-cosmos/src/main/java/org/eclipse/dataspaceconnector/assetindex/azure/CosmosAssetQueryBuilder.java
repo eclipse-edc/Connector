@@ -11,7 +11,6 @@ import org.jetbrains.annotations.NotNull;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 public class CosmosAssetQueryBuilder {
@@ -52,7 +51,7 @@ public class CosmosAssetQueryBuilder {
     }
 
     private static class WhereClause {
-        private static final List<String> SUPPORTED_OPERATOR = Collections.singletonList("=");
+        private static final List<String> SUPPORTED_OPERATOR = List.of("=", "IN");
         private final List<SqlParameter> parameters = new ArrayList<>();
         private String where = "";
 
@@ -62,9 +61,6 @@ public class CosmosAssetQueryBuilder {
             }
         }
 
-        private static String formatValue(String value) {
-            return "'" + value + "'";
-        }
 
         public String getWhere() {
             return where;
@@ -84,7 +80,7 @@ public class CosmosAssetQueryBuilder {
             parameters.add(new SqlParameter(param, criterion.getOperandRight().toString()));
             where += String.join(" " + criterion.getOperator() + " ",
                     " " + PATH_TO_PROPERTIES + "." + field,
-                    formatValue((String) criterion.getOperandRight()));
+                    (String) criterion.getOperandRight());
         }
     }
 }
