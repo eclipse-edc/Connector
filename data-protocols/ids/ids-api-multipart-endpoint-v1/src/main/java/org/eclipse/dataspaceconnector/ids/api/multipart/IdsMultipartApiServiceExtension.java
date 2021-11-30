@@ -9,7 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
- *       Fraunhofer Institute for Software and Systems Engineering - add contract handlers
+ *       Fraunhofer Institute for Software and Systems Engineering - add contract and notification message handlers
  *
  */
 
@@ -32,6 +32,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.Conn
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.notifications.MessageProcessedNotificationHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.notifications.RequestInProcessHandler;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -161,6 +163,10 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper));
         handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper));
+
+        // create notification message handlers
+        handlers.add(new MessageProcessedNotificationHandler(monitor));
+        handlers.add(new RequestInProcessHandler(monitor));
 
         // create & register controller
         MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
