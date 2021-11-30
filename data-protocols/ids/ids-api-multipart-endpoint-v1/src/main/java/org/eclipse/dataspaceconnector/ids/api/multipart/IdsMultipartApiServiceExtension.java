@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add contract handlers
  *
  */
 
@@ -23,6 +24,9 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartCont
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.contract.ContractAgreementHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.contract.ContractOfferHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.contract.ContractRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
@@ -152,6 +156,11 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         Vault vault = serviceExtensionContext.getService(Vault.class);
         ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractDefinitionStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
+
+        // create contract message handlers
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper));
+        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper));
+        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper));
 
         // create & register controller
         MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);

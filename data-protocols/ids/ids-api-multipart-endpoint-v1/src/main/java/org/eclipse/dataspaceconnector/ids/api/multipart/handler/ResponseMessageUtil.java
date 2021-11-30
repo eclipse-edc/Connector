@@ -9,15 +9,18 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - additional message building methods
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import de.fraunhofer.iais.eis.Message;
+import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageBuilder;
+import de.fraunhofer.iais.eis.NotificationMessage;
+import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import de.fraunhofer.iais.eis.ResponseMessageBuilder;
-import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -28,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
 
-class ResponseMessageUtil {
+public class ResponseMessageUtil {
 
     public static ResponseMessage createDummyResponse(
             @Nullable String connectorId,
@@ -63,6 +66,88 @@ class ResponseMessageUtil {
             }
 
             URI issuerConnector = correlationMessage.getIssuerConnector();
+            if (issuerConnector != null) {
+                builder._recipientConnector_(new ArrayList<>(Collections.singletonList(issuerConnector)));
+            }
+        }
+
+        return builder.build();
+    }
+
+    public static NotificationMessage createRequestInProcessMessage(
+            @Nullable String connectorId,
+            @Nullable Message correlationMessage) {
+
+        var messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
+        var builder = new RequestInProcessMessageBuilder(messageId);
+
+        builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+        builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+
+        var connectorIdUrn = String.join(
+                IdsIdParser.DELIMITER,
+                IdsIdParser.SCHEME,
+                IdsType.CONNECTOR.getValue(),
+                connectorId);
+
+        var connectorIdUri = URI.create(connectorIdUrn);
+
+        builder._issuerConnector_(connectorIdUri);
+        builder._senderAgent_(connectorIdUri);
+
+        if (correlationMessage != null) {
+            var id = correlationMessage.getId();
+            if (id != null) {
+                builder._correlationMessage_(id);
+            }
+
+            var senderAgent = correlationMessage.getSenderAgent();
+            if (senderAgent != null) {
+                builder._recipientAgent_(new ArrayList<>(Collections.singletonList(senderAgent)));
+            }
+
+            var issuerConnector = correlationMessage.getIssuerConnector();
+            if (issuerConnector != null) {
+                builder._recipientConnector_(new ArrayList<>(Collections.singletonList(issuerConnector)));
+            }
+        }
+
+        return builder.build();
+    }
+
+    public static NotificationMessage createMessageProcessedNotificationMessage(
+            @Nullable String connectorId,
+            @Nullable Message correlationMessage) {
+
+        var messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
+        var builder = new MessageProcessedNotificationMessageBuilder(messageId);
+
+        builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+        builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
+
+        var connectorIdUrn = String.join(
+                IdsIdParser.DELIMITER,
+                IdsIdParser.SCHEME,
+                IdsType.CONNECTOR.getValue(),
+                connectorId);
+
+        var connectorIdUri = URI.create(connectorIdUrn);
+
+        builder._issuerConnector_(connectorIdUri);
+        builder._senderAgent_(connectorIdUri);
+
+        if (correlationMessage != null) {
+            var id = correlationMessage.getId();
+            if (id != null) {
+                builder._correlationMessage_(id);
+            }
+
+            var senderAgent = correlationMessage.getSenderAgent();
+            if (senderAgent != null) {
+                builder._recipientAgent_(new ArrayList<>(Collections.singletonList(senderAgent)));
+            }
+
+            var issuerConnector = correlationMessage.getIssuerConnector();
             if (issuerConnector != null) {
                 builder._recipientConnector_(new ArrayList<>(Collections.singletonList(issuerConnector)));
             }
