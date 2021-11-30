@@ -145,7 +145,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 negotiation.transitionOffering();
             } else {
                 monitor.debug("[Provider] Contract offer received. Will be rejected.");
-                negotiation.transitionDeclining(); //TODO set error detail
+                negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
+                negotiation.transitionDeclining();
             }
 
             negotiationStore.update(negotiation);

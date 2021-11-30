@@ -132,6 +132,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             } else {
                 // If no counter offer available + validation result invalid, decline negotiation.
                 monitor.debug("[Consumer] Contract offer received. Will be rejected.");
+                negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
                 negotiation.transitionDeclining();
             }
         } else {
@@ -166,6 +167,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         if (!result) {
             // TODO Add contract offer possibility.
             monitor.debug("[Consumer] Contract agreement received. Validation failed.");
+            negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
             negotiation.transitionDeclining();
             negotiationStore.update(negotiation);
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",

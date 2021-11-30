@@ -125,6 +125,10 @@ public class ContractNegotiation {
         return errorDetail;
     }
 
+    public void setErrorDetail(String errorDetail) {
+        this.errorDetail = errorDetail;
+    }
+
     /**
      * Returns the last offer in the list of contract offers.
      */
