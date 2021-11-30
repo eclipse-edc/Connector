@@ -28,8 +28,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("core-contract") {
-            artifactId = "core-contract"
+        create<MavenPublication>("contract") {
+            artifactId = "contract"
             from(components["java"])
         }
     }
