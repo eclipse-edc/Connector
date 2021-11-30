@@ -32,11 +32,9 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.awaitility.Awaitility.await;
 import static org.easymock.EasyMock.anyString;
 import static org.easymock.EasyMock.eq;
 import static org.easymock.EasyMock.expect;
@@ -69,12 +67,23 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
     }
 
     @Test
-    void isComplete_noResources_whenComplete() {
+    void isComplete_noResources_whenComplete() throws InterruptedException {
         //arrange
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
 
-        //act-assert
-        await().atMost(10, TimeUnit.SECONDS).until(() -> checker.isComplete(createTransferProcess(bucketName), emptyList()));
+        var tp = createTransferProcess(bucketName);
+        var done = false;
+        var start = System.currentTimeMillis();
+        var complete = false;
+        while (!done) {
+            complete = checker.isComplete(tp, emptyList());
+            if (complete) {
+                done = true;
+            } else {
+                done = System.currentTimeMillis() - start > 10 * 1000;
+            }
+            Thread.sleep(5);
+        }
     }
 
     @Test
@@ -92,14 +101,27 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
     }
 
     @Test
-    void isComplete_withResources_whenComplete() {
+    void isComplete_withResources_whenComplete() throws InterruptedException {
         //arrange
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
 
         //act-assert
         TransferProcess tp = createTransferProcess(bucketName);
         S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
-        await().atMost(10, TimeUnit.SECONDS).until(() -> checker.isComplete(tp, Collections.singletonList(provisionedResource)));
+        var done = false;
+        var start = System.currentTimeMillis();
+        var complete = false;
+        while (!done) {
+            complete = checker.isComplete(tp, Collections.singletonList(provisionedResource));
+            if (complete) {
+                done = true;
+            } else {
+                done = System.currentTimeMillis() - start > 10 * 1000;
+            }
+            Thread.sleep(5);
+        }
+
+        assertThat(complete).isTrue();
     }
 
     @Test
