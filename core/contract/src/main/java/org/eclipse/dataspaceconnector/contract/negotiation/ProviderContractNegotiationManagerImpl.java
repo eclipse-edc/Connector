@@ -325,6 +325,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 continue;
             }
 
+            negotiation.setContractAgreement(agreement);
             negotiation.transitionConfirmed();
             negotiationStore.update(negotiation);
             monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
