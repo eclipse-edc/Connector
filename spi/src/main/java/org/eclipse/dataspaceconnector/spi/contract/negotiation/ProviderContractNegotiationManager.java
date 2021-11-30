@@ -35,11 +35,11 @@ public interface ProviderContractNegotiationManager extends ContractNegotiationM
     /**
      * A new offer was made by the consumer represented by the claim token.
      */
-    NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer offer, String hash);
+    NegotiationResponse offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash);
 
     /**
      * Confirms a contract negotiation after it has been approved by both counter-parties. A final contract will be sent to the consumer.
      */
-    NegotiationResponse consumerApproved(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash);
+    NegotiationResponse consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash);
 
 }

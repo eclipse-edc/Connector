@@ -80,8 +80,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
 
     @Override
-    public NegotiationResponse declined(ClaimToken token, String negotiationId) {
-        var negotiation = negotiationStore.find(negotiationId);
+    public NegotiationResponse declined(ClaimToken token, String correlationId) {
+        var negotiation = negotiationStore.findForCorrelationId(correlationId);
         if (negotiation == null) {
             return new NegotiationResponse(FATAL_ERROR);
         }
@@ -115,8 +115,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
 
     @Override
-    public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer offer, String hash) {
-        var negotiation = negotiationStore.find(negotiationId);
+    public NegotiationResponse offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
+        var negotiation = negotiationStore.findForCorrelationId(correlationId);
         if (negotiation == null) {
             return new NegotiationResponse(FATAL_ERROR);
         }
@@ -161,8 +161,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
 
     @Override
-    public NegotiationResponse consumerApproved(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
-        var negotiation = negotiationStore.find(negotiationId);
+    public NegotiationResponse consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
+        var negotiation = negotiationStore.findForCorrelationId(correlationId);
         if (negotiation == null) {
             return new NegotiationResponse(FATAL_ERROR);
         }
@@ -228,6 +228,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .connectorId(negotiation.getCounterPartyId())
                     .connectorAddress(negotiation.getCounterPartyAddress())
                     .contractOffer(currentOffer)
+                    .correlationId(negotiation.getCorrelationId())
                     .build();
 
             //TODO protocol-independent response type?
@@ -260,7 +261,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .protocol(negotiation.getProtocol())
                     .connectorId(negotiation.getCounterPartyId())
                     .connectorAddress(negotiation.getCounterPartyAddress())
-                    .correlationId(negotiation.getId())
+                    .correlationId(negotiation.getCorrelationId())
                     .rejectionReason(negotiation.getErrorDetail())
                     .build();
 
@@ -310,7 +311,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .connectorId(negotiation.getCounterPartyId())
                     .connectorAddress(negotiation.getCounterPartyAddress())
                     .contractAgreement(agreement)
-                    .correlationId(negotiation.getId())
+                    .correlationId(negotiation.getCorrelationId())
                     .build();
 
             //TODO protocol-independent response type?
