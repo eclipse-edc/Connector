@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationRes
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -39,6 +39,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.FATAL_ERROR;
@@ -259,7 +260,18 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         var processes = negotiationStore.nextForState(ContractNegotiationStates.CONSUMER_APPROVING.code(), batchSize);
 
         for (ContractNegotiation process : processes) {
-            var agreement = process.getContractAgreement();
+            //TODO this is a dummy agreement used to approve the provider's offer, real agreement will be created and sent by provider
+            var lastOffer = process.getLastContractOffer();
+            var agreement = ContractAgreement.Builder.newInstance()
+                    .id(UUID.randomUUID().toString())
+                    .contractStartDate(lastOffer.getContractStart().toInstant().toEpochMilli())
+                    .contractEndDate(lastOffer.getContractEnd().toInstant().toEpochMilli())
+                    .contractSigningDate(Instant.now().toEpochMilli())
+                    .providerAgentId(lastOffer.getProvider().toString())
+                    .consumerAgentId(lastOffer.getConsumer().toString())
+                    .policy(lastOffer.getPolicy())
+                    .assetIds(lastOffer.getAssets().stream().map(Asset::getId).collect(Collectors.toList()))
+                    .build();
 
             var request = ContractAgreementRequest.Builder.newInstance()
                     .protocol(process.getProtocol())

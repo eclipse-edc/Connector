@@ -170,20 +170,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return new NegotiationResponse(FATAL_ERROR);
         }
 
-        // TODO Validate against another offer?
-        boolean validationPassed = validationService.validate(token, agreement);
-        if (!validationPassed) {
-            monitor.debug("Contract agreement received. Validation failed.");
-            negotiation.transitionDeclining(); //TODO set error detail
-            negotiationStore.update(negotiation);
-            monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
-                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-            return new NegotiationResponse(OK, negotiation);
-        }
-
-        monitor.debug("Contract agreement received. Validation successful.");
-        negotiation.setContractAgreement(agreement);
-        negotiation.transitionConfirmed();
+        monitor.debug("Contract offer has been approved by consumer.");
+        negotiation.transitionConfirming();
         negotiationStore.update(negotiation);
         monitor.debug(String.format("ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
