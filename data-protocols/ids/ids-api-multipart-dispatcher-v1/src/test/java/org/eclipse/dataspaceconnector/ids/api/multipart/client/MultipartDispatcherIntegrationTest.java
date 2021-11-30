@@ -18,7 +18,6 @@ import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
-import de.fraunhofer.iais.eis.ContractRequestBuilder;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
@@ -224,25 +223,12 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.BAD_PARAMETERS);
+                .isEqualByComparingTo(RejectionReason.INTERNAL_RECIPIENT_ERROR);
         assertThat(result.getPayload()).isNull();
     }
 
     private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {
         return new ContractOfferBuilder()
-                ._contractDate_(gregorianNow())
-                ._contractStart_(gregorianNow())
-                ._contractEnd_(gregorianNow())
-                ._consumer_(URI.create("consumer"))
-                ._provider_(URI.create("provider"))
-                ._permission_(new PermissionBuilder()
-                        ._action_(Action.USE)
-                        .build())
-                .build();
-    }
-
-    private de.fraunhofer.iais.eis.ContractRequest getIdsContractRequest() {
-        return new ContractRequestBuilder()
                 ._contractDate_(gregorianNow())
                 ._contractStart_(gregorianNow())
                 ._contractEnd_(gregorianNow())

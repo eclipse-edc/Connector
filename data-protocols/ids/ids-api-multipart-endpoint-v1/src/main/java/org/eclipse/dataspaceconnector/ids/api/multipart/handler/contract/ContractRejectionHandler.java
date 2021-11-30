@@ -47,7 +47,7 @@ public class ContractRejectionHandler implements Handler {
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
 
-        return multipartRequest.getHeader() instanceof ContractOfferMessage;
+        return multipartRequest.getHeader() instanceof ContractRejectionMessage;
     }
 
     @Override
