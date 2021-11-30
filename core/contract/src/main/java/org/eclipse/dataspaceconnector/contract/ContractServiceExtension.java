@@ -132,8 +132,11 @@ public class ContractServiceExtension implements ServiceExtension {
         // Register the created contract offer service with the service extension context.
         context.registerService(ContractOfferService.class, contractOfferService);
 
-        var dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
-        context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
+        RemoteMessageDispatcherRegistry dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class, true);
+        if (dispatcherRegistry == null) {
+            dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
+            context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
+        }
 
         // negotiation
         var validationService = new  ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
