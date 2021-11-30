@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.types.domain.contract;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -23,6 +26,7 @@ import java.util.Objects;
 /**
  * {@link ContractAgreement} to regulate data transfer between two parties.
  */
+@JsonDeserialize(builder = ContractAgreement.Builder.class)
 public class ContractAgreement {
 
     private final String id;
@@ -151,6 +155,26 @@ public class ContractAgreement {
         return policy;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, providerAgentId, consumerAgentId, contractSigningDate, contractStartDate, contractEndDate, asset, policy);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ContractAgreement that = (ContractAgreement) o;
+        return contractSigningDate == that.contractSigningDate && contractStartDate == that.contractStartDate && contractEndDate == that.contractEndDate &&
+                Objects.equals(id, that.id) && Objects.equals(providerAgentId, that.providerAgentId) && Objects.equals(consumerAgentId, that.consumerAgentId) &&
+                Objects.equals(asset, that.asset) && Objects.equals(policy, that.policy);
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
 
         private String id;
@@ -162,11 +186,12 @@ public class ContractAgreement {
         private Asset asset;
         private Policy policy;
 
-        public static Builder newInstance() {
-            return new Builder();
+        private Builder() {
         }
 
-        private Builder() {
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
         }
 
         public Builder id(String id) {

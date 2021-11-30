@@ -79,14 +79,13 @@ class CosmosDbApiImplIntegrationTest {
     @Test
     void createItem() {
         var testItem = new TestCosmosDocument("payload", PARTITION_KEY);
-        cosmosDbApi.createItem(testItem);
+        cosmosDbApi.saveItem(testItem);
         record.add(testItem);
 
         assertThat(container.readAllItems(new PartitionKey(PARTITION_KEY), Object.class)).hasSize(1);
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void queryItemById() {
         var testItem = new TestCosmosDocument("payload", PARTITION_KEY);
         container.createItem(testItem);
@@ -102,7 +101,6 @@ class CosmosDbApiImplIntegrationTest {
     }
 
     @Test
-    @SuppressWarnings("unchecked")
     void queryAllItems() {
         var testItem = new TestCosmosDocument("payload", PARTITION_KEY);
         container.createItem(testItem);

@@ -6,11 +6,14 @@ import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosException;
+import com.azure.cosmos.CosmosStoredProcedure;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
+import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
@@ -20,10 +23,12 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CosmosDbApiImpl implements CosmosDbApi {
 
@@ -83,7 +88,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void createItem(CosmosDocument<?> item) {
+    public void saveItem(CosmosDocument<?> item) {
         try {
             // we don't need to supply a partition key, it will be extracted from the CosmosDocument
             CosmosItemResponse<Object> response = container.upsertItem(item, itemRequestOptions);
@@ -140,9 +145,18 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public List<Object> queryItems(String query) {
+    public Stream<Object> queryItems(SqlQuerySpec querySpec) {
         try {
-            return container.queryItems(query, queryRequestOptions, Object.class).stream().collect(Collectors.toList());
+            return container.queryItems(querySpec, queryRequestOptions, Object.class).stream();
+        } catch (CosmosException e) {
+            throw new EdcException(e);
+        }
+    }
+
+    @Override
+    public Stream<Object> queryItems(String query) {
+        try {
+            return container.queryItems(query, queryRequestOptions, Object.class).stream();
         } catch (CosmosException e) {
             throw new EdcException(e);
         }
@@ -165,7 +179,24 @@ public class CosmosDbApiImpl implements CosmosDbApi {
 
     @Override
     public void createItems(Collection<CosmosDocument<?>> definitions) {
-        definitions.forEach(this::createItem);
+        definitions.forEach(this::saveItem);
+    }
+
+    @Override
+    public <T> String invokeStoredProcedure(String procedureName, String partitionKey, Object... args) {
+        var sproc = getStoredProcedure(procedureName);
+
+        List<Object> params = Arrays.asList(args);
+        var options = new CosmosStoredProcedureRequestOptions();
+        options.setPartitionKey(new PartitionKey(partitionKey));
+
+        CosmosStoredProcedureResponse response = sproc.execute(params, options);
+        return response.getResponseAsString();
+    }
+
+
+    private CosmosStoredProcedure getStoredProcedure(String sprocName) {
+        return container.getScripts().getStoredProcedure(sprocName);
     }
 
 

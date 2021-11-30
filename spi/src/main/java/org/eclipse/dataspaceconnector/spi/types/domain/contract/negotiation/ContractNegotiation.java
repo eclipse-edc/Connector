@@ -31,7 +31,7 @@ import static java.util.stream.Collectors.joining;
 
 /**
  * Represents a contract negotiation.
- *
+ * <p>
  * TODO: This is only placeholder
  * TODO: Implement state transitions
  * TODO: Add error details
@@ -39,23 +39,16 @@ import static java.util.stream.Collectors.joining;
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation {
-    public enum Type {
-        CLIENT, PROVIDER
-    }
-
+    private final Type type = Type.CLIENT;
+    private List<ContractOffer> contractOffers = new ArrayList<>();
     private String id;
     private String correlationId;
     private String counterPartyId;
     private String protocol;
-
-    private Type type = Type.CLIENT;
-
     private int state;
     private int stateCount;
     private long stateTimestamp;
-
     private ContractAgreement contractAgreement;
-    private List<ContractOffer> contractOffers = new ArrayList<>();
 
     public Type getType() {
         return type;
@@ -114,19 +107,46 @@ public class ContractNegotiation {
         return contractAgreement;
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, correlationId, counterPartyId, protocol, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ContractNegotiation that = (ContractNegotiation) o;
+        return state == that.state && stateCount == that.stateCount && stateTimestamp == that.stateTimestamp && Objects.equals(id, that.id) &&
+                Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) && Objects.equals(protocol, that.protocol) &&
+                type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
+    }
+
     private void checkState(int... legalStates) {
         for (var legalState : legalStates) {
-            if (this.state == legalState) {
+            if (state == legalState) {
                 return;
             }
         }
         var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
-        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", this.state, values));
+        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", state, values));
+    }
+
+    public enum Type {
+        CLIENT, PROVIDER
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final ContractNegotiation negotiation;
+
+        private Builder() {
+            negotiation = new ContractNegotiation();
+        }
 
         @JsonCreator
         public static Builder newInstance() {
@@ -168,6 +188,17 @@ public class ContractNegotiation {
             return this;
         }
 
+        public Builder contractAgreement(ContractAgreement agreement) {
+            negotiation.contractAgreement = agreement;
+            return this;
+        }
+
+        //used mainly for JSON deserialization
+        public Builder contractOffers(List<ContractOffer> contractOffers) {
+            negotiation.contractOffers = contractOffers;
+            return this;
+        }
+
         public ContractNegotiation build() {
             Objects.requireNonNull(negotiation.id);
             Objects.requireNonNull(negotiation.counterPartyId);
@@ -176,10 +207,6 @@ public class ContractNegotiation {
                 Objects.requireNonNull(negotiation.correlationId);
             }
             return negotiation;
-        }
-
-        private Builder() {
-            this.negotiation = new ContractNegotiation();
         }
 
 

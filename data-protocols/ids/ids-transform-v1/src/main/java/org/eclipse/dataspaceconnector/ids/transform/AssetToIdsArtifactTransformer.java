@@ -60,14 +60,11 @@ public class AssetToIdsArtifactTransformer implements IdsTypeTransformer<Asset, 
 
         Map<String, Object> properties = object.getProperties();
         if (properties == null) {
-            context.reportProblem("Asset properties null");
             return artifactBuilder.build();
         }
 
         Object propertyValue = properties.get(TransformKeys.KEY_ASSET_FILE_NAME);
-        if (propertyValue == null) {
-            context.reportProblem(String.format("Asset property %s is null", TransformKeys.KEY_ASSET_FILE_NAME));
-        } else {
+        if (propertyValue != null) {
             if (propertyValue instanceof String) {
                 artifactBuilder._fileName_((String) propertyValue);
             } else {
@@ -76,9 +73,7 @@ public class AssetToIdsArtifactTransformer implements IdsTypeTransformer<Asset, 
         }
 
         propertyValue = properties.get(TransformKeys.KEY_ASSET_BYTE_SIZE);
-        if (propertyValue == null) {
-            context.reportProblem(String.format("Asset property %s is null", TransformKeys.KEY_ASSET_BYTE_SIZE));
-        } else {
+        if (propertyValue != null) {
             if (propertyValue instanceof BigInteger) {
                 artifactBuilder._byteSize_((BigInteger) propertyValue);
             } else if (propertyValue instanceof Integer) {

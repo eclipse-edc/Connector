@@ -87,14 +87,14 @@ public class FakeSetup {
                 .id("1")
                 .accessPolicy(publicPolicy)
                 .contractPolicy(publicPolicy)
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("id", "1").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "1").build())
                 .build();
 
         ContractDefinition contractDefinition2 = ContractDefinition.Builder.newInstance()
                 .id("2")
                 .accessPolicy(publicPolicy2)
                 .contractPolicy(publicPolicy2)
-                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("id", "2").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_ID, "2").build())
                 .build();
 
         contractDefinitionStore.save(contractDefinition1);

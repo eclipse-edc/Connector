@@ -43,7 +43,6 @@ import java.util.Objects;
  */
 public class MultipartArtifactRequestSender extends IdsMultipartSender<DataRequest, MultipartRequestInProcessResponse> {
 
-    private final TransformerRegistry transformerRegistry;
     private final Vault vault;
 
     public MultipartArtifactRequestSender(@NotNull String connectorId,
@@ -53,9 +52,8 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                                           @NotNull Vault vault,
                                           @NotNull IdentityService identityService,
                                           @NotNull TransformerRegistry transformerRegistry) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService);
+        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
         this.vault = Objects.requireNonNull(vault);
-        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
     }
 
     @Override
@@ -83,12 +81,12 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 .value(request.getContractId())
                 .type(IdsType.CONTRACT)
                 .build();
-        var artifactTransformationResult = transformerRegistry.transform(artifactIdsId, URI.class);
+        var artifactTransformationResult = getTransformerRegistry().transform(artifactIdsId, URI.class);
         if (artifactTransformationResult.hasProblems()) {
             throw new EdcException("Failed to create artifact ID from asset.");
         }
 
-        var contractTransformationResult = transformerRegistry.transform(contractIdsId, URI.class);
+        var contractTransformationResult = getTransformerRegistry().transform(contractIdsId, URI.class);
         if (contractTransformationResult.hasProblems()) {
             throw new EdcException("Failed to create contract ID from asset.");
         }

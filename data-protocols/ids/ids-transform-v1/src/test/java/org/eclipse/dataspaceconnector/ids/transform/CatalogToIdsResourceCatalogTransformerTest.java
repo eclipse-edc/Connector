@@ -18,9 +18,9 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceBuilder;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.eclipse.dataspaceconnector.ids.spi.types.DataCatalog;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -32,27 +32,27 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class DataCatalogToIdsResourceCatalogTransformerTest {
+class CatalogToIdsResourceCatalogTransformerTest {
     private static final String CATALOG_ID = "test_id";
     private static final URI EXPECTED_CATALOG_ID = URI.create("urn:catalog:test_id");
 
     // subject
-    private DataCatalogToIdsResourceCatalogTransformer transformer;
+    private CatalogToIdsResourceCatalogTransformer transformer;
 
     // mocks
-    private DataCatalog dataCatalog;
+    private Catalog catalog;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
-        transformer = new DataCatalogToIdsResourceCatalogTransformer();
-        dataCatalog = EasyMock.createMock(DataCatalog.class);
+        transformer = new CatalogToIdsResourceCatalogTransformer();
+        catalog = EasyMock.createMock(Catalog.class);
         context = EasyMock.createMock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(dataCatalog, context);
+        EasyMock.replay(catalog, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
@@ -61,16 +61,16 @@ class DataCatalogToIdsResourceCatalogTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(dataCatalog, context);
+        EasyMock.replay(catalog, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(dataCatalog, null);
+            transformer.transform(catalog, null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(dataCatalog, context);
+        EasyMock.replay(catalog, context);
 
         var result = transformer.transform(null, context);
 
@@ -92,16 +92,16 @@ class DataCatalogToIdsResourceCatalogTransformerTest {
 
         Resource resource = new ResourceBuilder().build();
 
-        EasyMock.expect(dataCatalog.getId()).andReturn(CATALOG_ID);
-        EasyMock.expect(dataCatalog.getContractOffers()).andReturn(List.of(o1, o2));
+        EasyMock.expect(catalog.getId()).andReturn(CATALOG_ID);
+        EasyMock.expect(catalog.getContractOffers()).andReturn(List.of(o1, o2));
 
         EasyMock.expect(context.transform(EasyMock.isA(OfferedAsset.class), EasyMock.eq(Resource.class))).andReturn(resource).anyTimes();
 
         // record
-        EasyMock.replay(o1, o2, a1, a2, dataCatalog, context);
+        EasyMock.replay(o1, o2, a1, a2, catalog, context);
 
         // invoke
-        var result = transformer.transform(dataCatalog, context);
+        var result = transformer.transform(catalog, context);
 
         // verify
         assertThat(result).isNotNull();
@@ -113,6 +113,6 @@ class DataCatalogToIdsResourceCatalogTransformerTest {
 
     @AfterEach
     void tearDown() {
-        EasyMock.verify(dataCatalog, context);
+        EasyMock.verify(catalog, context);
     }
 }

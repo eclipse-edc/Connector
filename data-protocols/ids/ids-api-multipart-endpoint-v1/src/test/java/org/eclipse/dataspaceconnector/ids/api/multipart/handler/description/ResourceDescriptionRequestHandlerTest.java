@@ -54,7 +54,7 @@ public class ResourceDescriptionRequestHandlerTest {
     private AssetIndex assetIndex;
     private Resource resource;
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     @BeforeEach
     public void setup() throws URISyntaxException {
         monitor = EasyMock.createMock(Monitor.class);

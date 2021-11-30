@@ -4,6 +4,7 @@ import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.asset.CriterionConverter;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
 
@@ -26,15 +27,24 @@ public class CriterionToPredicateConverter implements CriterionConverter<Predica
                 }
                 return Objects.equals(property, criterion.getOperandRight());
             };
+        } else if ("in".equalsIgnoreCase(criterion.getOperator())) {
+            return asset -> {
+                String property = property((String) criterion.getOperandLeft(), asset);
+                var list = (String) criterion.getOperandRight();
+                // some cleanup needs to happen
+                list = list.replace("(", "").replace(")", "").replace(" ", "");
+                var items = list.split(",");
+                return Arrays.asList(items).contains(property);
+            };
         }
         throw new IllegalArgumentException(String.format("Operator [%s] is not supported by this converter!", criterion.getOperator()));
     }
 
 
-    private Object property(String key, Asset asset) {
+    private <T> T property(String key, Asset asset) {
         if (asset.getProperties() == null || asset.getProperties().isEmpty()) {
             return null;
         }
-        return asset.getProperty(key);
+        return (T) asset.getProperty(key);
     }
 }

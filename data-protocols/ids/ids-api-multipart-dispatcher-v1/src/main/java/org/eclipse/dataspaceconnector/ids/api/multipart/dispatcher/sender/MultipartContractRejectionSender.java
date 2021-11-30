@@ -15,27 +15,21 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.ContractOffer;
 import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
-import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.util.TypedLiteral;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRejection;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.Objects;
 
 /**
  * IdsMultipartSender implementation for contract rejections. Sends IDS ContractRequestMessages and
@@ -47,8 +41,9 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
                                             @NotNull OkHttpClient httpClient,
                                             @NotNull ObjectMapper objectMapper,
                                             @NotNull Monitor monitor,
-                                            @NotNull IdentityService identityService) {
-        super(connectorId, httpClient, objectMapper, monitor, identityService);
+                                            @NotNull IdentityService identityService,
+                                            @NotNull TransformerRegistry transformerRegistry) {
+        super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
     }
 
     @Override

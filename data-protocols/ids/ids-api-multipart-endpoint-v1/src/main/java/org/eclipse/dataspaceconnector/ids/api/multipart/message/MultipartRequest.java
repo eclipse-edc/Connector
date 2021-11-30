@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.message;
 
 import de.fraunhofer.iais.eis.Message;
-import de.fraunhofer.iais.eis.RequestMessage;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

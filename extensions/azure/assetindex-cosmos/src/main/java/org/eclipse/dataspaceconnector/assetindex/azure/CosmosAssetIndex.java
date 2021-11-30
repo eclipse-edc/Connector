@@ -63,9 +63,8 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
 
         SqlQuerySpec query = queryBuilder.from(expression);
 
-        var response = with(retryPolicy).get(() -> assetDb.queryItems(query.getQueryText()));
-        return response.stream()
-                .map(this::convertObject)
+        var response = with(retryPolicy).get(() -> assetDb.queryItems(query));
+        return response.map(this::convertObject)
                 .map(AssetDocument::getWrappedAsset);
     }
 
@@ -83,7 +82,7 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
     @Override
     public void accept(Asset asset, DataAddress dataAddress) {
         var assetDocument = new AssetDocument(asset, partitionKey, dataAddress);
-        assetDb.createItem(assetDocument);
+        assetDb.saveItem(assetDocument);
     }
 
     @Override

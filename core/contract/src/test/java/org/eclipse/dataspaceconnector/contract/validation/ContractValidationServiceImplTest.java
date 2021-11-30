@@ -15,6 +15,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
@@ -97,11 +98,50 @@ class ContractValidationServiceImplTest {
         EasyMock.verify(agentService, definitionService, assetIndex);
     }
 
+    @Test
+    void verifyContractAgreementExpired() {
+        var isValid =
+                validateAgreementDate(Instant.MIN.getEpochSecond(), Instant.MIN.getEpochSecond(), Instant.now().getEpochSecond() - 1);
+
+        assertThat(isValid).isFalse();
+        EasyMock.verify(agentService, definitionService, assetIndex);
+    }
+
+    @Test
+    void verifyContractAgreementNotStartedYet() {
+        var isValid =
+                validateAgreementDate(Instant.MIN.getEpochSecond(), Instant.MAX.getEpochSecond(), Instant.MAX.getEpochSecond());
+
+        assertThat(isValid).isFalse();
+        EasyMock.verify(agentService, definitionService, assetIndex);
+    }
+
     @BeforeEach
     void setUp() {
         agentService = EasyMock.createMock(ParticipantAgentService.class);
         definitionService = EasyMock.createMock(ContractDefinitionService.class);
         assetIndex = EasyMock.createMock(AssetIndex.class);
         validationService = new ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
+    }
+
+    private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {
+        EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+
+        var originalPolicy = Policy.Builder.newInstance().build();
+
+        EasyMock.replay(agentService, definitionService, assetIndex);
+
+        var claimToken = ClaimToken.Builder.newInstance().build();
+        var agreement = ContractAgreement.Builder.newInstance().id("1")
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .policy(originalPolicy)
+                .asset(Asset.Builder.newInstance().build())
+                .contractSigningDate(signingDate)
+                .contractStartDate(startDate)
+                .contractEndDate(endDate)
+                .id("1:2").build();
+
+        return validationService.validate(claimToken, agreement);
     }
 }

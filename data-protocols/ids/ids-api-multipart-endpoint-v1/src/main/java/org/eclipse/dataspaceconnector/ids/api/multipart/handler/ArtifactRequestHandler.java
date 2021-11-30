@@ -29,13 +29,12 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,7 +49,7 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 
 public class ArtifactRequestHandler implements Handler {
 
-    private final TransferProcessStore transferProcessStore;
+    private final TransferProcessManager transferProcessManager;
     private final String connectorId;
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
@@ -64,14 +63,14 @@ public class ArtifactRequestHandler implements Handler {
             @NotNull ObjectMapper objectMapper,
             @NotNull ContractDefinitionStore contractDefinitionStore,
             @NotNull ContractValidationService contractValidationService,
-            @NotNull TransferProcessStore transferProcessStore,
+            @NotNull TransferProcessManager transferProcessManager,
             @NotNull Vault vault) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.contractDefinitionStore = Objects.requireNonNull(contractDefinitionStore);
         this.contractValidationService = Objects.requireNonNull(contractValidationService);
-        this.transferProcessStore = Objects.requireNonNull(transferProcessStore);
+        this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
         this.vault = Objects.requireNonNull(vault);
     }
 
@@ -96,6 +95,12 @@ public class ArtifactRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
+        // NOTICE
+        //
+        // Please note that the code below is just a workaround until the contract negotiation and the corresponding
+        // contracts are in place. Until then this workaround makes it possible to initiate a data transfer
+        // based on a valid contract offer.
+
         URI contractUri = artifactRequestMessage.getTransferContract();
         IdsId contractIdsId = IdsIdParser.parse(contractUri.toString());
         if (contractIdsId.getType() != IdsType.CONTRACT) {
@@ -113,16 +118,15 @@ public class ArtifactRequestHandler implements Handler {
                 .id(contractDefinition.get().getId() + ":" + UUID.randomUUID())
                 .asset(Asset.Builder.newInstance().id(artifactIdsId.getValue()).build())
                 .policy(contractDefinition.get().getContractPolicy())
-                .contractEndDate(Instant.now().getEpochSecond())
-                .contractSigningDate(Instant.now().getEpochSecond())
-                .contractStartDate(Instant.now().getEpochSecond())
+                .contractEndDate(Instant.now().getEpochSecond() + 60 * 5 /* Five Minutes */)
+                .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
+                .contractStartDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
                 .consumerAgentId("https://example.com")
                 .providerAgentId("https://example.com")
                 .build();
 
         // TODO Assert that the Asset is part of the contract
 
-        // TODO Try this out when all pieces are combined
         boolean isContractValid = contractValidationService.validate(verificationResult.token(), contractAgreement);
         if (!isContractValid) {
             monitor.info("ArtifactRequestHandler: Contract Validation Invalid");
@@ -149,13 +153,7 @@ public class ArtifactRequestHandler implements Handler {
                 .connectorAddress(artifactRequestMessage.getSenderAgent().toString() + "/api/ids/multipart") // TODO Is this correct?
                 .build();
 
-        TransferProcess transferProcess = TransferProcess.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .type(TransferProcess.Type.PROVIDER)
-                .dataRequest(dataRequest)
-                .build();
-
-        transferProcessStore.create(transferProcess);
+        transferProcessManager.initiateProviderRequest(dataRequest);
 
         if (artifactRequestMessagePayload.getSecret() != null) {
             vault.storeSecret(dataAddress.getKeyName(), artifactRequestMessagePayload.getSecret());

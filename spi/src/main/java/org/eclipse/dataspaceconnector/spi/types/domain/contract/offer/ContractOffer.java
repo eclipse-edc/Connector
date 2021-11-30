@@ -116,7 +116,23 @@ public class ContractOffer {
         return policy;
     }
 
-    private ContractOffer() {
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, policy, asset, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        ContractOffer that = (ContractOffer) o;
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(provider, that.provider) &&
+                Objects.equals(consumer, that.consumer) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
+                Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -160,22 +176,22 @@ public class ContractOffer {
         }
 
         public Builder offerStart(ZonedDateTime date) {
-            this.offerStart = date;
+            offerStart = date;
             return this;
         }
 
         public Builder offerEnd(ZonedDateTime date) {
-            this.offerEnd = date;
+            offerEnd = date;
             return this;
         }
 
         public Builder contractStart(ZonedDateTime date) {
-            this.contractStart = date;
+            contractStart = date;
             return this;
         }
 
         public Builder contractEnd(ZonedDateTime date) {
-            this.contractEnd = date;
+            contractEnd = date;
             return this;
         }
 
@@ -185,8 +201,8 @@ public class ContractOffer {
         }
 
         public ContractOffer build() {
-            Objects.requireNonNull(this.policy);
-            Objects.requireNonNull(this.id);
+            Objects.requireNonNull(policy);
+            Objects.requireNonNull(id);
 
             ContractOffer offer = new ContractOffer();
             offer.id = this.id;
