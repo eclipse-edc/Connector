@@ -118,7 +118,10 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
                 stateCache.clear();
                 stateCache.putAll(tempCache);
                 processesByCorrelationId.remove(process.getCorrelationId());
-                contractAgreements.remove(process.getContractAgreement().getId());
+
+                if (process.getContractAgreement() != null) {
+                    contractAgreements.remove(process.getContractAgreement().getId());
+                }
             }
             return null;
         });
