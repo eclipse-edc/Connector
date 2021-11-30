@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -67,35 +68,21 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     @Override
-    public void create(ContractNegotiation negotiation) {
+    public void save(ContractNegotiation negotiation) {
         writeLock(() -> {
-            if (ContractNegotiation.Type.CONSUMER.equals(negotiation.getType())) {
-                negotiation.transitionRequesting();
-            } else {
-                negotiation.transitionRequested();
+            if (ContractNegotiationStates.UNSAVED.code() == negotiation.getState()) {
+                if (ContractNegotiation.Type.CONSUMER.equals(negotiation.getType())) {
+                    negotiation.transitionRequesting();
+                } else {
+                    negotiation.transitionRequested();
+                }
             }
 
-            delete(negotiation.getId());
-            ContractNegotiation internalCopy = negotiation.copy();
-            processesById.put(negotiation.getId(), internalCopy);
-            processesByCorrelationId.put(negotiation.getCorrelationId(), internalCopy);
-            var agreement = internalCopy.getContractAgreement();
-            if (agreement != null) {
-                contractAgreements.put(agreement.getId(), internalCopy);
-            }
-            stateCache.computeIfAbsent(negotiation.getState(), k -> new ArrayList<>()).add(internalCopy);
-            return null;
-        });
-    }
-
-    @Override
-    public void update(ContractNegotiation negotiation) {
-        writeLock(() -> {
             negotiation.updateStateTimestamp();
             delete(negotiation.getId());
             ContractNegotiation internalCopy = negotiation.copy();
-            processesByCorrelationId.put(negotiation.getCorrelationId(), internalCopy);
             processesById.put(negotiation.getId(), internalCopy);
+            processesByCorrelationId.put(negotiation.getCorrelationId(), internalCopy);
             var agreement = internalCopy.getContractAgreement();
             if (agreement != null) {
                 contractAgreements.put(agreement.getId(), internalCopy);

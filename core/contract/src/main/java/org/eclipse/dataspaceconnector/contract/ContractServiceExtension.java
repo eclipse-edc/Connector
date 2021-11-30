@@ -26,16 +26,15 @@ import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.InMemoryContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
-import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -133,8 +132,6 @@ public class ContractServiceExtension implements ServiceExtension {
         // Register the created contract offer service with the service extension context.
         context.registerService(ContractOfferService.class, contractOfferService);
 
-        var validationService = new ContractValidationServiceImpl(agentService, () -> context.getService(ContractDefinitionService.class), assetIndex);
-        context.registerService(ContractValidationService.class, validationService);
         var dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
         context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
 

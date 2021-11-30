@@ -167,6 +167,9 @@ public class ContractNegotiation {
      */
     public ContractOffer getLastContractOffer() {
         var size = contractOffers.size();
+        if (size == 0) {
+            return null;
+        }
         return contractOffers.get(size - 1);
     }
 
@@ -175,25 +178,6 @@ public class ContractNegotiation {
      */
     public ContractAgreement getContractAgreement() {
         return contractAgreement;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(id, correlationId, counterPartyId, protocol, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        ContractNegotiation that = (ContractNegotiation) o;
-        return state == that.state && stateCount == that.stateCount && stateTimestamp == that.stateTimestamp && Objects.equals(id, that.id) &&
-                Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) && Objects.equals(protocol, that.protocol) &&
-                type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
     }
 
     /**
@@ -381,12 +365,11 @@ public class ContractNegotiation {
         updateStateTimestamp();
     }
 
-    /**
-     * Override equals method.
-     *
-     * @param o Object to compare.
-     * @return true, if given object same as this one; false otherwise.
-     */
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, correlationId, counterPartyId, protocol, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -396,7 +379,9 @@ public class ContractNegotiation {
             return false;
         }
         ContractNegotiation that = (ContractNegotiation) o;
-        return id.equals(that.id);
+        return state == that.state && stateCount == that.stateCount && stateTimestamp == that.stateTimestamp && Objects.equals(id, that.id) &&
+                Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) && Objects.equals(protocol, that.protocol) &&
+                type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
     }
 
     /**
@@ -473,16 +458,6 @@ public class ContractNegotiation {
 
         public Builder errorDetail(String errorDetail) {
             negotiation.errorDetail = errorDetail;
-            return this;
-        }
-
-        public Builder contractAgreement(ContractAgreement contractAgreement) {
-            negotiation.contractAgreement = contractAgreement;
-            return this;
-        }
-
-        public Builder contractOffers(List<ContractOffer> contractOffers) {
-            negotiation.contractOffers = contractOffers;
             return this;
         }
 

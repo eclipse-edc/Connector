@@ -103,7 +103,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             negotiation.setContractAgreement(null);
         }
         negotiation.transitionDeclined();
-        negotiationStore.update(negotiation);
+        negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -133,7 +133,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
 
-        negotiationStore.create(negotiation);
+        negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -193,7 +193,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 negotiation.transitionDeclining();
             }
 
-            negotiationStore.update(negotiation);
+            negotiationStore.save(negotiation);
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return new NegotiationResponse(OK, negotiation);
@@ -202,7 +202,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         monitor.debug("[Provider] Contract offer received. Will be approved.");
         // negotiation.addContractOffer(result.getValidatedOffer()); TODO
         negotiation.transitionConfirming();
-        negotiationStore.update(negotiation);
+        negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -228,7 +228,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
         monitor.debug("[Provider] Contract offer has been approved by consumer.");
         negotiation.transitionConfirming();
-        negotiationStore.update(negotiation);
+        negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return new NegotiationResponse(OK, negotiation);
@@ -296,14 +296,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionOffering();
-                negotiationStore.update(negotiation);
+                negotiationStore.save(negotiation);
                 monitor.debug(format("[Provider] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                         currentOffer.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
             }
 
             negotiation.transitionOffered();
-            negotiationStore.update(negotiation);
+            negotiationStore.save(negotiation);
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         }
@@ -334,14 +334,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             var response = dispatcherRegistry.send(Object.class, rejection, () -> null);
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionDeclining();
-                negotiationStore.update(negotiation);
+                negotiationStore.save(negotiation);
                 monitor.debug(format("[Provider] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
                         negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
             }
 
             negotiation.transitionDeclined();
-            negotiationStore.update(negotiation);
+            negotiationStore.save(negotiation);
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         }
@@ -391,7 +391,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
             if (response.isCompletedExceptionally()) {
                 negotiation.transitionConfirming();
-                negotiationStore.update(negotiation);
+                negotiationStore.save(negotiation);
                 monitor.debug(format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
                         agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                 continue;
@@ -399,7 +399,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
             negotiation.setContractAgreement(agreement);
             negotiation.transitionConfirmed();
-            negotiationStore.update(negotiation);
+            negotiationStore.save(negotiation);
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         }

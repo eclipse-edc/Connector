@@ -51,16 +51,12 @@ class ProviderContractNegotiationManagerImplTest {
 
         // Mock contract negotiation store -> persist negotiations in map
         ContractNegotiationStore negotiationStore = EasyMock.createNiceMock(ContractNegotiationStore.class);
-        negotiationStore.create(EasyMock.anyObject(ContractNegotiation.class));
+        negotiationStore.save(EasyMock.anyObject(ContractNegotiation.class));
         EasyMock.expectLastCall().andAnswer(() -> {
             var negotiation = (ContractNegotiation) EasyMock.getCurrentArgument(0);
-            negotiation.transitionRequested();
-            negotiations.put(negotiation.getId(), negotiation);
-            return null;
-        });
-        negotiationStore.update(EasyMock.anyObject(ContractNegotiation.class));
-        EasyMock.expectLastCall().andAnswer(() -> {
-            var negotiation = (ContractNegotiation) EasyMock.getCurrentArgument(0);
+            if (ContractNegotiationStates.UNSAVED.code() == negotiation.getState()) {
+                negotiation.transitionRequested();
+            }
             negotiations.put(negotiation.getId(), negotiation);
             return null;
         });
