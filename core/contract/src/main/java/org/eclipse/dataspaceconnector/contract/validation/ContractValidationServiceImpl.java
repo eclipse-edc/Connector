@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -82,6 +83,15 @@ public class ContractValidationServiceImpl implements ContractValidationService 
             // not a valid id
             return false;
         }
+
+        if (!isStarted(agreement)) {
+            return false;
+        }
+
+        if (isExpired(agreement)) {
+            return false;
+        }
+
         return definitionServiceSupplier.get().definitionFor(agent, tokens[DEFINITION_PART]) != null;
         // TODO validate counter-party
     }
@@ -95,4 +105,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         return criteria;
     }
 
+    private boolean isExpired(ContractAgreement contractAgreement) {
+        return contractAgreement.getContractEndDate() < Instant.now().getEpochSecond();
+    }
+
+    private boolean isStarted(ContractAgreement contractAgreement) {
+        return contractAgreement.getContractStartDate() <= Instant.now().getEpochSecond();
+    }
 }
