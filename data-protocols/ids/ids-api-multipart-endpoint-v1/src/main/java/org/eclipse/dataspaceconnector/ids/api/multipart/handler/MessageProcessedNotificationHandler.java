@@ -12,10 +12,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.handler.notifications;
+package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import de.fraunhofer.iais.eis.ContractOfferMessage;
-import de.fraunhofer.iais.eis.RequestInProcessMessage;
+import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
@@ -29,14 +29,14 @@ import java.util.Objects;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
 
 /**
- * This class handles and processes incoming IDS {@link RequestInProcessHandler}s.
+ * This class handles and processes incoming IDS {@link MessageProcessedNotificationMessage}s.
  */
-public class RequestInProcessHandler implements Handler {
+public class MessageProcessedNotificationHandler implements Handler {
 
     private final Monitor monitor;
     private final String connectorId;
 
-    public RequestInProcessHandler(
+    public MessageProcessedNotificationHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId) {
         this.monitor = Objects.requireNonNull(monitor);
@@ -55,9 +55,9 @@ public class RequestInProcessHandler implements Handler {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
-        var message = (RequestInProcessMessage) multipartRequest.getHeader();
+        var message = (MessageProcessedNotificationMessage) multipartRequest.getHeader();
         var correlationMessageId = message.getCorrelationMessage();
-        monitor.debug(String.format("RequestInProcessHandler: Received response " +
+        monitor.debug(String.format("MessageProcessedNotificationHandler: Received response " +
                 "to message %s. Payload: %s", correlationMessageId, multipartRequest.getPayload()));
 
         // TODO null will cause a RejectionMessage

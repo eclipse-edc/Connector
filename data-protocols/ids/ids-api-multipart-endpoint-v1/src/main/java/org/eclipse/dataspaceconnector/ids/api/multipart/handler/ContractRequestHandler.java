@@ -12,11 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.handler.contract;
+package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.ContractOffer;
-import de.fraunhofer.iais.eis.ContractOfferMessage;
+import de.fraunhofer.iais.eis.ContractRequest;
+import de.fraunhofer.iais.eis.ContractRequestMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ResponseMessageUtil;
@@ -33,15 +33,15 @@ import java.util.Objects;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
 
 /**
- * This class handles and processes incoming IDS {@link ContractOfferMessage}s.
+ * This class handles and processes incoming IDS {@link ContractRequestMessage}s.
  */
-public class ContractOfferHandler implements Handler {
+public class ContractRequestHandler implements Handler {
 
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final String connectorId;
 
-    public ContractOfferHandler(
+    public ContractRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper) {
@@ -54,7 +54,7 @@ public class ContractOfferHandler implements Handler {
     public boolean canHandle(@NotNull MultipartRequest multipartRequest) {
         Objects.requireNonNull(multipartRequest);
 
-        return multipartRequest.getHeader() instanceof ContractOfferMessage;
+        return multipartRequest.getHeader() instanceof ContractRequestMessage;
     }
 
     @Override
@@ -62,20 +62,20 @@ public class ContractOfferHandler implements Handler {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
-        var message = (ContractOfferMessage) multipartRequest.getHeader();
+        var message = (ContractRequestMessage) multipartRequest.getHeader();
 
-        ContractOffer contractOffer = null;
+        ContractRequest contractRequest = null;
         try {
-            contractOffer = objectMapper.readValue(multipartRequest.getPayload(), ContractOffer.class);
+            contractRequest = objectMapper.readValue(multipartRequest.getPayload(), ContractRequest.class);
         } catch (IOException e) {
-            monitor.debug("ContractOfferHandler: Contract Offer is invalid");
+            monitor.debug("ContractRequestHandler: Contract Request is invalid");
             return createBadParametersErrorMultipartResponse(message);
         }
 
         // TODO
-        // var correlationId = contractOfferMessage.getTransferContract();
+        // var correlationId = contractRequestMessage.getTransferContract();
         // Create contract offer request
-        // Start negotiation process: ProviderContractNegotiationManagerImpl.offered
+        // Start negotiation process: ProviderContractNegotiationManagerImpl.requested
 
         return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, message))

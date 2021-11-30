@@ -31,7 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.UUID;
 
-public class ResponseMessageUtil {
+class ResponseMessageUtil {
 
     public static ResponseMessage createDummyResponse(
             @Nullable String connectorId,

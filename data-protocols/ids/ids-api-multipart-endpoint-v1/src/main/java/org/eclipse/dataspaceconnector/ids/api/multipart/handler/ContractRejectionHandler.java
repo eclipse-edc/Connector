@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.handler.contract;
+package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import de.fraunhofer.iais.eis.ContractOfferMessage;
 import de.fraunhofer.iais.eis.ContractRejectionMessage;

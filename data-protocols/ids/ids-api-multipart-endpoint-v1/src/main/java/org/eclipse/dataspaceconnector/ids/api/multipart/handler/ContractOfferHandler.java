@@ -12,11 +12,14 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.ids.api.multipart.handler.notifications;
+package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.fraunhofer.iais.eis.ContractOffer;
 import de.fraunhofer.iais.eis.ContractOfferMessage;
-import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
+import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ResponseMessageUtil;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
@@ -24,23 +27,27 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.util.Objects;
 
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
+import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
 
 /**
- * This class handles and processes incoming IDS {@link MessageProcessedNotificationMessage}s.
+ * This class handles and processes incoming IDS {@link ContractOfferMessage}s.
  */
-public class MessageProcessedNotificationHandler implements Handler {
+public class ContractOfferHandler implements Handler {
 
     private final Monitor monitor;
+    private final ObjectMapper objectMapper;
     private final String connectorId;
 
-    public MessageProcessedNotificationHandler(
+    public ContractOfferHandler(
             @NotNull Monitor monitor,
-            @NotNull String connectorId) {
+            @NotNull String connectorId,
+            @NotNull ObjectMapper objectMapper) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
+        this.objectMapper = Objects.requireNonNull(objectMapper);
     }
 
     @Override
@@ -55,14 +62,29 @@ public class MessageProcessedNotificationHandler implements Handler {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
-        var message = (MessageProcessedNotificationMessage) multipartRequest.getHeader();
-        var correlationMessageId = message.getCorrelationMessage();
-        monitor.debug(String.format("MessageProcessedNotificationHandler: Received response " +
-                "to message %s. Payload: %s", correlationMessageId, multipartRequest.getPayload()));
+        var message = (ContractOfferMessage) multipartRequest.getHeader();
 
-        // TODO null will cause a RejectionMessage
+        ContractOffer contractOffer = null;
+        try {
+            contractOffer = objectMapper.readValue(multipartRequest.getPayload(), ContractOffer.class);
+        } catch (IOException e) {
+            monitor.debug("ContractOfferHandler: Contract Offer is invalid");
+            return createBadParametersErrorMultipartResponse(message);
+        }
+
+        // TODO
+        // var correlationId = contractOfferMessage.getTransferContract();
+        // Create contract offer request
+        // Start negotiation process: ProviderContractNegotiationManagerImpl.offered
+
         return MultipartResponse.Builder.newInstance()
-                .header(internalRecipientError(message, connectorId))
+                .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, message))
+                .build();
+    }
+
+    private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
+        return MultipartResponse.Builder.newInstance()
+                .header(badParameters(message, connectorId))
                 .build();
     }
 }
