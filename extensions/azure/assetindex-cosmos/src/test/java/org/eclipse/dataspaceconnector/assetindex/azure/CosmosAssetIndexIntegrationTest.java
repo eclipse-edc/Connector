@@ -18,6 +18,7 @@ import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
+import com.azure.cosmos.CosmosException;
 import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import net.jodah.failsafe.RetryPolicy;
@@ -42,6 +43,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 @IntegrationTest
@@ -239,14 +241,64 @@ class CosmosAssetIndexIntegrationTest {
 
     @Test
     void queryAssets_operatorIn_noBrackets_throwsException() {
+        Asset asset1 = Asset.Builder.newInstance()
+                .id("123")
+                .property("hello", "world")
+                .build();
+
+        Asset asset2 = Asset.Builder.newInstance()
+                .id("456")
+                .property("foo", "bar")
+                .build();
+
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
+
+        var inExpr = format("'%s', '%s'", asset1.getId(), asset2.getId());
+        var selector = AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .build();
+
+        // collecting is necessary, otherwise the cosmos query is not executed
+        assertThatThrownBy(() -> assetIndex.queryAssets(selector).collect(Collectors.toList())).isInstanceOf(CosmosException.class);
+
     }
 
     @Test
     void queryAssets_operatorIn_syntaxError_throwsException() {
+        Asset asset1 = Asset.Builder.newInstance()
+                .id("123")
+                .property("hello", "world")
+                .build();
+
+        Asset asset2 = Asset.Builder.newInstance()
+                .id("456")
+                .property("foo", "bar")
+                .build();
+
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
+
+        var inExpr = format("('%s' ; '%s')", asset1.getId(), asset2.getId());
+        var selector = AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .build();
+
+        // collecting is necessary, otherwise the cosmos query is not executed
+        assertThatThrownBy(() -> assetIndex.queryAssets(selector).collect(Collectors.toList())).isInstanceOf(CosmosException.class);
     }
 
     @Test
     void queryAssets_operatorIn_notFound() {
+
+        var inExpr = "('not-exist1', 'not-exist2')";
+        var selector = AssetSelectorExpression.Builder.newInstance()
+                .constraint(Asset.PROPERTY_ID, "IN", inExpr)
+                .build();
+
+        List<Asset> assets = assetIndex.queryAssets(selector).collect(Collectors.toList());
+
+        assertThat(assets).isEmpty();
     }
 
     @AfterEach
