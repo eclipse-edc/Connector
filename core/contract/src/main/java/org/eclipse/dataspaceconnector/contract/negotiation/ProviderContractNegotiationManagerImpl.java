@@ -183,15 +183,15 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
 
         if (result.invalid()) {
-            if (result.isCounterOfferAvailable()) {
-                negotiation.addContractOffer(result.getCounterOffer());
-                monitor.debug("[Provider] Contract offer received. A counter offer is available.");
-                negotiation.transitionOffering();
-            } else {
+            //if (result.isCounterOfferAvailable()) {
+            //    negotiation.addContractOffer(result.getCounterOffer());
+            //    monitor.debug("[Provider] Contract offer received. A counter offer is available.");
+            //    negotiation.transitionOffering();
+            //} else {
                 monitor.debug("[Provider] Contract offer received. Will be rejected.");
                 negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
                 negotiation.transitionDeclining();
-            }
+            //}
 
             negotiationStore.save(negotiation);
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",

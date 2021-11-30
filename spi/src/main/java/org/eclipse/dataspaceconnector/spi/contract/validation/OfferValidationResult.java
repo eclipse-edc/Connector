@@ -22,11 +22,9 @@ public class OfferValidationResult {
     public static final OfferValidationResult INVALID = new OfferValidationResult();
 
     private ContractOffer validatedOffer;
-    private ContractOffer counterOffer;
 
-    public OfferValidationResult(ContractOffer validatedOffer, ContractOffer counterOffer) {
+    public OfferValidationResult(ContractOffer validatedOffer) {
         this.validatedOffer = validatedOffer;
-        this.counterOffer = counterOffer;
     }
 
     public OfferValidationResult() {
@@ -34,14 +32,6 @@ public class OfferValidationResult {
 
     public ContractOffer getValidatedOffer() {
         return validatedOffer;
-    }
-
-    public ContractOffer getCounterOffer() {
-        return counterOffer;
-    }
-
-    public boolean isCounterOfferAvailable() {
-        return counterOffer != null;
     }
 
     public boolean invalid() {
