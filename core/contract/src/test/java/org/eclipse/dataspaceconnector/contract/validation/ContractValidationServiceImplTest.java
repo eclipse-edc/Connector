@@ -17,6 +17,8 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -84,14 +86,14 @@ class ContractValidationServiceImplTest {
         EasyMock.replay(agentService, definitionService, assetIndex);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var agreement = ContractAgreement.Builder.newInstance()
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
+        var agreement = ContractAgreement.Builder.newInstance().id("1")
+                .providerAgentId(URI.create("provider"))
+                .consumerAgentId(URI.create("consumer"))
                 .policy(originalPolicy)
                 .asset(Asset.Builder.newInstance().build())
-                .contractSigningDate(LocalDate.MIN.toEpochDay())
-                .contractStartDate(LocalDate.MIN.toEpochDay())
-                .contractEndDate(LocalDate.MAX.toEpochDay())
+                .contractSigningDate(ZonedDateTime.now())
+                .contractStartDate(ZonedDateTime.now())
+                .contractEndDate(ZonedDateTime.now())
                 .id("1:2").build();
 
         assertThat(validationService.validate(claimToken, agreement)).isTrue();
