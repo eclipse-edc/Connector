@@ -157,10 +157,12 @@ abstract class AbstractMultipartControllerIntegrationTest {
     }
 
     protected ContractRequestMessage getContractRequestMessage() {
-        return new ContractRequestMessageBuilder()
+        var message = new ContractRequestMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
                 .build();
+        message.setProperty("idsWebhookAddress", "http://someUrl");
+        return message;
     }
 
     protected ContractAgreementMessage getContractAgreementMessage() {

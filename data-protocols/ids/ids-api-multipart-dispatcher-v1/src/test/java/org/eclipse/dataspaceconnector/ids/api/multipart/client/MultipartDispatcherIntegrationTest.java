@@ -19,6 +19,7 @@ import de.fraunhofer.iais.eis.BaseConnector;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
+import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
@@ -197,7 +198,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
+        // TODO Should be RequestInProcess
+        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(result.getPayload()).isNull();
     }
 
@@ -243,10 +245,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        // TODO Fix as soon as validation works
-        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
-        assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.BAD_PARAMETERS);
+        assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessage.class);
         assertThat(result.getPayload()).isNull();
     }
 

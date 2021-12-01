@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - extend tests
  *
  */
 

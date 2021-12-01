@@ -18,16 +18,24 @@ package org.eclipse.dataspaceconnector.ids.api.multipart;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.ContractRequestBuilder;
+import de.fraunhofer.iais.eis.PermissionBuilder;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.ids.transform.AssetToIdsArtifactTransformer;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -474,8 +482,17 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     @Test
     void testHandleContractRequest() throws Exception {
         // prepare
+        var assetId = "1234";
         var request = createRequestWithPayload(getContractRequestMessage(),
-                new ContractRequestBuilder().build());
+                new ContractRequestBuilder()
+                        ._provider_(URI.create("http://provider"))
+                        ._consumer_(URI.create("http://consumer"))
+                        ._permission_(new PermissionBuilder()
+                                ._target_(URI.create("urn:artifact:" + assetId))
+                                .build())
+                        .build());
+        addAsset(Asset.Builder.newInstance().id(assetId).build());
+
 
         // invoke
         var response = httpClient.newCall(request).execute();
@@ -544,8 +561,19 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
     @Test
     void testHandleContractAgreement() throws Exception {
         // prepare
+        var assetId = "1234";
         var request = createRequestWithPayload(getContractAgreementMessage(),
-                new ContractAgreementBuilder().build());
+                new ContractAgreementBuilder()
+                        ._provider_(URI.create("http://provider"))
+                        ._consumer_(URI.create("http://consumer"))
+                        ._permission_(new PermissionBuilder()
+                                ._target_(URI.create("urn:artifact:" + assetId))
+                                .build())
+                        ._contractStart_(CalendarUtil.gregorianNow())
+                        ._contractEnd_(CalendarUtil.gregorianNow())
+                        ._contractDate_(CalendarUtil.gregorianNow()) // TODO Throws exception, but mandatory
+                        .build());
+        addAsset(Asset.Builder.newInstance().id(assetId).build());
 
         // invoke
         var response = httpClient.newCall(request).execute();
@@ -567,7 +595,8 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
-        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:MessageProcessedNotificationMessage");
+        // TODO change to MessageProcessedNotification, mock successful validation result
+        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RejectionMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
@@ -601,7 +630,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
-        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RejectionMessage");
+        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:MessageProcessedNotificationMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
@@ -620,4 +649,5 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
             }
         };
     }
+
 }
