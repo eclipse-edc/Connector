@@ -61,11 +61,6 @@ public class ContractServiceExtension implements ServiceExtension {
     }
 
     @Override
-    public final Set<String> requires() {
-        return Set.of(AssetIndex.FEATURE);
-    }
-
-    @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
         this.context = context;

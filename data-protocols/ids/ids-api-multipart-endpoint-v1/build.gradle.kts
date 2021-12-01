@@ -25,6 +25,7 @@ dependencies {
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
     api(project(":core:transfer"))
+    api(project(":core:contract"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
@@ -34,6 +35,7 @@ dependencies {
     testImplementation("net.javacrumbs.json-unit:json-unit:2.28.0")
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:protocol:web"))
+    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 
 }
 
