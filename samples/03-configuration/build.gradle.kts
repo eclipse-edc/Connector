@@ -23,8 +23,10 @@ val rsApi: String by project
 
 dependencies {
     implementation(project(":core"))
-    implementation(project(":extensions:in-memory:transfer-store-memory"))
+
     implementation(project(":extensions:filesystem:configuration-fs"))
+
+    implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
 

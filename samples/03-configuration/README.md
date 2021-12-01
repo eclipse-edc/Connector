@@ -5,7 +5,8 @@ elegant way.
 
 The Eclipse Dataspace Connector exposes configuration through its `ConfigurationExtension` interface. That is a "
 special" extension in that sense that it gets loaded at a very early stage. There is also a default implementation
-named `FsConfigurationExtension.java` which uses a standard Java properties file to store configuration entries.
+named [`FsConfigurationExtension.java`](../../extensions/filesystem/configuration-fs/src/main/java/org/eclipse/dataspaceconnector/configuration/fs/FsConfigurationExtension.java) 
+which uses a standard Java properties file to store configuration entries.
 
 In the previous steps we had not included that in the JAR file, so we need to add
 the `:extensions:filesystem:configuration-fs` module to the dependency list:
@@ -18,9 +19,13 @@ dependencies {
 }
 ```
 
-after building and running the connector you will notice an additional log line stating that the "configuration file
-does not exist":
+We compile and run the application with:
+```
+./gradlew clean samples:03-configuration:build
+java -jar samples/03-configuration/build/libs/filsystem-config-connector.jar
+```
 
+you will notice an additional log line stating that the "configuration file does not exist":
 ```bash
 INFO 2021-09-07T08:26:08.282159 Configuration file does not exist: dataspaceconnector-configuration.properties. Ignoring.
 ```
@@ -46,7 +51,7 @@ the `config.properties` with a text editor of your choice and add the following 
 web.http.port=9191
 ```
 
-An example file can be found [here](samples/03-configuration/config.properties). Clean, rebuild and run the connector
+An example file can be found [here](config.properties). Clean, rebuild and run the connector
 again, but this time passing the path to the config file:
 
 ```properties
@@ -133,6 +138,6 @@ There are a few things worth mentioning here:
 - if a config value is not present, we should either specify a default value (i.e. `"health"`) or throw
   an `EdcException`
 - configuration values should be handled in the `*Extension` class, as it's job is to set up the extension and its
-  required business logic (e.g. the controller). The extension itself should not contain any business logic.
+  required business logic (e.g. the controller). The extension itself should not contain any business logic
 - it's better to pass the config value directly into the business logic than passing the
-  entire `ServiceExtensionContext`
+  entire `ServiceExtensionContext`, using configuration objects when there are more than one
