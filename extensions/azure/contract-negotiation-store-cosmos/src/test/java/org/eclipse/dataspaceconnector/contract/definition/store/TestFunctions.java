@@ -3,7 +3,7 @@ package org.eclipse.dataspaceconnector.contract.definition.store;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 
@@ -21,6 +21,7 @@ public class TestFunctions {
                 .id(UUID.randomUUID().toString())
                 .correlationId(UUID.randomUUID().toString())
                 .counterPartyId("test-counterparty-1")
+                .counterPartyAddress("test-counterparty-address")
                 .protocol("test-protocol")
                 .stateCount(1)
                 .contractAgreement(ContractAgreement.Builder.newInstance().id("1")

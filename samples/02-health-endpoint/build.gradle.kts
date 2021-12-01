@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
  *
  */
 
@@ -24,6 +25,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
+    implementation(project(":extensions:in-memory:negotiation-store-memory"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

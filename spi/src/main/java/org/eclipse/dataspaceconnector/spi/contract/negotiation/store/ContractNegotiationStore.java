@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.store;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -26,6 +26,8 @@ import java.util.List;
  * TODO: This is work-in-progress
  */
 public interface ContractNegotiationStore {
+
+    String FEATURE = "edc:contractnegotiation:store";
 
     /**
      * Finds the contract negotiation for the id or null.

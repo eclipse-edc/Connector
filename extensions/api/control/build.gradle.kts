@@ -40,6 +40,8 @@ dependencies {
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation("io.rest-assured:rest-assured:4.4.0")
 
+    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+
     implementation(project(":common:util"))
 }
 

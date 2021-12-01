@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *
  */
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation;
@@ -17,10 +18,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -31,6 +34,10 @@ import static java.util.stream.Collectors.joining;
 
 /**
  * Represents a contract negotiation.
+ *
+ * Note: This class implements the negotiation process that is started by a consumer. For some use
+ * cases, it may be interesting to initiate the contract negotiation as a provider.
+ *
  * <p>
  * TODO: This is only placeholder
  * TODO: Implement state transitions
@@ -39,16 +46,25 @@ import static java.util.stream.Collectors.joining;
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation {
-    private final Type type = Type.CLIENT;
-    private List<ContractOffer> contractOffers = new ArrayList<>();
+    public enum Type {
+        CONSUMER, PROVIDER
+    }
+
     private String id;
     private String correlationId;
     private String counterPartyId;
+    private String counterPartyAddress;
     private String protocol;
+
+    private Type type = Type.CONSUMER;
+
     private int state;
     private int stateCount;
     private long stateTimestamp;
+    private String errorDetail;
+
     private ContractAgreement contractAgreement;
+    private List<ContractOffer> contractOffers = new ArrayList<>();
 
     public Type getType() {
         return type;
@@ -62,6 +78,10 @@ public class ContractNegotiation {
         return counterPartyId;
     }
 
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
+    }
+
     /**
      * Returns the correlation id sent by the client or null if this is a client-side negotiation.
      */
@@ -71,6 +91,8 @@ public class ContractNegotiation {
 
     /**
      * Returns the data protocol used for this negotiation.
+     *
+     * @return The protocol.
      */
     @NotNull
     public String getProtocol() {
@@ -79,25 +101,76 @@ public class ContractNegotiation {
 
     /**
      * Returns the current negotiation state.
+     *
+     * @return The current state code.
      */
     public int getState() {
         return state;
     }
 
+    /**
+     * Returns the current state count.
+     *
+     * @return The current state count.
+     */
     public int getStateCount() {
         return stateCount;
     }
 
+    /**
+     * Returns the state timestamp.
+     *
+     * @return The state timestamp.
+     */
     public long getStateTimestamp() {
         return stateTimestamp;
     }
 
+    /**
+     * Returns all contract offers which have been part of the negotiation process.
+     *
+     * @return The contract offers.
+     */
     public List<ContractOffer> getContractOffers() {
         return contractOffers;
     }
 
+    /**
+     * Adds a new contract offer to this negotiation.
+     *
+     * @param offer The offer to add.
+     */
     public void addContractOffer(ContractOffer offer) {
         contractOffers.add(offer);
+    }
+
+    /**
+     * Returns the error detail.
+     *
+     * @return The error detail
+     */
+    public String getErrorDetail() {
+        return errorDetail;
+    }
+
+    /**
+     * Sets the error detail.
+     *
+     * @param errorDetail The error detail.
+     */
+    public void setErrorDetail(String errorDetail) {
+        this.errorDetail = errorDetail;
+    }
+
+    /**
+     * Returns the last offer in the list of contract offers.
+     */
+    public ContractOffer getLastContractOffer() {
+        var size = contractOffers.size();
+        if (size == 0) {
+            return null;
+        }
+        return contractOffers.get(size - 1);
     }
 
     /**
@@ -105,6 +178,191 @@ public class ContractNegotiation {
      */
     public ContractAgreement getContractAgreement() {
         return contractAgreement;
+    }
+
+    /**
+     * Sets the agreement for this negotiation.
+     *
+     * @param agreement the agreement.
+     */
+    public void setContractAgreement(ContractAgreement agreement) {
+        this.contractAgreement = agreement;
+    }
+
+    /**
+     * Transition to state REQUESTING (type consumer only).
+     */
+    public void transitionRequesting() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no REQUESTING state");
+        }
+        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.UNSAVED);
+    }
+
+    /**
+     * Transition to state REQUESTED.
+     */
+    public void transitionRequested() {
+        if (Type.PROVIDER == type) {
+            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.UNSAVED);
+        } else {
+            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
+        }
+    }
+
+    /**
+     * Transition to state REQUESTED.
+     */
+    public void transitionOffering() {
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.CONSUMER_OFFERING, ContractNegotiationStates.REQUESTED);
+        } else {
+            transition(ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.REQUESTED);
+        }
+    }
+
+    /**
+     * Transition to state CONSUMER_OFFERED for type consumer and PROVIDER_OFFERED for type
+     * provider.
+     */
+    public void transitionOffered() {
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERING);
+        } else {
+            transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
+        }
+    }
+
+    /**
+     * Transition to state CONSUMER_APPROVING (type consumer only).
+     */
+    public void transitionApproving() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
+        }
+        transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
+    }
+
+    /**
+     * Transition to state CONSUMER_APPROVED (type consumer only).
+     */
+    public void transitionApproved() {
+        if (Type.PROVIDER == type) {
+            throw new IllegalStateException("Provider processes have no CONSUMER_APPROVED state");
+        }
+        transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.PROVIDER_OFFERED);
+    }
+
+    /**
+     * Transition to state DECLINING.
+     */
+    public void transitionDeclining() {
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_APPROVED);
+        } else {
+            transition(ContractNegotiationStates.DECLINING, ContractNegotiationStates.DECLINING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_APPROVED);
+        }
+    }
+
+    /**
+     * Transition to state DECLINED.
+     */
+    public void transitionDeclined() {
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
+        } else {
+            transition(ContractNegotiationStates.DECLINED, ContractNegotiationStates.DECLINING, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.REQUESTED);
+        }
+
+    }
+
+    /**
+     * Transition to state CONFIRMING (type provider only).
+     */
+    public void transitionConfirming() {
+        if (Type.CONSUMER == type) {
+            throw new IllegalStateException("Consumer processes have no CONFIRMING state");
+        }
+        transition(ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.CONFIRMING, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.PROVIDER_OFFERED);
+    }
+
+    /**
+     * Transition to state CONFIRMED.
+     */
+    public void transitionConfirmed() {
+        if (Type.CONSUMER == type) {
+            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED);
+        } else {
+            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING);
+        }
+
+    }
+
+    private void checkState(int... legalStates) {
+        for (var legalState : legalStates) {
+            if (state == legalState) {
+                return;
+            }
+        }
+        var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
+        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", this.state, values));
+    }
+
+    /**
+     * Transition to state ERROR.
+     *
+     * @param errorDetail Message describing the error.
+     */
+    public void transitionError(@Nullable String errorDetail) {
+        state = ContractNegotiationStates.ERROR.code();
+        this.errorDetail = errorDetail;
+        stateCount = 1;
+        updateStateTimestamp();
+    }
+
+    /**
+     * Reset to an arbitrary state.
+     *
+     * @param state The desired state.
+     */
+    public void rollbackState(ContractNegotiationStates state) {
+        this.state = state.code();
+        stateCount = 1;
+        updateStateTimestamp();
+    }
+
+    /**
+     * Create a copy of this negotiation.
+     *
+     * @return The copy.
+     */
+    public ContractNegotiation copy() {
+        return ContractNegotiation.Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
+                .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
+                .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement).contractOffers(contractOffers).build();
+    }
+
+    /**
+     * Sets the state timestamp to the current time.
+     */
+    public void updateStateTimestamp() {
+        stateTimestamp = Instant.now().toEpochMilli();
+    }
+
+    /**
+     * Transition to a given end state from an allowed number of previous states. Increases the
+     * state count if transitioned to the same state and updates the state timestamp.
+     *
+     * @param end The desired state.
+     * @param starts The allowed previous states.
+     */
+    private void transition(ContractNegotiationStates end, ContractNegotiationStates... starts) {
+        if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
+            throw new IllegalStateException(format("Cannot transition from state %s to %s", ContractNegotiationStates.from(state), ContractNegotiationStates.from(end.code())));
+        }
+        stateCount = state == end.code() ? stateCount + 1 : 1;
+        state = end.code();
+        updateStateTimestamp();
     }
 
     @Override
@@ -126,20 +384,9 @@ public class ContractNegotiation {
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
     }
 
-    private void checkState(int... legalStates) {
-        for (var legalState : legalStates) {
-            if (state == legalState) {
-                return;
-            }
-        }
-        var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
-        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", state, values));
-    }
-
-    public enum Type {
-        CLIENT, PROVIDER
-    }
-
+    /**
+     * Builder for ContractNegotiation.
+     */
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final ContractNegotiation negotiation;
@@ -183,6 +430,11 @@ public class ContractNegotiation {
             return this;
         }
 
+        public Builder counterPartyAddress(String address) {
+            negotiation.counterPartyAddress = address;
+            return this;
+        }
+
         public Builder correlationId(String id) {
             negotiation.correlationId = id;
             return this;
@@ -199,16 +451,25 @@ public class ContractNegotiation {
             return this;
         }
 
+        public Builder type(Type type) {
+            negotiation.type = type;
+            return this;
+        }
+
+        public Builder errorDetail(String errorDetail) {
+            negotiation.errorDetail = errorDetail;
+            return this;
+        }
+
         public ContractNegotiation build() {
             Objects.requireNonNull(negotiation.id);
             Objects.requireNonNull(negotiation.counterPartyId);
+            Objects.requireNonNull(negotiation.counterPartyAddress);
             Objects.requireNonNull(negotiation.protocol);
-            if (Type.CLIENT == negotiation.type) {
+            if (Type.PROVIDER == negotiation.type) {
                 Objects.requireNonNull(negotiation.correlationId);
             }
             return negotiation;
         }
-
-
     }
 }

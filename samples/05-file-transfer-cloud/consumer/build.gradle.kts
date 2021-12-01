@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
  *
  */
 
@@ -34,6 +35,7 @@ dependencies {
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
+    implementation(project(":extensions:in-memory:negotiation-store-memory"))
 
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:azure:vault"))

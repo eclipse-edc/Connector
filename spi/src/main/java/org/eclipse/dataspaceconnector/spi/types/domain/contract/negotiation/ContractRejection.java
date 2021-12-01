@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.types.domain.contract;
+package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
@@ -23,7 +23,7 @@ public class ContractRejection implements RemoteMessage {
     private String protocol;
     private String connectorId;
     private String connectorAddress;
-    private String correlatedContractId; // TODO hand over the contract offer/agreement - not an id?
+    private String correlationId; // TODO hand over the contract offer/agreement - not an id?
     private String rejectionReason; // TODO pre-define a set of enums (+ mapping to IDS) ?
 
     @Override
@@ -39,8 +39,8 @@ public class ContractRejection implements RemoteMessage {
         return connectorAddress;
     }
 
-    public String getCorrelatedContractId() {
-        return correlatedContractId;
+    public String getCorrelationId() {
+        return correlationId;
     }
 
     public String getRejectionReason() {
@@ -73,8 +73,8 @@ public class ContractRejection implements RemoteMessage {
             return this;
         }
 
-        public Builder correlatedContractId(String correlatedContractId) {
-            this.contractRejection.correlatedContractId = correlatedContractId;
+        public Builder correlationId(String correlationId) {
+            this.contractRejection.correlationId = correlationId;
             return this;
         }
 
@@ -87,7 +87,7 @@ public class ContractRejection implements RemoteMessage {
             Objects.requireNonNull(contractRejection.protocol, "protocol");
             Objects.requireNonNull(contractRejection.connectorId, "connectorId");
             Objects.requireNonNull(contractRejection.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(contractRejection.correlatedContractId, "correlatedContractId");
+            Objects.requireNonNull(contractRejection.correlationId, "correlationId");
             Objects.requireNonNull(contractRejection.rejectionReason, "rejectionReason");
             return contractRejection;
         }

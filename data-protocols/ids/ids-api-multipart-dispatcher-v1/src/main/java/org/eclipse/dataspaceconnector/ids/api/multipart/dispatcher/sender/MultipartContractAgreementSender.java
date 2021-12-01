@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.AgreementRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -36,7 +36,7 @@ import java.util.Collections;
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractAgreementSender extends IdsMultipartSender<AgreementRequest, MultipartRequestInProcessResponse> {
+public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartRequestInProcessResponse> {
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
@@ -48,22 +48,22 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Agreeme
     }
 
     @Override
-    public Class<AgreementRequest> messageType() {
-        return AgreementRequest.class;
+    public Class<ContractAgreementRequest> messageType() {
+        return ContractAgreementRequest.class;
     }
 
     @Override
-    protected String retrieveRemoteConnectorId(AgreementRequest request) {
+    protected String retrieveRemoteConnectorId(ContractAgreementRequest request) {
         return request.getConnectorId();
     }
 
     @Override
-    protected String retrieveRemoteConnectorAddress(AgreementRequest request) {
+    protected String retrieveRemoteConnectorAddress(ContractAgreementRequest request) {
         return request.getConnectorAddress();
     }
 
     @Override
-    protected Message buildMessageHeader(AgreementRequest request, DynamicAttributeToken token) throws Exception {
+    protected Message buildMessageHeader(ContractAgreementRequest request, DynamicAttributeToken token) throws Exception {
         return new ContractAgreementMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
@@ -75,7 +75,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Agreeme
     }
 
     @Override
-    protected String buildMessagePayload(AgreementRequest request) throws Exception {
+    protected String buildMessagePayload(ContractAgreementRequest request) throws Exception {
         var contractAgreement = request.getContractAgreement();
         var transformationResult = getTransformerRegistry().transform(contractAgreement, ContractAgreement.class);
         if (transformationResult.hasProblems()) {
