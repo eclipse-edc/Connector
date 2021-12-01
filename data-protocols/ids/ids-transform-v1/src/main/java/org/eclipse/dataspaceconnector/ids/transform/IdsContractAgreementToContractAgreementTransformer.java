@@ -85,7 +85,8 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
         var builder = ContractAgreement.Builder.newInstance()
                 .policy(policyBuilder.build())
                 .consumerAgentId(object.getConsumer())
-                .providerAgentId(object.getProvider());
+                .providerAgentId(object.getProvider())
+                .asset(Asset.Builder.newInstance().build()); // TODO should asset be integrated here? Is not allowed to be null
 
         if (object.getId() != null) {
             builder.id(object.getId().toString());
