@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -142,10 +143,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     private boolean isExpired(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractEndDate() < Instant.now().getEpochSecond();
+        return contractAgreement.getContractEndDate().toInstant().toEpochMilli() < ZonedDateTime.now().toInstant().toEpochMilli();
     }
 
     private boolean isStarted(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractStartDate() <= Instant.now().getEpochSecond();
+        return contractAgreement.getContractStartDate().toInstant().toEpochMilli() <= ZonedDateTime.now().toInstant().toEpochMilli();
     }
 }

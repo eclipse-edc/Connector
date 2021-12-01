@@ -32,14 +32,13 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartRequestInProcessResponse> {
-
-    private final TransformerRegistry transformerRegistry;
+public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,

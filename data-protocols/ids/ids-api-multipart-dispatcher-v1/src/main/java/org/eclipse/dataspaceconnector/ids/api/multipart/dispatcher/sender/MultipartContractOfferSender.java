@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
@@ -38,19 +39,15 @@ import java.util.Objects;
  * IdsMultipartSender implementation for contract requests. Sends IDS ContractRequestMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractRequestSender extends IdsMultipartSender<ContractOfferRequest, MultipartRequestInProcessResponse> {
+public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, MultipartRequestInProcessResponse> {
 
-    private final TransformerRegistry transformerRegistry;
-
-    public MultipartContractRequestSender(@NotNull String connectorId,
+    public MultipartContractOfferSender(@NotNull String connectorId,
                                           @NotNull OkHttpClient httpClient,
                                           @NotNull ObjectMapper objectMapper,
                                           @NotNull Monitor monitor,
                                           @NotNull IdentityService identityService,
                                           @NotNull TransformerRegistry transformerRegistry) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
-
-        this.transformerRegistry = Objects.requireNonNull(transformerRegistry, "transformerRegistry");
     }
 
     @Override
@@ -69,8 +66,8 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
     }
 
     @Override
-    protected Message buildMessageHeader(ContractRequest request, DynamicAttributeToken token) throws Exception {
-        if (request.getType() == ContractOfferRequest.ContractOfferType.INITIAL) {
+    protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) throws Exception {
+        if (request.getType() == ContractOfferRequest.Type.INITIAL) {
             return new ContractRequestMessageBuilder()
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                     //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
@@ -95,7 +92,7 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
     protected String buildMessagePayload(ContractOfferRequest request) throws Exception {
         var contractOffer = request.getContractOffer();
 
-        if (request.getType() == ContractRequest.ContractOfferType.INITIAL) {
+        if (request.getType() == ContractOfferRequest.Type.INITIAL) {
             return getObjectMapper().writeValueAsString(createContractRequest(contractOffer));
         } else {
             return getObjectMapper().writeValueAsString(createContractOffer(contractOffer));
@@ -117,7 +114,7 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
     }
 
     private de.fraunhofer.iais.eis.ContractRequest createContractRequest(ContractOffer offer) {
-        var transformationResult = transformerRegistry.transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
+        var transformationResult = getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
         if (transformationResult.hasProblems()) {
             throw new EdcException("Failed to create IDS contract request");
         }
@@ -127,7 +124,7 @@ public class MultipartContractRequestSender extends IdsMultipartSender<ContractO
     }
 
     private de.fraunhofer.iais.eis.ContractOffer createContractOffer(ContractOffer offer) {
-        var transformationResult = transformerRegistry.transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
+        var transformationResult = getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
         if (transformationResult.hasProblems()) {
             throw new EdcException("Failed to create IDS contract offer");
         }

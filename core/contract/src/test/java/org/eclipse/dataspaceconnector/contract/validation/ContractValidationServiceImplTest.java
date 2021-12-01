@@ -15,9 +15,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.time.Instant;
-import java.time.LocalDate;
 import java.net.URI;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.stream.Stream;
@@ -135,13 +135,13 @@ class ContractValidationServiceImplTest {
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
+                .providerAgentId(URI.create("provider"))
+                .consumerAgentId(URI.create("consumer"))
                 .policy(originalPolicy)
                 .asset(Asset.Builder.newInstance().build())
-                .contractSigningDate(signingDate)
-                .contractStartDate(startDate)
-                .contractEndDate(endDate)
+                .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(signingDate), ZoneId.systemDefault()))
+                .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(startDate), ZoneId.systemDefault()))
+                .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(endDate), ZoneId.systemDefault()))
                 .id("1:2").build();
 
         return validationService.validate(claimToken, agreement);

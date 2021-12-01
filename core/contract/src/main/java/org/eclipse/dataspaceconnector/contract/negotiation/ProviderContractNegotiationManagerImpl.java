@@ -33,6 +33,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -368,11 +369,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 //TODO move to own service
                 agreement = ContractAgreement.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
-                        .contractStartDate(lastOffer.getContractStart().toInstant().toEpochMilli())
-                        .contractEndDate(lastOffer.getContractEnd().toInstant().toEpochMilli())
-                        .contractSigningDate(Instant.now().toEpochMilli())
-                        .providerAgentId(lastOffer.getProvider().toString())
-                        .consumerAgentId(lastOffer.getConsumer().toString())
+                        .contractStartDate(lastOffer.getContractStart())
+                        .contractEndDate(lastOffer.getContractEnd())
+                        .contractSigningDate(ZonedDateTime.now())
+                        .providerAgentId(lastOffer.getProvider())
+                        .consumerAgentId(lastOffer.getConsumer())
                         .policy(lastOffer.getPolicy())
                         .asset(lastOffer.getAsset())
                         .build();

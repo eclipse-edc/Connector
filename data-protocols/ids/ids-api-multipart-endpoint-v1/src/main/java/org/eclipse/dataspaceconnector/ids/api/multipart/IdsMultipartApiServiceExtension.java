@@ -24,17 +24,13 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartCont
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractOfferHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRejectionHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.MessageProcessedNotificationHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.RequestInProcessHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.RepresentationDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ResourceDescriptionRequestHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.MessageProcessedNotificationHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.RequestInProcessHandler;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
@@ -56,7 +52,6 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
@@ -165,10 +160,10 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         // create contract message handlers
         var providerNegotiationManager = serviceExtensionContext.getService(ProviderContractNegotiationManager.class);
         var consumerNegotiationManager = serviceExtensionContext.getService(ConsumerContractNegotiationManager.class);
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
-        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager));
-        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager));
+//        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager));
+//        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
+//        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager));
+//        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager));
 
         // create notification message handlers
         handlers.add(new MessageProcessedNotificationHandler(monitor, connectorId));

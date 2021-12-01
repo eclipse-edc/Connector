@@ -34,8 +34,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.Multi
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartCatalogDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractOfferSender;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
@@ -60,7 +60,6 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil.gregorianNow;
 
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
@@ -156,7 +155,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         EasyMock.replay(transformerRegistry);
 
         var request = ContractOfferRequest.Builder.newInstance()
-                .type(ContractRequest.ContractOfferType.COUNTER_OFFER)
+                .type(ContractOfferRequest.Type.COUNTER_OFFER)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
@@ -181,8 +180,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .andReturn(new TransformResult<>(getIdsContractOffer()));
         EasyMock.replay(transformerRegistry);
 
-        var request = ContractRequest.Builder.newInstance()
-                .type(ContractRequest.ContractOfferType.INITIAL)
+        var request = ContractOfferRequest.Builder.newInstance()
+                .type(ContractOfferRequest.Type.INITIAL)
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)

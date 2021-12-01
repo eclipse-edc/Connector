@@ -29,6 +29,8 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
+import java.time.ZonedDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -176,13 +178,13 @@ class InMemoryContractNegotiationStoreTest {
     private ContractAgreement createAgreement() {
         return ContractAgreement.Builder.newInstance()
                 .id("agreementId")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
+                .providerAgentId(URI.create("provider"))
+                .consumerAgentId(URI.create("consumer"))
                 .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance().build())
-                .contractSigningDate(1L)
-                .contractStartDate(1L)
-                .contractEndDate(1L)
+                .contractSigningDate(ZonedDateTime.now())
+                .contractStartDate(ZonedDateTime.now())
+                .contractEndDate(ZonedDateTime.now())
                 .build();
     }
 }
