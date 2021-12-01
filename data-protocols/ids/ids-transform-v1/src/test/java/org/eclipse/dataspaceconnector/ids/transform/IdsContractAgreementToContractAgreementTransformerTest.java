@@ -15,10 +15,12 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -43,12 +45,11 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
     // subject
     private IdsContractAgreementToContractAgreementTransformer transformer;
 
-    // mocks
-    private de.fraunhofer.iais.eis.ContractAgreement idsContractAgreement;
     private de.fraunhofer.iais.eis.Permission idsPermission;
     private de.fraunhofer.iais.eis.Prohibition idsProhibition;
     private de.fraunhofer.iais.eis.Duty idsDuty;
     private TransformerContext context;
+    private ContractTransformerInput input;
 
     @BeforeEach
     void setUp() {
@@ -56,7 +57,8 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
         idsPermission = new de.fraunhofer.iais.eis.PermissionBuilder().build();
         idsProhibition = new de.fraunhofer.iais.eis.ProhibitionBuilder().build();
         idsDuty = new de.fraunhofer.iais.eis.DutyBuilder().build();
-        idsContractAgreement = new de.fraunhofer.iais.eis.ContractAgreementBuilder(AGREEMENT_ID)
+        // mocks
+        var idsContractAgreement = new de.fraunhofer.iais.eis.ContractAgreementBuilder(AGREEMENT_ID)
                 ._provider_(PROVIDER_URI)
                 ._consumer_(CONSUMER_URI)
                 ._permission_(new ArrayList<>(Collections.singletonList(idsPermission)))
@@ -66,7 +68,10 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
                 ._contractEnd_(CONTRACT_END)
                 ._contractDate_(SIGNING_DATE)
                 .build();
+        Asset asset = Asset.Builder.newInstance().build();
+        input = ContractTransformerInput.Builder.newInstance().contract(idsContractAgreement).asset(asset).build();
         context = EasyMock.createMock(TransformerContext.class);
+
     }
 
     @Test
@@ -83,7 +88,7 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(idsContractAgreement, null);
+            transformer.transform(input, null);
         });
     }
 
@@ -113,7 +118,7 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = transformer.transform(idsContractAgreement, context);
+        var result = transformer.transform(input, context);
 
         // verify
         Assertions.assertNotNull(result);

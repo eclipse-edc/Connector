@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -32,11 +33,11 @@ import java.util.Objects;
 /**
  * Transforms an IDS ContractAgreement into an {@link ContractAgreement}.
  */
-public class IdsContractAgreementToContractAgreementTransformer implements IdsTypeTransformer<de.fraunhofer.iais.eis.ContractAgreement, ContractAgreement> {
+public class IdsContractAgreementToContractAgreementTransformer implements IdsTypeTransformer<ContractTransformerInput, ContractAgreement> {
 
     @Override
-    public Class<de.fraunhofer.iais.eis.ContractAgreement> getInputType() {
-        return de.fraunhofer.iais.eis.ContractAgreement.class;
+    public Class<ContractTransformerInput> getInputType() {
+        return ContractTransformerInput.class;
     }
 
     @Override
@@ -45,32 +46,35 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
     }
 
     @Override
-    public @Nullable ContractAgreement transform(de.fraunhofer.iais.eis.ContractAgreement object, @NotNull TransformerContext context) {
+    public @Nullable ContractAgreement transform(ContractTransformerInput object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
         }
 
+        var contractAgreement = (de.fraunhofer.iais.eis.ContractAgreement) object.getContract();
+        var asset = object.getAsset();
+
         var edcPermissions = new ArrayList<Permission>();
         var edcProhibitions = new ArrayList<Prohibition>();
         var edcObligations = new ArrayList<Duty>();
 
-        if (object.getPermission() != null) {
-            for (var edcPermission : object.getPermission()) {
+        if (contractAgreement.getPermission() != null) {
+            for (var edcPermission : contractAgreement.getPermission()) {
                 var idsPermission = context.transform(edcPermission, Permission.class);
                 edcPermissions.add(idsPermission);
             }
         }
 
-        if (object.getProhibition() != null) {
-            for (var edcProhibition : object.getProhibition()) {
+        if (contractAgreement.getProhibition() != null) {
+            for (var edcProhibition : contractAgreement.getProhibition()) {
                 var idsProhibition = context.transform(edcProhibition, Prohibition.class);
                 edcProhibitions.add(idsProhibition);
             }
         }
 
-        if (object.getObligation() != null) {
-            for (var edcObligation : object.getObligation()) {
+        if (contractAgreement.getObligation() != null) {
+            for (var edcObligation : contractAgreement.getObligation()) {
                 var idsObligation = context.transform(edcObligation, Duty.class);
                 edcObligations.add(idsObligation);
             }
@@ -84,24 +88,24 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
 
         var builder = ContractAgreement.Builder.newInstance()
                 .policy(policyBuilder.build())
-                .consumerAgentId(object.getConsumer())
-                .providerAgentId(object.getProvider())
-                .asset(Asset.Builder.newInstance().build()); // TODO should asset be integrated here? Is not allowed to be null
+                .consumerAgentId(contractAgreement.getConsumer())
+                .providerAgentId(contractAgreement.getProvider())
+                .asset(asset);
 
-        if (object.getId() != null) {
-            builder.id(object.getId().toString());
+        if (contractAgreement.getId() != null) {
+            builder.id(contractAgreement.getId().toString());
         }
 
-        if (object.getContractEnd() != null) {
-            builder.contractEndDate(object.getContractEnd().toGregorianCalendar().toZonedDateTime());
+        if (contractAgreement.getContractEnd() != null) {
+            builder.contractEndDate(contractAgreement.getContractEnd().toGregorianCalendar().toZonedDateTime());
         }
 
-        if (object.getContractStart() != null) {
-            builder.contractStartDate(object.getContractStart().toGregorianCalendar().toZonedDateTime());
+        if (contractAgreement.getContractStart() != null) {
+            builder.contractStartDate(contractAgreement.getContractStart().toGregorianCalendar().toZonedDateTime());
         }
 
-        if (object.getContractDate() != null) {
-            builder.contractSigningDate(object.getContractDate().toGregorianCalendar().toZonedDateTime());
+        if (contractAgreement.getContractDate() != null) {
+            builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().toZonedDateTime());
         }
 
         return builder.build();

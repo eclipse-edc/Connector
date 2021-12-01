@@ -14,13 +14,14 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import de.fraunhofer.iais.eis.ContractRequest;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,11 +32,11 @@ import java.util.Objects;
 /**
  * Transforms an IDS ContractRequest into an {@link ContractOffer}.
  */
-public class IdsContractRequestToContractOfferTransformer implements IdsTypeTransformer<de.fraunhofer.iais.eis.ContractRequest, ContractOffer> {
+public class IdsContractRequestToContractOfferTransformer implements IdsTypeTransformer<ContractTransformerInput, ContractOffer> {
 
     @Override
-    public Class<de.fraunhofer.iais.eis.ContractRequest> getInputType() {
-        return de.fraunhofer.iais.eis.ContractRequest.class;
+    public Class<ContractTransformerInput> getInputType() {
+        return ContractTransformerInput.class;
     }
 
     @Override
@@ -44,32 +45,35 @@ public class IdsContractRequestToContractOfferTransformer implements IdsTypeTran
     }
 
     @Override
-    public @Nullable ContractOffer transform(de.fraunhofer.iais.eis.ContractRequest object, @NotNull TransformerContext context) {
+    public @Nullable ContractOffer transform(ContractTransformerInput object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
         }
 
+        var contractRequest = (ContractRequest) object.getContract();
+        var asset = object.getAsset();
+
         var edcPermissions = new ArrayList<Permission>();
         var edcProhibitions = new ArrayList<Prohibition>();
         var edcObligations = new ArrayList<Duty>();
 
-        if (object.getPermission() != null) {
-            for (var edcPermission : object.getPermission()) {
+        if (contractRequest.getPermission() != null) {
+            for (var edcPermission : contractRequest.getPermission()) {
                 var idsPermission = context.transform(edcPermission, Permission.class);
                 edcPermissions.add(idsPermission);
             }
         }
 
-        if (object.getProhibition() != null) {
-            for (var edcProhibition : object.getProhibition()) {
+        if (contractRequest.getProhibition() != null) {
+            for (var edcProhibition : contractRequest.getProhibition()) {
                 var idsProhibition = context.transform(edcProhibition, Prohibition.class);
                 edcProhibitions.add(idsProhibition);
             }
         }
 
-        if (object.getObligation() != null) {
-            for (var edcObligation : object.getObligation()) {
+        if (contractRequest.getObligation() != null) {
+            for (var edcObligation : contractRequest.getObligation()) {
                 var idsObligation = context.transform(edcObligation, Duty.class);
                 edcObligations.add(idsObligation);
             }
@@ -83,21 +87,20 @@ public class IdsContractRequestToContractOfferTransformer implements IdsTypeTran
 
         var contractOfferBuilder = ContractOffer.Builder.newInstance()
                 .policy(policyBuilder.build())
-                .consumer(object.getConsumer())
-                .provider(object.getProvider());
+                .consumer(contractRequest.getConsumer())
+                .provider(contractRequest.getProvider())
+                .asset(asset);
 
-        if (object.getId() != null) {
-            contractOfferBuilder.id(object.getId().toString());
+        if (contractRequest.getId() != null) {
+            contractOfferBuilder.id(contractRequest.getId().toString());
         }
 
-        if (object.getContractEnd() != null) {
-            contractOfferBuilder.contractEnd(
-                    object.getContractEnd().toGregorianCalendar().toZonedDateTime());
+        if (contractRequest.getContractEnd() != null) {
+            contractOfferBuilder.contractEnd(contractRequest.getContractEnd().toGregorianCalendar().toZonedDateTime());
         }
 
-        if (object.getContractStart() != null) {
-            contractOfferBuilder.contractStart(
-                    object.getContractStart().toGregorianCalendar().toZonedDateTime());
+        if (contractRequest.getContractStart() != null) {
+            contractOfferBuilder.contractStart(contractRequest.getContractStart().toGregorianCalendar().toZonedDateTime());
         }
 
         return contractOfferBuilder.build();

@@ -20,9 +20,12 @@ import de.fraunhofer.iais.eis.ContractRequestMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -46,18 +49,21 @@ public class ContractRequestHandler implements Handler {
     private final String connectorId;
     private final ProviderContractNegotiationManager negotiationManager;
     private final TransformerRegistry transformerRegistry;
+    private final AssetIndex assetIndex;
 
     public ContractRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
             @NotNull ProviderContractNegotiationManager negotiationManager,
-            @NotNull TransformerRegistry transformerRegistry) {
+            @NotNull TransformerRegistry transformerRegistry,
+            @NotNull AssetIndex assetIndex) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
         this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
+        this.assetIndex = Objects.requireNonNull(assetIndex);
     }
 
     @Override
@@ -89,8 +95,35 @@ public class ContractRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(message, msg);
         }
 
+        // extract target from contract request
+        var permission = contractRequest.getPermission().get(0);
+        if (permission == null) {
+            monitor.debug("ContractRequestHandler: Contract Request is invalid");
+            return createBadParametersErrorMultipartResponse(message);
+        }
+
+        var target = permission.getTarget();
+        if (target == null || String.valueOf(target).isBlank()) {
+            monitor.debug("ContractRequestHandler: Contract Request is invalid");
+            return createBadParametersErrorMultipartResponse(message);
+        }
+
+        // search for matching asset
+        var assetId = IdsIdParser.parse(String.valueOf(target));
+        var asset = assetIndex.findById(assetId.getValue());
+        if (asset == null) {
+            var msg = "Target id is invalid";
+            monitor.debug(String.format("ContractRequestHandler: %s", msg));
+            return createBadParametersErrorMultipartResponse(message, msg);
+        }
+
         // Create contract offer request
-        TransformResult<ContractOffer> result = transformerRegistry.transform(contractRequest, ContractOffer.class);
+        var input = ContractTransformerInput.Builder.newInstance()
+                .contract(contractRequest)
+                .asset(asset)
+                .build();
+
+        TransformResult<ContractOffer> result = transformerRegistry.transform(input, ContractOffer.class);
         if (result.hasProblems()) {
             monitor.debug(String.format("Could not transform contract request: [%s]",
                     String.join(", ", result.getProblems())));
@@ -98,7 +131,6 @@ public class ContractRequestHandler implements Handler {
         }
 
         var contractOffer = result.getOutput();
-        // TODO get assets (currently, the validation always fails)
         var requestObj = ContractOfferRequest.Builder.newInstance()
                 .protocol(Protocols.IDS_MULTIPART)
                 .connectorAddress(idsWebhookAddress.toString())

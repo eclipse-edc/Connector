@@ -15,10 +15,12 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -48,6 +50,7 @@ public class IdsContractRequestToContractOfferTransformerTest {
     private de.fraunhofer.iais.eis.Prohibition idsProhibition;
     private de.fraunhofer.iais.eis.Duty idsDuty;
     private TransformerContext context;
+    private ContractTransformerInput input;
 
     @BeforeEach
     void setUp() {
@@ -64,6 +67,8 @@ public class IdsContractRequestToContractOfferTransformerTest {
                 ._contractStart_(CONTRACT_START)
                 ._contractEnd_(CONTRACT_END)
                 .build();
+        var asset = Asset.Builder.newInstance().build();
+        input = ContractTransformerInput.Builder.newInstance().contract(idsContractRequest).asset(asset).build();
         context = EasyMock.createMock(TransformerContext.class);
     }
 
@@ -81,7 +86,7 @@ public class IdsContractRequestToContractOfferTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(idsContractRequest, null);
+            transformer.transform(input, null);
         });
     }
 
@@ -111,7 +116,7 @@ public class IdsContractRequestToContractOfferTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = transformer.transform(idsContractRequest, context);
+        var result = transformer.transform(input, context);
 
         // verify
         Assertions.assertNotNull(result);
