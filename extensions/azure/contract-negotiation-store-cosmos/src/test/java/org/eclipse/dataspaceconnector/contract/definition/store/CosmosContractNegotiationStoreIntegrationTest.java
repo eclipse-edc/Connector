@@ -104,7 +104,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
         var foundItem = store.find(doc1.getId());
 
-        assertThat(foundItem).isNotNull().isEqualTo(doc1.getWrappedInstance());
+        assertThat(foundItem).isNotNull().usingRecursiveComparison().isEqualTo(doc1.getWrappedInstance());
     }
 
     @Test
@@ -124,7 +124,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
         var corrId = doc1.getWrappedInstance().getCorrelationId();
         var foundItem = store.findForCorrelationId(corrId);
 
-        assertThat(foundItem).isNotNull().isEqualTo(doc1.getWrappedInstance());
+        assertThat(foundItem).isNotNull().usingRecursiveComparison().isEqualTo(doc1.getWrappedInstance());
     }
 
     @Test
@@ -150,7 +150,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
         var foundItem = store.findContractAgreement(doc1.getWrappedInstance().getContractAgreement().getId());
 
-        assertThat(foundItem).isNotNull().isEqualTo(doc1.getWrappedInstance().getContractAgreement());
+        assertThat(foundItem).isNotNull().usingRecursiveComparison().isEqualTo(doc1.getWrappedInstance().getContractAgreement());
     }
 
     @Test
@@ -168,7 +168,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
         var allObjs = container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class);
 
         assertThat(allObjs).hasSize(1);
-        assertThat(allObjs).allSatisfy(o -> assertThat(toNegotiation(o)).isEqualTo(negotiation));
+        assertThat(allObjs).allSatisfy(o -> assertThat(toNegotiation(o)).usingRecursiveComparison().isEqualTo(negotiation));
     }
 
     @Test
@@ -199,7 +199,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
         container.createItem(new ContractNegotiationDocument(n));
 
         var result = store.nextForState(state.code(), 10);
-        assertThat(result).hasSize(1).containsExactly(n);
+        assertThat(result).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
     }
 
     @Test
@@ -214,7 +214,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
         var result = store.nextForState(state.code(), 4);
         assertThat(result).hasSize(4);
-        assertThat(result).allSatisfy(r -> assertThat(preparedNegotiations).contains(r));
+        assertThat(result).allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
     }
 
 
@@ -247,7 +247,8 @@ public class CosmosContractNegotiationStoreIntegrationTest {
         var result = store.nextForState(state.code(), 10);
         assertThat(result)
                 .hasSize(2)
-                .containsExactlyInAnyOrder(n1, n2);
+                .extracting(ContractNegotiation::getId)
+                .containsExactlyInAnyOrder(n1.getId(), n2.getId());
     }
 
     @Test
@@ -293,7 +294,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
         Thread.sleep(20); //give the lease time to expire
 
         var result = store.nextForState(state.code(), 10);
-        assertThat(result).hasSize(1).containsExactly(n);
+        assertThat(result).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
     }
 
     private ContractNegotiationDocument toDocument(Object object) {
