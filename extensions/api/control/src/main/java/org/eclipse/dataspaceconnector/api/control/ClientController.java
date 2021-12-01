@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add negotiation endpoint
  *
  */
 
@@ -21,10 +22,12 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,10 +39,17 @@ import java.util.Objects;
 @Path("/control")
 public class ClientController {
 
+    private final Monitor monitor;
     private final TransferProcessManager transferProcessManager;
+    private final ConsumerContractNegotiationManager consumerNegotiationManager;
 
-    public ClientController(@NotNull TransferProcessManager transferProcessManager) {
+    public ClientController(
+            @NotNull Monitor monitor,
+            @NotNull TransferProcessManager transferProcessManager,
+            @NotNull ConsumerContractNegotiationManager consumerNegotiationManager) {
+        this.monitor = Objects.requireNonNull(monitor);
         this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
+        this.consumerNegotiationManager = Objects.requireNonNull(consumerNegotiationManager);
     }
 
     @POST
@@ -54,18 +64,23 @@ public class ClientController {
         return Response.ok(response.getId()).build();
     }
 
-    /**
-     * TODO Extend after merging PR #284
-     */
     @POST
     @Path("negotiation")
-    public Response initiateNegotiation(ContractOffer contractOffer) { // TODO Change to ContractOfferRequest
+    public Response initiateNegotiation(ContractOfferRequest contractOffer, String idsWebhookAddress) {
         if (contractOffer == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        // NegotiationProcessResponse response = contractNegotiationManager.initiate(contractOffer)
-        // return Response.ok(response.getId()).build();
-        return Response.ok().build();
+        if (idsWebhookAddress != null && !idsWebhookAddress.isBlank()) {
+            monitor.info(String.format("Updated ids.webhook.address to %s", idsWebhookAddress));
+            // TODO set config setting (ids.webhook.address)
+        }
+
+        var result = consumerNegotiationManager.initiate(contractOffer);
+        if (result.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
+            return Response.serverError().build();
+        }
+
+        return Response.ok(result.getContractNegotiation().getId()).build();
     }
 }
