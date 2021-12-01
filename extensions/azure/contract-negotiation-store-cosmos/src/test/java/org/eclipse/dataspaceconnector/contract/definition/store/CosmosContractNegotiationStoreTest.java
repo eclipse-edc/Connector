@@ -41,7 +41,7 @@ class CosmosContractNegotiationStoreTest {
         replay(cosmosDbApiMock);
 
         var result = store.find("test-id-1");
-        assertThat(result).isEqualTo(doc.getWrappedInstance());
+        assertThat(result).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
         verify(cosmosDbApiMock);
 
     }
@@ -61,7 +61,7 @@ class CosmosContractNegotiationStoreTest {
         expect(cosmosDbApiMock.queryItems(anyObject(SqlQuerySpec.class))).andReturn(Stream.of(doc));
         replay(cosmosDbApiMock);
 
-        assertThat(store.findForCorrelationId("some-correlation-id")).isEqualTo(doc.getWrappedInstance());
+        assertThat(store.findForCorrelationId("some-correlation-id")).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
         verify(cosmosDbApiMock);
 
     }
@@ -71,7 +71,7 @@ class CosmosContractNegotiationStoreTest {
         var doc = generateDocument();
         expect(cosmosDbApiMock.queryItems(anyObject(SqlQuerySpec.class))).andReturn(Stream.of(doc));
         replay(cosmosDbApiMock);
-        assertThat(store.findContractAgreement("test-contract-id")).isEqualTo(doc.getWrappedInstance().getContractAgreement());
+        assertThat(store.findContractAgreement("test-contract-id")).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance().getContractAgreement());
         verify(cosmosDbApiMock);
     }
 
