@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
@@ -230,6 +231,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .provider(URI.create("provider"))
                 .consumer(URI.create("consumer"))
+                .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
                         .type(PolicyType.CONTRACT)
@@ -295,5 +297,5 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                         .build())
                 .build();
     }
-    
+
 }

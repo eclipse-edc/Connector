@@ -340,7 +340,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                     .providerAgentId(lastOffer.getProvider().toString())
                     .consumerAgentId(lastOffer.getConsumer().toString())
                     .policy(lastOffer.getPolicy())
-                    .assetIds(lastOffer.getAssets().stream().map(Asset::getId).collect(Collectors.toList()))
+                    .asset(lastOffer.getAsset())
                     .build();
 
             var request = ContractAgreementRequest.Builder.newInstance()

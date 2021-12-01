@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -177,7 +178,7 @@ class InMemoryContractNegotiationStoreTest {
                 .id("agreementId")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
-                .assetIds(List.of("assetId"))
+                .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance().build())
                 .contractSigningDate(1L)
                 .contractStartDate(1L)
