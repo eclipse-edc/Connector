@@ -32,6 +32,7 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
 import java.util.UUID;
+import java.util.function.Supplier;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,6 +45,7 @@ import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFi
 
 @IntegrationTest
 class S3StatusCheckerIntegrationTest extends AbstractS3Test {
+    public static final int ONE_MINUTE_MILLIS = 1000 * 60;
     private static final String PROCESS_ID = UUID.randomUUID().toString();
     private S3StatusChecker checker;
 
@@ -72,18 +74,8 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
         putTestFile(PROCESS_ID + ".complete", getFileFromResourceName("hello.txt"), bucketName);
 
         var tp = createTransferProcess(bucketName);
-        var done = false;
-        var start = System.currentTimeMillis();
-        var complete = false;
-        while (!done) {
-            complete = checker.isComplete(tp, emptyList());
-            if (complete) {
-                done = true;
-            } else {
-                done = System.currentTimeMillis() - start > 10 * 1000;
-            }
-            Thread.sleep(5);
-        }
+        var hasCompleted = waitUntil(() -> checker.isComplete(tp, emptyList()), ONE_MINUTE_MILLIS);
+        assertThat(hasCompleted).isTrue();
     }
 
     @Test
@@ -108,20 +100,8 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
         //act-assert
         TransferProcess tp = createTransferProcess(bucketName);
         S3BucketProvisionedResource provisionedResource = createProvisionedResource(tp);
-        var done = false;
-        var start = System.currentTimeMillis();
-        var complete = false;
-        while (!done) {
-            complete = checker.isComplete(tp, Collections.singletonList(provisionedResource));
-            if (complete) {
-                done = true;
-            } else {
-                done = System.currentTimeMillis() - start > 10 * 1000;
-            }
-            Thread.sleep(5);
-        }
-
-        assertThat(complete).isTrue();
+        var hasCompleted = waitUntil(() -> checker.isComplete(tp, emptyList()), ONE_MINUTE_MILLIS);
+        assertThat(hasCompleted).isTrue();
     }
 
     @Test
@@ -134,6 +114,22 @@ class S3StatusCheckerIntegrationTest extends AbstractS3Test {
     @Override
     protected @NotNull String createBucketName() {
         return "s3-checker-test-" + PROCESS_ID + "-" + REGION;
+    }
+
+    private boolean waitUntil(Supplier<Boolean> conditionSupplier, long maxTimeMillis) throws InterruptedException {
+        var done = false;
+        var start = System.currentTimeMillis();
+        var complete = false;
+        while (!done) {
+            complete = conditionSupplier.get();
+            if (complete) {
+                done = true;
+            } else {
+                done = System.currentTimeMillis() - start > maxTimeMillis;
+            }
+            Thread.sleep(5);
+        }
+        return complete;
     }
 
     private S3BucketProvisionedResource createProvisionedResource(TransferProcess tp) {
