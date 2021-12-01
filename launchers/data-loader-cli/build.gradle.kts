@@ -54,3 +54,13 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     mergeServiceFiles()
     archiveFileName.set("dataloader.jar")
 }
+
+publishing {
+    publications {
+        create<MavenPublication>("dataloader-cli") {
+            artifactId = "dataloader-cli"
+            from(components["java"])
+        }
+    }
+}
+
