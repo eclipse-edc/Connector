@@ -41,13 +41,18 @@ import java.util.Objects;
  */
 public class MultipartContractOfferSender extends IdsMultipartSender<ContractOfferRequest, MultipartRequestInProcessResponse> {
 
+    private final String idsWebhookAddress;
+
     public MultipartContractOfferSender(@NotNull String connectorId,
-                                          @NotNull OkHttpClient httpClient,
-                                          @NotNull ObjectMapper objectMapper,
-                                          @NotNull Monitor monitor,
-                                          @NotNull IdentityService identityService,
-                                          @NotNull TransformerRegistry transformerRegistry) {
+                                        @NotNull OkHttpClient httpClient,
+                                        @NotNull ObjectMapper objectMapper,
+                                        @NotNull Monitor monitor,
+                                        @NotNull IdentityService identityService,
+                                        @NotNull TransformerRegistry transformerRegistry,
+                                        @NotNull String idsWebhookAddress) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+
+        this.idsWebhookAddress = idsWebhookAddress;
     }
 
     @Override
@@ -67,8 +72,12 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
 
     @Override
     protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) throws Exception {
+        if (idsWebhookAddress == null || idsWebhookAddress.isBlank()) {
+            throw new EdcException("No valid value found for attribute ids.webhook.address");
+        }
+
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
-            return new ContractRequestMessageBuilder()
+            var message = new ContractRequestMessageBuilder()
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                     //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                     ._securityToken_(token)
@@ -76,8 +85,11 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._senderAgent_(getConnectorId())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     .build();
+            message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+
+            return message;
         } else {
-            return new ContractOfferMessageBuilder()
+            var message =  new ContractOfferMessageBuilder()
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                     //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                     ._securityToken_(token)
@@ -85,6 +97,9 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
                     ._senderAgent_(getConnectorId())
                     ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                     .build();
+            message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+
+            return message;
         }
     }
 

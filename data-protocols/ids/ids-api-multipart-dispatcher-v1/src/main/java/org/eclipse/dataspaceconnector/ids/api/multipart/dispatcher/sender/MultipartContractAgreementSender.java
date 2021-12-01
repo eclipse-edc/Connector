@@ -40,13 +40,18 @@ import java.util.Objects;
  */
 public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
 
+    private final String idsWebhookAddress;
+
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
                                             @NotNull ObjectMapper objectMapper,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
-                                            @NotNull TransformerRegistry transformerRegistry) {
+                                            @NotNull TransformerRegistry transformerRegistry,
+                                            @NotNull String idsWebhookAddress) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+
+        this.idsWebhookAddress = idsWebhookAddress;
     }
 
     @Override
@@ -66,7 +71,11 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
 
     @Override
     protected Message buildMessageHeader(ContractAgreementRequest request, DynamicAttributeToken token) throws Exception {
-        return new ContractAgreementMessageBuilder()
+        if (idsWebhookAddress == null || idsWebhookAddress.isBlank()) {
+            throw new EdcException("No valid value found for attribute ids.webhook.address");
+        }
+
+        var message = new ContractAgreementMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
@@ -74,6 +83,9 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
                 ._senderAgent_(getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 .build();
+        message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+
+        return message;
     }
 
     @Override

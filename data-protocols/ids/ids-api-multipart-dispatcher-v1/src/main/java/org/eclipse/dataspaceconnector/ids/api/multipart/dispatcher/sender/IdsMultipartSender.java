@@ -181,7 +181,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         // Build IDS message header
         Message message;
         try {
-            message = buildMessageHeader(request, token);
+            message = buildMessageHeader(request, token); // TODO set idsWebhookAddress globally?
         } catch (Exception e) {
             future.completeExceptionally(e);
             return future;
