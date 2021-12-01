@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ResponseMessageUtil;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
@@ -40,14 +41,17 @@ public class ContractRequestHandler implements Handler {
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final String connectorId;
+    private final ConsumerContractNegotiationManager negotiationManager;
 
     public ContractRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull ObjectMapper objectMapper) {
+            @NotNull ObjectMapper objectMapper,
+            @NotNull ConsumerContractNegotiationManager negotiationManager) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.negotiationManager = Objects.requireNonNull(negotiationManager);
     }
 
     @Override
@@ -72,8 +76,8 @@ public class ContractRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        // TODO
-        // var correlationId = contractRequestMessage.getTransferContract();
+        var correlationId = message.getTransferContract();
+        // TODO negotiationManager.initiate(C);
         // Create contract offer request
         // Start negotiation process: ProviderContractNegotiationManagerImpl.requested
 

@@ -77,6 +77,7 @@ public class ContractAgreementHandler implements Handler {
         // Create contract agreement
         // Start negotiation process: ProviderContractNegotiationManagerImpl.confirmed
 
+
         return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createMessageProcessedNotificationMessage(connectorId, message))
                 .build();

@@ -44,6 +44,8 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -161,10 +163,12 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
-        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper));
-        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper));
-        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper));
-        handlers.add(new ContractRejectionHandler(monitor, connectorId));
+        var providerNegotiationManager = serviceExtensionContext.getService(ProviderContractNegotiationManager.class);
+        var consumerNegotiationManager = serviceExtensionContext.getService(ConsumerContractNegotiationManager.class);
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager));
+        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
+        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager));
+        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager));
 
         // create notification message handlers
         handlers.add(new MessageProcessedNotificationHandler(monitor, connectorId));
