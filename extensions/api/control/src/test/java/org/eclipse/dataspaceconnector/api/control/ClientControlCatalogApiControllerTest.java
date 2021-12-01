@@ -75,19 +75,19 @@ class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalog
         Assertions.assertEquals("1", jsonPath.get("contractOffers[0].policy.permissions[0].target"));
         Assertions.assertEquals("USE", jsonPath.get("contractOffers[0].policy.permissions[0].action.type"));
         Assertions.assertEquals("set", jsonPath.get("contractOffers[0].policy.@type.@policytype"));
-        Assertions.assertEquals(1234, jsonPath.getInt("contractOffers[0].assets[0].properties['ids:byteSize']"));
-        Assertions.assertEquals("1", jsonPath.get("contractOffers[0].assets[0].properties['asset:prop:id']"));
-        Assertions.assertEquals("txt", jsonPath.get("contractOffers[0].assets[0].properties['ids:fileExtension']"));
-        Assertions.assertEquals("filename1", jsonPath.get("contractOffers[0].assets[0].properties['ids:fileName']"));
+        Assertions.assertEquals(1234, jsonPath.getInt("contractOffers[0].asset.properties['ids:byteSize']"));
+        Assertions.assertEquals("1", jsonPath.get("contractOffers[0].asset.properties['asset:prop:id']"));
+        Assertions.assertEquals("txt", jsonPath.get("contractOffers[0].asset.properties['ids:fileExtension']"));
+        Assertions.assertEquals("filename1", jsonPath.get("contractOffers[0].asset.properties['ids:fileName']"));
         Assertions.assertEquals("urn:contractoffer:2", jsonPath.get("contractOffers[1].id"));
         Assertions.assertNotNull(jsonPath.get("contractOffers[1].policy.uid"));
         Assertions.assertEquals("dataspaceconnector:permission", jsonPath.get("contractOffers[1].policy.permissions[0].edctype"));
         Assertions.assertEquals("2", jsonPath.get("contractOffers[1].policy.permissions[0].target"));
         Assertions.assertEquals("USE", jsonPath.get("contractOffers[1].policy.permissions[0].action.type"));
         Assertions.assertEquals("set", jsonPath.get("contractOffers[1].policy.@type.@policytype"));
-        Assertions.assertEquals(5678, jsonPath.getInt("contractOffers[1].assets[0].properties['ids:byteSize']"));
-        Assertions.assertEquals("2", jsonPath.get("contractOffers[1].assets[0].properties['asset:prop:id']"));
-        Assertions.assertEquals("pdf", jsonPath.get("contractOffers[1].assets[0].properties['ids:fileExtension']"));
-        Assertions.assertEquals("filename2", jsonPath.get("contractOffers[1].assets[0].properties['ids:fileName']"));
+        Assertions.assertEquals(5678, jsonPath.getInt("contractOffers[1].asset.properties['ids:byteSize']"));
+        Assertions.assertEquals("2", jsonPath.get("contractOffers[1].asset.properties['asset:prop:id']"));
+        Assertions.assertEquals("pdf", jsonPath.get("contractOffers[1].asset.properties['ids:fileExtension']"));
+        Assertions.assertEquals("filename2", jsonPath.get("contractOffers[1].asset.properties['ids:fileName']"));
     }
 }

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.asset;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -55,6 +56,7 @@ public interface AssetIndex {
      * @return The {@link Asset} if one was found, or null otherwise.
      * @throws NullPointerException If {@code assetId} was null or empty.
      */
+    @Nullable
     Asset findById(String assetId);
 
 

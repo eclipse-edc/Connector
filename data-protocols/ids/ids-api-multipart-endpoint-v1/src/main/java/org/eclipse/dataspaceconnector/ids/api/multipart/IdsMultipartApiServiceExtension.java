@@ -79,6 +79,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         return Set.of(IdentityService.FEATURE,
                 "dataspaceconnector:transfer-process-manager",
                 "edc:ids:core",
+                AssetIndex.FEATURE,
                 ContractDefinitionStore.FEATURE,
                 "edc:ids:transform:v1");
     }

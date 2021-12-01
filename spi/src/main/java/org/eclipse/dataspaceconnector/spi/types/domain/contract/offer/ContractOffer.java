@@ -24,9 +24,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.time.ZonedDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -42,9 +39,9 @@ public class ContractOffer {
     private Policy policy;
 
     /**
-     * The offered assets
+     * The offered asset
      */
-    private List<Asset> assets;
+    private Asset asset;
 
     /**
      * The participant who provides the offered data
@@ -110,8 +107,8 @@ public class ContractOffer {
     }
 
     @NotNull
-    public List<Asset> getAssets() {
-        return assets == null ? Collections.emptyList() : Collections.unmodifiableList(assets);
+    public Asset getAsset() {
+        return asset;
     }
 
     @NotNull
@@ -121,7 +118,7 @@ public class ContractOffer {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, policy, assets, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
+        return Objects.hash(id, policy, asset, provider, consumer, offerStart, offerEnd, contractStart, contractEnd);
     }
 
     @Override
@@ -133,14 +130,14 @@ public class ContractOffer {
             return false;
         }
         ContractOffer that = (ContractOffer) o;
-        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(assets, that.assets) && Objects.equals(provider, that.provider) &&
+        return Objects.equals(id, that.id) && Objects.equals(policy, that.policy) && Objects.equals(asset, that.asset) && Objects.equals(provider, that.provider) &&
                 Objects.equals(consumer, that.consumer) && Objects.equals(offerStart, that.offerStart) && Objects.equals(offerEnd, that.offerEnd) &&
                 Objects.equals(contractStart, that.contractStart) && Objects.equals(contractEnd, that.contractEnd);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-        private List<Asset> assets = new ArrayList<>();
+        private Asset asset;
         private Policy policy;
         private String id;
         private URI provider;
@@ -173,8 +170,8 @@ public class ContractOffer {
             return this;
         }
 
-        public Builder assets(List<Asset> assets) {
-            this.assets = assets;
+        public Builder asset(Asset asset) {
+            this.asset = asset;
             return this;
         }
 
@@ -208,15 +205,15 @@ public class ContractOffer {
             Objects.requireNonNull(id);
 
             ContractOffer offer = new ContractOffer();
-            offer.id = id;
-            offer.policy = policy;
-            offer.assets = assets;
-            offer.provider = provider;
-            offer.consumer = consumer;
-            offer.offerStart = offerStart;
-            offer.offerEnd = offerEnd;
-            offer.contractStart = contractStart;
-            offer.contractEnd = contractEnd;
+            offer.id = this.id;
+            offer.policy = this.policy;
+            offer.asset = this.asset;
+            offer.provider = this.provider;
+            offer.consumer = this.consumer;
+            offer.offerStart = this.offerStart;
+            offer.offerEnd = this.offerEnd;
+            offer.contractStart = this.contractStart;
+            offer.contractEnd = this.contractEnd;
             return offer;
         }
     }

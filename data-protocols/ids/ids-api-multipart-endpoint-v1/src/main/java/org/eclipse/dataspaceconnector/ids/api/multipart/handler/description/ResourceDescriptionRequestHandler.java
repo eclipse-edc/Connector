@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
@@ -55,12 +56,18 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
     }
 
     protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult) {
-        Asset asset = assetIndex.findById(idsId.getValue());
-        ContractOfferQuery contractOfferQuery = ContractOfferQuery.Builder.newInstance().claimToken(verificationResult.token()).build();
+        String assetId = idsId.getValue();
+        Asset asset = assetIndex.findById(assetId);
+        if (asset == null) {
+            return null;
+        }
 
-        // FIXME: This is temporary until we add criterion to the query and filter in the AssetIndex
-        List<ContractOffer> targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery)
-                .filter(offer -> offer.getAssets().stream().anyMatch(entry -> entry.getId().equals(asset.getId()))).collect(toList());
+        ContractOfferQuery contractOfferQuery = ContractOfferQuery.Builder.newInstance()
+                .claimToken(verificationResult.token())
+                .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
+                .build();
+
+        List<ContractOffer> targetingContractOffers = contractOfferService.queryContractOffers(contractOfferQuery).collect(toList());
 
         return new OfferedAsset(asset, targetingContractOffers);
     }

@@ -87,7 +87,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         }
 
         var contractTransformationResult = getTransformerRegistry().transform(contractIdsId, URI.class);
-        if (artifactTransformationResult.hasProblems()) {
+        if (contractTransformationResult.hasProblems()) {
             throw new EdcException("Failed to create contract ID from asset.");
         }
 

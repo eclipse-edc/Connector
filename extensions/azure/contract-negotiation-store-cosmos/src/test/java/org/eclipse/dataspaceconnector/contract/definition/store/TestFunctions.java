@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -26,6 +27,7 @@ public class TestFunctions {
                 .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
                         .providerAgentId("provider")
                         .consumerAgentId("consumer")
+                        .asset(Asset.Builder.newInstance().build())
                         .policy(Policy.Builder.newInstance().build())
                         .contractSigningDate(LocalDate.MIN.toEpochDay())
                         .contractStartDate(LocalDate.MIN.toEpochDay())

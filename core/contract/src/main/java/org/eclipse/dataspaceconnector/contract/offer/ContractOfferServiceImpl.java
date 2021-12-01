@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Stream;
 
@@ -48,7 +47,7 @@ public class ContractOfferServiceImpl implements ContractOfferService {
 
         return definitions.flatMap(definition -> {
             var assets = assetIndex.queryAssets(definition.getSelectorExpression());
-            return assets.map(asset -> ContractOffer.Builder.newInstance().id(definition.getId()).policy(definition.getContractPolicy()).assets(List.of(asset)).build());
+            return assets.map(asset -> ContractOffer.Builder.newInstance().id(definition.getId()).policy(definition.getContractPolicy()).asset(asset).build());
         });
     }
 

@@ -29,7 +29,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -110,11 +109,8 @@ public class IdsResourceCatalogToDataCatalogTransformer implements IdsTypeTransf
         var contractOfferBuilder = ContractOffer.Builder.newInstance()
                 .policy(policyBuilder.build())
                 .consumer(object.getConsumer())
-                .provider(object.getProvider());
-
-        if (asset != null) {
-            contractOfferBuilder.assets(Collections.singletonList(asset));
-        }
+                .provider(object.getProvider())
+                .asset(asset);
 
         if (object.getId() != null) {
             contractOfferBuilder.id(object.getId().toString());

@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -115,6 +116,7 @@ public class ArtifactRequestHandler implements Handler {
 
         ContractAgreement contractAgreement = ContractAgreement.Builder.newInstance()
                 .id(contractDefinition.get().getId() + ":" + UUID.randomUUID())
+                .asset(Asset.Builder.newInstance().id(artifactIdsId.getValue()).build())
                 .policy(contractDefinition.get().getContractPolicy())
                 .contractEndDate(Instant.now().getEpochSecond() + 60 * 5 /* Five Minutes */)
                 .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
@@ -124,7 +126,6 @@ public class ArtifactRequestHandler implements Handler {
                 .build();
 
         // TODO Assert that the Asset is part of the contract
-        // TODO Assert that the contract date is valid
 
         boolean isContractValid = contractValidationService.validate(verificationResult.token(), contractAgreement);
         if (!isContractValid) {

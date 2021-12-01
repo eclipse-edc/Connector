@@ -45,12 +45,10 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
@@ -65,7 +63,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
     @Override
     public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", "dataspaceconnector:dispatcher", ContractDefinitionStore.FEATURE);
+        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", "dataspaceconnector:dispatcher", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
     }
 
     @Override
@@ -107,14 +105,12 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         @Override
         @NotNull
         public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
-            List<ContractOffer> contractOffers = assets.stream()
-                    .map(Collections::singletonList)
-                    .map(assets -> ContractOffer.Builder.newInstance()
+            return assets.stream().map(asset ->
+                    ContractOffer.Builder.newInstance()
                             .policy(createEverythingAllowedPolicy())
                             .id("1")
-                            .assets(assets).build())
-                    .collect(Collectors.toList());
-            return contractOffers.stream();
+                            .asset(asset)
+                            .build());
         }
 
         private Policy createEverythingAllowedPolicy() {
