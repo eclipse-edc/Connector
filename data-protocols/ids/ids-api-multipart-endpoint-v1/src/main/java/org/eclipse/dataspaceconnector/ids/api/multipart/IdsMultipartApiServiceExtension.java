@@ -22,10 +22,12 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractOfferHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRejectionHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.MessageProcessedNotificationHandler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.RequestInProcessHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
@@ -85,7 +87,8 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
                 "edc:ids:core",
                 AssetIndex.FEATURE,
                 ContractDefinitionStore.FEATURE,
-                "edc:ids:transform:v1");
+                "edc:ids:transform:v1",
+                "edc:core:contract");
     }
 
     @Override
@@ -160,14 +163,10 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         // create contract message handlers
         var providerNegotiationManager = serviceExtensionContext.getService(ProviderContractNegotiationManager.class);
         var consumerNegotiationManager = serviceExtensionContext.getService(ConsumerContractNegotiationManager.class);
-//        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager));
-//        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
-//        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager));
-//        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager));
-
-        // create notification message handlers
-        handlers.add(new MessageProcessedNotificationHandler(monitor, connectorId));
-        handlers.add(new RequestInProcessHandler(monitor, connectorId));
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry));
+        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry));
+        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
+        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 
         // create & register controller
         MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);

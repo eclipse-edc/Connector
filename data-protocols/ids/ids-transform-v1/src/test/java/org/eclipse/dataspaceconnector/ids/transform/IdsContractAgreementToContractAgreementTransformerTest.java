@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - Initial Implementation
  *
  */
 
@@ -31,19 +31,20 @@ import java.util.GregorianCalendar;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
-public class IdsContractRequestToContractOfferTransformerTest {
-    private static final URI REQUEST_ID = URI.create("urn:request:456uz984390236s");
+public class IdsContractAgreementToContractAgreementTransformerTest {
+    private static final URI AGREEMENT_ID = URI.create("urn:agreement:456uz984390236s");
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
 
     private static final URI CONSUMER_URI = URI.create("https://provider.com/");
     private static final XMLGregorianCalendar CONTRACT_START = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar(2021, Calendar.JANUARY, 1));
     private static final XMLGregorianCalendar CONTRACT_END = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar(2021, Calendar.FEBRUARY, 2));
+    private static final XMLGregorianCalendar SIGNING_DATE = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar(2021, Calendar.FEBRUARY, 2));
 
     // subject
-    private IdsContractRequestToContractOfferTransformer transformer;
+    private IdsContractAgreementToContractAgreementTransformer transformer;
 
     // mocks
-    private de.fraunhofer.iais.eis.ContractRequest idsContractRequest;
+    private de.fraunhofer.iais.eis.ContractAgreement idsContractAgreement;
     private de.fraunhofer.iais.eis.Permission idsPermission;
     private de.fraunhofer.iais.eis.Prohibition idsProhibition;
     private de.fraunhofer.iais.eis.Duty idsDuty;
@@ -51,18 +52,19 @@ public class IdsContractRequestToContractOfferTransformerTest {
 
     @BeforeEach
     void setUp() {
-        transformer = new IdsContractRequestToContractOfferTransformer();
+        transformer = new IdsContractAgreementToContractAgreementTransformer();
         idsPermission = new de.fraunhofer.iais.eis.PermissionBuilder().build();
         idsProhibition = new de.fraunhofer.iais.eis.ProhibitionBuilder().build();
         idsDuty = new de.fraunhofer.iais.eis.DutyBuilder().build();
-        idsContractRequest = new de.fraunhofer.iais.eis.ContractRequestBuilder(REQUEST_ID)
+        idsContractAgreement = new de.fraunhofer.iais.eis.ContractAgreementBuilder(AGREEMENT_ID)
                 ._provider_(PROVIDER_URI)
-                ._provider_(CONSUMER_URI)
+                ._consumer_(CONSUMER_URI)
                 ._permission_(new ArrayList<>(Collections.singletonList(idsPermission)))
                 ._prohibition_(new ArrayList<>(Collections.singletonList(idsProhibition)))
                 ._obligation_(new ArrayList<>(Collections.singletonList(idsDuty)))
                 ._contractStart_(CONTRACT_START)
                 ._contractEnd_(CONTRACT_END)
+                ._contractDate_(SIGNING_DATE)
                 .build();
         context = EasyMock.createMock(TransformerContext.class);
     }
@@ -81,7 +83,7 @@ public class IdsContractRequestToContractOfferTransformerTest {
         EasyMock.replay(context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(idsContractRequest, null);
+            transformer.transform(idsContractAgreement, null);
         });
     }
 
@@ -111,7 +113,7 @@ public class IdsContractRequestToContractOfferTransformerTest {
         EasyMock.replay(context);
 
         // invoke
-        var result = transformer.transform(idsContractRequest, context);
+        var result = transformer.transform(idsContractAgreement, context);
 
         // verify
         Assertions.assertNotNull(result);

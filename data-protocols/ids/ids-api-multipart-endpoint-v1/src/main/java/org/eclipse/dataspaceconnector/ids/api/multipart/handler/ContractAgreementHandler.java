@@ -15,15 +15,18 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.fraunhofer.iais.eis.ContractAgreement;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.Message;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ResponseMessageUtil;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
+import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,14 +43,20 @@ public class ContractAgreementHandler implements Handler {
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final String connectorId;
+    private final ConsumerContractNegotiationManager negotiationManager;
+    private final TransformerRegistry transformerRegistry;
 
     public ContractAgreementHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull ObjectMapper objectMapper) {
+            @NotNull ObjectMapper objectMapper,
+            @NotNull ConsumerContractNegotiationManager negotiationManager,
+            @NotNull TransformerRegistry transformerRegistry) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.negotiationManager = Objects.requireNonNull(negotiationManager);
+        this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
     }
 
     @Override
@@ -64,19 +73,32 @@ public class ContractAgreementHandler implements Handler {
 
         var message = (ContractAgreementMessage) multipartRequest.getHeader();
 
-        ContractAgreement contractAgreement = null;
+        de.fraunhofer.iais.eis.ContractAgreement contractAgreement;
         try {
-            contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), ContractAgreement.class);
+            contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), de.fraunhofer.iais.eis.ContractAgreement.class);
         } catch (IOException e) {
             monitor.debug("ContractAgreementHandler: Contract Agreement is invalid");
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        // TODO
-        // var correlationId = contractOfferMessage.getTransferContract();
         // Create contract agreement
-        // Start negotiation process: ProviderContractNegotiationManagerImpl.confirmed
+        TransformResult<ContractAgreement> result = transformerRegistry.transform(contractAgreement, ContractAgreement.class);
+        if (result.hasProblems()) {
+            monitor.debug(String.format("Could not transform contract agreement: [%s]",
+                    String.join(", ", result.getProblems())));
+            return createBadParametersErrorMultipartResponse(message);
+        }
 
+        // TODO get assets (currently, the validation always fails)
+        // TODO get hash from message
+        var agreement = result.getOutput();
+        var processId = message.getTransferContract();
+        var negotiationResponse = negotiationManager.confirmed(verificationResult.token(),
+                String.valueOf(processId), agreement, null);
+        if (negotiationResponse.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
+            monitor.debug("ContractAgreementHandler: Could not process contract agreement");
+            return createBadParametersErrorMultipartResponse(message);
+        }
 
         return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createMessageProcessedNotificationMessage(connectorId, message))

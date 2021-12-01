@@ -57,7 +57,7 @@ public class IdsContractOfferToContractOfferTransformerTest {
         idsDuty = new de.fraunhofer.iais.eis.DutyBuilder().build();
         idsContractOffer = new de.fraunhofer.iais.eis.ContractOfferBuilder(OFFER_ID)
                 ._provider_(PROVIDER_URI)
-                ._provider_(CONSUMER_URI)
+                ._consumer_(CONSUMER_URI)
                 ._permission_(new ArrayList<>(Collections.singletonList(idsPermission)))
                 ._prohibition_(new ArrayList<>(Collections.singletonList(idsProhibition)))
                 ._obligation_(new ArrayList<>(Collections.singletonList(idsDuty)))

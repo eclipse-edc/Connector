@@ -22,6 +22,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ResponseMessageUtil;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
@@ -40,14 +42,20 @@ public class ContractOfferHandler implements Handler {
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final String connectorId;
+    private final ProviderContractNegotiationManager providerNegotiationManager;
+    private final ConsumerContractNegotiationManager consumerNegotiationManager;
 
     public ContractOfferHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
-            @NotNull ObjectMapper objectMapper) {
+            @NotNull ObjectMapper objectMapper,
+            @NotNull ProviderContractNegotiationManager providerNegotiationManager,
+            @NotNull ConsumerContractNegotiationManager consumerNegotiationManager) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
+        this.providerNegotiationManager = Objects.requireNonNull(providerNegotiationManager);
+        this.consumerNegotiationManager = Objects.requireNonNull(consumerNegotiationManager);
     }
 
     @Override
@@ -72,10 +80,7 @@ public class ContractOfferHandler implements Handler {
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        // TODO
-        // var correlationId = contractOfferMessage.getTransferContract();
-        // Create contract offer request
-        // Start negotiation process: ProviderContractNegotiationManagerImpl.offered
+        // TODO similar implementation to ContractRequestHandler (only required if counter offers supported, not needed for M1)
 
         return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, message))

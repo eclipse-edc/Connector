@@ -18,13 +18,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractRequest;
 import de.fraunhofer.iais.eis.ContractRequestMessage;
 import de.fraunhofer.iais.eis.Message;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ResponseMessageUtil;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.ids.spi.Protocols;
+import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
+import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,17 +44,20 @@ public class ContractRequestHandler implements Handler {
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final String connectorId;
-    private final ConsumerContractNegotiationManager negotiationManager;
+    private final ProviderContractNegotiationManager negotiationManager;
+    private final TransformerRegistry transformerRegistry;
 
     public ContractRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
-            @NotNull ConsumerContractNegotiationManager negotiationManager) {
+            @NotNull ProviderContractNegotiationManager negotiationManager,
+            @NotNull TransformerRegistry transformerRegistry) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.negotiationManager = Objects.requireNonNull(negotiationManager);
+        this.transformerRegistry = Objects.requireNonNull(transformerRegistry);
     }
 
     @Override
@@ -68,7 +74,7 @@ public class ContractRequestHandler implements Handler {
 
         var message = (ContractRequestMessage) multipartRequest.getHeader();
 
-        ContractRequest contractRequest = null;
+        ContractRequest contractRequest;
         try {
             contractRequest = objectMapper.readValue(multipartRequest.getPayload(), ContractRequest.class);
         } catch (IOException e) {
@@ -76,10 +82,34 @@ public class ContractRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        var correlationId = message.getTransferContract();
-        // TODO negotiationManager.initiate(C);
+        var idsWebhookAddress = message.getProperties().get("idsWebhookAddress");
+        if (idsWebhookAddress == null || idsWebhookAddress.toString().isBlank()) {
+            var msg = "Ids webhook address is invalid";
+            monitor.debug(String.format("ContractRequestHandler: %s", msg));
+            return createBadParametersErrorMultipartResponse(message, msg);
+        }
+
         // Create contract offer request
-        // Start negotiation process: ProviderContractNegotiationManagerImpl.requested
+        TransformResult<ContractOffer> result = transformerRegistry.transform(contractRequest, ContractOffer.class);
+        if (result.hasProblems()) {
+            monitor.debug(String.format("Could not transform contract request: [%s]",
+                    String.join(", ", result.getProblems())));
+            return createBadParametersErrorMultipartResponse(message);
+        }
+
+        var contractOffer = result.getOutput();
+        // TODO get assets (currently, the validation always fails)
+        var requestObj = ContractOfferRequest.Builder.newInstance()
+                .protocol(Protocols.IDS_MULTIPART)
+                .connectorAddress(idsWebhookAddress.toString())
+                .type(ContractOfferRequest.Type.INITIAL)
+                .connectorId(String.valueOf(message.getIssuerConnector()))
+                .correlationId(String.valueOf(message.getTransferContract()))
+                .contractOffer(contractOffer)
+                .build();
+
+        // Start negotiation process
+        negotiationManager.requested(verificationResult.token(), requestObj);
 
         return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, message))
@@ -89,6 +119,13 @@ public class ContractRequestHandler implements Handler {
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
         return MultipartResponse.Builder.newInstance()
                 .header(badParameters(message, connectorId))
+                .build();
+    }
+
+    private MultipartResponse createBadParametersErrorMultipartResponse(Message message, String payload) {
+        return MultipartResponse.Builder.newInstance()
+                .header(badParameters(message, connectorId))
+                .payload(payload)
                 .build();
     }
 }

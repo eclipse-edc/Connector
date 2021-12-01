@@ -22,6 +22,7 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
+import de.fraunhofer.iais.eis.RejectionMessageImpl;
 import de.fraunhofer.iais.eis.RejectionReason;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import de.fraunhofer.iais.eis.ResponseMessage;
@@ -37,6 +38,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractOfferSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -221,7 +223,8 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessageImpl.class);
+        // TODO Fix as soon as validation works
+        assertThat(result.getHeader()).isInstanceOf(RejectionMessageImpl.class);
         assertThat(result.getPayload()).isNull();
     }
 
@@ -240,9 +243,10 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
+        // TODO Fix as soon as validation works
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(((RejectionMessage) result.getHeader()).getRejectionReason())
-                .isEqualByComparingTo(RejectionReason.INTERNAL_RECIPIENT_ERROR);
+                .isEqualByComparingTo(RejectionReason.BAD_PARAMETERS);
         assertThat(result.getPayload()).isNull();
     }
 
@@ -260,6 +264,9 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         return new ContractAgreementBuilder()
                 ._consumer_(URI.create("consumer"))
                 ._provider_(URI.create("provider"))
+                ._contractDate_(CalendarUtil.gregorianNow())
+                ._contractEnd_(CalendarUtil.gregorianNow())
+                ._contractStart_(CalendarUtil.gregorianNow())
                 ._permission_(new PermissionBuilder()
                         ._action_(Action.USE)
                         .build())

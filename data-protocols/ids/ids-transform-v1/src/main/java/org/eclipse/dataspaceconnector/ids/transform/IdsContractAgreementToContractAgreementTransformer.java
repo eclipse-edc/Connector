@@ -8,7 +8,7 @@
  *  SPDX-License-Identifier: Apache-2.0
  *
  *  Contributors:
- *       Fraunhofer Institute for Software and Systems Engineering - initial implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - Initial Implementation
  *
  */
 
@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -29,22 +30,22 @@ import java.util.ArrayList;
 import java.util.Objects;
 
 /**
- * Transforms an IDS ContractRequest into an {@link ContractOffer}.
+ * Transforms an IDS ContractAgreement into an {@link ContractAgreement}.
  */
-public class IdsContractRequestToContractOfferTransformer implements IdsTypeTransformer<de.fraunhofer.iais.eis.ContractRequest, ContractOffer> {
+public class IdsContractAgreementToContractAgreementTransformer implements IdsTypeTransformer<de.fraunhofer.iais.eis.ContractAgreement, ContractAgreement> {
 
     @Override
-    public Class<de.fraunhofer.iais.eis.ContractRequest> getInputType() {
-        return de.fraunhofer.iais.eis.ContractRequest.class;
+    public Class<de.fraunhofer.iais.eis.ContractAgreement> getInputType() {
+        return de.fraunhofer.iais.eis.ContractAgreement.class;
     }
 
     @Override
-    public Class<ContractOffer> getOutputType() {
-        return ContractOffer.class;
+    public Class<ContractAgreement> getOutputType() {
+        return ContractAgreement.class;
     }
 
     @Override
-    public @Nullable ContractOffer transform(de.fraunhofer.iais.eis.ContractRequest object, @NotNull TransformerContext context) {
+    public @Nullable ContractAgreement transform(de.fraunhofer.iais.eis.ContractAgreement object, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
         if (object == null) {
             return null;
@@ -81,25 +82,27 @@ public class IdsContractRequestToContractOfferTransformer implements IdsTypeTran
         policyBuilder.prohibitions(edcProhibitions);
         policyBuilder.permissions(edcPermissions);
 
-        var contractOfferBuilder = ContractOffer.Builder.newInstance()
+        var builder = ContractAgreement.Builder.newInstance()
                 .policy(policyBuilder.build())
-                .consumer(object.getConsumer())
-                .provider(object.getProvider());
+                .consumerAgentId(object.getConsumer())
+                .providerAgentId(object.getProvider());
 
         if (object.getId() != null) {
-            contractOfferBuilder.id(object.getId().toString());
+            builder.id(object.getId().toString());
         }
 
         if (object.getContractEnd() != null) {
-            contractOfferBuilder.contractEnd(
-                    object.getContractEnd().toGregorianCalendar().toZonedDateTime());
+            builder.contractEndDate(object.getContractEnd().toGregorianCalendar().toZonedDateTime());
         }
 
         if (object.getContractStart() != null) {
-            contractOfferBuilder.contractStart(
-                    object.getContractStart().toGregorianCalendar().toZonedDateTime());
+            builder.contractStartDate(object.getContractStart().toGregorianCalendar().toZonedDateTime());
         }
 
-        return contractOfferBuilder.build();
+        if (object.getContractDate() != null) {
+            builder.contractSigningDate(object.getContractDate().toGregorianCalendar().toZonedDateTime());
+        }
+
+        return builder.build();
     }
 }
