@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -70,9 +70,29 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         // sanitize the assets
         var assets = assetIndex.queryAssets(criteria);
 
+        // TODO Hand over to external PDP
+        // TODO create counter offer if wanted
+
         var sanitizedUsagePolicy = contractDefinition.getContractPolicy();
         var validatedOffer = ContractOffer.Builder.newInstance().id(offer.getId()).assets(assets.collect(toList())).policy(sanitizedUsagePolicy).build();
+
         return new OfferValidationResult(validatedOffer);
+    }
+
+    @Override
+    public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
+        var agent = agentService.createFor(token);
+        var contractIdTokens = parseContractId(offer.getId());
+        if (contractIdTokens.length != 2) {
+            // not a valid id
+            return OfferValidationResult.INVALID;
+        }
+
+        // TODO implement validation
+        // TODO Hand over to external PDP
+        // TODO create counter offer if wanted
+
+        return new OfferValidationResult(null);
     }
 
     @Override
@@ -94,6 +114,22 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
         return definitionServiceSupplier.get().definitionFor(agent, tokens[DEFINITION_PART]) != null;
         // TODO validate counter-party
+    }
+
+    @Override
+    public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
+        var agent = agentService.createFor(token);
+        var contractIdTokens = parseContractId(agreement.getId());
+        if (contractIdTokens.length != 2) {
+            // not a valid id
+            return false;
+        }
+
+        // TODO implement validation
+        // TODO Hand over to external PDP
+        // TODO create counter offer if wanted
+
+        return true;
     }
 
     @NotNull

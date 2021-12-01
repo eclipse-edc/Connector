@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - minor modifications
  *
  */
 package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation;
@@ -25,10 +26,10 @@ public enum ContractNegotiationStates {
     REQUESTED(200),
     PROVIDER_OFFERING(300),
     PROVIDER_OFFERED(400),
-    CLIENT_OFFERING(500),
-    CLIENT_OFFERED(600),
-    CLIENT_APPROVING(700),
-    CLIENT_APPROVED(800),
+    CONSUMER_OFFERING(500),
+    CONSUMER_OFFERED(600),
+    CONSUMER_APPROVING(700),
+    CONSUMER_APPROVED(800),
     DECLINING(900),
     DECLINED(1000),
     CONFIRMING(1100),

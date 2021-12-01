@@ -14,7 +14,7 @@
 package org.eclipse.dataspaceconnector.spi.contract.validation;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,7 +32,18 @@ public interface ContractValidationService {
     OfferValidationResult validate(ClaimToken token, ContractOffer offer);
 
     /**
+     * During the negotiation process, it may be necessary to validate a contract offer against one that is only persisted by the contract negotiation and not known to the ContractDefinitionService.
+     */
+    @NotNull
+    OfferValidationResult validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer);
+
+    /**
      * Validates the contract agreement for the consumer, which must be the contract counter-party.
      */
     boolean validate(ClaimToken token, ContractAgreement agreement);
+
+    /**
+     * During the negotiation process, it may be necessary to validate a contract agreement against an offer that is only persisted by the contract negotiation and not known to the ContractDefinitionService.
+     */
+    boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer);
 }

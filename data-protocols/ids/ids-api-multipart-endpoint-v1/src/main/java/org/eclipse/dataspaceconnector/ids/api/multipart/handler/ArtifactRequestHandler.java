@@ -30,7 +30,7 @@ import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;

@@ -41,10 +41,10 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.AgreementRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRejection;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -156,7 +156,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .andReturn(new TransformResult<>(getIdsContractOffer()));
         EasyMock.replay(transformerRegistry);
 
-        var request = ContractRequest.Builder.newInstance()
+        var request = ContractOfferRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
@@ -185,11 +185,12 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .andReturn(new TransformResult<>(getIdsContractAgreement()));
         EasyMock.replay(transformerRegistry);
 
-        var request = AgreementRequest.Builder.newInstance()
+        var request = ContractAgreementRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
+                .correlationId("correlationId")
                 .build();
 
         MultipartRequestInProcessResponse result = multipartDispatcher
@@ -213,7 +214,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .rejectionReason("Modified policy in contract offer.")
-                .correlatedContractId(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
                 .build();
 
         MultipartMessageProcessedResponse result = multipartDispatcher

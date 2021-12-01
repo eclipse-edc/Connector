@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.types.domain.contract;
+package org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;

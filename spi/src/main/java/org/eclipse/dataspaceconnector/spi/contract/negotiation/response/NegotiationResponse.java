@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract.negotiation;
+package org.eclipse.dataspaceconnector.spi.contract.negotiation.response;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 

@@ -23,6 +23,7 @@ dependencies {
     api(project(":spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
     implementation(project(":core:policy:policy-engine"))
+    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }
 
 publishing {
@@ -33,4 +34,3 @@ publishing {
         }
     }
 }
-

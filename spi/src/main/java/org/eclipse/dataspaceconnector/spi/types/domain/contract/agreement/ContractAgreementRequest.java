@@ -12,17 +12,18 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.types.domain.contract;
+package org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement;
 
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 import java.util.Objects;
 
-public class AgreementRequest implements RemoteMessage {
+public class ContractAgreementRequest implements RemoteMessage {
 
     private String protocol;
     private String connectorId;
     private String connectorAddress;
+    private String correlationId;
     private ContractAgreement contractAgreement;
 
     @Override
@@ -38,15 +39,19 @@ public class AgreementRequest implements RemoteMessage {
         return connectorAddress;
     }
 
+    public String getCorrelationId() {
+        return correlationId;
+    }
+
     public ContractAgreement getContractAgreement() {
         return contractAgreement;
     }
 
     public static class Builder {
-        private final AgreementRequest agreementRequest;
+        private final ContractAgreementRequest contractAgreementRequest;
 
         private Builder() {
-            this.agreementRequest = new AgreementRequest();
+            this.contractAgreementRequest = new ContractAgreementRequest();
         }
 
         public static Builder newInstance() {
@@ -54,31 +59,37 @@ public class AgreementRequest implements RemoteMessage {
         }
 
         public Builder protocol(String protocol) {
-            this.agreementRequest.protocol = protocol;
+            this.contractAgreementRequest.protocol = protocol;
             return this;
         }
 
         public Builder connectorId(String connectorId) {
-            this.agreementRequest.connectorId = connectorId;
+            this.contractAgreementRequest.connectorId = connectorId;
             return this;
         }
 
         public Builder connectorAddress(String connectorAddress) {
-            this.agreementRequest.connectorAddress = connectorAddress;
+            this.contractAgreementRequest.connectorAddress = connectorAddress;
+            return this;
+        }
+
+        public Builder correlationId(String correlationId) {
+            this.contractAgreementRequest.correlationId = correlationId;
             return this;
         }
 
         public Builder contractAgreement(ContractAgreement contractAgreement) {
-            this.agreementRequest.contractAgreement = contractAgreement;
+            this.contractAgreementRequest.contractAgreement = contractAgreement;
             return this;
         }
 
-        public AgreementRequest build() {
-            Objects.requireNonNull(agreementRequest.protocol, "protocol");
-            Objects.requireNonNull(agreementRequest.connectorId, "connectorId");
-            Objects.requireNonNull(agreementRequest.connectorAddress, "connectorAddress");
-            Objects.requireNonNull(agreementRequest.contractAgreement, "contractAgreement");
-            return agreementRequest;
+        public ContractAgreementRequest build() {
+            Objects.requireNonNull(contractAgreementRequest.protocol, "protocol");
+            Objects.requireNonNull(contractAgreementRequest.connectorId, "connectorId");
+            Objects.requireNonNull(contractAgreementRequest.connectorAddress, "connectorAddress");
+            Objects.requireNonNull(contractAgreementRequest.contractAgreement, "contractAgreement");
+            Objects.requireNonNull(contractAgreementRequest.correlationId, "correlationId");
+            return contractAgreementRequest;
         }
     }
 }

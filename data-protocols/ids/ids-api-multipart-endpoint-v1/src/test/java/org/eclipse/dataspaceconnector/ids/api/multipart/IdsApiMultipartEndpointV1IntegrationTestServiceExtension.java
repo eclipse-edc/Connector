@@ -37,7 +37,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
@@ -246,6 +247,16 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer) {
             return new OfferValidationResult(ContractOffer.Builder.newInstance().build());
+        }
+
+        @Override
+        public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
+            return null;
+        }
+
+        @Override
+        public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
+            return false;
         }
 
         @Override
