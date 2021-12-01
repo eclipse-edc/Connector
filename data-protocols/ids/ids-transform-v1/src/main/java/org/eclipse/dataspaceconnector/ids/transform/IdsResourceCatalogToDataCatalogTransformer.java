@@ -109,11 +109,8 @@ public class IdsResourceCatalogToDataCatalogTransformer implements IdsTypeTransf
         var contractOfferBuilder = ContractOffer.Builder.newInstance()
                 .policy(policyBuilder.build())
                 .consumer(object.getConsumer())
-                .provider(object.getProvider());
-
-        if (asset != null) {
-            contractOfferBuilder.asset(asset);
-        }
+                .provider(object.getProvider())
+                .asset(asset);
 
         if (object.getId() != null) {
             contractOfferBuilder.id(object.getId().toString());
