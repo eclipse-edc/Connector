@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.api.control;
 
-import org.assertj.core.util.Sets;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
@@ -34,12 +33,12 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
 
     @Override
     public Set<String> requires() {
-        return Sets.newLinkedHashSet(AssetLoader.FEATURE, "edc:core:contract");
+        return Set.of(ContractDefinitionStore.FEATURE, AssetLoader.FEATURE);
     }
 
     @Override
     public Set<String> provides() {
-        return Sets.newHashSet();
+        return Set.of();
     }
 
     @Override

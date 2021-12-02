@@ -35,7 +35,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
     private final Monitor monitor;
     private final ContractDefinitionStore definitionStore;
 
-    public ContractDefinitionServiceImpl( Monitor monitor, ContractDefinitionStore contractDefinitionStore, PolicyEngine policyEngine) {
+    public ContractDefinitionServiceImpl(Monitor monitor, ContractDefinitionStore contractDefinitionStore, PolicyEngine policyEngine) {
         this.monitor = monitor;
         this.definitionStore = contractDefinitionStore;
         this.policyEngine = policyEngine;

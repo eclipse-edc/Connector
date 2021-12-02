@@ -2,7 +2,7 @@ package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.InMemoryContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -25,85 +25,76 @@ import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.S
 class ContractDefinitionServiceImplTest {
     private ContractDefinitionServiceImpl definitionService;
     private PolicyEngine policyEngine;
-    private InMemoryContractDefinitionStore definitionStore;
+    private ContractDefinitionStore definitionStore;
 
     @Test
     void verifySatisfiesPolicies() {
         var agent = new ParticipantAgent(Map.of(), Map.of());
-
-        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult()).times(2);
-
-        replay(policyEngine);
-
         var policy = Policy.Builder.newInstance().build();
 
-        definitionStore.save(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult()).times(2);
+        expect(definitionStore.findAll()).andReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
+
+        replay(definitionStore, policyEngine);
 
         assertThat(definitionService.definitionsFor(agent).count()).isEqualTo(1);
 
-        verify(policyEngine);
+        verify(definitionStore, policyEngine);
     }
 
     @Test
     void verifyDoesNotSatisfyAccessPolicy() {
         var agent = new ParticipantAgent(Map.of(), Map.of());
-
-        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult(List.of("invalid")));
-
-        replay(policyEngine);
-
         var policy = Policy.Builder.newInstance().build();
 
-        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult(List.of("invalid")));
+        expect(definitionStore.findAll()).andReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
+
+        replay(definitionStore, policyEngine);
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
 
-        verify(policyEngine);
+        verify(definitionStore, policyEngine);
     }
 
     @Test
     void verifyDoesNotSatisfyUsagePolicy() {
         var agent = new ParticipantAgent(Map.of(), Map.of());
+        var policy = Policy.Builder.newInstance().build();
 
         expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult()); // access policy valid
         expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult(List.of("invalid"))); // usage policy invalid
+        expect(definitionStore.findAll()).andReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
-        replay(policyEngine);
-
-        var policy = Policy.Builder.newInstance().build();
-
-        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
+        replay(definitionStore, policyEngine);
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
 
-        verify(policyEngine);
+        verify(definitionStore, policyEngine);
     }
 
     @Test
     void verifyDefinitionFor() {
         var agent = new ParticipantAgent(Map.of(), Map.of());
+        var policy = Policy.Builder.newInstance().build();
 
         expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult()).times(2); // access and usage policy first check
         expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult(List.of("invalid"))); // access policy second check
+        expect(definitionStore.findAll()).andReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())).anyTimes();
 
-        replay(policyEngine);
-
-        var policy = Policy.Builder.newInstance().build();
-
-        definitionStore.save((List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())));
+        replay(definitionStore, policyEngine);
 
         assertThat(definitionService.definitionFor(agent, "1")).isNotNull();
         assertThat(definitionService.definitionFor(agent, "1")).isNull();
         assertThat(definitionService.definitionFor(agent, "nodefinition")).isNull();
 
-        verify(policyEngine);
+        verify(definitionStore, policyEngine);
     }
 
     @BeforeEach
     void setUp() {
         policyEngine = createMock(PolicyEngine.class);
-        definitionStore = new InMemoryContractDefinitionStore();
-        definitionService = new ContractDefinitionServiceImpl(policyEngine, createNiceMock(Monitor.class));
-        definitionService.initialize(definitionStore);
+        definitionStore = createMock(ContractDefinitionStore.class);
+        definitionService = new ContractDefinitionServiceImpl(createNiceMock(Monitor.class), definitionStore, policyEngine);
     }
 }

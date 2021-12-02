@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.contractdefinition.store.memory;
 
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -31,14 +30,16 @@ public class InMemoryContractDefinitionStoreExtension implements ServiceExtensio
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        context.registerService(ContractDefinitionStore.class, new InMemoryContractDefinitionStore());
         monitor = context.getMonitor();
+
+        context.registerService(ContractDefinitionStore.class, new InMemoryContractDefinitionStore());
+
         monitor.info(String.format("Initialized %s", NAME));
     }
 
     @Override
     public Set<String> provides() {
-        return Set.of(ContractNegotiationStore.FEATURE);
+        return Set.of(ContractDefinitionStore.FEATURE);
     }
 
     @Override

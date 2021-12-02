@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract.offer.store;
+package org.eclipse.dataspaceconnector.contractdefinition.store.memory;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 class InMemoryContractDefinitionStoreTest {
-    private InMemoryContractDefinitionStore store = new InMemoryContractDefinitionStore();
+    private final InMemoryContractDefinitionStore store = new InMemoryContractDefinitionStore();
 
     @Test
     void verifyStore() {
