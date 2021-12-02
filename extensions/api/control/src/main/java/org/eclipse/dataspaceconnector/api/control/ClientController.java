@@ -84,12 +84,24 @@ public class ClientController {
     @GET
     @Path("negotiation/{id}")
     public Response getNegotiationById(@PathParam("id") String id) {
-        return Response.ok(contractNegotiationStore.find(id)).build();
+        var negotiation = contractNegotiationStore.find(id);
+
+        if (negotiation == null) {
+            return Response.status(404).build();
+        }
+
+        return Response.ok(negotiation).build();
     }
 
     @GET
     @Path("agreement/{id}")
     public Response getAgreementById(@PathParam("id") String id) {
-        return Response.ok(contractNegotiationStore.findContractAgreement(id)).build();
+        var agreement = contractNegotiationStore.findContractAgreement(id);
+
+        if (agreement == null) {
+            return Response.status(404).build();
+        }
+
+        return Response.ok(agreement).build();
     }
 }
