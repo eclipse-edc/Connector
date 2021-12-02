@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -89,8 +91,18 @@ public class IdsContractOfferToContractOfferTransformer implements IdsTypeTransf
                 .consumer(object.getConsumer())
                 .provider(object.getProvider());
 
-        if (object.getId() != null) {
-            contractOfferBuilder.id(object.getId().toString());
+        var idsUri = object.getId();
+        if (idsUri != null) {
+            var id = IdsIdParser.parse(idsUri.toString());
+            try {
+                if (id.getType() != IdsType.CONTRACT_OFFER) {
+                    context.reportProblem("handled id is not of typ contract offer");
+                }
+
+                contractOfferBuilder.id(id.getValue());
+            } catch (NullPointerException e) {
+                context.reportProblem("cannot handle empty ids id");
+            }
         }
 
         if (object.getContractEnd() != null) {

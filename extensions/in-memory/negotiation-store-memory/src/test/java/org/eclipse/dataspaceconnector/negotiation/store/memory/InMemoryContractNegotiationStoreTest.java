@@ -21,14 +21,12 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -180,9 +178,9 @@ class InMemoryContractNegotiationStoreTest {
                 .consumerAgentId("consumer")
                 .asset(Asset.Builder.newInstance().build())
                 .policy(Policy.Builder.newInstance().build())
-                .contractSigningDate(1L)
-                .contractStartDate(1L)
-                .contractEndDate(1L)
+                .contractSigningDate(LocalDate.MIN.toEpochDay())
+                .contractStartDate(LocalDate.MIN.toEpochDay())
+                .contractEndDate(LocalDate.MAX.toEpochDay())
                 .build();
     }
 }

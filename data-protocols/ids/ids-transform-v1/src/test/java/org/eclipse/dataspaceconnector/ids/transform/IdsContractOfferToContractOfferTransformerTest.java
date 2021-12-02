@@ -32,7 +32,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 public class IdsContractOfferToContractOfferTransformerTest {
-    private static final URI OFFER_ID = URI.create("urn:offer:456uz984390236s");
+    private static final URI OFFER_ID = URI.create("urn:contractoffer:456uz984390236s");
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
 
     private static final URI CONSUMER_URI = URI.create("https://provider.com/");
@@ -57,7 +57,7 @@ public class IdsContractOfferToContractOfferTransformerTest {
         idsDuty = new de.fraunhofer.iais.eis.DutyBuilder().build();
         idsContractOffer = new de.fraunhofer.iais.eis.ContractOfferBuilder(OFFER_ID)
                 ._provider_(PROVIDER_URI)
-                ._provider_(CONSUMER_URI)
+                ._consumer_(CONSUMER_URI)
                 ._permission_(new ArrayList<>(Collections.singletonList(idsPermission)))
                 ._prohibition_(new ArrayList<>(Collections.singletonList(idsProhibition)))
                 ._obligation_(new ArrayList<>(Collections.singletonList(idsDuty)))

@@ -6,6 +6,8 @@ package org.eclipse.dataspaceconnector.ids.spi;
 public enum IdsType {
     CONTRACT("contract"),
     CONTRACT_OFFER("contractoffer"),
+    CONTRACT_REQUEST("contractrequest"),
+    CONTRACT_AGREEMENT("contractagreement"),
     CONNECTOR("connector"),
     CATALOG("catalog"),
     ARTIFACT("artifact"),

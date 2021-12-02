@@ -26,6 +26,7 @@ dependencies {
     api(project(":extensions:in-memory:assetindex-memory"))
     api(project(":extensions:in-memory:transfer-store-memory"))
     api(project(":extensions:in-memory:negotiation-store-memory"))
+    api(project(":extensions:in-memory:contractdefinition-store-memory"))
 
     api(project(":extensions:aws:s3:provision"))
 

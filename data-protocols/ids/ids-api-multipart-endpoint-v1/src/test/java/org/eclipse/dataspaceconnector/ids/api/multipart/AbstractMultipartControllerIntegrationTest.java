@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add methods
  *
  */
 
@@ -19,6 +20,15 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import de.fraunhofer.iais.eis.Contract;
+import de.fraunhofer.iais.eis.ContractAgreementMessage;
+import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
+import de.fraunhofer.iais.eis.ContractOfferMessage;
+import de.fraunhofer.iais.eis.ContractOfferMessageBuilder;
+import de.fraunhofer.iais.eis.ContractRejectionMessage;
+import de.fraunhofer.iais.eis.ContractRejectionMessageBuilder;
+import de.fraunhofer.iais.eis.ContractRequestMessage;
+import de.fraunhofer.iais.eis.ContractRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
@@ -127,6 +137,10 @@ abstract class AbstractMultipartControllerIntegrationTest {
         return OBJECT_MAPPER.writeValueAsString(message);
     }
 
+    protected String toJson(Contract contract) throws Exception {
+        return OBJECT_MAPPER.writeValueAsString(contract);
+    }
+
     protected DescriptionRequestMessage getDescriptionRequestMessage() {
         return getDescriptionRequestMessage(null);
     }
@@ -142,6 +156,36 @@ abstract class AbstractMultipartControllerIntegrationTest {
         return builder.build();
     }
 
+    protected ContractRequestMessage getContractRequestMessage() {
+        var message = new ContractRequestMessageBuilder()
+                ._correlationMessage_(URI.create("correlationId"))
+                ._securityToken_(getDynamicAttributeToken())
+                .build();
+        message.setProperty("idsWebhookAddress", "http://someUrl");
+        return message;
+    }
+
+    protected ContractAgreementMessage getContractAgreementMessage() {
+        return new ContractAgreementMessageBuilder()
+                ._correlationMessage_(URI.create("correlationId"))
+                ._securityToken_(getDynamicAttributeToken())
+                .build();
+    }
+
+    protected ContractRejectionMessage getContractRejectionMessage() {
+        return new ContractRejectionMessageBuilder()
+                ._correlationMessage_(URI.create("correlationId"))
+                ._securityToken_(getDynamicAttributeToken())
+                .build();
+    }
+
+    protected ContractOfferMessage getContractOfferMessage() {
+        return new ContractOfferMessageBuilder()
+                ._correlationMessage_(URI.create("correlationId"))
+                ._securityToken_(getDynamicAttributeToken())
+                .build();
+    }
+
     // create the "header" multipart payload
     private MultipartBody.Part createIdsMessageHeaderMultipart(Message message) throws Exception {
         Headers headers = new Headers.Builder()
@@ -155,6 +199,19 @@ abstract class AbstractMultipartControllerIntegrationTest {
         return MultipartBody.Part.create(headers, requestBody);
     }
 
+    // create the "header" multipart payload
+    private MultipartBody.Part createIdsMessagePayloadMultipart(Contract contract) throws Exception {
+        Headers headers = new Headers.Builder()
+                .add("Content-Disposition", "form-data; name=\"payload\"")
+                .build();
+
+        RequestBody requestBody = RequestBody.create(
+                toJson(contract),
+                okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
+
+        return MultipartBody.Part.create(headers, requestBody);
+    }
+
     // create the multipart-form-data request having the given message in its "header" multipart payload
     protected Request createRequest(Message message) throws Exception {
         Objects.requireNonNull(message);
@@ -162,6 +219,22 @@ abstract class AbstractMultipartControllerIntegrationTest {
         MultipartBody multipartBody = new MultipartBody.Builder()
                 .setType(okhttp3.MediaType.get(MediaType.MULTIPART_FORM_DATA))
                 .addPart(createIdsMessageHeaderMultipart(message))
+                .build();
+
+        return new Request.Builder()
+                .url(Objects.requireNonNull(HttpUrl.parse(getUrl())))
+                .addHeader("Content-Type", MediaType.MULTIPART_FORM_DATA)
+                .post(multipartBody)
+                .build();
+    }
+
+    protected Request createRequestWithPayload(Message message, Contract payload) throws Exception {
+        Objects.requireNonNull(message);
+
+        MultipartBody multipartBody = new MultipartBody.Builder()
+                .setType(okhttp3.MediaType.get(MediaType.MULTIPART_FORM_DATA))
+                .addPart(createIdsMessageHeaderMultipart(message))
+                .addPart(createIdsMessagePayloadMultipart(payload))
                 .build();
 
         return new Request.Builder()

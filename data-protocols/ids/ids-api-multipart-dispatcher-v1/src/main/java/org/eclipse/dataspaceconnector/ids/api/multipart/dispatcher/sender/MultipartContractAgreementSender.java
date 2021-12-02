@@ -20,6 +20,7 @@ import de.fraunhofer.iais.eis.ContractAgreementMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -31,20 +32,26 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.Objects;
 
 /**
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
  * expects an IDS RequestInProcessMessage as the response.
  */
-public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartRequestInProcessResponse> {
+public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
+
+    private final String idsWebhookAddress;
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
                                             @NotNull ObjectMapper objectMapper,
                                             @NotNull Monitor monitor,
                                             @NotNull IdentityService identityService,
-                                            @NotNull TransformerRegistry transformerRegistry) {
+                                            @NotNull TransformerRegistry transformerRegistry,
+                                            @NotNull String idsWebhookAddress) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
+
+        this.idsWebhookAddress = idsWebhookAddress;
     }
 
     @Override
@@ -64,14 +71,23 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
 
     @Override
     protected Message buildMessageHeader(ContractAgreementRequest request, DynamicAttributeToken token) throws Exception {
-        return new ContractAgreementMessageBuilder()
+        if (idsWebhookAddress == null || idsWebhookAddress.isBlank()) {
+            throw new EdcException("No valid value found for attribute ids.webhook.address");
+        }
+
+        var id = request.getContractAgreement().getId();
+        var message = new ContractAgreementMessageBuilder(URI.create(id))
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
                 ._issuerConnector_(getConnectorId())
                 ._senderAgent_(getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
+                ._transferContract_(URI.create(request.getCorrelationId()))
                 .build();
+        message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+
+        return message;
     }
 
     @Override
@@ -87,14 +103,14 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
     }
 
     @Override
-    protected MultipartRequestInProcessResponse getResponseContent(IdsMultipartParts parts) throws Exception {
+    protected MultipartMessageProcessedResponse getResponseContent(IdsMultipartParts parts) throws Exception {
         Message header = getObjectMapper().readValue(parts.getHeader(), Message.class);
         String payload = null;
         if (parts.getPayload() != null) {
             payload = new String(parts.getPayload().readAllBytes());
         }
 
-        return MultipartRequestInProcessResponse.Builder.newInstance()
+        return MultipartMessageProcessedResponse.Builder.newInstance()
                 .header(header)
                 .payload(payload)
                 .build();

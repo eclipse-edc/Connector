@@ -31,7 +31,7 @@ import java.util.Collections;
 
 public class IdsPermissionToPermissionTransformerTest {
 
-    private static final String TARGET = "https://target.com";
+    private static final String TARGET = "urn:artifact:1";
     private static final String ACTION = "USE";
     private static final URI TARGET_URI = URI.create(TARGET);
     private static final String ASSIGNER = "https://assigner.com";
@@ -112,7 +112,8 @@ public class IdsPermissionToPermissionTransformerTest {
         Assertions.assertNotNull(result.getConstraints());
         Assertions.assertNotNull(result.getDuties());
         Assertions.assertEquals(ACTION, result.getAction().getType());
-        Assertions.assertEquals(TARGET, result.getTarget());
+        Assertions.assertNotEquals(TARGET, result.getTarget());
+        Assertions.assertTrue(TARGET.contains(result.getTarget()));
         Assertions.assertEquals(ASSIGNER, result.getAssigner());
         Assertions.assertEquals(ASSIGNEE, result.getAssignee());
         Assertions.assertEquals(1, result.getConstraints().size());

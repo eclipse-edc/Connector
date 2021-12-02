@@ -33,16 +33,12 @@ import static java.lang.String.format;
 public class ContractDefinitionServiceImpl implements ContractDefinitionService {
     private final PolicyEngine policyEngine;
     private final Monitor monitor;
+    private final ContractDefinitionStore definitionStore;
 
-    private ContractDefinitionStore definitionStore;
-
-    public ContractDefinitionServiceImpl(PolicyEngine policyEngine, Monitor monitor) {
-        this.policyEngine = policyEngine;
+    public ContractDefinitionServiceImpl(Monitor monitor, ContractDefinitionStore contractDefinitionStore, PolicyEngine policyEngine) {
         this.monitor = monitor;
-    }
-
-    public void initialize(ContractDefinitionStore store) {
-        this.definitionStore = store;
+        this.definitionStore = contractDefinitionStore;
+        this.policyEngine = policyEngine;
     }
 
     @NotNull

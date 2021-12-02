@@ -33,13 +33,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.FATAL_ERROR;
@@ -247,13 +247,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * @param process The contract negotiation.
      * @return The response to the sent message.
      */
-    private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process) {
+    private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferRequest.Type type) {
         var request = ContractOfferRequest.Builder.newInstance()
                 .contractOffer(offer)
                 .connectorAddress(process.getCounterPartyAddress())
                 .protocol(process.getProtocol())
                 .connectorId(process.getCounterPartyId())
                 .correlationId(process.getId())
+                .type(type)
                 .build();
 
         // TODO protocol-independent response type?
@@ -272,7 +273,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         for (ContractNegotiation process : processes) {
             var offer = process.getLastContractOffer();
-            var response = sendOffer(offer, process);
+            var response = sendOffer(offer, process, ContractOfferRequest.Type.INITIAL);
             if (response.isCompletedExceptionally()) {
                 process.transitionRequesting();
                 monitor.debug(format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
@@ -301,7 +302,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         for (ContractNegotiation process : processes) {
             var offer = process.getLastContractOffer();
-            var response = sendOffer(offer, process);
+            var response = sendOffer(offer, process, ContractOfferRequest.Type.COUNTER_OFFER);
             if (response.isCompletedExceptionally()) {
                 process.transitionOffering();
                 monitor.debug(format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
@@ -334,11 +335,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             var lastOffer = process.getLastContractOffer();
             var agreement = ContractAgreement.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
-                    .contractStartDate(lastOffer.getContractStart().toInstant().toEpochMilli())
-                    .contractEndDate(lastOffer.getContractEnd().toInstant().toEpochMilli())
-                    .contractSigningDate(Instant.now().toEpochMilli())
-                    .providerAgentId(lastOffer.getProvider().toString())
-                    .consumerAgentId(lastOffer.getConsumer().toString())
+                    .contractSigningDate(LocalDate.MIN.toEpochDay())
+                    .contractStartDate(LocalDate.MIN.toEpochDay())
+                    .contractEndDate(LocalDate.MAX.toEpochDay())
+                    .providerAgentId(String.valueOf(lastOffer.getProvider()))
+                    .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                     .policy(lastOffer.getPolicy())
                     .asset(lastOffer.getAsset())
                     .build();

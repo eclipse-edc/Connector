@@ -9,21 +9,33 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add tests
  *
  */
 
 package org.eclipse.dataspaceconnector.ids.api.multipart;
 
+import de.fraunhofer.iais.eis.ContractAgreementBuilder;
+import de.fraunhofer.iais.eis.ContractOfferBuilder;
+import de.fraunhofer.iais.eis.ContractRequestBuilder;
+import de.fraunhofer.iais.eis.PermissionBuilder;
 import net.javacrumbs.jsonunit.assertj.JsonAssertions;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.ids.transform.AssetToIdsArtifactTransformer;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
@@ -467,6 +479,165 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         jsonPayload.inPath("$.ids:representation[0].ids:mediaType.ids:filenameExtension").isString().matches("txt");
     }
 
+    @Test
+    void testHandleContractRequest() throws Exception {
+        // prepare
+        var assetId = "1234";
+        var request = createRequestWithPayload(getContractRequestMessage(),
+                new ContractRequestBuilder(URI.create("urn:contractrequest:2345"))
+                        ._provider_(URI.create("http://provider"))
+                        ._consumer_(URI.create("http://consumer"))
+                        ._permission_(new PermissionBuilder()
+                                ._target_(URI.create("urn:artifact:" + assetId))
+                                .build())
+                        .build());
+        addAsset(Asset.Builder.newInstance().id(assetId).build());
+
+
+        // invoke
+        var response = httpClient.newCall(request).execute();
+
+        // verify
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
+
+        List<NamedMultipartContent> content = extractNamedMultipartContent(response);
+
+        assertThat(content)
+                .hasSize(1)
+                .extracting(NamedMultipartContent::getName)
+                .containsExactly("header");
+
+        var header = content.stream().filter(n -> "header".equalsIgnoreCase(n.getName()))
+                .map(NamedMultipartContent::getContent)
+                .findFirst()
+                .orElseThrow();
+
+        var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
+
+        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RequestInProcessMessage");
+        jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
+        jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
+        jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
+        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
+        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+    }
+
+    @Test
+    void testHandleContractOffer() throws Exception {
+        // prepare
+        var request = createRequestWithPayload(getContractOfferMessage(),
+                new ContractOfferBuilder().build());
+
+        // invoke
+        var response = httpClient.newCall(request).execute();
+
+        // verify
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
+
+        List<NamedMultipartContent> content = extractNamedMultipartContent(response);
+
+        assertThat(content)
+                .hasSize(1)
+                .extracting(NamedMultipartContent::getName)
+                .containsExactly("header");
+
+        var header = content.stream().filter(n -> "header".equalsIgnoreCase(n.getName()))
+                .map(NamedMultipartContent::getContent)
+                .findFirst()
+                .orElseThrow();
+
+        var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
+
+        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RequestInProcessMessage");
+        jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
+        jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
+        jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
+        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
+        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+    }
+
+    @Test
+    void testHandleContractAgreement() throws Exception {
+        // prepare
+        var assetId = "1234";
+        var request = createRequestWithPayload(getContractAgreementMessage(),
+                new ContractAgreementBuilder(URI.create("urn:contractagreement:1"))
+                        ._provider_(URI.create("http://provider"))
+                        ._consumer_(URI.create("http://consumer"))
+                        ._permission_(new PermissionBuilder()
+                                ._target_(URI.create("urn:artifact:" + assetId))
+                                .build())
+                        ._contractStart_(CalendarUtil.gregorianNow())
+                        ._contractEnd_(CalendarUtil.gregorianNow())
+                        ._contractDate_(CalendarUtil.gregorianNow()) // TODO Throws exception, but mandatory
+                        .build());
+        addAsset(Asset.Builder.newInstance().id(assetId).build());
+
+        // invoke
+        var response = httpClient.newCall(request).execute();
+
+        // verify
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
+
+        List<NamedMultipartContent> content = extractNamedMultipartContent(response);
+
+        assertThat(content)
+                .hasSize(1)
+                .extracting(NamedMultipartContent::getName)
+                .containsExactly("header");
+
+        var header = content.stream().filter(n -> "header".equalsIgnoreCase(n.getName()))
+                .map(NamedMultipartContent::getContent)
+                .findFirst()
+                .orElseThrow();
+
+        var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
+
+        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:MessageProcessedNotificationMessage");
+        jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
+        jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
+        jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
+        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
+        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+    }
+
+    @Test
+    void testHandleContractRejection() throws Exception {
+        // prepare
+        var request = createRequest(getContractRejectionMessage());
+
+        // invoke
+        var response = httpClient.newCall(request).execute();
+
+        // verify
+        assertThat(response).isNotNull().extracting(Response::code).isEqualTo(200);
+
+        List<NamedMultipartContent> content = extractNamedMultipartContent(response);
+
+        assertThat(content)
+                .hasSize(1)
+                .extracting(NamedMultipartContent::getName)
+                .containsExactly("header");
+
+        var header = content.stream().filter(n -> "header".equalsIgnoreCase(n.getName()))
+                .map(NamedMultipartContent::getContent)
+                .findFirst()
+                .orElseThrow();
+
+        var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
+
+        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:MessageProcessedNotificationMessage");
+        jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
+        jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
+        jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");
+        //jsonHeader.inPath("$.ids:issued").isString().matches("^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3}UTC$");
+        jsonHeader.inPath("$.ids:issuerConnector").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+        jsonHeader.inPath("$.ids:senderAgent").isString().isEqualTo("urn:connector:" + CONNECTOR_ID);
+    }
+
     @Override
     protected Map<String, String> getSystemProperties() {
         return new HashMap<>() {
@@ -477,4 +648,5 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
             }
         };
     }
+
 }

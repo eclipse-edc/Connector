@@ -25,6 +25,7 @@ import java.util.Objects;
  */
 public class ContractOfferRequest implements RemoteMessage {
 
+    private Type type = Type.COUNTER_OFFER;
     private String protocol;
     private String connectorId;
     private String connectorAddress;
@@ -46,6 +47,10 @@ public class ContractOfferRequest implements RemoteMessage {
 
     public String getCorrelationId() {
         return correlationId;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     public ContractOffer getContractOffer() {
@@ -88,6 +93,11 @@ public class ContractOfferRequest implements RemoteMessage {
             return this;
         }
 
+        public Builder type(Type type) {
+            this.contractOfferRequest.type = type;
+            return this;
+        }
+
         public ContractOfferRequest build() {
             Objects.requireNonNull(contractOfferRequest.protocol, "protocol");
             Objects.requireNonNull(contractOfferRequest.connectorId, "connectorId");
@@ -95,5 +105,10 @@ public class ContractOfferRequest implements RemoteMessage {
             Objects.requireNonNull(contractOfferRequest.contractOffer, "contractOffer");
             return contractOfferRequest;
         }
+    }
+
+    public enum Type {
+        INITIAL,
+        COUNTER_OFFER
     }
 }

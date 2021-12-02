@@ -11,8 +11,10 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract.offer.store;
 
+package org.eclipse.dataspaceconnector.contractdefinition.store.memory;
+
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 
@@ -25,7 +27,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * The default store implementation used when no extension is configured in a runtime. {@link ContractDefinition}s are stored ephemerally in memory.
  */
 public class InMemoryContractDefinitionStore implements ContractDefinitionStore {
-    private Map<String, ContractDefinition> cache = new ConcurrentHashMap<>();
+    private final Map<String, ContractDefinition> cache = new ConcurrentHashMap<>();
 
     @Override
     public @NotNull Collection<ContractDefinition> findAll() {

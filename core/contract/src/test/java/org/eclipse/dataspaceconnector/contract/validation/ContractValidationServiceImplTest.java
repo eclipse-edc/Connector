@@ -84,7 +84,7 @@ class ContractValidationServiceImplTest {
         EasyMock.replay(agentService, definitionService, assetIndex);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var agreement = ContractAgreement.Builder.newInstance()
+        var agreement = ContractAgreement.Builder.newInstance().id("1")
                 .providerAgentId("provider")
                 .consumerAgentId("consumer")
                 .policy(originalPolicy)

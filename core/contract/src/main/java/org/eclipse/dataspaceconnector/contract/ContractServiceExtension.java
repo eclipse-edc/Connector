@@ -33,7 +33,6 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.InMemoryContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -57,12 +56,12 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public final Set<String> provides() {
-        return Set.of("edc:core:contract", ContractDefinitionStore.FEATURE);
+        return Set.of("edc:core:contract");
     }
 
     @Override
-    public final Set<String> requires() {
-        return Set.of(AssetIndex.FEATURE);
+    public Set<String> requires() {
+        return Set.of(AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
     }
 
     @Override
@@ -78,18 +77,10 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        // load the store in the start method, so it can be overridden by an extension
-
-        var store = context.getService(ContractDefinitionStore.class);
-        definitionService.initialize(store);
-
         // Start negotiation managers.
         var negotiationStore = context.getService(ContractNegotiationStore.class);
         consumerNegotiationManager.start(negotiationStore);
         providerNegotiationManager.start(negotiationStore);
-
-        // load the store in the start method, so it can be overridden by an extension
-        definitionService.initialize(context.getService(ContractDefinitionStore.class));
 
         monitor.info(String.format("Started %s", NAME));
     }
@@ -114,21 +105,17 @@ public class ContractServiceExtension implements ServiceExtension {
             assetIndex = new NullAssetIndex();
         }
 
+        var store = context.getService(ContractDefinitionStore.class);
+
         var agentService = new ParticipantAgentServiceImpl();
         context.registerService(ParticipantAgentService.class, agentService);
 
         var policyEngine = new PolicyEngineImpl();
         context.registerService(PolicyEngine.class, policyEngine);
 
-        definitionService = new ContractDefinitionServiceImpl(policyEngine, monitor);
+        definitionService = new ContractDefinitionServiceImpl(monitor, store, policyEngine);
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
         context.registerService(ContractDefinitionService.class, definitionService);
-
-        var store = context.getService(ContractDefinitionStore.class, true);
-        if (store == null) {
-            store = new InMemoryContractDefinitionStore();
-            context.registerService(ContractDefinitionStore.class, store);
-        }
 
         // Register the created contract offer service with the service extension context.
         context.registerService(ContractOfferService.class, contractOfferService);
@@ -140,7 +127,7 @@ public class ContractServiceExtension implements ServiceExtension {
         }
 
         // negotiation
-        var validationService = new  ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
+        var validationService = new ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
         context.registerService(ContractValidationService.class, validationService);
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);

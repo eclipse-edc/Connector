@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Action;
@@ -66,7 +67,8 @@ public class IdsPermissionToPermissionTransformer implements IdsTypeTransformer<
         }
 
         if (object.getTarget() != null) {
-            permissionBuilder.target(object.getTarget().toString());
+            var idsTargetId = IdsIdParser.parse(object.getTarget().toString());
+            permissionBuilder.target(idsTargetId.getValue());
         }
 
         if (object.getAssigner() != null && object.getAssigner().size() != 0) {
@@ -102,4 +104,3 @@ public class IdsPermissionToPermissionTransformer implements IdsTypeTransformer<
         return permissionBuilder.build();
     }
 }
-

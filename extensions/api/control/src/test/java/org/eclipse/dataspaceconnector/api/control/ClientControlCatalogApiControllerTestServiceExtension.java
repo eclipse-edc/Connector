@@ -1,13 +1,15 @@
 package org.eclipse.dataspaceconnector.api.control;
 
-import org.assertj.core.util.Sets;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -15,7 +17,9 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,16 +34,15 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
     private Monitor monitor;
     private AssetLoader assetLoader;
     private ContractDefinitionStore contractDefinitionStore;
-    private ContractNegotiationStore contractNegotiationStore;
 
     @Override
     public Set<String> requires() {
-        return Sets.newLinkedHashSet(AssetLoader.FEATURE, "edc:core:contract");
+        return Set.of(ContractDefinitionStore.FEATURE, AssetLoader.FEATURE);
     }
 
     @Override
     public Set<String> provides() {
-        return Sets.newHashSet();
+        return Set.of();
     }
 
     @Override
@@ -47,8 +50,8 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         monitor = context.getMonitor();
         assetLoader = context.getService(AssetLoader.class);
         contractDefinitionStore = context.getService(ContractDefinitionStore.class);
-        contractNegotiationStore = new FakeContractNegotiationStore();
-        context.registerService(ContractNegotiationStore.class, contractNegotiationStore);
+        context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerNegotiationManager());
+        context.registerService(ContractNegotiationStore.class, new FakeContractNegotiationStore());
     }
 
     @Override
@@ -156,6 +159,30 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
 
         @Override
         public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
+            return null;
+        }
+    }
+
+    private static class FakeConsumerNegotiationManager implements ConsumerContractNegotiationManager {
+
+        @Override
+        public NegotiationResponse initiate(ContractOfferRequest contractOffer) {
+            return null;
+        }
+
+        @Override
+        public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+            return null;
+        }
+
+        @Override
+        public NegotiationResponse confirmed(ClaimToken token, String negotiationId,
+                                             ContractAgreement contract, String hash) {
+            return null;
+        }
+
+        @Override
+        public NegotiationResponse declined(ClaimToken token, String negotiationId) {
             return null;
         }
     }

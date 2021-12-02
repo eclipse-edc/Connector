@@ -37,7 +37,7 @@ public class InMemoryContractNegotiationStoreExtension implements ServiceExtensi
 
     @Override
     public Set<String> provides() {
-        return Set.of("dataspaceconnector:contractnegotiationstore");
+        return Set.of(ContractNegotiationStore.FEATURE);
     }
 
     @Override

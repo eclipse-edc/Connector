@@ -32,6 +32,7 @@ dependencies {
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(project(":core:protocol:web"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
+    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }
 
 publishing {

@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - add contract and notification message handlers
  *
  */
 
@@ -21,6 +22,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractOfferHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRejectionHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
@@ -37,6 +42,8 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -47,7 +54,6 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
@@ -77,11 +83,11 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Override
     public Set<String> requires() {
         return Set.of(IdentityService.FEATURE,
-                "dataspaceconnector:transfer-process-manager",
                 "edc:ids:core",
                 AssetIndex.FEATURE,
                 ContractDefinitionStore.FEATURE,
-                "edc:ids:transform:v1");
+                "edc:ids:transform:v1",
+                "edc:core:contract");
     }
 
     @Override
@@ -152,6 +158,14 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         Vault vault = serviceExtensionContext.getService(Vault.class);
         ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractDefinitionStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
+
+        // create contract message handlers
+        var providerNegotiationManager = serviceExtensionContext.getService(ProviderContractNegotiationManager.class);
+        var consumerNegotiationManager = serviceExtensionContext.getService(ConsumerContractNegotiationManager.class);
+        handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
+        handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry, assetIndex));
+        handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
+        handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 
         // create & register controller
         MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
