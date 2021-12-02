@@ -17,14 +17,16 @@
 package org.eclipse.dataspaceconnector.api.control;
 
 import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -39,17 +41,17 @@ import java.util.Objects;
 @Path("/control")
 public class ClientController {
 
-    private final Monitor monitor;
     private final TransferProcessManager transferProcessManager;
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
+    private final ContractNegotiationStore contractNegotiationStore;
 
     public ClientController(
-            @NotNull Monitor monitor,
             @NotNull TransferProcessManager transferProcessManager,
-            @NotNull ConsumerContractNegotiationManager consumerNegotiationManager) {
-        this.monitor = Objects.requireNonNull(monitor);
+            @NotNull ConsumerContractNegotiationManager consumerNegotiationManager,
+            @NotNull ContractNegotiationStore contractNegotiationStore) {
         this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
         this.consumerNegotiationManager = Objects.requireNonNull(consumerNegotiationManager);
+        this.contractNegotiationStore = Objects.requireNonNull(contractNegotiationStore);
     }
 
     @POST
@@ -77,5 +79,17 @@ public class ClientController {
         }
 
         return Response.ok(result.getContractNegotiation().getId()).build();
+    }
+
+    @GET
+    @Path("negotiation/{id}")
+    public Response getNegotiationById(@PathParam("id") String id) {
+        return Response.ok(contractNegotiationStore.find(id)).build();
+    }
+
+    @GET
+    @Path("agreement/{id}")
+    public Response getAgreementById(@PathParam("id") String id) {
+        return Response.ok(contractNegotiationStore.findContractAgreement(id)).build();
     }
 }
