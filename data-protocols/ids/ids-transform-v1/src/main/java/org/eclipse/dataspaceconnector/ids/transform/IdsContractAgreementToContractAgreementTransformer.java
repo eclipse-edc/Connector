@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
@@ -21,9 +23,7 @@ import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -92,8 +92,18 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
                 .providerAgentId(String.valueOf(contractAgreement.getProvider()))
                 .asset(asset);
 
-        if (contractAgreement.getId() != null) {
-            builder.id(contractAgreement.getId().toString());
+        var idsUri = contractAgreement.getId();
+        if (idsUri != null) {
+            var id = IdsIdParser.parse(idsUri.toString());
+            try {
+                if (id.getType() != IdsType.CONTRACT_AGREEMENT) {
+                    context.reportProblem("handled id is not of typ contract agreement");
+                }
+
+                builder.id(id.getValue());
+            } catch (NullPointerException e) {
+                context.reportProblem("cannot handle empty ids id");
+            }
         }
 
         if (contractAgreement.getContractEnd() != null) {

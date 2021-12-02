@@ -34,7 +34,7 @@ import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
 public class IdsContractAgreementToContractAgreementTransformerTest {
-    private static final URI AGREEMENT_ID = URI.create("urn:agreement:456uz984390236s");
+    private static final URI AGREEMENT_ID = URI.create("urn:contractagreement:456uz984390236s");
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
 
     private static final URI CONSUMER_URI = URI.create("https://provider.com/");
