@@ -139,9 +139,9 @@ class ContractValidationServiceImplTest {
                 .consumerAgentId(URI.create("consumer"))
                 .policy(originalPolicy)
                 .asset(Asset.Builder.newInstance().build())
-                .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(signingDate), ZoneId.systemDefault()))
-                .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(startDate), ZoneId.systemDefault()))
-                .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(endDate), ZoneId.systemDefault()))
+                .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(signingDate), ZoneId.of("UTC")))
+                .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(startDate), ZoneId.of("UTC")))
+                .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(endDate), ZoneId.of("UTC")))
                 .id("1:2").build();
 
         return validationService.validate(claimToken, agreement);

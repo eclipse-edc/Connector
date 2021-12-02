@@ -120,9 +120,9 @@ public class ArtifactRequestHandler implements Handler {
                 .id(contractDefinition.get().getId() + ":" + UUID.randomUUID())
                 .asset(Asset.Builder.newInstance().id(artifactIdsId.getValue()).build())
                 .policy(contractDefinition.get().getContractPolicy())
-                .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(Instant.now().getEpochSecond() + 60 * 5), ZoneId.systemDefault()) /* Five Minutes */)
-                .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(Instant.now().getEpochSecond() - 60 * 5), ZoneId.systemDefault()) /* Five Minutes */)
-                .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(Instant.now().getEpochSecond() - 60 * 5), ZoneId.systemDefault()) /* Five Minutes */)
+                .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(Instant.now().getEpochSecond() + 60 * 5), ZoneId.of("UTC")) /* Five Minutes */)
+                .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(Instant.now().getEpochSecond() - 60 * 5), ZoneId.of("UTC")) /* Five Minutes */)
+                .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(Instant.now().getEpochSecond() - 60 * 5), ZoneId.of("UTC")) /* Five Minutes */)
                 .consumerAgentId(URI.create("https://example.com"))
                 .providerAgentId(URI.create("https://example.com"))
                 .build();

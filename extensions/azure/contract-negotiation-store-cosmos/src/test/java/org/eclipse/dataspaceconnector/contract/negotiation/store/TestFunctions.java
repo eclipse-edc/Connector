@@ -33,9 +33,9 @@ public class TestFunctions {
                         .consumerAgentId(URI.create("consumer"))
                         .asset(Asset.Builder.newInstance().build())
                         .policy(Policy.Builder.newInstance().build())
-                        .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MIN.toEpochDay()), ZoneId.systemDefault()))
-                        .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MIN.toEpochDay()), ZoneId.systemDefault()))
-                        .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MAX.toEpochDay()), ZoneId.systemDefault()))
+                        .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MIN.toEpochDay()), ZoneId.of("UTC")))
+                        .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MIN.toEpochDay()), ZoneId.of("UTC")))
+                        .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MAX.toEpochDay()), ZoneId.of("UTC")))
                         .id("1:2").build())
                 .state(state.code())
                 .build();
