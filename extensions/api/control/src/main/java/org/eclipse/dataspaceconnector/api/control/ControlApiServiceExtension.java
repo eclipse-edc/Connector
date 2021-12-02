@@ -2,6 +2,8 @@ package org.eclipse.dataspaceconnector.api.control;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -40,7 +42,10 @@ public class ControlApiServiceExtension implements ServiceExtension {
         TransferProcessManager transferProcessManager = serviceExtensionContext.getService(TransferProcessManager.class);
         RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry = serviceExtensionContext.getService(RemoteMessageDispatcherRegistry.class);
 
-        webService.registerController(new ClientController(transferProcessManager));
+        ConsumerContractNegotiationManager consumerNegotiationManager = serviceExtensionContext.getService(ConsumerContractNegotiationManager.class);
+        ContractNegotiationStore contractNegotiationStore = serviceExtensionContext.getService(ContractNegotiationStore.class);
+
+        webService.registerController(new ClientController(transferProcessManager, consumerNegotiationManager, contractNegotiationStore));
         webService.registerController(new ClientControlCatalogApiController(remoteMessageDispatcherRegistry));
 
         /*
