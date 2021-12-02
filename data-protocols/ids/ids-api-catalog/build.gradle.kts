@@ -32,8 +32,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ids.api-catalog") {
-            artifactId = "data-protocols.ids-api-catalog"
+        create<MavenPublication>("ids-catalog") {
+            artifactId = "ids-api-catalog"
             from(components["java"])
         }
     }

@@ -44,8 +44,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("core.protocol-web") {
-            artifactId = "core.protocol-web"
+        create<MavenPublication>("protocol-web") {
+            artifactId = "protocol-web"
             from(components["java"])
         }
     }

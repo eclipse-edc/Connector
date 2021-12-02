@@ -13,8 +13,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("iam.registration-service-api") {
-            artifactId = "iam.registration-service-api"
+        create<MavenPublication>("registration-service-api") {
+            artifactId = "registration-service-api"
             from(components["java"])
         }
     }

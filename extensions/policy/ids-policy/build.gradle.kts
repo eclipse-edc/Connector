@@ -29,8 +29,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("extensions.policy.ids-policy") {
-            artifactId = "extensions.policy.ids-policy"
+        create<MavenPublication>("ids-policy") {
+            artifactId = "ids-policy"
             from(components["java"])
         }
     }

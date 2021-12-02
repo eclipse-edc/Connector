@@ -28,8 +28,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-protocols.ids-policy-mock") {
-            artifactId = "data-protocols.ids-policy-mock"
+        create<MavenPublication>("ids-policy-mock") {
+            artifactId = "ids-policy-mock"
             from(components["java"])
         }
     }

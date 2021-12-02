@@ -47,8 +47,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("extensions.api-control") {
-            artifactId = "extensions.api-control"
+        create<MavenPublication>("control-api") {
+            artifactId = "control-api"
             from(components["java"])
         }
     }

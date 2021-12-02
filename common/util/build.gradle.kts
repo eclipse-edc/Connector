@@ -27,8 +27,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("common.util") {
-            artifactId = "dataspaceconnector.common.util"
+        create<MavenPublication>("common-util") {
+            artifactId = "common-util"
             from(components["java"])
         }
     }

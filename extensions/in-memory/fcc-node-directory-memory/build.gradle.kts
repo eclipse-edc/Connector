@@ -14,8 +14,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("in-memory.catalog.node-directory") {
-            artifactId = "in-memory.catalog.node-directory"
+        create<MavenPublication>("catalog-node-directory-memory") {
+            artifactId = "catalog-node-directory-memory"
             from(components["java"])
         }
     }

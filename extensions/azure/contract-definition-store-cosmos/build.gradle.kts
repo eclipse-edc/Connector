@@ -31,8 +31,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure.contract-definition-store") {
-            artifactId = "azure.contract-definition-store"
+        create<MavenPublication>("contract-definition-store-cosmos") {
+            artifactId = "contract-definition-store-cosmos"
             from(components["java"])
         }
     }

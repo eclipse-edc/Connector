@@ -13,9 +13,6 @@
  */
 
 
-val securityType: String by rootProject.extra
-val iamType: String by rootProject.extra
-val configFs: String by rootProject.extra
 val jupiterVersion: String by project
 
 plugins {
@@ -27,20 +24,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-
-    println("Using security type: ${securityType}")
-
-    if (securityType != "default") {
-        api(project(":extensions:security:security-${securityType}"))
-    }
-
-    if (iamType == "oauth2") {
-        api(project(":extensions:iam:oauth2"))
-    }
-
-    if (configFs == "enabled") {
-        api(project(":extensions:filesystem:configuration-fs"))
-    }
+    api(project(":extensions:filesystem:configuration-fs"))
 
 }
 

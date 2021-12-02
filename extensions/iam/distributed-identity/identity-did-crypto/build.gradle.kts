@@ -10,8 +10,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("iam.identity-did-core") {
-            artifactId = "iam.identity-did-crypto"
+        create<MavenPublication>("identity-did-core") {
+            artifactId = "identity-did-core"
             from(components["java"])
         }
     }

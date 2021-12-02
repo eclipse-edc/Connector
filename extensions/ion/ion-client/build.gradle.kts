@@ -16,8 +16,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("ion.ion-client") {
-            artifactId = "ion.ion-client"
+        create<MavenPublication>("ion-client") {
+            artifactId = "ion-client"
             from(components["java"])
         }
     }

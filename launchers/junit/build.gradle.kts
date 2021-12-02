@@ -34,8 +34,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("junit.launcher") {
-            artifactId = "dataspaceconnector.junit.launcher"
+        create<MavenPublication>("junit-extension") {
+            artifactId = "junit-extension"
             from(components["java"])
         }
     }

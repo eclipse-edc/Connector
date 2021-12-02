@@ -11,8 +11,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("in-memory.did-document-store") {
-            artifactId = "in-memory.did-document-store"
+        create<MavenPublication>("did-document-store-memory") {
+            artifactId = "did-document-store-memory"
             from(components["java"])
         }
     }

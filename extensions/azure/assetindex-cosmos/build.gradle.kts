@@ -31,8 +31,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure.cosmos.assetindex") {
-            artifactId = "azure.cosmos.assetindex"
+        create<MavenPublication>("assetindex-cosmos") {
+            artifactId = "assetindex-cosmos"
             from(components["java"])
         }
     }

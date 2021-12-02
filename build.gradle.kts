@@ -26,10 +26,16 @@ val jetBrainsAnnotationsVersion: String by project
 val jacksonVersion: String by project
 val javaVersion: String by project
 
-val securityType by extra { System.getProperty("security.type", "default") }
-val iamType by extra { System.getProperty("iam.type", "disabled") }
-val configFs by extra { System.getProperty("configuration.fs", "disabled") }
 val jupiterVersion: String by project
+var edcVersion: String = "0.0.1-SNAPSHOT"
+
+if (project.version == "unspecified") {
+    logger.warn("No version was specified, setting default 0.0.1-SNAPSHOT")
+    logger.warn("If you want to change this, supply the -Pversion=X.Y.Z parameter")
+    logger.warn("")
+} else {
+    edcVersion = project.version as String
+}
 
 subprojects {
 
@@ -66,7 +72,7 @@ allprojects {
 
     pluginManager.withPlugin("java-library") {
         group = "org.eclipse.dataspaceconnector"
-        version = "0.0.1-SNAPSHOT.1"
+        version = edcVersion
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
             api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
@@ -95,6 +101,7 @@ allprojects {
             }
         }
 
+
     }
 
     tasks.withType<Test> {
@@ -112,6 +119,13 @@ allprojects {
             // lets not generate any reports because that is done from within the Github Actions workflow
             html.required.set(false)
             xml.required.set(false)
+        }
+    }
+
+    tasks.jar {
+        metaInf {
+            from("${rootProject.projectDir.path}/LICENSE")
+            from("${rootProject.projectDir.path}/NOTICE.md")
         }
     }
 }

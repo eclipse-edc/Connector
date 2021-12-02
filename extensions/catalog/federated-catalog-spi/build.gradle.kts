@@ -13,8 +13,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("catalog.spi") {
-            artifactId = "catalog.spi"
+        create<MavenPublication>("catalog-spi") {
+            artifactId = "catalog-spi"
             from(components["java"])
         }
     }

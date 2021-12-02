@@ -25,8 +25,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("dataloading.spi") {
-            artifactId = "dataloading.spi"
+        create<MavenPublication>("dataloading-spi") {
+            artifactId = "dataloading-spi"
             from(components["java"])
         }
     }

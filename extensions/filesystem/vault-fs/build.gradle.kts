@@ -23,8 +23,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("filesystem.vault") {
-            artifactId = "filesystem.vault"
+        create<MavenPublication>("filesystem-vault") {
+            artifactId = "filesystem-vault"
             from(components["java"])
         }
     }

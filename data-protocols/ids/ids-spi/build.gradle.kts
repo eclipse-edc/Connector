@@ -33,8 +33,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-protocols.ids-spi") {
-            artifactId = "data-protocols.ids-spi"
+        create<MavenPublication>("ids-spi") {
+            artifactId = "ids-spi"
             from(components["java"])
         }
     }

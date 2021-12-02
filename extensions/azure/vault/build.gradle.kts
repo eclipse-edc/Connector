@@ -37,8 +37,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("azure.vault") {
-            artifactId = "azure.vault"
+        create<MavenPublication>("azure-vault") {
+            artifactId = "azure-vault"
             from(components["java"])
         }
     }

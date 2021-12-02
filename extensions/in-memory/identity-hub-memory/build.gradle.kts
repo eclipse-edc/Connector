@@ -9,8 +9,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("in-memory.identity-hub") {
-            artifactId = "in-memory.identity-hub"
+        create<MavenPublication>("identity-hub-memory") {
+            artifactId = "identity-hub-memory"
             from(components["java"])
         }
     }

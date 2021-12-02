@@ -23,8 +23,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-functions.spi") {
-            artifactId = "transfer-functions.spi"
+        create<MavenPublication>("transfer-functions-spi") {
+            artifactId = "transfer-functions-spi"
             from(components["java"])
         }
     }

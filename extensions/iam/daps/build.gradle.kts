@@ -33,8 +33,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("iam.daps") {
-            artifactId = "iam.daps"
+        create<MavenPublication>("iam-daps") {
+            artifactId = "iam-daps"
             from(components["java"])
         }
     }

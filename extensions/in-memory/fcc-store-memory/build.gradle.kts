@@ -14,8 +14,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("in-memory.catalog.cache.store") {
-            artifactId = "in-memory.catalog.cache.store"
+        create<MavenPublication>("catalog-cache-store-memory") {
+            artifactId = "catalog-cache-store-memory"
             from(components["java"])
         }
     }

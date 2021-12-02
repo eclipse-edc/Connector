@@ -23,8 +23,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("core.policy-engine") {
-            artifactId = "core.policy-engine"
+        create<MavenPublication>("policy-engine") {
+            artifactId = "policy-engine"
             from(components["java"])
         }
     }
