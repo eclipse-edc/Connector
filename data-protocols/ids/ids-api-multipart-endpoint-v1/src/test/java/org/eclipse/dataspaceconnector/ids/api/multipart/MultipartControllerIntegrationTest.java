@@ -484,7 +484,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         // prepare
         var assetId = "1234";
         var request = createRequestWithPayload(getContractRequestMessage(),
-                new ContractRequestBuilder()
+                new ContractRequestBuilder(URI.create("urn:contractrequest:2345"))
                         ._provider_(URI.create("http://provider"))
                         ._consumer_(URI.create("http://consumer"))
                         ._permission_(new PermissionBuilder()

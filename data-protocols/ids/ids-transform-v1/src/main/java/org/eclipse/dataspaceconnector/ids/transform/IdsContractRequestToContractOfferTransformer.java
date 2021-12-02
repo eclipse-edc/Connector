@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.ContractRequest;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
@@ -91,8 +92,14 @@ public class IdsContractRequestToContractOfferTransformer implements IdsTypeTran
                 .provider(contractRequest.getProvider())
                 .asset(asset);
 
-        if (contractRequest.getId() != null) {
-            contractOfferBuilder.id(contractRequest.getId().toString());
+        var id = contractRequest.getId();
+        if (id != null) {
+            var idsId = context.transform(id, IdsId.class);
+            try {
+                contractOfferBuilder.id(idsId.getValue());
+            } catch (NullPointerException e) {
+                context.reportProblem("cannot handle empty ids id");
+            }
         }
 
         if (contractRequest.getContractEnd() != null) {
