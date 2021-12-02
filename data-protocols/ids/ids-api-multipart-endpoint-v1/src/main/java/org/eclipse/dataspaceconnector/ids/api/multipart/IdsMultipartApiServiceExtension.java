@@ -83,7 +83,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     @Override
     public Set<String> requires() {
         return Set.of(IdentityService.FEATURE,
-                "dataspaceconnector:transfer-process-manager",
                 "edc:ids:core",
                 AssetIndex.FEATURE,
                 ContractDefinitionStore.FEATURE,

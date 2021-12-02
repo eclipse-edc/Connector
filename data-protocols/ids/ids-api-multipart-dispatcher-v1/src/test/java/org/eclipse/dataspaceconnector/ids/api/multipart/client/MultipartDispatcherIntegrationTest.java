@@ -24,7 +24,6 @@ import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionMessageImpl;
-import de.fraunhofer.iais.eis.RejectionReason;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import okhttp3.OkHttpClient;
@@ -43,6 +42,7 @@ import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -165,6 +165,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractOffer(contractOffer)
+                .correlationId("1")
                 .build();
 
         var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
@@ -191,6 +192,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractOffer(contractOffer)
+                .correlationId("1")
                 .build();
 
         var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
@@ -205,8 +207,11 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
     @Test
     void testSendContractAgreementMessage() throws Exception {
-        var contractAgreement = (ContractAgreement) EasyMock.createNiceMock(ContractAgreement.class);
-        EasyMock.replay(contractAgreement);
+        var contractAgreement = ContractAgreement.Builder.newInstance()
+                .id("urn:contractagreement:1").consumerAgentId("consumer").providerAgentId("provider")
+                .policy(Policy.Builder.newInstance().build())
+                .asset(Asset.Builder.newInstance().build())
+                .build();
 
         EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
                 .andReturn(new TransformResult<>(getIdsContractAgreement()));
@@ -217,7 +222,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractAgreement(contractAgreement)
-                .correlationId("correlationId")
+                .correlationId("1")
                 .build();
 
         var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, request, () -> null).get();
@@ -225,8 +230,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result).isNotNull();
         assertThat(result.getHeader()).isNotNull();
 
-        // TODO Fix as soon as validation works
-        assertThat(result.getHeader()).isInstanceOf(RejectionMessageImpl.class);
+        assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessageImpl.class);
         assertThat(result.getPayload()).isNull();
     }
 
@@ -260,7 +264,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     }
 
     private de.fraunhofer.iais.eis.ContractAgreement getIdsContractAgreement() {
-        return new ContractAgreementBuilder()
+        return new ContractAgreementBuilder(URI.create("urn:contractagreement:1"))
                 ._consumer_(URI.create("consumer"))
                 ._provider_(URI.create("provider"))
                 ._contractDate_(CalendarUtil.gregorianNow())

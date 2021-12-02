@@ -563,7 +563,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
         // prepare
         var assetId = "1234";
         var request = createRequestWithPayload(getContractAgreementMessage(),
-                new ContractAgreementBuilder()
+                new ContractAgreementBuilder(URI.create("urn:contractagreement:1"))
                         ._provider_(URI.create("http://provider"))
                         ._consumer_(URI.create("http://consumer"))
                         ._permission_(new PermissionBuilder()
@@ -595,8 +595,7 @@ public class MultipartControllerIntegrationTest extends AbstractMultipartControl
 
         var jsonHeader = JsonAssertions.assertThatJson(new String(header, StandardCharsets.UTF_8));
 
-        // TODO change to MessageProcessedNotification, mock successful validation result
-        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:RejectionMessage");
+        jsonHeader.inPath("$.@type").isString().isEqualTo("ids:MessageProcessedNotificationMessage");
         jsonHeader.inPath("$.@id").isString().matches("urn:message:.*");
         jsonHeader.inPath("$.ids:modelVersion").isString().isEqualTo("4.2.7");
         jsonHeader.inPath("$.ids:contentVersion").isString().isEqualTo("4.2.7");

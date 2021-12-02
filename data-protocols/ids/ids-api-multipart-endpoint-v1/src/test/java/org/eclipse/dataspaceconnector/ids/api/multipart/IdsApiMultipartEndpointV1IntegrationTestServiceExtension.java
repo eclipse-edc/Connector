@@ -151,9 +151,12 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
             policyBuilder.type(PolicyType.CONTRACT);
             actionBuilder.type("USE");
+            permissionBuilder.target("1");
 
             permissionBuilder.action(actionBuilder.build());
             policyBuilder.permission(permissionBuilder.build());
+
+            policyBuilder.target("1");
             return policyBuilder.build();
         }
     }

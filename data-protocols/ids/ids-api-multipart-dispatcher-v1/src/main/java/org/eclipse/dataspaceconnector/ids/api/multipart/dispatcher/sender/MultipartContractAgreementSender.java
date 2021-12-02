@@ -75,7 +75,8 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
             throw new EdcException("No valid value found for attribute ids.webhook.address");
         }
 
-        var message = new ContractAgreementMessageBuilder()
+        var id = request.getContractAgreement().getId();
+        var message = new ContractAgreementMessageBuilder(URI.create(id))
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
