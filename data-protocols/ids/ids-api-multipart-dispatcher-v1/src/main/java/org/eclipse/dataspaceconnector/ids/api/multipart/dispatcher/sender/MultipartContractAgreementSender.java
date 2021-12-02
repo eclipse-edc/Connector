@@ -82,6 +82,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
                 ._issuerConnector_(getConnectorId())
                 ._senderAgent_(getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
+                ._transferContract_(URI.create(request.getCorrelationId()))
                 .build();
         message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
 

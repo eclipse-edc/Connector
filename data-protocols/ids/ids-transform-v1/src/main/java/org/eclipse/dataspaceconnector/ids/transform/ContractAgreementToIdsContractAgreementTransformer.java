@@ -82,7 +82,7 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
             }
         }
 
-        var idsId = IdsId.Builder.newInstance().value(object.hashCode()).type(IdsType.CONTRACT_AGREEMENT).build();
+        var idsId = IdsId.Builder.newInstance().value(object.getId()).type(IdsType.CONTRACT_AGREEMENT).build();
         var id = context.transform(idsId, URI.class);
         var builder = new ContractAgreementBuilder(id);
 

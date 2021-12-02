@@ -45,9 +45,7 @@ public interface AssetIndex {
     /**
      * Returns true if the set of asset are in the group of assets defined by criteria.
      */
-    default Stream<Asset> queryAssets(List<Criterion> criteria) {
-        throw new UnsupportedOperationException();
-    }
+    Stream<Asset> queryAssets(List<Criterion> criteria);
 
     /**
      * Fetches the {@link Asset} with the given ID from the metadata backend.
@@ -58,6 +56,5 @@ public interface AssetIndex {
      */
     @Nullable
     Asset findById(String assetId);
-
 
 }

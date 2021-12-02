@@ -40,6 +40,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
@@ -86,6 +87,7 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(Connector.class, de.fraunhofer.iais.eis.Connector.class),
                     Arguments.arguments(Constraint.class, de.fraunhofer.iais.eis.Constraint.class),
                     Arguments.arguments(ContractOffer.class, de.fraunhofer.iais.eis.ContractOffer.class),
+                    Arguments.arguments(ContractAgreement.class, de.fraunhofer.iais.eis.ContractAgreement.class),
                     Arguments.arguments(Catalog.class, ResourceCatalog.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.Constraint.class, Constraint.class),
                     Arguments.arguments(de.fraunhofer.iais.eis.ContractOffer.class, ContractOffer.class),

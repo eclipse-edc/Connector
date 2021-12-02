@@ -65,10 +65,15 @@ public class PermissionToIdsPermissionTransformer implements IdsTypeTransformer<
             }
             permissionBuilder._constraint_(idsConstraint);
         }
+        
+        var idsArtifactId = IdsId.Builder.newInstance()
+                .type(IdsType.ARTIFACT)
+                .value(object.getTarget())
+                .build();
+        var uri = context.transform(idsArtifactId, URI.class);
 
-        String target = object.getTarget();
-        if (target != null) {
-            permissionBuilder._target_(URI.create(target));
+        if (uri != null) {
+            permissionBuilder._target_(uri);
         }
 
         String assigner = object.getAssigner();

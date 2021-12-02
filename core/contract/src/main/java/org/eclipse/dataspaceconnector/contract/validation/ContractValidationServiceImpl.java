@@ -27,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Supplier;
@@ -77,7 +76,11 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         // TODO create counter offer if wanted
 
         var sanitizedUsagePolicy = contractDefinition.getContractPolicy();
-        var validatedOffer = ContractOffer.Builder.newInstance().id(offer.getId()).asset(targetAsset).policy(sanitizedUsagePolicy).build();
+        var validatedOffer = ContractOffer.Builder.newInstance()
+                .id(offer.getId())
+                .asset(targetAsset)
+                .policy(sanitizedUsagePolicy)
+                .build();
         return new OfferValidationResult(validatedOffer);
     }
 
@@ -120,13 +123,6 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
-        var agent = agentService.createFor(token);
-        var contractIdTokens = parseContractId(agreement.getId());
-        if (contractIdTokens.length != 2) {
-            // not a valid id
-            return false;
-        }
-
         // TODO implement validation
         // TODO Hand over to external PDP
         // TODO create counter offer if wanted

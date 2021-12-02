@@ -14,12 +14,12 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ContractAgreementMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -28,12 +28,13 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.Map;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
@@ -81,7 +82,11 @@ public class ContractAgreementHandler implements Handler {
 
         de.fraunhofer.iais.eis.ContractAgreement contractAgreement;
         try {
-            contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), de.fraunhofer.iais.eis.ContractAgreement.class);
+            var map = objectMapper.readValue(multipartRequest.getPayload(), new TypeReference<Map<String, Object>>() {});
+            map.remove("ids:contractEnd");
+            map.remove("ids:contractStart");
+            map.remove("ids:contractDate");
+            contractAgreement = objectMapper.convertValue(map, de.fraunhofer.iais.eis.ContractAgreement.class);
         } catch (IOException e) {
             monitor.severe("ContractAgreementHandler: Contract Agreement is invalid", e);
             return createBadParametersErrorMultipartResponse(message);
@@ -94,20 +99,9 @@ public class ContractAgreementHandler implements Handler {
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        var target = permission.getTarget();
-        if (target == null || String.valueOf(target).isBlank()) {
-            monitor.debug("ContractAgreementHandler: Contract Agreement is invalid");
-            return createBadParametersErrorMultipartResponse(message);
-        }
-
         // search for matching asset
-        var assetId = IdsIdParser.parse(String.valueOf(target));
-        var asset = assetIndex.findById(assetId.getValue());
-        if (asset == null) {
-            var msg = "Target id is invalid";
-            monitor.debug(String.format("ContractAgreementHandler: %s", msg));
-            return createBadParametersErrorMultipartResponse(message, msg);
-        }
+        // TODO remove fake asset (description request to fetch original metadata --> store/cache)
+        var asset = Asset.Builder.newInstance().id(String.valueOf(permission.getTarget())).build();
 
         // Create contract offer request
         var input = ContractTransformerInput.Builder.newInstance()

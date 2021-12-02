@@ -183,3 +183,67 @@ And then call the control endpoint for data transfer
 ```bash
 curl -X POST -H 'X-Api-Key: password' -H "Content-Type: application/json" -d @request.json http://localhost:9191/api/control/transfer
 ```
+
+
+ContractOfferRequest
+```json
+{
+  "type": "INITIAL",
+  "protocol": "ids-multipart",
+  "connectorId": "1",
+  "connectorAddress": "http://localhost:8181/api/ids/multipart",
+  "correlationId": null,
+  "contractOffer": {
+            "id": "urn:contractoffer:1",
+            "policy": {
+                "uid": "7185d17a-44d9-4fc6-b5c1-8643526b1fec",
+                "permissions": [
+                    {
+                        "edctype": "dataspaceconnector:permission",
+                        "uid": null,
+                        "target": "1",
+                        "action": {
+                            "type": "USE",
+                            "includedIn": null,
+                            "constraint": null
+                        },
+                        "assignee": null,
+                        "assigner": null,
+                        "constraints": [],
+                        "duties": []
+                    }
+                ],
+                "prohibitions": [],
+                "obligations": [],
+                "extensibleProperties": {},
+                "inheritsFrom": null,
+                "assigner": null,
+                "assignee": null,
+                "target": null,
+                "@type": {
+                    "@policytype": "set"
+                }
+            },
+            "asset": {
+                "properties": {
+                    "ids:byteSize": null,
+                    "asset:prop:id": "1",
+                    "ids:fileName": null
+                }
+            },
+            "provider": null,
+            "consumer": null,
+            "offerStart": null,
+            "offerEnd": null,
+            "contractStart": null,
+            "contractEnd": null
+        },
+  "asset": "1",
+  "provider": "https://provider.com",
+  "consumer": "https://consumer.com",
+  "offerStart": null,
+  "offerEnd": null,
+  "contractStart": null,
+  "contractEnd": null
+}
+```

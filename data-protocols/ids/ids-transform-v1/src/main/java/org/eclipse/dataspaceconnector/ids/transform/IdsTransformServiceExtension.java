@@ -58,6 +58,7 @@ public class IdsTransformServiceExtension implements ServiceExtension {
                 new ConstraintToIdsConstraintTransformer(),
                 new ConstraintToIdsLogicalConstraintTransformer(),
                 new ContractOfferToIdsContractOfferTransformer(),
+                new ContractAgreementToIdsContractAgreementTransformer(),
                 new CatalogToIdsResourceCatalogTransformer(),
                 new DutyToIdsDutyTransformer(),
                 new ExpressionToIdsLeftOperandTransformer(),

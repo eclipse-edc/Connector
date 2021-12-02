@@ -97,8 +97,8 @@ public class IdsContractRequestToContractOfferTransformer implements IdsTypeTran
         if (idsUri != null) {
             var id = IdsIdParser.parse(idsUri.toString());
             try {
-                if (id.getType() != IdsType.CONTRACT_REQUEST) {
-                    context.reportProblem("handled id is not of typ contract request");
+                if (id.getType() != IdsType.CONTRACT_REQUEST && id.getType() != IdsType.CONTRACT_OFFER) {
+                    context.reportProblem("handled id is not of typ contract request or offer");
                 }
 
                 contractOfferBuilder.id(id.getValue());
