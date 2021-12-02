@@ -14,14 +14,15 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import de.fraunhofer.iais.eis.AbstractConstraint;
 import de.fraunhofer.iais.eis.Action;
-import de.fraunhofer.iais.eis.Constraint;
 import de.fraunhofer.iais.eis.ProhibitionBuilder;
 import de.fraunhofer.iais.eis.util.ConstraintViolationException;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.policy.model.MultiplicityConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -73,7 +74,13 @@ public class ProhibitionToIdsProhibitionTransformer implements IdsTypeTransforme
         }
 
         for (org.eclipse.dataspaceconnector.policy.model.Constraint edcConstraint : object.getConstraints()) {
-            Constraint idsConstraint = context.transform(edcConstraint, Constraint.class);
+            AbstractConstraint idsConstraint;
+            if (edcConstraint instanceof MultiplicityConstraint) {
+                idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.LogicalConstraint.class);
+            } else {
+                idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
+            }
+
             prohibitionBuilder._constraint_(idsConstraint);
         }
 

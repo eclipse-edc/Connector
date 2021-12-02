@@ -49,14 +49,20 @@ public class ExpressionToIdsLeftOperandTransformer implements IdsTypeTransformer
         }
 
         var value = ((LiteralExpression) object).asString();
-        LeftOperand leftOperand;
-        try {
-            leftOperand = LeftOperand.valueOf(value);
-        } catch (IllegalArgumentException e) {
-            context.reportProblem(String.format("Encountered undefined left operand type: %s", value));
-            leftOperand = null;
-        }
 
+        LeftOperand leftOperand = null;
+
+        // this is a hack until https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/338 is resolved - LeftOperand cannot be an enum
+        if (value.contains("absoluteSpatialPosition")) {
+            leftOperand = LeftOperand.ABSOLUTE_SPATIAL_POSITION;
+        } else {
+            try {
+                leftOperand = LeftOperand.valueOf(value);
+            } catch (IllegalArgumentException e) {
+                context.reportProblem(String.format("Encountered undefined left operand type: %s. Error was: %s.", value, e.getMessage()));
+            }
+
+        }
         return leftOperand;
     }
 }

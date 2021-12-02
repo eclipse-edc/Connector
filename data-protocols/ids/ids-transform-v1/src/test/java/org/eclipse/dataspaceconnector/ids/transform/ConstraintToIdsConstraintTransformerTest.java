@@ -55,6 +55,7 @@ public class ConstraintToIdsConstraintTransformerTest {
         EasyMock.replay(constraint, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
+            //noinspection ConstantConditions
             transformer.transform(null, null);
         });
     }
@@ -64,6 +65,7 @@ public class ConstraintToIdsConstraintTransformerTest {
         EasyMock.replay(constraint, context);
 
         Assertions.assertThrows(NullPointerException.class, () -> {
+            //noinspection ConstantConditions
             transformer.transform(constraint, null);
         });
     }

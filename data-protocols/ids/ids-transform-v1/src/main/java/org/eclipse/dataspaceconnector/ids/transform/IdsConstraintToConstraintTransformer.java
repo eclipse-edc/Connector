@@ -41,14 +41,14 @@ public class IdsConstraintToConstraintTransformer implements IdsTypeTransformer<
     }
 
     @Override
-    public @Nullable Constraint transform(de.fraunhofer.iais.eis.Constraint object, @NotNull TransformerContext context) {
+    public @Nullable Constraint transform(de.fraunhofer.iais.eis.Constraint constraint, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
-        if (object == null) {
+        if (constraint == null) {
             return null;
         }
 
         Operator operator = null;
-        BinaryOperator binaryOperator = object.getOperator();
+        BinaryOperator binaryOperator = constraint.getOperator();
         if (binaryOperator != null) {
             operator = context.transform(binaryOperator, Operator.class);
         }
@@ -61,7 +61,7 @@ public class IdsConstraintToConstraintTransformer implements IdsTypeTransformer<
         }
 
         Expression leftExpression = null;
-        LeftOperand leftOperand = object.getLeftOperand();
+        LeftOperand leftOperand = constraint.getLeftOperand();
         if (leftOperand != null) {
             leftExpression = context.transform(leftOperand, Expression.class);
         }
@@ -73,7 +73,7 @@ public class IdsConstraintToConstraintTransformer implements IdsTypeTransformer<
 
 
         Expression rightExpression = null;
-        RdfResource rightOperand = object.getRightOperand();
+        RdfResource rightOperand = constraint.getRightOperand();
         if (rightOperand != null) {
             rightExpression = context.transform(rightOperand, Expression.class);
         }
@@ -89,4 +89,8 @@ public class IdsConstraintToConstraintTransformer implements IdsTypeTransformer<
                 .rightExpression(rightExpression)
                 .build();
     }
+
 }
+
+
+
