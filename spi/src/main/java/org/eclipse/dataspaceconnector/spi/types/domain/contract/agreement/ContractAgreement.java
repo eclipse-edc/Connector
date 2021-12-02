@@ -56,16 +56,6 @@ public class ContractAgreement {
         this.contractEndDate = contractEndDate;
         this.asset = Objects.requireNonNull(asset);
         this.policy = Objects.requireNonNull(policy);
-
-//        if (contractSigningDate == 0) { TODO
-//            throw new IllegalArgumentException("contract signing date must be set");
-//        }
-//        if (contractStartDate == 0) {
-//            throw new IllegalArgumentException("contract start date must be set");
-//        }
-//        if (contractEndDate == 0) {
-//            throw new IllegalArgumentException("contract end date must be set");
-//        }
     }
 
     /**
