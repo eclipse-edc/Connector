@@ -14,13 +14,13 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.ConstraintBuilder;
+import de.fraunhofer.iais.eis.LogicalConstraint;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
-import org.eclipse.dataspaceconnector.policy.model.MultiplicityConstraint;
 import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.XoneConstraint;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,10 +49,8 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
                 .build();
         var andConstraint = AndConstraint.Builder.newInstance().constraint(atomicConstraint).constraint(atomicConstraint).build();
 
-        var transformed = (MultiplicityConstraint) transformer.transform(andConstraint, context);
-        assertThat(transformed).isInstanceOf(AndConstraint.class);
-        assertThat(transformed.getConstraints()).isNotNull();
-
+        var transformed = (LogicalConstraint) transformer.transform(andConstraint, context);
+        assertThat(transformed.getAnd()).isNotEmpty();
         EasyMock.verify(context);
     }
 
