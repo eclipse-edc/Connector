@@ -28,20 +28,20 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     private final CosmosDbApi cosmosDbApi;
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
-    private final AtomicReference<Map<String, ContractDefinition>> objectCache;
     private final ReentrantReadWriteLock lock; //used to synchronize write operations to the cache and the DB
+    private AtomicReference<Map<String, ContractDefinition>> objectCache;
 
     public CosmosContractDefinitionStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
-        objectCache = new AtomicReference<>(new ConcurrentHashMap<>());
+
         lock = new ReentrantReadWriteLock(true);
     }
 
     @Override
     public @NotNull Collection<ContractDefinition> findAll() {
-        return objectCache.get().values();
+        return getCache().values();
     }
 
     @Override
@@ -102,7 +102,7 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     }
 
     private void storeInCache(ContractDefinition definition) {
-        objectCache.get().put(definition.getId(), definition);
+        getCache().put(definition.getId(), definition);
     }
 
     @NotNull
@@ -110,6 +110,13 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
         return new ContractDefinitionDocument(def);
     }
 
+    private Map<String, ContractDefinition> getCache() {
+        if (objectCache == null) {
+            objectCache = new AtomicReference<>(new ConcurrentHashMap<>());
+            reload();
+        }
+        return objectCache.get();
+    }
 
     private ContractDefinition convert(Object object) {
         var json = typeManager.writeValueAsString(object);
