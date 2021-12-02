@@ -8,6 +8,7 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -49,6 +50,7 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void findAll_noReload() {
+        expect(cosmosDbApiMock.queryAllItems()).andReturn(Collections.emptyList());
         replay(cosmosDbApiMock);
 
         var all = store.findAll();
@@ -61,6 +63,8 @@ class CosmosContractDefinitionStoreTest {
         Capture<ContractDefinitionDocument> documentCapture = newCapture();
         cosmosDbApiMock.saveItem(capture(documentCapture));
         expectLastCall().times(1);
+        expect(cosmosDbApiMock.queryAllItems()).andReturn(Collections.emptyList());
+
         replay(cosmosDbApiMock);
 
         var def = generateDefinition();
@@ -73,6 +77,8 @@ class CosmosContractDefinitionStoreTest {
     void save_verifyWriteThrough() {
         Capture<ContractDefinitionDocument> documentCapture = newCapture();
         cosmosDbApiMock.saveItem(capture(documentCapture));
+        expect(cosmosDbApiMock.queryAllItems()).andReturn(Collections.emptyList());
+
         expectLastCall().times(1);
         // cosmosDbApiQueryMock.queryAllItems() should never be called
         replay(cosmosDbApiMock);
@@ -88,6 +94,7 @@ class CosmosContractDefinitionStoreTest {
     void update() {
         Capture<ContractDefinitionDocument> documentCapture = newCapture();
         cosmosDbApiMock.saveItem(capture(documentCapture));
+        expect(cosmosDbApiMock.queryAllItems()).andReturn(Collections.emptyList());
         expectLastCall().times(1);
         replay(cosmosDbApiMock);
 
