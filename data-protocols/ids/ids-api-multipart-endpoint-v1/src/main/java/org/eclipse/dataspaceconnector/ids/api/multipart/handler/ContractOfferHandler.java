@@ -76,7 +76,7 @@ public class ContractOfferHandler implements Handler {
         try {
             contractOffer = objectMapper.readValue(multipartRequest.getPayload(), ContractOffer.class);
         } catch (IOException e) {
-            monitor.debug("ContractOfferHandler: Contract Offer is invalid");
+            monitor.severe("ContractOfferHandler: Contract Offer is invalid", e);
             return createBadParametersErrorMultipartResponse(message);
         }
 

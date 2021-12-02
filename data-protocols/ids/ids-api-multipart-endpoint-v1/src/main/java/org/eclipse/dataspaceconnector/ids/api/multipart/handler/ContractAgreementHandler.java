@@ -83,7 +83,7 @@ public class ContractAgreementHandler implements Handler {
         try {
             contractAgreement = objectMapper.readValue(multipartRequest.getPayload(), de.fraunhofer.iais.eis.ContractAgreement.class);
         } catch (IOException e) {
-            monitor.debug("ContractAgreementHandler: Contract Agreement is invalid");
+            monitor.severe("ContractAgreementHandler: Contract Agreement is invalid", e);
             return createBadParametersErrorMultipartResponse(message);
         }
 
