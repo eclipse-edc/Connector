@@ -61,6 +61,11 @@ public class ContractServiceExtension implements ServiceExtension {
     }
 
     @Override
+    public Set<String> requires() {
+        return Set.of(AssetIndex.FEATURE);
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
         this.context = context;
@@ -76,6 +81,10 @@ public class ContractServiceExtension implements ServiceExtension {
         // load the store in the start method, so it can be overridden by an extension
 
         var store = context.getService(ContractDefinitionStore.class);
+        if (store == null) {
+            store = new InMemoryContractDefinitionStore();
+            context.registerService(ContractDefinitionStore.class, store); // TODO technically this cannot work
+        }
         definitionService.initialize(store);
 
         // Start negotiation managers.
@@ -84,7 +93,7 @@ public class ContractServiceExtension implements ServiceExtension {
         providerNegotiationManager.start(negotiationStore);
 
         // load the store in the start method, so it can be overridden by an extension
-        definitionService.initialize(context.getService(ContractDefinitionStore.class));
+        //definitionService.initialize(context.getService(ContractDefinitionStore.class));
 
         monitor.info(String.format("Started %s", NAME));
     }
@@ -135,7 +144,7 @@ public class ContractServiceExtension implements ServiceExtension {
         }
 
         // negotiation
-        var validationService = new  ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
+        var validationService = new ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
         context.registerService(ContractValidationService.class, validationService);
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
