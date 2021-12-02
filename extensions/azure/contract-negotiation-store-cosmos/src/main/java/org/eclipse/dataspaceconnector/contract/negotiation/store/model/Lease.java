@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store.model;
+package org.eclipse.dataspaceconnector.contract.negotiation.store.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
