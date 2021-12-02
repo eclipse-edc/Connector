@@ -6,15 +6,22 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Set;
 
 class ClientControlCatalogApiControllerTestServiceExtension implements ServiceExtension {
@@ -23,6 +30,7 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
     private Monitor monitor;
     private AssetLoader assetLoader;
     private ContractDefinitionStore contractDefinitionStore;
+    private ContractNegotiationStore contractNegotiationStore;
 
     @Override
     public Set<String> requires() {
@@ -39,6 +47,8 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         monitor = context.getMonitor();
         assetLoader = context.getService(AssetLoader.class);
         contractDefinitionStore = context.getService(ContractDefinitionStore.class);
+        contractNegotiationStore = new FakeContractNegotiationStore();
+        context.registerService(ContractNegotiationStore.class, contractNegotiationStore);
     }
 
     @Override
@@ -115,5 +125,38 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         contractDefinitionStore.save(contractDefinition2);
 
         monitor.info(String.format("Started %s", NAME));
+    }
+
+    private static class FakeContractNegotiationStore implements ContractNegotiationStore {
+
+        @Override
+        public @Nullable ContractNegotiation find(String negotiationId) {
+            return null;
+        }
+
+        @Override
+        public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
+            return null;
+        }
+
+        @Override
+        public @Nullable ContractAgreement findContractAgreement(String contractId) {
+            return null;
+        }
+
+        @Override
+        public void save(ContractNegotiation negotiation) {
+
+        }
+
+        @Override
+        public void delete(String negotiationId) {
+
+        }
+
+        @Override
+        public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
+            return null;
+        }
     }
 }

@@ -68,7 +68,7 @@ public class ClientController {
 
     @POST
     @Path("negotiation")
-    public Response initiateNegotiation(ContractOfferRequest contractOffer) {
+    public Response initiateNegotiation(ContractOfferRequest contractOffer) { // TODO allow to the idsWebhookAddress via parameter
         if (contractOffer == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
