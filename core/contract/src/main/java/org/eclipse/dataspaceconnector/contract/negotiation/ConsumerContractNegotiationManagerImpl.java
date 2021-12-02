@@ -248,13 +248,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * @param process The contract negotiation.
      * @return The response to the sent message.
      */
-    private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process) {
+    private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferRequest.Type type) {
         var request = ContractOfferRequest.Builder.newInstance()
                 .contractOffer(offer)
                 .connectorAddress(process.getCounterPartyAddress())
                 .protocol(process.getProtocol())
                 .connectorId(process.getCounterPartyId())
                 .correlationId(process.getId())
+                .type(type)
                 .build();
 
         // TODO protocol-independent response type?
@@ -273,7 +274,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         for (ContractNegotiation process : processes) {
             var offer = process.getLastContractOffer();
-            var response = sendOffer(offer, process);
+            var response = sendOffer(offer, process, ContractOfferRequest.Type.INITIAL);
             if (response.isCompletedExceptionally()) {
                 process.transitionRequesting();
                 monitor.debug(format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
@@ -302,7 +303,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         for (ContractNegotiation process : processes) {
             var offer = process.getLastContractOffer();
-            var response = sendOffer(offer, process);
+            var response = sendOffer(offer, process, ContractOfferRequest.Type.COUNTER_OFFER);
             if (response.isCompletedExceptionally()) {
                 process.transitionOffering();
                 monitor.debug(format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
