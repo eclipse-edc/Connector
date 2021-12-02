@@ -23,7 +23,7 @@ outward-facing communication. In this example we will communicate with the consu
 like `cURL`, but it is easy to imagine some other much more complicated control system to interact with the (consumer)
 connector. Thus, using Jakarta, we must create an API controller the same way we created our health endpoint a few
 chapters back. In fact, we can re-use and
-improve [that controller](samples/04-file-transfer/api/src/main/java/org/eclipse/dataspaceconnector/extensions/api/ConsumerApiController.java)
+improve [that controller](api/src/main/java/org/eclipse/dataspaceconnector/extensions/api/ConsumerApiController.java)
 (code omitted here for brevity).
 
 Again, like before, the controller is instantiated and registered in an extension which we aptly
@@ -45,28 +45,29 @@ so-called "catalog". For the sake of simplicity we use an in-memory catalog and 
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        InMemoryAssetIndex assetIndex = (InMemoryAssetIndex) context.getService(AssetIndex.class);
-        InMemoryDataAddressResolver dataAddressResolver = (InMemoryDataAddressResolver) context.getService(DataAddressResolver.class);
+        AssetLoader loader = context.getService(AssetLoader.class);
+        String assetPathSetting = context.getSetting(EDC_ASSET_PATH, "/tmp/provider/test-document.txt");
+        Path assetPath = Path.of(assetPathSetting);
 
         DataAddress dataAddress = DataAddress.Builder.newInstance()
-        .property("type", "File")
-        .property("path", "/home/paul/Documents/")
-        .property("filename", "test-document.txt")
-        .build();
+                .property("type", "File")
+                .property("path", assetPath.getParent().toString())
+                .property("filename", assetPath.getFileName().toString())
+                .build();
 
         String assetId = "test-document";
-        Asset asset = Asset.Builder.newInstance().id(assetId).property(POLICY_ID, USE_EU_POLICY).build();
+        Asset asset = Asset.Builder.newInstance().id(assetId).policyId(USE_EU_POLICY).build();
 
-        assetIndex.add(asset, dataAddress);
-        dataAddressResolver.add(assetId, dataAddress);
+        loader.accept(asset, dataAddress);
     }
 ```
 
-This adds a `GenericDataCatalogEntry` to the `AssetIndex` (which is the catalog). Or, in other words, your provider
-now "hosts" one file named `test-documents.txt` located in the path `/path/to/assets/` on your development machine. It
-makes it available for transfer under its `id` `"test-document"`. While it makes sense to have some sort of similarity
-between file name and id, it is by no means mandatory.
-> **Please adjust this path as necessary to match your local environment!**
+This adds an `Asset` to the `AssetIndex` and the relative `DataAddress` to the `DataAddressResolver` through the 
+`AssetLoader`. Or, in other words, your provider now "hosts" one file named `test-documents.txt` located in the path 
+configured by the setting `edc.asset.path` on your development machine. It makes it available for transfer under 
+its `id` `"test-document"`. While it makes sense to have some sort of similarity between file name and id, it is by 
+no means mandatory.
+> **Please adjust this path in the provider's config file as necessary to match your local environment!**
 
 Please also note that the registering of Policies is omitted from this document for clarity.
 
@@ -106,12 +107,10 @@ files:
 ```kotlin
 // in consumer/build.gradle.kts and provider/build.gradle.kts:
 implementation(project(":data-protocols:ids"))
-implementation(project(":data-protocols:ids:ids-policy-mock"))
 ```
 
 This adds the IDS protocol package to both connectors. Since we're adding the IDS root module, nothing more needs to be
-done here. The `ids-policy-mock` module is added explicitly so that the extension inside it gets picket up. We will see
-later how we can instruct the consumer to request a file from our provider.
+done here. We will see later how we can instruct the consumer to request a file from our provider.
 
 ## Perform a file transfer
 
@@ -124,9 +123,10 @@ So all that's left is to start them both and initiate a file transfer!
 Let's rebuild and run them both:
 
 ```bash
-./gradlew clean build
+./gradlew samples:04-file-transfer:consumer:build
 java -Dedc.fs.config=samples/04-file-transfer/consumer/config.properties -jar samples/04-file-transfer/consumer/build/libs/consumer.jar
 # in another terminal window:
+./gradlew samples:04-file-transfer:provider:build
 java -Dedc.fs.config=samples/04-file-transfer/provider/config.properties -jar samples/04-file-transfer/provider/build/libs/provider.jar
 ````
 
@@ -139,7 +139,7 @@ curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http
 
 > **Please adjust the `destination` to match your local dev machine!**
 
-- the last path item, `test-document`, matches the ID of the `GenericDataCatalogEntry` that we created earlier in
+- the last path item, `test-document`, matches the ID of the `Asset` that we created earlier in
   `FileTransferExtension.java`, thus referencing the _data source_
 - the first query parameter (`connectorAddress`) is the address of the provider connector
 - the last query parameter (`destination`) indicates the desired _destination_ directory on you local machine.

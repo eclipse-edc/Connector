@@ -34,11 +34,8 @@ dependencies {
     implementation(project(":extensions:iam:iam-mock"))
 
     implementation(project(":data-protocols:ids"))
-    implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:04-file-transfer:transfer-file"))
-
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }
 
 application {

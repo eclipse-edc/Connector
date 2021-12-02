@@ -6,6 +6,7 @@ import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
@@ -15,6 +16,9 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Set;
 
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
@@ -22,6 +26,7 @@ import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
 public class FileTransferExtension implements ServiceExtension {
 
     public static final String USE_EU_POLICY = "use-eu";
+    private static final String EDC_ASSET_PATH = "edc.samples.04.asset.path";
 
     @Override
     public Set<String> requires() {
@@ -35,7 +40,6 @@ public class FileTransferExtension implements ServiceExtension {
 
         var flowController = new FileTransferFlowController(context.getMonitor(), dataAddressResolver);
         dataFlowMgr.register(flowController);
-
 
         registerDataEntries(context);
         savePolicies(context);
@@ -54,11 +58,13 @@ public class FileTransferExtension implements ServiceExtension {
 
     private void registerDataEntries(ServiceExtensionContext context) {
         AssetLoader loader = context.getService(AssetLoader.class);
+        String assetPathSetting = context.getSetting(EDC_ASSET_PATH, "/tmp/provider/test-document.txt");
+        Path assetPath = Path.of(assetPathSetting);
 
         DataAddress dataAddress = DataAddress.Builder.newInstance()
                 .property("type", "File")
-                .property("path", "/home/paul/Documents/")
-                .property("filename", "test-document.txt")
+                .property("path", assetPath.getParent().toString())
+                .property("filename", assetPath.getFileName().toString())
                 .build();
 
         String assetId = "test-document";
