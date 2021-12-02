@@ -45,9 +45,9 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new ContractAgreementToIdsContractAgreementTransformer();
-        contractAgreement = EasyMock.createMock(ContractAgreement.class);
-        policy = EasyMock.createMock(Policy.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        contractAgreement = EasyMock.createNiceMock(ContractAgreement.class);
+        policy = EasyMock.createNiceMock(Policy.class);
+        context = EasyMock.createNiceMock(TransformerContext.class);
 
         EasyMock.expect(contractAgreement.getPolicy()).andReturn(policy);
     }
@@ -90,6 +90,7 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
         Duty edcObligation = EasyMock.createMock(Duty.class);
         de.fraunhofer.iais.eis.Duty idsObligation = EasyMock.createMock(de.fraunhofer.iais.eis.Duty.class);
 
+        EasyMock.expect(contractAgreement.getId()).andReturn(String.valueOf(AGREEMENT_ID));
         EasyMock.expect(contractAgreement.getProviderAgentId()).andReturn(PROVIDER_ID);
         EasyMock.expect(contractAgreement.getConsumerAgentId()).andReturn(null);
         EasyMock.expect(contractAgreement.getContractStartDate()).andReturn(Instant.MIN.getEpochSecond());
