@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClientBuilder;
@@ -12,7 +12,7 @@ import com.azure.cosmos.models.CosmosStoredProcedureResponse;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractNegotiationDocument;
+import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -38,8 +38,8 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateNegotiation;
+import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
+import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
 
 @IntegrationTest
 public class CosmosContractNegotiationStoreIntegrationTest {
@@ -58,17 +58,15 @@ public class CosmosContractNegotiationStoreIntegrationTest {
     static void prepareCosmosClient() {
         var key = propOrEnv("COSMOS_KEY", null);
         Objects.requireNonNull(key, "COSMOS_KEY cannot be null!");
-        if (key != null) {
-            var client = new CosmosClientBuilder()
-                    .key(key)
-                    .preferredRegions(Collections.singletonList(REGION))
-                    .consistencyLevel(ConsistencyLevel.SESSION)
-                    .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
-                    .buildClient();
+        var client = new CosmosClientBuilder()
+                .key(key)
+                .preferredRegions(Collections.singletonList(REGION))
+                .consistencyLevel(ConsistencyLevel.SESSION)
+                .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
+                .buildClient();
 
-            CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
-            database = client.getDatabase(response.getProperties().getId());
-        }
+        CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
+        database = client.getDatabase(response.getProperties().getId());
     }
 
     @AfterAll

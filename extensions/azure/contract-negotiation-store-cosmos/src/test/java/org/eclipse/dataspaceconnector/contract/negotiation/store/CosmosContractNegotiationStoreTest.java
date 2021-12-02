@@ -1,8 +1,8 @@
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractNegotiationDocument;
+import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -19,8 +19,8 @@ import static org.easymock.EasyMock.expectLastCall;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.strictMock;
 import static org.easymock.EasyMock.verify;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
-import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateNegotiation;
+import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
+import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
 
 class CosmosContractNegotiationStoreTest {
     private CosmosContractNegotiationStore store;

@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import org.eclipse.dataspaceconnector.cosmos.azure.AbstractCosmosConfig;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;

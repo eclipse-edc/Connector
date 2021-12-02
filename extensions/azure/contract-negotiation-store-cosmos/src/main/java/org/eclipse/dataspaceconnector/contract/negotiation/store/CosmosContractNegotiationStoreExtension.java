@@ -12,15 +12,13 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.contract.definition.store;
+package org.eclipse.dataspaceconnector.contract.negotiation.store;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractNegotiationDocument;
+import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractNegotiationDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
-import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -28,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Set;
 
-public class CosmosContractDefinitionStoreExtension implements ServiceExtension {
+public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
 
     private static final String NAME = "CosmosDB ContractDefinition Store";
 
@@ -36,7 +34,7 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
 
     @Override
     public Set<String> provides() {
-        return Set.of(ContractDefinitionStore.FEATURE, ContractDefinitionLoader.FEATURE);
+        return Set.of(ContractNegotiationStore.FEATURE);
     }
 
     @Override
