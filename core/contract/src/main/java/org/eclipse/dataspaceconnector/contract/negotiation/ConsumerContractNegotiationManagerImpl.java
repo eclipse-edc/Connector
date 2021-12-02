@@ -33,14 +33,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.time.Instant;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.FATAL_ERROR;
@@ -336,11 +335,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             var lastOffer = process.getLastContractOffer();
             var agreement = ContractAgreement.Builder.newInstance()
                     .id(UUID.randomUUID().toString())
-                    .contractStartDate(lastOffer.getContractStart())
-                    .contractEndDate(lastOffer.getContractEnd())
-                    .contractSigningDate(ZonedDateTime.now())
-                    .providerAgentId(lastOffer.getProvider())
-                    .consumerAgentId(lastOffer.getConsumer())
+                    .contractSigningDate(LocalDate.MIN.toEpochDay())
+                    .contractStartDate(LocalDate.MIN.toEpochDay())
+                    .contractEndDate(LocalDate.MAX.toEpochDay())
+                    .providerAgentId(String.valueOf(lastOffer.getProvider()))
+                    .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                     .policy(lastOffer.getPolicy())
                     .asset(lastOffer.getAsset())
                     .build();

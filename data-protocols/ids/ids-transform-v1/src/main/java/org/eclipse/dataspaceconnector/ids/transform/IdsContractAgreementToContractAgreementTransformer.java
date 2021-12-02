@@ -88,8 +88,8 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
 
         var builder = ContractAgreement.Builder.newInstance()
                 .policy(policyBuilder.build())
-                .consumerAgentId(contractAgreement.getConsumer())
-                .providerAgentId(contractAgreement.getProvider())
+                .consumerAgentId(String.valueOf(contractAgreement.getConsumer()))
+                .providerAgentId(String.valueOf(contractAgreement.getProvider()))
                 .asset(asset);
 
         if (contractAgreement.getId() != null) {
@@ -97,15 +97,15 @@ public class IdsContractAgreementToContractAgreementTransformer implements IdsTy
         }
 
         if (contractAgreement.getContractEnd() != null) {
-            builder.contractEndDate(contractAgreement.getContractEnd().toGregorianCalendar().toZonedDateTime());
+            builder.contractEndDate(contractAgreement.getContractEnd().toGregorianCalendar().getTimeInMillis());
         }
 
         if (contractAgreement.getContractStart() != null) {
-            builder.contractStartDate(contractAgreement.getContractStart().toGregorianCalendar().toZonedDateTime());
+            builder.contractStartDate(contractAgreement.getContractStart().toGregorianCalendar().getTimeInMillis());
         }
 
         if (contractAgreement.getContractDate() != null) {
-            builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().toZonedDateTime());
+            builder.contractSigningDate(contractAgreement.getContractDate().toGregorianCalendar().getTimeInMillis());
         }
 
         return builder.build();

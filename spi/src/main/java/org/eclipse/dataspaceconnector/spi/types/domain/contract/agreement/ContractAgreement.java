@@ -32,20 +32,20 @@ import java.util.Objects;
 public class ContractAgreement {
 
     private final String id;
-    private final URI providerAgentId; // TODO change to string again?
-    private final URI consumerAgentId;
-    private final ZonedDateTime contractSigningDate;
-    private final ZonedDateTime contractStartDate;
-    private final ZonedDateTime contractEndDate;
+    private final String providerAgentId;
+    private final String consumerAgentId;
+    private final long contractSigningDate;
+    private final long contractStartDate;
+    private final long contractEndDate;
     private final Asset asset;
     private final Policy policy;
 
     private ContractAgreement(@NotNull String id,
-                              @NotNull URI providerAgentId,
-                              @NotNull URI consumerAgentId,
-                              ZonedDateTime contractSigningDate,
-                              ZonedDateTime contractStartDate,
-                              ZonedDateTime contractEndDate,
+                              @NotNull String providerAgentId,
+                              @NotNull String consumerAgentId,
+                              long contractSigningDate,
+                              long contractStartDate,
+                              long contractEndDate,
                               @NotNull Asset asset,
                               @NotNull Policy policy) {
         this.id = Objects.requireNonNull(id);
@@ -57,13 +57,13 @@ public class ContractAgreement {
         this.asset = Objects.requireNonNull(asset);
         this.policy = Objects.requireNonNull(policy);
 
-        if (contractSigningDate == null) {
+        if (contractSigningDate == 0) {
             throw new IllegalArgumentException("contract signing date must be set");
         }
-        if (contractStartDate == null) {
+        if (contractStartDate == 0) {
             throw new IllegalArgumentException("contract start date must be set");
         }
-        if (contractEndDate == null) {
+        if (contractEndDate == 0) {
             throw new IllegalArgumentException("contract end date must be set");
         }
     }
@@ -87,7 +87,7 @@ public class ContractAgreement {
      * @return provider id
      */
     @NotNull
-    public URI getProviderAgentId() {
+    public String getProviderAgentId() {
         return providerAgentId;
     }
 
@@ -100,7 +100,7 @@ public class ContractAgreement {
      * @return consumer id
      */
     @NotNull
-    public URI getConsumerAgentId() {
+    public String getConsumerAgentId() {
         return consumerAgentId;
     }
 
@@ -111,7 +111,7 @@ public class ContractAgreement {
      *
      * @return contract signing date
      */
-    public ZonedDateTime getContractSigningDate() {
+    public long getContractSigningDate() {
         return contractSigningDate;
     }
 
@@ -122,7 +122,7 @@ public class ContractAgreement {
      *
      * @return contract start date
      */
-    public ZonedDateTime getContractStartDate() {
+    public long getContractStartDate() {
         return contractStartDate;
     }
 
@@ -133,7 +133,7 @@ public class ContractAgreement {
      *
      * @return contract end date
      */
-    public ZonedDateTime getContractEndDate() {
+    public long getContractEndDate() {
         return contractEndDate;
     }
 
@@ -180,11 +180,11 @@ public class ContractAgreement {
     public static class Builder {
 
         private String id;
-        private URI providerAgentId;
-        private URI consumerAgentId;
-        private ZonedDateTime contractSigningDate;
-        private ZonedDateTime contractStartDate;
-        private ZonedDateTime contractEndDate;
+        private String providerAgentId;
+        private String consumerAgentId;
+        private long contractSigningDate;
+        private long contractStartDate;
+        private long contractEndDate;
         private Asset asset;
         private Policy policy;
 
@@ -201,27 +201,27 @@ public class ContractAgreement {
             return this;
         }
 
-        public Builder providerAgentId(URI providerAgentId) {
+        public Builder providerAgentId(String providerAgentId) {
             this.providerAgentId = providerAgentId;
             return this;
         }
 
-        public Builder consumerAgentId(URI consumerAgentId) {
+        public Builder consumerAgentId(String consumerAgentId) {
             this.consumerAgentId = consumerAgentId;
             return this;
         }
 
-        public Builder contractSigningDate(ZonedDateTime contractSigningDate) {
+        public Builder contractSigningDate(long contractSigningDate) {
             this.contractSigningDate = contractSigningDate;
             return this;
         }
 
-        public Builder contractStartDate(ZonedDateTime contractStartDate) {
+        public Builder contractStartDate(long contractStartDate) {
             this.contractStartDate = contractStartDate;
             return this;
         }
 
-        public Builder contractEndDate(ZonedDateTime contractEndDate) {
+        public Builder contractEndDate(long contractEndDate) {
             this.contractEndDate = contractEndDate;
             return this;
         }

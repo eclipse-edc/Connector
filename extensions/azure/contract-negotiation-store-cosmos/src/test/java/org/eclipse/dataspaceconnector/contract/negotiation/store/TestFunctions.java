@@ -7,11 +7,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 
-import java.net.URI;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.UUID;
 
 public class TestFunctions {
@@ -29,13 +25,13 @@ public class TestFunctions {
                 .protocol("test-protocol")
                 .stateCount(1)
                 .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
-                        .providerAgentId(URI.create("provider"))
-                        .consumerAgentId(URI.create("consumer"))
+                        .providerAgentId("provider")
+                        .consumerAgentId("consumer")
                         .asset(Asset.Builder.newInstance().build())
                         .policy(Policy.Builder.newInstance().build())
-                        .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MIN.toEpochDay()), ZoneId.of("UTC")))
-                        .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MIN.toEpochDay()), ZoneId.of("UTC")))
-                        .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(LocalDate.MAX.toEpochDay()), ZoneId.of("UTC")))
+                        .contractSigningDate(LocalDate.MIN.toEpochDay())
+                        .contractStartDate(LocalDate.MIN.toEpochDay())
+                        .contractEndDate(LocalDate.MAX.toEpochDay())
                         .id("1:2").build())
                 .state(state.code())
                 .build();

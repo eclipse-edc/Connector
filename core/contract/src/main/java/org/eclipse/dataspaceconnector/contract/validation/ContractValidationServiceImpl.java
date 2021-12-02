@@ -143,10 +143,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     private boolean isExpired(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractEndDate().toInstant().toEpochMilli() < ZonedDateTime.now().toInstant().toEpochMilli();
+        return contractAgreement.getContractEndDate() < Instant.now().getEpochSecond();
     }
 
     private boolean isStarted(ContractAgreement contractAgreement) {
-        return contractAgreement.getContractStartDate().toInstant().toEpochMilli() <= ZonedDateTime.now().toInstant().toEpochMilli();
+        return contractAgreement.getContractStartDate() <= Instant.now().getEpochSecond();
     }
 }

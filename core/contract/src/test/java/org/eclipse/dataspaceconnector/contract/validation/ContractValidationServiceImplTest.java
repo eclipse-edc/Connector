@@ -15,10 +15,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.net.URI;
 import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -87,13 +85,13 @@ class ContractValidationServiceImplTest {
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId(URI.create("provider"))
-                .consumerAgentId(URI.create("consumer"))
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
                 .policy(originalPolicy)
                 .asset(Asset.Builder.newInstance().build())
-                .contractSigningDate(ZonedDateTime.now())
-                .contractStartDate(ZonedDateTime.now())
-                .contractEndDate(ZonedDateTime.now())
+                .contractSigningDate(LocalDate.MIN.toEpochDay())
+                .contractStartDate(LocalDate.MIN.toEpochDay())
+                .contractEndDate(LocalDate.MAX.toEpochDay())
                 .id("1:2").build();
 
         assertThat(validationService.validate(claimToken, agreement)).isTrue();
@@ -135,13 +133,13 @@ class ContractValidationServiceImplTest {
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
-                .providerAgentId(URI.create("provider"))
-                .consumerAgentId(URI.create("consumer"))
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
                 .policy(originalPolicy)
                 .asset(Asset.Builder.newInstance().build())
-                .contractSigningDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(signingDate), ZoneId.of("UTC")))
-                .contractStartDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(startDate), ZoneId.of("UTC")))
-                .contractEndDate(ZonedDateTime.ofInstant(Instant.ofEpochMilli(endDate), ZoneId.of("UTC")))
+                .contractSigningDate(signingDate)
+                .contractStartDate(startDate)
+                .contractEndDate(endDate)
                 .id("1:2").build();
 
         return validationService.validate(claimToken, agreement);

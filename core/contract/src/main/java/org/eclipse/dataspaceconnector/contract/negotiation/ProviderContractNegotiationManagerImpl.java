@@ -369,11 +369,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 //TODO move to own service
                 agreement = ContractAgreement.Builder.newInstance()
                         .id(UUID.randomUUID().toString())
-                        .contractStartDate(lastOffer.getContractStart())
-                        .contractEndDate(lastOffer.getContractEnd())
-                        .contractSigningDate(ZonedDateTime.now())
-                        .providerAgentId(lastOffer.getProvider())
-                        .consumerAgentId(lastOffer.getConsumer())
+                        .contractStartDate(lastOffer.getContractStart().toInstant().toEpochMilli())
+                        .contractEndDate(lastOffer.getContractEnd().toInstant().toEpochMilli())
+                        .contractSigningDate(Instant.now().toEpochMilli())
+                        .providerAgentId(String.valueOf(lastOffer.getProvider()))
+                        .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
                         .policy(lastOffer.getPolicy())
                         .asset(lastOffer.getAsset())
                         .build();

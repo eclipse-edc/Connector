@@ -89,35 +89,35 @@ public class ContractAgreementToIdsContractAgreementTransformer implements IdsTy
         builder._obligation_(idsObligations);
         builder._prohibition_(idsProhibitions);
         builder._permission_(idsPermissions);
-        builder._consumer_(object.getConsumerAgentId());
-        builder._provider_(object.getProviderAgentId());
 
-        var contractStart = object.getContractStartDate();
-        var contractEnd = object.getContractEndDate();
-        var signingDate = object.getContractSigningDate();
-
-        if (contractStart != null) {
-            try {
-                builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar((GregorianCalendar.from(contractStart))));
-            } catch (DatatypeConfigurationException e) {
-                context.reportProblem("cannot convert contract start time to XMLGregorian");
-            }
+        try {
+            builder._consumer_(URI.create(object.getConsumerAgentId()));
+        } catch (NullPointerException e) {
+            context.reportProblem("cannot convert empty consumerId string to URI");
         }
 
-        if (contractEnd != null) {
-            try {
-                builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(((GregorianCalendar.from(contractEnd)))));
-            } catch (DatatypeConfigurationException e) {
-                context.reportProblem("cannot convert contract end time to XMLGregorian");
-            }
+        try {
+            builder._provider_(URI.create(object.getProviderAgentId()));
+        } catch (NullPointerException e) {
+            context.reportProblem("cannot convert empty providerId string to URI");
         }
 
-        if (signingDate != null) {
-            try {
-                builder._contractDate_(DatatypeFactory.newInstance().newXMLGregorianCalendar(((GregorianCalendar.from(signingDate)))));
-            } catch (DatatypeConfigurationException e) {
-                context.reportProblem("cannot convert contract signing time to XMLGregorian");
-            }
+        try {
+            builder._contractStart_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(object.getContractStartDate())));
+        } catch (DatatypeConfigurationException e) {
+            context.reportProblem("cannot convert contract start time to XMLGregorian");
+        }
+
+        try {
+            builder._contractEnd_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(object.getContractEndDate())));
+        } catch (DatatypeConfigurationException e) {
+            context.reportProblem("cannot convert contract end time to XMLGregorian");
+        }
+
+        try {
+            builder._contractDate_(DatatypeFactory.newInstance().newXMLGregorianCalendar(String.valueOf(object.getContractSigningDate())));
+        } catch (DatatypeConfigurationException e) {
+            context.reportProblem("cannot convert contract signing time to XMLGregorian");
         }
 
         return builder.build();

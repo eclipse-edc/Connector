@@ -27,11 +27,12 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
+import java.time.Instant;
 import java.util.Collections;
 
 public class ContractAgreementToIdsContractAgreementTransformerTest {
     private static final URI AGREEMENT_ID = URI.create("urn:agreement:456uz984390236s");
-    private static final URI PROVIDER_URI = URI.create("https://provider.com/");
+    private static final String PROVIDER_ID = "https://provider.com/";
 
     // subject
     private ContractAgreementToIdsContractAgreementTransformer transformer;
@@ -89,11 +90,11 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
         Duty edcObligation = EasyMock.createMock(Duty.class);
         de.fraunhofer.iais.eis.Duty idsObligation = EasyMock.createMock(de.fraunhofer.iais.eis.Duty.class);
 
-        EasyMock.expect(contractAgreement.getProviderAgentId()).andReturn(PROVIDER_URI);
+        EasyMock.expect(contractAgreement.getProviderAgentId()).andReturn(PROVIDER_ID);
         EasyMock.expect(contractAgreement.getConsumerAgentId()).andReturn(null);
-        EasyMock.expect(contractAgreement.getContractStartDate()).andReturn(null);
-        EasyMock.expect(contractAgreement.getContractEndDate()).andReturn(null);
-        EasyMock.expect(contractAgreement.getContractSigningDate()).andReturn(null);
+        EasyMock.expect(contractAgreement.getContractStartDate()).andReturn(Instant.MIN.getEpochSecond());
+        EasyMock.expect(contractAgreement.getContractEndDate()).andReturn(Instant.MAX.getEpochSecond());
+        EasyMock.expect(contractAgreement.getContractSigningDate()).andReturn(Instant.now().getEpochSecond());
         EasyMock.expect(policy.getPermissions()).andReturn(Collections.singletonList(edcPermission)).times(2);
         EasyMock.expect(policy.getProhibitions()).andReturn(Collections.singletonList(edcProhibition)).times(2);
         EasyMock.expect(policy.getObligations()).andReturn(Collections.singletonList(edcObligation)).times(2);
@@ -115,7 +116,7 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
         // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(AGREEMENT_ID, result.getId());
-        Assertions.assertEquals(PROVIDER_URI, result.getProvider());
+        Assertions.assertEquals(PROVIDER_ID, String.valueOf(result.getProvider()));
         Assertions.assertEquals(1, result.getObligation().size());
         Assertions.assertEquals(idsObligation, result.getObligation().get(0));
         Assertions.assertEquals(1, result.getPermission().size());
