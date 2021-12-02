@@ -43,22 +43,25 @@ public class ConstraintToIdsConstraintTransformer implements IdsTypeTransformer<
     }
 
     @Override
-    public @Nullable de.fraunhofer.iais.eis.Constraint transform(Constraint object, @NotNull TransformerContext context) {
+    public @Nullable de.fraunhofer.iais.eis.Constraint transform(Constraint constraint, @NotNull TransformerContext context) {
         Objects.requireNonNull(context);
-        if (object == null) {
+        if (constraint == null) {
             return null;
         }
 
-        if (!(object instanceof AtomicConstraint)) {
-            context.reportProblem(String.format("Cannot transform %s. Supported Constraints: '%s'", object.getClass().getName(), AtomicConstraint.class.getName()));
+        if (constraint instanceof AtomicConstraint) {
+            return transformAtomicConstraint((AtomicConstraint) constraint, context);
+        } else {
+            context.reportProblem(String.format("An IDS constraint requires an AtomicConstraint source: %s", constraint.getClass().getName()));
             return null;
         }
 
-        var atomicConstraint = (AtomicConstraint) object;
+    }
 
-        LeftOperand leftOperand = context.transform(atomicConstraint.getLeftExpression(), LeftOperand.class);
-        RdfResource rightOperand = context.transform(atomicConstraint.getRightExpression(), RdfResource.class);
-        BinaryOperator operator = context.transform(atomicConstraint.getOperator(), BinaryOperator.class);
+    private de.fraunhofer.iais.eis.Constraint transformAtomicConstraint(AtomicConstraint atomicConstraint, @NotNull TransformerContext context) {
+        var leftOperand = context.transform(atomicConstraint.getLeftExpression(), LeftOperand.class);
+        var rightOperand = context.transform(atomicConstraint.getRightExpression(), RdfResource.class);
+        var operator = context.transform(atomicConstraint.getOperator(), BinaryOperator.class);
 
         var idsId = IdsId.Builder.newInstance().value(atomicConstraint.hashCode()).type(IdsType.CONSTRAINT).build();
         var id = context.transform(idsId, URI.class);
@@ -70,4 +73,6 @@ public class ConstraintToIdsConstraintTransformer implements IdsTypeTransformer<
 
         return constraintBuilder.build();
     }
+
+
 }

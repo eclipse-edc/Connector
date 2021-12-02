@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
+import org.eclipse.dataspaceconnector.policy.model.MultiplicityConstraint;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -51,7 +52,12 @@ public class DutyToIdsDutyTransformer implements IdsTypeTransformer<Duty, de.fra
         DutyBuilder dutyBuilder = new DutyBuilder(id);
 
         for (org.eclipse.dataspaceconnector.policy.model.Constraint edcConstraint : object.getConstraints()) {
-            de.fraunhofer.iais.eis.Constraint idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
+            de.fraunhofer.iais.eis.AbstractConstraint idsConstraint;
+            if (edcConstraint instanceof MultiplicityConstraint) {
+                idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.LogicalConstraint.class);
+            } else {
+                idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
+            }
             dutyBuilder._constraint_(idsConstraint);
         }
 

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
+import de.fraunhofer.iais.eis.AbstractConstraint;
 import de.fraunhofer.iais.eis.Duty;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.util.ConstraintViolationException;
@@ -22,6 +23,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
+import org.eclipse.dataspaceconnector.policy.model.MultiplicityConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -55,7 +57,12 @@ public class PermissionToIdsPermissionTransformer implements IdsTypeTransformer<
         PermissionBuilder permissionBuilder = new PermissionBuilder(id);
 
         for (Constraint edcConstraint : object.getConstraints()) {
-            var idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
+            AbstractConstraint idsConstraint;
+            if (edcConstraint instanceof MultiplicityConstraint) {
+                idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.LogicalConstraint.class);
+            } else {
+                idsConstraint = context.transform(edcConstraint, de.fraunhofer.iais.eis.Constraint.class);
+            }
             permissionBuilder._constraint_(idsConstraint);
         }
 
