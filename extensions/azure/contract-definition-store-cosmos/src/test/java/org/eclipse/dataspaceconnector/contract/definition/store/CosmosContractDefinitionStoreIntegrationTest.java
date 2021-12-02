@@ -99,7 +99,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         container.createItem(doc1);
         container.createItem(doc2);
 
-        assertThat(store.findAll()).isEmpty();
+        assertThat(store.findAll()).hasSize(2);
     }
 
     @Test
