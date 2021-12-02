@@ -94,6 +94,9 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
                     .map(this::convert)
                     .collect(Collectors.toMap(ContractDefinition::getId, cd -> cd));
 
+            if (objectCache == null) {
+                objectCache = new AtomicReference<>(new HashMap<>());
+            }
             objectCache.set(databaseObjects);
         } finally {
             lock.readLock().unlock();
