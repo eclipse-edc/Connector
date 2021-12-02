@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
+import org.jetbrains.annotations.Nullable;
 
 public class SingletonVaultExtension implements VaultExtension {
 
@@ -46,11 +47,16 @@ public class SingletonVaultExtension implements VaultExtension {
 
     @Override
     public PrivateKeyResolver getPrivateKeyResolver() {
-        return null;
+        return new PrivateKeyResolver() {
+            @Override
+            public <T> @Nullable T resolvePrivateKey(String id, Class<T> keyType) {
+                return null;
+            }
+        };
     }
 
     @Override
     public CertificateResolver getCertificateResolver() {
-        return null;
+        return (key) -> null;
     }
 }

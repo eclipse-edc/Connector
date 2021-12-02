@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.demo.controller;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -28,12 +29,14 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Set;
 
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
 
@@ -75,12 +78,24 @@ public class DemoExtension implements ServiceExtension {
                 File sourceFile = source.toFile();
                 List<Asset> assets = objectMapper.readValue(sourceFile, new TypeReference<>() {
                 });
-                // TODO: we miss an example of the provider-artifacts.json to adapt for assetIndex storing
+                AssetLoader loader = context.getService(AssetLoader.class);
+
+                for (Asset asset : assets) {
+                    loader.accept(asset, getDataAddressFromAsset(asset));
+                }
             }
 
         } catch (IOException e) {
             monitor.severe("Error loading data entries", e);
         }
+    }
+
+    private DataAddress getDataAddressFromAsset(Asset asset) {
+        return DataAddress.Builder.newInstance()
+                .property("type", asset.getProperty("type").toString())
+                .property("keyName", asset.getProperty("keyName").toString())
+                .property("bucketName", asset.getProperty("bucketName").toString())
+                .build();
     }
 
     private void generateDemoPolicies() {
@@ -91,5 +106,10 @@ public class DemoExtension implements ServiceExtension {
         var euUsePermission = Permission.Builder.newInstance().action(Action.Builder.newInstance().type("idsc:USE").build()).constraint(euConstraint).build();
         var euPolicy = Policy.Builder.newInstance().id(USE_EU_POLICY).permission(euUsePermission).build();
         policyRegistry.registerPolicy(euPolicy);
+    }
+
+    @Override
+    public Set<String> requires() {
+        return Set.of(DataAddressResolver.FEATURE);
     }
 }

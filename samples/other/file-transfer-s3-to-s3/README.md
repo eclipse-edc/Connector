@@ -9,13 +9,13 @@ This file provides information for the artifact metadata storage.
 
 Consumer configuration is done by providing the following properties via configuration extension:
 
-* _dataspaceconnector.transfer.demo.s3.destination.region_ - bucket where to download the requested artifact to (
+* _edc.transfer.demo.s3.destination.region_ - bucket where to download the requested artifact to (
   required)
-* _dataspaceconnector.transfer.demo.s3.destination.bucket_ - AWS region of the destination bucket (required)
-* _dataspaceconnector.transfer.demo.s3.destination.creds_ - JSON token representing AWS credentials that the provider
+* _edc.transfer.demo.s3.destination.bucket_ - AWS region of the destination bucket (required)
+* _edc.transfer.demo.s3.destination.creds_ - JSON token representing AWS credentials that the provider
   will use to write to specified bucket (required)
 
-**dataspaceconnector.transfer.demo.s3.destination.creds**
+**edc.transfer.demo.s3.destination.creds**
 
 ```
   {
@@ -31,13 +31,15 @@ Consumer configuration is done by providing the following properties via configu
 ```json
 [
   {
-    "id": "<objectKey>",
-    "policyId": "use-eu",
-    "catalogEntry": {
-      "edctype": "dataspaceconnector:genericdataentryextensions",
-      "keyName": "<objectKey>",
+    "properties": {
+      "asset:prop:id": "data/sample/file.csv",
+      "asset:prop:name": "demo data",
+      "asset:prop:policy-id": "use-eu",
+      "asset:prop:contenttype": "application/csv",
+      "asset:prop:version": "1.0",
+      "keyName": "data/sample/file.csv",
       "type": "dataspaceconnector:s3",
-      "bucketName": "<bucket>"
+      "bucketName": "test-bucket"
     }
   }
 ]
