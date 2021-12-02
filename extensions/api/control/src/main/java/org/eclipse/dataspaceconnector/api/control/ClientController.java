@@ -66,14 +66,9 @@ public class ClientController {
 
     @POST
     @Path("negotiation")
-    public Response initiateNegotiation(ContractOfferRequest contractOffer, String idsWebhookAddress) {
+    public Response initiateNegotiation(ContractOfferRequest contractOffer) {
         if (contractOffer == null) {
             return Response.status(Response.Status.BAD_REQUEST).build();
-        }
-
-        if (idsWebhookAddress != null && !idsWebhookAddress.isBlank()) {
-            monitor.info(String.format("Updated ids.webhook.address to %s", idsWebhookAddress));
-            // TODO set config setting (ids.webhook.address)
         }
 
         var result = consumerNegotiationManager.initiate(contractOffer);
