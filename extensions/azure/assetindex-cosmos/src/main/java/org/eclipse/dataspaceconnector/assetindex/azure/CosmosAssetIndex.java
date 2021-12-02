@@ -22,11 +22,13 @@ import org.eclipse.dataspaceconnector.dataloading.AssetEntry;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -66,6 +68,11 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
         var response = with(retryPolicy).get(() -> assetDb.queryItems(query));
         return response.map(this::convertObject)
                 .map(AssetDocument::getWrappedAsset);
+    }
+
+    @Override
+    public Stream<Asset> queryAssets(List<Criterion> criteria) {
+        return null;
     }
 
     @Override

@@ -50,7 +50,7 @@ public class PermissionToIdsPermissionTransformerTest {
     void setUp() {
         transformer = new PermissionToIdsPermissionTransformer();
         permission = EasyMock.createMock(Permission.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        context = EasyMock.createNiceMock(TransformerContext.class);
     }
 
     @Test
@@ -100,7 +100,7 @@ public class PermissionToIdsPermissionTransformerTest {
         EasyMock.expect(context.transform(EasyMock.eq(edcAction), EasyMock.eq(de.fraunhofer.iais.eis.Action.class))).andReturn(idsAction);
         EasyMock.expect(context.transform(EasyMock.eq(edcConstraint), EasyMock.eq(de.fraunhofer.iais.eis.Constraint.class))).andReturn(idsConstraint);
         EasyMock.expect(context.transform(EasyMock.eq(edcDuty), EasyMock.eq(de.fraunhofer.iais.eis.Duty.class))).andReturn(idsDuty);
-        EasyMock.expect(context.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(PERMISSION_ID);
+        EasyMock.expect(context.transform(EasyMock.anyObject(IdsId.class), EasyMock.eq(URI.class))).andReturn(PERMISSION_ID);
 
         // record
         EasyMock.replay(permission, context);
@@ -111,7 +111,6 @@ public class PermissionToIdsPermissionTransformerTest {
         // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(PERMISSION_ID, result.getId());
-        Assertions.assertEquals(TARGET_URI, result.getTarget());
         Assertions.assertEquals(1, result.getAssigner().size());
         Assertions.assertEquals(ASSIGNER_URI, result.getAssigner().get(0));
         Assertions.assertEquals(1, result.getAssignee().size());
