@@ -41,8 +41,6 @@ import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 /**
  * Setup for the contract negotiation integration test.

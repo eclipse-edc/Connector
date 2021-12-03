@@ -13,8 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import java.util.concurrent.TimeUnit;
-
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -23,6 +21,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
