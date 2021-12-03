@@ -115,8 +115,8 @@ class CosmosFederatedCacheNodeDirectoryIntegrationTest {
     void getAll() {
         FederatedCacheNode node1 = new FederatedCacheNode("test1", "http://test1.com", Collections.singletonList("ids"));
         FederatedCacheNode node2 = new FederatedCacheNode("test2", "http://test2.com", Collections.singletonList("rest"));
-        container.createItem(new FederatedCacheNodeDocument(node1, TEST_PARTITION_KEY));
-        container.createItem(new FederatedCacheNodeDocument(node2, TEST_PARTITION_KEY));
+        container.createItem(FederatedCacheNodeDocument.from(node1, TEST_PARTITION_KEY));
+        container.createItem(FederatedCacheNodeDocument.from(node2, TEST_PARTITION_KEY));
 
         List<FederatedCacheNode> result = store.getAll();
 

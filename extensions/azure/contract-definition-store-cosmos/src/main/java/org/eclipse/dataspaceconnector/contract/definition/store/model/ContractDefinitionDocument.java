@@ -14,8 +14,6 @@
 
 package org.eclipse.dataspaceconnector.contract.definition.store.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -23,10 +21,15 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 @JsonTypeName("dataspaceconnector:contractddefinitiondocument")
 public class ContractDefinitionDocument extends CosmosDocument<ContractDefinition> {
 
-    @JsonCreator
-    public ContractDefinitionDocument(@JsonProperty("wrappedInstance") ContractDefinition contractDefinition) {
-        //todo: lets think about whether this a good partition key
+    protected ContractDefinitionDocument() {
+    }
+
+    private ContractDefinitionDocument(ContractDefinition contractDefinition) {
         super(contractDefinition, contractDefinition.getAccessPolicy().getUid());
+    }
+
+    public static ContractDefinitionDocument from(ContractDefinition contractDefinition) {
+        return new ContractDefinitionDocument(contractDefinition);
     }
 
 

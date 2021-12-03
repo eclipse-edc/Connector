@@ -42,7 +42,7 @@ import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunc
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
 
 @IntegrationTest
-public class CosmosContractNegotiationStoreIntegrationTest {
+class CosmosContractNegotiationStoreIntegrationTest {
     public static final String REGION = "westeurope";
     public static final String CONNECTOR_ID = "test-connector";
     private static final String TEST_ID = UUID.randomUUID().toString();
@@ -165,14 +165,14 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
         var allObjs = container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class);
 
-        assertThat(allObjs).hasSize(1);
-        assertThat(allObjs).allSatisfy(o -> assertThat(toNegotiation(o)).usingRecursiveComparison().isEqualTo(negotiation));
+        assertThat(allObjs).hasSize(1)
+                .allSatisfy(o -> assertThat(toNegotiation(o)).usingRecursiveComparison().isEqualTo(negotiation));
     }
 
     @Test
     void save_exists_shouldUpdate() {
         var negotiation = generateNegotiation();
-        container.createItem(new ContractNegotiationDocument(negotiation));
+        container.createItem(ContractNegotiationDocument.from(negotiation));
 
         assertThat(container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class)).hasSize(1);
 
@@ -183,18 +183,18 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
         var allObjs = container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class);
 
-        assertThat(allObjs).hasSize(1);
-        assertThat(allObjs).allSatisfy(o -> {
-            var actual = toNegotiation(o);
-            assertThat(actual.getContractOffers()).hasSize(1).containsExactlyInAnyOrder(newOffer);
-        });
+        assertThat(allObjs).hasSize(1)
+                .allSatisfy(o -> {
+                    var actual = toNegotiation(o);
+                    assertThat(actual.getContractOffers()).hasSize(1).containsExactlyInAnyOrder(newOffer);
+                });
     }
 
     @Test
     void nextForState() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        container.createItem(new ContractNegotiationDocument(n));
+        container.createItem(ContractNegotiationDocument.from(n));
 
         var result = store.nextForState(state.code(), 10);
         assertThat(result).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
@@ -207,12 +207,12 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
         var preparedNegotiations = IntStream.range(0, numElements)
                 .mapToObj(i -> generateNegotiation(state))
-                .peek(n -> container.createItem(new ContractNegotiationDocument(n)))
+                .peek(n -> container.createItem(ContractNegotiationDocument.from(n)))
                 .collect(Collectors.toList());
 
         var result = store.nextForState(state.code(), 4);
-        assertThat(result).hasSize(4);
-        assertThat(result).allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
+        assertThat(result).hasSize(4)
+                .allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
     }
 
 
@@ -220,7 +220,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_noResult() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        container.createItem(new ContractNegotiationDocument(n));
+        container.createItem(ContractNegotiationDocument.from(n));
 
         var result = store.nextForState(ContractNegotiationStates.PROVIDER_OFFERING.code(), 10);
         assertThat(result).isNotNull().isEmpty();
@@ -230,15 +230,15 @@ public class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_onlyReturnsFreeItems() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n1 = generateNegotiation(state);
-        var doc1 = new ContractNegotiationDocument(n1);
+        var doc1 = ContractNegotiationDocument.from(n1);
         container.createItem(doc1);
 
         var n2 = generateNegotiation(state);
-        var doc2 = new ContractNegotiationDocument(n2);
+        var doc2 = ContractNegotiationDocument.from(n2);
         container.createItem(doc2);
 
         var n3 = generateNegotiation(state);
-        var doc3 = new ContractNegotiationDocument(n3);
+        var doc3 = ContractNegotiationDocument.from(n3);
         doc3.acquireLease("another-connector");
         container.createItem(doc3);
 
@@ -253,7 +253,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_leasedByAnother() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        var doc = new ContractNegotiationDocument(n);
+        var doc = ContractNegotiationDocument.from(n);
         doc.acquireLease("another-connector");
         container.createItem(doc);
 
@@ -265,7 +265,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_leasedBySelf() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        var doc = new ContractNegotiationDocument(n);
+        var doc = ContractNegotiationDocument.from(n);
         container.createItem(doc);
 
         // let's verify that the first invocation correctly sets the lease
@@ -285,7 +285,7 @@ public class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_leaseByAnotherExpired() throws InterruptedException {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        var doc = new ContractNegotiationDocument(n);
+        var doc = ContractNegotiationDocument.from(n);
         doc.acquireLease("another-connector", Duration.ofMillis(10));
         container.createItem(doc);
 

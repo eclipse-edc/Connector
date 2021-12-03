@@ -70,14 +70,14 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
         var descriptorService = context.getService(IdsDescriptorService.class);
         var assetIndex = context.getService(AssetIndex.class);
 
-        var dapService = context.getService(DapsService.class);
+        var dapsService = context.getService(DapsService.class);
         var policyRegistry = context.getService(PolicyRegistry.class);
         var policyService = context.getService(IdsPolicyService.class);
         var queryEngine = new QueryEngineImpl(policyRegistry, policyService, assetIndex, monitor);
 
 
         webService.registerController(new DescriptionRequestController(descriptorService));
-        webService.registerController(new CatalogQueryController(queryEngine, dapService));
+        webService.registerController(new CatalogQueryController(queryEngine, dapsService));
     }
 
 

@@ -31,6 +31,7 @@ import com.azure.cosmos.models.PartitionKey;
 import com.azure.cosmos.util.CosmosPagedIterable;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -107,7 +108,8 @@ class CosmosTransferProcessStoreIntegrationTest {
         typeManager = new TypeManager();
         typeManager.registerTypes(DataRequest.class);
         var retryPolicy = new RetryPolicy<>().withMaxRetries(5).withBackoff(1, 3, ChronoUnit.SECONDS);
-        store = new CosmosTransferProcessStore(container, typeManager, partitionKey, connectorId, retryPolicy);
+        var cosmosDbApi = new CosmosDbApiImpl(container, false);
+        store = new CosmosTransferProcessStore(cosmosDbApi, typeManager, partitionKey, connectorId, retryPolicy);
     }
 
     @Test
@@ -159,9 +161,8 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         List<TransferProcess> processes = store.nextForState(TransferProcessStates.INITIAL.code(), 2);
 
-        assertThat(processes).hasSize(2);
-        //lets make sure the list only contains the 2 oldest ones
-        assertThat(processes).allMatch(p -> Arrays.asList(id1, id2).contains(p.getId()))
+        assertThat(processes).hasSize(2)
+                .allMatch(p -> Arrays.asList(id1, id2).contains(p.getId()))
                 .noneMatch(p -> p.getId().equals(id3));
     }
 
@@ -183,8 +184,8 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         //act - one should be ignored
         List<TransferProcess> processes = store.nextForState(TransferProcessStates.INITIAL.code(), 5);
-        assertThat(processes).hasSize(1);
-        assertThat(processes).allMatch(p -> p.getId().equals(id1));
+        assertThat(processes).hasSize(1)
+                .allMatch(p -> p.getId().equals(id1));
     }
 
     @Test

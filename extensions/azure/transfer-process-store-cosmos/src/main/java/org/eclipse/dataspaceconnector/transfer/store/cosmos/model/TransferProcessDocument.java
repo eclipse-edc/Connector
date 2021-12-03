@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos.model;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
 import java.time.Instant;
@@ -31,13 +31,7 @@ import java.time.Instant;
  * @see TransferProcess
  */
 @JsonTypeName("dataspaceconnector:transferprocessdocument")
-public class TransferProcessDocument {
-
-    @JsonUnwrapped
-    private TransferProcess wrappedInstance;
-
-    @JsonProperty
-    private String partitionKey;
+public class TransferProcessDocument extends CosmosDocument<TransferProcess> {
 
     @JsonProperty
     private Lease lease;
@@ -47,21 +41,16 @@ public class TransferProcessDocument {
     }
 
     private TransferProcessDocument(TransferProcess wrappedInstance, String partitionKey) {
-        this.wrappedInstance = wrappedInstance;
-        this.partitionKey = partitionKey;
+        super(wrappedInstance, partitionKey);
+    }
+
+    @Override
+    public String getId() {
+        return getWrappedInstance().getId();
     }
 
     public static TransferProcessDocument from(TransferProcess process, String partitionKey) {
         return new TransferProcessDocument(process, partitionKey);
-    }
-
-
-    public String getPartitionKey() {
-        return partitionKey;
-    }
-
-    public TransferProcess getWrappedInstance() {
-        return wrappedInstance;
     }
 
     public Lease getLease() {
@@ -83,5 +72,4 @@ public class TransferProcessDocument {
             throw new IllegalStateException("This document is leased by " + lease.getLeasedBy() + "on " + startDate + " and cannot be leased again until " + endDate.toString() + "!");
         }
     }
-
 }

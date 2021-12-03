@@ -37,12 +37,11 @@ class ContractNegotiationDocumentSerializationTest {
         var def = generateNegotiation();
         var pk = def.getState();
 
-        var document = new ContractNegotiationDocument(def);
+        var document = ContractNegotiationDocument.from(def);
 
         String s = typeManager.writeValueAsString(document);
 
         assertThat(s).isNotNull()
-                .contains("wrappedInstance")
                 .contains("\"id\":\"" + def.getId() + "\"")
                 .contains("\"partitionKey\":\"" + pk + "\"");
     }
@@ -51,7 +50,7 @@ class ContractNegotiationDocumentSerializationTest {
     void testDeserialization() {
         var def = generateNegotiation();
 
-        var document = new ContractNegotiationDocument(def);
+        var document = ContractNegotiationDocument.from(def);
         String json = typeManager.writeValueAsString(document);
 
         var transferProcessDeserialized = typeManager.readValue(json, ContractNegotiationDocument.class);

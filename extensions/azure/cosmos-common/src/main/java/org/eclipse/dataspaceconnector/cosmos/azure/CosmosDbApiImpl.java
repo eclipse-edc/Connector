@@ -8,7 +8,6 @@ import com.azure.cosmos.CosmosDatabase;
 import com.azure.cosmos.CosmosException;
 import com.azure.cosmos.CosmosStoredProcedure;
 import com.azure.cosmos.implementation.NotFoundException;
-import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.CosmosItemRequestOptions;
 import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
@@ -42,7 +41,6 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         queryRequestOptions = new CosmosQueryRequestOptions();
         queryRequestOptions.setQueryMetricsEnabled(isQueryMetricsEnabled);
         itemRequestOptions = new CosmosItemRequestOptions();
-
         this.container = container;
     }
 
@@ -50,10 +48,13 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         this(getContainer(vault, config), config.isQueryMetricsEnabled());
     }
 
-    private static void handleResponse(CosmosItemResponse<?> response) {
-        int code = response.getStatusCode();
+    private static void handleResponse(CosmosItemResponse<?> response, String error) {
+        handleResponse(response.getStatusCode(), error);
+    }
+
+    private static void handleResponse(int code, String error) {
         if (code < 200 || code >= 300) {
-            throw new EdcException("Error during CosmosDB interaction: " + code);
+            throw new EdcException(error + " (status code: " + code + ")");
         }
     }
 
@@ -83,7 +84,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     private static CosmosDatabase getDatabase(CosmosClient client, String databaseName) {
-        CosmosDatabaseResponse databaseResponse = client.createDatabaseIfNotExists(databaseName);
+        var databaseResponse = client.createDatabaseIfNotExists(databaseName);
         return client.getDatabase(databaseResponse.getProperties().getId());
     }
 
@@ -92,7 +93,17 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         try {
             // we don't need to supply a partition key, it will be extracted from the CosmosDocument
             CosmosItemResponse<Object> response = container.upsertItem(item, itemRequestOptions);
-            handleResponse(response);
+            handleResponse(response, "Failed to create item");
+        } catch (CosmosException e) {
+            throw new EdcException(e);
+        }
+    }
+
+    @Override
+    public void updateItem(Object item) {
+        try {
+            var response = container.upsertItem(item, itemRequestOptions);
+            handleResponse(response, "Failed to update item");
         } catch (CosmosException e) {
             throw new EdcException(e);
         }
@@ -121,7 +132,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         } catch (CosmosException e) {
             throw new EdcException(e);
         }
-        handleResponse(response);
+        handleResponse(response, "Failed to query item with id: " + id);
         return response.getItem();
     }
 
@@ -183,7 +194,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public <T> String invokeStoredProcedure(String procedureName, String partitionKey, Object... args) {
+    public String invokeStoredProcedure(String procedureName, String partitionKey, Object... args) {
         var sproc = getStoredProcedure(procedureName);
 
         List<Object> params = Arrays.asList(args);
@@ -191,13 +202,12 @@ public class CosmosDbApiImpl implements CosmosDbApi {
         options.setPartitionKey(new PartitionKey(partitionKey));
 
         CosmosStoredProcedureResponse response = sproc.execute(params, options);
+
+        handleResponse(response.getStatusCode(), "Failed to invoke stored procedure: " + procedureName);
         return response.getResponseAsString();
     }
-
 
     private CosmosStoredProcedure getStoredProcedure(String sprocName) {
         return container.getScripts().getStoredProcedure(sprocName);
     }
-
-
 }

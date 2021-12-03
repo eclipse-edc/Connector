@@ -67,7 +67,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
 
     @Override
     public void save(ContractNegotiation negotiation) {
-        cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation));
+        cosmosDbApi.saveItem(ContractNegotiationDocument.from(negotiation));
     }
 
     @Override

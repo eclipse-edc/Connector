@@ -88,7 +88,7 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
 
     @Override
     public void accept(Asset asset, DataAddress dataAddress) {
-        var assetDocument = new AssetDocument(asset, partitionKey, dataAddress);
+        var assetDocument = AssetDocument.from(asset, partitionKey, dataAddress);
         assetDb.saveItem(assetDocument);
     }
 

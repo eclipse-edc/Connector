@@ -110,7 +110,7 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
 
     @NotNull
     private ContractDefinitionDocument convertToDocument(ContractDefinition def) {
-        return new ContractDefinitionDocument(def);
+        return ContractDefinitionDocument.from(def);
     }
 
     private Map<String, ContractDefinition> getCache() {

@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.cosmos.azure;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 /**
  * This is a wrapper solely used to store objects in an Azure CosmosDB.
@@ -10,15 +10,17 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public abstract class CosmosDocument<T> {
 
-    @JsonProperty
-    private final T wrappedInstance;
+    @JsonUnwrapped
+    private T wrappedInstance;
 
     @JsonProperty
-    private final String partitionKey;
+    private String partitionKey;
 
-    @JsonCreator
-    public CosmosDocument(@JsonProperty("wrappedInstance") T wrappedInstance,
-                          @JsonProperty("partitionKey") String partitionKey) {
+    protected CosmosDocument() {
+        //Jackson does not yet support the combination of @JsonUnwrapped and a @JsonProperty annotation in a constructor
+    }
+
+    protected CosmosDocument(T wrappedInstance, String partitionKey) {
         this.wrappedInstance = wrappedInstance;
         this.partitionKey = partitionKey;
     }

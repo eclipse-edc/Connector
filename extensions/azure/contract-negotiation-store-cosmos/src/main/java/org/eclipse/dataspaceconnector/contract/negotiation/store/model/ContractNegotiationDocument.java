@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.contract.negotiation.store.model;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
@@ -28,11 +27,18 @@ public class ContractNegotiationDocument extends CosmosDocument<ContractNegotiat
     @JsonProperty
     private Lease lease;
 
-    @JsonCreator
-    public ContractNegotiationDocument(@JsonProperty("wrappedInstance") ContractNegotiation contractNegotiation) {
+    protected ContractNegotiationDocument() {
+    }
+
+    private ContractNegotiationDocument(ContractNegotiation contractNegotiation) {
         //todo: lets think about whether this a good partition key
         super(contractNegotiation, String.valueOf(contractNegotiation.getState()));
     }
+
+    public static ContractNegotiationDocument from(ContractNegotiation contractNegotiation) {
+        return new ContractNegotiationDocument(contractNegotiation);
+    }
+
 
     public Lease getLease() {
         return lease;

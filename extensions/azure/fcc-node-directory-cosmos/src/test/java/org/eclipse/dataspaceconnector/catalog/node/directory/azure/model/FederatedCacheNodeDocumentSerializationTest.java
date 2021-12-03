@@ -37,7 +37,7 @@ class FederatedCacheNodeDocumentSerializationTest {
     void testSerialization() {
         var node = createNode();
 
-        var document = new FederatedCacheNodeDocument(node, "test-process");
+        var document = FederatedCacheNodeDocument.from(node, "test-process");
 
         String s = typeManager.writeValueAsString(document);
 
@@ -52,7 +52,7 @@ class FederatedCacheNodeDocumentSerializationTest {
     void testDeserialization() {
         var node = createNode();
 
-        var document = new FederatedCacheNodeDocument(node, "test-process");
+        var document = FederatedCacheNodeDocument.from(node, "test-process");
         String json = typeManager.writeValueAsString(document);
 
         var transferProcessDeserialized = typeManager.readValue(json, FederatedCacheNodeDocument.class);
