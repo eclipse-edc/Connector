@@ -68,8 +68,8 @@ class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalog
                 .extract()
                 .jsonPath();
 
-        Assertions.assertEquals("urn:catalog:default", jsonPath.getString("id"));
-        Assertions.assertTrue(jsonPath.get("contractOffers[0].id").toString().contains("urn:contractoffer:1"));
+        Assertions.assertEquals("default", jsonPath.getString("id"));
+        Assertions.assertTrue(jsonPath.get("contractOffers[0].id").toString().contains("1"));
         Assertions.assertNotNull(jsonPath.get("contractOffers[0].policy.uid"));
         Assertions.assertEquals("dataspaceconnector:permission", jsonPath.get("contractOffers[0].policy.permissions[0].edctype"));
         Assertions.assertEquals("1", jsonPath.get("contractOffers[0].policy.permissions[0].target"));
@@ -79,7 +79,7 @@ class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalog
         Assertions.assertEquals("1", jsonPath.get("contractOffers[0].asset.properties['asset:prop:id']"));
         Assertions.assertEquals("txt", jsonPath.get("contractOffers[0].asset.properties['ids:fileExtension']"));
         Assertions.assertEquals("filename1", jsonPath.get("contractOffers[0].asset.properties['ids:fileName']"));
-        Assertions.assertTrue(jsonPath.get("contractOffers[1].id").toString().contains("urn:contractoffer:2"));
+        Assertions.assertTrue(jsonPath.get("contractOffers[1].id").toString().contains("2"));
         Assertions.assertNotNull(jsonPath.get("contractOffers[1].policy.uid"));
         Assertions.assertEquals("dataspaceconnector:permission", jsonPath.get("contractOffers[1].policy.permissions[0].edctype"));
         Assertions.assertEquals("2", jsonPath.get("contractOffers[1].policy.permissions[0].target"));
