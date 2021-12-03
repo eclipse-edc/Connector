@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
@@ -42,6 +43,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
+import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.OK;
 
@@ -366,9 +369,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             if (agreement == null) {
                 var lastOffer = negotiation.getLastContractOffer();
 
+                var contractIdTokens = parseContractId(lastOffer.getId());
+                if (contractIdTokens.length != 2) {
+                    monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
+                    continue;
+                }
+                var definitionId = contractIdTokens[DEFINITION_PART];
+
                 //TODO move to own service
                 agreement = ContractAgreement.Builder.newInstance()
-                        .id(UUID.randomUUID().toString())
+                        .id(ContractId.createContractId(definitionId))
                         .contractEndDate(Instant.now().getEpochSecond() + 60 * 60 /* Five Minutes */) // TODO
                         .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
                         .contractStartDate(Instant.now().getEpochSecond())

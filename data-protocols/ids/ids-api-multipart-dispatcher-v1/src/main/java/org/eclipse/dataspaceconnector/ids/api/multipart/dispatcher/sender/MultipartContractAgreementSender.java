@@ -21,7 +21,8 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
@@ -32,7 +33,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.net.URI;
 import java.util.Collections;
-import java.util.Objects;
 
 /**
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
@@ -41,6 +41,7 @@ import java.util.Objects;
 public class MultipartContractAgreementSender extends IdsMultipartSender<ContractAgreementRequest, MultipartMessageProcessedResponse> {
 
     private final String idsWebhookAddress;
+    private final TransformerRegistry transformerRegistry;
 
     public MultipartContractAgreementSender(@NotNull String connectorId,
                                             @NotNull OkHttpClient httpClient,
@@ -51,6 +52,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
                                             @NotNull String idsWebhookAddress) {
         super(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry);
 
+        this.transformerRegistry = transformerRegistry;
         this.idsWebhookAddress = idsWebhookAddress;
     }
 
@@ -76,7 +78,13 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         }
 
         var id = request.getContractAgreement().getId();
-        var message = new ContractAgreementMessageBuilder(URI.create(id))
+        var idsId = IdsId.Builder.newInstance().type(IdsType.CONTRACT_AGREEMENT).value(id).build();
+        var idUriResult = transformerRegistry.transform(idsId, URI.class);
+        if (idUriResult.hasProblems()) {
+            throw new EdcException("Cannot convert contract agreement id to URI");
+        }
+
+        var message = new ContractAgreementMessageBuilder(idUriResult.getOutput())
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
