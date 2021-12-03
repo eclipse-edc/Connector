@@ -13,6 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import java.util.concurrent.TimeUnit;
+
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -54,21 +56,17 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for 5 seconds while negotiation is in progress
-        Thread.sleep(5000);
+        // Create thread that checks if desired end state of negotiation reached, counts down latch
+        executorService.submit(getThread(ContractNegotiationStates.CONFIRMED));
 
-        // Consumer negotiation id should have been set by fake message dispatcher registry
-        assertThat(consumerNegotiationId).isNotNull();
+        // Wait for negotiation to finish with time out at 15 seconds
+        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        // Assert that consumer has a confirmed ContractNegotiation
+        executorService.shutdownNow();
+        assertThat(success).isTrue();
+
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMED.code());
-
-        // Assert that provider has a confirmed ContractNegotiation with matching correlation id
         var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-        assertThat(providerNegotiation).isNotNull();
-        assertThat(providerNegotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMED.code());
 
         // Assert that provider and consumer have the same offers and agreement stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
@@ -108,21 +106,17 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for 5 seconds while negotiation is in progress
-        Thread.sleep(5000);
+        // Create thread that checks if desired end state of negotiation reached, counts down latch
+        executorService.submit(getThread(ContractNegotiationStates.DECLINED));
 
-        // Consumer negotiation id should have been set by fake message dispatcher registry
-        assertThat(consumerNegotiationId).isNotNull();
+        // Wait for negotiation to finish with time out at 15 seconds
+        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        // Assert that consumer has a declined ContractNegotiation
+        executorService.shutdownNow();
+        assertThat(success).isTrue();
+
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINED.code());
-
-        // Assert that provider has a declined ContractNegotiation with matching correlation id
         var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-        assertThat(providerNegotiation).isNotNull();
-        assertThat(providerNegotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINED.code());
 
         // Assert that provider and consumer have the same offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
@@ -166,21 +160,17 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for 5 seconds while negotiation is in progress
-        Thread.sleep(5000);
+        // Create thread that checks if desired end state of negotiation reached, counts down latch
+        executorService.submit(getThread(ContractNegotiationStates.DECLINED));
 
-        // Consumer negotiation id should have been set by fake message dispatcher registry
-        assertThat(consumerNegotiationId).isNotNull();
+        // Wait for negotiation to finish with time out at 15 seconds
+        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        // Assert that consumer has a declined ContractNegotiation
+        executorService.shutdownNow();
+        assertThat(success).isTrue();
+
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINED.code());
-
-        // Assert that provider has a declined ContractNegotiation with matching correlation id
         var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-        assertThat(providerNegotiation).isNotNull();
-        assertThat(providerNegotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINED.code());
 
         // Assert that provider and consumer have the same offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
@@ -228,21 +218,17 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for 5 seconds while negotiation is in progress
-        Thread.sleep(5000);
+        // Create thread that checks if desired end state of negotiation reached, counts down latch
+        executorService.submit(getThread(ContractNegotiationStates.CONFIRMED));
 
-        // Consumer negotiation id should have been set by fake message dispatcher registry
-        assertThat(consumerNegotiationId).isNotNull();
+        // Wait for negotiation to finish with time out at 15 seconds
+        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        // Assert that consumer has a confirmed ContractNegotiation
+        executorService.shutdownNow();
+        assertThat(success).isTrue();
+
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMED.code());
-
-        // Assert that provider has a confirmed ContractNegotiation with matching correlation id
         var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-        assertThat(providerNegotiation).isNotNull();
-        assertThat(providerNegotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMED.code());
 
         // Assert that provider and consumer have the same number of offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(2);
@@ -293,21 +279,17 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for 5 seconds while negotiation is in progress
-        Thread.sleep(5000);
+        // Create thread that checks if desired end state of negotiation reached, counts down latch
+        executorService.submit(getThread(ContractNegotiationStates.DECLINED));
 
-        // Consumer negotiation id should have been set by fake message dispatcher registry
-        assertThat(consumerNegotiationId).isNotNull();
+        // Wait for negotiation to finish with time out at 15 seconds
+        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        // Assert that consumer has a declined ContractNegotiation
+        executorService.shutdownNow();
+        assertThat(success).isTrue();
+
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINED.code());
-
-        // Assert that provider has a declined ContractNegotiation with matching correlation id
         var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-        assertThat(providerNegotiation).isNotNull();
-        assertThat(providerNegotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINED.code());
 
         // Assert that provider and consumer have the same number of offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(2);
@@ -370,21 +352,17 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for 5 seconds while negotiation is in progress
-        Thread.sleep(5000);
+        // Create thread that checks if desired end state of negotiation reached, counts down latch
+        executorService.submit(getThread(ContractNegotiationStates.CONFIRMED));
 
-        // Consumer negotiation id should have been set by fake message dispatcher registry
-        assertThat(consumerNegotiationId).isNotNull();
+        // Wait for negotiation to finish with time out at 15 seconds
+        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        // Assert that consumer has a confirmed ContractNegotiation
+        executorService.shutdownNow();
+        assertThat(success).isTrue();
+
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMED.code());
-
-        // Assert that provider has a confirmed ContractNegotiation with matching correlation id
         var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-        assertThat(providerNegotiation).isNotNull();
-        assertThat(providerNegotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMED.code());
 
         // Assert that provider and consumer have the same number of offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(3);
@@ -446,21 +424,17 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Wait for 5 seconds while negotiation is in progress
-        Thread.sleep(5000);
+        // Create thread that checks if desired end state of negotiation reached, counts down latch
+        executorService.submit(getThread(ContractNegotiationStates.DECLINED));
 
-        // Consumer negotiation id should have been set by fake message dispatcher registry
-        assertThat(consumerNegotiationId).isNotNull();
+        // Wait for negotiation to finish with time out at 15 seconds
+        var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        // Assert that consumer has a declined ContractNegotiation
+        executorService.shutdownNow();
+        assertThat(success).isTrue();
+
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
-        assertThat(consumerNegotiation).isNotNull();
-        assertThat(consumerNegotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINED.code());
-
-        // Assert that provider has a declined ContractNegotiation with matching correlation id
         var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
-        assertThat(providerNegotiation).isNotNull();
-        assertThat(providerNegotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINED.code());
 
         // Assert that provider and consumer have the same number of offers stored
         assertThat(consumerNegotiation.getContractOffers()).hasSize(3);

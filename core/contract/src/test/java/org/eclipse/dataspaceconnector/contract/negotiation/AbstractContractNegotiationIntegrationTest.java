@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -38,6 +39,9 @@ import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Setup for the contract negotiation integration test.
@@ -55,6 +59,9 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     protected String consumerNegotiationId;
 
     protected ClaimToken token;
+
+    protected ExecutorService executorService;
+    protected CountDownLatch countDownLatch;
 
     /**
      * Prepares the test setup
@@ -84,6 +91,9 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
                 .build();
+
+        executorService = Executors.newFixedThreadPool(1);
+        countDownLatch = new CountDownLatch(1);
     }
 
     /**
@@ -217,6 +227,52 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 }
             }
         }
+    }
+
+    /**
+     * Returns a thread that periodically checks the current state of the negotiation on provider
+     * and consumer side, until either both negotiations are in the desired end state or the
+     * thread is interrupted.
+     *
+     * @param desiredEndState the desired end state for the negotiations.
+     * @return the thread.
+     */
+    protected Thread getThread(ContractNegotiationStates desiredEndState) {
+        return new Thread(() -> {
+            var finished = false;
+            while(!finished) {
+                // If thread has been interrupted, stop execution
+                if (Thread.interrupted()) {
+                    return;
+                }
+
+                // Wait for a second to avoid constant check
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException e) {
+                    continue;
+                }
+
+                // If null, the initial request from consumer to provider has not happened
+                if (consumerNegotiationId == null) {
+                    continue;
+                }
+
+                // Get negotiations from provider and consumer store
+                var consumerNegotiation = consumerStore.find(consumerNegotiationId);
+                var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
+                if (providerNegotiation == null || consumerNegotiation == null) {
+                    continue;
+                }
+
+                // If both negotiations are in desired state, count down latch
+                if (desiredEndState.code() == providerNegotiation.getState()
+                        && desiredEndState.code() == consumerNegotiation.getState()) {
+                    countDownLatch.countDown();
+                    finished = true;
+                }
+            }
+        });
     }
 
     /**
