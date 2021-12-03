@@ -16,6 +16,8 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
+import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -53,7 +55,13 @@ public class IdsResourceCatalogToDataCatalogTransformer implements IdsTypeTransf
 
         Catalog.Builder builder = Catalog.Builder.newInstance();
 
-        builder.id(object.getId().toString());
+        var catalogIdsId = IdsIdParser.parse(object.getId().toString());
+        if (catalogIdsId.getType() != IdsType.CATALOG) {
+            context.reportProblem("Catalog ID not of type catalog");
+            return null;
+        }
+
+        builder.id(catalogIdsId.getValue());
 
         List<Resource> resources;
         if ((resources = object.getOfferedResource()) != null) {
@@ -113,7 +121,12 @@ public class IdsResourceCatalogToDataCatalogTransformer implements IdsTypeTransf
                 .asset(asset);
 
         if (object.getId() != null) {
-            contractOfferBuilder.id(object.getId().toString());
+            var idsId = IdsIdParser.parse(object.getId().toString());
+            if (idsId.getType() != IdsType.CONTRACT_OFFER) {
+                context.reportProblem("Contract offer id not of type contract offer");
+            } else {
+                contractOfferBuilder.id(idsId.getValue());
+            }
         }
 
         if (object.getContractEnd() != null) {

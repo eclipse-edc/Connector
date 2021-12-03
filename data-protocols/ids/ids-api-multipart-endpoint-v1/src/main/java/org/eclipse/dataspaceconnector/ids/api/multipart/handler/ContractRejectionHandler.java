@@ -14,10 +14,8 @@
 
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 
-import de.fraunhofer.iais.eis.ContractOfferMessage;
 import de.fraunhofer.iais.eis.ContractRejectionMessage;
 import de.fraunhofer.iais.eis.Message;
-import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
@@ -31,7 +29,6 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
-import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.internalRecipientError;
 
 /**
  * This class handles and processes incoming IDS {@link ContractRejectionMessage}s.
