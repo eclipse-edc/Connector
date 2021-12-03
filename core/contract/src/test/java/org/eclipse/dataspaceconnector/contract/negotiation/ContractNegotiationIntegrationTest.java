@@ -43,6 +43,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 EasyMock.anyObject(ContractOffer.class))).andReturn(true);
         EasyMock.replay(validationService);
 
+        // Create signaling stores for provider and consumer
+        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
         consumerManager.start(consumerStore);
@@ -56,13 +60,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Create thread that checks if desired end state of negotiation reached, counts down latch
-        executorService.submit(getThread(ContractNegotiationStates.CONFIRMED));
-
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        executorService.shutdownNow();
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
@@ -93,6 +93,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         EasyMock.expect(validationService.validate(token, offer)).andReturn(validationResult);
         EasyMock.replay(validationService);
 
+        // Create signaling stores for provider and consumer
+        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
         consumerManager.start(consumerStore);
@@ -106,13 +110,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Create thread that checks if desired end state of negotiation reached, counts down latch
-        executorService.submit(getThread(ContractNegotiationStates.DECLINED));
-
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        executorService.shutdownNow();
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
@@ -147,6 +147,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 EasyMock.anyObject(ContractOffer.class))).andReturn(false);
         EasyMock.replay(validationService);
 
+        // Create signaling stores for provider and consumer
+        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
         consumerManager.start(consumerStore);
@@ -160,13 +164,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Create thread that checks if desired end state of negotiation reached, counts down latch
-        executorService.submit(getThread(ContractNegotiationStates.DECLINED));
-
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        executorService.shutdownNow();
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
@@ -205,6 +205,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 EasyMock.eq(counterOffer))).andReturn(true);
         EasyMock.replay(validationService);
 
+        // Create signaling stores for provider and consumer
+        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
         consumerManager.start(consumerStore);
@@ -218,13 +222,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Create thread that checks if desired end state of negotiation reached, counts down latch
-        executorService.submit(getThread(ContractNegotiationStates.CONFIRMED));
-
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        executorService.shutdownNow();
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
@@ -266,6 +266,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(consumerValidationResult);
         EasyMock.replay(validationService);
 
+        // Create signaling stores for provider and consumer
+        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
         consumerManager.start(consumerStore);
@@ -279,13 +283,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Create thread that checks if desired end state of negotiation reached, counts down latch
-        executorService.submit(getThread(ContractNegotiationStates.DECLINED));
-
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        executorService.shutdownNow();
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
@@ -339,6 +339,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
         EasyMock.replay(validationService);
 
+        // Create signaling stores for provider and consumer
+        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
         consumerManager.start(consumerStore);
@@ -352,13 +356,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Create thread that checks if desired end state of negotiation reached, counts down latch
-        executorService.submit(getThread(ContractNegotiationStates.CONFIRMED));
-
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        executorService.shutdownNow();
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
@@ -411,6 +411,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
         EasyMock.replay(validationService);
 
+        // Create signaling stores for provider and consumer
+        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
         consumerManager.start(consumerStore);
@@ -424,13 +428,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 .build();
         consumerManager.initiate(request);
 
-        // Create thread that checks if desired end state of negotiation reached, counts down latch
-        executorService.submit(getThread(ContractNegotiationStates.DECLINED));
-
         // Wait for negotiation to finish with time out at 15 seconds
         var success = countDownLatch.await(15, TimeUnit.SECONDS);
 
-        executorService.shutdownNow();
         assertThat(success).isTrue();
 
         var consumerNegotiation = consumerStore.find(consumerNegotiationId);
