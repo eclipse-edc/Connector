@@ -44,8 +44,8 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -85,7 +85,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         return Set.of(IdentityService.FEATURE,
                 "edc:ids:core",
                 AssetIndex.FEATURE,
-                ContractDefinitionStore.FEATURE,
+                ContractNegotiationStore.FEATURE,
                 "edc:ids:transform:v1",
                 "edc:core:contract");
     }
@@ -117,7 +117,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
         TransformerRegistry transformerRegistry = serviceExtensionContext.getService(TransformerRegistry.class);
         ContractOfferService contractOfferService = serviceExtensionContext.getService(ContractOfferService.class);
-        ContractDefinitionStore contractDefinitionStore = serviceExtensionContext.getService(ContractDefinitionStore.class);
+        ContractNegotiationStore contractNegotiationStore = serviceExtensionContext.getService(ContractNegotiationStore.class);
 
         String connectorId = resolveConnectorId(serviceExtensionContext);
 
@@ -156,7 +156,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         TransferProcessManager transferProcessManager = serviceExtensionContext.getService(TransferProcessManager.class);
         ContractValidationService contractValidationService = serviceExtensionContext.getService(ContractValidationService.class);
         Vault vault = serviceExtensionContext.getService(Vault.class);
-        ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractDefinitionStore, contractValidationService, transferProcessManager, vault);
+        ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers

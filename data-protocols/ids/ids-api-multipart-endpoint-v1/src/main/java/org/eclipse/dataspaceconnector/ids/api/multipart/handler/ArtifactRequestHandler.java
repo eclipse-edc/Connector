@@ -24,15 +24,13 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
-import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
@@ -40,11 +38,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
@@ -56,21 +50,21 @@ public class ArtifactRequestHandler implements Handler {
     private final Monitor monitor;
     private final ObjectMapper objectMapper;
     private final ContractValidationService contractValidationService;
-    private final ContractDefinitionStore contractDefinitionStore;
+    private final ContractNegotiationStore contractNegotiationStore;
     private final Vault vault;
 
     public ArtifactRequestHandler(
             @NotNull Monitor monitor,
             @NotNull String connectorId,
             @NotNull ObjectMapper objectMapper,
-            @NotNull ContractDefinitionStore contractDefinitionStore,
+            @NotNull ContractNegotiationStore contractNegotiationStore,
             @NotNull ContractValidationService contractValidationService,
             @NotNull TransferProcessManager transferProcessManager,
             @NotNull Vault vault) {
         this.monitor = Objects.requireNonNull(monitor);
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
-        this.contractDefinitionStore = Objects.requireNonNull(contractDefinitionStore);
+        this.contractNegotiationStore = Objects.requireNonNull(contractNegotiationStore);
         this.contractValidationService = Objects.requireNonNull(contractValidationService);
         this.transferProcessManager = Objects.requireNonNull(transferProcessManager);
         this.vault = Objects.requireNonNull(vault);
@@ -97,37 +91,17 @@ public class ArtifactRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
-        // NOTICE
-        //
-        // Please note that the code below is just a workaround until the contract negotiation and the corresponding
-        // contracts are in place. Until then this workaround makes it possible to initiate a data transfer
-        // based on a valid contract offer.
-
         URI contractUri = artifactRequestMessage.getTransferContract();
         IdsId contractIdsId = IdsIdParser.parse(contractUri.toString());
         if (contractIdsId.getType() != IdsType.CONTRACT) {
             monitor.info("ArtifactRequestHandler: Requested artifact URI not of type contract.");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
-        Optional<ContractDefinition> contractDefinition = contractDefinitionStore.findAll().stream().filter(d -> d.getId().equals(contractIdsId.getValue())).findFirst();
 
-        if (contractDefinition.isEmpty()) {
-            monitor.info(String.format("ArtifactRequestHandler: No Contract Offer with ID %s found.", contractIdsId.getValue()));
-            return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
+        ContractAgreement contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
+        if (contractAgreement == null) {
+            monitor.info(String.format("ArtifactRequestHandler: No Contract Agreement with Id %s found.", contractIdsId.getValue()));
         }
-
-        ContractAgreement contractAgreement = ContractAgreement.Builder.newInstance()
-                .id(contractDefinition.get().getId() + ":" + UUID.randomUUID())
-                .asset(Asset.Builder.newInstance().id(artifactIdsId.getValue()).build())
-                .policy(contractDefinition.get().getContractPolicy())
-                .contractEndDate(Instant.now().getEpochSecond() + 60 * 5 /* Five Minutes */)
-                .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
-                .contractStartDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
-                .consumerAgentId("https://example.com")
-                .providerAgentId("https://example.com")
-                .build();
-
-        // TODO Assert that the Asset is part of the contract
 
         boolean isContractValid = contractValidationService.validate(verificationResult.token(), contractAgreement);
         if (!isContractValid) {

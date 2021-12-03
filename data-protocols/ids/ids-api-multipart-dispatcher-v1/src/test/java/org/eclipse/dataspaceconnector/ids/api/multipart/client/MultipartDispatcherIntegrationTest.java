@@ -23,7 +23,6 @@ import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
-import de.fraunhofer.iais.eis.RejectionMessageImpl;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import de.fraunhofer.iais.eis.ResponseMessage;
 import okhttp3.OkHttpClient;
@@ -208,13 +207,15 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     @Test
     void testSendContractAgreementMessage() throws Exception {
         var contractAgreement = ContractAgreement.Builder.newInstance()
-                .id("urn:contractagreement:1").consumerAgentId("consumer").providerAgentId("provider")
+                .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().build())
                 .build();
 
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
+        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.eq(de.fraunhofer.iais.eis.ContractAgreement.class)))
                 .andReturn(new TransformResult<>(getIdsContractAgreement()));
+        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.eq(URI.class)))
+                .andReturn(new TransformResult<>(URI.create("https://example.com")));
         EasyMock.replay(transformerRegistry);
 
         var request = ContractAgreementRequest.Builder.newInstance()

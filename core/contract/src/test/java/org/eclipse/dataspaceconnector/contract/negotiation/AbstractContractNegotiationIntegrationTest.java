@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.negotiation.store.memory.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -226,7 +227,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
      */
     protected ContractOffer getContractOffer() {
         return ContractOffer.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
+                .id(ContractId.createContractId("1"))
                 .contractStart(ZonedDateTime.now())
                 .contractEnd(ZonedDateTime.now().plusMonths(1))
                 .provider(URI.create("provider"))

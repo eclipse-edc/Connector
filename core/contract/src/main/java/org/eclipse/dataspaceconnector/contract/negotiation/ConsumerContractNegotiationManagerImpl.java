@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
@@ -23,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationRes
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -42,6 +42,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
+import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse.Status.OK;
 
@@ -53,7 +55,6 @@ import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.N
  * - ContractNegotiation: Builder, transfer change methods
  * - ConsumerContractNegotiationManager & ProviderContractNegotiationManager: add start and stop methods, builder
  * - method call in CoreTransferExtension
- *
  */
 public class ConsumerContractNegotiationManagerImpl implements ConsumerContractNegotiationManager {
     private final AtomicBoolean active = new AtomicBoolean();
@@ -333,8 +334,16 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         for (ContractNegotiation process : processes) {
             //TODO this is a dummy agreement used to approve the provider's offer, real agreement will be created and sent by provider
             var lastOffer = process.getLastContractOffer();
+
+            var contractIdTokens = parseContractId(lastOffer.getId());
+            if (contractIdTokens.length != 2) {
+                monitor.severe("ConsumerContractNegotiationManagerImpl.approveContractOffers(): Offer Id not correctly formatted.");
+                continue;
+            }
+            var definitionId = contractIdTokens[DEFINITION_PART];
+
             var agreement = ContractAgreement.Builder.newInstance()
-                    .id(UUID.randomUUID().toString())
+                    .id(ContractId.createContractId(definitionId))
                     .contractSigningDate(LocalDate.MIN.toEpochDay())
                     .contractStartDate(LocalDate.MIN.toEpochDay())
                     .contractEndDate(LocalDate.MAX.toEpochDay())
