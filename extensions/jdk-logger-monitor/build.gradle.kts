@@ -14,7 +14,6 @@
 
 plugins {
     `java-library`
-    `maven-publish`
 }
 
 
@@ -31,9 +30,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("jdk-logger-monitor") {
-            groupId = "org.eclipse.dataspaceconnector.logger"
             artifactId = "jdk-logger-monitor"
-            version = "0.1"
             from(components["java"])
         }
     }
