@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.contract.offer;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
-import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,7 +32,7 @@ class ContractDefinitionServiceImplTest {
         var agent = new ParticipantAgent(Map.of(), Map.of());
         var policy = Policy.Builder.newInstance().build();
 
-        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult()).times(2);
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(Result.success(policy)).times(2);
         expect(definitionStore.findAll()).andReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         replay(definitionStore, policyEngine);
@@ -47,7 +47,7 @@ class ContractDefinitionServiceImplTest {
         var agent = new ParticipantAgent(Map.of(), Map.of());
         var policy = Policy.Builder.newInstance().build();
 
-        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult(List.of("invalid")));
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(Result.failure("invalid"));
         expect(definitionStore.findAll()).andReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         replay(definitionStore, policyEngine);
@@ -62,8 +62,8 @@ class ContractDefinitionServiceImplTest {
         var agent = new ParticipantAgent(Map.of(), Map.of());
         var policy = Policy.Builder.newInstance().build();
 
-        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult()); // access policy valid
-        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult(List.of("invalid"))); // usage policy invalid
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(Result.success(policy)); // access policy valid
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(Result.failure("invalid")); // usage policy invalid
         expect(definitionStore.findAll()).andReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build()));
 
         replay(definitionStore, policyEngine);
@@ -78,8 +78,8 @@ class ContractDefinitionServiceImplTest {
         var agent = new ParticipantAgent(Map.of(), Map.of());
         var policy = Policy.Builder.newInstance().build();
 
-        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult()).times(2); // access and usage policy first check
-        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(new PolicyResult(List.of("invalid"))); // access policy second check
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(Result.success(policy)).times(2); // access and usage policy first check
+        expect(policyEngine.evaluate(isA(Policy.class), isA(ParticipantAgent.class))).andReturn(Result.failure("invalid")); // access policy second check
         expect(definitionStore.findAll()).andReturn(List.of(ContractDefinition.Builder.newInstance().id("1").accessPolicy(policy).contractPolicy(policy).selectorExpression(SELECT_ALL).build())).anyTimes();
 
         replay(definitionStore, policyEngine);

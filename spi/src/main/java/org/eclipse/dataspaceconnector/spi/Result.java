@@ -26,16 +26,20 @@ public class Result<T> {
         return new Result<>(content, emptyList());
     }
 
-    public static <T> Result<T> failure(String error) {
-        return new Result<>(null, List.of(error));
+    public static <T> Result<T> failure(String failure) {
+        return new Result<>(null, List.of(failure));
+    }
+
+    public static <T> Result<T> failure(List<String> failures) {
+        return new Result<>(null, failures);
     }
 
     private final T content;
-    private final List<String> errors;
+    private final List<String> failures;
 
-    private Result(T content, @NotNull List<String> errors) {
+    private Result(T content, @NotNull List<String> failures) {
         this.content = content;
-        this.errors = errors;
+        this.failures = failures;
     }
 
     public T getContent() {
@@ -43,14 +47,18 @@ public class Result<T> {
     }
 
     public boolean succeeded() {
-        return errors.isEmpty();
+        return failures.isEmpty();
     }
 
     public boolean failed() {
-        return !errors.isEmpty();
+        return !failures.isEmpty();
     }
 
     public String getFailure() {
-        return errors.stream().findFirst().orElseThrow(() -> new EdcException("This result is successful"));
+        return failures.stream().findFirst().orElseThrow(() -> new EdcException("This result is successful"));
+    }
+
+    public List<String> getFailures() {
+        return failures;
     }
 }

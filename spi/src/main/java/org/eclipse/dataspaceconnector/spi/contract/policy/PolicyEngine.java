@@ -15,6 +15,7 @@ package org.eclipse.dataspaceconnector.spi.contract.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 
 import java.util.function.BiFunction;
@@ -27,7 +28,7 @@ public interface PolicyEngine {
     /**
      * Evaluates the given policy for an agent.
      */
-    PolicyResult evaluate(Policy policy, ParticipantAgent agent);
+    Result<Policy> evaluate(Policy policy, ParticipantAgent agent);
 
     /**
      * Registers a function that is invoked when a policy contains an atomic constraint whose left operator expression evaluates to the given key.
