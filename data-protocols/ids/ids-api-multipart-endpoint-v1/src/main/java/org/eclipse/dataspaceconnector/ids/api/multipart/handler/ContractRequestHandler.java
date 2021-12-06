@@ -23,8 +23,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRespons
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
@@ -123,14 +123,14 @@ public class ContractRequestHandler implements Handler {
                 .asset(asset)
                 .build();
 
-        TransformResult<ContractOffer> result = transformerRegistry.transform(input, ContractOffer.class);
-        if (result.hasProblems()) {
+        Result<ContractOffer> result = transformerRegistry.transform(input, ContractOffer.class);
+        if (result.failed()) {
             monitor.debug(String.format("Could not transform contract request: [%s]",
-                    String.join(", ", result.getProblems())));
+                    String.join(", ", result.getFailures())));
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        var contractOffer = result.getOutput();
+        var contractOffer = result.getContent();
         var requestObj = ContractOfferRequest.Builder.newInstance()
                 .protocol(Protocols.IDS_MULTIPART)
                 .connectorAddress(idsWebhookAddress.toString())

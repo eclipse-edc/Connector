@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.ids.spi.transform;
 
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -34,6 +35,6 @@ public interface TransformerRegistry {
      * @param outputType the transformed output type
      * @return the transform result
      */
-    <INPUT, OUTPUT> TransformResult<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType);
+    <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType);
 
 }

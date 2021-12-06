@@ -14,10 +14,10 @@
 package org.eclipse.dataspaceconnector.ids.core.transform;
 
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -40,10 +40,10 @@ public class TransformerRegistryImpl implements TransformerRegistry {
     }
 
     @Override
-    public <INPUT, OUTPUT> TransformResult<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType) {
+    public <INPUT, OUTPUT> Result<OUTPUT> transform(@NotNull INPUT object, @NotNull Class<OUTPUT> outputType) {
         var context = new TransformerContextImpl(this);
         var output = transform(object, outputType, context);
-        return context.hasProblems() ? new TransformResult<>(context.problems) : new TransformResult<>(output);
+        return context.hasProblems() ? Result.failure(context.problems) : Result.success(output);
     }
 
     @SuppressWarnings({ "rawtypes", "unchecked" })

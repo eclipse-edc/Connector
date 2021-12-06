@@ -21,8 +21,8 @@ import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
@@ -110,15 +110,15 @@ public class ContractAgreementHandler implements Handler {
                 .build();
 
         // Create contract agreement
-        TransformResult<ContractAgreement> result = transformerRegistry.transform(input, ContractAgreement.class);
-        if (result.hasProblems()) {
+        Result<ContractAgreement> result = transformerRegistry.transform(input, ContractAgreement.class);
+        if (result.failed()) {
             monitor.debug(String.format("Could not transform contract agreement: [%s]",
-                    String.join(", ", result.getProblems())));
+                    String.join(", ", result.getFailures())));
             return createBadParametersErrorMultipartResponse(message);
         }
 
         // TODO get hash from message
-        var agreement = result.getOutput();
+        var agreement = result.getContent();
         var processId = message.getTransferContract();
         var negotiationResponse = negotiationManager.confirmed(verificationResult.token(),
                 String.valueOf(processId), agreement, null);

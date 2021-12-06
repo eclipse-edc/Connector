@@ -21,8 +21,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRespons
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
@@ -65,18 +65,18 @@ public class ConnectorDescriptionRequestHandler implements DescriptionRequestHan
 
         DescriptionResponseMessage descriptionResponseMessage = createDescriptionResponseMessage(connectorId, descriptionRequestMessage);
 
-        TransformResult<Connector> transformResult = transformerRegistry.transform(connectorService.getConnector(verificationResult), Connector.class);
-        if (transformResult.hasProblems()) {
+        Result<Connector> transformResult = transformerRegistry.transform(connectorService.getConnector(verificationResult), Connector.class);
+        if (transformResult.failed()) {
             monitor.warning(
                     String.format(
                             "Could not transform Connector: [%s]",
-                            String.join(", ", transformResult.getProblems())
+                            String.join(", ", transformResult.getFailures())
                     )
             );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        Connector connector = transformResult.getOutput();
+        Connector connector = transformResult.getContent();
 
         return MultipartResponse.Builder.newInstance()
                 .header(descriptionResponseMessage)

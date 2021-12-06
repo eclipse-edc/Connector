@@ -22,6 +22,7 @@ import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -92,7 +93,7 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         var verificationResult = new VerificationResult(claimToken);
 
         identityService = EasyMock.createMock(IdentityService.class);
-        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.anyObject())).andReturn(tokenResult);
+        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.anyObject())).andReturn(Result.success(tokenResult));
         EasyMock.expect(identityService.verifyJwtToken(EasyMock.anyObject(), EasyMock.anyObject())).andReturn(verificationResult);
         EasyMock.replay(identityService);
 

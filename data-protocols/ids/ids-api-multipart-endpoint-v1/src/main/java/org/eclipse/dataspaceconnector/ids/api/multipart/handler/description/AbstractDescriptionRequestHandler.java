@@ -19,8 +19,8 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
@@ -67,17 +67,17 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
         }
 
         var result = transformerRegistry.transform(uri, IdsId.class);
-        if (result.hasProblems()) {
+        if (result.failed()) {
             monitor.warning(
                     String.format(
                             "Could not transform URI to IdsId: [%s]",
-                            String.join(", ", result.getProblems())
+                            String.join(", ", result.getFailures())
                     )
             );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        IdsId idsId = result.getOutput();
+        IdsId idsId = result.getContent();
         if (Objects.requireNonNull(idsId).getType() != targetIdsType) {
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
@@ -87,20 +87,20 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
             return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        TransformResult<S> transformResult = transformerRegistry.transform(retrievedObject, resultType);
-        if (transformResult.hasProblems()) {
+        Result<S> transformResult = transformerRegistry.transform(retrievedObject, resultType);
+        if (transformResult.failed()) {
             monitor.warning(
                     String.format(
                             "Could not transform %s to %S: [%s]",
                             retrievedObject.getClass().getSimpleName(),
                             resultType.getSimpleName(),
-                            String.join(", ", transformResult.getProblems())
+                            String.join(", ", transformResult.getFailures())
                     )
             );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        S handlerResult = transformResult.getOutput();
+        S handlerResult = transformResult.getContent();
 
         DescriptionResponseMessage descriptionResponseMessage = createDescriptionResponseMessage(connectorId, descriptionRequestMessage);
 

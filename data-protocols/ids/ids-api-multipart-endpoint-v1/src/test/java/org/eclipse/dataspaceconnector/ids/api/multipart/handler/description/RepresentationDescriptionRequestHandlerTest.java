@@ -18,8 +18,8 @@ import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Representation;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -62,11 +62,9 @@ public class RepresentationDescriptionRequestHandlerTest {
         EasyMock.replay(assetIndex);
 
         transformerRegistry = mockTransformerRegistry(IdsType.REPRESENTATION);
-        var representationResult = (TransformResult) EasyMock.createMock(TransformResult.class);
-        EasyMock.expect(representationResult.getOutput()).andReturn(representation);
-        EasyMock.expect(representationResult.hasProblems()).andReturn(false);
-        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(Asset.class), EasyMock.eq(Representation.class))).andReturn(representationResult);
-        EasyMock.replay(transformerRegistry, representationResult);
+        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(Asset.class), EasyMock.eq(Representation.class)))
+                .andReturn(Result.success(representation));
+        EasyMock.replay(transformerRegistry);
 
         descriptionRequestMessage = mockDescriptionRequestMessage(representation.getId());
         EasyMock.replay(descriptionRequestMessage);

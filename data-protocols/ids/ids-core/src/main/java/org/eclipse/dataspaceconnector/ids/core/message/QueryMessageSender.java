@@ -70,7 +70,8 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
 
         var tokenResult = identityService.obtainClientCredentials(connectorId);
 
-        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getToken()).build();
+        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)
+                ._tokenValue_(tokenResult.getContent().getToken()).build();
 
         var queryMessage = new QueryMessageBuilder()
                 // FIXME handle timezone issue ._issued_(gregorianNow())

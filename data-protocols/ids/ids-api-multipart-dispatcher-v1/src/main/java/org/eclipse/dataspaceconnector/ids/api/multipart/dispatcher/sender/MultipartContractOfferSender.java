@@ -71,7 +71,7 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
     }
 
     @Override
-    protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) throws Exception {
+    protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
         if (idsWebhookAddress == null || idsWebhookAddress.isBlank()) {
             throw new EdcException("No valid value found for attribute ids.webhook.address");
         }
@@ -132,21 +132,21 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
 
     private de.fraunhofer.iais.eis.ContractRequest createContractRequest(ContractOffer offer) {
         var transformationResult = getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
-        if (transformationResult.hasProblems()) {
+        if (transformationResult.failed()) {
             throw new EdcException("Failed to create IDS contract request");
         }
 
-        return createIdsRequestFromOffer(Objects.requireNonNull(transformationResult.getOutput(),
+        return createIdsRequestFromOffer(Objects.requireNonNull(transformationResult.getContent(),
                 "Transformer output is null"));
     }
 
     private de.fraunhofer.iais.eis.ContractOffer createContractOffer(ContractOffer offer) {
         var transformationResult = getTransformerRegistry().transform(offer, de.fraunhofer.iais.eis.ContractOffer.class);
-        if (transformationResult.hasProblems()) {
+        if (transformationResult.failed()) {
             throw new EdcException("Failed to create IDS contract offer");
         }
 
-        return transformationResult.getOutput();
+        return transformationResult.getContent();
     }
 
     private de.fraunhofer.iais.eis.ContractRequest createIdsRequestFromOffer(de.fraunhofer.iais.eis.ContractOffer offer) {

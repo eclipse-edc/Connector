@@ -164,7 +164,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         var tokenResult = identityService.obtainClientCredentials(recipientConnectorId);
         var token = new DynamicAttributeTokenBuilder()
                 ._tokenFormat_(TokenFormat.JWT)
-                ._tokenValue_(tokenResult.getToken())
+                ._tokenValue_(tokenResult.getContent().getToken())
                 .build();
 
         // Initialize future

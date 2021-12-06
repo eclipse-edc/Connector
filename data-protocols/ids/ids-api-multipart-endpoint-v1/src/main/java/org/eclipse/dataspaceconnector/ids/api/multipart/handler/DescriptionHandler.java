@@ -100,11 +100,11 @@ public class DescriptionHandler implements Handler {
         IdsId idsId = null;
         if (requestedElement != null) {
             var result = transformerRegistry.transform(requestedElement, IdsId.class);
-            if (result.hasProblems() || (idsId = result.getOutput()) == null) {
+            if (result.failed() || (idsId = result.getContent()) == null) {
                 monitor.warning(
                         String.format(
                                 "Could not transform URI to IdsId: [%s]",
-                                String.join(", ", result.getProblems())
+                                String.join(", ", result.getFailures())
                         )
                 );
                 return createBadParametersErrorMultipartResponse(descriptionRequestMessage);

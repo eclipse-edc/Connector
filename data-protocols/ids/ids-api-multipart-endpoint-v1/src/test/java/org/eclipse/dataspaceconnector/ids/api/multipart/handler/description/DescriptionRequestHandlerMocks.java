@@ -18,8 +18,8 @@ import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
@@ -40,16 +40,11 @@ final class DescriptionRequestHandlerMocks {
     public static TransformerRegistry mockTransformerRegistry(IdsType type) throws URISyntaxException {
         TransformerRegistry transformerRegistry = EasyMock.createMock(TransformerRegistry.class);
         var uri = new URI("https://example.com");
-        var uriResult = (TransformResult) EasyMock.createMock(TransformResult.class);
-        EasyMock.expect(uriResult.getOutput()).andReturn(uri);
-        EasyMock.expect(uriResult.hasProblems()).andReturn(false);
-        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(uriResult);
+        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class)))
+                .andReturn(Result.success(uri));
         var idsId = IdsId.Builder.newInstance().type(type).value("value").build();
-        var idsIdResult = (TransformResult) EasyMock.createMock(TransformResult.class);
-        EasyMock.expect(idsIdResult.getOutput()).andReturn(idsId);
-        EasyMock.expect(idsIdResult.hasProblems()).andReturn(false);
-        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(URI.class), EasyMock.eq(IdsId.class))).andReturn(idsIdResult);
-        EasyMock.replay(uriResult, idsIdResult);
+        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(URI.class), EasyMock.eq(IdsId.class)))
+                .andReturn(Result.success(idsId));
         return transformerRegistry;
     }
 

@@ -23,10 +23,10 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -124,12 +124,12 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
             }
         }
 
-        TransformResult<Catalog> transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
+        Result<Catalog> transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
 
-        if (transformResult.hasProblems()) {
-            throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getProblems())));
+        if (transformResult.failed()) {
+            throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getFailures())));
         }
 
-        return transformResult.getOutput();
+        return transformResult.getContent();
     }
 }
