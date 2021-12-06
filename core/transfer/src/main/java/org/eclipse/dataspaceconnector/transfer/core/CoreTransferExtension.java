@@ -39,10 +39,10 @@ import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGe
 import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.AsyncTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.DefaultProxyEntryHandlerRegistry;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.DelegatingTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.SyncTransferProcessManager;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerDelegate;
 
 import java.util.Set;
 
@@ -54,7 +54,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
     private ServiceExtensionContext context;
     private ProvisionManagerImpl provisionManager;
-    private TransferProcessManagerDelegate processManager;
+    private DelegatingTransferProcessManager processManager;
     private TransferProcessStore transferProcessStore;
 
     @Override
@@ -126,7 +126,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var syncMgr = new SyncTransferProcessManager(dataProxyRegistry, transferProcessStore, dispatcherRegistry, proxyEntryHandlerRegistry, typeManager);
 
-        processManager = new TransferProcessManagerDelegate(asyncMgr, syncMgr);
+        processManager = new DelegatingTransferProcessManager(asyncMgr, syncMgr);
 
         context.registerService(TransferProcessManager.class, processManager);
         context.registerService(TransferProcessObservable.class, asyncMgr);

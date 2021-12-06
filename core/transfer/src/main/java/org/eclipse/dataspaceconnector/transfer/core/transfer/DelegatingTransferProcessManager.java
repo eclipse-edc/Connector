@@ -5,11 +5,11 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
-public class TransferProcessManagerDelegate implements TransferProcessManager {
+public class DelegatingTransferProcessManager implements TransferProcessManager {
     private final AsyncTransferProcessManager asyncManager;
     private final SyncTransferProcessManager syncManager;
 
-    public TransferProcessManagerDelegate(AsyncTransferProcessManager asyncManager, SyncTransferProcessManager syncManager) {
+    public DelegatingTransferProcessManager(AsyncTransferProcessManager asyncManager, SyncTransferProcessManager syncManager) {
         this.asyncManager = asyncManager;
         this.syncManager = syncManager;
     }
