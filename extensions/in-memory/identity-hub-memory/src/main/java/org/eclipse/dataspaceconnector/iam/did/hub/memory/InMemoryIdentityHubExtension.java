@@ -31,7 +31,5 @@ public class InMemoryIdentityHubExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var store = new InMemoryIdentityHubStore();
         context.registerService(IdentityHubStore.class, store);
-
-        context.getMonitor().info("Initialized In-Memory Identity Hub extension");
     }
 }

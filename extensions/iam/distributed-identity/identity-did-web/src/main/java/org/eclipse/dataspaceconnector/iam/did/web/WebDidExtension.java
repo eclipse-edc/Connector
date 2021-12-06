@@ -47,8 +47,6 @@ public class WebDidExtension implements ServiceExtension {
 
         var resolverRegistry = context.getService(DidResolverRegistry.class);
         resolverRegistry.register(resolver);
-
-        monitor.info("Initialized Web DID extension");
     }
 
     private OkHttpClient getOkHttpClient(ServiceExtensionContext context) {

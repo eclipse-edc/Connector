@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractN
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -28,10 +27,6 @@ import java.util.Set;
 
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
 
-    private static final String NAME = "CosmosDB ContractDefinition Store";
-
-    private Monitor monitor;
-
     @Override
     public Set<String> provides() {
         return Set.of(ContractNegotiationStore.FEATURE);
@@ -39,9 +34,6 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-        monitor.info(String.format("Initializing %s extension...", NAME));
-
         var configuration = new CosmosContractNegotiationStoreConfig(context);
         Vault vault = context.getService(Vault.class);
 
@@ -50,17 +42,7 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
         context.registerService(ContractNegotiationStore.class, store);
 
         context.getTypeManager().registerTypes(ContractNegotiationDocument.class);
-        monitor.info(String.format("Initialized %s extension", NAME));
     }
 
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s extension", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdowns %s extension", NAME));
-    }
 }
 

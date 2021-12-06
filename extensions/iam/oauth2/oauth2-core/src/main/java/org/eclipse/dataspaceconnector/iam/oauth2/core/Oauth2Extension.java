@@ -107,8 +107,6 @@ public class Oauth2Extension implements ServiceExtension {
         IdentityService oauth2Service = new Oauth2ServiceImpl(configuration, pkSuppplier, client, jwtDecoratorRegistry, context.getTypeManager());
 
         context.registerService(IdentityService.class, oauth2Service);
-
-        context.getMonitor().info("Initialized OAuth2 extension");
     }
 
     private static Supplier<JWSSigner> createRsaPrivateKeySupplier(Oauth2Configuration configuration) {

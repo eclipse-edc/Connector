@@ -18,8 +18,6 @@ import java.util.function.Predicate;
 
 public class ControlApiServiceExtension implements ServiceExtension {
 
-    private static final String NAME = "EDC Control API extension";
-
     @EdcSetting
     public static final String EDC_API_CONTROL_AUTH_APIKEY_KEY = "edc.api.control.auth.apikey.key";
     public static final String EDC_API_CONTROL_AUTH_APIKEY_KEY_DEFAULT = "X-Api-Key";
@@ -57,18 +55,6 @@ public class ControlApiServiceExtension implements ServiceExtension {
                 AuthenticationContainerRequestContextPredicate.INSTANCE);
 
         webService.registerController(httpApiKeyAuthContainerRequestFilter);
-
-        monitor.info(String.format("Initialized %s", NAME));
-    }
-
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdown %s", NAME));
     }
 
     private String resolveApiKeyHeaderName(@NotNull ServiceExtensionContext context) {

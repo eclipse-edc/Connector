@@ -34,6 +34,5 @@ public class IamMockExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var region = context.getSetting("edc.mock.region", "eu");
         context.registerService(IdentityService.class, new MockIdentityService(region));
-        context.getMonitor().info("Initialized Mock IAM extension with region: " + region);
     }
 }

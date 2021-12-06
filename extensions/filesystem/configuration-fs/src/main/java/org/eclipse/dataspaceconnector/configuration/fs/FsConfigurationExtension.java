@@ -73,8 +73,6 @@ public class FsConfigurationExtension implements ConfigurationExtension {
         } catch (IOException e) {
             throw new EdcException(e);
         }
-
-        monitor.info("Initialized FS Configuration extension");
     }
 
     @Override

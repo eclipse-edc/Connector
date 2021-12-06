@@ -47,7 +47,5 @@ public class DummyCredentialsVerifierExtension implements ServiceExtension {
 
         var credentialsVerifier = new DummyCredentialsVerifier(context.getMonitor());
         context.registerService(CredentialsVerifier.class, credentialsVerifier);
-
-        context.getMonitor().info("Initialized ION Credentials verifier extension");
     }
 }

@@ -15,6 +15,5 @@ public class InMemoryNodeDirectoryExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(FederatedCacheNodeDirectory.class, new InMemoryNodeDirectory());
-        context.getMonitor().info("Initialized In-Memory Node Directory");
     }
 }

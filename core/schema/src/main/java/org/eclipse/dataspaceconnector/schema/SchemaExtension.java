@@ -35,14 +35,10 @@ public class SchemaExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-
         var sr = new SchemaRegistryImpl();
         sr.register(new PolicySchema());
 
         context.registerService(SchemaRegistry.class, sr);
-        monitor.info("Initialized Schema Registry");
-
     }
 }
 

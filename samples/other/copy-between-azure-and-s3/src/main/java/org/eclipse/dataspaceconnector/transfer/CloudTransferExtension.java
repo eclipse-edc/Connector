@@ -35,7 +35,6 @@ public class CloudTransferExtension implements ServiceExtension {
 
         registerDataEntries(context);
         savePolicies(context);
-        context.getMonitor().info("Initialized transfer extension");
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {

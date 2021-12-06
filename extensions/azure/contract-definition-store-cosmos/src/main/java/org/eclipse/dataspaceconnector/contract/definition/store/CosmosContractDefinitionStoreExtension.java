@@ -29,10 +29,6 @@ import java.util.Set;
 
 public class CosmosContractDefinitionStoreExtension implements ServiceExtension {
 
-    private static final String NAME = "CosmosDB ContractDefinition Store";
-
-    private Monitor monitor;
-
     @Override
     public Set<String> provides() {
         return Set.of(ContractDefinitionStore.FEATURE, ContractDefinitionLoader.FEATURE);
@@ -40,9 +36,6 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-        monitor.info(String.format("Initializing %s extension...", NAME));
-
         var configuration = new CosmosContractDefinitionStoreConfig(context);
         Vault vault = context.getService(Vault.class);
 
@@ -54,17 +47,7 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
         context.registerService(ContractDefinitionLoader.class, loader);
 
         context.getTypeManager().registerTypes(ContractDefinitionDocument.class);
-        monitor.info(String.format("Initialized %s extension", NAME));
     }
 
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s extension", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdowns %s extension", NAME));
-    }
 }
 

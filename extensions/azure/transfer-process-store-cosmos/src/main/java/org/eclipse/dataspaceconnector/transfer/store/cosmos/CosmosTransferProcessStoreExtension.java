@@ -23,7 +23,6 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -52,8 +51,6 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     private static final String DEFAULT_PARTITION_KEY = "dataspaceconnector";
     private static final String CONTAINER_NAME = "transferprocess";
 
-    private Monitor monitor;
-
     @Override
     public Set<String> provides() {
         return Set.of("dataspaceconnector:transferprocessstore");
@@ -66,9 +63,7 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
-        monitor = context.getMonitor();
-        monitor.info("Initializing Cosmos Transfer Process Store extension...");
+        var monitor = context.getMonitor();
 
         // configure cosmos db
         var cosmosAccountName = context.getSetting(CosmosTransferProcessStoreExtension.COSMOS_ACCOUNTNAME_SETTING, null);
@@ -116,18 +111,6 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(container, context.getTypeManager(), partitionKey, connectorId, retryPolicy));
 
         context.getTypeManager().registerTypes(TransferProcessDocument.class);
-        monitor.info("Initialized CosmosDB Transfer Process Store extension");
-
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started Initialized Cosmos Transfer Process Store extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown Initialized Cosmos Transfer Process Store extension");
     }
 
     private CosmosDatabase getDatabase(CosmosClient client, String databaseName) {

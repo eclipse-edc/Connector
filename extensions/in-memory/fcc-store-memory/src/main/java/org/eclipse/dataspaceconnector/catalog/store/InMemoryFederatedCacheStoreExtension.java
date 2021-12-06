@@ -21,6 +21,5 @@ public class InMemoryFederatedCacheStoreExtension implements ServiceExtension {
         //todo: converts every criterion into a predicate that is always true. must be changed later!
         CriterionConverter<Predicate<CachedAsset>> predicateCriterionConverter = criterion -> asset -> true;
         context.registerService(FederatedCacheStore.class, new InMemoryFederatedCacheStore(predicateCriterionConverter));
-        context.getMonitor().info("Initialized In-Memory Federated Cache Store");
     }
 }

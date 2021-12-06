@@ -44,8 +44,6 @@ public class IonClientExtension implements ServiceExtension {
 
         var resolverRegistry = context.getService(DidResolverRegistry.class);
         resolverRegistry.register(client);
-
-        context.getMonitor().info("Initialized IonClientExtension");
     }
 
     private String getIonEndpoint(ServiceExtensionContext context) {

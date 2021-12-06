@@ -27,10 +27,8 @@ public class CloudTransferExtension implements ServiceExtension {
         var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager(), dataAddressResolver);
         dataFlowMgr.register(flowController);
 
-
         registerDataEntries(context);
         savePolicies(context);
-        context.getMonitor().info("Initialized cloud-based transfer extension");
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {

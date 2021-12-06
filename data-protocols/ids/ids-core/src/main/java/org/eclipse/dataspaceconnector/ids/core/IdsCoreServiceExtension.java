@@ -116,18 +116,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         serviceExtensionContext.registerService(ConnectorService.class, connectorService);
 
         registerOther(serviceExtensionContext);
-
-        monitor.info("Initialized IDS Core extension");
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started IDS Core extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown IDS Core extension");
     }
 
     private void registerOther(ServiceExtensionContext context) {

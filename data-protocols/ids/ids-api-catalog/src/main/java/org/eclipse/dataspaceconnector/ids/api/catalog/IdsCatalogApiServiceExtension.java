@@ -46,18 +46,6 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
         registerTypes(context);
 
         registerControllers(context);
-
-        monitor.info("Initialized IDS Catalog API extension");
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started IDS Catalog API extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown IDS Catalog API extension");
     }
 
     private void registerTypes(ServiceExtensionContext context) {

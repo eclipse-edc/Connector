@@ -44,7 +44,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import java.util.Set;
 
 public class ContractServiceExtension implements ServiceExtension {
-    private static final String NAME = "Core Contract Service Extension";
 
     private Monitor monitor;
     private ServiceExtensionContext context;
@@ -71,8 +70,6 @@ public class ContractServiceExtension implements ServiceExtension {
 
         registerTypes(context);
         registerServices(context);
-
-        monitor.info(String.format("Initialized %s", NAME));
     }
 
     @Override
@@ -81,8 +78,6 @@ public class ContractServiceExtension implements ServiceExtension {
         var negotiationStore = context.getService(ContractNegotiationStore.class);
         consumerNegotiationManager.start(negotiationStore);
         providerNegotiationManager.start(negotiationStore);
-
-        monitor.info(String.format("Started %s", NAME));
     }
 
     @Override
@@ -94,8 +89,6 @@ public class ContractServiceExtension implements ServiceExtension {
         if (providerNegotiationManager != null) {
             providerNegotiationManager.stop();
         }
-
-        monitor.info(String.format("Shutdown %s", NAME));
     }
 
     private void registerServices(ServiceExtensionContext context) {

@@ -40,8 +40,17 @@ public class ExtensionLoader {
      * Convenience method for loading service extensions.
      */
     public static void bootServiceExtensions(List<ServiceExtension> serviceExtensions, ServiceExtensionContext context) {
-        serviceExtensions.forEach(extension -> extension.initialize(context));
-        serviceExtensions.forEach(ServiceExtension::start);
+        var monitor = context.getMonitor();
+
+        serviceExtensions.forEach(extension -> {
+            extension.initialize(context);
+            monitor.info("Initialized " + extension.name());
+        });
+
+        serviceExtensions.forEach(extension -> {
+            extension.start();
+            monitor.info("Started " + extension.name());
+        });
     }
 
     /**

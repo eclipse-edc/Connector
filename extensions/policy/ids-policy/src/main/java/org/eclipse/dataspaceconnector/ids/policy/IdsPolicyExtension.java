@@ -36,14 +36,10 @@ public class IdsPolicyExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-
         var policyEngine = context.getService(PolicyEngine.class);
 
         policyEngine.registerFunction(Permission.class, ABS_SPATIAL_POSITION, new AbsSpatialPositionConstraintFunction());
         policyEngine.registerFunction(Permission.class, PARTNER_LEVEL, new PartnerLevelConstraintFunction());
-
-        monitor.info("Initialized IDS Mock Policy extension");
     }
 
 }

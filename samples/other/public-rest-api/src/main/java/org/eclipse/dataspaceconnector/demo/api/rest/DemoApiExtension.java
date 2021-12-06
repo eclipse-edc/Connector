@@ -29,8 +29,6 @@ public class DemoApiExtension implements ServiceExtension {
 
         var controller = new DemoApiController(context.getConnectorId(), monitor, transferProcessManager, processStore, catalogService);
         webService.registerController(controller);
-
-        monitor.info("Initialized REST API Extension");
     }
 
 }

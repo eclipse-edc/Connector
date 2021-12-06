@@ -78,8 +78,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
         var hubClient = new IdentityHubClientImpl(supplier, httpClient, objectMapper);
         context.registerService(IdentityHubClient.class, hubClient);
-
-        context.getMonitor().info("Initialized Identity Did Core extension");
     }
 
     private void registerParsers(PrivateKeyResolver resolver) {

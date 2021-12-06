@@ -36,9 +36,6 @@ public class DistributedIdentityServiceExtension implements ServiceExtension {
         var credentialsVerifier = context.getService(CredentialsVerifier.class);
         var identityService = new DistributedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
         context.registerService(IdentityService.class, identityService);
-
-        context.getMonitor().info("Initialized Distributed Identity Service extension");
-
     }
 
     Supplier<SignedJWT> createSupplier(ServiceExtensionContext context) {

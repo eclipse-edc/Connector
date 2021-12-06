@@ -11,12 +11,10 @@ public class CatalogServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
         var dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class);
         var catalogService = new CatalogServiceImpl(dispatcherRegistry);
 
         context.registerService(CatalogService.class, catalogService);
-        context.getMonitor().info("Initialized Catalog extension");
     }
 
     @Override

@@ -34,28 +34,17 @@ public class PolicyDataSeederExtension implements ServiceExtension {
 
     public static final String USE_EU_POLICY = "use-eu";
     public static final String USE_US_OR_EU_POLICY = "use-us-eu";
-    private Monitor monitor;
     private ServiceExtensionContext context;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
         this.context = context;
-
-        monitor.info("Initialized Policy DataSeeder extension");
     }
 
     @Override
     public void start() {
         savePolicies();
-        monitor.info("Started Policy DataSeeder extension");
     }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown Policy DataSeeder extension");
-    }
-
 
     private void savePolicies() {
         PolicyRegistry policyRegistry = context.getService(PolicyRegistry.class);

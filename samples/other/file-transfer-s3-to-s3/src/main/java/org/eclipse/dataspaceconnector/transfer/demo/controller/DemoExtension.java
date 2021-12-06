@@ -59,7 +59,6 @@ public class DemoExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        monitor.info("Started AWS Demo extension");
         loadDataEntries();
         generateDemoPolicies();
     }
