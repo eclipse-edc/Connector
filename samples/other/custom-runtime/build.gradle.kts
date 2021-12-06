@@ -29,7 +29,6 @@ dependencies {
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:iam:iam-mock"))
-    implementation(project(":data-protocols:ids:ids-policy-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")

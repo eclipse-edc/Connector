@@ -45,7 +45,6 @@ dependencies {
     implementation(project(":extensions:api:control"))
 
     implementation(project(":data-protocols:ids"))
-    implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:05-file-transfer-cloud:api"))
 
