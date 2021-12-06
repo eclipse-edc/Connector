@@ -96,7 +96,7 @@ allprojects {
                     name = "GitHubPackages"
                     url = uri("https://maven.pkg.github.com/eclipse-dataspaceconnector/DataSpaceConnector")
                     credentials {
-                        username = System.getenv("GITHUB_ACTOR")
+                        username = System.getenv("GITnasynHUB_ACTOR")
                         password = System.getenv("GITHUB_TOKEN")
                     }
                 }
