@@ -34,7 +34,7 @@ public class DefaultDidPublicKeyResolver implements DidPublicKeyResolver {
     public Result<PublicKeyWrapper> resolvePublicKey(String didUrl) {
         var didResult = resolverRegistry.resolve(didUrl);
         if (didResult.failed()) {
-            return Result.failure("Invalid DID: " + didResult.getInvalidMessage());
+            return Result.failure("Invalid DID: " + didResult.getFailure());
         }
         var didDocument = didResult.getContent();
         if (didDocument.getVerificationMethod() == null || didDocument.getVerificationMethod().isEmpty()) {

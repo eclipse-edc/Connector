@@ -14,15 +14,15 @@
 
 package org.eclipse.dataspaceconnector.consumer.command.azure.vault;
 
-import org.eclipse.dataspaceconnector.consumer.command.CommandResult;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.security.VaultEntry;
 
 import static org.eclipse.dataspaceconnector.consumer.command.http.HttpOperations.executePost;
 
 public class AzureVaultSetSecretRequestExecutor implements org.eclipse.dataspaceconnector.consumer.command.CommandExecutor {
     @Override
-    public CommandResult execute(ExecutionContext context) {
+    public Result<String> execute(ExecutionContext context) {
 
         if (context.getParams().size() != 2) {
             throw new IllegalArgumentException("Needs exactly two parameters: the secret's KEY and VAULE");

@@ -15,14 +15,14 @@
 package org.eclipse.dataspaceconnector.consumer.command.azure.vault;
 
 import org.eclipse.dataspaceconnector.consumer.command.CommandExecutor;
-import org.eclipse.dataspaceconnector.consumer.command.CommandResult;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
+import org.eclipse.dataspaceconnector.spi.Result;
 
 import static org.eclipse.dataspaceconnector.consumer.command.http.HttpOperations.executeGet;
 
 public class AzureVaultGetSecretRequestExecutor implements CommandExecutor {
     @Override
-    public CommandResult execute(ExecutionContext context) {
+    public Result<String> execute(ExecutionContext context) {
         var key = context.getParams().stream().findFirst();
 
         if (key.isPresent()) {

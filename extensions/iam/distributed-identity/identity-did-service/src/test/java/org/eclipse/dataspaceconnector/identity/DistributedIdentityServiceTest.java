@@ -57,7 +57,6 @@ abstract class DistributedIdentityServiceTest {
     private PrivateKeyWrapper privateKey;
     private PublicKeyWrapper publicKey;
 
-
     @Test
     void verifyResolveHubUrl() throws IOException {
         var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");

@@ -15,10 +15,10 @@
 package org.eclipse.dataspaceconnector.consumer;
 
 import org.eclipse.dataspaceconnector.consumer.command.CommandExecutor;
-import org.eclipse.dataspaceconnector.consumer.command.CommandResult;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
 import org.eclipse.dataspaceconnector.consumer.command.assembly.RootAssemblyFactory;
 import org.eclipse.dataspaceconnector.consumer.runtime.EdcConnectorConsumerRuntime;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.ParsedLine;
@@ -89,9 +89,9 @@ public class Main {
             ExecutionContext context = contextBuilder.terminal(terminal).params(subCmds).build();
 
             try {
-                CommandResult result = executor.execute(context);
-                if (result.error()) {
-                    error(result.getMessage(), terminal);
+                Result<String> result = executor.execute(context);
+                if (result.failed()) {
+                    error(result.getFailure(), terminal);
                 }
             } catch (Exception e) {
                 error(e, terminal);

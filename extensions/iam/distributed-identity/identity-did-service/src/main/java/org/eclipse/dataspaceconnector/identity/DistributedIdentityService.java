@@ -68,13 +68,13 @@ public class DistributedIdentityService implements IdentityService {
 
             monitor.debug("Resolving other party's DID Document");
             var didResult = resolverRegistry.resolve(jwt.getJWTClaimsSet().getIssuer());
-            if (didResult.invalid()) {
-                return new VerificationResult("Unable to resolve DID: " + didResult.getInvalidMessage());
+            if (didResult.failed()) {
+                return new VerificationResult("Unable to resolve DID: " + didResult.getFailure());
             }
             monitor.debug("Extracting public key");
 
             // this will return the _first_ public key entry
-            Optional<VerificationMethod> publicKey = getPublicKey(didResult.getDidDocument());
+            Optional<VerificationMethod> publicKey = getPublicKey(didResult.getContent());
             if (publicKey.isEmpty()) {
                 return new VerificationResult("Public Key not found in DID Document!");
             }
@@ -88,7 +88,7 @@ public class DistributedIdentityService implements IdentityService {
                 return new VerificationResult("Token could not be verified!");
             }
             monitor.debug("verification successful! Fetching data from IdentityHub");
-            String hubUrl = getHubUrl(didResult.getDidDocument());
+            String hubUrl = getHubUrl(didResult.getContent());
             var credentialsResult = credentialsVerifier.verifyCredentials(hubUrl, publicKeyWrapper);
 
             monitor.debug("Building ClaimToken");

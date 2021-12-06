@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.consumer.command;
 
+import org.eclipse.dataspaceconnector.spi.Result;
+
 /**
  * Executes a consumer command.
  */
@@ -25,6 +27,6 @@ public interface CommandExecutor {
      *
      * @param context the execution context
      */
-    CommandResult execute(ExecutionContext context);
+    Result<String> execute(ExecutionContext context);
 
 }

@@ -36,7 +36,7 @@ public class Result<T> {
         return !errors.isEmpty();
     }
 
-    public String getInvalidMessage() {
+    public String getFailure() {
         return errors.stream().findFirst().orElseThrow(() -> new EdcException("This result is successful"));
     }
 }

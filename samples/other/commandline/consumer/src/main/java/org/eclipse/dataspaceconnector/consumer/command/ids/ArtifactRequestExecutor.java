@@ -20,8 +20,8 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.TokenFormat;
 import org.eclipse.dataspaceconnector.consumer.command.CommandExecutor;
-import org.eclipse.dataspaceconnector.consumer.command.CommandResult;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
 
@@ -39,11 +39,11 @@ import static org.eclipse.dataspaceconnector.consumer.command.ids.IdsConstants.V
 public class ArtifactRequestExecutor implements CommandExecutor {
 
     @Override
-    public CommandResult execute(ExecutionContext context) {
+    public Result<String> execute(ExecutionContext context) {
 
         List<String> params = context.getParams();
         if (params.size() < 2) {
-            return new CommandResult(true, "Please specify an artifact id and connector id: ids request <artifact id> <connector id>.");
+            return Result.failure("Please specify an artifact id and connector id: ids request <artifact id> <connector id>.");
         }
         URI artifactId = URI.create(params.get(0));
         String connectorId = params.get(1);    // connector id is used as the scope of the token request
@@ -57,7 +57,7 @@ public class ArtifactRequestExecutor implements CommandExecutor {
         TokenResult tokenResult = identityService.obtainClientCredentials(connectorId);
 
         if (!tokenResult.success()) {
-            return new CommandResult(true, tokenResult.error());
+            return Result.failure(tokenResult.error());
         }
 
         DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getToken()).build();

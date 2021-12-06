@@ -17,8 +17,8 @@ package org.eclipse.dataspaceconnector.consumer.command.ids;
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.DescriptionRequestMessageBuilder;
 import org.eclipse.dataspaceconnector.consumer.command.CommandExecutor;
-import org.eclipse.dataspaceconnector.consumer.command.CommandResult;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
+import org.eclipse.dataspaceconnector.spi.Result;
 
 import static org.eclipse.dataspaceconnector.consumer.command.http.HttpOperations.executePost;
 
@@ -28,7 +28,7 @@ import static org.eclipse.dataspaceconnector.consumer.command.http.HttpOperation
 public class DescriptionRequestExecutor implements CommandExecutor {
 
     @Override
-    public CommandResult execute(ExecutionContext context) {
+    public Result<String> execute(ExecutionContext context) {
         // TODO allow file input
         DescriptionRequestMessage message = new DescriptionRequestMessageBuilder().build();
         return executePost("/api/ids/description", message, context);
