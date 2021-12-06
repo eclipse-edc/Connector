@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.AbstractQue
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamObserver;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.Subscription;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.SubscriptionResult;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -59,15 +58,15 @@ public class DemoTopicManager extends AbstractQueuedProvisioner implements Topic
     }
 
     @Override
-    public SubscriptionResult subscribe(String topicName, String accessToken, Consumer<byte[]> consumer) {
+    public Result<Subscription> subscribe(String topicName, String accessToken, Consumer<byte[]> consumer) {
         Objects.requireNonNull(topicName);
         var subscriptionId = UUID.randomUUID().toString();
         var container = getContainer(topicName);
         if (!container.destination.getAccessToken().equals(accessToken)) {
-            return new SubscriptionResult("Invalid key");
+            return Result.failure("Invalid key");
         }
         container.containers.put(subscriptionId, consumer);
-        return new SubscriptionResult(new Subscription(topicName, subscriptionId));
+        return Result.success(new Subscription(topicName, subscriptionId));
     }
 
     @Override

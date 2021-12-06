@@ -72,10 +72,10 @@ public class PubSubServerEndpoint {
                         monitor.severe("Error connecting to websocket client", e);
                     }
                 });
-                if (!result.success()) {
+                if (result.failed()) {
                     session.close(NOT_AUTHORIZED_REASON);
                 } else {
-                    subscription = result.getSubscription();
+                    subscription = result.getContent();
                 }
                 break;
             case UNSUBSCRIBE:

@@ -38,7 +38,7 @@ public interface TopicManager {
     /**
      * Subscribes to  topic.
      */
-    SubscriptionResult subscribe(String topicName, String accessToken, Consumer<byte[]> consumer);
+    Result<Subscription> subscribe(String topicName, String accessToken, Consumer<byte[]> consumer);
 
     /**
      * Un-subscribes from a topic.
