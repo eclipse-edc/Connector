@@ -13,12 +13,12 @@
  */
 package org.eclipse.dataspaceconnector.contract.validation;
 
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -50,18 +50,17 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     }
 
     @NotNull
-    public OfferValidationResult validate(ClaimToken token, ContractOffer offer) {
+    public Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {
         var agent = agentService.createFor(token);
         var contractIdTokens = parseContractId(offer.getId());
         if (contractIdTokens.length != 2) {
-            // not a valid id
-            return OfferValidationResult.INVALID;
+            return Result.failure("Not a valid id: " + offer.getId());
         }
 
         // validate the offer against the original definition, which includes policy verification
         var contractDefinition = definitionServiceSupplier.get().definitionFor(agent, contractIdTokens[DEFINITION_PART]);
         if (contractDefinition == null) {
-            return OfferValidationResult.INVALID;
+            return Result.failure("");
         }
 
         // take asset from definition and index
@@ -69,7 +68,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var targetAssets = assetIndex.queryAssets(criteria);
         var targetAsset = targetAssets.findFirst().orElse(null);
         if (targetAsset == null) {
-            return OfferValidationResult.INVALID;
+            return Result.failure("");
         }
 
         // TODO Hand over to external PDP
@@ -81,23 +80,22 @@ public class ContractValidationServiceImpl implements ContractValidationService 
                 .asset(targetAsset)
                 .policy(sanitizedUsagePolicy)
                 .build();
-        return new OfferValidationResult(validatedOffer);
+        return Result.success(validatedOffer);
     }
 
     @Override
-    public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
+    public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
         var agent = agentService.createFor(token);
         var contractIdTokens = parseContractId(offer.getId());
         if (contractIdTokens.length != 2) {
-            // not a valid id
-            return OfferValidationResult.INVALID;
+            return Result.failure("Not a valid id: " + offer.getId());
         }
 
         // TODO implement validation
         // TODO Hand over to external PDP
         // TODO create counter offer if wanted
 
-        return new OfferValidationResult(null);
+        return Result.success(null);
     }
 
     @Override

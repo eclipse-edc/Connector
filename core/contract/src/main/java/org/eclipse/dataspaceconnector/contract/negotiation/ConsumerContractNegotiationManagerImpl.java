@@ -15,12 +15,12 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -140,9 +140,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return new NegotiationResponse(FATAL_ERROR, negotiation);
         }
 
-        OfferValidationResult result = validationService.validate(token, contractOffer, latestOffer);
+        Result<ContractOffer> result = validationService.validate(token, contractOffer, latestOffer);
         negotiation.addContractOffer(contractOffer); // TODO persist unchecked offer of provider?
-        if (result.invalid()) {
+        if (result.failed()) {
             //if (result.isCounterOfferAvailable()) {
             //    negotiation.addContractOffer(result.getCounterOffer());
             //    monitor.debug("[Consumer] Contract offer received. A counter offer is available.");

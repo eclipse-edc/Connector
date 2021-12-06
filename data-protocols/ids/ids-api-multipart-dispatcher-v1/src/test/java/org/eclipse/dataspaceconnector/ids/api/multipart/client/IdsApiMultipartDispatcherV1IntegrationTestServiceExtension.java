@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
@@ -29,7 +30,6 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
@@ -260,13 +260,13 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
     private static class FakeContractValidationService implements ContractValidationService {
 
         @Override
-        public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer) {
-            return new OfferValidationResult(ContractOffer.Builder.newInstance().build());
+        public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {
+            return Result.success(ContractOffer.Builder.newInstance().build());
         }
 
         @Override
-        public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
-            return null;
+        public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
+            return Result.success(offer);
         }
 
         @Override

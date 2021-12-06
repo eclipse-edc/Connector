@@ -14,7 +14,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -36,9 +36,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Create a contract offer
         ContractOffer offer = getContractOffer();
 
-        // Mock validation service methods
-        var validationResult = new OfferValidationResult(offer);
-        EasyMock.expect(validationService.validate(token, offer)).andReturn(validationResult);
+        EasyMock.expect(validationService.validate(token, offer)).andReturn(Result.success(offer));
         EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.anyObject(ContractAgreement.class),
                 EasyMock.anyObject(ContractOffer.class))).andReturn(true);
         EasyMock.replay(validationService);
@@ -89,8 +87,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer offer = getContractOffer();
 
         // Mock validation service methods
-        var validationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, offer)).andReturn(validationResult);
+        EasyMock.expect(validationService.validate(token, offer)).andReturn(Result.success(offer));
         EasyMock.replay(validationService);
 
         // Create signaling stores for provider and consumer
@@ -140,9 +137,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Create a contract offer
         ContractOffer offer = getContractOffer();
 
-        // Mock validation service methods
-        var validationResult = new OfferValidationResult(offer);
-        EasyMock.expect(validationService.validate(token, offer)).andReturn(validationResult);
+        EasyMock.expect(validationService.validate(token, offer)).andReturn(Result.success(offer));
         EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.anyObject(ContractAgreement.class),
                 EasyMock.anyObject(ContractOffer.class))).andReturn(false);
         EasyMock.replay(validationService);
@@ -196,11 +191,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
 
-        // Mock validation service methods
-        var providerValidationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(providerValidationResult);
-        var consumerValidationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(consumerValidationResult);
+        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(Result.success(null));
+        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(Result.success(null));
         EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.anyObject(ContractAgreement.class),
                 EasyMock.eq(counterOffer))).andReturn(true);
         EasyMock.replay(validationService);
@@ -259,11 +251,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
 
-        // Mock validation service methods
-        var providerValidationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(providerValidationResult);
-        var consumerValidationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(consumerValidationResult);
+        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(Result.success(null));
+        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(Result.success(null));
         EasyMock.replay(validationService);
 
         // Create signaling stores for provider and consumer
@@ -322,16 +311,13 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer consumerCounterOffer = getConsumerCounterOffer();
 
         // Mock validation of initial offer on provider side => counter offer
-        var providerValidationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(providerValidationResult);
+        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(Result.success(null));
 
         //Mock validation of counter offer on consumer side => counter offer
-        var consumerValidationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(consumerValidationResult);
+        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(Result.success(null));
 
         //Mock validation of second counter offer on provider side => accept
-        var providerValidationResult2 = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, consumerCounterOffer, counterOffer)).andReturn(providerValidationResult2);
+        EasyMock.expect(validationService.validate(token, consumerCounterOffer, counterOffer)).andReturn(Result.success(null));
 
         // Mock validation of agreement on consumer side
         EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.anyObject(ContractAgreement.class),
@@ -397,17 +383,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer counterOffer = getCounterOffer();
         ContractOffer consumerCounterOffer = getConsumerCounterOffer();
 
-        // Mock validation of initial offer on provider side => counter offer
-        var providerValidationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(providerValidationResult);
-
-        //Mock validation of counter offer on consumer side => counter offer
-        var consumerValidationResult = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(consumerValidationResult);
-
-        //Mock validation of second counter offer on provider side => decline
-        var providerValidationResult2 = new OfferValidationResult(null);
-        EasyMock.expect(validationService.validate(token, consumerCounterOffer, counterOffer)).andReturn(providerValidationResult2);
+        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(Result.success(null));
+        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(Result.success(null));
+        EasyMock.expect(validationService.validate(token, consumerCounterOffer, counterOffer)).andReturn(Result.success(null));
 
         EasyMock.replay(validationService);
 
