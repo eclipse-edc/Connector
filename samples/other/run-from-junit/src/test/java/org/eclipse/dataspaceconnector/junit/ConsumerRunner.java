@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.junit;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -223,7 +224,7 @@ public class ConsumerRunner {
     @BeforeEach
     void before(EdcExtension extension) {
         IdentityService identityService = EasyMock.createMock(IdentityService.class);
-        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.isA(String.class))).andReturn(US_TOKEN).anyTimes();
+        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.isA(String.class))).andReturn(Result.success(US_TOKEN)).anyTimes();
         EasyMock.replay(identityService);
         latch = new CountDownLatch(1);
 

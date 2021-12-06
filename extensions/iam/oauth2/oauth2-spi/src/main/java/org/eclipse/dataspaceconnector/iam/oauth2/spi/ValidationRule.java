@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.iam.oauth2.spi;
 
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.dataspaceconnector.spi.Result;
 
 @FunctionalInterface
 public interface ValidationRule {
@@ -25,5 +26,5 @@ public interface ValidationRule {
      * @param audience Required audience to validate the rule.
      * @return ValidationRuleResult
      */
-    ValidationRuleResult checkRule(JWTClaimsSet toVerify, String audience);
+    Result<JWTClaimsSet> checkRule(JWTClaimsSet toVerify, String audience);
 }

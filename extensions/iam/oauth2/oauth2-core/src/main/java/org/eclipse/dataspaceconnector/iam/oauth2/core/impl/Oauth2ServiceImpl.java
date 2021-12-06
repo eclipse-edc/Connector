@@ -30,7 +30,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRuleResult;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -44,11 +43,13 @@ import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
@@ -149,14 +150,16 @@ public class Oauth2ServiceImpl implements IdentityService {
             var claimsSet = signedJwt.getJWTClaimsSet();
 
             // now we get the results of all the single rules, lets collate them into one
-            var res = validationRules.stream()
+            var errors = validationRules.stream()
                     .map(r -> r.checkRule(claimsSet, audience))
-                    .reduce(ValidationRuleResult::merge)
-                    .orElseThrow();
+                    .filter(Result::failed)
+                    .map(Result::getFailures)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
 
             // return instantly if there are errors present
-            if (!res.isSuccess()) {
-                return new VerificationResult(res.getErrorMessages());
+            if (!errors.isEmpty()) {
+                return new VerificationResult(errors);
             }
 
             // build claim tokens

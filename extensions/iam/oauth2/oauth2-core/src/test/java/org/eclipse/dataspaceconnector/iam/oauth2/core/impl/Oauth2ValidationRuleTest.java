@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.iam.oauth2.core.impl;
 
 import com.nimbusds.jwt.JWTClaimsSet;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRuleResult;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -25,10 +24,10 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        ValidationRuleResult result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims, TEST_AUDIENCE);
 
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getErrorMessages()).hasSize(1)
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).hasSize(1)
                 .contains("Token is not valid yet");
     }
 
@@ -39,10 +38,10 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        ValidationRuleResult result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims, TEST_AUDIENCE);
 
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getErrorMessages()).hasSize(1)
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).hasSize(1)
                 .contains("Missing notBefore time in token claims");
     }
 
@@ -54,10 +53,10 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.minusSeconds(10)))
                 .build();
 
-        ValidationRuleResult result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims, TEST_AUDIENCE);
 
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getErrorMessages()).hasSize(1)
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).hasSize(1)
                 .contains("Token has expired");
     }
 
@@ -68,10 +67,10 @@ class Oauth2ValidationRuleTest {
                 .notBeforeTime(Date.from(now))
                 .build();
 
-        ValidationRuleResult result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims, TEST_AUDIENCE);
 
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getErrorMessages()).hasSize(1)
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).hasSize(1)
                 .contains("Missing expiration time in token claims");
     }
 
@@ -83,10 +82,10 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        ValidationRuleResult result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims, TEST_AUDIENCE);
 
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getErrorMessages()).hasSize(1)
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).hasSize(1)
                 .contains("Token audience did not match required audience: test-audience");
     }
 
@@ -97,10 +96,10 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        ValidationRuleResult result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims, TEST_AUDIENCE);
 
-        assertThat(result.isSuccess()).isFalse();
-        assertThat(result.getErrorMessages()).hasSize(1)
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).hasSize(1)
                 .contains("Missing audience in token claims");
     }
 
@@ -112,9 +111,9 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        ValidationRuleResult result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims, TEST_AUDIENCE);
 
-        assertThat(result.isSuccess()).isTrue();
+        assertThat(result.succeeded()).isTrue();
     }
 
     @BeforeEach

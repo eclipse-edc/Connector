@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.junit;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.security.NullVaultExtension;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -43,8 +44,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-
-import static org.easymock.EasyMock.mock;
 
 @ExtendWith(EdcExtension.class)
 public class EndToEndTest {
@@ -127,8 +126,8 @@ public class EndToEndTest {
             public void initialize(ServiceExtensionContext context) {
                 context.registerService(IdentityService.class, new IdentityService() {
                     @Override
-                    public TokenRepresentation obtainClientCredentials(String scope) {
-                        return TokenRepresentation.Builder.newInstance().token("test").build();
+                    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
+                        return Result.success(TokenRepresentation.Builder.newInstance().token("test").build());
                     }
 
                     @Override
