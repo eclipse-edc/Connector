@@ -94,6 +94,6 @@ public class IdentityHubImpl implements IdentityHub {
             }
         }
 
-        return new GenericJweWriter().objectMapper(objectMapper).privateKey(privateKey.get()).publicKey(result.getWrapper()).payload(response).buildJwe();
+        return new GenericJweWriter().objectMapper(objectMapper).privateKey(privateKey.get()).publicKey(result.getContent()).payload(response).buildJwe();
     }
 }

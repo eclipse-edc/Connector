@@ -7,8 +7,10 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,8 +49,9 @@ class DefaultDidPublicKeyResolverTest {
         expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult(didDocument));
         replay(resolverRegistry);
 
-        var pk = resolver.resolvePublicKey(DID_URL);
-        assertThat(pk.getWrapper()).isNotNull();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.getContent()).isNotNull();
     }
 
     @Test
@@ -56,8 +59,9 @@ class DefaultDidPublicKeyResolverTest {
         expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult("Not found"));
         replay(resolverRegistry);
 
-        var pk = resolver.resolvePublicKey(DID_URL);
-        assertThat(pk.invalid()).isTrue();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.invalid()).isTrue();
     }
 
     @Test
@@ -66,7 +70,9 @@ class DefaultDidPublicKeyResolverTest {
         expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult(didDocument));
         replay(resolverRegistry);
 
-        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.invalid()).isTrue();
     }
 
     @Test
@@ -79,7 +85,9 @@ class DefaultDidPublicKeyResolverTest {
         expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult(didDocument));
         replay(resolverRegistry);
 
-        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.invalid()).isTrue();
     }
 
     @Test
@@ -93,7 +101,9 @@ class DefaultDidPublicKeyResolverTest {
         expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult(didDocument));
         replay(resolverRegistry);
 
-        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.invalid()).isTrue();
     }
 
     public String readFile(String filename) {
