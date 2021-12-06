@@ -93,7 +93,7 @@ public class DistributedIdentityService implements IdentityService {
 
             monitor.debug("Building ClaimToken");
             var tokenBuilder = ClaimToken.Builder.newInstance();
-            var claimToken = tokenBuilder.claims(credentialsResult.getValidatedCredentials()).build();
+            var claimToken = tokenBuilder.claims(credentialsResult.getContent()).build();
 
             return new VerificationResult(claimToken);
         } catch (ParseException e) {

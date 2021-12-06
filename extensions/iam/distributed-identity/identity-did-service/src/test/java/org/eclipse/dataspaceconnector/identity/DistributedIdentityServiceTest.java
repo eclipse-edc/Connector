@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.iam.did.crypto.credentials.VerifiableCrede
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory;
-import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
@@ -36,6 +35,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
@@ -111,7 +111,7 @@ abstract class DistributedIdentityServiceTest {
 
         DidResolverRegistry didResolver = new TestResolverRegistry(hubUrlDid, keyPair);
 
-        CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "eu"));
+        CredentialsVerifier verifier = (document, url) -> Result.success(Map.of("region", "eu"));
         identityService = new DistributedIdentityService(() -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer"), didResolver, verifier, new Monitor() {
         });
 
