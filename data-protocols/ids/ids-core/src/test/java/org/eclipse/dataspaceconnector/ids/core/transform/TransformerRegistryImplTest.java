@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.ids.core.transform;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -41,8 +42,9 @@ class TransformerRegistryImplTest {
         registry.register(fooBarTransformer);
         registry.register(fooBazTransformer);
 
-        assertNotNull(registry.transform(new Foo(), Bar.class).getOutput());
+        var result = registry.transform(new Foo(), Bar.class);
 
+        assertNotNull(result.getContent());
         EasyMock.verify(fooBarTransformer, fooBazTransformer);
     }
 
@@ -62,8 +64,8 @@ class TransformerRegistryImplTest {
 
 
         var result = registry.transform(new Foo(), Bar.class);
-        assertNull(result.getOutput());
-        assertTrue(result.hasProblems());
+        assertNull(result.getContent());
+        assertTrue(result.failed());
 
         EasyMock.verify(fooBarTransformer);
     }
