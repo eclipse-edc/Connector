@@ -17,20 +17,11 @@ package org.eclipse.dataspaceconnector.spi.iam;
 /**
  * The result of an obtain token operation.
  */
-public class TokenResult {
-    private boolean success = true;
+public class TokenRepresentation {
     private String token;
-    private String error;
     private long expiresIn;
 
-    private TokenResult() {
-    }
-
-    /**
-     * Returns true if the flow was successful.
-     */
-    public boolean success() {
-        return success;
+    private TokenRepresentation() {
     }
 
     /**
@@ -47,28 +38,15 @@ public class TokenResult {
         return expiresIn;
     }
 
-    /**
-     * Returns the error details if the flow was not successful; otherwise null.
-     */
-    public String error() {
-        return error;
-    }
-
     public static class Builder {
-        private final TokenResult result;
+        private final TokenRepresentation result;
 
         private Builder() {
-            result = new TokenResult();
+            result = new TokenRepresentation();
         }
 
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        public Builder error(String error) {
-            result.success = false;
-            result.error = error;
-            return this;
         }
 
         public Builder token(String token) {
@@ -81,7 +59,7 @@ public class TokenResult {
             return this;
         }
 
-        public TokenResult build() {
+        public TokenRepresentation build() {
             return result;
         }
     }

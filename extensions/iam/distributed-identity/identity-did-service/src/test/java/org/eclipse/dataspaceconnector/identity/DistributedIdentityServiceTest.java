@@ -47,6 +47,8 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 /**
  * Test the {@link DistributedIdentityService} with different key algorithms.
  * See {@link WithP256} and {@link WithSecp256k1} for concrete impls.
@@ -69,11 +71,11 @@ abstract class DistributedIdentityServiceTest {
     void verifyObtainClientCredentials() throws Exception {
         var result = identityService.obtainClientCredentials("Foo");
 
-        Assertions.assertTrue(result.success());
+        assertTrue(result.succeeded());
 
-        var jwt = SignedJWT.parse(result.getToken());
+        var jwt = SignedJWT.parse(result.getContent().getToken());
         var verifier = publicKey.verifier();
-        Assertions.assertTrue(jwt.verify(verifier));
+        assertTrue(jwt.verify(verifier));
     }
 
     @Test
@@ -94,7 +96,7 @@ abstract class DistributedIdentityServiceTest {
 
         var result = identityService.verifyJwtToken(token, "foo");
 
-        Assertions.assertTrue(result.valid());
+        assertTrue(result.valid());
         Assertions.assertEquals("eu", result.token().getClaims().get("region"));
     }
 

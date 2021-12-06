@@ -21,8 +21,6 @@ import org.eclipse.dataspaceconnector.security.fs.FsCertificateResolver;
 import org.eclipse.dataspaceconnector.security.fs.FsPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -32,7 +30,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
 import java.io.FileInputStream;
-import java.net.URL;
 import java.security.KeyStore;
 import java.util.Map;
 import java.util.Objects;
@@ -71,9 +68,9 @@ class DapsIntegrationTest {
     void retrieveTokenAndValidate(IdentityService identityService) {
         var tokenResult = identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL");
 
-        assertThat(tokenResult.success()).isTrue();
+        assertThat(tokenResult.succeeded()).isTrue();
 
-        var verificationResult = identityService.verifyJwtToken(tokenResult.getToken(), AUDIENCE_IDS_CONNECTORS_ALL);
+        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent().getToken(), AUDIENCE_IDS_CONNECTORS_ALL);
 
         assertThat(verificationResult.valid()).isTrue();
     }

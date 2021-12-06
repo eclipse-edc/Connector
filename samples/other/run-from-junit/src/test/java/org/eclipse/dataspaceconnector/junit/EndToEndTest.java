@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.security.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
@@ -35,7 +35,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -128,8 +127,8 @@ public class EndToEndTest {
             public void initialize(ServiceExtensionContext context) {
                 context.registerService(IdentityService.class, new IdentityService() {
                     @Override
-                    public TokenResult obtainClientCredentials(String scope) {
-                        return TokenResult.Builder.newInstance().token("test").build();
+                    public TokenRepresentation obtainClientCredentials(String scope) {
+                        return TokenRepresentation.Builder.newInstance().token("test").build();
                     }
 
                     @Override

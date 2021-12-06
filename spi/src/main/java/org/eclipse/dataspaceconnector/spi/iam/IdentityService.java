@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.iam;
 
+import org.eclipse.dataspaceconnector.spi.Result;
+
 /**
  * Obtains client security tokens from an identity provider.
  * Providers may implement different authorization protocols such as OAuth2.
@@ -25,7 +27,7 @@ public interface IdentityService {
     /**
      * Obtains a client token encoded as a JWT.
      */
-    TokenResult obtainClientCredentials(String scope);
+    Result<TokenRepresentation> obtainClientCredentials(String scope);
 
     /**
      * Verifies a JWT bearer token.

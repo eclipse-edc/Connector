@@ -24,9 +24,10 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
@@ -51,13 +52,13 @@ public class DistributedIdentityService implements IdentityService {
     }
 
     @Override
-    public TokenResult obtainClientCredentials(String scope) {
+    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
 
         var jwt = verifiableCredentialProvider.get();
         var token = jwt.serialize();
         var expiration = new Date().getTime() + TimeUnit.MINUTES.toMillis(10);
 
-        return TokenResult.Builder.newInstance().token(token).expiresIn(expiration).build();
+        return Result.success(TokenRepresentation.Builder.newInstance().token(token).expiresIn(expiration).build());
     }
 
     @Override

@@ -32,9 +32,10 @@ import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRuleResult;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Nullable;
@@ -95,7 +96,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     }
 
     @Override
-    public TokenResult obtainClientCredentials(String scope) {
+    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
         String assertion = buildJwt();
 
         RequestBody requestBody = new FormBody.Builder()
@@ -111,20 +112,21 @@ public class Oauth2ServiceImpl implements IdentityService {
             if (!response.isSuccessful()) {
                 try (var body = response.body()) {
                     String message = body == null ? "<empty body>" : body.string();
-                    return TokenResult.Builder.newInstance().error(message).build();
+                    return Result.failure(message);
                 }
             }
 
             ResponseBody responseBody = response.body();
             if (responseBody == null) {
-                return TokenResult.Builder.newInstance().error("<empty token body>").build();
+                return Result.failure("<empty token body>");
             }
 
             String responsePayload = responseBody.string();
             LinkedHashMap<String, Object> deserialized = typeManager.readValue(responsePayload, LinkedHashMap.class);
             String token = (String) deserialized.get("access_token");
             long expiresIn = ((Integer) deserialized.get("expires_in")).longValue();
-            return TokenResult.Builder.newInstance().token(token).expiresIn(expiresIn).build();
+            TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).expiresIn(expiresIn).build();
+            return Result.success(tokenRepresentation);
         } catch (IOException e) {
             throw new EdcException(e);
         }

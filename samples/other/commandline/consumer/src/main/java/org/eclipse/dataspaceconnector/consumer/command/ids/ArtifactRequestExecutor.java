@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.consumer.command.CommandExecutor;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
 import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
 
 import java.net.URI;
 import java.util.ArrayList;
@@ -54,13 +53,13 @@ public class ArtifactRequestExecutor implements CommandExecutor {
 
         IdentityService identityService = context.getService(IdentityService.class);
 
-        TokenResult tokenResult = identityService.obtainClientCredentials(connectorId);
+        var result = identityService.obtainClientCredentials(connectorId);
 
-        if (!tokenResult.success()) {
-            return Result.failure(tokenResult.error());
+        if (result.failed()) {
+            return Result.failure(result.getFailures());
         }
 
-        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getToken()).build();
+        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(result.getContent().getToken()).build();
         // TODO parameterize artifact urn
 
         ArtifactRequestMessage message = new ArtifactRequestMessageBuilder()

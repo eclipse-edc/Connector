@@ -14,9 +14,10 @@
 
 package org.eclipse.dataspaceconnector.iam.mock;
 
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 
 import java.time.Instant;
@@ -29,8 +30,12 @@ public class MockIdentityService implements IdentityService {
     }
 
     @Override
-    public TokenResult obtainClientCredentials(String scope) {
-        return TokenResult.Builder.newInstance().token("mock-" + region).expiresIn(Instant.now().plusSeconds(10_0000).toEpochMilli()).build();
+    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
+        TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                .token("mock-" + region)
+                .expiresIn(Instant.now().plusSeconds(10_0000).toEpochMilli())
+                .build();
+        return Result.success(tokenRepresentation);
     }
 
     @Override

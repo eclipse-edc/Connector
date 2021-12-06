@@ -18,7 +18,7 @@ import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
@@ -50,8 +50,8 @@ import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 @Disabled
 public class ConsumerRunner {
     private static final String PROVIDER_CONNECTOR = "http://localhost:8181/";
-    private static final TokenResult US_TOKEN = TokenResult.Builder.newInstance().token("mock-us").build();
-    private static final TokenResult EU_TOKEN = TokenResult.Builder.newInstance().token("mock-eu").build();
+    private static final TokenRepresentation US_TOKEN = TokenRepresentation.Builder.newInstance().token("mock-us").build();
+    private static final TokenRepresentation EU_TOKEN = TokenRepresentation.Builder.newInstance().token("mock-eu").build();
 
     private CountDownLatch latch;
 
