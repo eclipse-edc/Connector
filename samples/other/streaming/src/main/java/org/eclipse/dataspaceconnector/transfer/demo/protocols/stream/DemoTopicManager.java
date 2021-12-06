@@ -15,10 +15,10 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.AbstractQueuedProvisioner;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.ConnectionResult;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamObserver;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.Subscription;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.SubscriptionResult;
@@ -45,14 +45,14 @@ public class DemoTopicManager extends AbstractQueuedProvisioner implements Topic
     }
 
     @Override
-    public ConnectionResult connect(String topicName, String accessToken) {
+    public Result<Consumer<byte[]>> connect(String topicName, String accessToken) {
         var container = containerCache.get(topicName);
         if (container == null) {
-            return new ConnectionResult("Topic not found: " + topicName);
+            return Result.failure("Topic not found: " + topicName);
         } else if (!container.destination.getAccessToken().equals(accessToken)) {
-            return new ConnectionResult("Not authorized");
+            return Result.failure("Not authorized");
         }
-        return new ConnectionResult(data -> {
+        return Result.success(data -> {
             container.containers.values().forEach(c -> c.accept(data));
             observers.values().forEach(o -> o.onPublish(topicName, data));
         });

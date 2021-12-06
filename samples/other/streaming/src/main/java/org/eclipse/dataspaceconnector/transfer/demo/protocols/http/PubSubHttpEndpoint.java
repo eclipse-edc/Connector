@@ -66,8 +66,8 @@ public class PubSubHttpEndpoint {
     @Path("{destinationName}")
     public Response publish(@PathParam("destinationName") String topicName, @HeaderParam("X-Authorization") String token, byte[] data) {
         var result = topicManager.connect(topicName, token);
-        if (result.success()) {
-            var entry = new QueueEntry(result.getConsumer(), data);
+        if (result.succeeded()) {
+            var entry = new QueueEntry(result.getContent(), data);
             try {
                 queue.put(entry);
             } catch (InterruptedException e) {

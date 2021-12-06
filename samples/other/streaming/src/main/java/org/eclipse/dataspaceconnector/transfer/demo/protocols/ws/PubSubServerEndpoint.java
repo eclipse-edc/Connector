@@ -93,10 +93,10 @@ public class PubSubServerEndpoint {
             case PUBLISH:
                 var publish = (PublishMessage) message;
                 var connectResult = topicManager.connect(publish.getTopicName(), publish.getAccessToken());
-                if (!connectResult.success()) {
+                if (connectResult.failed()) {
                     session.close(NOT_AUTHORIZED_REASON);
                 } else {
-                    connectResult.getConsumer().accept(publish.getPayload());
+                    connectResult.getContent().accept(publish.getPayload());
                 }
                 break;
             default:

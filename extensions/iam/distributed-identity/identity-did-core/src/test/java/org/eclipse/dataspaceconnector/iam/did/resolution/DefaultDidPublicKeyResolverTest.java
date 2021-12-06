@@ -7,10 +7,8 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
-import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.dataspaceconnector.spi.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +59,7 @@ class DefaultDidPublicKeyResolverTest {
 
         var result = resolver.resolvePublicKey(DID_URL);
 
-        assertThat(result.invalid()).isTrue();
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -72,7 +70,7 @@ class DefaultDidPublicKeyResolverTest {
 
         var result = resolver.resolvePublicKey(DID_URL);
 
-        assertThat(result.invalid()).isTrue();
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -87,7 +85,7 @@ class DefaultDidPublicKeyResolverTest {
 
         var result = resolver.resolvePublicKey(DID_URL);
 
-        assertThat(result.invalid()).isTrue();
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -103,7 +101,7 @@ class DefaultDidPublicKeyResolverTest {
 
         var result = resolver.resolvePublicKey(DID_URL);
 
-        assertThat(result.invalid()).isTrue();
+        assertThat(result.failed()).isTrue();
     }
 
     public String readFile(String filename) {

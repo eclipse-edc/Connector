@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream;
 
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
 
 import java.util.concurrent.CompletableFuture;
@@ -32,7 +33,7 @@ public interface TopicManager {
     /**
      * Creates a connection to a topic. Connections are used to publish messages.
      */
-    ConnectionResult connect(String topicName, String accessToken);
+    Result<Consumer<byte[]>> connect(String topicName, String accessToken);
 
     /**
      * Subscribes to  topic.

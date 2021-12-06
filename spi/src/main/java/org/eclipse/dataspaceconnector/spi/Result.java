@@ -28,7 +28,11 @@ public class Result<T> {
         return content;
     }
 
-    public boolean invalid() {
+    public boolean succeeded() {
+        return errors.isEmpty();
+    }
+
+    public boolean failed() {
         return !errors.isEmpty();
     }
 
