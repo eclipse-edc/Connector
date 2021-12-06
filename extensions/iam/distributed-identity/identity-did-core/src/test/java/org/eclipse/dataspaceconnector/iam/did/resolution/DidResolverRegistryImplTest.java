@@ -14,12 +14,14 @@
 package org.eclipse.dataspaceconnector.iam.did.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Verifies {@link DidResolverRegistryImpl}.
@@ -31,20 +33,24 @@ class DidResolverRegistryImplTest {
     @Test
     void verifyResolveInvalidDid() {
         var result = registry.resolve("invalid");
-        Assertions.assertTrue(result.invalid());
+
+        assertTrue(result.failed());
     }
 
     @Test
     void verifyResolveUnknownDidMethod() {
         var result = registry.resolve("did:unknown:id");
-        Assertions.assertTrue(result.invalid());
+
+        assertTrue(result.failed());
     }
 
     @Test
     void verifyResolveDid() {
         registry.register(new MockResolver());
+
         var result = registry.resolve("did:foo:id");
-        Assertions.assertNotNull(result.getDidDocument());
+
+        assertNotNull(result.getContent());
     }
 
     @BeforeEach
@@ -64,8 +70,8 @@ class DidResolverRegistryImplTest {
 
         @Override
         @NotNull
-        public DidResolutionResult resolve(String didKey) {
-            return new DidResolutionResult(DidDocument.Builder.newInstance().build());
+        public Result<DidDocument> resolve(String didKey) {
+            return Result.success(DidDocument.Builder.newInstance().build());
         }
     }
 

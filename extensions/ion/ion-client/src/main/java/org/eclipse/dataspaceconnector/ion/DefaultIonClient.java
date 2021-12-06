@@ -11,12 +11,12 @@ import org.bouncycastle.crypto.generators.Argon2BytesGenerator;
 import org.bouncycastle.crypto.params.Argon2Parameters;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidResolveResponse;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
 import org.eclipse.dataspaceconnector.ion.spi.request.IonRequest;
 import org.eclipse.dataspaceconnector.ion.util.HexStringUtils;
 import org.eclipse.dataspaceconnector.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.ion.util.SortingNodeFactory;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;
@@ -94,7 +94,7 @@ public class DefaultIonClient implements IonClient {
 
     @Override
     @NotNull
-    public DidResolutionResult resolve(String didUri) {
+    public Result<DidDocument> resolve(String didUri) {
         var rq = new Request.Builder()
                 .get()
                 .url(resolutionEndpoint + IDENTIFIERS_PATH + "/" + didUri)
@@ -104,7 +104,7 @@ public class DefaultIonClient implements IonClient {
             if (response.isSuccessful()) {
                 var body = response.body().string();
                 DidResolveResponse didResolveResponse = typeManager.readValue(body, DidResolveResponse.class);
-                return new DidResolutionResult(didResolveResponse.getDidDocument());
+                return Result.success(didResolveResponse.getDidDocument());
             }
             throw new IonRequestException("Resolving the DID URI was unsuccessful: code = " + response.code() + " content= " + response.body().string());
         } catch (Exception ex) {

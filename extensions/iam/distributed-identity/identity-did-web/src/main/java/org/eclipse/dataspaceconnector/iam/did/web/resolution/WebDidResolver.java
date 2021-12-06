@@ -17,8 +17,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
@@ -53,28 +53,28 @@ public class WebDidResolver implements DidResolver {
 
     @Override
     @NotNull
-    public DidResolutionResult resolve(String didKey) {
+    public Result<DidDocument> resolve(String didKey) {
         try {
             var request = new Request.Builder().url(keyToUrl(didKey)).get().build();
 
             try (var response = httpClient.newCall(request).execute()) {
                 if (response.code() != 200) {
-                    return new DidResolutionResult(format("Error resolving DID: %s. HTTP Code was: %s", didKey, response.code()));
+                    return Result.failure(format("Error resolving DID: %s. HTTP Code was: %s", didKey, response.code()));
                 }
                 try (var body = response.body()) {
                     if (body == null) {
-                        return new DidResolutionResult("DID response contained an empty body: " + didKey);
+                        return Result.failure("DID response contained an empty body: " + didKey);
                     }
                     DidDocument didDocument = mapper.readValue(body.string(), DidDocument.class);
-                    return new DidResolutionResult(didDocument);
+                    return Result.success(didDocument);
                 }
             } catch (IOException e) {
                 monitor.severe("Error resolving DID: " + didKey, e);
-                return new DidResolutionResult("Error resolving DID: " + e.getMessage());
+                return Result.failure("Error resolving DID: " + e.getMessage());
             }
         } catch (IllegalArgumentException e) {
             monitor.severe("Invalid DID key: " + didKey, e);
-            return new DidResolutionResult("Invalid DID key: " + e.getMessage());
+            return Result.failure("Invalid DID key: " + e.getMessage());
         }
     }
 

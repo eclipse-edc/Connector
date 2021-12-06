@@ -49,8 +49,10 @@ class WebDidResolverTest {
             }
         };
         var resolver = createResolver(interceptor);
+
         var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
-        assertThat(result.getDidDocument()).isNotNull();
+
+        assertThat(result.getContent()).isNotNull();
     }
 
     @Test
@@ -64,8 +66,10 @@ class WebDidResolverTest {
             }
         };
         var resolver = createResolver(interceptor);
+
         var result = resolver.resolve("did:web:foo.com:edc:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA");
-        assertThat(result.invalid()).isTrue();
+
+        assertThat(result.failed()).isTrue();
     }
 
     private WebDidResolver createResolver(Interceptor... interceptors) {

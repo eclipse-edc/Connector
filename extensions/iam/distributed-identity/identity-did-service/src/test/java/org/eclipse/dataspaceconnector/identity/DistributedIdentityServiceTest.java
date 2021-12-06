@@ -32,7 +32,6 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKe
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.Result;
@@ -172,7 +171,7 @@ abstract class DistributedIdentityServiceTest {
         }
 
         @Override
-        public DidResolutionResult resolve(String didKey) {
+        public Result<DidDocument> resolve(String didKey) {
             try {
                 var did = new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
                 ECKey key = (ECKey) keyPair.toPublicJWK();
@@ -181,7 +180,7 @@ abstract class DistributedIdentityServiceTest {
                         .id("test-key")
                         .publicKeyJwk(new EllipticCurvePublicKey(key.getCurve().getName(), key.getKeyType().toString(), key.getX().toString(), key.getY().toString()))
                         .build());
-                return new DidResolutionResult(did);
+                return Result.success(did);
             } catch (JsonProcessingException e) {
                 throw new AssertionError(e);
             }

@@ -33,10 +33,10 @@ public class DefaultDidPublicKeyResolver implements DidPublicKeyResolver {
     @Override
     public Result<PublicKeyWrapper> resolvePublicKey(String didUrl) {
         var didResult = resolverRegistry.resolve(didUrl);
-        if (didResult.invalid()) {
+        if (didResult.failed()) {
             return Result.failure("Invalid DID: " + didResult.getInvalidMessage());
         }
-        var didDocument = didResult.getDidDocument();
+        var didDocument = didResult.getContent();
         if (didDocument.getVerificationMethod() == null || didDocument.getVerificationMethod().isEmpty()) {
             return Result.failure("DID does not contain a public key");
         }
