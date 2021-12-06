@@ -16,6 +16,7 @@ plugins {
     `java-library`
     `maven-publish`
     checkstyle
+    id("com.diffplug.spotless") version "6.0.2"
 }
 
 repositories {
@@ -57,12 +58,39 @@ allprojects {
     apply(plugin = "maven-publish")
     apply(plugin = "checkstyle")
     apply(plugin = "java")
+    apply(plugin = "com.diffplug.spotless")
 
     checkstyle {
         toolVersion = "9.0"
         configFile = rootProject.file("resources/edc-checkstyle-config.xml")
         maxErrors = 0 // does not tolerate errors ...
         maxWarnings = 0 // ... or warnings
+    }
+
+    spotless {
+        java {
+            targetExclude("**/build/**")
+
+            googleJavaFormat().aosp()
+
+            importOrder("", "java", "\\#java", "javax", "\\#javax", "\\#")
+
+            removeUnusedImports()
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+
+        format("misc") {
+            target("**/*.gradle", "**/*.gradle.kts", "**/*.gitignore", "**/*.properties")
+            targetExclude("**/build/**")
+            trimTrailingWhitespace()
+            endWithNewline()
+        }
+
+        format("docs") {
+            target("**/*.md")
+            trimTrailingWhitespace()
+        }
     }
 
     java {
