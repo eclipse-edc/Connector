@@ -17,8 +17,13 @@ package org.eclipse.dataspaceconnector.spi.result;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
+import javax.print.attribute.standard.RequestingUserName;
 
 public class Result<T> extends AbstractResult<T, GenericFailure> {
+
+    public static Result<Void> success() {
+        return new Result<>(null, null);
+    }
 
     public static <T> Result<T> success(@NotNull T content) {
         return new Result<>(content, null);

@@ -63,7 +63,6 @@ class TransformerRegistryImplTest {
 
 
         var result = registry.transform(new Foo(), Bar.class);
-        assertNull(result.getContent());
         assertTrue(result.failed());
 
         EasyMock.verify(fooBarTransformer);

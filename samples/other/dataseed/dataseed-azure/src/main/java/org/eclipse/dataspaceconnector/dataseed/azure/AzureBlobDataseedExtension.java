@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.provision.azure.AzureSasToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -63,12 +62,12 @@ public class AzureBlobDataseedExtension implements ServiceExtension {
         AzureSasToken token = new AzureSasToken(sasToken, expiry.toInstant().toEpochMilli());
 
         var vault = context.getService(Vault.class);
-        VaultResponse vaultResponse = vault.storeSecret(AzureBlobDataseedExtension.CONTAINER_NAME, context.getTypeManager().writeValueAsString(token));
+        var vaultResponse = vault.storeSecret(AzureBlobDataseedExtension.CONTAINER_NAME, context.getTypeManager().writeValueAsString(token));
 
-        if (vaultResponse.success()) {
+        if (vaultResponse.succeeded()) {
             monitor.info("Azure DataSeed: new temporary SAS token stored for " + AzureBlobDataseedExtension.CONTAINER_NAME);
         } else {
-            monitor.severe("Azure DataSeed: error when storing temporary SAS token: " + vaultResponse.error());
+            monitor.severe("Azure DataSeed: error when storing temporary SAS token: " + vaultResponse.getFailure());
         }
     }
 

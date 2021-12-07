@@ -14,10 +14,10 @@
 
 package org.eclipse.dataspaceconnector.security;
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,13 +41,13 @@ public class NullVaultExtension implements VaultExtension {
             }
 
             @Override
-            public VaultResponse storeSecret(String key, String value) {
-                return VaultResponse.OK;
+            public Result<Void> storeSecret(String key, String value) {
+                return Result.success();
             }
 
             @Override
-            public VaultResponse deleteSecret(String key) {
-                return VaultResponse.OK;
+            public Result<Void> deleteSecret(String key) {
+                return Result.success();
             }
         };
     }
