@@ -18,12 +18,12 @@ import de.fraunhofer.iais.eis.ContractRejectionMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -75,11 +75,11 @@ public class ContractRejectionHandler implements Handler {
         // abort negotiation process (one of them can handle this process by id)
         var token = verificationResult.getContent();
         var result = providerNegotiationManager.declined(token, String.valueOf(correlationId));
-        if (result.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
+        if (result.failure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             result = consumerNegotiationManager.declined(token, String.valueOf(correlationId));
         }
 
-        if (result.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
+        if (result.failure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             monitor.debug("ContractRejectionHandler: Could not process contract rejection");
             return createBadParametersErrorMultipartResponse(message);
         }

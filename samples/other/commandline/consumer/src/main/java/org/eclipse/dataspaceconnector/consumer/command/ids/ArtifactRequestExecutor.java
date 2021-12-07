@@ -21,8 +21,8 @@ import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
 import de.fraunhofer.iais.eis.TokenFormat;
 import org.eclipse.dataspaceconnector.consumer.command.CommandExecutor;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.net.URI;
 import java.util.ArrayList;

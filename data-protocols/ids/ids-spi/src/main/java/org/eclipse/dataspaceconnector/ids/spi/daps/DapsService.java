@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.ids.spi.daps;
 
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
 /**

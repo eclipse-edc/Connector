@@ -22,12 +22,12 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.jetbrains.annotations.NotNull;
@@ -122,7 +122,7 @@ public class ContractAgreementHandler implements Handler {
         var processId = message.getTransferContract();
         var negotiationResponse = negotiationManager.confirmed(verificationResult.getContent(),
                 String.valueOf(processId), agreement, null);
-        if (negotiationResponse.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
+        if (negotiationResponse.failure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             monitor.debug("ContractAgreementHandler: Could not process contract agreement");
             return createBadParametersErrorMultipartResponse(message);
         }

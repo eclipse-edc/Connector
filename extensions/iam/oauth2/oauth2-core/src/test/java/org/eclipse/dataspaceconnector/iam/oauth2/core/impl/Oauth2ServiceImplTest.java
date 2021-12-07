@@ -98,7 +98,6 @@ class Oauth2ServiceImplTest {
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isTrue();
-        assertThat(result.getFailures()).isNotNull().isEmpty();
         assertThat(result.getContent().getClaims()).hasSize(3).containsKeys("aud", "nbf", "exp");
     }
 

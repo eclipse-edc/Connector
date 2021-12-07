@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.AbstractQueuedProvisioner;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamObserver;

@@ -25,7 +25,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -74,11 +74,11 @@ public class ClientController {
         }
 
         var result = consumerNegotiationManager.initiate(contractOffer);
-        if (result.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
+        if (result.failure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             return Response.serverError().build();
         }
 
-        return Response.ok(result.getContractNegotiation().getId()).build();
+        return Response.ok(result.getContent().getId()).build();
     }
 
     @GET

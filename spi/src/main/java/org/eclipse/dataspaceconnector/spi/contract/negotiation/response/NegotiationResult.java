@@ -13,14 +13,25 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.response;
 
+import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
 /**
  * A response to a contract negotiation operation.
  */
-public class NegotiationResponse {
-    private final Status status;
-    private ContractNegotiation contractNegotiation;
+public class NegotiationResult extends AbstractResult<ContractNegotiation, StatusFailure> {
+
+    public static NegotiationResult success(ContractNegotiation negotiation) {
+        return new NegotiationResult(negotiation, null);
+    }
+
+    public static NegotiationResult failure(Status status) {
+        return new NegotiationResult(null, new StatusFailure(status));
+    }
+
+    public NegotiationResult(ContractNegotiation contractNegotiation, StatusFailure failure) {
+        super(contractNegotiation, failure);
+    }
 
     public enum Status {
         /**
@@ -44,26 +55,4 @@ public class NegotiationResponse {
         INVALID_STATE
     }
 
-    public NegotiationResponse(Status status, ContractNegotiation contractNegotiation) {
-        this.status = status;
-        this.contractNegotiation = contractNegotiation;
-    }
-
-    public NegotiationResponse(Status status) {
-        this.status = status;
-    }
-
-    /**
-     * Returns the operation status.
-     */
-    public Status getStatus() {
-        return status;
-    }
-
-    /**
-     * Returns the contract negotiation or null if the status is {@link Status#ERROR_RETRY}, {@link Status#FATAL_ERROR}, or {@link Status#INVALID_STATE}.
-     */
-    public ContractNegotiation getContractNegotiation() {
-        return contractNegotiation;
-    }
 }

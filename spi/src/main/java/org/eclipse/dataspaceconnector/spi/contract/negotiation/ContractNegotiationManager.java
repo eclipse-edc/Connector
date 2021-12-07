@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 
 /**
@@ -28,6 +28,6 @@ public interface ContractNegotiationManager {
     /**
      * A negotiation was declined by the counter-party represented by the claim token.
      */
-    NegotiationResponse declined(ClaimToken token, String negotiationId);
+    NegotiationResult declined(ClaimToken token, String negotiationId);
 
 }

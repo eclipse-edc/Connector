@@ -70,7 +70,7 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
         }
         var usageResult = policyEngine.evaluate(definition.getContractPolicy(), agent);
         if (usageResult.failed()) {
-            monitor.info(format("Problem evaluating usage control policy for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailures())));
+            monitor.info(format("Problem evaluating usage control policy for %s: \n%s", definition.getId(), String.join("\n", usageResult.getFailures())));
             return false;
         }
         return true;

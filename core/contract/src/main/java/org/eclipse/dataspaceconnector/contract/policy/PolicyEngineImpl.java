@@ -20,12 +20,12 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.policy.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyContext;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.policy.RuleFunction;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.ArrayList;
 import java.util.List;
