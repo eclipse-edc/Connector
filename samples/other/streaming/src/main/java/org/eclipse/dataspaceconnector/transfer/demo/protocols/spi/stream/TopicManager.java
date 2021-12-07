@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream;
 
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
 
 import java.util.concurrent.CompletableFuture;

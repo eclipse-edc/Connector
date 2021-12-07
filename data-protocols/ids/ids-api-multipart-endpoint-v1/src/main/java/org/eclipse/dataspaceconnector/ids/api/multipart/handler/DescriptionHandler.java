@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;

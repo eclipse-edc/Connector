@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.junit;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.security.NullVaultExtension;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;

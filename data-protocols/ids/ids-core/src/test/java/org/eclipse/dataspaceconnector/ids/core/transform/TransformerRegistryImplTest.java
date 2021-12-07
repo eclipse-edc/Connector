@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.core.transform;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.eclipse.dataspaceconnector.spi.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

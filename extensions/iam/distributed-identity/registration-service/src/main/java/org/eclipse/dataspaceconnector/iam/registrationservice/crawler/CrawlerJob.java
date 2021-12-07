@@ -20,7 +20,7 @@ import okhttp3.Request;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.quartz.Job;
 import org.quartz.JobDataMap;

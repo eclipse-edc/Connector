@@ -15,7 +15,7 @@ package org.eclipse.dataspaceconnector.iam.did.spi.hub;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRequest;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.Map;
 

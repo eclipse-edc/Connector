@@ -41,7 +41,7 @@ import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;

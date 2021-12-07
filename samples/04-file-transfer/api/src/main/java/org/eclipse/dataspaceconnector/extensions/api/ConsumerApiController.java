@@ -109,8 +109,9 @@ public class ConsumerApiController {
                 .contractId(contractId)
                 .build();
 
-        var response = processManager.initiateConsumerRequest(dataRequest);
-        return response.getStatus() != ResponseStatus.OK ? Response.status(400).build() : Response.ok(response.getId()).build();
+        var result = processManager.initiateConsumerRequest(dataRequest);
+        
+        return result.failed() ? Response.status(400).build() : Response.ok(result.getContent()).build();
     }
 }
 

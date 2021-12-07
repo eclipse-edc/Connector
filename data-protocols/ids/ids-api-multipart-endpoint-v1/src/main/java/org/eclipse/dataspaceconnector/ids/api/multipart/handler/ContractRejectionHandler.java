@@ -18,7 +18,7 @@ import de.fraunhofer.iais.eis.ContractRejectionMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;

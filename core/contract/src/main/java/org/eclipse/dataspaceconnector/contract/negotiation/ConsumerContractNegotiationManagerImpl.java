@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;

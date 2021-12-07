@@ -8,7 +8,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKe
 import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

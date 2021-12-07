@@ -30,7 +30,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRespons
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.io.IOException;
 import java.util.Map;

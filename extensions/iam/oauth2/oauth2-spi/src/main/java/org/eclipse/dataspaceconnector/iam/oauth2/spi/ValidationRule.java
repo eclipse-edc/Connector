@@ -14,7 +14,7 @@
 package org.eclipse.dataspaceconnector.iam.oauth2.spi;
 
 import com.nimbusds.jwt.JWTClaimsSet;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 @FunctionalInterface
 public interface ValidationRule {

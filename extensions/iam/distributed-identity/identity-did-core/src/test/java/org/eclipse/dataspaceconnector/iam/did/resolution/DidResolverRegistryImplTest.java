@@ -15,7 +15,7 @@ package org.eclipse.dataspaceconnector.iam.did.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

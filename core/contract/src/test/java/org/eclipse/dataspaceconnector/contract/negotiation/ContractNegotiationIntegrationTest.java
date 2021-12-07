@@ -14,7 +14,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;

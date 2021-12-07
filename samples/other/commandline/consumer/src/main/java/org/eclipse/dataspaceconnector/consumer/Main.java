@@ -18,7 +18,7 @@ import org.eclipse.dataspaceconnector.consumer.command.CommandExecutor;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
 import org.eclipse.dataspaceconnector.consumer.command.assembly.RootAssemblyFactory;
 import org.eclipse.dataspaceconnector.consumer.runtime.EdcConnectorConsumerRuntime;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jline.reader.LineReader;
 import org.jline.reader.LineReaderBuilder;
 import org.jline.reader.ParsedLine;

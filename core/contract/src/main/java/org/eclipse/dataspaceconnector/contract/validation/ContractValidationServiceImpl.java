@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.validation;
 
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;

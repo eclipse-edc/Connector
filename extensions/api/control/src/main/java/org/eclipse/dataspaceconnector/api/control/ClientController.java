@@ -27,7 +27,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -62,8 +62,8 @@ public class ClientController {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
 
-        TransferInitiateResponse response = transferProcessManager.initiateConsumerRequest(dataRequest);
-        return Response.ok(response.getId()).build();
+        TransferInitiateResult response = transferProcessManager.initiateConsumerRequest(dataRequest);
+        return Response.ok(response.getContent()).build();
     }
 
     @POST

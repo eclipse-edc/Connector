@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;

@@ -16,7 +16,7 @@ import org.eclipse.dataspaceconnector.ion.spi.request.IonRequest;
 import org.eclipse.dataspaceconnector.ion.util.HexStringUtils;
 import org.eclipse.dataspaceconnector.ion.util.JsonCanonicalizer;
 import org.eclipse.dataspaceconnector.ion.util.SortingNodeFactory;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.nio.charset.StandardCharsets;

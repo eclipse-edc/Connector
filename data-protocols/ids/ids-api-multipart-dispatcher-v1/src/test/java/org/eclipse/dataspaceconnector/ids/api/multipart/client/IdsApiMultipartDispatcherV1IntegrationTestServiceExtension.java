@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;

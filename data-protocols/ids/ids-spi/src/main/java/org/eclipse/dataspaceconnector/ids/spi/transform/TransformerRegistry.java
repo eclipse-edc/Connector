@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.ids.spi.transform;
 
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 /**

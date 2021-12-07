@@ -14,7 +14,7 @@
 package org.eclipse.dataspaceconnector.dataloading;
 
 
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.ArrayList;
 import java.util.Collection;

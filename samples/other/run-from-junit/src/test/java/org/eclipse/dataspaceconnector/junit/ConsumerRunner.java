@@ -17,12 +17,12 @@ package org.eclipse.dataspaceconnector.junit;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
@@ -77,11 +77,11 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     //simulate data egress
@@ -96,7 +96,7 @@ public class ConsumerRunner {
 
                 @Override
                 public void deprovisioned(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     latch.countDown();
@@ -133,11 +133,11 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     //simulate data egress
@@ -152,7 +152,7 @@ public class ConsumerRunner {
 
                 @Override
                 public void deprovisioned(TransferProcess process) {
-                    if (!process.getId().equals(response.getId())) {
+                    if (!process.getId().equals(response.getContent())) {
                         return;
                     }
                     latch.countDown();
@@ -186,11 +186,11 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     //simulate data egress
@@ -205,7 +205,7 @@ public class ConsumerRunner {
 
                 @Override
                 public void deprovisioned(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     latch.countDown();

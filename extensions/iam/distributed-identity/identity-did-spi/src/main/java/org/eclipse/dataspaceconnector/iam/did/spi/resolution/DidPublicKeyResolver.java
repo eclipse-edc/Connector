@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 /**
  * Resolves a public key contained in a DID document associated with a DID.

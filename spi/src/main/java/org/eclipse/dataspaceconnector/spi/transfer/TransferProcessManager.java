@@ -35,11 +35,11 @@ public interface TransferProcessManager {
     /**
      * Initiates a data transfer process on the consumer.
      */
-    TransferInitiateResponse initiateConsumerRequest(DataRequest dataRequest);
+    TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest);
 
     /**
      * Initiates a data transfer process on the provider.
      */
-    TransferInitiateResponse initiateProviderRequest(DataRequest dataRequest);
+    TransferInitiateResult initiateProviderRequest(DataRequest dataRequest);
 
 }

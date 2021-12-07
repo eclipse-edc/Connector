@@ -14,7 +14,7 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 /**

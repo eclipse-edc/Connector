@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;

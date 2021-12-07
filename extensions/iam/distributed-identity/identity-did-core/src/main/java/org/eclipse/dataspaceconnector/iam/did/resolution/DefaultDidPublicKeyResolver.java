@@ -17,7 +17,7 @@ import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyConverter;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.stream.Collectors;
 

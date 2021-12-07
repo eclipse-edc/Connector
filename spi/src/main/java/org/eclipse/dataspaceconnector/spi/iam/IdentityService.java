@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.iam;
 
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 /**
  * Obtains client security tokens from an identity provider.

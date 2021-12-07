@@ -17,7 +17,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

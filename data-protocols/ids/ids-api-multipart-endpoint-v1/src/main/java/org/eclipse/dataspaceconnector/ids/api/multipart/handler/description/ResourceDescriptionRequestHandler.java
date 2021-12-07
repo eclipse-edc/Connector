@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.consumer.command;
 
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 /**
  * Executes a consumer command.

@@ -2,7 +2,7 @@ package org.eclipse.dataspaceconnector.iam.oauth2.core.impl;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.time.Instant;
 import java.time.ZoneId;

@@ -34,10 +34,9 @@ import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

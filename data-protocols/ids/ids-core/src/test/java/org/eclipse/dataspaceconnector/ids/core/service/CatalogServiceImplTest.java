@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;

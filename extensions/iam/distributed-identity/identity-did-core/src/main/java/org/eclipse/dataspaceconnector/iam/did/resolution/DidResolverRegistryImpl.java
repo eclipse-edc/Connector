@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.iam.did.resolution;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.HashMap;
 import java.util.Map;

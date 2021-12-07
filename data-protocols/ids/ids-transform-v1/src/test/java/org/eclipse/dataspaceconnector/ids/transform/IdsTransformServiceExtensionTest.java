@@ -35,7 +35,7 @@ import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;

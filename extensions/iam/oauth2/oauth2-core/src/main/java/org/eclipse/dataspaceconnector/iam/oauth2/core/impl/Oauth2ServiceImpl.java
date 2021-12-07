@@ -31,7 +31,7 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;

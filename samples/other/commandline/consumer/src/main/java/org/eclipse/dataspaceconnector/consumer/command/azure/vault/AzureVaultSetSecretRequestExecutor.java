@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.consumer.command.azure.vault;
 
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
-import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.VaultEntry;
 
 import static org.eclipse.dataspaceconnector.consumer.command.http.HttpOperations.executePost;
