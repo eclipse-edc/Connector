@@ -69,7 +69,7 @@ public class DistributedIdentityService implements IdentityService {
             monitor.debug("Resolving other party's DID Document");
             var didResult = resolverRegistry.resolve(jwt.getJWTClaimsSet().getIssuer());
             if (didResult.failed()) {
-                return Result.failure("Unable to resolve DID: " + didResult.getFailure());
+                return Result.failure("Unable to resolve DID: " + String.join(", ", didResult.getFailures()));
             }
             monitor.debug("Extracting public key");
 

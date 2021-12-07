@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.spi.result;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -28,11 +27,6 @@ public abstract class AbstractResult<T, F extends Failure> {
 
     public boolean failed() {
         return !succeeded();
-    }
-
-    public String getFailure() {
-        Objects.requireNonNull(failure);
-        return failure.getMessages().stream().findFirst().orElseThrow(() -> new EdcException("This result is successful"));
     }
 
     public List<String> getFailures() {

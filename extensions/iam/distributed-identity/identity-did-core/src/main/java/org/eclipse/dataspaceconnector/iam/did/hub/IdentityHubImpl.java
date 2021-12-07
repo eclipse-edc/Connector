@@ -88,7 +88,7 @@ public class IdentityHubImpl implements IdentityHub {
         var result = publicKeyResolver.resolvePublicKey(iss);
         if (result.failed()) {
             try {
-                return objectMapper.writeValueAsString(new ErrorResponse("500", "Unable to resolve recipient public key: " + result.getFailure()));
+                return objectMapper.writeValueAsString(new ErrorResponse("500", "Unable to resolve recipient public key: " + String.join(", ", result.getFailures())));
             } catch (JsonProcessingException e) {
                 throw new EdcException(e);
             }

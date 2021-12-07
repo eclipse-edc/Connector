@@ -300,8 +300,8 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                     transferProcessStore.update(process);
                     invokeForEach(l -> l.provisioned(process));
                 } else if (ResponseStatus.FATAL_ERROR == response.failure().status()) {
-                    monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), response.failure()));
-                    process.transitionError(response.getFailure());
+                    monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailures())));
+                    process.transitionError(response.getFailures().stream().findFirst().orElse(""));
                     transferProcessStore.update(process);
                     invokeForEach(l -> l.error(process));
                 } else {
