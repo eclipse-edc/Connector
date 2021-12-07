@@ -46,9 +46,13 @@ public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
     private ServiceExtensionContext context;
-
     private ProvisionManagerImpl provisionManager;
     private TransferProcessManagerImpl processManager;
+
+    @Override
+    public String name() {
+        return "Core Transfer";
+    }
 
     @Override
     public Set<String> provides() {

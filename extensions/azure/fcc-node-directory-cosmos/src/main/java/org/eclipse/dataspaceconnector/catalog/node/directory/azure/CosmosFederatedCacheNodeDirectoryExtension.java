@@ -32,6 +32,11 @@ import java.util.Set;
 public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "CosmosDB Federated Cache Node Directory";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(FederatedCacheNodeDirectory.FEATURE);
     }

@@ -10,6 +10,12 @@ import java.util.Set;
 import java.util.function.Predicate;
 
 public class InMemoryFederatedCacheStoreExtension implements ServiceExtension {
+
+    @Override
+    public String name() {
+        return "In-Memory Federated Cache Store";
+    }
+
     @Override
     public Set<String> provides() {
         return Set.of(FederatedCacheStore.FEATURE);

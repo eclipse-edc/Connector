@@ -52,6 +52,11 @@ public class AwsProvisionExtension implements ServiceExtension {
     private SdkClientProvider clientProvider;
 
     @Override
+    public String name() {
+        return "AWS Provision";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 

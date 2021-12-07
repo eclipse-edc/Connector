@@ -10,6 +10,11 @@ import java.util.Set;
 public class CatalogServiceExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "Catalog Service";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         var dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class);
         var catalogService = new CatalogServiceImpl(dispatcherRegistry);

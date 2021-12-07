@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -33,7 +32,10 @@ import java.util.Set;
  */
 public class CosmosAssetIndexExtension implements ServiceExtension {
 
-    private Monitor monitor;
+    @Override
+    public String name() {
+        return "CosmosDB Asset Index";
+    }
 
     @Override
     public Set<String> provides() {
@@ -42,8 +44,6 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         var configuration = new AssetIndexCosmosConfig(context);
         Vault vault = context.getService(Vault.class);
 

@@ -40,6 +40,11 @@ import java.util.Set;
 public class AzureProvisionExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "Azure Provision";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
 
         var monitor = context.getMonitor();

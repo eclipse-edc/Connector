@@ -67,6 +67,11 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public String name() {
+        return "IDS Core";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of("edc:ids:core");
     }

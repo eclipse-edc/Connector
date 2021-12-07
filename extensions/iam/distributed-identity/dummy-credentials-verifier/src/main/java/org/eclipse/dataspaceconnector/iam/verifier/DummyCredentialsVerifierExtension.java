@@ -28,6 +28,11 @@ import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.D
 public class DummyCredentialsVerifierExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "ION Credentials Verifier";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(CredentialsVerifier.FEATURE);
     }

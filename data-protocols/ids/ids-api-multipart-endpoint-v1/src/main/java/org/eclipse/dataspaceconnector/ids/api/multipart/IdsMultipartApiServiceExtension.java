@@ -74,6 +74,11 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public String name() {
+        return "IDS Multipart API";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of("edc:ids:api:multipart:endpoint:v1");
     }

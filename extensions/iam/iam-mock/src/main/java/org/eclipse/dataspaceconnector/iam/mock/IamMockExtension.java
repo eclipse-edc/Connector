@@ -26,6 +26,11 @@ import java.util.Set;
 public class IamMockExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "Mock IAM";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(IdentityService.FEATURE);
     }

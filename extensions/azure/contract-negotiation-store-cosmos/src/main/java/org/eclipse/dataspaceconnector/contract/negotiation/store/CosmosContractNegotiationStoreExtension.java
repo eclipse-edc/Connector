@@ -28,6 +28,11 @@ import java.util.Set;
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "CosmosDB ContractDefinition Store";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(ContractNegotiationStore.FEATURE);
     }

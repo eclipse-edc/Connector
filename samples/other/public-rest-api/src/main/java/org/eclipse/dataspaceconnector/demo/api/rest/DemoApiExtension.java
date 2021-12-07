@@ -13,6 +13,11 @@ import java.util.Set;
 public class DemoApiExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "REST API";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("dataspaceconnector:transferprocessstore", "edc:catalog-service");
     }
@@ -22,7 +27,6 @@ public class DemoApiExtension implements ServiceExtension {
         var webService = context.getService(WebService.class);
         var monitor = context.getMonitor();
 
-        // get all required services
         var transferProcessManager = context.getService(TransferProcessManager.class);
         var processStore = context.getService(TransferProcessStore.class);
         var catalogService = context.getService(CatalogService.class);

@@ -52,6 +52,11 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
     private static final String CONTAINER_NAME = "transferprocess";
 
     @Override
+    public String name() {
+        return "Cosmos Transfer Process Store";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of("dataspaceconnector:transferprocessstore");
     }

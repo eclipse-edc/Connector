@@ -23,6 +23,11 @@ import java.util.Set;
 public class InMemoryIdentityHubExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "In-Memory Identity Hub";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(IdentityHubStore.FEATURE);
     }

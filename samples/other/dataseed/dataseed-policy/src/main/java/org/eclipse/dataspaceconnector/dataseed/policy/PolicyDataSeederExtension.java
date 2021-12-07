@@ -37,6 +37,11 @@ public class PolicyDataSeederExtension implements ServiceExtension {
     private ServiceExtensionContext context;
 
     @Override
+    public String name() {
+        return "Policy Data Seeder";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
     }

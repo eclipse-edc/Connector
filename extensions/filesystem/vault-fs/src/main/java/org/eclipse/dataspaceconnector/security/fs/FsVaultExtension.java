@@ -48,6 +48,8 @@ public class FsVaultExtension implements VaultExtension {
         KeyStore keyStore = loadKeyStore();
         privateKeyResolver = new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
         certificateResolver = new FsCertificateResolver(keyStore);
+
+        monitor.info("Initialized FS Vault extension");
     }
 
     @Override

@@ -27,6 +27,11 @@ import java.util.Set;
 public class InMemoryContractDefinitionStoreExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "In-Memory Contract Definition Store";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(ContractDefinitionStore.class, new InMemoryContractDefinitionStore());
     }

@@ -51,8 +51,12 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     private static final String DEFAULT_LOCAL_CHECK_URL = "http://localhost:9090/checker";
 
     private Monitor monitor;
-
     private Set<String> protocols;
+
+    @Override
+    public String name() {
+        return "Transfer Functions Core";
+    }
 
     @Override
     public Set<String> provides() {

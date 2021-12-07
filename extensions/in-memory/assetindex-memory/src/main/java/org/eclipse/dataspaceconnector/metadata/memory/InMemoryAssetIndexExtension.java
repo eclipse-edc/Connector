@@ -26,6 +26,11 @@ import java.util.Set;
 public class InMemoryAssetIndexExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "In-Memory Asset Index";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(AssetIndex.FEATURE, DataAddressResolver.FEATURE, AssetLoader.FEATURE);
     }

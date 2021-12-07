@@ -34,6 +34,11 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
     private ContractDefinitionStore contractDefinitionStore;
 
     @Override
+    public String name() {
+        return "EDC Control API Test";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of(ContractDefinitionStore.FEATURE, AssetLoader.FEATURE);
     }

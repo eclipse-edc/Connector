@@ -25,6 +25,11 @@ import java.util.Set;
 public class IdsTransformServiceExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "IDS Transform Extension";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:ids:core");
     }

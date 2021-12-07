@@ -26,6 +26,11 @@ public class CloudTransferExtension implements ServiceExtension {
     public static final String USE_US_OR_EU_POLICY = "use-us-eu";
 
     @Override
+    public String name() {
+        return "Cloud-Based Transfer";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
         DataAddressResolver dataAddressResolver = context.getService(DataAddressResolver.class);

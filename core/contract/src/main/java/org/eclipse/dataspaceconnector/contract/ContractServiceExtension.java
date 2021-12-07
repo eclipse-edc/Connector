@@ -54,6 +54,11 @@ public class ContractServiceExtension implements ServiceExtension {
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
 
     @Override
+    public String name() {
+        return "Core Contract Service";
+    }
+
+    @Override
     public final Set<String> provides() {
         return Set.of("edc:core:contract");
     }

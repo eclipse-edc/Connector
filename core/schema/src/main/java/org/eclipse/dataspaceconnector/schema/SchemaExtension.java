@@ -24,6 +24,11 @@ import java.util.Set;
 public class SchemaExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "Schema Registry";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(SchemaRegistry.FEATURE);
     }

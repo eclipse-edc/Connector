@@ -44,6 +44,11 @@ public class DemoExtension implements ServiceExtension {
     private ServiceExtensionContext context;
 
     @Override
+    public String name() {
+        return "AWS Demo";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
         monitor = context.getMonitor();

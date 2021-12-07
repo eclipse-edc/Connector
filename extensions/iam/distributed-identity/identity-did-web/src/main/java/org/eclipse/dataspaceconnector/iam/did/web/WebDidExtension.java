@@ -32,6 +32,11 @@ import static org.eclipse.dataspaceconnector.iam.did.web.ConfigurationKeys.DNS_O
 public class WebDidExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "Web DID";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of(DidResolverRegistry.FEATURE);
     }

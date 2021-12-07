@@ -27,7 +27,7 @@ public interface ServiceExtension extends SystemExtension {
      * Returns the name of the service, by default is its class name
      */
     default String name() {
-        return this.getClass().getSimpleName();
+        return this.getClass().getName();
     }
 
     /**

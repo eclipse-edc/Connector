@@ -13,6 +13,11 @@ public class DataSeederServiceExtension implements ServiceExtension {
     private FakeSetup fakeSetup;
 
     @Override
+    public String name() {
+        return "Sample 5 Data Seeder";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of(DataAddressResolver.FEATURE, AssetLoader.FEATURE);
     }

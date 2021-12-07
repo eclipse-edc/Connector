@@ -32,6 +32,11 @@ import java.util.Set;
 public class IdsTransferApiServiceExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "IDS Transfer API";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:ids:core", PolicyRegistry.FEATURE);
     }

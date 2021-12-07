@@ -28,6 +28,11 @@ public class ControlApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public String name() {
+        return "EDC Control API";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:dispatcher");
     }

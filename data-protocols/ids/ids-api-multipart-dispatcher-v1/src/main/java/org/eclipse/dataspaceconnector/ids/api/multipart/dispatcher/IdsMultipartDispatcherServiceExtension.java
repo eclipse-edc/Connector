@@ -53,6 +53,11 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     private Monitor monitor;
 
     @Override
+    public String name() {
+        return "IDS Multipart Dispatcher API";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of(IdentityService.FEATURE,
                 "edc:ids:transform:v1",

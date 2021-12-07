@@ -29,6 +29,11 @@ public class AzureEventExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public String name() {
+        return "Azure Events";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("dataspaceconnector:transfer-process-observable");
     }

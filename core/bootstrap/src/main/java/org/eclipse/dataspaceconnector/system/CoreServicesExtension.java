@@ -47,6 +47,11 @@ public class CoreServicesExtension implements ServiceExtension {
     private static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
 
     @Override
+    public String name() {
+        return "Core Services";
+    }
+
+    @Override
     public Set<String> provides() {
         // the PrivateKeyResolver.FEATURE is not required because it gets registered directly by the
         // ExtensionLoader.

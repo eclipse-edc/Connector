@@ -21,6 +21,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 public class BucketSchemaExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "S3 Bucket Schemas";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         var sr = context.getService(SchemaRegistry.class);
         sr.register(new S3BucketSchema());

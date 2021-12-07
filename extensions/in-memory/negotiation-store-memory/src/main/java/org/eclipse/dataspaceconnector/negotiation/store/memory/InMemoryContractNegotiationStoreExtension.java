@@ -28,6 +28,11 @@ import java.util.Set;
 public class InMemoryContractNegotiationStoreExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "In-Memory Contract Negotiation Store";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(ContractNegotiationStore.class, new InMemoryContractNegotiationStore());
     }

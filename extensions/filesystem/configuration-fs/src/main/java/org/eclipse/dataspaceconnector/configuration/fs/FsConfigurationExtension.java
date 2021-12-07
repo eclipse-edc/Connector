@@ -29,6 +29,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
+import javax.xml.namespace.QName;
+
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
@@ -73,6 +75,8 @@ public class FsConfigurationExtension implements ConfigurationExtension {
         } catch (IOException e) {
             throw new EdcException(e);
         }
+
+        monitor.info("Initialized FS Configuration extension");
     }
 
     @Override

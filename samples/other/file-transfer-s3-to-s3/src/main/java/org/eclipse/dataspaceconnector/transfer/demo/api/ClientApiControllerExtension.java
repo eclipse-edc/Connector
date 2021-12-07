@@ -30,6 +30,11 @@ public class ClientApiControllerExtension implements ServiceExtension {
     private static final String DESTINATION_BUCKET = "edc.transfer.demo.s3.destination.bucket";
 
     @Override
+    public String name() {
+        return "Client API";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 

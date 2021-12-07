@@ -36,6 +36,11 @@ public class WebServiceExtension implements ServiceExtension {
     private JerseyRestService jerseyRestService;
 
     @Override
+    public String name() {
+        return "Web Service";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of("edc:webservice");
     }

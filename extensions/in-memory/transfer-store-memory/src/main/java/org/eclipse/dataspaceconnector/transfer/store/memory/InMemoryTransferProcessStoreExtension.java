@@ -27,13 +27,18 @@ import java.util.Set;
 public class InMemoryTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
-        context.registerService(TransferProcessStore.class, new InMemoryTransferProcessStore());
+    public String name() {
+        return "In-Memory Transfer Process Store";
     }
 
     @Override
     public Set<String> provides() {
         return Set.of("dataspaceconnector:transferprocessstore");
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        context.registerService(TransferProcessStore.class, new InMemoryTransferProcessStore());
     }
 
 }

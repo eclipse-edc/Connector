@@ -30,6 +30,11 @@ public class IdsPolicyExtension implements ServiceExtension {
     public static String PARTNER_LEVEL = "ids:partnerLevel";
 
     @Override
+    public String name() {
+        return "IDS Policy";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:ids:core");
     }

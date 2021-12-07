@@ -19,6 +19,12 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.DID_URL_SETTING;
 
 public class DistributedIdentityServiceExtension implements ServiceExtension {
+
+    @Override
+    public String name() {
+        return "Distributed Identity Service";
+    }
+
     @Override
     public Set<String> provides() {
         return Set.of(IdentityService.FEATURE);

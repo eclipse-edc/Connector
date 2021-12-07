@@ -41,6 +41,11 @@ import java.util.function.Supplier;
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "Identity Did Core";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(IdentityHub.FEATURE, IdentityHubClient.FEATURE, DidResolverRegistry.FEATURE);
     }

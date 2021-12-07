@@ -28,6 +28,11 @@ import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions
 public class IdsMockPolicyExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "IDS Mock Policy";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:ids:core");
     }
