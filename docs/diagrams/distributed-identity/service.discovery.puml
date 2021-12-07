@@ -1,5 +1,5 @@
 @startuml
-participant "Client Connector" as cc
+participant "Consumer Connector" as cc
 participant "Provider Connector Identity Hub" as pcih
 participant "Registration Service" as rs
 participant "ION Network" as ion
