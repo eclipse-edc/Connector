@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.AfterEach;
@@ -90,11 +89,11 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
 
         var tokenResult = TokenRepresentation.Builder.newInstance().token("token").build();
         var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
-        var verificationResult = new VerificationResult(claimToken);
 
         identityService = EasyMock.createMock(IdentityService.class);
         EasyMock.expect(identityService.obtainClientCredentials(EasyMock.anyObject())).andReturn(Result.success(tokenResult));
-        EasyMock.expect(identityService.verifyJwtToken(EasyMock.anyObject(), EasyMock.anyObject())).andReturn(verificationResult);
+        EasyMock.expect(identityService.verifyJwtToken(EasyMock.anyObject(), EasyMock.anyObject()))
+                .andReturn(Result.success(claimToken));
         EasyMock.replay(identityService);
 
         extension.registerSystemExtension(ServiceExtension.class,

@@ -60,41 +60,46 @@ class Oauth2ServiceImplTest {
         var jwt = createJwt(null, Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
 
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-        assertThat(result.valid()).isFalse();
-        assertThat(result.errors()).isNotEmpty();
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).isNotEmpty();
     }
 
     @Test
     void verifyInvalidAudienceToken() {
         var jwt = createJwt("different.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-        assertThat(result.valid()).isFalse();
-        assertThat(result.errors()).isNotEmpty();
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).isNotEmpty();
     }
 
     @Test
     void verifyInvalidAttemptUseNotBeforeToken() {
         var jwt = createJwt("test.audience", Date.from(Instant.now().plusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-        assertThat(result.valid()).isFalse();
-        assertThat(result.errors()).isNotEmpty();
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).isNotEmpty();
     }
 
     @Test
     void verifyExpiredToken() {
         var jwt = createJwt("test.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().minusSeconds(1000)));
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-        assertThat(result.valid()).isFalse();
-        assertThat(result.errors()).isNotEmpty();
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailures()).isNotEmpty();
     }
 
     @Test
     void verifyValidJwt() {
         var jwt = createJwt("test.audience", Date.from(Instant.now().minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-        assertThat(result.valid()).isTrue();
-        assertThat(result.errors()).isNotNull().isEmpty();
-        assertThat(result.token().getClaims()).hasSize(3).containsKeys("aud", "nbf", "exp");
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getFailures()).isNotNull().isEmpty();
+        assertThat(result.getContent().getClaims()).hasSize(3).containsKeys("aud", "nbf", "exp");
     }
 
     @BeforeEach

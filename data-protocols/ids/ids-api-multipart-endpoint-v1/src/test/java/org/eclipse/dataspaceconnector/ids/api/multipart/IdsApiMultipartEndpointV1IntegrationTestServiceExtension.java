@@ -35,7 +35,6 @@ import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidation
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -96,8 +95,8 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public VerificationResult verifyJwtToken(String token, String audience) {
-            return new VerificationResult(ClaimToken.Builder.newInstance().build());
+        public Result<ClaimToken> verifyJwtToken(String token, String audience) {
+            return Result.success(ClaimToken.Builder.newInstance().build());
         }
     }
 

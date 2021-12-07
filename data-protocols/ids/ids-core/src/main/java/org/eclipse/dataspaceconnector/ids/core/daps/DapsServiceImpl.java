@@ -15,8 +15,9 @@
 package org.eclipse.dataspaceconnector.ids.core.daps;
 
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
+import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -32,9 +33,9 @@ public class DapsServiceImpl implements DapsService {
     }
 
     @Override
-    public VerificationResult verifyAndConvertToken(@Nullable String token) {
+    public Result<ClaimToken> verifyAndConvertToken(@Nullable String token) {
         if (token == null) {
-            return new VerificationResult("No token provided");
+            return Result.failure("No token provided");
         }
 
         return identityService.verifyJwtToken(token, connectorId);

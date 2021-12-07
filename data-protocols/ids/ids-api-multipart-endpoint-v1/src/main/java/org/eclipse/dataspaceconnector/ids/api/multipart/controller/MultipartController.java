@@ -29,7 +29,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.glassfish.jersey.media.multipart.FormDataBodyPart;
 import org.glassfish.jersey.media.multipart.FormDataMultiPart;
 import org.glassfish.jersey.media.multipart.FormDataParam;
@@ -103,7 +102,7 @@ public class MultipartController {
                             notAuthenticated(header, connectorId))).build();
         }
 
-        VerificationResult verificationResult = identityService.verifyJwtToken(
+        var verificationResult = identityService.verifyJwtToken(
                 dynamicAttributeToken.getTokenValue(), null);
         if (verificationResult == null) {
             return Response.ok(
@@ -111,7 +110,7 @@ public class MultipartController {
                             notAuthenticated(header, connectorId))).build();
         }
 
-        if (!verificationResult.valid()) {
+        if (verificationResult.failed()) {
             return Response.ok(
                     createFormDataMultiPart(
                             notAuthorized(header, connectorId))).build();

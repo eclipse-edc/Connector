@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Assertions;
@@ -88,7 +88,7 @@ public class ResourceDescriptionRequestHandlerTest {
     @Test
     public void testSimpleSuccessPath() {
         // prepare
-        VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
+        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
 
         EasyMock.expect(assetIndex.findById(EasyMock.anyString())).andReturn(EasyMock.createMock(Asset.class));
 

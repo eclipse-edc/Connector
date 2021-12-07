@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
 
@@ -15,5 +16,5 @@ public interface CatalogService {
      * @return data catalog
      */
     @NotNull
-    Catalog getDataCatalog(VerificationResult verificationResult);
+    Catalog getDataCatalog(Result<ClaimToken> verificationResult);
 }

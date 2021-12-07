@@ -72,7 +72,7 @@ class DapsIntegrationTest {
 
         var verificationResult = identityService.verifyJwtToken(tokenResult.getContent().getToken(), AUDIENCE_IDS_CONNECTORS_ALL);
 
-        assertThat(verificationResult.valid()).isTrue();
+        assertThat(verificationResult.succeeded()).isTrue();
     }
 
     private static KeyStore readKeystoreFromResources(String fileName, String type, String password) {

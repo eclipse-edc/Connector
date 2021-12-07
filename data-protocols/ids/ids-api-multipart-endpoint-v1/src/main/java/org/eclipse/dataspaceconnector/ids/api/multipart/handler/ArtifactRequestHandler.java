@@ -24,9 +24,10 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.spec.extension.ArtifactRequestMessagePayload;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -78,7 +79,7 @@ public class ArtifactRequestHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull VerificationResult verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
@@ -104,13 +105,13 @@ public class ArtifactRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
-        boolean isContractValid = contractValidationService.validate(verificationResult.token(), contractAgreement);
+        boolean isContractValid = contractValidationService.validate(verificationResult.getContent(), contractAgreement);
         if (!isContractValid) {
             monitor.info("ArtifactRequestHandler: Contract Validation Invalid");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
-        ArtifactRequestMessagePayload artifactRequestMessagePayload = null;
+        ArtifactRequestMessagePayload artifactRequestMessagePayload;
         try {
             artifactRequestMessagePayload =
                     objectMapper.readValue(multipartRequest.getPayload(), ArtifactRequestMessagePayload.class);

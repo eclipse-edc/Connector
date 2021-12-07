@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Assertions;
@@ -87,7 +87,7 @@ public class RepresentationDescriptionRequestHandlerTest {
 
     @Test
     public void testSimpleSuccessPath() {
-        VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
+        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
         var result = representationDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, null);
 
         Assertions.assertNotNull(result);

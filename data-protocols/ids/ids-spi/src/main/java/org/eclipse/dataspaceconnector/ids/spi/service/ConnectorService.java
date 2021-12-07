@@ -15,7 +15,8 @@
 package org.eclipse.dataspaceconnector.ids.spi.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.types.Connector;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,5 +31,5 @@ public interface ConnectorService {
      * @return connector description
      */
     @NotNull
-    Connector getConnector(@NotNull VerificationResult verificationResult);
+    Connector getConnector(@NotNull Result<ClaimToken> verificationResult);
 }

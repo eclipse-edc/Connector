@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -74,7 +74,7 @@ public class ContractRequestHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull VerificationResult verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
@@ -141,7 +141,7 @@ public class ContractRequestHandler implements Handler {
                 .build();
 
         // Start negotiation process
-        negotiationManager.requested(verificationResult.token(), requestObj);
+        negotiationManager.requested(verificationResult.getContent(), requestObj);
 
         return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, message))

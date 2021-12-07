@@ -18,7 +18,8 @@ import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.junit.jupiter.api.AfterEach;
@@ -61,10 +62,10 @@ class ConnectorServiceImplTest {
     @Test
     void getConnector() {
         // prepare
-        VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
+        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
         Catalog dataCatalog = EasyMock.createMock(Catalog.class);
 
-        EasyMock.expect(dataCatalogService.getDataCatalog(EasyMock.isA(VerificationResult.class))).andReturn(dataCatalog);
+        EasyMock.expect(dataCatalogService.getDataCatalog(EasyMock.anyObject())).andReturn(dataCatalog);
         EasyMock.expect(connectorServiceSettings.getId()).andReturn(CONNECTOR_ID);
         EasyMock.expect(connectorServiceSettings.getTitle()).andReturn(CONNECTOR_TITLE);
         EasyMock.expect(connectorServiceSettings.getDescription()).andReturn(CONNECTOR_DESCRIPTION);

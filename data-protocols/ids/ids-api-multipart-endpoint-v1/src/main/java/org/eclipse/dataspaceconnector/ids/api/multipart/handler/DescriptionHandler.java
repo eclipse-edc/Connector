@@ -27,7 +27,8 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
@@ -74,7 +75,7 @@ public class DescriptionHandler implements Handler {
 
     @Override
     public MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest,
-                                           @NotNull VerificationResult verificationResult) {
+                                           @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
@@ -88,7 +89,7 @@ public class DescriptionHandler implements Handler {
     }
 
     public MultipartResponse handleRequestInternal(@NotNull MultipartRequest multipartRequest,
-                                                   @NotNull VerificationResult verificationResult) {
+                                                   @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 

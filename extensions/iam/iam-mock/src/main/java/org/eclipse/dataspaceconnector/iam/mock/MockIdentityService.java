@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 
 import java.time.Instant;
 
@@ -39,16 +38,16 @@ public class MockIdentityService implements IdentityService {
     }
 
     @Override
-    public VerificationResult verifyJwtToken(String token, String audience) {
+    public Result<ClaimToken> verifyJwtToken(String token, String audience) {
         switch (token) {
             case "mock-eu":
-                return new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "eu").build());
+                return Result.success(ClaimToken.Builder.newInstance().claim("region", "eu").build());
             case "mock-us":
-                return new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "us").build());
+                return Result.success(ClaimToken.Builder.newInstance().claim("region", "us").build());
             case "mock-an":
-                return new VerificationResult(ClaimToken.Builder.newInstance().claim("region", "an").build());
+                return Result.success(ClaimToken.Builder.newInstance().claim("region", "an").build());
             default:
-                return new VerificationResult("Unknown test token format");
+                return Result.failure("Unknown test token format");
         }
     }
 }

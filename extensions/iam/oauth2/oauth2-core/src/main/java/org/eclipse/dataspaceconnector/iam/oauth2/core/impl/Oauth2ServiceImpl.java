@@ -35,7 +35,6 @@ import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Nullable;
 
@@ -134,18 +133,18 @@ public class Oauth2ServiceImpl implements IdentityService {
     }
 
     @Override
-    public VerificationResult verifyJwtToken(String token, String audience) {
+    public Result<ClaimToken> verifyJwtToken(String token, String audience) {
         try {
             var signedJwt = SignedJWT.parse(token);
 
             String publicKeyId = signedJwt.getHeader().getKeyID();
             var verifier = createVerifier(signedJwt.getHeader(), publicKeyId);
             if (verifier == null) {
-                return new VerificationResult("Failed to create verifier");
+                return Result.failure("Failed to create verifier");
             }
 
             if (!signedJwt.verify(verifier)) {
-                return new VerificationResult("Token verification not successful");
+                return Result.failure("Token verification not successful");
             }
             var claimsSet = signedJwt.getJWTClaimsSet();
 
@@ -159,7 +158,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
             // return instantly if there are errors present
             if (!errors.isEmpty()) {
-                return new VerificationResult(errors);
+                return Result.failure(errors);
             }
 
             // build claim tokens
@@ -172,12 +171,12 @@ public class Oauth2ServiceImpl implements IdentityService {
                 }
                 tokenBuilder.claim(k, claimValue);
             });
-            return new VerificationResult(tokenBuilder.build());
+            return Result.success(tokenBuilder.build());
 
         } catch (JOSEException e) {
-            return new VerificationResult(e.getMessage());
+            return Result.failure(e.getMessage());
         } catch (ParseException e) {
-            return new VerificationResult("Token could not be decoded");
+            return Result.failure("Token could not be decoded");
         }
     }
 

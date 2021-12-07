@@ -21,7 +21,8 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandl
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.Result;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -45,12 +46,11 @@ class DescriptionHandlerTest {
     private RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
     private ResourceDescriptionRequestHandler resourceDescriptionRequestHandler;
     private ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler;
-    private VerificationResult verificationResult;
+    private final Result<ClaimToken> verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
 
     @BeforeEach
     void setUp() {
         monitor = EasyMock.mock(Monitor.class);
-        verificationResult = EasyMock.createMock(VerificationResult.class);
         transformerRegistry = EasyMock.mock(TransformerRegistry.class);
         artifactDescriptionRequestHandler = EasyMock.mock(ArtifactDescriptionRequestHandler.class);
         dataCatalogDescriptionRequestHandler = EasyMock.mock(DataCatalogDescriptionRequestHandler.class);

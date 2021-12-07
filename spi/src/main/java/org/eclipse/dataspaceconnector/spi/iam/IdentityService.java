@@ -35,6 +35,6 @@ public interface IdentityService {
      * @param token    the token to verify
      * @param audience the audience the token must be for
      */
-    VerificationResult verifyJwtToken(String token, String audience);
+    Result<ClaimToken> verifyJwtToken(String token, String audience);
 
 }

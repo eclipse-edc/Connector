@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 
@@ -62,7 +61,7 @@ public class DistributedIdentityService implements IdentityService {
     }
 
     @Override
-    public VerificationResult verifyJwtToken(String token, String audience) {
+    public Result<ClaimToken> verifyJwtToken(String token, String audience) {
         try {
             var jwt = SignedJWT.parse(token);
             monitor.debug("Starting verification...");
@@ -70,14 +69,14 @@ public class DistributedIdentityService implements IdentityService {
             monitor.debug("Resolving other party's DID Document");
             var didResult = resolverRegistry.resolve(jwt.getJWTClaimsSet().getIssuer());
             if (didResult.failed()) {
-                return new VerificationResult("Unable to resolve DID: " + didResult.getFailure());
+                return Result.failure("Unable to resolve DID: " + didResult.getFailure());
             }
             monitor.debug("Extracting public key");
 
             // this will return the _first_ public key entry
             Optional<VerificationMethod> publicKey = getPublicKey(didResult.getContent());
             if (publicKey.isEmpty()) {
-                return new VerificationResult("Public Key not found in DID Document!");
+                return Result.failure("Public Key not found in DID Document!");
             }
 
             //convert the POJO into a usable PK-wrapper:
@@ -86,7 +85,7 @@ public class DistributedIdentityService implements IdentityService {
 
             monitor.debug("Verifying JWT with public key...");
             if (!VerifiableCredentialFactory.verify(jwt, publicKeyWrapper)) {
-                return new VerificationResult("Token could not be verified!");
+                return Result.failure("Token could not be verified!");
             }
             monitor.debug("verification successful! Fetching data from IdentityHub");
             String hubUrl = getHubUrl(didResult.getContent());
@@ -96,10 +95,10 @@ public class DistributedIdentityService implements IdentityService {
             var tokenBuilder = ClaimToken.Builder.newInstance();
             var claimToken = tokenBuilder.claims(credentialsResult.getContent()).build();
 
-            return new VerificationResult(claimToken);
+            return Result.success(claimToken);
         } catch (ParseException e) {
             monitor.info("Error parsing JWT", e);
-            return new VerificationResult("Error parsing JWT");
+            return Result.failure("Error parsing JWT");
         }
     }
 

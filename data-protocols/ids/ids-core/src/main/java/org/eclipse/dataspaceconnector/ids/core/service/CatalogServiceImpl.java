@@ -15,9 +15,10 @@
 package org.eclipse.dataspaceconnector.ids.core.service;
 
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.jetbrains.annotations.NotNull;
@@ -47,8 +48,8 @@ public class CatalogServiceImpl implements CatalogService {
      */
     @Override
     @NotNull
-    public Catalog getDataCatalog(VerificationResult verificationResult) {
-        var query = ContractOfferQuery.Builder.newInstance().claimToken(verificationResult.token()).build();
+    public Catalog getDataCatalog(Result<ClaimToken> verificationResult) {
+        var query = ContractOfferQuery.Builder.newInstance().claimToken(verificationResult.getContent()).build();
         var offerStream = contractOfferService.queryContractOffers(query);
 
         return Catalog.Builder.newInstance().id(dataCatalogId).contractOffers(offerStream.collect(toList())).build();

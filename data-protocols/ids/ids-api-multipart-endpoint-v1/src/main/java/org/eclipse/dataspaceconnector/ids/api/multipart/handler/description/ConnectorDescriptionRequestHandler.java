@@ -23,7 +23,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.Result;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -54,7 +54,7 @@ public class ConnectorDescriptionRequestHandler implements DescriptionRequestHan
 
     @Override
     public MultipartResponse handle(@NotNull DescriptionRequestMessage descriptionRequestMessage,
-                                    @NotNull VerificationResult verificationResult,
+                                    @NotNull Result<ClaimToken> verificationResult,
                                     @Nullable String payload) {
         Objects.requireNonNull(verificationResult);
         Objects.requireNonNull(descriptionRequestMessage);

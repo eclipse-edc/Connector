@@ -26,7 +26,7 @@ import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -74,7 +74,7 @@ public class ContractAgreementHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull VerificationResult verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
@@ -120,7 +120,7 @@ public class ContractAgreementHandler implements Handler {
         // TODO get hash from message
         var agreement = result.getContent();
         var processId = message.getTransferContract();
-        var negotiationResponse = negotiationManager.confirmed(verificationResult.token(),
+        var negotiationResponse = negotiationManager.confirmed(verificationResult.getContent(),
                 String.valueOf(processId), agreement, null);
         if (negotiationResponse.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
             monitor.debug("ContractAgreementHandler: Could not process contract agreement");

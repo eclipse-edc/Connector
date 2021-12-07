@@ -47,6 +47,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -64,7 +65,7 @@ abstract class DistributedIdentityServiceTest {
         var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
         var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
         var url = identityService.getHubUrl(new ObjectMapper().readValue(hubUrlDid, DidDocument.class));
-        Assertions.assertEquals("https://myhub.com", url);
+        assertEquals("https://myhub.com", url);
     }
 
     @Test
@@ -96,8 +97,8 @@ abstract class DistributedIdentityServiceTest {
 
         var result = identityService.verifyJwtToken(token, "foo");
 
-        assertTrue(result.valid());
-        Assertions.assertEquals("eu", result.token().getClaims().get("region"));
+        assertTrue(result.succeeded());
+        assertEquals("eu", result.getContent().getClaims().get("region"));
     }
 
     @BeforeEach

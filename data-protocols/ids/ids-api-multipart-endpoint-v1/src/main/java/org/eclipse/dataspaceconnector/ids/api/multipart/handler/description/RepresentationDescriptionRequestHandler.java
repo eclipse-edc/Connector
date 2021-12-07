@@ -18,8 +18,9 @@ import de.fraunhofer.iais.eis.Representation;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +46,7 @@ public class RepresentationDescriptionRequestHandler extends AbstractDescription
     }
 
     @Override
-    protected Asset retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult) {
+    protected Asset retrieveObject(@NotNull IdsId idsId, @NotNull Result<ClaimToken> verificationResult) {
         return assetIndex.findById(idsId.getValue());
     }
 }

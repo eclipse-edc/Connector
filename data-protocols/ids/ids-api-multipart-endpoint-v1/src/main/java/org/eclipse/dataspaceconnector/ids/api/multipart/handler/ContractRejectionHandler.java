@@ -18,10 +18,11 @@ import de.fraunhofer.iais.eis.ContractRejectionMessage;
 import de.fraunhofer.iais.eis.Message;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
+import org.eclipse.dataspaceconnector.spi.Result;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -59,7 +60,7 @@ public class ContractRejectionHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull VerificationResult verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
@@ -72,9 +73,10 @@ public class ContractRejectionHandler implements Handler {
                 correlationId, rejectionReason));
 
         // abort negotiation process (one of them can handle this process by id)
-        var result = providerNegotiationManager.declined(verificationResult.token(), String.valueOf(correlationId));
+        var token = verificationResult.getContent();
+        var result = providerNegotiationManager.declined(token, String.valueOf(correlationId));
         if (result.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
-            result = consumerNegotiationManager.declined(verificationResult.token(), String.valueOf(correlationId));
+            result = consumerNegotiationManager.declined(token, String.valueOf(correlationId));
         }
 
         if (result.getStatus() == NegotiationResponse.Status.FATAL_ERROR) {
