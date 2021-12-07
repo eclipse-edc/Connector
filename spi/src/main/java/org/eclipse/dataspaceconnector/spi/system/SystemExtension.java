@@ -20,4 +20,11 @@ package org.eclipse.dataspaceconnector.spi.system;
  */
 public interface SystemExtension {
 
+    /**
+     * Returns the name of the extension, by default is its class name
+     */
+    default String name() {
+        return this.getClass().getName();
+    }
+
 }

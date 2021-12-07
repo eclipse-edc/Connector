@@ -29,6 +29,11 @@ public class SingletonVaultExtension implements VaultExtension {
     private Vault vault;
 
     @Override
+    public String name() {
+        return "Singleton Vault";
+    }
+
+    @Override
     public void intializeVault(ServiceExtensionContext context) {
         String secret = context.getSetting(CREDS, "default-secret");
 

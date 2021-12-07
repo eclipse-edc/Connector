@@ -24,13 +24,6 @@ import java.util.Set;
 public interface ServiceExtension extends SystemExtension {
 
     /**
-     * Returns the name of the service, by default is its class name
-     */
-    default String name() {
-        return this.getClass().getName();
-    }
-
-    /**
      * Returns the list of features provided by this extension.
      */
     default Set<String> provides() {
