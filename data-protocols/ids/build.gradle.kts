@@ -21,7 +21,6 @@ dependencies {
     api(project(":spi"))
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
-    api(project(":data-protocols:ids:ids-api-transfer"))
     api(project(":data-protocols:ids:ids-transform-v1"))
     api(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
     api(project(":data-protocols:ids:ids-api-multipart-dispatcher-v1"))
