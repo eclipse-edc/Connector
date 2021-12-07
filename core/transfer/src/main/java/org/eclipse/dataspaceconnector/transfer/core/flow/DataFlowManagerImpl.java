@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.flow;
 
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
@@ -38,10 +38,10 @@ public class DataFlowManagerImpl implements DataFlowManager {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResponse initiate(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiate(DataRequest dataRequest) {
         DataFlowController executor = getExecutor(dataRequest);
         if (executor == null) {
-            return new DataFlowInitiateResponse(FATAL_ERROR, "Unable to process data request. No data flow controller found: " + dataRequest.getId());
+            return DataFlowInitiateResult.failure(FATAL_ERROR, "Unable to process data request. No data flow controller found: " + dataRequest.getId());
         }
         return executor.initiateFlow(dataRequest);
     }

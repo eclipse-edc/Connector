@@ -29,7 +29,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
@@ -90,7 +90,7 @@ public class EndToEndTest {
         EasyMock.expect(controllerMock.canHandle(EasyMock.isA(DataRequest.class))).andReturn(true);
         EasyMock.expect(controllerMock.initiateFlow(EasyMock.isA(DataRequest.class))).andAnswer(() -> {
             latch.countDown();
-            return DataFlowInitiateResponse.OK;
+            return DataFlowInitiateResult.success();
         });
 
         EasyMock.replay(controllerMock);

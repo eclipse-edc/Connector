@@ -6,12 +6,20 @@ import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import java.util.List;
 
 public class ResponseFailure implements Failure {
+    private final ResponseStatus status;
+    private final List<String> messages;
+
+    public ResponseFailure(ResponseStatus status, List<String> messages) {
+        this.status = status;
+        this.messages = messages;
+    }
+
     @Override
     public List<String> getMessages() {
-        return null;
+        return messages;
     }
 
     public ResponseStatus status() {
-        return null;
+        return status;
     }
 }

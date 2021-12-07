@@ -20,7 +20,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -56,7 +56,7 @@ class HttpFunctionDataFlowControllerTest {
         EasyMock.replay(interceptor);
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
-        assertEquals(DataFlowInitiateResponse.OK, flowController.initiateFlow(dataRequest));
+        assertEquals(DataFlowInitiateResult.success(), flowController.initiateFlow(dataRequest));
 
         EasyMock.verify(interceptor);
     }
@@ -74,7 +74,7 @@ class HttpFunctionDataFlowControllerTest {
         EasyMock.replay(interceptor);
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
-        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getStatus());
+        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).failure().status());
 
         EasyMock.verify(interceptor);
     }
@@ -92,7 +92,7 @@ class HttpFunctionDataFlowControllerTest {
         EasyMock.replay(interceptor);
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
-        assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).getStatus());
+        assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).failure().status());
 
         EasyMock.verify(interceptor);
     }

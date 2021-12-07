@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
@@ -37,9 +37,9 @@ public class PushStreamFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
         publisherRegistry.notifyPublisher(dataRequest);
-        return DataFlowInitiateResponse.OK;
+        return DataFlowInitiateResult.success("");
     }
 
 }

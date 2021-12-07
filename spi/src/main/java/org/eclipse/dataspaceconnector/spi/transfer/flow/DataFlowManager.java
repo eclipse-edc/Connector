@@ -33,5 +33,5 @@ public interface DataFlowManager {
      * @param dataRequest the data to transfer
      */
     @NotNull
-    DataFlowInitiateResponse initiate(DataRequest dataRequest);
+    DataFlowInitiateResult initiate(DataRequest dataRequest);
 }

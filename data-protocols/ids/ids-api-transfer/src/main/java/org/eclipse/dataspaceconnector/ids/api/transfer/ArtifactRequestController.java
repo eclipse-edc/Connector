@@ -83,7 +83,7 @@ public class ArtifactRequestController {
     @Path("request")
     public Response request(ArtifactRequestMessage message) {
         var verificationResult = dapsService.verifyAndConvertToken(message.getSecurityToken().getTokenValue());
-        if (!verificationResult.valid()) {
+        if (verificationResult.failed()) {
             monitor.info(() -> "verification failed for request " + message.getId());
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHENTICATED).build()).build();
         }
@@ -105,7 +105,7 @@ public class ArtifactRequestController {
 
         var consumerConnectorId = message.getIssuerConnector().toString();
         var correlationId = message.getId().toString();
-        var policyResult = policyService.evaluateRequest(consumerConnectorId, correlationId, verificationResult.token(), policy);
+        var policyResult = policyService.evaluateRequest(consumerConnectorId, correlationId, verificationResult.getContent(), policy);
 
         if (!policyResult.valid()) {
             monitor.info("Policy evaluation failed");

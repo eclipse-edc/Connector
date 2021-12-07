@@ -15,8 +15,8 @@ package org.eclipse.dataspaceconnector.spi.contract.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Rule;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.function.BiFunction;
 
