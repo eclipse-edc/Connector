@@ -143,3 +143,6 @@ include(":samples:05-file-transfer-cloud:provider")
 include(":samples:05-file-transfer-cloud:api")
 include(":samples:05-file-transfer-cloud:data-seeder")
 include(":samples:05-file-transfer-cloud:transfer-file")
+
+include(":samples:04.1-file-transfer-listener:consumer")
+include(":samples:04.1-file-transfer-listener:listener")
