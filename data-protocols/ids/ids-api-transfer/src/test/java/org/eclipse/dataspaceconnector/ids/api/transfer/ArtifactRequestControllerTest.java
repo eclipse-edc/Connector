@@ -23,11 +23,12 @@ import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluationResult;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -70,7 +71,7 @@ public class ArtifactRequestControllerTest {
         manager = mock(TransferProcessManager.class);
 
         DapsService dapsService = niceMock(DapsService.class);
-        VerificationResult verificationResult = niceMock(VerificationResult.class);
+        Result<ClaimToken> verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
         AssetIndex assetIndex = niceMock(AssetIndex.class);
         Asset asset = niceMock(Asset.class);
         PolicyRegistry policyRegistry = niceMock(PolicyRegistry.class);
@@ -78,14 +79,13 @@ public class ArtifactRequestControllerTest {
         PolicyEvaluationResult policyEvaluationResult = niceMock(PolicyEvaluationResult.class);
 
         expect(dapsService.verifyAndConvertToken(anyString())).andReturn(verificationResult);
-        expect(verificationResult.valid()).andReturn(true);
         expect(assetIndex.findById(assetId)).andReturn(asset);
         expect(asset.getId()).andReturn(assetId);
         expect(policyRegistry.resolvePolicy(anyObject())).andReturn(niceMock(Policy.class));
         expect(policyEvaluationResult.valid()).andReturn(true);
         expect(policyService.evaluateRequest(same(consumerConnectorAddress), same(artifactMessageId), anyObject(), anyObject())).andReturn(policyEvaluationResult);
 
-        replay(dapsService, verificationResult, assetIndex, asset, policyRegistry, policyService, policyEvaluationResult);
+        replay(dapsService, assetIndex, asset, policyRegistry, policyService, policyEvaluationResult);
 
         controller = new ArtifactRequestController(dapsService, assetIndex, manager, policyService, policyRegistry, mock(Vault.class), mock(Monitor.class));
     }
@@ -103,7 +103,7 @@ public class ArtifactRequestControllerTest {
 
         // record
         Capture<DataRequest> requestCapture = newCapture();
-        expect(manager.initiateProviderRequest(capture(requestCapture))).andReturn(TransferInitiateResponse.Builder.newInstance().build()).times(1);
+        expect(manager.initiateProviderRequest(capture(requestCapture))).andReturn(TransferInitiateResult.success("processId")).times(1);
         replay(manager);
 
         // invoke

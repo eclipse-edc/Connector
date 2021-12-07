@@ -77,7 +77,7 @@ public class ConsumerApiController {
                 .build();
 
         var result = consumerNegotiationManager.initiate(contractOfferRequest);
-        if (result.failure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
+        if (result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             return Response.serverError().build();
         }
 

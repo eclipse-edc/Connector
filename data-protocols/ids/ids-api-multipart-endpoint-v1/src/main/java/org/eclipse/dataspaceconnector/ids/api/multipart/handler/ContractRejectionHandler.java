@@ -75,11 +75,11 @@ public class ContractRejectionHandler implements Handler {
         // abort negotiation process (one of them can handle this process by id)
         var token = verificationResult.getContent();
         var result = providerNegotiationManager.declined(token, String.valueOf(correlationId));
-        if (result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
+        if (result.failed() && result.getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             result = consumerNegotiationManager.declined(token, String.valueOf(correlationId));
         }
 
-        if (result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
+        if (result.failed() && result.getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             monitor.debug("ContractRejectionHandler: Could not process contract rejection");
             return createBadParametersErrorMultipartResponse(message);
         }

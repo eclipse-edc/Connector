@@ -22,9 +22,11 @@ import okhttp3.Request;
 import okio.Buffer;
 import org.easymock.Capture;
 import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -66,10 +68,10 @@ class DataRequestMessageSenderTest {
         httpClient = niceMock(OkHttpClient.class);
 
         IdentityService identityService = niceMock(IdentityService.class);
-        TokenResult tokenResult = niceMock(TokenResult.class);
-        expect(tokenResult.getToken()).andReturn(faker.lorem().characters());
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(faker.lorem().characters()).build();
+        Result<TokenRepresentation> tokenResult = Result.success(tokenRepresentation);
         expect(identityService.obtainClientCredentials(connectorId)).andReturn(tokenResult);
-        replay(identityService, tokenResult);
+        replay(identityService);
         sender = new DataRequestMessageSender(connectorId, identityService, niceMock(TransferProcessStore.class), EasyMock.mock(Vault.class), httpClient, mapper, niceMock(Monitor.class));
     }
 

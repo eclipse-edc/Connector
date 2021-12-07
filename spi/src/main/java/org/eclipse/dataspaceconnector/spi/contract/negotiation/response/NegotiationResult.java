@@ -33,6 +33,10 @@ public class NegotiationResult extends AbstractResult<ContractNegotiation, Statu
         super(contractNegotiation, failure);
     }
 
+    public Status getStatus() {
+        return getFailure().getStatus();
+    }
+
     public enum Status {
         /**
          * The operation completed successfully.
