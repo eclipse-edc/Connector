@@ -13,7 +13,6 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
@@ -57,7 +56,8 @@ public class ConsumerApiController {
                 .connectorAddress(connectorAddress) //the address of the provider connector
                 .protocol("ids-rest") //must be ids-rest
                 .connectorId("consumer")
-                .assetId(Asset.Builder.newInstance().id(filename).policyId("use-eu").build().getId())
+                .contractId("1")
+                .assetId(filename)
                 .dataDestination(DataAddress.Builder.newInstance()
                         .type("File") //the provider uses this to select the correct DataFlowController
                         .property("path", destinationPath) //where we want the file to be stored

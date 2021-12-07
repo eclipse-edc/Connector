@@ -1,10 +1,16 @@
 # Implement a simple file transfer
 
-Now this is a big one:
+In this sample we will demonstrate a data transfer: we'll transmit a test file from one connector to another connector.
+We want to keep things simple, so we will run both connectors on the same physical machine (i.e. your development
+machine) and the file is transferred from one folder in the file system to another folder. It is not difficult to
+imagine that instead of the local file system, the transfer happens between more sophisticated storage locations, like a
+database or a cloud storage.
 
-- We'll create an additional connector, so that in the end we have two connectors, a consumer and a provider.
-- The connectors will communicate with each other using IDS messages, and the consumer will expose a REST API so that
-  external systems (e.g. users) can interact with them.
+This is quite a big step up from the previous sample, where we ran only one connector. Those are the concrete tasks:
+
+- create an additional connector, so that in the end we have two connectors, a consumer and a provider.
+- have both connectors communicate with each other using IDS messages
+- let the consumer expose a REST API so that external systems (e.g. users) can interact with it.
 - The consumer will initiate a file transfer and the provider will fulfill that request and copy a file to the desired
   location.
 - Both connectors will run locally on the development machine
@@ -29,6 +35,11 @@ improve [that controller](api/src/main/java/org/eclipse/dataspaceconnector/exten
 Again, like before, the controller is instantiated and registered in an extension which we aptly
 name `ApiEndpointExtension.java`.
 
+_Note: the EDC provides
+an [out-of-the-box implementation for such a control API](../../extensions/api/control/src/main/java/org/eclipse/dataspaceconnector/api/control/ClientController.java)
+. We intentionally do **not** use that here, because it requires a more complex JSON body, and we aim to keep it as
+simple as possible._
+
 ## Create the "provider" connector
 
 The provider is the one "owning" the data. That means, the consumer sends a request to the provider (over IDS), who then
@@ -37,36 +48,36 @@ so-called "catalog". For the sake of simplicity we use an in-memory catalog and 
 
 ```java
 // in FileTransferExtension.java
-    @Override
-    public void initialize(ServiceExtensionContext context){
+@Override
+public void initialize(ServiceExtensionContext context){
         // ...
         registerDataEntries(context);
         // ...
-    }
+        }
 
-    private void registerDataEntries(ServiceExtensionContext context) {
-        AssetLoader loader = context.getService(AssetLoader.class);
-        String assetPathSetting = context.getSetting(EDC_ASSET_PATH, "/tmp/provider/test-document.txt");
-        Path assetPath = Path.of(assetPathSetting);
+private void registerDataEntries(ServiceExtensionContext context){
+        AssetLoader loader=context.getService(AssetLoader.class);
+        String assetPathSetting=context.getSetting(EDC_ASSET_PATH,"/tmp/provider/test-document.txt");
+        Path assetPath=Path.of(assetPathSetting);
 
-        DataAddress dataAddress = DataAddress.Builder.newInstance()
-                .property("type", "File")
-                .property("path", assetPath.getParent().toString())
-                .property("filename", assetPath.getFileName().toString())
-                .build();
+        DataAddress dataAddress=DataAddress.Builder.newInstance()
+        .property("type","File")
+        .property("path",assetPath.getParent().toString())
+        .property("filename",assetPath.getFileName().toString())
+        .build();
 
-        String assetId = "test-document";
-        Asset asset = Asset.Builder.newInstance().id(assetId).policyId(USE_EU_POLICY).build();
+        String assetId="test-document";
+        Asset asset=Asset.Builder.newInstance().id(assetId).policyId(USE_EU_POLICY).build();
 
-        loader.accept(asset, dataAddress);
-    }
+        loader.accept(asset,dataAddress);
+        }
 ```
 
-This adds an `Asset` to the `AssetIndex` and the relative `DataAddress` to the `DataAddressResolver` through the 
-`AssetLoader`. Or, in other words, your provider now "hosts" one file named `test-documents.txt` located in the path 
-configured by the setting `edc.asset.path` on your development machine. It makes it available for transfer under 
-its `id` `"test-document"`. While it makes sense to have some sort of similarity between file name and id, it is by 
-no means mandatory.
+This adds an `Asset` to the `AssetIndex` and the relative `DataAddress` to the `DataAddressResolver` through the
+`AssetLoader`. Or, in other words, your provider now "hosts" one file named `test-documents.txt` located in the path
+configured by the setting `edc.asset.path` on your development machine. It makes it available for transfer under
+its `id` `"test-document"`. While it makes sense to have some sort of similarity between file name and id, it is by no
+means mandatory.
 > **Please adjust this path in the provider's config file as necessary to match your local environment!**
 
 Please also note that the registering of Policies is omitted from this document for clarity.
