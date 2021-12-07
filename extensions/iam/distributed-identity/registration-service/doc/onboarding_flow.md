@@ -2,7 +2,9 @@
 
 - It is assumed that a DID is already in place and publicly available. The generation or deployment of a DID is not part
   of this flow.
-- The terms "connector" and "participant agent" are to be used interchangeably
+- The terms "connector" and "participant agent" are to be used interchangeably. Please note that both terms refer to a "
+  logical" connector - several replicas in a K8s cluster would share the same identity and thus count as one Participant
+  Agent.
 - `NewParticipant` in the diagram refers to the participant agent, which is to be onboarded in the dataspace
 - The flow presented here is _synchronous_, i.e. the verified claims are returned immediately
 - The registration service's public key is available through its DID
