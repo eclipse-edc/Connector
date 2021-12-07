@@ -294,14 +294,14 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 dispatcherRegistry.send(Void.class, dataRequest, process::getId);
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
-                if (ResponseStatus.ERROR_RETRY == response.failure().status()) {
+                if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
                     monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
                     process.transitionProvisioned();
                     transferProcessStore.update(process);
                     invokeForEach(l -> l.provisioned(process));
-                } else if (ResponseStatus.FATAL_ERROR == response.failure().status()) {
-                    monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailures())));
-                    process.transitionError(response.getFailures().stream().findFirst().orElse(""));
+                } else if (ResponseStatus.FATAL_ERROR == response.getFailure().status()) {
+                    monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
+                    process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
                     transferProcessStore.update(process);
                     invokeForEach(l -> l.error(process));
                 } else {

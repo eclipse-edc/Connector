@@ -19,7 +19,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.List;
 import javax.print.attribute.standard.RequestingUserName;
 
-public class Result<T> extends AbstractResult<T, GenericFailure> {
+public class Result<T> extends AbstractResult<T, Failure> {
 
     public static Result<Void> success() {
         return new Result<>(null, null);
@@ -30,14 +30,14 @@ public class Result<T> extends AbstractResult<T, GenericFailure> {
     }
 
     public static <T> Result<T> failure(String failure) {
-        return new Result<>(null, new GenericFailure(List.of(failure)));
+        return new Result<T>(null, new Failure(List.of(failure)));
     }
 
     public static <T> Result<T> failure(List<String> failures) {
-        return new Result<>(null, new GenericFailure(failures));
+        return new Result<T>(null, new Failure(failures));
     }
 
-    private Result(T content, GenericFailure failure) {
+    private Result(T content, Failure failure) {
         super(content, failure);
     }
 

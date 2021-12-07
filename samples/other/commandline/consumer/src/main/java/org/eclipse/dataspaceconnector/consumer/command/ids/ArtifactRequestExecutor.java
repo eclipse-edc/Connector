@@ -56,7 +56,7 @@ public class ArtifactRequestExecutor implements CommandExecutor {
         var result = identityService.obtainClientCredentials(connectorId);
 
         if (result.failed()) {
-            return Result.failure(result.getFailures());
+            return Result.failure(result.getFailureMessages());
         }
 
         DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(result.getContent().getToken()).build();

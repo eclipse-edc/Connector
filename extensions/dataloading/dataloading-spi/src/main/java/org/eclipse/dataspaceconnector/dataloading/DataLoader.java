@@ -49,7 +49,7 @@ public class DataLoader<T> {
         // throw exception if item does not pass all validations
         if (!failedValidations.isEmpty()) {
             String message = failedValidations.stream()
-                    .map(Result::getFailures)
+                    .map(Result::getFailureMessages)
                     .flatMap(Collection::stream)
                     .collect(Collectors.joining("; "));
             throw new ValidationException(message);
@@ -74,7 +74,7 @@ public class DataLoader<T> {
 
         var errorMessages = allValidationResults
                 .filter(Result::failed)
-                .map(Result::getFailures)
+                .map(Result::getFailureMessages)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
 

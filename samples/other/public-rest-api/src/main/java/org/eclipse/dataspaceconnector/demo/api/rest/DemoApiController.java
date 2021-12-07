@@ -75,7 +75,7 @@ public class DemoApiController {
         if (result.succeeded()) {
             return Response.ok(formatAsJson(result.getContent())).build();
         } else {
-            return Response.status(Response.Status.BAD_REQUEST).entity(result.failure().status().name()).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(result.getFailure().status().name()).build();
         }
     }
 

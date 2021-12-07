@@ -202,7 +202,7 @@ class ProviderContractNegotiationManagerImplTest {
         EasyMock.replay(token, contractOffer);
 
         var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
-        assertThat(result.failure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
+        assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
     }
 
     @Test
@@ -281,7 +281,7 @@ class ProviderContractNegotiationManagerImplTest {
         EasyMock.replay(token, contractAgreement);
 
         var result = negotiationManager.consumerApproved(token, "not a valid id", contractAgreement, "hash");
-        assertThat(result.failure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
+        assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
     }
 
     @Test

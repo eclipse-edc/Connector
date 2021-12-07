@@ -152,7 +152,7 @@ public class Oauth2ServiceImpl implements IdentityService {
             var errors = validationRules.stream()
                     .map(r -> r.checkRule(claimsSet, audience))
                     .filter(Result::failed)
-                    .map(Result::getFailures)
+                    .map(Result::getFailureMessages)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
 

@@ -21,20 +21,20 @@ public abstract class AbstractResult<T, F extends Failure> {
         return content;
     }
 
+    public F getFailure() {
+        return failure;
+    }
+
+    public List<String> getFailureMessages() {
+        Objects.requireNonNull(failure);
+        return failure.getMessages();
+    }
+
     public boolean succeeded() {
         return failure == null;
     }
 
     public boolean failed() {
         return !succeeded();
-    }
-
-    public List<String> getFailures() {
-        Objects.requireNonNull(failure);
-        return failure.getMessages();
-    }
-
-    public F failure() {
-        return failure;
     }
 }

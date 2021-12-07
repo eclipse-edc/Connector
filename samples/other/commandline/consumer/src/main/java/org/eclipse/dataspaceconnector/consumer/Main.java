@@ -91,7 +91,7 @@ public class Main {
             try {
                 Result<String> result = executor.execute(context);
                 if (result.failed()) {
-                    error(result.getFailures().stream().findFirst().orElse(""), terminal);
+                    error(result.getFailureMessages().stream().findFirst().orElse(""), terminal);
                 }
             } catch (Exception e) {
                 error(e, terminal);

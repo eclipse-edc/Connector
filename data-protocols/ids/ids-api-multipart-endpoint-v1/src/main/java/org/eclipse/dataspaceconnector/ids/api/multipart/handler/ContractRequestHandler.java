@@ -126,7 +126,7 @@ public class ContractRequestHandler implements Handler {
         Result<ContractOffer> result = transformerRegistry.transform(input, ContractOffer.class);
         if (result.failed()) {
             monitor.debug(String.format("Could not transform contract request: [%s]",
-                    String.join(", ", result.getFailures())));
+                    String.join(", ", result.getFailureMessages())));
             return createBadParametersErrorMultipartResponse(message);
         }
 

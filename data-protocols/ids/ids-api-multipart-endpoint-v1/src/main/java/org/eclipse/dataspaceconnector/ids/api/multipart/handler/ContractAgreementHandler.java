@@ -113,7 +113,7 @@ public class ContractAgreementHandler implements Handler {
         Result<ContractAgreement> result = transformerRegistry.transform(input, ContractAgreement.class);
         if (result.failed()) {
             monitor.debug(String.format("Could not transform contract agreement: [%s]",
-                    String.join(", ", result.getFailures())));
+                    String.join(", ", result.getFailureMessages())));
             return createBadParametersErrorMultipartResponse(message);
         }
 
@@ -122,7 +122,7 @@ public class ContractAgreementHandler implements Handler {
         var processId = message.getTransferContract();
         var negotiationResponse = negotiationManager.confirmed(verificationResult.getContent(),
                 String.valueOf(processId), agreement, null);
-        if (negotiationResponse.failure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
+        if (negotiationResponse.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             monitor.debug("ContractAgreementHandler: Could not process contract agreement");
             return createBadParametersErrorMultipartResponse(message);
         }

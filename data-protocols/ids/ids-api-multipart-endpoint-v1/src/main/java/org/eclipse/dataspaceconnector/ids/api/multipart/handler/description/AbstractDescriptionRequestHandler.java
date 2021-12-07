@@ -71,7 +71,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
             monitor.warning(
                     String.format(
                             "Could not transform URI to IdsId: [%s]",
-                            String.join(", ", result.getFailures())
+                            String.join(", ", result.getFailureMessages())
                     )
             );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
@@ -94,7 +94,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                             "Could not transform %s to %S: [%s]",
                             retrievedObject.getClass().getSimpleName(),
                             resultType.getSimpleName(),
-                            String.join(", ", transformResult.getFailures())
+                            String.join(", ", transformResult.getFailureMessages())
                     )
             );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);

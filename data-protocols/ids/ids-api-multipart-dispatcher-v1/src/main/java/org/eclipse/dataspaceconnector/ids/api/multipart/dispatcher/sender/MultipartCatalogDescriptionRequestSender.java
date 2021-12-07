@@ -127,7 +127,7 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         Result<Catalog> transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
 
         if (transformResult.failed()) {
-            throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getFailures())));
+            throw new EdcException(String.format("Could not transform ids data catalog: %s", String.join(", ", transformResult.getFailureMessages())));
         }
 
         return transformResult.getContent();

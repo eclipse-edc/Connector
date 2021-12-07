@@ -70,7 +70,7 @@ public class ConnectorDescriptionRequestHandler implements DescriptionRequestHan
             monitor.warning(
                     String.format(
                             "Could not transform Connector: [%s]",
-                            String.join(", ", transformResult.getFailures())
+                            String.join(", ", transformResult.getFailureMessages())
                     )
             );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);

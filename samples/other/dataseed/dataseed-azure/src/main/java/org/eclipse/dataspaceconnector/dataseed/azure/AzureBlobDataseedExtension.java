@@ -67,7 +67,7 @@ public class AzureBlobDataseedExtension implements ServiceExtension {
         if (vaultResponse.succeeded()) {
             monitor.info("Azure DataSeed: new temporary SAS token stored for " + AzureBlobDataseedExtension.CONTAINER_NAME);
         } else {
-            monitor.severe("Azure DataSeed: error when storing temporary SAS token: " + String.join(", ", vaultResponse.getFailures()));
+            monitor.severe("Azure DataSeed: error when storing temporary SAS token: " + String.join(", ", vaultResponse.getFailureMessages()));
         }
     }
 

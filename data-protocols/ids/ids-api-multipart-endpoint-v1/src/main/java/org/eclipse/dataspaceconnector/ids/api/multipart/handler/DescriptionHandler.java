@@ -105,7 +105,7 @@ public class DescriptionHandler implements Handler {
                 monitor.warning(
                         String.format(
                                 "Could not transform URI to IdsId: [%s]",
-                                String.join(", ", result.getFailures())
+                                String.join(", ", result.getFailureMessages())
                         )
                 );
                 return createBadParametersErrorMultipartResponse(descriptionRequestMessage);

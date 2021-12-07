@@ -62,7 +62,7 @@ class Oauth2ServiceImplTest {
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).isNotEmpty();
+        assertThat(result.getFailureMessages()).isNotEmpty();
     }
 
     @Test
@@ -71,7 +71,7 @@ class Oauth2ServiceImplTest {
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).isNotEmpty();
+        assertThat(result.getFailureMessages()).isNotEmpty();
     }
 
     @Test
@@ -80,7 +80,7 @@ class Oauth2ServiceImplTest {
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).isNotEmpty();
+        assertThat(result.getFailureMessages()).isNotEmpty();
     }
 
     @Test
@@ -89,7 +89,7 @@ class Oauth2ServiceImplTest {
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).isNotEmpty();
+        assertThat(result.getFailureMessages()).isNotEmpty();
     }
 
     @Test

@@ -144,7 +144,7 @@ public class ArtifactRequestController {
             ArtifactResponseMessageBuilder messageBuilder = new ArtifactResponseMessageBuilder();
             return Response.ok().entity(messageBuilder.build()).build();
         } else {
-            if (response.failure().status() == ResponseStatus.FATAL_ERROR) {
+            if (response.getFailure().status() == ResponseStatus.FATAL_ERROR) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(BAD_PARAMETERS).build()).build();
             } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new RejectionMessageBuilder()._rejectionReason_(TEMPORARILY_NOT_AVAILABLE).build()).build();

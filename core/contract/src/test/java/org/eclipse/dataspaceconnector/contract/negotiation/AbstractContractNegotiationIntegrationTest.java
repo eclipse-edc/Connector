@@ -178,7 +178,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 var request = (ContractOfferRequest) message;
                 consumerNegotiationId = request.getCorrelationId();
                 result = providerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
-                if (NegotiationResult.Status.FATAL_ERROR.equals(result.failure().getStatus())) {
+                if (NegotiationResult.Status.FATAL_ERROR.equals(result.getFailure().getStatus())) {
                     result = providerManager.requested(token, request);
                 }
             } else if (message instanceof ContractAgreementRequest) {

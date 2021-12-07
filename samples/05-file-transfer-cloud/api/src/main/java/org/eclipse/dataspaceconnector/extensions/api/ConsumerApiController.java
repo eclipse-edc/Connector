@@ -55,7 +55,7 @@ public class ConsumerApiController {
         if (result.succeeded()) {
             return Response.ok(result.getContent()).build();
         } else {
-            return Response.status(Response.Status.BAD_REQUEST).entity(result.failure().status()).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(result.getFailure().status()).build();
         }
     }
 

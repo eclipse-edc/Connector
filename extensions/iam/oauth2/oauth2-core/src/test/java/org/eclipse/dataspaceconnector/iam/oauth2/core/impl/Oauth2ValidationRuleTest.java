@@ -27,7 +27,7 @@ class Oauth2ValidationRuleTest {
         var result = rule.checkRule(claims, TEST_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).hasSize(1)
+        assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Token is not valid yet");
     }
 
@@ -41,7 +41,7 @@ class Oauth2ValidationRuleTest {
         var result = rule.checkRule(claims, TEST_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).hasSize(1)
+        assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Missing notBefore time in token claims");
     }
 
@@ -56,7 +56,7 @@ class Oauth2ValidationRuleTest {
         var result = rule.checkRule(claims, TEST_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).hasSize(1)
+        assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Token has expired");
     }
 
@@ -70,7 +70,7 @@ class Oauth2ValidationRuleTest {
         var result = rule.checkRule(claims, TEST_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).hasSize(1)
+        assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Missing expiration time in token claims");
     }
 
@@ -85,7 +85,7 @@ class Oauth2ValidationRuleTest {
         var result = rule.checkRule(claims, TEST_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).hasSize(1)
+        assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Token audience did not match required audience: test-audience");
     }
 
@@ -99,7 +99,7 @@ class Oauth2ValidationRuleTest {
         var result = rule.checkRule(claims, TEST_AUDIENCE);
 
         assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailures()).hasSize(1)
+        assertThat(result.getFailureMessages()).hasSize(1)
                 .contains("Missing audience in token claims");
     }
 

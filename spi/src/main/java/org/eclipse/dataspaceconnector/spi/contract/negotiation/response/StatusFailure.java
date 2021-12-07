@@ -5,16 +5,14 @@ import org.eclipse.dataspaceconnector.spi.result.Failure;
 import java.util.Collections;
 import java.util.List;
 
-public class StatusFailure implements Failure {
+import static java.util.Collections.emptyList;
+
+public class StatusFailure extends Failure {
     private final NegotiationResult.Status status;
 
     public StatusFailure(NegotiationResult.Status status) {
+        super(emptyList());
         this.status = status;
-    }
-
-    @Override
-    public List<String> getMessages() {
-        return Collections.emptyList();
     }
 
     public NegotiationResult.Status getStatus() {
