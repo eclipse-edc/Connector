@@ -20,7 +20,6 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweWriter;
-import org.eclipse.dataspaceconnector.iam.did.spi.hub.ClientResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQuery;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.CommitQueryRequest;
@@ -31,6 +30,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRespons
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.Result;
 
 import java.io.IOException;
 import java.util.Map;
@@ -51,7 +51,7 @@ public class IdentityHubClientImpl implements IdentityHubClient {
     }
 
     @Override
-    public ClientResponse<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String baseHubUrl, PublicKeyWrapper publicKey) {
+    public Result<Map<String, Object>> queryCredentials(ObjectQueryRequest query, String baseHubUrl, PublicKeyWrapper publicKey) {
         var privateKey = privateKeySupplier.get();
         var objectRequestJwe = new GenericJweWriter()
                 .privateKey(privateKey)
@@ -63,7 +63,7 @@ public class IdentityHubClientImpl implements IdentityHubClient {
         var objectQueryResponse = executeQuery(ObjectQueryResponse.class, objectRequestJwe, baseHubUrl + "query-objects");
 
         if (objectQueryResponse.getObjects().isEmpty()) {
-            return new ClientResponse<>("No credential entries found");
+            return Result.failure("No credential entries found");
         }
 
         var hubObject = objectQueryResponse.getObjects().get(0);
@@ -85,11 +85,11 @@ public class IdentityHubClientImpl implements IdentityHubClient {
         var commitQueryResponse = executeQuery(CommitQueryResponse.class, commitRequestJwe, baseHubUrl + "query-commits");
 
         if (commitQueryResponse.getCommits().isEmpty()) {
-            return new ClientResponse<>("No credential commits found");
+            return Result.failure("No credential commits found");
         }
 
         var commit = commitQueryResponse.getCommits().get(0);
-        return new ClientResponse<>((Map<String, Object>) commit.getPayload());
+        return Result.success((Map<String, Object>) commit.getPayload());
 
     }
 
