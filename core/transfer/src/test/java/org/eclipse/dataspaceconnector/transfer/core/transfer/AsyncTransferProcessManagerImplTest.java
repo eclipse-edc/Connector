@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
@@ -28,42 +27,39 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
-
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.createNiceMock;
-import static org.easymock.EasyMock.niceMock;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 class AsyncTransferProcessManagerImplTest {
 
-
     private AsyncTransferProcessManager manager;
     private TransferProcessStore store;
 
-
     @BeforeEach
     void setup() {
-        store = EasyMock.createMock(TransferProcessStore.class);
+        store = mock(TransferProcessStore.class);
 
-        EasyMock.expect(store.processIdForTransferId("1")).andReturn(null);  // first invoke returns no as there is no store process
+        when(store.processIdForTransferId("1"))
+                .thenReturn(null) // first invoke returns no as there is no store process
+                .thenReturn("2");
 
-        store.create(EasyMock.isA(TransferProcess.class)); // store should only be called once
-        EasyMock.expectLastCall();
-
-        EasyMock.expect(store.processIdForTransferId("1")).andReturn("2");
-
-        EasyMock.expect(store.nextForState(EasyMock.anyInt(), EasyMock.anyInt())).andReturn(Collections.emptyList()).anyTimes();
-
-        EasyMock.replay(store);
+        when(store.nextForState(anyInt(), anyInt())).thenReturn(emptyList());
 
         manager = AsyncTransferProcessManager.Builder.newInstance()
-                .dispatcherRegistry(createNiceMock(RemoteMessageDispatcherRegistry.class))
-                .provisionManager(createNiceMock(ProvisionManager.class))
-                .dataFlowManager(createNiceMock(DataFlowManager.class))
-                .monitor(createNiceMock(Monitor.class))
-                .statusCheckerRegistry(niceMock(StatusCheckerRegistry.class))
-                .manifestGenerator(createNiceMock(ResourceManifestGenerator.class)).build();
+                .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
+                .provisionManager(mock(ProvisionManager.class))
+                .dataFlowManager(mock(DataFlowManager.class))
+                .monitor(mock(Monitor.class))
+                .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
+                .manifestGenerator(mock(ResourceManifestGenerator.class)).build();
+
         manager.start(store);
     }
 
@@ -79,7 +75,7 @@ class AsyncTransferProcessManagerImplTest {
         // repeat request
         manager.initiateProviderRequest(dataRequest);
         manager.stop();
-        EasyMock.verify(store); // verify the process was only stored once
+        verify(store, times(1)).create(isA(TransferProcess.class));
     }
 
     @Test
@@ -118,7 +114,6 @@ class AsyncTransferProcessManagerImplTest {
 
         assertThat(manager.getListeners()).doesNotContain(listener);
     }
-
 
     @Test
     void unregisterListener_listenerNotRegistered() {
