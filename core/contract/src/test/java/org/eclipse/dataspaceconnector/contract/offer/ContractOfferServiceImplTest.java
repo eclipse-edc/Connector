@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.contract.offer;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
@@ -35,9 +34,9 @@ import java.util.stream.Stream;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.easymock.EasyMock.mock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ContractOfferServiceImplTest {
 
@@ -57,8 +56,6 @@ class ContractOfferServiceImplTest {
 
     @Test
     void testConstructorNullParametersThrowingIllegalArgumentException() {
-        replay(contractDefinitionService, assetIndex);
-
         // just eval all constructor parameters are mandatory and lead to NPE
         assertThatThrownBy(() -> new ContractOfferServiceImpl(null, contractDefinitionService, assetIndex))
                 .isInstanceOf(NullPointerException.class);
@@ -68,10 +65,7 @@ class ContractOfferServiceImplTest {
                 .isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> new ContractOfferServiceImpl(agentService, null, null))
                 .isInstanceOf(NullPointerException.class);
-
-        verify(contractDefinitionService, assetIndex);
     }
-
 
     @Test
     void testFullFlow() {
@@ -82,19 +76,13 @@ class ContractOfferServiceImplTest {
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
-        EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-        EasyMock.expect(contractDefinitionService.definitionsFor(EasyMock.isA(ParticipantAgent.class))).andReturn(Stream.of(contractDefinition));
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(contractDefinitionService.definitionsFor(isA(ParticipantAgent.class))).thenReturn(Stream.of(contractDefinition));
         var assetStream = Stream.of(Asset.Builder.newInstance().build(), Asset.Builder.newInstance().build());
-        EasyMock.expect(assetIndex.queryAssets(EasyMock.isA(AssetSelectorExpression.class))).andReturn(assetStream);
-
-        EasyMock.replay(agentService, contractDefinitionService, assetIndex);
+        when(assetIndex.queryAssets(isA(AssetSelectorExpression.class))).thenReturn(assetStream);
 
         ContractOfferQuery query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
 
-        // collect() instead of count() forces iteration
-        //noinspection SimplifyStreamApiCallChains
-        assertThat((int) contractOfferService.queryContractOffers(query).collect(Collectors.toList()).size()).isEqualTo(2);
-
-        EasyMock.verify(contractDefinitionService, assetIndex);
+        assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
     }
 }

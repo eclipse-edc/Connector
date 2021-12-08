@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.contract.validation;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
@@ -20,8 +19,14 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Stream;
 
+import static java.time.Instant.MAX;
+import static java.time.Instant.MIN;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ContractValidationServiceImplTest {
     private ContractValidationServiceImpl validationService;
@@ -31,7 +36,7 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractOfferValidation() {
-        EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
 
         var originalPolicy = Policy.Builder.newInstance().build();
 
@@ -46,12 +51,11 @@ class ContractValidationServiceImplTest {
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
-        EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(contractDefinition);
+        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
 
         //noinspection unchecked
-        EasyMock.expect(assetIndex.queryAssets(EasyMock.isA(List.class))).andReturn(Stream.of(asset));
+        when(assetIndex.queryAssets(isA(List.class))).thenReturn(Stream.of(asset));
 
-        EasyMock.replay(agentService, definitionService, assetIndex);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var offer = ContractOffer.Builder.newInstance().asset(asset).policy(originalPolicy).id("1:2").build();
@@ -61,15 +65,12 @@ class ContractValidationServiceImplTest {
         assertThat(result.getContent()).isNotNull();
         assertThat(result.getContent().getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
 
-        EasyMock.verify(agentService, definitionService, assetIndex);
     }
 
     @Test
     void verifyContractAgreementValidation() {
-        EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         var originalPolicy = Policy.Builder.newInstance().build();
-
         var newPolicy = Policy.Builder.newInstance().build();
 
         var contractDefinition = ContractDefinition.Builder.newInstance()
@@ -79,9 +80,7 @@ class ContractValidationServiceImplTest {
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
-        EasyMock.expect(definitionService.definitionFor(EasyMock.isA(ParticipantAgent.class), EasyMock.eq("1"))).andReturn(contractDefinition);
-
-        EasyMock.replay(agentService, definitionService, assetIndex);
+        when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")
@@ -95,41 +94,35 @@ class ContractValidationServiceImplTest {
                 .id("1:2").build();
 
         assertThat(validationService.validate(claimToken, agreement)).isTrue();
-        EasyMock.verify(agentService, definitionService, assetIndex);
     }
 
     @Test
     void verifyContractAgreementExpired() {
         var isValid =
-                validateAgreementDate(Instant.MIN.getEpochSecond(), Instant.MIN.getEpochSecond(), Instant.now().getEpochSecond() - 1);
+                validateAgreementDate(MIN.getEpochSecond(), MIN.getEpochSecond(), Instant.now().getEpochSecond() - 1);
 
         assertThat(isValid).isFalse();
-        EasyMock.verify(agentService, definitionService, assetIndex);
     }
 
     @Test
     void verifyContractAgreementNotStartedYet() {
-        var isValid =
-                validateAgreementDate(Instant.MIN.getEpochSecond(), Instant.MAX.getEpochSecond(), Instant.MAX.getEpochSecond());
+        var isValid = validateAgreementDate(MIN.getEpochSecond(), MAX.getEpochSecond(), MAX.getEpochSecond());
 
         assertThat(isValid).isFalse();
-        EasyMock.verify(agentService, definitionService, assetIndex);
     }
 
     @BeforeEach
     void setUp() {
-        agentService = EasyMock.createMock(ParticipantAgentService.class);
-        definitionService = EasyMock.createMock(ContractDefinitionService.class);
-        assetIndex = EasyMock.createMock(AssetIndex.class);
+        agentService = mock(ParticipantAgentService.class);
+        definitionService = mock(ContractDefinitionService.class);
+        assetIndex = mock(AssetIndex.class);
         validationService = new ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
     }
 
     private boolean validateAgreementDate(long signingDate, long startDate, long endDate) {
-        EasyMock.expect(agentService.createFor(EasyMock.isA(ClaimToken.class))).andReturn(new ParticipantAgent(emptyMap(), emptyMap()));
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
 
         var originalPolicy = Policy.Builder.newInstance().build();
-
-        EasyMock.replay(agentService, definitionService, assetIndex);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var agreement = ContractAgreement.Builder.newInstance().id("1")

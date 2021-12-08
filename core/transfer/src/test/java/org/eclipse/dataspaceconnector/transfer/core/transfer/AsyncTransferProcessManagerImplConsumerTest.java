@@ -65,7 +65,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private StatusCheckerRegistry statusCheckerRegistry;
-    private ExponentialWaitStrategy waitStrategyMock;
 
     @BeforeEach
     void setup() {
@@ -76,7 +75,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
         when(manifestGenerator.generateConsumerManifest(any(TransferProcess.class))).thenReturn(new ResourceManifest());
 
         statusCheckerRegistry = mock(StatusCheckerRegistry.class);
-        waitStrategyMock = mock(ExponentialWaitStrategy.class);
+        var waitStrategyMock = mock(ExponentialWaitStrategy.class);
 
         transferProcessManager = AsyncTransferProcessManager.Builder.newInstance()
                 .provisionManager(provisionManager)
