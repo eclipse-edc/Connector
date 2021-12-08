@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.system;
 
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.easymock.MockType;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -25,15 +24,14 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.mock;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CoreServicesExtensionTest {
 
@@ -56,25 +54,18 @@ class CoreServicesExtensionTest {
 
     @Test
     void initialize() {
-        ServiceExtensionContext context = mock(MockType.STRICT, ServiceExtensionContext.class);
-
-        context.registerService(eq(OkHttpClient.class), isA(OkHttpClient.class));
-        expectLastCall().times(1);
-
-        expect(context.getSetting(eq("edc.core.retry.retries.max"), anyString())).andReturn("3");
-        expect(context.getSetting(eq("edc.core.retry.backoff.min"), anyString())).andReturn("500");
-        expect(context.getSetting(eq("edc.core.retry.backoff.max"), anyString())).andReturn("10000");
-
-        context.registerService(eq(RetryPolicy.class), isA(RetryPolicy.class));
-        expectLastCall().times(1);
-
-        expect(context.getService(Vault.class)).andReturn(niceMock(Vault.class)).anyTimes();
-        expect(context.getService(eq(PrivateKeyResolver.class))).andReturn(niceMock(PrivateKeyResolver.class));
-
-        replay(context);
+        ServiceExtensionContext context = mock(ServiceExtensionContext.class);
+        when(context.getMonitor()).thenReturn(new Monitor() {});
+        when(context.getSetting(eq("edc.core.retry.retries.max"), anyString())).thenReturn("3");
+        when(context.getSetting(eq("edc.core.retry.backoff.min"), anyString())).thenReturn("500");
+        when(context.getSetting(eq("edc.core.retry.backoff.max"), anyString())).thenReturn("10000");
+        doNothing().when(context).registerService(any(), any());
+        when(context.getService(Vault.class)).thenReturn(mock(Vault.class));
+        when(context.getService(eq(PrivateKeyResolver.class))).thenReturn(mock(PrivateKeyResolver.class));
 
         extension.initialize(context);
 
-        verify(context);
+        verify(context).registerService(eq(OkHttpClient.class), isA(OkHttpClient.class));
+        verify(context).registerService(eq(RetryPolicy.class), isA(RetryPolicy.class));
     }
 }

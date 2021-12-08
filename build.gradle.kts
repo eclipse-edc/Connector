@@ -25,8 +25,9 @@ repositories {
 val jetBrainsAnnotationsVersion: String by project
 val jacksonVersion: String by project
 val javaVersion: String by project
-
 val jupiterVersion: String by project
+val mockitoVersion: String by project
+
 val groupId: String = "org.eclipse.dataspaceconnector"
 var edcVersion: String = "0.0.1-SNAPSHOT"
 
@@ -86,6 +87,7 @@ allprojects {
             testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.easymock:easymock:4.2")
+            testImplementation("org.mockito:mockito-core:${mockitoVersion}")
             testImplementation("org.assertj:assertj-core:3.19.0")
             testImplementation("com.github.javafaker:javafaker:1.0.2")
         }
