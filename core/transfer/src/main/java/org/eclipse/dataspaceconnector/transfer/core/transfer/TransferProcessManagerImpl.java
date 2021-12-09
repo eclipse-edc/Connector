@@ -198,12 +198,12 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 } else {
                     process.transitionStreaming();
                 }
+                transferProcessStore.update(process);
                 invokeForEach(l -> l.inProgress(process));
                 monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             } else {
                 monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
             }
-            transferProcessStore.update(process);
         }
 
         return requestAcked.size();
@@ -241,7 +241,6 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                     transitionToCompleted(process);
                 }
             }
-            transferProcessStore.update(process);
         }
         return processesInProgress.size();
     }
@@ -249,6 +248,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private void transitionToCompleted(TransferProcess process) {
         process.transitionCompleted();
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
+        transferProcessStore.update(process);
         invokeForEach(listener -> listener.completed(process));
     }
 
@@ -297,10 +297,12 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 if (ResponseStatus.ERROR_RETRY == response.getStatus()) {
                     monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
                     process.transitionProvisioned();
+                    transferProcessStore.update(process);
                     invokeForEach(l -> l.provisioned(process));
                 } else if (ResponseStatus.FATAL_ERROR == response.getStatus()) {
                     monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), response.getError()));
                     process.transitionError(response.getError());
+                    transferProcessStore.update(process);
                     invokeForEach(l -> l.error(process));
                 } else {
                     if (process.getDataRequest().getTransferType().isFinite()) {
@@ -308,10 +310,10 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                     } else {
                         process.transitionStreaming();
                     }
+                    transferProcessStore.update(process);
                     invokeForEach(l -> l.inProgress(process));
                 }
             }
-            transferProcessStore.update(process);
         }
         return processes.size();
     }

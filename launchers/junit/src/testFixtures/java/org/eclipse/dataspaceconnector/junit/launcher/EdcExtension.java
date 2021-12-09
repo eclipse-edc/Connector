@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.junit.launcher;
 import okhttp3.Interceptor;
 import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.SystemExtension;
@@ -47,6 +48,7 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
     private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
     private List<ServiceExtension> runningServiceExtensions;
     private DefaultServiceExtensionContext context;
+    private Monitor monitor;
 
     /**
      * Registers a mock service with the runtime.
@@ -72,7 +74,7 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
     public void beforeTestExecution(ExtensionContext extensionContext) {
         var typeManager = new TypeManager();
 
-        var monitor = ExtensionLoader.loadMonitor();
+        monitor = ExtensionLoader.loadMonitor();
 
         MonitorProvider.setInstance(monitor);
 
@@ -99,7 +101,9 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
         if (runningServiceExtensions != null) {
             var iter = runningServiceExtensions.listIterator(runningServiceExtensions.size());
             while (iter.hasPrevious()) {
-                iter.previous().shutdown();
+                ServiceExtension extension = iter.previous();
+                extension.shutdown();
+                monitor.info("Shutdown " + extension);
             }
         }
 

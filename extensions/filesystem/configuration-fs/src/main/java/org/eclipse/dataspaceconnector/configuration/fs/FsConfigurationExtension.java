@@ -57,6 +57,11 @@ public class FsConfigurationExtension implements ConfigurationExtension {
     }
 
     @Override
+    public String name() {
+        return "FS Configuration";
+    }
+
+    @Override
     public void initialize(Monitor monitor) {
         var configPath = configFile != null ? configFile : Paths.get(FsConfigurationExtension.CONFIG_LOCATION);
         if (!Files.exists(configPath)) {
@@ -73,8 +78,6 @@ public class FsConfigurationExtension implements ConfigurationExtension {
         } catch (IOException e) {
             throw new EdcException(e);
         }
-
-        monitor.info("Initialized FS Configuration extension");
     }
 
     @Override

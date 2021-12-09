@@ -21,16 +21,19 @@ public class CloudTransferExtension implements ServiceExtension {
     public static final String USE_EU_POLICY = "use-eu";
 
     @Override
+    public String name() {
+        return "Cloud-Based Transfer";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
         var dataAddressResolver = context.getService(DataAddressResolver.class);
         var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager(), dataAddressResolver);
         dataFlowMgr.register(flowController);
 
-
         registerDataEntries(context);
         savePolicies(context);
-        context.getMonitor().info("Initialized cloud-based transfer extension");
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {

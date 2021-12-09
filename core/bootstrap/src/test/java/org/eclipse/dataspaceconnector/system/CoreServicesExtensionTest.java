@@ -58,9 +58,6 @@ class CoreServicesExtensionTest {
     void initialize() {
         ServiceExtensionContext context = mock(MockType.STRICT, ServiceExtensionContext.class);
 
-        expect(context.getMonitor()).andReturn(new Monitor() {
-        });
-
         context.registerService(eq(OkHttpClient.class), isA(OkHttpClient.class));
         expectLastCall().times(1);
 

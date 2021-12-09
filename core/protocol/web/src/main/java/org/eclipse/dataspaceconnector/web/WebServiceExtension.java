@@ -32,9 +32,13 @@ import static org.eclipse.dataspaceconnector.spi.system.ServiceExtension.LoadPha
  * TODO create keystore to support HTTPS
  */
 public class WebServiceExtension implements ServiceExtension {
-    private Monitor monitor;
     private JettyService jettyService;
     private JerseyRestService jerseyRestService;
+
+    @Override
+    public String name() {
+        return "Web Service";
+    }
 
     @Override
     public Set<String> provides() {
@@ -48,7 +52,7 @@ public class WebServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
+        var monitor = context.getMonitor();
         TypeManager typeManager = context.getTypeManager();
 
         jettyService = new JettyService(context::getSetting, monitor);
@@ -57,15 +61,12 @@ public class WebServiceExtension implements ServiceExtension {
         jerseyRestService = new JerseyRestService(jettyService, typeManager, monitor);
 
         context.registerService(WebService.class, jerseyRestService);
-
-        monitor.info("Initialized Web extension");
     }
 
     @Override
     public void start() {
         jerseyRestService.start();
         jettyService.start();
-        monitor.info("Started Web extension");
     }
 
     @Override
@@ -73,7 +74,6 @@ public class WebServiceExtension implements ServiceExtension {
         if (jettyService != null) {
             jettyService.shutdown();
         }
-        monitor.info("Shutdown Web extension");
     }
 
 

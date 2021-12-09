@@ -23,6 +23,11 @@ import java.util.Set;
 public class InMemoryPolicyRegistryExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "In-Memory Policy Registry";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(PolicyRegistry.FEATURE);
     }
@@ -30,7 +35,6 @@ public class InMemoryPolicyRegistryExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(PolicyRegistry.class, new InMemoryPolicyRegistry());
-        context.getMonitor().info("Initialized In-Memory Policy Registry extension");
     }
 
 }

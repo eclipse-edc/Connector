@@ -52,7 +52,9 @@ public class RegistrationServiceRuntime {
     private static void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
         ListIterator<ServiceExtension> iter = serviceExtensions.listIterator(serviceExtensions.size());
         while (iter.hasPrevious()) {
-            iter.previous().shutdown();
+            var extension = iter.previous();
+            extension.shutdown();
+            monitor.info("Shutdown " + extension);
         }
         monitor.info("Registry Service App shutdown complete");
     }

@@ -29,14 +29,15 @@ public class SingletonVaultExtension implements VaultExtension {
     private Vault vault;
 
     @Override
-    public void intializeVault(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
+    public String name() {
+        return "Singleton Vault";
+    }
 
+    @Override
+    public void intializeVault(ServiceExtensionContext context) {
         String secret = context.getSetting(CREDS, "default-secret");
 
         vault = new SingletonVault(secret);
-
-        monitor.info("Initialized Singleton Vault extension");
     }
 
     @Override

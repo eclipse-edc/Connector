@@ -27,7 +27,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 public interface IdsPolicyService {
 
     /**
-     * Evaluates a request made by a client for an artifact.
+     * Evaluates a request made by a consumer for an artifact.
      *
      * @param consumerConnectorId the id of the connector making the request
      * @param correlationId       an identifier that can be used to retrieve additional information about the request such as a pre-payment or pre-authorization receipt

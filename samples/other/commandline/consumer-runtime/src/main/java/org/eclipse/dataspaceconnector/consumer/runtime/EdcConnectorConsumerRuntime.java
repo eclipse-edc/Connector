@@ -57,7 +57,9 @@ public class EdcConnectorConsumerRuntime {
     public void shutdown() {
         ListIterator<ServiceExtension> iter = serviceExtensions.listIterator(serviceExtensions.size());
         while (iter.hasPrevious()) {
-            iter.previous().shutdown();
+            ServiceExtension extension = iter.previous();
+            extension.shutdown();
+            monitor.info("Shutdown " + extension);
         }
         monitor.debug("Consumer runtime shutdown complete");
     }

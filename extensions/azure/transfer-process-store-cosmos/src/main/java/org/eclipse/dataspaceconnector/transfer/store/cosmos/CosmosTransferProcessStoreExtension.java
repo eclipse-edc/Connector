@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -30,10 +29,11 @@ import java.util.Set;
  * Provides an in-memory implementation of the {@link org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore} for testing.
  */
 public class CosmosTransferProcessStoreExtension implements ServiceExtension {
-
-    private static final String NAME = "Cosmos Transfer Process Store";
-
-    private Monitor monitor;
+    
+    @Override
+    public String name() {
+        return "Cosmos Transfer Process Store";
+    }
 
     @Override
     public Set<String> provides() {
@@ -47,8 +47,8 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-        monitor.info(String.format("Initializing %s extension...", NAME));
+        var monitor = context.getMonitor();
+
 
         var vault = context.getService(Vault.class);
         var connectorId = context.getConnectorId();
@@ -60,17 +60,6 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(cosmosDbApi, context.getTypeManager(), configuration.getPartitionKey(), connectorId, retryPolicy));
 
         context.getTypeManager().registerTypes(TransferProcessDocument.class);
-        monitor.info(String.format("Initialized %s extension", NAME));
-    }
-
-    @Override
-    public void start() {
-        monitor.info(String.format("Started Initialized %s extension", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdown Initialized %s extension", NAME));
     }
 }
 

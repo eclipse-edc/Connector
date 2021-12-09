@@ -153,7 +153,10 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public void initialize() {
         configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
-        configurationExtensions.forEach(ext -> ext.initialize(monitor));
+        configurationExtensions.forEach(ext -> {
+            ext.initialize(monitor);
+            monitor.info("Initialized " + ext.name());
+        });
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
     }
 

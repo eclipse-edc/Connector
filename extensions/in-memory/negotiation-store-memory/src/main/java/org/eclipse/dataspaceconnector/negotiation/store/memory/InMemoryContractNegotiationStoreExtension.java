@@ -26,28 +26,20 @@ import java.util.Set;
  * Provides an in-memory implementation of the {@link ContractNegotiationStore} for testing.
  */
 public class InMemoryContractNegotiationStoreExtension implements ServiceExtension {
-    private Monitor monitor;
+
+    @Override
+    public String name() {
+        return "In-Memory Contract Negotiation Store";
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(ContractNegotiationStore.class, new InMemoryContractNegotiationStore());
-        monitor = context.getMonitor();
-        monitor.info("Initialized In-Memory Contract Negotiation Store extension");
     }
 
     @Override
     public Set<String> provides() {
         return Set.of(ContractNegotiationStore.FEATURE);
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started Initialized In-Memory Contract Negotiation Store extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown Initialized In-Memory Contract Negotiation Store extension");
     }
 
 }

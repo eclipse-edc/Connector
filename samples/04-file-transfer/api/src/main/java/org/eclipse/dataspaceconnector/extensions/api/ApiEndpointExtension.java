@@ -10,6 +10,11 @@ import java.util.Set;
 public class ApiEndpointExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "API Endpoint";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:webservice");
     }

@@ -44,6 +44,11 @@ public class DemoExtension implements ServiceExtension {
     private ServiceExtensionContext context;
 
     @Override
+    public String name() {
+        return "AWS Demo";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         this.context = context;
         monitor = context.getMonitor();
@@ -59,7 +64,6 @@ public class DemoExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        monitor.info("Started AWS Demo extension");
         loadDataEntries();
         generateDemoPolicies();
     }

@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.ids.api.transfer;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -31,7 +30,11 @@ import java.util.Set;
  * Implements the IDS Controller REST API for data transfer services.
  */
 public class IdsTransferApiServiceExtension implements ServiceExtension {
-    private Monitor monitor;
+
+    @Override
+    public String name() {
+        return "IDS Transfer API";
+    }
 
     @Override
     public Set<String> requires() {
@@ -40,21 +43,7 @@ public class IdsTransferApiServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         registerControllers(context);
-
-        monitor.info("Initialized IDS Transfer API extension");
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started IDS Transfer API extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown IDS Transfer API extension");
     }
 
     private void registerControllers(ServiceExtensionContext context) {

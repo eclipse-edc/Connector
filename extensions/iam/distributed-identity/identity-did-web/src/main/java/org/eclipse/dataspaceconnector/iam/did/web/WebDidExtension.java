@@ -32,6 +32,11 @@ import static org.eclipse.dataspaceconnector.iam.did.web.ConfigurationKeys.DNS_O
 public class WebDidExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "Web DID";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of(DidResolverRegistry.FEATURE);
     }
@@ -47,8 +52,6 @@ public class WebDidExtension implements ServiceExtension {
 
         var resolverRegistry = context.getService(DidResolverRegistry.class);
         resolverRegistry.register(resolver);
-
-        monitor.info("Initialized Web DID extension");
     }
 
     private OkHttpClient getOkHttpClient(ServiceExtensionContext context) {
