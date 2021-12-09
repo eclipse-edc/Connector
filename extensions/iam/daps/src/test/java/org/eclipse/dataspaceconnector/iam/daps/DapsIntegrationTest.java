@@ -61,7 +61,6 @@ class DapsIntegrationTest {
     @BeforeEach
     protected void before(EdcExtension extension) {
         KeyStore clientKeystore = readKeystoreFromResources("keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
-
         extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) configuration::get);
         extension.registerServiceMock(Vault.class, new MockVault());
         extension.registerServiceMock(PrivateKeyResolver.class, new FsPrivateKeyResolver(CLIENT_KEYSTORE_PASSWORD, clientKeystore));
@@ -70,22 +69,22 @@ class DapsIntegrationTest {
 
     @Test
     void retrieveTokenAndValidate(IdentityService identityService) {
-        TokenResult tokenResult = identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL");
+        var tokenResult = identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL");
 
         assertThat(tokenResult.success()).isTrue();
 
-        VerificationResult verificationResult = identityService.verifyJwtToken(tokenResult.getToken(), AUDIENCE_IDS_CONNECTORS_ALL);
+        var verificationResult = identityService.verifyJwtToken(tokenResult.getToken(), AUDIENCE_IDS_CONNECTORS_ALL);
 
         assertThat(verificationResult.valid()).isTrue();
     }
 
     private static KeyStore readKeystoreFromResources(String fileName, String type, String password) {
-        URL url = Thread.currentThread().getContextClassLoader().getResource(fileName);
+        var url = Thread.currentThread().getContextClassLoader().getResource(fileName);
         Objects.requireNonNull(url);
 
         try {
-            KeyStore ks = KeyStore.getInstance(type);
-            FileInputStream fis = new FileInputStream(url.getFile());
+            var ks = KeyStore.getInstance(type);
+            var fis = new FileInputStream(url.getFile());
             ks.load(fis, password.toCharArray());
             return ks;
         } catch (Exception e) {

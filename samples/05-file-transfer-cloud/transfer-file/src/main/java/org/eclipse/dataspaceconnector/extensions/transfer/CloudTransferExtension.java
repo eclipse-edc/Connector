@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.extensions.transfer;
 
+import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -29,7 +30,8 @@ public class CloudTransferExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
         var dataAddressResolver = context.getService(DataAddressResolver.class);
-        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager(), dataAddressResolver);
+        var blobStoreApi = context.getService(BlobStoreApi.class);
+        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager(), dataAddressResolver, blobStoreApi);
         dataFlowMgr.register(flowController);
 
         registerDataEntries(context);

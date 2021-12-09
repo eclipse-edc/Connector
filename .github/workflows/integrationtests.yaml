@@ -12,6 +12,13 @@ jobs:
     if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
 
+    services:
+      azurite:
+        image: mcr.microsoft.com/azure-storage/azurite
+        ports: [10000:10000]
+        env:
+          AZURITE_ACCOUNTS: account1:key1
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -22,8 +29,6 @@ jobs:
       - name: Object Storage StatusChecker Test
         env:
           RUN_INTEGRATION_TEST: true
-          AZ_STORAGE_SAS: ${{ secrets.AZ_STORAGE_SAS }}
-          AZ_STORAGE_KEY: ${{ secrets.AZ_STORAGE_KEY }}
         run: ./gradlew extensions:azure:blob:provision:check
 
       - name: CosmosDB Transfer Process Store Test

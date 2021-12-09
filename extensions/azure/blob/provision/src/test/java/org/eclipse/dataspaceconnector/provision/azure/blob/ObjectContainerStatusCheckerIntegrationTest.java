@@ -36,7 +36,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.expect;
 import static org.easymock.EasyMock.mock;
 import static org.easymock.EasyMock.replay;
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 
 @IntegrationTest
 class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest {
@@ -49,12 +48,10 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
         var policy = new RetryPolicy<>().withMaxRetries(1);
         helloTxt = TestUtils.getFileFromResourceName("hello.txt");
         Vault vault = mock(Vault.class);
-        var accountKey = propOrEnv("AZ_STORAGE_KEY", null);
-        assertThat(accountKey).describedAs("Azure Storage Account Key cannot be null!").isNotNull();
 
-        expect(vault.resolveSecret(ACCOUNT_NAME + "-key1")).andReturn(accountKey).anyTimes();
+        expect(vault.resolveSecret(accountName + "-key1")).andReturn(accountKey).anyTimes();
         replay(vault);
-        var blobStoreApi = new BlobStoreApiImpl(vault);
+        var blobStoreApi = new BlobStoreApiImpl(vault, endpoint);
         checker = new ObjectContainerStatusChecker(blobStoreApi, policy);
     }
 
@@ -62,9 +59,11 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
     void isComplete_noResources() {
         putBlob("hello.txt", helloTxt);
         putBlob(testRunId + ".complete", helloTxt);
+        var transferProcess = createTransferProcess(containerName);
 
-        var tp = createTransferProcess(containerName);
-        assertThat(checker.isComplete(tp, emptyList())).isTrue();
+        boolean complete = checker.isComplete(transferProcess, emptyList());
+
+        assertThat(complete).isTrue();
     }
 
     @Test
@@ -115,7 +114,7 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
                         .dataDestination(DataAddress.Builder.newInstance()
                                 .type(AzureBlobStoreSchema.TYPE)
                                 .property(AzureBlobStoreSchema.CONTAINER_NAME, containerName)
-                                .property(AzureBlobStoreSchema.ACCOUNT_NAME, AbstractAzureBlobTest.ACCOUNT_NAME)
+                                .property(AzureBlobStoreSchema.ACCOUNT_NAME, accountName)
                                 //.property(AzureBlobStoreSchema.BLOB_NAME, ???) omitted on purpose
                                 .build())
                         .build())
@@ -125,7 +124,7 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
     private ObjectContainerProvisionedResource createProvisionedResource(TransferProcess tp) {
         return ObjectContainerProvisionedResource.Builder.newInstance()
                 .containerName(containerName)
-                .accountName(ACCOUNT_NAME)
+                .accountName(accountName)
                 .resourceDefinitionId(UUID.randomUUID().toString())
                 .transferProcessId(tp.getId())
                 .id(UUID.randomUUID().toString())

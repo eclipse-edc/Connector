@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageDefiniti
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageProvisioner;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageResourceDefinition;
 import org.eclipse.dataspaceconnector.schema.azure.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -39,6 +40,9 @@ import java.util.Set;
  */
 public class AzureProvisionExtension implements ServiceExtension {
 
+    @EdcSetting
+    public static final String EDC_BLOBSTORE_ENDPOINT = "edc.blobstore.endpoint";
+
     @Override
     public String name() {
         return "Azure Provision";
@@ -49,11 +53,12 @@ public class AzureProvisionExtension implements ServiceExtension {
 
         var monitor = context.getMonitor();
         var provisionManager = context.getService(ProvisionManager.class);
+        var blobstoreEndpoint = context.getSetting(EDC_BLOBSTORE_ENDPOINT, null);
 
-        context.registerService(BlobStoreApi.class, new BlobStoreApiImpl(context.getService(Vault.class)));
+        var blobStoreApi = new BlobStoreApiImpl(context.getService(Vault.class), blobstoreEndpoint);
+        context.registerService(BlobStoreApi.class, blobStoreApi);
 
         @SuppressWarnings("unchecked") var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
-        BlobStoreApi blobStoreApi = context.getService(BlobStoreApi.class);
         provisionManager.register(new ObjectStorageProvisioner(retryPolicy, monitor, blobStoreApi));
 
         // register the generator
