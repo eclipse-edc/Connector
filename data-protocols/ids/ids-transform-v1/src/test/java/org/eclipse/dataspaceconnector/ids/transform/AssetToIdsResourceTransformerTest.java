@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
@@ -27,6 +26,11 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class AssetToIdsResourceTransformerTest {
 
@@ -43,14 +47,12 @@ class AssetToIdsResourceTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new AssetToIdsResourceTransformer();
-        asset = EasyMock.createMock(Asset.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        asset = mock(Asset.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(asset, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -58,8 +60,6 @@ class AssetToIdsResourceTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(asset, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(asset, null);
         });
@@ -67,8 +67,6 @@ class AssetToIdsResourceTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(asset, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -77,21 +75,16 @@ class AssetToIdsResourceTransformerTest {
     @Test
     void testSuccessfulSimple() {
         // prepare
-        EasyMock.expect(asset.getId()).andReturn(RESOURCE_ID);
-        EasyMock.expect(asset.getProperties()).andReturn(Collections.emptyMap());
+        when(asset.getId()).thenReturn(RESOURCE_ID);
+        when(asset.getProperties()).thenReturn(Collections.emptyMap());
 
         var representation = new RepresentationBuilder().build();
-        EasyMock.expect(context.transform(EasyMock.anyObject(Asset.class), EasyMock.eq(Representation.class))).andReturn(representation);
+        when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);
 
         IdsId id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
-        EasyMock.expect(context.transform(EasyMock.eq(id), EasyMock.eq(URI.class))).andReturn(RESOURCE_ID_URI);
-
-        context.reportProblem(EasyMock.anyString());
-        EasyMock.expectLastCall().atLeastOnce();
+        when(context.transform(eq(id), eq(URI.class))).thenReturn(RESOURCE_ID_URI);
 
         // record
-        EasyMock.replay(asset, context);
-
         // invoke
         var result = transformer.transform(asset, context);
 

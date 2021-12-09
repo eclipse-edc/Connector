@@ -15,11 +15,9 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.ConstraintBuilder;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +25,10 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class IdsProhibitionToProhibitionTransformerTest {
 
@@ -57,13 +59,11 @@ public class IdsProhibitionToProhibitionTransformerTest {
                 ._assignee_(new ArrayList<>(Collections.singletonList(ASSIGNEE_URI)))
                 ._assigner_(new ArrayList<>(Collections.singletonList(ASSIGNER_URI)))
                 .build();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -71,8 +71,6 @@ public class IdsProhibitionToProhibitionTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(idsPermission, null);
         });
@@ -80,8 +78,6 @@ public class IdsProhibitionToProhibitionTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -90,14 +86,12 @@ public class IdsProhibitionToProhibitionTransformerTest {
     @Test
     void testSuccessfulSimple() {
         // prepare
-        Constraint edcConstraint = EasyMock.createMock(Constraint.class);
-        Duty edcDuty = EasyMock.createMock(Duty.class);
+        Constraint edcConstraint = mock(Constraint.class);
+        Duty edcDuty = mock(Duty.class);
 
-        EasyMock.expect(context.transform(EasyMock.eq(idsConstraint), EasyMock.eq(Constraint.class))).andReturn(edcConstraint);
+        when(context.transform(eq(idsConstraint), eq(Constraint.class))).thenReturn(edcConstraint);
 
         // record
-        EasyMock.replay(context);
-
         // invoke
         var result = transformer.transform(idsPermission, context);
 
@@ -113,8 +107,4 @@ public class IdsProhibitionToProhibitionTransformerTest {
         Assertions.assertEquals(edcConstraint, result.getConstraints().get(0));
     }
 
-    @AfterEach
-    void teardown() {
-        EasyMock.verify(context);
-    }
 }

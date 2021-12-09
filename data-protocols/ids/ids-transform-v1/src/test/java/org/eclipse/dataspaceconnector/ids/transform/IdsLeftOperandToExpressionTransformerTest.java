@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.LeftOperand;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
@@ -32,6 +31,7 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class IdsLeftOperandToExpressionTransformerTest {
 
@@ -46,13 +46,11 @@ class IdsLeftOperandToExpressionTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new IdsLeftOperandToExpressionTransformer();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -60,8 +58,6 @@ class IdsLeftOperandToExpressionTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(leftOperand, null);
         });
@@ -69,8 +65,6 @@ class IdsLeftOperandToExpressionTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -79,8 +73,6 @@ class IdsLeftOperandToExpressionTransformerTest {
     @ParameterizedTest
     @ArgumentsSource(TransformParameterArgumentSource.class)
     void transform(LeftOperand leftOperand, String expected) {
-        EasyMock.replay(context);
-
         Expression result = transformer.transform(leftOperand, context);
 
         assertThat(result).isNotNull().isInstanceOf(LiteralExpression.class);
@@ -112,10 +104,5 @@ class IdsLeftOperandToExpressionTransformerTest {
                     Arguments.arguments(LeftOperand.USER, "USER")
             );
         }
-    }
-
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(context);
     }
 }

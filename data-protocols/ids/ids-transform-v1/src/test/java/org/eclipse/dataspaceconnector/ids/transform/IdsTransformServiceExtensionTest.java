@@ -21,7 +21,6 @@ import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
 import de.fraunhofer.iais.eis.util.RdfResource;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -42,7 +41,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -59,11 +57,14 @@ import java.util.Objects;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class IdsTransformServiceExtensionTest {
 
-    private IdsTransformServiceExtension idsTransformServiceExtension;
     private Map<Class<?>, List<Class<?>>> knownConvertibles;
+    private IdsTransformServiceExtension idsTransformServiceExtension;
+
     private ServiceExtensionContext serviceExtensionContext;
 
     static class VerifyRequiredTransformerRegisteredArgumentsProvider implements ArgumentsProvider {
@@ -108,13 +109,11 @@ class IdsTransformServiceExtensionTest {
     void setUp() {
         idsTransformServiceExtension = new IdsTransformServiceExtension();
         knownConvertibles = new HashMap<>();
+
         var transformerRegistry = new TestTransformerRegistry(knownConvertibles);
-        serviceExtensionContext = EasyMock.mock(ServiceExtensionContext.class);
+        serviceExtensionContext = mock(ServiceExtensionContext.class);
 
-        EasyMock.expect(serviceExtensionContext.getService(TransformerRegistry.class)).andReturn(transformerRegistry);
-        EasyMock.expectLastCall().anyTimes();
-
-        EasyMock.replay(serviceExtensionContext);
+        when(serviceExtensionContext.getService(TransformerRegistry.class)).thenReturn(transformerRegistry);
     }
 
     @ParameterizedTest(name = "[{index}] can transform {0} to {1}")
@@ -125,11 +124,6 @@ class IdsTransformServiceExtensionTest {
         assertThat(knownConvertibles).containsKey(inputType);
         assertThat(knownConvertibles).extracting((m) -> m.get(inputType)).isNotNull();
         assertThat(knownConvertibles.get(inputType)).contains(outputType);
-    }
-
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(serviceExtensionContext);
     }
 
     private static class TestTransformerRegistry implements TransformerRegistry {

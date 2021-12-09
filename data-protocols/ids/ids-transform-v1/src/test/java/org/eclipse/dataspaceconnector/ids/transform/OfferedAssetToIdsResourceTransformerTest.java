@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
@@ -31,15 +30,18 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class OfferedAssetToIdsResourceTransformerTest {
 
     private static final String RESOURCE_ID = "test_id";
     private static final URI RESOURCE_ID_URI = URI.create("urn:resource:1");
 
-    // subject
     private OfferedAssetToIdsResourceTransformer transformer;
 
-    // mocks
     private Asset asset;
     private ContractOffer contractOffer;
     private OfferedAsset assetAndPolicy;
@@ -48,16 +50,14 @@ class OfferedAssetToIdsResourceTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new OfferedAssetToIdsResourceTransformer();
-        asset = EasyMock.createMock(Asset.class);
-        contractOffer = EasyMock.createMock(ContractOffer.class);
+        asset = mock(Asset.class);
+        contractOffer = mock(ContractOffer.class);
         assetAndPolicy = new OfferedAsset(asset, Collections.singletonList(contractOffer));
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(asset, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -65,8 +65,6 @@ class OfferedAssetToIdsResourceTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(asset, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(assetAndPolicy, null);
         });
@@ -74,8 +72,6 @@ class OfferedAssetToIdsResourceTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(asset, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -83,27 +79,18 @@ class OfferedAssetToIdsResourceTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
-        EasyMock.expect(asset.getId()).andReturn(RESOURCE_ID);
-        EasyMock.expect(asset.getProperties()).andReturn(Collections.emptyMap());
+        when(asset.getId()).thenReturn(RESOURCE_ID);
+        when(asset.getProperties()).thenReturn(Collections.emptyMap());
 
         var representation = new RepresentationBuilder().build();
-        EasyMock.expect(context.transform(EasyMock.anyObject(Asset.class), EasyMock.eq(Representation.class))).andReturn(representation);
-        EasyMock.expect(context.transform(EasyMock.anyObject(ContractOffer.class), EasyMock.eq(de.fraunhofer.iais.eis.ContractOffer.class))).andReturn(new ContractOfferBuilder().build());
+        when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);
+        when(context.transform(any(ContractOffer.class), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(new ContractOfferBuilder().build());
 
         IdsId id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
-        EasyMock.expect(context.transform(EasyMock.eq(id), EasyMock.eq(URI.class))).andReturn(RESOURCE_ID_URI);
+        when(context.transform(eq(id), eq(URI.class))).thenReturn(RESOURCE_ID_URI);
 
-        context.reportProblem(EasyMock.anyString());
-        EasyMock.expectLastCall().atLeastOnce();
-
-        // record
-        EasyMock.replay(asset, context);
-
-        // invoke
         var result = transformer.transform(assetAndPolicy, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(RESOURCE_ID_URI, result.getId());
         Assertions.assertEquals(1, result.getRepresentation().size());

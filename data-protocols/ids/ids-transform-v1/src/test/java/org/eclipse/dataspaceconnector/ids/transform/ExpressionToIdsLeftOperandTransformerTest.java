@@ -15,34 +15,31 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.LeftOperand;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class ExpressionToIdsLeftOperandTransformerTest {
 
-    // subject
     private ExpressionToIdsLeftOperandTransformer transformer;
 
-    // mocks
     private LiteralExpression expression;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ExpressionToIdsLeftOperandTransformer();
-        expression = EasyMock.createMock(LiteralExpression.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        expression = mock(LiteralExpression.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(expression, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -50,8 +47,6 @@ class ExpressionToIdsLeftOperandTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(expression, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(expression, null);
         });
@@ -59,8 +54,6 @@ class ExpressionToIdsLeftOperandTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(expression, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -68,23 +61,12 @@ class ExpressionToIdsLeftOperandTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // prepare
-        EasyMock.expect(expression.asString()).andReturn("COUNT");
+        when(expression.asString()).thenReturn("COUNT");
 
-        // record
-        EasyMock.replay(expression, context);
-
-        // invoke
         var result = transformer.transform(expression, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(LeftOperand.COUNT, result);
-    }
-
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(expression, context);
     }
 
 }

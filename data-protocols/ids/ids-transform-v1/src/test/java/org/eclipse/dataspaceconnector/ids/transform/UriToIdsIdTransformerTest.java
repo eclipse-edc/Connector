@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
@@ -24,28 +23,28 @@ import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class UriToIdsIdTransformerTest {
 
     private static final IdsType IDS_ID_TYPE = IdsType.ARTIFACT;
     private static final String IDS_ID_VALUE = "32d39d70-68f7-44f3-b8b2-27550f2081f4";
     private static final URI URI = java.net.URI.create("urn:artifact:32d39d70-68f7-44f3-b8b2-27550f2081f4");
 
-    // subject
     private UriToIdsIdTransformer transformer;
 
-    // mocks
     private TransformerContext context;
 
     @BeforeEach
     public void setup() {
         transformer = new UriToIdsIdTransformer();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -53,8 +52,6 @@ class UriToIdsIdTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(URI, null);
         });
@@ -62,8 +59,6 @@ class UriToIdsIdTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -71,17 +66,11 @@ class UriToIdsIdTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        //prepare
         var idsId = IdsId.Builder.newInstance().type(IDS_ID_TYPE).value(IDS_ID_VALUE).build();
-        EasyMock.expect(context.transform(EasyMock.eq(URI), EasyMock.eq(IdsId.class))).andReturn(idsId);
+        when(context.transform(eq(URI), eq(IdsId.class))).thenReturn(idsId);
 
-        // record
-        EasyMock.replay(context);
-
-        // invoke
         var result = transformer.transform(URI, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(IDS_ID_TYPE, result.getType());
         Assertions.assertEquals(IDS_ID_VALUE, result.getValue());

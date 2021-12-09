@@ -13,7 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.ids.core.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +21,9 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Verifies registry dispatching and problem reporting.
@@ -32,40 +34,31 @@ class TransformerRegistryImplTest {
     @Test
     void verifyDispatch() {
         var fooBarTransformer = createMock(Foo.class, Bar.class);
-        EasyMock.expect(fooBarTransformer.transform(EasyMock.isA(Foo.class), EasyMock.isA(TransformerContext.class))).andReturn(new Bar());
+        when(fooBarTransformer.transform(isA(Foo.class), isA(TransformerContext.class))).thenReturn(new Bar());
 
         var fooBazTransformer = createMock(Foo.class, Baz.class);
-
-        EasyMock.replay(fooBarTransformer, fooBazTransformer);
 
         registry.register(fooBarTransformer);
         registry.register(fooBazTransformer);
 
-        var result = registry.transform(new Foo(), Bar.class);
-
-        assertNotNull(result.getContent());
-        EasyMock.verify(fooBarTransformer, fooBazTransformer);
+        assertNotNull(registry.transform(new Foo(), Bar.class).getContent());
     }
 
 
     @Test
     void verifyProblems() {
         var fooBarTransformer = createMock(Foo.class, Bar.class);
-        EasyMock.expect(fooBarTransformer.transform(EasyMock.isA(Foo.class), EasyMock.isA(TransformerContext.class))).andStubAnswer(() -> {
-            TransformerContext context = EasyMock.getCurrentArgument(1);
+        when(fooBarTransformer.transform(isA(Foo.class), isA(TransformerContext.class))).thenAnswer(invocation -> {
+            TransformerContext context = invocation.getArgument(1);
             context.reportProblem("problem");
             return null;
         });
 
-        EasyMock.replay(fooBarTransformer);
-
         registry.register(fooBarTransformer);
 
-
         var result = registry.transform(new Foo(), Bar.class);
-        assertTrue(result.failed());
 
-        EasyMock.verify(fooBarTransformer);
+        assertTrue(result.failed());
     }
 
 
@@ -75,9 +68,9 @@ class TransformerRegistryImplTest {
     }
 
     private <INPUT, OUTPUT> IdsTypeTransformer<INPUT, OUTPUT> createMock(Class<INPUT> input, Class<OUTPUT> output) {
-        IdsTypeTransformer<INPUT, OUTPUT> transformer = EasyMock.createMock(IdsTypeTransformer.class);
-        EasyMock.expect(transformer.getInputType()).andReturn(input);
-        EasyMock.expect(transformer.getOutputType()).andReturn(output);
+        IdsTypeTransformer<INPUT, OUTPUT> transformer = mock(IdsTypeTransformer.class);
+        when(transformer.getInputType()).thenReturn(input);
+        when(transformer.getOutputType()).thenReturn(output);
         return transformer;
     }
 

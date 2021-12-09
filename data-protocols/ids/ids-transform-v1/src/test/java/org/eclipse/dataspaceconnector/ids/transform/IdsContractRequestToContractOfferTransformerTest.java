@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -33,6 +32,10 @@ import java.util.GregorianCalendar;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 public class IdsContractRequestToContractOfferTransformerTest {
     private static final URI REQUEST_ID = URI.create("urn:contractrequest:456uz984390236s");
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
@@ -41,10 +44,8 @@ public class IdsContractRequestToContractOfferTransformerTest {
     private static final XMLGregorianCalendar CONTRACT_START = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar(2021, Calendar.JANUARY, 1));
     private static final XMLGregorianCalendar CONTRACT_END = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar(2021, Calendar.FEBRUARY, 2));
 
-    // subject
     private IdsContractRequestToContractOfferTransformer transformer;
 
-    // mocks
     private de.fraunhofer.iais.eis.ContractRequest idsContractRequest;
     private de.fraunhofer.iais.eis.Permission idsPermission;
     private de.fraunhofer.iais.eis.Prohibition idsProhibition;
@@ -69,13 +70,11 @@ public class IdsContractRequestToContractOfferTransformerTest {
                 .build();
         var asset = Asset.Builder.newInstance().build();
         input = ContractTransformerInput.Builder.newInstance().contract(idsContractRequest).asset(asset).build();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -83,8 +82,6 @@ public class IdsContractRequestToContractOfferTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(input, null);
         });
@@ -92,8 +89,6 @@ public class IdsContractRequestToContractOfferTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -103,19 +98,14 @@ public class IdsContractRequestToContractOfferTransformerTest {
     void testSuccessfulSimple() {
         // prepare
 
-        Permission edcPermission = EasyMock.createMock(Permission.class);
-        Prohibition edcProhibition = EasyMock.createMock(Prohibition.class);
-        Duty edcObligation = EasyMock.createMock(Duty.class);
+        Permission edcPermission = mock(Permission.class);
+        Prohibition edcProhibition = mock(Prohibition.class);
+        Duty edcObligation = mock(Duty.class);
 
-        EasyMock.expect(context.transform(EasyMock.eq(idsPermission), EasyMock.eq(Permission.class))).andReturn(edcPermission);
-        EasyMock.expect(context.transform(EasyMock.eq(idsProhibition), EasyMock.eq(Prohibition.class))).andReturn(edcProhibition);
-        EasyMock.expect(context.transform(EasyMock.eq(idsDuty), EasyMock.eq(Duty.class))).andReturn(edcObligation);
-        EasyMock.expectLastCall().atLeastOnce();
+        when(context.transform(eq(idsPermission), eq(Permission.class))).thenReturn(edcPermission);
+        when(context.transform(eq(idsProhibition), eq(Prohibition.class))).thenReturn(edcProhibition);
+        when(context.transform(eq(idsDuty), eq(Duty.class))).thenReturn(edcObligation);
 
-        // record
-        EasyMock.replay(context);
-
-        // invoke
         var result = transformer.transform(input, context);
 
         // verify

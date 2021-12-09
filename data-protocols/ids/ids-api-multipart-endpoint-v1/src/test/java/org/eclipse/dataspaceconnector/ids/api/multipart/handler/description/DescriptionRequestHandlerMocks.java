@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -26,34 +25,36 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 final class DescriptionRequestHandlerMocks {
 
     public static AssetIndex mockAssetIndex() {
-        AssetIndex assetIndex = EasyMock.createMock(AssetIndex.class);
-        Asset asset = EasyMock.createMock(Asset.class);
-        EasyMock.expect(assetIndex.findById(EasyMock.isA(String.class))).andReturn(asset);
-        EasyMock.expect(asset.getId()).andReturn("urn:asset:123456").anyTimes();
-        EasyMock.replay(asset);
+        AssetIndex assetIndex = mock(AssetIndex.class);
+        Asset asset = mock(Asset.class);
+        when(assetIndex.findById(isA(String.class))).thenReturn(asset);
+        when(asset.getId()).thenReturn("urn:asset:123456");
         return assetIndex;
     }
 
     public static TransformerRegistry mockTransformerRegistry(IdsType type) throws URISyntaxException {
-        TransformerRegistry transformerRegistry = EasyMock.createMock(TransformerRegistry.class);
-        var uri = new URI("https://example.com");
-        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class)))
-                .andReturn(Result.success(uri));
-        var idsId = IdsId.Builder.newInstance().type(type).value("value").build();
-        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(URI.class), EasyMock.eq(IdsId.class)))
-                .andReturn(Result.success(idsId));
+        TransformerRegistry transformerRegistry = mock(TransformerRegistry.class);
+        when(transformerRegistry.transform(isA(IdsId.class), eq(URI.class)))
+                .thenReturn(Result.success(new URI("https://example.com")));
+        when(transformerRegistry.transform(isA(URI.class), eq(IdsId.class)))
+                .thenReturn(Result.success(IdsId.Builder.newInstance().type(type).value("value").build()));
         return transformerRegistry;
     }
 
     public static DescriptionRequestMessage mockDescriptionRequestMessage(URI requestedElement) throws URISyntaxException {
-        DescriptionRequestMessage descriptionRequestMessage = EasyMock.createMock(DescriptionRequestMessage.class);
-        EasyMock.expect(descriptionRequestMessage.getId()).andReturn(new URI("https://correlation-id.com/"));
-        EasyMock.expect(descriptionRequestMessage.getSenderAgent()).andReturn(new URI("https://sender-agent.com/"));
-        EasyMock.expect(descriptionRequestMessage.getIssuerConnector()).andReturn(new URI("https://issuer-connector.com/"));
-        EasyMock.expect(descriptionRequestMessage.getRequestedElement()).andReturn(requestedElement);
+        DescriptionRequestMessage descriptionRequestMessage = mock(DescriptionRequestMessage.class);
+        when(descriptionRequestMessage.getId()).thenReturn(new URI("https://correlation-id.com/"));
+        when(descriptionRequestMessage.getSenderAgent()).thenReturn(new URI("https://sender-agent.com/"));
+        when(descriptionRequestMessage.getIssuerConnector()).thenReturn(new URI("https://issuer-connector.com/"));
+        when(descriptionRequestMessage.getRequestedElement()).thenReturn(requestedElement);
         return descriptionRequestMessage;
     }
 }

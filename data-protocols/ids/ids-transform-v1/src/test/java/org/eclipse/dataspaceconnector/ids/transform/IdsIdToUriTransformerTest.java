@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
@@ -22,30 +21,29 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class IdsIdToUriTransformerTest {
 
     private static final IdsType IDS_ID_TYPE = IdsType.ARTIFACT;
     private static final String IDS_ID_VALUE = "1c6865e0-80ca-4811-bcf0-fcad250b538f";
 
-    // subject
     private IdsIdToUriTransformer transformer;
 
-    // mocks
     private IdsId idsId;
     private TransformerContext context;
 
     @BeforeEach
     public void setup() {
         transformer = new IdsIdToUriTransformer();
-        idsId = EasyMock.createMock(IdsId.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        idsId = mock(IdsId.class);
+        context = mock(TransformerContext.class);
     }
 
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(idsId, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -53,8 +51,6 @@ class IdsIdToUriTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(idsId, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(idsId, null);
         });
@@ -62,8 +58,6 @@ class IdsIdToUriTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(idsId, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -72,17 +66,11 @@ class IdsIdToUriTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
-        EasyMock.expect(idsId.getType()).andReturn(IDS_ID_TYPE);
-        EasyMock.expect(idsId.getValue()).andReturn(IDS_ID_VALUE);
+        when(idsId.getType()).thenReturn(IDS_ID_TYPE);
+        when(idsId.getValue()).thenReturn(IDS_ID_VALUE);
 
-        // record
-        EasyMock.replay(idsId, context);
-
-        // invoke
         var result = transformer.transform(idsId, context);
 
-        // verify
         Assertions.assertNotNull(result);
     }
 

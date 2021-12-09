@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -29,15 +28,22 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class ContractOfferToIdsContractOfferTransformerTest {
     private static final String CONTRACT_OFFER_ID = "456uz984390236s";
     private static final URI OFFER_ID = URI.create("urn:offer:" + CONTRACT_OFFER_ID);
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
 
-    // subject
     private ContractOfferToIdsContractOfferTransformer transformer;
 
-    // mocks
     private Policy policy;
     private ContractOffer contractOffer;
     private TransformerContext context;
@@ -45,17 +51,15 @@ public class ContractOfferToIdsContractOfferTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new ContractOfferToIdsContractOfferTransformer();
-        contractOffer = EasyMock.createMock(ContractOffer.class);
-        policy = EasyMock.createMock(Policy.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        contractOffer = mock(ContractOffer.class);
+        policy = mock(Policy.class);
+        context = mock(TransformerContext.class);
 
-        EasyMock.expect(contractOffer.getPolicy()).andReturn(policy);
+        when(contractOffer.getPolicy()).thenReturn(policy);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(contractOffer, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -63,8 +67,6 @@ public class ContractOfferToIdsContractOfferTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(contractOffer, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(contractOffer, null);
         });
@@ -72,8 +74,6 @@ public class ContractOfferToIdsContractOfferTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(contractOffer, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -81,36 +81,27 @@ public class ContractOfferToIdsContractOfferTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
+        Permission edcPermission = mock(Permission.class);
+        de.fraunhofer.iais.eis.Permission idsPermission = mock(de.fraunhofer.iais.eis.Permission.class);
+        Prohibition edcProhibition = mock(Prohibition.class);
+        de.fraunhofer.iais.eis.Prohibition idsProhibition = mock(de.fraunhofer.iais.eis.Prohibition.class);
+        Duty edcObligation = mock(Duty.class);
+        de.fraunhofer.iais.eis.Duty idsObligation = mock(de.fraunhofer.iais.eis.Duty.class);
 
-        Permission edcPermission = EasyMock.createMock(Permission.class);
-        de.fraunhofer.iais.eis.Permission idsPermission = EasyMock.createMock(de.fraunhofer.iais.eis.Permission.class);
-        Prohibition edcProhibition = EasyMock.createMock(Prohibition.class);
-        de.fraunhofer.iais.eis.Prohibition idsProhibition = EasyMock.createMock(de.fraunhofer.iais.eis.Prohibition.class);
-        Duty edcObligation = EasyMock.createMock(Duty.class);
-        de.fraunhofer.iais.eis.Duty idsObligation = EasyMock.createMock(de.fraunhofer.iais.eis.Duty.class);
+        when(contractOffer.getId()).thenReturn(CONTRACT_OFFER_ID);
+        when(contractOffer.getProvider()).thenReturn(PROVIDER_URI);
+        when(contractOffer.getConsumer()).thenReturn(null);
+        when(contractOffer.getContractStart()).thenReturn(null);
+        when(contractOffer.getContractEnd()).thenReturn(null);
+        when(policy.getPermissions()).thenReturn(Collections.singletonList(edcPermission));
+        when(policy.getProhibitions()).thenReturn(Collections.singletonList(edcProhibition));
+        when(policy.getObligations()).thenReturn(Collections.singletonList(edcObligation));
 
-        EasyMock.expect(contractOffer.getId()).andReturn(CONTRACT_OFFER_ID);
-        EasyMock.expect(contractOffer.getProvider()).andReturn(PROVIDER_URI);
-        EasyMock.expect(contractOffer.getConsumer()).andReturn(null);
-        EasyMock.expect(contractOffer.getContractStart()).andReturn(null);
-        EasyMock.expect(contractOffer.getContractEnd()).andReturn(null);
-        EasyMock.expect(policy.getPermissions()).andReturn(Collections.singletonList(edcPermission)).times(2);
-        EasyMock.expect(policy.getProhibitions()).andReturn(Collections.singletonList(edcProhibition)).times(2);
-        EasyMock.expect(policy.getObligations()).andReturn(Collections.singletonList(edcObligation)).times(2);
+        when(context.transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class))).thenReturn(idsPermission);
+        when(context.transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class))).thenReturn(idsProhibition);
+        when(context.transform(any(Duty.class), eq(de.fraunhofer.iais.eis.Duty.class))).thenReturn(idsObligation);
+        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(OFFER_ID);
 
-        EasyMock.expect(context.transform(EasyMock.anyObject(Permission.class), EasyMock.eq(de.fraunhofer.iais.eis.Permission.class))).andReturn(idsPermission);
-        EasyMock.expect(context.transform(EasyMock.anyObject(Prohibition.class), EasyMock.eq(de.fraunhofer.iais.eis.Prohibition.class))).andReturn(idsProhibition);
-        EasyMock.expect(context.transform(EasyMock.anyObject(Duty.class), EasyMock.eq(de.fraunhofer.iais.eis.Duty.class))).andReturn(idsObligation);
-        EasyMock.expect(context.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(OFFER_ID);
-
-        context.reportProblem(EasyMock.anyString());
-        EasyMock.expectLastCall().atLeastOnce();
-
-        // record
-        EasyMock.replay(contractOffer, policy, context);
-
-        // invoke
         var result = transformer.transform(contractOffer, context);
 
         // verify

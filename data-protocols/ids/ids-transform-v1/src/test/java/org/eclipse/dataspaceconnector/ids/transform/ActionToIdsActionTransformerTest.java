@@ -14,13 +14,14 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Action;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ActionToIdsActionTransformerTest {
 
@@ -34,14 +35,12 @@ class ActionToIdsActionTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new ActionToIdsActionTransformer();
-        action = EasyMock.createMock(Action.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        action = mock(Action.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(action, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -49,8 +48,6 @@ class ActionToIdsActionTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(action, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(action, null);
         });
@@ -58,8 +55,6 @@ class ActionToIdsActionTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(action, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -67,22 +62,11 @@ class ActionToIdsActionTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // prepare
-        EasyMock.expect(action.getType()).andReturn("USE");
+        when(action.getType()).thenReturn("USE");
 
-        // record
-        EasyMock.replay(action, context);
-
-        // invoke
         var result = transformer.transform(action, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(de.fraunhofer.iais.eis.Action.USE, result);
-    }
-
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(action, context);
     }
 }

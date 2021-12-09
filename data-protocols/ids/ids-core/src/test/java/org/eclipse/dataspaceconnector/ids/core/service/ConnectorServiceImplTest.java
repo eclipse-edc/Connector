@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.core.service;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.types.SecurityProfile;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
@@ -22,13 +21,15 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class ConnectorServiceImplTest {
     private static final String CONNECTOR_ID = "edc";
@@ -40,48 +41,37 @@ class ConnectorServiceImplTest {
     private static final URI CONNECTOR_CURATOR = URI.create("https://example.com/connector/curator");
     private static final String CONNECTOR_VERSION = "connectorVersion";
 
-    // subject
     private ConnectorServiceImpl connectorService;
 
-    // mocks
-    private Monitor monitor;
     private ConnectorServiceSettings connectorServiceSettings;
     private ConnectorVersionProvider connectorVersionProvider;
     private CatalogService dataCatalogService;
 
     @BeforeEach
     void setUp() {
-        monitor = EasyMock.createMock(Monitor.class);
-        connectorServiceSettings = EasyMock.createMock(ConnectorServiceSettings.class);
-        connectorVersionProvider = EasyMock.createMock(ConnectorVersionProvider.class);
-        dataCatalogService = EasyMock.createMock(CatalogService.class);
+        Monitor monitor = mock(Monitor.class);
+        connectorServiceSettings = mock(ConnectorServiceSettings.class);
+        connectorVersionProvider = mock(ConnectorVersionProvider.class);
+        dataCatalogService = mock(CatalogService.class);
 
         connectorService = new ConnectorServiceImpl(monitor, connectorServiceSettings, connectorVersionProvider, dataCatalogService);
     }
 
     @Test
     void getConnector() {
-        // prepare
-        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
-        Catalog dataCatalog = EasyMock.createMock(Catalog.class);
+        when(dataCatalogService.getDataCatalog(any())).thenReturn(mock(Catalog.class));
+        when(connectorServiceSettings.getId()).thenReturn(CONNECTOR_ID);
+        when(connectorServiceSettings.getTitle()).thenReturn(CONNECTOR_TITLE);
+        when(connectorServiceSettings.getDescription()).thenReturn(CONNECTOR_DESCRIPTION);
+        when(connectorServiceSettings.getSecurityProfile()).thenReturn(CONNECTOR_SECURITY_PROFILE);
+        when(connectorServiceSettings.getEndpoint()).thenReturn(CONNECTOR_ENDPOINT);
+        when(connectorServiceSettings.getMaintainer()).thenReturn(CONNECTOR_MAINTAINER);
+        when(connectorServiceSettings.getCurator()).thenReturn(CONNECTOR_CURATOR);
 
-        EasyMock.expect(dataCatalogService.getDataCatalog(EasyMock.anyObject())).andReturn(dataCatalog);
-        EasyMock.expect(connectorServiceSettings.getId()).andReturn(CONNECTOR_ID);
-        EasyMock.expect(connectorServiceSettings.getTitle()).andReturn(CONNECTOR_TITLE);
-        EasyMock.expect(connectorServiceSettings.getDescription()).andReturn(CONNECTOR_DESCRIPTION);
-        EasyMock.expect(connectorServiceSettings.getSecurityProfile()).andReturn(CONNECTOR_SECURITY_PROFILE);
-        EasyMock.expect(connectorServiceSettings.getEndpoint()).andReturn(CONNECTOR_ENDPOINT);
-        EasyMock.expect(connectorServiceSettings.getMaintainer()).andReturn(CONNECTOR_MAINTAINER);
-        EasyMock.expect(connectorServiceSettings.getCurator()).andReturn(CONNECTOR_CURATOR);
+        when(connectorVersionProvider.getVersion()).thenReturn(CONNECTOR_VERSION);
 
-        EasyMock.expect(connectorVersionProvider.getVersion()).andReturn(CONNECTOR_VERSION);
-        // record
-        EasyMock.replay(monitor, connectorServiceSettings, connectorVersionProvider, dataCatalogService);
+        var result = connectorService.getConnector(Result.success(ClaimToken.Builder.newInstance().build()));
 
-        // invoke
-        var result = connectorService.getConnector(verificationResult);
-
-        // verify
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CONNECTOR_ID);
         assertThat(result.getTitle()).isEqualTo(CONNECTOR_TITLE);
@@ -93,8 +83,4 @@ class ConnectorServiceImplTest {
         assertThat(result.getConnectorVersion()).isEqualTo(CONNECTOR_VERSION);
     }
 
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(monitor, connectorServiceSettings, connectorVersionProvider, dataCatalogService);
-    }
 }

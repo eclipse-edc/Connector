@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.util;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +24,8 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class RejectionMessageUtilTest {
     private final String connectorId = "38bfeade-3566-11ec-8d3d-0242ac130003";
@@ -33,18 +34,15 @@ class RejectionMessageUtilTest {
     private final URI senderAgent = URI.create("urn:sender:7c352356-3566-11ec-8d3d-0242ac130003");
     private final URI issuerConnector = URI.create("urn:issuer:7c35255e-3566-11ec-8d3d-0242ac130003");
 
-    // mocks
     private Message correlationMessage;
 
     @BeforeEach
     void setUp() {
-        correlationMessage = EasyMock.mock(Message.class);
+        correlationMessage = mock(Message.class);
 
-        EasyMock.expect(correlationMessage.getId()).andReturn(correlationMessageId).anyTimes();
-        EasyMock.expect(correlationMessage.getSenderAgent()).andReturn(senderAgent).anyTimes();
-        EasyMock.expect(correlationMessage.getIssuerConnector()).andReturn(issuerConnector).anyTimes();
-
-        EasyMock.replay(correlationMessage);
+        when(correlationMessage.getId()).thenReturn(correlationMessageId);
+        when(correlationMessage.getSenderAgent()).thenReturn(senderAgent);
+        when(correlationMessage.getIssuerConnector()).thenReturn(issuerConnector);
     }
 
     @Test
