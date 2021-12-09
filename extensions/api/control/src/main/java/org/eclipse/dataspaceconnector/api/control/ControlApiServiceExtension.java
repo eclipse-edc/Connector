@@ -31,7 +31,8 @@ public class ControlApiServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:dispatcher");
+        return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager",
+                "dataspaceconnector:dispatcher", "edc:core:contract");
     }
 
     @Override
