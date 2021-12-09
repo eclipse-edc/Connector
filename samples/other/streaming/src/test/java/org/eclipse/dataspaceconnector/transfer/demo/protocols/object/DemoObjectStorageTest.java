@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.object;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.object.ObjectStorageObserver;
@@ -23,6 +22,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 
 class DemoObjectStorageTest {
@@ -31,13 +33,7 @@ class DemoObjectStorageTest {
 
     @Test
     void verifyStorage() throws Exception {
-        ObjectStorageObserver observer = EasyMock.createMock(ObjectStorageObserver.class);
-        observer.onProvision(EasyMock.isA(DataDestination.class));
-        observer.onStore(EasyMock.isA(String.class), EasyMock.isA(String.class), EasyMock.isA(String.class), EasyMock.isA(byte[].class));
-        observer.onDeprovision(EasyMock.isA(String.class));
-        EasyMock.expectLastCall();
-        EasyMock.replay(observer);
-
+        ObjectStorageObserver observer = mock(ObjectStorageObserver.class);
         objectStore.register(observer);
 
         objectStore.start();
@@ -49,7 +45,9 @@ class DemoObjectStorageTest {
 
         objectStore.deprovision("test");
 
-        EasyMock.verify(observer);
+        verify(observer).onStore(isA(String.class), isA(String.class), isA(String.class), isA(byte[].class));
+        verify(observer).onDeprovision(isA(String.class));
+        verify(observer).onProvision(isA(DataDestination.class));
     }
 
     @BeforeEach

@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import static org.easymock.EasyMock.niceMock;
+import static org.mockito.Mockito.mock;
 
 /**
  * Base class for end-to-end demo protocol testing.
@@ -41,7 +41,7 @@ public abstract class AbstractDemoTransferTest {
         extension.registerServiceMock(Vault.class, new MockVault());
 
         //register a mock PrivateKeyResolver
-        extension.registerServiceMock(PrivateKeyResolver.class, niceMock(PrivateKeyResolver.class));
+        extension.registerServiceMock(PrivateKeyResolver.class, mock(PrivateKeyResolver.class));
 
         // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
