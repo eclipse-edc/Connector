@@ -40,7 +40,7 @@ class CosmosFederatedCacheNodeDirectoryTest {
     }
 
     private static FederatedCacheNodeDocument createDocument(FederatedCacheNode node) {
-        return FederatedCacheNodeDocument.from(node, PARTITION_KEY);
+        return new FederatedCacheNodeDocument(node, PARTITION_KEY);
     }
 
     private static FederatedCacheNode createNode() {

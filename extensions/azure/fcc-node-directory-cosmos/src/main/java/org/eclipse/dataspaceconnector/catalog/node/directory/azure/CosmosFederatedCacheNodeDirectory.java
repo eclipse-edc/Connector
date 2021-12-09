@@ -60,7 +60,7 @@ public class CosmosFederatedCacheNodeDirectory implements FederatedCacheNodeDire
     public void insert(FederatedCacheNode node) {
         Objects.requireNonNull(node.getName(), "FederatedCacheNode must have a name!");
 
-        var document = FederatedCacheNodeDocument.from(node, partitionKey);
+        var document = new FederatedCacheNodeDocument(node, partitionKey);
         with(retryPolicy).run(() -> cosmosDbApi.saveItem(document));
     }
 }

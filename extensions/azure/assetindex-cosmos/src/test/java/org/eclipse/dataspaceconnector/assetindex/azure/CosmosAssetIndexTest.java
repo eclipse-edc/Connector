@@ -52,7 +52,7 @@ class CosmosAssetIndexTest {
     private RetryPolicy<Object> retryPolicy;
 
     private static AssetDocument createDocument(String id) {
-        return AssetDocument.from(Asset.Builder.newInstance().id(id).build(), "partitionkey-test", null);
+        return new AssetDocument(Asset.Builder.newInstance().id(id).build(), "partitionkey-test", null);
     }
 
     @BeforeEach

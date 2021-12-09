@@ -14,7 +14,9 @@
 
 package org.eclipse.dataspaceconnector.assetindex.azure.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -25,28 +27,32 @@ import java.util.stream.Collectors;
 
 @JsonTypeName("dataspaceconnector:assetdocument")
 public class AssetDocument extends CosmosDocument<Map<String, Object>> {
-    private String id;
-    private DataAddress dataAddress;
+    private final String id;
+    private final DataAddress dataAddress;
 
-    protected AssetDocument() {
-    }
-
-    private AssetDocument(Map<String, Object> wrappedInstance, String partitionKey, DataAddress dataAddress) {
+    public AssetDocument(Asset wrappedInstance,
+                         String partitionKey,
+                         DataAddress dataAddress) {
         super(sanitizeProperties(wrappedInstance), partitionKey);
-        id = wrappedInstance.get("asset:prop:id").toString();
+        id = wrappedInstance.getId();
         this.dataAddress = dataAddress;
     }
 
-    public static AssetDocument from(Asset wrappedInstance, String partitionKey, DataAddress dataAddress) {
-        return new AssetDocument(wrappedInstance.getProperties(), partitionKey, dataAddress);
+    @JsonCreator
+    public AssetDocument(@JsonProperty("wrappedInstance") Map<String, Object> wrappedInstance,
+                         @JsonProperty("partitionKey") String partitionKey,
+                         @JsonProperty("dataAddress") DataAddress dataAddress) {
+        super(wrappedInstance, partitionKey);
+        id = wrappedInstance.get("asset_prop_id").toString();
+        this.dataAddress = dataAddress;
     }
 
     public static String sanitize(String key) {
         return key.replace(':', '_');
     }
 
-    private static Map<String, Object> sanitizeProperties(Map<String, Object> properties) {
-        return properties.entrySet().stream()
+    private static Map<String, Object> sanitizeProperties(Asset asset) {
+        return asset.getProperties().entrySet().stream()
                 .collect(Collectors.toMap(entry -> sanitize(entry.getKey()), Map.Entry::getValue));
     }
 

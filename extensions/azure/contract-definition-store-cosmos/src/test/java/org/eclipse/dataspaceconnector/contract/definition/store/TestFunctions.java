@@ -19,6 +19,6 @@ public class TestFunctions {
     }
 
     public static ContractDefinitionDocument generateDocument() {
-        return ContractDefinitionDocument.from(generateDefinition());
+        return new ContractDefinitionDocument(generateDefinition());
     }
 }

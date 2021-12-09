@@ -106,8 +106,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("foo", "bar")
                 .build();
 
-        container.createItem(AssetDocument.from(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(AssetDocument.from(asset2, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         List<Asset> assets = assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL).collect(Collectors.toList());
 
@@ -128,8 +128,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("test", "bar")
                 .build();
 
-        container.createItem(AssetDocument.from(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(AssetDocument.from(asset2, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
                 .whenEquals(Asset.PROPERTY_ID, "'456'")
@@ -153,8 +153,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("test:value", "bar")
                 .build();
 
-        container.createItem(AssetDocument.from(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(AssetDocument.from(asset2, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
                 .whenEquals("test:value", "'bar'")
@@ -178,8 +178,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("test", "bar")
                 .build();
 
-        container.createItem(AssetDocument.from(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(AssetDocument.from(asset2, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         Asset asset = assetIndex.findById("456");
 
@@ -199,8 +199,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("foo", "bar")
                 .build();
 
-        container.createItem(AssetDocument.from(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(AssetDocument.from(asset2, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         var inExpr = format("('%s', '%s')", asset1.getId(), asset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -226,8 +226,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("foo", "bar")
                 .build();
 
-        container.createItem(AssetDocument.from(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(AssetDocument.from(asset2, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         var inExpr = format("(%s, %s)", asset1.getId(), asset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -251,8 +251,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("foo", "bar")
                 .build();
 
-        container.createItem(AssetDocument.from(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(AssetDocument.from(asset2, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         var inExpr = format("'%s', '%s'", asset1.getId(), asset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -276,8 +276,8 @@ class CosmosAssetIndexIntegrationTest {
                 .property("foo", "bar")
                 .build();
 
-        container.createItem(AssetDocument.from(asset1, TEST_PARTITION_KEY, dataAddress));
-        container.createItem(AssetDocument.from(asset2, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
+        container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         var inExpr = format("('%s' ; '%s')", asset1.getId(), asset2.getId());
         var selector = AssetSelectorExpression.Builder.newInstance()

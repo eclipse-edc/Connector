@@ -37,12 +37,13 @@ class ContractDefinitionDocumentSerializationTest {
         var def = generateDefinition();
         var pk = def.getAccessPolicy().getUid();
 
-        var document = ContractDefinitionDocument.from(def);
+        var document = new ContractDefinitionDocument(def);
 
         String s = typeManager.writeValueAsString(document);
 
         assertThat(s).isNotNull()
-                .contains("\"selectorExpression\":{\"criteria\":[{\"left\":\"somekey\",\"op\":\"=\",\"right\":\"someval\"}]}")
+                .contains("\"selectorExpression\":{\"criteria\":[{\"left\":\"somekey\",\"op\":\"=\",\"right\":\"someval\"}]}}")
+                .contains("wrappedInstance")
                 .contains("\"id\":\"" + def.getId() + "\"")
                 .contains("\"partitionKey\":\"" + pk + "\"");
     }
@@ -51,7 +52,7 @@ class ContractDefinitionDocumentSerializationTest {
     void testDeserialization() {
         var def = generateDefinition();
 
-        var document = ContractDefinitionDocument.from(def);
+        var document = new ContractDefinitionDocument(def);
         String json = typeManager.writeValueAsString(document);
 
         var transferProcessDeserialized = typeManager.readValue(json, ContractDefinitionDocument.class);

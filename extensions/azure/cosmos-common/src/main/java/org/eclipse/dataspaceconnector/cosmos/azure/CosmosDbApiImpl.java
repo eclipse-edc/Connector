@@ -100,16 +100,6 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void updateItem(Object item) {
-        try {
-            var response = container.upsertItem(item, itemRequestOptions);
-            handleResponse(response, "Failed to update item");
-        } catch (CosmosException e) {
-            throw new EdcException(e);
-        }
-    }
-
-    @Override
     public @Nullable Object queryItemById(String id) {
         var query = new SqlQuerySpec("SELECT * FROM c WHERE c.id = @id", new SqlParameter("@id", id));
 
@@ -189,7 +179,7 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void createItems(Collection<CosmosDocument<?>> definitions) {
+    public void saveItems(Collection<CosmosDocument<?>> definitions) {
         definitions.forEach(this::saveItem);
     }
 

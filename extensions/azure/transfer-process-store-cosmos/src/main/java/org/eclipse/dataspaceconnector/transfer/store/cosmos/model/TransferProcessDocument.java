@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.store.cosmos.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
@@ -36,21 +37,14 @@ public class TransferProcessDocument extends CosmosDocument<TransferProcess> {
     @JsonProperty
     private Lease lease;
 
-    protected TransferProcessDocument() {
-        //Jackson does not yet support the combination of @JsonUnwrapped and a @JsonProperty annotation in a constructor
-    }
-
-    private TransferProcessDocument(TransferProcess wrappedInstance, String partitionKey) {
+    @JsonCreator
+    public TransferProcessDocument(@JsonProperty("wrappedInstance") TransferProcess wrappedInstance, @JsonProperty("partitionKey") String partitionKey) {
         super(wrappedInstance, partitionKey);
     }
 
     @Override
     public String getId() {
         return getWrappedInstance().getId();
-    }
-
-    public static TransferProcessDocument from(TransferProcess process, String partitionKey) {
-        return new TransferProcessDocument(process, partitionKey);
     }
 
     public Lease getLease() {

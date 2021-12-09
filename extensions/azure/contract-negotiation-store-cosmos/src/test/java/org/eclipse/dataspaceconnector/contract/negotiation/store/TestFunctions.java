@@ -38,6 +38,6 @@ public class TestFunctions {
     }
 
     public static ContractNegotiationDocument generateDocument() {
-        return ContractNegotiationDocument.from(generateNegotiation());
+        return new ContractNegotiationDocument(generateNegotiation());
     }
 }

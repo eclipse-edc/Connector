@@ -14,9 +14,10 @@
 
 package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
+import com.azure.cosmos.CosmosException;
+import com.azure.cosmos.implementation.BadRequestException;
+import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.implementation.RequestRateTooLargeException;
-import com.azure.cosmos.models.CosmosItemRequestOptions;
-import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
 import net.jodah.failsafe.FailsafeExecutor;
 import net.jodah.failsafe.Fallback;
@@ -51,7 +52,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     private final String connectorId;
     private final RetryPolicy<Object> generalRetry;
     private final RetryPolicy<Object> rateLimitRetry;
-    private FailsafeExecutor<Object> failsafeExecutor;
+    private final FailsafeExecutor<Object> failsafeExecutor;
 
     /**
      * Creates a new instance of the CosmosDB-based transfer process store.
@@ -92,7 +93,7 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
     @Override
     public @Nullable String processIdForTransferId(String transferId) {
-        var query = "SELECT * FROM TransferProcessDocument WHERE TransferProcessDocument.dataRequest.id = '" + transferId + "'";
+        var query = "SELECT * FROM t WHERE t.wrappedInstance.dataRequest.id = '" + transferId + "'";
         var response = failsafeExecutor.get(() -> cosmosDbApi.queryItems(query));
         return response
                 .map(this::convertObject)
@@ -128,25 +129,34 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         process.transitionInitial();
 
-        CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         //todo: configure indexing
-        var document = TransferProcessDocument.from(process, partitionKey);
-        failsafeExecutor.run(() -> cosmosDbApi.createItems(Collections.singletonList(document)));
+        var document = new TransferProcessDocument(process, partitionKey);
+        failsafeExecutor.run(() -> cosmosDbApi.saveItem(document));
     }
 
     @Override
     public void update(TransferProcess process) {
-        var document = TransferProcessDocument.from(process, partitionKey);
-        lease(process.getId(), connectorId);
-        failsafeExecutor.run(() -> cosmosDbApi.updateItem(document));
-        release(process.getId(), connectorId);
+        var document = new TransferProcessDocument(process, partitionKey);
+        try {
+            lease(process.getId(), connectorId);
+            failsafeExecutor.run(() -> cosmosDbApi.saveItem(document));
+            release(process.getId(), connectorId);
+        } catch (BadRequestException ex) {
+            throw new EdcException(ex);
+        }
     }
 
     @Override
     public void delete(String processId) {
-        lease(processId, connectorId);
-        failsafeExecutor.run(() -> cosmosDbApi.deleteItem(processId));
-        release(processId, connectorId);
+        try {
+            lease(processId, connectorId);
+            failsafeExecutor.run(() -> cosmosDbApi.deleteItem(processId));
+            release(processId, connectorId);
+        } catch (NotFoundException ex) {
+            //do nothing
+        } catch (CosmosException ex) {
+            throw new EdcException(ex);
+        }
     }
 
     @Override
@@ -174,13 +184,6 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private void handleResponse(CosmosItemResponse<?> response) {
-        int code = response.getStatusCode();
-        if (code < 200 || code >= 300) {
-            throw new EdcException("Error during CosmosDB interaction: " + code);
-        }
-    }
-
     private TransferProcessDocument convertObject(Object databaseDocument) {
         return typeManager.readValue(typeManager.writeValueAsString(databaseDocument), TransferProcessDocument.class);
     }
@@ -194,6 +197,6 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     private void writeLease(String processId, Object connectorId, boolean writeLease) {
-        failsafeExecutor.run(() -> cosmosDbApi.invokeStoredProcedure(LEASE_S_PROC_NAME, processId, connectorId, writeLease));
+        failsafeExecutor.run(() -> cosmosDbApi.invokeStoredProcedure(LEASE_S_PROC_NAME, partitionKey, processId, connectorId, writeLease));
     }
 }

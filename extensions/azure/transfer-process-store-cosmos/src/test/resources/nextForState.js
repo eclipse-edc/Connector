@@ -21,7 +21,7 @@ function nextForState(state, limit, connectorId) {
 
     // first query
     var filterQuery = {
-        'query': 'SELECT * FROM TransferProcessDocuments t WHERE t.state = @state AND (t.lease = null OR t.lease.leasedBy = @leaser) ORDER BY t.stateTimestamp OFFSET 0 LIMIT @limit',
+        'query': 'SELECT * FROM t WHERE t.wrappedInstance.state = @state AND (t.lease = null OR t.lease.leasedBy = @leaser) ORDER BY t.wrappedInstance.stateTimestamp OFFSET 0 LIMIT @limit',
         'parameters': [
             {
                 'name': '@state', 'value': parseInt(state, 10)
