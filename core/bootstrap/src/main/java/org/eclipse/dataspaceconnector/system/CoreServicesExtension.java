@@ -18,7 +18,6 @@ import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -48,6 +47,11 @@ public class CoreServicesExtension implements ServiceExtension {
     private static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
 
     @Override
+    public String name() {
+        return "Core Services";
+    }
+
+    @Override
     public Set<String> provides() {
         // the PrivateKeyResolver.FEATURE is not required because it gets registered directly by the
         // ExtensionLoader.
@@ -61,11 +65,9 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        Monitor monitor = context.getMonitor();
         addHttpClient(context);
         addRetryPolicy(context);
         registerParser(context);
-        monitor.info("Initialized Core Services extension.");
     }
 
     private void registerParser(ServiceExtensionContext context) {

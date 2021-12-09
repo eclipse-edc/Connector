@@ -31,9 +31,10 @@ import java.util.Set;
  */
 public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtension {
 
-    private static final String NAME = "CosmosDB Federated Cache Node Directory";
-
-    private Monitor monitor;
+    @Override
+    public String name() {
+        return "CosmosDB Federated Cache Node Directory";
+    }
 
     @Override
     public Set<String> provides() {
@@ -42,9 +43,6 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-        monitor.info(String.format("Initializing %s extension...", NAME));
-
         var configuration = new FederatedCacheNodeDirectoryCosmosConfig(context);
         Vault vault = context.getService(Vault.class);
 
@@ -53,17 +51,7 @@ public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtens
         context.registerService(FederatedCacheNodeDirectory.class, directory);
 
         context.getTypeManager().registerTypes(FederatedCacheNodeDocument.class);
-        monitor.info(String.format("Initialized %s extension", NAME));
     }
 
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s extension", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdowns %s extension", NAME));
-    }
 }
 

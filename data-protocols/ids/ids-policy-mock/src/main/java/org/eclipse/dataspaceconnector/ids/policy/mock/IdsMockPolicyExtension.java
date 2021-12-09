@@ -28,20 +28,21 @@ import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions
 public class IdsMockPolicyExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "IDS Mock Policy";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:ids:core");
     }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
-
         var policyService = context.getService(IdsPolicyService.class);
 
         // handle region restriction
         policyService.registerRequestPermissionFunction(ABS_SPATIAL_POSITION, (operator, rightValue, permission, policyContext) -> rightValue != null && rightValue.equals(policyContext.getClaimToken().getClaims().get("region")));
-
-        monitor.info("Initialized IDS Mock Policy extension");
     }
 
 }

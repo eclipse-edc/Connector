@@ -50,9 +50,12 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
-    private static final String NAME = "IDS Multipart Dispatcher API extension";
-
     private Monitor monitor;
+
+    @Override
+    public String name() {
+        return "IDS Multipart Dispatcher API";
+    }
 
     @Override
     public Set<String> requires() {
@@ -101,18 +104,6 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(multipartDispatcher);
-
-        monitor.info(String.format("Initialized %s", NAME));
-    }
-
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdown %s", NAME));
     }
 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {

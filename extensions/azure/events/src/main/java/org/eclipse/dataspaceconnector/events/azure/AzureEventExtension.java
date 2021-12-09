@@ -29,6 +29,11 @@ public class AzureEventExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public String name() {
+        return "Azure Events";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("dataspaceconnector:transfer-process-observable");
     }
@@ -39,18 +44,6 @@ public class AzureEventExtension implements ServiceExtension {
 
         monitor.info("AzureEventExtension: create event grid appender");
         registerListeners(context);
-
-        monitor.info("Initialized Azure Events Extension");
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started Azure Events Extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown Azure Events Extension");
     }
 
     private void registerListeners(ServiceExtensionContext context) {

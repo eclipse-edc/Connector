@@ -36,7 +36,6 @@ import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
@@ -62,18 +61,11 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class IdsTransformServiceExtensionTest {
-    // subject
+
     private IdsTransformServiceExtension idsTransformServiceExtension;
     private Map<Class<?>, List<Class<?>>> knownConvertibles;
-    private TransformerRegistry transformerRegistry;
-
-    // mocks
-    private Monitor monitor;
     private ServiceExtensionContext serviceExtensionContext;
 
-    /**
-     * All required convertibles
-     */
     static class VerifyRequiredTransformerRegisteredArgumentsProvider implements ArgumentsProvider {
         @Override
         public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
@@ -116,18 +108,13 @@ class IdsTransformServiceExtensionTest {
     void setUp() {
         idsTransformServiceExtension = new IdsTransformServiceExtension();
         knownConvertibles = new HashMap<>();
-        transformerRegistry = new TestTransformerRegistry(knownConvertibles);
-
-        monitor = EasyMock.mock(Monitor.class);
+        var transformerRegistry = new TestTransformerRegistry(knownConvertibles);
         serviceExtensionContext = EasyMock.mock(ServiceExtensionContext.class);
 
-        EasyMock.expect(serviceExtensionContext.getMonitor()).andReturn(monitor);
         EasyMock.expect(serviceExtensionContext.getService(TransformerRegistry.class)).andReturn(transformerRegistry);
-
-        monitor.info(EasyMock.anyString());
         EasyMock.expectLastCall().anyTimes();
 
-        EasyMock.replay(monitor, serviceExtensionContext);
+        EasyMock.replay(serviceExtensionContext);
     }
 
     @ParameterizedTest(name = "[{index}] can transform {0} to {1}")
@@ -142,7 +129,7 @@ class IdsTransformServiceExtensionTest {
 
     @AfterEach
     void tearDown() {
-        EasyMock.verify(monitor, serviceExtensionContext);
+        EasyMock.verify(serviceExtensionContext);
     }
 
     private static class TestTransformerRegistry implements TransformerRegistry {

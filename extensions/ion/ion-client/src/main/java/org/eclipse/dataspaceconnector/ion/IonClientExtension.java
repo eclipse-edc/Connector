@@ -26,6 +26,11 @@ public class IonClientExtension implements ServiceExtension {
     private static final String DEFAULT_NODE_URL = "https://beta.discover.did.microsoft.com/1.0";
 
     @Override
+    public String name() {
+        return "ION Client";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of(DidResolverRegistry.FEATURE);
     }
@@ -44,8 +49,6 @@ public class IonClientExtension implements ServiceExtension {
 
         var resolverRegistry = context.getService(DidResolverRegistry.class);
         resolverRegistry.register(client);
-
-        context.getMonitor().info("Initialized IonClientExtension");
     }
 
     private String getIonEndpoint(ServiceExtensionContext context) {

@@ -40,8 +40,17 @@ public class ExtensionLoader {
      * Convenience method for loading service extensions.
      */
     public static void bootServiceExtensions(List<ServiceExtension> serviceExtensions, ServiceExtensionContext context) {
-        serviceExtensions.forEach(extension -> extension.initialize(context));
-        serviceExtensions.forEach(ServiceExtension::start);
+        var monitor = context.getMonitor();
+
+        serviceExtensions.forEach(extension -> {
+            extension.initialize(context);
+            monitor.info("Initialized " + extension.name());
+        });
+
+        serviceExtensions.forEach(extension -> {
+            extension.start();
+            monitor.info("Started " + extension.name());
+        });
     }
 
     /**
@@ -54,6 +63,7 @@ public class ExtensionLoader {
             context.getMonitor().info("Secrets vault not configured. Defaulting to null vault.");
         }
         vaultExtension.initialize(context.getMonitor());
+        context.getMonitor().info("Initialized " + vaultExtension.name());
         vaultExtension.intializeVault(context);
         context.registerService(Vault.class, vaultExtension.getVault());
         context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());

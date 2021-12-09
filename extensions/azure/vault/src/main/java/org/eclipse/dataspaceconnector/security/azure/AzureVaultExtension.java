@@ -30,6 +30,11 @@ public class AzureVaultExtension implements VaultExtension {
     private Vault vault;
 
     @Override
+    public String name() {
+        return "Azure Vault";
+    }
+
+    @Override
     public void initialize(Monitor monitor) {
         monitor.debug("AzureVaultExtension: general initialization complete");
     }

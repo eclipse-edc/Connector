@@ -71,9 +71,12 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
-    private static final String NAME = "IDS Multipart API extension";
-
     private Monitor monitor;
+
+    @Override
+    public String name() {
+        return "IDS Multipart API";
+    }
 
     @Override
     public Set<String> provides() {
@@ -95,18 +98,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         monitor = serviceExtensionContext.getMonitor();
 
         registerControllers(serviceExtensionContext);
-
-        monitor.info(String.format("Initialized %s", NAME));
-    }
-
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdown %s", NAME));
     }
 
     private void registerControllers(ServiceExtensionContext serviceExtensionContext) {

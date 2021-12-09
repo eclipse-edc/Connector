@@ -45,11 +45,14 @@ import java.util.Set;
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
-    private Monitor monitor;
     private ServiceExtensionContext context;
-
     private ProvisionManagerImpl provisionManager;
     private TransferProcessManagerImpl processManager;
+
+    @Override
+    public String name() {
+        return "Core Transfer";
+    }
 
     @Override
     public Set<String> provides() {
@@ -63,7 +66,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
+        var monitor = context.getMonitor();
         this.context = context;
 
         var typeManager = context.getTypeManager();
@@ -101,8 +104,6 @@ public class CoreTransferExtension implements ServiceExtension {
 
         context.registerService(TransferProcessManager.class, processManager);
         context.registerService(TransferProcessObservable.class, processManager);
-
-        monitor.info("Initialized Core Transfer extension");
     }
 
     @Override
@@ -111,8 +112,6 @@ public class CoreTransferExtension implements ServiceExtension {
 
         provisionManager.start(transferProcessStore);
         processManager.start(transferProcessStore);
-
-        monitor.info("Started Core Transfer extension");
     }
 
     @Override
@@ -120,7 +119,6 @@ public class CoreTransferExtension implements ServiceExtension {
         if (processManager != null) {
             processManager.stop();
         }
-        monitor.info("Shutdown Core Transfer extension");
     }
 
     private void registerTypes(TypeManager typeManager) {

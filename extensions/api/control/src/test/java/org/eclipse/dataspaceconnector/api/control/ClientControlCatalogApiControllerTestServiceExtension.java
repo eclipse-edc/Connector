@@ -29,11 +29,14 @@ import java.util.List;
 import java.util.Set;
 
 class ClientControlCatalogApiControllerTestServiceExtension implements ServiceExtension {
-    private static final String NAME = "EDC Control API Test extension";
 
-    private Monitor monitor;
     private AssetLoader assetLoader;
     private ContractDefinitionStore contractDefinitionStore;
+
+    @Override
+    public String name() {
+        return "EDC Control API Test";
+    }
 
     @Override
     public Set<String> requires() {
@@ -47,7 +50,6 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
         assetLoader = context.getService(AssetLoader.class);
         contractDefinitionStore = context.getService(ContractDefinitionStore.class);
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerNegotiationManager());
@@ -126,8 +128,6 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
 
         contractDefinitionStore.save(contractDefinition1);
         contractDefinitionStore.save(contractDefinition2);
-
-        monitor.info(String.format("Started %s", NAME));
     }
 
     private static class FakeContractNegotiationStore implements ContractNegotiationStore {

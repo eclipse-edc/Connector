@@ -26,6 +26,11 @@ import java.util.Set;
 public class DapsExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "DAPS";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of(JwtDecoratorRegistry.FEATURE, "oauth2");
     }
@@ -34,7 +39,5 @@ public class DapsExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         JwtDecoratorRegistry jwtDecoratorRegistry = context.getService(JwtDecoratorRegistry.class);
         jwtDecoratorRegistry.register(new DapsJwtDecorator());
-
-        context.getMonitor().info("Initialized DAPS extension");
     }
 }

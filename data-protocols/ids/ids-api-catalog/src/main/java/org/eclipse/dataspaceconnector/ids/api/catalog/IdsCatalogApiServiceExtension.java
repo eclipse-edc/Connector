@@ -35,6 +35,11 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public String name() {
+        return "IDS Catalog API";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:ids:core", PolicyRegistry.FEATURE);
     }
@@ -46,18 +51,6 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
         registerTypes(context);
 
         registerControllers(context);
-
-        monitor.info("Initialized IDS Catalog API extension");
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started IDS Catalog API extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown IDS Catalog API extension");
     }
 
     private void registerTypes(ServiceExtensionContext context) {

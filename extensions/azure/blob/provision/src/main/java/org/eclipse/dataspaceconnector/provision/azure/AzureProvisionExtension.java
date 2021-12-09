@@ -38,12 +38,16 @@ import java.util.Set;
  * Provides data transfer {@link org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner}s backed by Azure services.
  */
 public class AzureProvisionExtension implements ServiceExtension {
-    private Monitor monitor;
+
+    @Override
+    public String name() {
+        return "Azure Provision";
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        monitor = context.getMonitor();
+        var monitor = context.getMonitor();
         var provisionManager = context.getService(ProvisionManager.class);
 
         context.registerService(BlobStoreApi.class, new BlobStoreApiImpl(context.getService(Vault.class)));
@@ -60,8 +64,6 @@ public class AzureProvisionExtension implements ServiceExtension {
         statusCheckerReg.register(AzureBlobStoreSchema.TYPE, new ObjectContainerStatusChecker(blobStoreApi, retryPolicy));
 
         registerTypes(context.getTypeManager());
-
-        monitor.info("Initialized Azure Provision extension");
     }
 
     @Override
@@ -72,16 +74,6 @@ public class AzureProvisionExtension implements ServiceExtension {
     @Override
     public Set<String> provides() {
         return Set.of("dataspaceconnector:blobstoreapi");
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started Azure Provision extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown Azure Provision extension");
     }
 
     private void registerTypes(TypeManager typeManager) {
