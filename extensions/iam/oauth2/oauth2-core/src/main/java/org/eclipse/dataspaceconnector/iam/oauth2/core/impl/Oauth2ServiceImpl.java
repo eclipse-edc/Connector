@@ -180,7 +180,6 @@ public class Oauth2ServiceImpl implements IdentityService {
         }
     }
 
-
     @Nullable
     private JWSVerifier createVerifier(JWSHeader header, String publicKeyId) {
         RSAPublicKey publicKey = configuration.getIdentityProviderKeyResolver().resolveKey(publicKeyId);

@@ -33,9 +33,8 @@ import java.util.UUID;
 import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.mock;
-import static org.easymock.EasyMock.replay;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @IntegrationTest
 class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest {
@@ -49,8 +48,7 @@ class ObjectContainerStatusCheckerIntegrationTest extends AbstractAzureBlobTest 
         helloTxt = TestUtils.getFileFromResourceName("hello.txt");
         Vault vault = mock(Vault.class);
 
-        expect(vault.resolveSecret(accountName + "-key1")).andReturn(accountKey).anyTimes();
-        replay(vault);
+        when(vault.resolveSecret(accountName + "-key1")).thenReturn(accountKey);
         var blobStoreApi = new BlobStoreApiImpl(vault, endpoint);
         checker = new ObjectContainerStatusChecker(blobStoreApi, policy);
     }

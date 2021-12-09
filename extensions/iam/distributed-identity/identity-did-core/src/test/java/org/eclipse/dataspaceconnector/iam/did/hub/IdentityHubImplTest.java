@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.iam.did.hub;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.RsaPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.RsaPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.hub.jwe.GenericJweReader;
@@ -21,12 +20,18 @@ import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 
 class IdentityHubImplTest {
@@ -38,9 +43,6 @@ class IdentityHubImplTest {
 
     @Test
     void verifyStore() {
-        store.write(EasyMock.isA(Commit.class));
-        EasyMock.replay(store);
-
         var jwe = new WriteRequestWriter()
                 .privateKey(privateKey)
                 .publicKey(publicKey)
@@ -52,12 +54,11 @@ class IdentityHubImplTest {
                 .type("Bar").buildJwe();
 
         var responseJwe = hub.write(jwe);
-        EasyMock.verify(store);
 
-        // verify a revision was provided
         var response = new GenericJweReader().mapper(objectMapper).jwe(responseJwe).privateKey(privateKey).readType(WriteResponse.class);
 
-        Assertions.assertNotNull(response.getRevisions().get(0));
+        assertNotNull(response.getRevisions().get(0));
+        verify(store).write(isA(Commit.class));
     }
 
     @Test
@@ -66,8 +67,7 @@ class IdentityHubImplTest {
 
         var query = CommitQuery.Builder.newInstance().objectId("123").build();
         var request = CommitQueryRequest.Builder.newInstance().query(query).iss("123").aud("aud").sub("sub").build();
-        EasyMock.expect(store.query(EasyMock.isA(CommitQuery.class))).andReturn(List.of(commit));
-        EasyMock.replay(store);
+        when(store.query(isA(CommitQuery.class))).thenReturn(List.of(commit));
 
         var jwe = new GenericJweWriter()
                 .privateKey(privateKey)
@@ -77,12 +77,10 @@ class IdentityHubImplTest {
                 .buildJwe();
 
         var responseJwe = hub.queryCommits(jwe);
-        EasyMock.verify(store);
 
-        // verify a revision was provided
         var response = new GenericJweReader().mapper(objectMapper).jwe(responseJwe).privateKey(privateKey).readType(CommitQueryResponse.class);
 
-        Assertions.assertNotNull(response.getCommits().get(0));
+        assertNotNull(response.getCommits().get(0));
     }
 
     @Test
@@ -91,8 +89,7 @@ class IdentityHubImplTest {
 
         var query = ObjectQuery.Builder.newInstance().type("Foo").build();
         var request = ObjectQueryRequest.Builder.newInstance().query(query).iss("123").aud("aud").sub("sub").build();
-        EasyMock.expect(store.query(EasyMock.isA(ObjectQuery.class))).andReturn(List.of(hubObject));
-        EasyMock.replay(store);
+        when(store.query(isA(ObjectQuery.class))).thenReturn(List.of(hubObject));
 
         var jwe = new GenericJweWriter()
                 .privateKey(privateKey)
@@ -102,12 +99,10 @@ class IdentityHubImplTest {
                 .buildJwe();
 
         var responseJwe = hub.queryObjects(jwe);
-        EasyMock.verify(store);
 
-        // verify a revision was provided
         var response = new GenericJweReader().mapper(objectMapper).jwe(responseJwe).privateKey(privateKey).readType(ObjectQueryResponse.class);
 
-        Assertions.assertNotNull(response.getObjects().get(0));
+        assertThat(response.getObjects()).allMatch(o -> o.getId().equals("123"));
     }
 
     @BeforeEach
@@ -115,7 +110,7 @@ class IdentityHubImplTest {
         var keys = TemporaryKeyLoader.loadKeys();
         privateKey = new RsaPrivateKeyWrapper(keys.toRSAPrivateKey());
         publicKey = new RsaPublicKeyWrapper(keys.toRSAPublicKey());
-        store = EasyMock.createMock(IdentityHubStore.class);
+        store = mock(IdentityHubStore.class);
         objectMapper = new ObjectMapper();
         hub = new IdentityHubImpl(store, () -> privateKey, did -> Result.success(publicKey), objectMapper);
     }

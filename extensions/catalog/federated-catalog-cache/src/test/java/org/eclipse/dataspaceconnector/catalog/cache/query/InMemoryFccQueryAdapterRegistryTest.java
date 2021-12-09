@@ -32,12 +32,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.strictMock;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 class InMemoryFccQueryAdapterRegistryTest {
@@ -50,26 +47,21 @@ class InMemoryFccQueryAdapterRegistryTest {
     @Test
     void getAllAdapters() {
         // initialize
-        CacheQueryAdapter adapter1 = strictMock(CacheQueryAdapter.class);
-        CacheQueryAdapter adapter2 = strictMock(CacheQueryAdapter.class);
-        CacheQueryAdapter adapter3 = strictMock(CacheQueryAdapter.class);
+        CacheQueryAdapter adapter1 = mock(CacheQueryAdapter.class);
+        CacheQueryAdapter adapter2 = mock(CacheQueryAdapter.class);
+        CacheQueryAdapter adapter3 = mock(CacheQueryAdapter.class);
 
-        expect(adapter1.executeQuery(anyObject())).andReturn(Stream.of(ASSET_ABC));
-        expect(adapter2.executeQuery(anyObject())).andReturn(Stream.of(ASSET_DEF));
-        expect(adapter3.executeQuery(anyObject())).andReturn(Stream.of(ASSET_XYZ));
+        when(adapter1.executeQuery(any())).thenReturn(Stream.of(ASSET_ABC));
+        when(adapter2.executeQuery(any())).thenReturn(Stream.of(ASSET_DEF));
+        when(adapter3.executeQuery(any())).thenReturn(Stream.of(ASSET_XYZ));
 
         registry.register(adapter1);
         registry.register(adapter2);
         registry.register(adapter3);
 
-        replay(adapter1, adapter2, adapter3);
-
-        // start testing
         Collection<CacheQueryAdapter> adapters = registry.getAllAdapters();
 
         assertThat(collectAssetsFromAdapters(adapters)).isEqualTo(Arrays.asList(ASSET_ABC, ASSET_DEF, ASSET_XYZ));
-
-        verify(adapter1, adapter2, adapter3);
     }
 
     @BeforeEach
@@ -79,7 +71,7 @@ class InMemoryFccQueryAdapterRegistryTest {
 
     @Test
     void executeQuery_whenNoAdapter() {
-        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
+        var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
 
         assertThat(result).isNotNull();
         assertThat(result.getAssets()).isEmpty();
@@ -92,33 +84,31 @@ class InMemoryFccQueryAdapterRegistryTest {
         var adapter1 = matchingAdapter();
         var adapter2 = matchingAdapter();
         var adapter3 = mismatchingAdapter();
-        replay(adapter1, adapter2, adapter3);
 
         registry.register(adapter1);
         registry.register(adapter2);
         registry.register(adapter3);
 
-        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
+        var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
+
         assertThat(result.getAssets()).hasSize(6);
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
-        verify(adapter1, adapter2, adapter3);
     }
 
     @Test
     void executeQuery_whenAllSucceed() {
         var adapter1 = matchingAdapter();
         var adapter2 = matchingAdapter();
-        replay(adapter1, adapter2);
 
         registry.register(adapter1);
         registry.register(adapter2);
 
-        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
+        var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
+
         assertThat(result.getAssets()).hasSize(6);
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
-        verify(adapter1, adapter2);
     }
 
     @Test
@@ -126,17 +116,16 @@ class InMemoryFccQueryAdapterRegistryTest {
         var adapter1 = matchingAdapter();
         var adapter2 = matchingAdapter();
         var adapter3 = failingAdapter();
-        replay(adapter1, adapter2, adapter3);
 
         registry.register(adapter1);
         registry.register(adapter2);
         registry.register(adapter3);
 
-        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
+        var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
+
         assertThat(result.getAssets()).hasSize(6);
         assertThat(result.getErrors()).isNotEmpty().hasSize(1);
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
-        verify(adapter1, adapter2, adapter3);
     }
 
     @Test
@@ -144,39 +133,38 @@ class InMemoryFccQueryAdapterRegistryTest {
         var adapter1 = failingAdapter();
         var adapter2 = failingAdapter();
         var adapter3 = failingAdapter();
-        replay(adapter1, adapter2, adapter3);
 
         registry.register(adapter1);
         registry.register(adapter2);
         registry.register(adapter3);
 
-        var result = registry.executeQuery(niceMock(FederatedCatalogCacheQuery.class));
+        var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
+
         assertThat(result.getAssets()).hasSize(0);
         assertThat(result.getErrors()).isNotEmpty().hasSize(3);
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
-        verify(adapter1, adapter2, adapter3);
     }
 
     private CacheQueryAdapter failingAdapter() {
-        CacheQueryAdapter adapter1 = niceMock(CacheQueryAdapter.class);
-        expect(adapter1.canExecute(anyObject())).andReturn(true);
-        expect(adapter1.executeQuery(anyObject())).andThrow(new EdcException("timeout"));
+        CacheQueryAdapter adapter1 = mock(CacheQueryAdapter.class);
+        when(adapter1.canExecute(any())).thenReturn(true);
+        when(adapter1.executeQuery(any())).thenThrow(new EdcException("timeout"));
         return adapter1;
     }
 
     @NotNull
     private CacheQueryAdapter matchingAdapter() {
-        CacheQueryAdapter adapter1 = niceMock(CacheQueryAdapter.class);
-        expect(adapter1.canExecute(anyObject())).andReturn(true);
+        CacheQueryAdapter adapter1 = mock(CacheQueryAdapter.class);
+        when(adapter1.canExecute(any())).thenReturn(true);
         Supplier<CachedAsset> as = () -> CachedAsset.Builder.newInstance().build();
-        expect(adapter1.executeQuery(anyObject())).andReturn(Stream.of(as.get(), as.get(), as.get()));
+        when(adapter1.executeQuery(any())).thenReturn(Stream.of(as.get(), as.get(), as.get()));
         return adapter1;
     }
 
     @NotNull
     private CacheQueryAdapter mismatchingAdapter() {
-        CacheQueryAdapter adapter1 = niceMock(CacheQueryAdapter.class);
-        expect(adapter1.canExecute(anyObject())).andReturn(false);
+        CacheQueryAdapter adapter1 = mock(CacheQueryAdapter.class);
+        when(adapter1.canExecute(any())).thenReturn(false);
         return adapter1;
     }
 

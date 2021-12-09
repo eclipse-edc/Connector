@@ -16,7 +16,6 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.niceMock;
 
 class InMemoryAssetIndexTest {
     private InMemoryAssetLoader index;
@@ -55,9 +54,10 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, niceMock(DataAddress.class));
-        index.accept(testAsset2, niceMock(DataAddress.class));
-        index.accept(testAsset3, niceMock(DataAddress.class));
+        DataAddress address = DataAddress.Builder.newInstance().build();
+        index.accept(testAsset1, address);
+        index.accept(testAsset2, address);
+        index.accept(testAsset3, address);
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance()
                 .whenEquals(Asset.PROPERTY_NAME, "barbaz")
                 .whenEquals(Asset.PROPERTY_VERSION, "1")

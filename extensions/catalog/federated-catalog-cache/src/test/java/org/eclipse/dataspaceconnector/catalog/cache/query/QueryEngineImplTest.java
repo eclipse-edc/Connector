@@ -10,11 +10,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.strictMock;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class QueryEngineImplTest {
 
@@ -24,11 +22,9 @@ class QueryEngineImplTest {
 
     @Test
     void getCatalog() {
-        CacheQueryAdapterRegistry registry = strictMock(CacheQueryAdapterRegistry.class);
+        CacheQueryAdapterRegistry registry = mock(CacheQueryAdapterRegistry.class);
 
-        expect(registry.executeQuery(anyObject())).andReturn(QueryResponse.ok(List.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ)));
-
-        replay(registry);
+        when(registry.executeQuery(any())).thenReturn(QueryResponse.ok(List.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ)));
 
         QueryEngine queryEngine = new QueryEngineImpl(registry);
 
@@ -36,20 +32,16 @@ class QueryEngineImplTest {
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
         assertThat(catalog.getErrors()).isEmpty();
         assertThat(catalog.getAssets()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
-
-        verify(registry);
     }
 
     @Test
     void getCatalog_withErrors() {
-        CacheQueryAdapterRegistry registry = strictMock(CacheQueryAdapterRegistry.class);
+        CacheQueryAdapterRegistry registry = mock(CacheQueryAdapterRegistry.class);
 
-        expect(registry.executeQuery(anyObject())).andReturn(QueryResponse.Builder.newInstance()
+        when(registry.executeQuery(any())).thenReturn(QueryResponse.Builder.newInstance()
                 .assets(List.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ))
                 .error("some error")
                 .build());
-
-        replay(registry);
 
         QueryEngine queryEngine = new QueryEngineImpl(registry);
 
@@ -57,20 +49,16 @@ class QueryEngineImplTest {
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
         assertThat(catalog.getErrors()).hasSize(1).containsExactly("some error");
         assertThat(catalog.getAssets()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
-
-        verify(registry);
     }
 
     @Test
     void getCatalog_notAccepted() {
-        CacheQueryAdapterRegistry registry = strictMock(CacheQueryAdapterRegistry.class);
+        CacheQueryAdapterRegistry registry = mock(CacheQueryAdapterRegistry.class);
 
-        expect(registry.executeQuery(anyObject())).andReturn(QueryResponse.Builder.newInstance()
+        when(registry.executeQuery(any())).thenReturn(QueryResponse.Builder.newInstance()
                 .status(QueryResponse.Status.NO_ADAPTER_FOUND)
                 .error("no adapter was found for that query")
                 .build());
-
-        replay(registry);
 
         QueryEngine queryEngine = new QueryEngineImpl(registry);
 
@@ -78,7 +66,5 @@ class QueryEngineImplTest {
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.NO_ADAPTER_FOUND);
         assertThat(catalog.getErrors()).hasSize(1);
         assertThat(catalog.getAssets()).isEmpty();
-
-        verify(registry);
     }
 }

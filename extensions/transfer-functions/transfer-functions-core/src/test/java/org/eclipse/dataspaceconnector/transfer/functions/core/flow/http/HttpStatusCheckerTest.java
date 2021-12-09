@@ -18,7 +18,6 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -29,9 +28,9 @@ import java.io.IOException;
 import java.util.Collections;
 
 import static okhttp3.Protocol.HTTP_1_1;
-import static org.easymock.EasyMock.createNiceMock;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.mock;
 
 /**
  * Verfies HTTP status checking.
@@ -40,44 +39,47 @@ class HttpStatusCheckerTest {
     private HttpStatusChecker checker;
     private TypeManager typeManager;
     private OkHttpClient httpClient;
-    private Interceptor interceptor;
+
+    @BeforeEach
+    void setUp() {
+        typeManager = new TypeManager();
+        var configuration = HttpFunctionConfiguration.Builder.newInstance()
+                .checkEndpoint("https://localhost:9090/check")
+                .clientSupplier(() -> httpClient)
+                .monitor(mock(Monitor.class))
+                .typeManager(typeManager)
+                .build();
+        checker = new HttpStatusChecker(configuration);
+    }
 
     @Test
-    void verifyCompleted() throws IOException {
+    void verifyCompleted() {
         Interceptor delegate = chain -> new Response.Builder()
                 .request(chain.request())
                 .protocol(HTTP_1_1).code(200)
                 .body(ResponseBody.create(typeManager.writeValueAsString(true), MediaType.get("application/json"))).message("ok")
                 .build();
 
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
+        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
         assertTrue(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
-
-        EasyMock.verify(interceptor);
     }
 
     @Test
-    void verifyNotCompleted() throws IOException {
+    void verifyNotCompleted() {
         Interceptor delegate = chain -> new Response.Builder()
                 .request(chain.request())
                 .protocol(HTTP_1_1).code(200)
                 .body(ResponseBody.create(typeManager.writeValueAsString(false), MediaType.get("application/json"))).message("ok")
                 .build();
 
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
+        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
         assertFalse(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
-
-        EasyMock.verify(interceptor);
     }
 
     @Test
-    void verifyServerError() throws IOException {
+    void verifyServerError() {
         Interceptor delegate = chain -> new Response.Builder()
                 .request(chain.request())
                 .protocol(HTTP_1_1).code(500)
@@ -85,28 +87,9 @@ class HttpStatusCheckerTest {
                 .body(ResponseBody.create(typeManager.writeValueAsString(false), MediaType.get("txt/html"))).message("ok")
                 .build();
 
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
+        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
         assertFalse(checker.isComplete(TransferProcess.Builder.newInstance().id("123").build(), Collections.emptyList()));
-
-        EasyMock.verify(interceptor);
     }
 
-
-    @BeforeEach
-    void setUp() {
-        interceptor = EasyMock.createMock(Interceptor.class);
-
-        typeManager = new TypeManager();
-        httpClient = new OkHttpClient.Builder().addInterceptor(interceptor).build();
-        var configuration = HttpFunctionConfiguration.Builder.newInstance()
-                .checkEndpoint("https://localhost:9090/check")
-                .clientSupplier(() -> httpClient)
-                .monitor(createNiceMock(Monitor.class))
-                .typeManager(typeManager)
-                .build();
-        checker = new HttpStatusChecker(configuration);
-    }
 }

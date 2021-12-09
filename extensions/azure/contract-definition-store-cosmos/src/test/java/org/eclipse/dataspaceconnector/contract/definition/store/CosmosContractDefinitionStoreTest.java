@@ -1,27 +1,25 @@
 package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.easymock.Capture;
-import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.util.Collections;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.notNull;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.strictMock;
-import static org.easymock.EasyMock.verify;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
+import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CosmosContractDefinitionStoreTest {
     private CosmosContractDefinitionStore store;
@@ -29,7 +27,7 @@ class CosmosContractDefinitionStoreTest {
 
     @BeforeEach
     void setup() {
-        cosmosDbApiMock = strictMock(CosmosDbApi.class);
+        cosmosDbApiMock = mock(CosmosDbApi.class);
         var typeManager = new TypeManager();
         var retryPolicy = new RetryPolicy<>();
         store = new CosmosContractDefinitionStore(cosmosDbApiMock, typeManager, retryPolicy);
@@ -39,84 +37,66 @@ class CosmosContractDefinitionStoreTest {
     void findAll() {
         var doc1 = generateDocument();
         var doc2 = generateDocument();
-        expect(cosmosDbApiMock.queryAllItems()).andReturn(List.of(doc1, doc2));
-        replay(cosmosDbApiMock);
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc1, doc2));
 
         store.reload();
         var all = store.findAll();
+
         assertThat(all).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
-        verify(cosmosDbApiMock);
     }
 
     @Test
     void findAll_noReload() {
-        expect(cosmosDbApiMock.queryAllItems()).andReturn(Collections.emptyList());
-        replay(cosmosDbApiMock);
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(Collections.emptyList());
 
         var all = store.findAll();
         assertThat(all).isEmpty();
-        verify(cosmosDbApiMock);
     }
 
     @Test
     void save() {
-        Capture<ContractDefinitionDocument> documentCapture = newCapture();
-        cosmosDbApiMock.saveItem(capture(documentCapture));
-        expectLastCall().times(1);
-        expect(cosmosDbApiMock.queryAllItems()).andReturn(Collections.emptyList());
+        var captor = ArgumentCaptor.forClass(CosmosDocument.class);
+        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(Collections.emptyList());
+        var definition = generateDefinition();
 
-        replay(cosmosDbApiMock);
+        store.save(definition);
 
-        var def = generateDefinition();
-        store.save(def);
-        assertThat(documentCapture.getValue().getWrappedInstance()).isEqualTo(def);
-        verify(cosmosDbApiMock);
+        assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
     }
 
     @Test
     void save_verifyWriteThrough() {
-        Capture<ContractDefinitionDocument> documentCapture = newCapture();
-        cosmosDbApiMock.saveItem(capture(documentCapture));
-        expect(cosmosDbApiMock.queryAllItems()).andReturn(Collections.emptyList());
-
-        expectLastCall().times(1);
+        var captor = ArgumentCaptor.forClass(CosmosDocument.class);
+        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(Collections.emptyList());
         // cosmosDbApiQueryMock.queryAllItems() should never be called
-        replay(cosmosDbApiMock);
+        var definition = generateDefinition();
 
-        var def = generateDefinition();
-        store.save(def); //should write through the cache
+        store.save(definition); //should write through the cache
+
         var all = store.findAll();
-        assertThat(all).isNotEmpty().containsExactlyInAnyOrder(documentCapture.getValue().getWrappedInstance());
-        verify(cosmosDbApiMock);
+
+        assertThat(all).isNotEmpty().containsExactlyInAnyOrder((ContractDefinition) captor.getValue().getWrappedInstance());
     }
 
     @Test
     void update() {
-        Capture<ContractDefinitionDocument> documentCapture = newCapture();
-        cosmosDbApiMock.saveItem(capture(documentCapture));
-        expect(cosmosDbApiMock.queryAllItems()).andReturn(Collections.emptyList());
-        expectLastCall().times(1);
-        replay(cosmosDbApiMock);
+        var captor = ArgumentCaptor.forClass(CosmosDocument.class);
+        doNothing().when(cosmosDbApiMock).saveItem(captor.capture());
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(Collections.emptyList());
+        var definition = generateDefinition();
 
-        var def = generateDefinition();
-        store.update(def);
-        assertThat(documentCapture.getValue().getWrappedInstance()).isEqualTo(def);
-        verify(cosmosDbApiMock);
+        store.update(definition);
+
+        assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
     }
 
     @Test
     void delete() {
-        cosmosDbApiMock.deleteItem(notNull());
-        expectLastCall().times(1);
-        replay(cosmosDbApiMock);
-
         store.delete("some-id");
-        verify(cosmosDbApiMock);
+
+        verify(cosmosDbApiMock).deleteItem(notNull());
     }
 
-    @Test
-    void reload() {
-        replay(cosmosDbApiMock);
-        verify(cosmosDbApiMock);
-    }
 }

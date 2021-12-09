@@ -17,9 +17,8 @@ import java.util.Objects;
 import java.util.Scanner;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class DefaultDidPublicKeyResolverTest {
 
@@ -30,7 +29,7 @@ class DefaultDidPublicKeyResolverTest {
 
     @BeforeEach
     void setUp() throws JOSEException {
-        resolverRegistry = niceMock(DidResolverRegistry.class);
+        resolverRegistry = mock(DidResolverRegistry.class);
         resolver = new DefaultDidPublicKeyResolver(resolverRegistry);
         var eckey = (ECKey) ECKey.parseFromPEMEncodedObjects(readFile("public_secp256k1.pem"));
 
@@ -44,8 +43,7 @@ class DefaultDidPublicKeyResolverTest {
 
     @Test
     void resolve() {
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.success(didDocument));
-        replay(resolverRegistry);
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
         var result = resolver.resolvePublicKey(DID_URL);
 
@@ -54,8 +52,7 @@ class DefaultDidPublicKeyResolverTest {
 
     @Test
     void resolve_didNotFound() {
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.failure("Not found"));
-        replay(resolverRegistry);
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.failure("Not found"));
 
         var result = resolver.resolvePublicKey(DID_URL);
 
@@ -65,8 +62,7 @@ class DefaultDidPublicKeyResolverTest {
     @Test
     void resolve_didDoesNotContainPublicKey() {
         didDocument.getVerificationMethod().clear();
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.success(didDocument));
-        replay(resolverRegistry);
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
         var result = resolver.resolvePublicKey(DID_URL);
 
@@ -80,8 +76,7 @@ class DefaultDidPublicKeyResolverTest {
                 .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
                 .build();
         didDocument.getVerificationMethod().add(vm);
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.success(didDocument));
-        replay(resolverRegistry);
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
         var result = resolver.resolvePublicKey(DID_URL);
 
@@ -96,8 +91,7 @@ class DefaultDidPublicKeyResolverTest {
                 .build();
         didDocument.getVerificationMethod().add(vm);
 
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.success(didDocument));
-        replay(resolverRegistry);
+        when(resolverRegistry.resolve(DID_URL)).thenReturn(Result.success(didDocument));
 
         var result = resolver.resolvePublicKey(DID_URL);
 

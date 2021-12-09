@@ -15,13 +15,12 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.strictMock;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class LoaderManagerImplTest {
 
@@ -32,11 +31,11 @@ class LoaderManagerImplTest {
 
     @BeforeEach
     void setup() {
-        waitStrategyMock = niceMock(WaitStrategy.class);
+        waitStrategyMock = mock(WaitStrategy.class);
         int batchSize = 3;
         queue = new ArrayBlockingQueue<>(batchSize); //default batch size of the loader
-        loaderMock = strictMock(Loader.class);
-        loaderManager = new LoaderManagerImpl(Collections.singletonList(loaderMock), batchSize, waitStrategyMock, niceMock(Monitor.class));
+        loaderMock = mock(Loader.class);
+        loaderManager = new LoaderManagerImpl(Collections.singletonList(loaderMock), batchSize, waitStrategyMock, mock(Monitor.class));
     }
 
     @Test
@@ -48,21 +47,15 @@ class LoaderManagerImplTest {
         var completionSignal = new CountDownLatch(1);
 
         // set the completion signal when the wait strategy was called
-        expect(waitStrategyMock.retryInMillis()).andAnswer(() -> {
+        when(waitStrategyMock.retryInMillis()).thenAnswer(i -> {
             completionSignal.countDown();
             return 10L;
         });
-        replay(waitStrategyMock);
 
-        replay(loaderMock);
         loaderManager.start(queue);
 
-        //wait for completion signal
         assertThat(completionSignal.await(20L, TimeUnit.MILLISECONDS)).isTrue();
-
-        verify(loaderMock);
     }
-
 
     @Test
     @DisplayName("Verify that the LoaderManager does not sleep when a complete batch was processed")
@@ -73,23 +66,17 @@ class LoaderManagerImplTest {
         var completionSignal = new CountDownLatch(1);
 
         // set the completion signal when the wait strategy was called
-        waitStrategyMock.success();
-        expectLastCall().andAnswer(() -> {
+        doAnswer(i -> {
             completionSignal.countDown();
             return null;
-        });
-        replay(waitStrategyMock);
-
-        loaderMock.load(anyObject());
-        expectLastCall().once();
-        replay(loaderMock);
+        }).when(waitStrategyMock).success();
 
         loaderManager.start(queue);
 
         //wait for completion signal
         assertThat(completionSignal.await(5, TimeUnit.SECONDS)).isTrue();
 
-        verify(loaderMock);
+        verify(loaderMock, times(1)).load(any());
     }
 
 }
