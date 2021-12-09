@@ -17,7 +17,6 @@ import com.github.javafaker.Faker;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
-import org.easymock.Capture;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.policy.engine.PolicyEvaluationResult;
@@ -35,22 +34,18 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.net.URI;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.mock;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.same;
-import static org.easymock.EasyMock.verify;
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class ArtifactRequestControllerTest {
 
@@ -67,26 +62,22 @@ public class ArtifactRequestControllerTest {
     public void setUp() {
         manager = mock(TransferProcessManager.class);
 
-        DapsService dapsService = niceMock(DapsService.class);
+        DapsService dapsService = mock(DapsService.class);
         Result<ClaimToken> verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
-        AssetIndex assetIndex = niceMock(AssetIndex.class);
-        Asset asset = niceMock(Asset.class);
-        PolicyRegistry policyRegistry = niceMock(PolicyRegistry.class);
-        IdsPolicyService policyService = niceMock(IdsPolicyService.class);
-        PolicyEvaluationResult policyEvaluationResult = niceMock(PolicyEvaluationResult.class);
+        AssetIndex assetIndex = mock(AssetIndex.class);
+        var asset = Asset.Builder.newInstance().id(assetId).build();
+        PolicyRegistry policyRegistry = mock(PolicyRegistry.class);
+        IdsPolicyService policyService = mock(IdsPolicyService.class);
+        PolicyEvaluationResult policyEvaluationResult = mock(PolicyEvaluationResult.class);
 
-        expect(dapsService.verifyAndConvertToken(anyString())).andReturn(verificationResult);
-        expect(assetIndex.findById(assetId)).andReturn(asset);
-        expect(asset.getId()).andReturn(assetId);
-        expect(policyRegistry.resolvePolicy(anyObject())).andReturn(niceMock(Policy.class));
-        expect(policyEvaluationResult.valid()).andReturn(true);
-        expect(policyService.evaluateRequest(same(consumerConnectorAddress), same(artifactMessageId), anyObject(), anyObject())).andReturn(policyEvaluationResult);
-
-        replay(dapsService, assetIndex, asset, policyRegistry, policyService, policyEvaluationResult);
+        when(dapsService.verifyAndConvertToken(anyString())).thenReturn(verificationResult);
+        when(assetIndex.findById(assetId)).thenReturn(asset);
+        when(policyRegistry.resolvePolicy(any())).thenReturn(mock(Policy.class));
+        when(policyEvaluationResult.valid()).thenReturn(true);
+        when(policyService.evaluateRequest(eq(consumerConnectorAddress), eq(artifactMessageId), any(), any())).thenReturn(policyEvaluationResult);
 
         controller = new ArtifactRequestController(dapsService, assetIndex, manager, policyService, policyRegistry, mock(Vault.class), mock(Monitor.class));
     }
-
 
     @Test
     public void initiateDataRequest() {
@@ -97,16 +88,11 @@ public class ArtifactRequestControllerTest {
         var secretName = faker.lorem().word();
         var destinationMap = Map.of("type", type, "keyName", secretName, "properties", Map.of());
         ArtifactRequestMessage artifactRequestMessage = createArtifactRequestMessage(requestProperties, destinationMap);
+        var requestCapture = ArgumentCaptor.forClass(DataRequest.class);
+        when(manager.initiateProviderRequest(requestCapture.capture())).thenReturn(TransferInitiateResult.success("processId"));
 
-        // record
-        Capture<DataRequest> requestCapture = newCapture();
-        expect(manager.initiateProviderRequest(capture(requestCapture))).andReturn(TransferInitiateResult.success("processId")).times(1);
-        replay(manager);
-
-        // invoke
         controller.request(artifactRequestMessage);
 
-        // verify
         DataRequest dataRequest = requestCapture.getValue();
         assertThat(dataRequest.getAssetId()).isEqualTo(assetId);
         assertThat(dataRequest.getProperties()).isEqualTo(requestProperties);
@@ -114,7 +100,6 @@ public class ArtifactRequestControllerTest {
         assertThat(dataRequest.getDataDestination().getKeyName()).isEqualTo(secretName);
         assertThat(dataRequest.getDataDestination().getType()).isEqualTo(type);
         assertThat(dataRequest.getDataDestination().getProperties()).isEqualTo(Map.of("type", type, "keyName", secretName));
-        verify(manager);
     }
 
     @NotNull

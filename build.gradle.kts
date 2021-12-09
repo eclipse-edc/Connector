@@ -86,7 +86,6 @@ allprojects {
             testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
             testImplementation("org.junit.jupiter:junit-jupiter-params:${jupiterVersion}")
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
-            testImplementation("org.easymock:easymock:4.2")
             testImplementation("org.mockito:mockito-core:${mockitoVersion}")
             testImplementation("org.assertj:assertj-core:3.19.0")
             testImplementation("com.github.javafaker:javafaker:1.0.2")

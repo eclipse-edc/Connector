@@ -20,9 +20,6 @@ import okhttp3.Call;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okio.Buffer;
-import org.easymock.Capture;
-import org.easymock.EasyMock;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -33,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
 import java.io.IOException;
 import java.net.URI;
@@ -41,13 +39,9 @@ import java.util.Map;
 
 import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.capture;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.newCapture;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class DataRequestMessageSenderTest {
 
@@ -65,14 +59,13 @@ class DataRequestMessageSenderTest {
 
     @BeforeEach
     public void setUp() {
-        httpClient = niceMock(OkHttpClient.class);
+        httpClient = mock(OkHttpClient.class);
 
-        IdentityService identityService = niceMock(IdentityService.class);
+        IdentityService identityService = mock(IdentityService.class);
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(faker.lorem().characters()).build();
         Result<TokenRepresentation> tokenResult = Result.success(tokenRepresentation);
-        expect(identityService.obtainClientCredentials(connectorId)).andReturn(tokenResult);
-        replay(identityService);
-        sender = new DataRequestMessageSender(connectorId, identityService, niceMock(TransferProcessStore.class), EasyMock.mock(Vault.class), httpClient, mapper, niceMock(Monitor.class));
+        when(identityService.obtainClientCredentials(connectorId)).thenReturn(tokenResult);
+        sender = new DataRequestMessageSender(connectorId, identityService, mock(TransferProcessStore.class), mock(Vault.class), httpClient, mapper, mock(Monitor.class));
     }
 
     @Test
@@ -81,15 +74,11 @@ class DataRequestMessageSenderTest {
         DataAddress dataDestination = dataRequest.getDataDestination();
 
         // record
-        Capture<Request> requestCapture = newCapture();
-        expect(httpClient.newCall(capture(requestCapture))).andReturn(niceMock(Call.class)).times(1);
-        replay(httpClient);
+        var requestCapture = ArgumentCaptor.forClass(Request.class);
+        when(httpClient.newCall(requestCapture.capture())).thenReturn(mock(Call.class));
 
         // invoke
         sender.send(dataRequest, () -> processId);
-
-        //verify
-        verify(httpClient);
 
         var artifactMessageRequest = getArtifactMessageRequest(requestCapture.getValue());
         assertThat(artifactMessageRequest.getIssuerConnector()).isEqualTo(URI.create(connectorId));
@@ -98,7 +87,6 @@ class DataRequestMessageSenderTest {
         var properties = artifactMessageRequest.getProperties();
         assertThat((Map<String, Object>) properties.get(DESTINATION_KEY)).contains(entry("keyName", dataDestination.getKeyName()), entry("type", dataDestination.getType()));
         assertThat(properties.get(PROPERTIES_KEY)).isEqualTo(dataRequest.getProperties());
-
     }
 
     private DataRequest createDataRequest() {

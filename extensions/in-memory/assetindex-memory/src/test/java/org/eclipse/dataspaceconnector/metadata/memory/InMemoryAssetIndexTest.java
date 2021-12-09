@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class InMemoryAssetIndexTest {
     private InMemoryAssetLoader index;
@@ -74,10 +75,10 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_selectAll_shouldReturnAll() {
         var testAsset1 = createAsset("barbaz");
-        index.accept(testAsset1, niceMock(DataAddress.class));
+        index.accept(testAsset1, mock(DataAddress.class));
 
         var testAsset2 = createAsset("foobar");
-        index.accept(testAsset2, niceMock(DataAddress.class));
+        index.accept(testAsset2, mock(DataAddress.class));
 
         assertThat(index.queryAssets(AssetSelectorExpression.SELECT_ALL)).containsExactlyInAnyOrder(testAsset1, testAsset2);
     }
@@ -86,7 +87,7 @@ class InMemoryAssetIndexTest {
     void findById() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("barbaz", id);
-        index.accept(testAsset, niceMock(DataAddress.class));
+        index.accept(testAsset, mock(DataAddress.class));
 
         assertThat(index.findById(id)).isNotNull().isEqualTo(testAsset);
     }
@@ -96,7 +97,7 @@ class InMemoryAssetIndexTest {
     void findById_notfound() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
-        index.accept(testAsset, niceMock(DataAddress.class));
+        index.accept(testAsset, mock(DataAddress.class));
 
         assertThat(index.findById("not-exist")).isNull();
     }
@@ -106,9 +107,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, niceMock(DataAddress.class));
-        index.accept(testAsset2, niceMock(DataAddress.class));
-        index.accept(testAsset3, niceMock(DataAddress.class));
+        index.accept(testAsset1, mock(DataAddress.class));
+        index.accept(testAsset2, mock(DataAddress.class));
+        index.accept(testAsset3, mock(DataAddress.class));
 
         var inExpr = format("(  %s )", String.join(", ", List.of(testAsset1.getId(), testAsset2.getId())));
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -123,9 +124,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, niceMock(DataAddress.class));
-        index.accept(testAsset2, niceMock(DataAddress.class));
-        index.accept(testAsset3, niceMock(DataAddress.class));
+        index.accept(testAsset1, mock(DataAddress.class));
+        index.accept(testAsset2, mock(DataAddress.class));
+        index.accept(testAsset3, mock(DataAddress.class));
 
         var inExpr = format("(  %s )", String.join(", ", List.of("test-id1", "test-id2")));
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -140,9 +141,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, niceMock(DataAddress.class));
-        index.accept(testAsset2, niceMock(DataAddress.class));
-        index.accept(testAsset3, niceMock(DataAddress.class));
+        index.accept(testAsset1, mock(DataAddress.class));
+        index.accept(testAsset2, mock(DataAddress.class));
+        index.accept(testAsset3, mock(DataAddress.class));
 
         var inExpr = String.join(", ", List.of(testAsset1.getId(), testAsset2.getId()));
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -157,9 +158,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, niceMock(DataAddress.class));
-        index.accept(testAsset2, niceMock(DataAddress.class));
-        index.accept(testAsset3, niceMock(DataAddress.class));
+        index.accept(testAsset1, mock(DataAddress.class));
+        index.accept(testAsset2, mock(DataAddress.class));
+        index.accept(testAsset3, mock(DataAddress.class));
 
         var inExpr = String.join(",", List.of(testAsset1.getId(), testAsset2.getId()));
         var selector = AssetSelectorExpression.Builder.newInstance()
