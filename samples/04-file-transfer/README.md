@@ -173,11 +173,11 @@ The first step to running this sample is building and starting both the provider
 connector. This is done the same way as in the previous samples.
 
 ```bash
-./gradlew samples:04-contract-negotiation:consumer:build
-java -Dedc.fs.config=samples/04-contract-negotiation/consumer/config.properties -jar samples/04-contract-negotiation/consumer/build/libs/consumer.jar
+./gradlew samples:04-file-transfer:consumer:build
+java -Dedc.fs.config=samples/04-file-transfer/consumer/config.properties -jar samples/04-file-transfer/consumer/build/libs/consumer.jar
 # in another terminal window:
-./gradlew samples:04-contract-negotiation:provider:build
-java -Dedc.fs.config=samples/04-contract-negotiation/provider/config.properties -jar samples/04-contract-negotiation/provider/build/libs/provider.jar
+./gradlew samples:04-file-transfer:provider:build
+java -Dedc.fs.config=samples/04-file-transfer/provider/config.properties -jar samples/04-file-transfer/provider/build/libs/provider.jar
 ````
 
 Assuming you didn't change the ports in config files, the consumer will listen on port `9191`
