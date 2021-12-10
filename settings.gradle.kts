@@ -27,6 +27,7 @@ include(":core:protocol:web")
 include(":core:schema")
 include(":core:transfer")
 include(":core:contract")
+include(":core:base")
 
 // modules that provide implementations for data ingress/egress
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")

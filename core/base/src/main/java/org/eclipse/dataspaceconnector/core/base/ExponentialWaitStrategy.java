@@ -9,17 +9,17 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - adapt class for negotiation process
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.core.transfer;
+package org.eclipse.dataspaceconnector.core.base;
 
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 
-/**
- * Implements an exponential backoff strategy for failed iterations.
- */
-public class ExponentialWaitStrategy implements TransferWaitStrategy {
+public class ExponentialWaitStrategy implements TransferWaitStrategy, NegotiationWaitStrategy {
+
     private final long successWaitPeriodMillis;
     private int errorCount = 0;
 
@@ -45,4 +45,5 @@ public class ExponentialWaitStrategy implements TransferWaitStrategy {
         double result = exponentialMultiplier * successWaitPeriodMillis;
         return (long) Math.min(result, Long.MAX_VALUE);
     }
+
 }

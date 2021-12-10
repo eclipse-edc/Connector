@@ -9,16 +9,17 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactor to base module
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.core.transfer;
+package org.eclipse.dataspaceconnector.core.base;
 
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class ExponentialWaitStrategyTest {
+public class ExponentialWaitStrategyTest {
 
     @Test
     void verifyBackoff() {
@@ -32,4 +33,5 @@ class ExponentialWaitStrategyTest {
         assertEquals(5000, strategy.retryInMillis());
 
     }
+
 }

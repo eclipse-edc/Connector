@@ -9,10 +9,11 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactor to base module
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.core.protocol.provider;
+package org.eclipse.dataspaceconnector.core.base;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
@@ -27,6 +28,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatcherRegistry {
+
     private final Map<String, RemoteMessageDispatcher> dispatchers = new HashMap<>();
 
     @Override
@@ -57,4 +59,5 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
         }
         return dispatchers.get(protocol);
     }
+
 }

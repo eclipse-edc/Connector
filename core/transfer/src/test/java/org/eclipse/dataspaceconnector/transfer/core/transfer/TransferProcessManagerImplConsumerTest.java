@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
