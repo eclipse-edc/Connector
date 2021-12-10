@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.cosmos.azure;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /**
@@ -16,9 +15,7 @@ public abstract class CosmosDocument<T> {
     @JsonProperty
     private final String partitionKey;
 
-    @JsonCreator
-    public CosmosDocument(@JsonProperty("wrappedInstance") T wrappedInstance,
-                          @JsonProperty("partitionKey") String partitionKey) {
+    protected CosmosDocument(@JsonProperty("wrappedInstance") T wrappedInstance, @JsonProperty("partitionKey") String partitionKey) {
         this.wrappedInstance = wrappedInstance;
         this.partitionKey = partitionKey;
     }

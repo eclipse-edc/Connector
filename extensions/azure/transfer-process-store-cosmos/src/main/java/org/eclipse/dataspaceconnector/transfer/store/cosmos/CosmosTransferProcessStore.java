@@ -14,21 +14,15 @@
 
 package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
-import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosException;
-import com.azure.cosmos.CosmosStoredProcedure;
-import com.azure.cosmos.implementation.GoneException;
+import com.azure.cosmos.implementation.BadRequestException;
 import com.azure.cosmos.implementation.NotFoundException;
 import com.azure.cosmos.implementation.RequestRateTooLargeException;
-import com.azure.cosmos.models.CosmosItemRequestOptions;
-import com.azure.cosmos.models.CosmosItemResponse;
 import com.azure.cosmos.models.CosmosQueryRequestOptions;
-import com.azure.cosmos.models.CosmosStoredProcedureRequestOptions;
-import com.azure.cosmos.models.CosmosStoredProcedureResponse;
-import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.FailsafeExecutor;
 import net.jodah.failsafe.Fallback;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -38,7 +32,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -52,19 +45,19 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
     private static final String NEXT_FOR_STATE_S_PROC_NAME = "nextForState";
     private static final String LEASE_S_PROC_NAME = "lease";
-    private final CosmosContainer container;
+    private final CosmosDbApi cosmosDbApi;
     private final CosmosQueryRequestOptions tracingOptions;
     private final TypeManager typeManager;
     private final String partitionKey;
     private final String connectorId;
     private final RetryPolicy<Object> generalRetry;
     private final RetryPolicy<Object> rateLimitRetry;
-    private FailsafeExecutor<Object> failsafeExecutor;
+    private final FailsafeExecutor<Object> failsafeExecutor;
 
     /**
      * Creates a new instance of the CosmosDB-based transfer process store.
      *
-     * @param container    The CosmosDB-container that'll hold the transfer processes.
+     * @param cosmosDbApi  Api for interaction with CosmosDB.
      * @param typeManager  The {@link TypeManager} that's used for serialization and deserialization
      * @param partitionKey A Partition Key that CosmosDB uses for r/w distribution. Contrary to what CosmosDB suggests, this
      *                     key should be the same for all local (=clustered) connectors, otherwise queries in stored procedures might
@@ -73,9 +66,9 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
      *                     in a local K8s cluster must have unique names. The connectorId is used to lock transfer processes so that no
      * @param retryPolicy  A general retry policy for the CosmosAPI
      */
-    public CosmosTransferProcessStore(CosmosContainer container, TypeManager typeManager, String partitionKey, String connectorId, RetryPolicy<Object> retryPolicy) {
+    public CosmosTransferProcessStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, String partitionKey, String connectorId, RetryPolicy<Object> retryPolicy) {
 
-        this.container = container;
+        this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.partitionKey = partitionKey;
         this.connectorId = connectorId;
@@ -92,48 +85,29 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
     @Override
     public TransferProcess find(String id) {
-        CosmosItemRequestOptions options = new CosmosItemRequestOptions();
-        try {
-            // we need to read the TransferProcessDocument as Object, because no custom JSON deserialization can be registered
-            // with the CosmosDB SDK, so it would not know about subtypes, etc.
-            CosmosItemResponse<Object> response = failsafeExecutor.get(() -> container.readItem(id, new PartitionKey(partitionKey), options, Object.class));
-            var obj = response.getItem();
-
-            return convertObject(obj).getWrappedInstance();
-        } catch (NotFoundException | GoneException ex) {
-            return null;
-        }
-
+        // we need to read the TransferProcessDocument as Object, because no custom JSON deserialization can be registered
+        // with the CosmosDB SDK, so it would not know about subtypes, etc.
+        Object obj = failsafeExecutor.get(() -> cosmosDbApi.queryItemById(id, partitionKey));
+        return obj != null ? convertObject(obj).getWrappedInstance() : null;
     }
 
     @Override
     public @Nullable String processIdForTransferId(String transferId) {
-        var query = "SELECT * FROM TransferProcessDocument WHERE TransferProcessDocument.dataRequest.id = '" + transferId + "'";
-
-        try {
-            var response = failsafeExecutor.get(() -> container.queryItems(query, tracingOptions, Object.class));
-            return response.stream()
-                    .map(this::convertObject)
-                    .map(pd -> pd.getWrappedInstance().getId()).findFirst().orElse(null);
-        } catch (CosmosException ex) {
-            throw new EdcException(ex);
-        }
+        var query = "SELECT * FROM t WHERE t.wrappedInstance.dataRequest.id = '" + transferId + "'";
+        var response = failsafeExecutor.get(() -> cosmosDbApi.queryItems(query));
+        return response
+                .map(this::convertObject)
+                .map(pd -> pd.getWrappedInstance().getId())
+                .findFirst()
+                .orElse(null);
     }
 
     @Override
     public @NotNull List<TransferProcess> nextForState(int state, int max) {
-
         tracingOptions.setMaxBufferedItemCount(max);
 
-        var sproc = getStoredProcedure(NEXT_FOR_STATE_S_PROC_NAME);
-        List<Object> params = Arrays.asList(state, max, getConnectorId());
-        var options = new CosmosStoredProcedureRequestOptions();
-        options.setPartitionKey(new PartitionKey(partitionKey));
-
-        var rawJson = with(Fallback.of((String) null), rateLimitRetry, generalRetry).get(() -> {
-            CosmosStoredProcedureResponse response = sproc.execute(params, options);
-            return response.getResponseAsString();
-        });
+        var rawJson = with(Fallback.of((String) null), rateLimitRetry, generalRetry)
+                .get(() -> cosmosDbApi.invokeStoredProcedure(NEXT_FOR_STATE_S_PROC_NAME, partitionKey, state, max, connectorId));
 
         if (rawJson == null) {
             return Collections.emptyList();
@@ -152,48 +126,37 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
 
     @Override
     public void create(TransferProcess process) {
-
         Objects.requireNonNull(process.getId(), "TransferProcesses must have an ID!");
         process.transitionInitial();
 
-        CosmosItemRequestOptions options = new CosmosItemRequestOptions();
         //todo: configure indexing
-        var document = TransferProcessDocument.from(process, partitionKey);
-        try {
-            var response = failsafeExecutor.get(() -> container.createItem(document, new PartitionKey(partitionKey), options));
-            handleResponse(response);
-        } catch (CosmosException cme) {
-            throw new EdcException(cme);
-        }
+        var document = new TransferProcessDocument(process, partitionKey);
+        failsafeExecutor.run(() -> cosmosDbApi.saveItem(document));
     }
 
     @Override
     public void update(TransferProcess process) {
-        var document = TransferProcessDocument.from(process, partitionKey);
+        var document = new TransferProcessDocument(process, partitionKey);
         try {
-            lease(process.getId(), getConnectorId());
-            var response = failsafeExecutor.get(() -> container.upsertItem(document, new PartitionKey(partitionKey), new CosmosItemRequestOptions()));
-            handleResponse(response);
-            release(process.getId(), getConnectorId());
-        } catch (CosmosException cme) {
-            throw new EdcException(cme);
+            lease(process.getId(), connectorId);
+            failsafeExecutor.run(() -> cosmosDbApi.saveItem(document));
+            release(process.getId(), connectorId);
+        } catch (BadRequestException ex) {
+            throw new EdcException(ex);
         }
     }
 
     @Override
     public void delete(String processId) {
         try {
-            lease(processId, getConnectorId());
-            failsafeExecutor = failsafeExecutor;
-            var response = failsafeExecutor.get(() -> container.deleteItem(processId, new PartitionKey(partitionKey), new CosmosItemRequestOptions()));
-            handleResponse(response);
-            release(processId, getConnectorId());
-        } catch (NotFoundException ignored) {
-            //noop
-        } catch (CosmosException cme) {
-            throw new EdcException(cme);
+            lease(processId, connectorId);
+            failsafeExecutor.run(() -> cosmosDbApi.deleteItem(processId));
+            release(processId, connectorId);
+        } catch (NotFoundException ex) {
+            //do nothing
+        } catch (CosmosException ex) {
+            throw new EdcException(ex);
         }
-
     }
 
     @Override
@@ -221,13 +184,6 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         throw new UnsupportedOperationException("Not yet implemented");
     }
 
-    private void handleResponse(CosmosItemResponse<?> response) {
-        int code = response.getStatusCode();
-        if (code < 200 || code >= 300) {
-            throw new EdcException("Error during CosmosDB interaction: " + code);
-        }
-    }
-
     private TransferProcessDocument convertObject(Object databaseDocument) {
         return typeManager.readValue(typeManager.writeValueAsString(databaseDocument), TransferProcessDocument.class);
     }
@@ -241,28 +197,6 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
     }
 
     private void writeLease(String processId, Object connectorId, boolean writeLease) {
-        var sproc = getStoredProcedure(LEASE_S_PROC_NAME);
-        List<Object> args = Arrays.asList(processId, connectorId, writeLease);
-        var options = new CosmosStoredProcedureRequestOptions();
-        options.setPartitionKey(new PartitionKey(partitionKey));
-
-        var code = failsafeExecutor.get(() -> {
-            var response = sproc.execute(args, options);
-            return response.getStatusCode();
-        });
-
-        if (code < 200 || code >= 300) {
-            throw new EdcException("Error breaking lease on process '" + processId + "': " + code);
-        }
+        failsafeExecutor.run(() -> cosmosDbApi.invokeStoredProcedure(LEASE_S_PROC_NAME, partitionKey, processId, connectorId, writeLease));
     }
-
-
-    private String getConnectorId() {
-        return connectorId;
-    }
-
-    private CosmosStoredProcedure getStoredProcedure(String sprocName) {
-        return container.getScripts().getStoredProcedure(sprocName);
-    }
-
 }

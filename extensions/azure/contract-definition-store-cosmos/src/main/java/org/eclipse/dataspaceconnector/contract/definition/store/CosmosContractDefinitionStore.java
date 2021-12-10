@@ -48,7 +48,7 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     public void save(Collection<ContractDefinition> definitions) {
         lock.writeLock().lock();
         try {
-            with(retryPolicy).run(() -> cosmosDbApi.createItems(definitions.stream().map(this::convertToDocument).collect(Collectors.toList())));
+            with(retryPolicy).run(() -> cosmosDbApi.saveItems(definitions.stream().map(this::convertToDocument).collect(Collectors.toList())));
             definitions.forEach(this::storeInCache);
         } finally {
             lock.writeLock().unlock();

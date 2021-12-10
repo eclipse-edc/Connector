@@ -39,13 +39,12 @@ class TransferProcessDocumentSerializationTest {
 
         var transferProcess = createTransferProcess();
 
-        var document = TransferProcessDocument.from(transferProcess, "test-process");
+        var document = new TransferProcessDocument(transferProcess, "test-process");
 
         String s = typeManager.writeValueAsString(document);
 
         assertThat(s).isNotNull();
         assertThat(s).contains("\"partitionKey\":\"test-process\""); //should use the process id as partition key
-        assertThat(s).contains("\"id\":\"test-process\"");
         assertThat(s).contains("\"id\":\"test-process\"");
         assertThat(s).contains("\"type\":\"CONSUMER\"");
         assertThat(s).contains("\"errorDetail\":null");
@@ -63,7 +62,7 @@ class TransferProcessDocumentSerializationTest {
                 .resourceManifest(createManifest())
                 .build();
 
-        var document = TransferProcessDocument.from(transferProcess, "test-process");
+        var document = new TransferProcessDocument(transferProcess, "test-process");
         String json = typeManager.writeValueAsString(document);
 
         var transferProcessDeserialized = typeManager.readValue(json, TransferProcessDocument.class);

@@ -23,16 +23,13 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 @JsonTypeName("dataspaceconnector:federatedcatalognodedocument")
 public class FederatedCacheNodeDocument extends CosmosDocument<FederatedCacheNode> {
 
-    private final String id;
-
     @JsonCreator
     public FederatedCacheNodeDocument(@JsonProperty("wrappedInstance") FederatedCacheNode wrappedInstance,
                                       @JsonProperty("partitionKey") String partitionKey) {
         super(wrappedInstance, partitionKey);
-        id = wrappedInstance.getName();
     }
 
     public String getId() {
-        return id;
+        return getWrappedInstance().getName();
     }
 }
