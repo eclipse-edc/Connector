@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServ
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -60,7 +61,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public final Set<String> provides() {
-        return Set.of("edc:core:contract");
+        return Set.of(ContractNegotiationManager.FEATURE);
     }
 
     @Override

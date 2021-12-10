@@ -42,9 +42,10 @@ public class FileTransferFlowController implements DataFlowController {
         // verify destination path
         var destinationPath = Path.of(destination.getProperty("path"));
         if (!destinationPath.toFile().exists()) { //interpret as directory
-            monitor.info("Destination path " + destinationPath + " does not exist, will attempt to create");
+            monitor.debug("Destination path " + destinationPath + " does not exist, will attempt to create");
             try {
                 Files.createDirectory(destinationPath);
+                monitor.debug("Successfully created destination path " + destinationPath);
             } catch (IOException e) {
                 String message = "Error creating directory: " + e.getMessage();
                 monitor.severe(message);
@@ -56,6 +57,7 @@ public class FileTransferFlowController implements DataFlowController {
 
         try {
             Files.copy(sourcePath, destinationPath, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.COPY_ATTRIBUTES);
+            monitor.info("Successfully copied file to " + destinationPath);
         } catch (IOException e) {
             String message = "Error copying file " + e.getMessage();
             monitor.severe(message);
