@@ -230,9 +230,73 @@ we use the `X-Api-Key` header with the same value that's set in our consumer's `
 curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{UUID}"
 ```
 
-This will return a full description of the negotiation. When the state reads `1200` (= confirmed),
-this description will also contain a contract agreement. We can now use this agreement to request
-the file. So we copy and store the agreement's ID for the next step.
+This will return a full description of the negotiation (see sample output below). When the state
+reads `1200` (= confirmed), this description will also contain a contract agreement. We can now
+use this agreement to request the file. So we copy and store the agreement's ID for the next step.
+
+Sample output:
+```json
+{
+    "id": <NEGOTIATION_UUID>,
+    "correlationId": null,
+    "counterPartyId": "consumer",
+    "counterPartyAddress": "http://localhost:8181/api/ids/multipart",
+    "protocol": "ids-multipart",
+    "type": "CONSUMER",
+    "state": 1200,
+    "stateCount": 1,
+    "stateTimestamp": 1639131245365,
+    "errorDetail": null,
+    "contractAgreement": {
+        "id": <AGREEMENT_ID>,
+        "providerAgentId": "null",
+        "consumerAgentId": "null",
+        "contractSigningDate": 0,
+        "contractStartDate": 0,
+        "contractEndDate": 0,
+        "asset": {
+            "properties": {
+                "asset:prop:id": "urn:artifact:test-document"
+            }
+        },
+        "policy": {
+            "uid": "be03b061-d9dc-4b85-a2a2-697ea6e7ca60",
+            "permissions": [
+                {
+                    "edctype": "dataspaceconnector:permission",
+                    "uid": null,
+                    "target": "test-document",
+                    "action": {
+                        "type": "USE",
+                        "includedIn": null,
+                        "constraint": null
+                    },
+                    "assignee": null,
+                    "assigner": null,
+                    "constraints": [],
+                    "duties": []
+                }
+            ],
+            "prohibitions": [],
+            "obligations": [],
+            "extensibleProperties": {},
+            "inheritsFrom": null,
+            "assigner": null,
+            "assignee": null,
+            "target": null,
+            "@type": {
+                "@policytype": "set"
+            }
+        }
+    },
+    "contractOffers": [
+        ...
+    ],
+    "lastContractOffer": {
+        ...
+    }
+}
+```
 
 ### 4. Request the file
 
