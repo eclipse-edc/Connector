@@ -87,6 +87,7 @@ allprojects {
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.easymock:easymock:4.2")
             testImplementation("org.assertj:assertj-core:3.19.0")
+            testImplementation("com.github.javafaker:javafaker:1.0.2")
         }
 
         publishing {
