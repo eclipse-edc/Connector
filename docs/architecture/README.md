@@ -22,3 +22,14 @@ Before each data transfer a contract must be offered from the provider. A consum
 before its able to request data.
 
 These two processes (offering & negotation) are documented in the [contracts.md](contracts.md)
+
+### TransferProcessListener
+
+A consumer extension may register a listener to execute custom logic after a transfer changes state, for example, to notify an external application on the consumer side after data has been produced (i.e. the transfer moves to the completed state).
+
+```java
+transferProcessObservable = context.getService(TransferProcessObservable.class);
+transferProcessObservable.registerListener(myTransferProcessListener);
+```
+
+A sample is available at [04.1-file-transfer-listener](../../samples/04.1-file-transfer-listener).
