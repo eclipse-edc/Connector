@@ -1,7 +1,7 @@
 # Perform a contract negotiation
 
-After successfully providing custom configuration properties to the EDC, we'll next perform
-a data transfer: we'll transmit a test file from one connector to another connector. We want to
+After successfully providing custom configuration properties to the EDC, we will perform
+a data transfer next: transmit a test file from one connector to another connector. We want to
 keep things simple, so we will run both connectors on the same physical machine (i.e. your development
 machine) and the file is transferred from one folder in the file system to another folder. It is not
 difficult to imagine that instead of the local file system, the transfer happens between more
@@ -10,8 +10,8 @@ sophisticated storage locations, like a database or a cloud storage.
 This is quite a big step up from the previous sample, where we ran only one connector. Those are the concrete tasks:
 
 * Creating an additional connector, so that in the end we have two connectors, a consumer and a provider
-* Communication between provider and consumer using IDS multipart messages
-* Exposing a REST API on the consumer side so that external systems (e.g. users) can interact with it
+* Providing communication between provider and consumer using IDS multipart messages
+* Exposing a REST API on the consumer side that external systems (e.g. users) can interact with
 * Performing a contract negotiation between provider and consumer
 * Performing a file transfer
   * The consumer will initiate a file transfer
@@ -29,12 +29,12 @@ Java modules:
 ## Create the control REST API
 
 We will need some way to interact with the consumer, a communication protocol of sorts. That is what we call
-outward-facing communication. In this example we will communicate with the consumer via simple command line tools
+outward-facing communication. In this example, we will communicate with the consumer via simple command line tools
 like `cURL`, but it is easy to imagine some other much more complicated control system to interact with the (consumer)
 connector. Thus, using Jakarta, we must create an API controller the same way we created our health endpoint a few
 chapters back. In fact, we can re-use and improve
 [that controller](api/src/main/java/org/eclipse/dataspaceconnector/extensions/api/ConsumerApiController.java)
-(code omitted here for brevity). Namely, we add to additional endpoints to the controller: one for
+(code omitted here for brevity). Namely, we add two additional endpoints to the controller: one for
 initiating the contract negotiation and one for initiating the file transfer. Both actions can also
 be performed via endpoints in the
 [existing control API extension](../../extensions/api/control/src/main/java/org/eclipse/dataspaceconnector/api/control/ClientController.java),
@@ -107,8 +107,8 @@ and id, it is by no means mandatory.
 
 It also adds a `ContractDefinition` with `id` `1` and a previously created `Policy` (code omitted above),
 that poses no restrictions on the data usage. The `ContractDefinition` also has an
-`AssetSelectorExpression` defining that it's valid for all assets with the `id` `test-document`.
-Thus, it's valid for the created asset.
+`AssetSelectorExpression` defining that it is valid for all assets with the `id` `test-document`.
+Thus, it is valid for the created asset.
 
 Next to offering the file, the provider also needs to be able to transfer the file. Therefore,
 the `transfer-file` extension also provides the
@@ -119,16 +119,16 @@ which contains the code for copying the file to a specified location (code omitt
 
 After creating the required extensions, we next need to create the two connectors. For both of them
 we need a gradle build file and a config file. A common dependency we need to add to the build file
-on both sides are the IDS extensions. These are required so that both connectors can communicate
-with each other using IDS multipart messages.
+on both sides are the IDS extensions. These are required to enable a communication between both 
+connectors via IDS multipart messages.
 
 ```kotlin
 // in consumer/build.gradle.kts and provider/build.gradle.kts:
 implementation(project(":data-protocols:ids"))
 ```
 
-This adds the IDS protocol package to both connectors. Since we're adding the IDS root module,
-nothing more needs to be done here. Now we can add the dependencies that are specific to provider or consumer.
+This adds the IDS protocol package to both connectors. Since we are adding the IDS root module,
+nothing more needs to be done here. Now, we can add the dependencies that are specific to provider or consumer.
 
 ### Provider connector
 
@@ -159,7 +159,7 @@ implementation(project(":samples:04-file-transfer:api"))
 
 It is good practice to explicitly configure the consumer's API port in `consumer/config.properties` like we learned in
 previous chapters. In the config file, we also need to configure the API key authentication,
-as we're going to use an endpoint from the EDC's control API in this sample. Therefore we add
+as we're going to use an endpoint from the EDC's control API in this sample. Therefore, we add
 the property `edc.api.control.auth.apikey.value` and set it to e.g. `password`. And last, we
 also need to configure the consumer's `ids.webhook.address`.
 
@@ -300,10 +300,10 @@ Sample output:
 
 ### 4. Request the file
 
-Now that we have a contract agreement, we can finally request the file. For this we use the new
+Now that we have a contract agreement, we can finally request the file. For this, we use the new
 endpoint provided in the `api` extension of this sample. We specify the name of the file we want
-transferred as a path variable and provide the address of the provider connector, the path where
-we want the file copied and the contract agreement ID as query parameters:
+to have transferred as a path variable and provide the address of the provider connector, the path 
+where we want the file copied, and the contract agreement ID as query parameters:
 
 ```bash
 curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/api/ids/multipart&destination=/path/on/yourmachine&contractId={agreement ID}"
