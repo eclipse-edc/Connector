@@ -17,7 +17,6 @@ package org.eclipse.dataspaceconnector.transfer.store.memory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -73,9 +72,6 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public void create(TransferProcess process) {
         writeLock(() -> {
-            if (process.getState() == TransferProcessStates.UNSAVED.code()) {
-                process.transitionInitial();
-            }
             delete(process.getId());
             TransferProcess internalCopy = process.copy();
             processesById.put(process.getId(), internalCopy);

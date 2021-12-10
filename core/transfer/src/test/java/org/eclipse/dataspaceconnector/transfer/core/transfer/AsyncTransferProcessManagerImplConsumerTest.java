@@ -463,6 +463,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
         var processes = new ArrayList<TransferProcess>();
         for (int i = 0; i < numProcesses; i++) {
             TransferProcess process = createTransferProcess(TransferProcessStates.UNSAVED);
+            process.transitionInitial();
             processes.add(process);
             inMemoryProcessStore.create(process);
         }

@@ -42,7 +42,7 @@ class InMemoryTransferProcessStoreTest {
     void verifyCreateUpdateDelete() {
         String id = UUID.randomUUID().toString();
         TransferProcess transferProcess = TransferProcess.Builder.newInstance().id(id).dataRequest(DataRequest.Builder.newInstance().id("clientid").destinationType("test").build()).build();
-
+        transferProcess.transitionInitial();
         store.create(transferProcess);
 
         TransferProcess found = store.find(id);
@@ -75,6 +75,8 @@ class InMemoryTransferProcessStoreTest {
         String id2 = UUID.randomUUID().toString();
         TransferProcess transferProcess2 = TransferProcess.Builder.newInstance().id(id2).dataRequest(DataRequest.Builder.newInstance().id("clientid").destinationType("test").build()).build();
 
+        transferProcess1.transitionInitial();
+        transferProcess2.transitionInitial();
         store.create(transferProcess1);
         store.create(transferProcess2);
 
@@ -100,10 +102,12 @@ class InMemoryTransferProcessStoreTest {
     void verifyMutlipleRequets() {
         String id1 = UUID.randomUUID().toString();
         TransferProcess transferProcess1 = TransferProcess.Builder.newInstance().id(id1).dataRequest(DataRequest.Builder.newInstance().id("clientid1").destinationType("test").build()).build();
+        transferProcess1.transitionInitial();
         store.create(transferProcess1);
 
         String id2 = UUID.randomUUID().toString();
         TransferProcess transferProcess2 = TransferProcess.Builder.newInstance().id(id2).dataRequest(DataRequest.Builder.newInstance().id("clientid2").destinationType("test").build()).build();
+        transferProcess2.transitionInitial();
         store.create(transferProcess2);
 
 
@@ -122,6 +126,7 @@ class InMemoryTransferProcessStoreTest {
     void verifyOrderingByTimestamp() {
         for (int i = 0; i < 100; i++) {
             TransferProcess process = createProcess("test-process-" + i);
+            process.transitionInitial();
             store.create(process);
         }
 
@@ -135,6 +140,7 @@ class InMemoryTransferProcessStoreTest {
     void verifyNextForState_avoidsStarvation() throws InterruptedException {
         for (int i = 0; i < 10; i++) {
             TransferProcess process = createProcess("test-process-" + i);
+            process.transitionInitial();
             store.create(process);
         }
 
