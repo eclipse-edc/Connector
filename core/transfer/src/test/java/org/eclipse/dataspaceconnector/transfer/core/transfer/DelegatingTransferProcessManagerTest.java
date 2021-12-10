@@ -103,7 +103,7 @@ class DelegatingTransferProcessManagerTest {
     private DataRequest createRequest(boolean isSync) {
         return DataRequest.Builder.newInstance()
                 .destinationType("test-type")
-                .isSyncRequest(isSync)
+                .isSync(isSync)
                 .build();
     }
 }

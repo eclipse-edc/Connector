@@ -16,12 +16,12 @@ public class DelegatingTransferProcessManager implements TransferProcessManager 
 
     @Override
     public TransferResponse initiateConsumerRequest(DataRequest dataRequest) {
-        return dataRequest.isSyncRequest() ? syncManager.initiateConsumerRequest(dataRequest) : asyncManager.initiateConsumerRequest(dataRequest);
+        return dataRequest.isSync() ? syncManager.initiateConsumerRequest(dataRequest) : asyncManager.initiateConsumerRequest(dataRequest);
     }
 
     @Override
     public TransferResponse initiateProviderRequest(DataRequest dataRequest) {
-        return dataRequest.isSyncRequest() ? syncManager.initiateProviderRequest(dataRequest) : asyncManager.initiateProviderRequest(dataRequest);
+        return dataRequest.isSync() ? syncManager.initiateProviderRequest(dataRequest) : asyncManager.initiateProviderRequest(dataRequest);
     }
 
     public void start(TransferProcessStore transferProcessStore) {

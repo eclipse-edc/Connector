@@ -42,6 +42,9 @@ public class SyncTransferProcessManager implements TransferProcessManager {
     public TransferResponse initiateConsumerRequest(DataRequest dataRequest) {
         var id = UUID.randomUUID().toString();
         var transferProcess = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(CONSUMER).build();
+        if (transferProcess.getState() == TransferProcessStates.UNSAVED.code()) {
+            transferProcess.transitionInitial();
+        }
         transferProcessStore.create(transferProcess);
 
         var future = dispatcherRegistry.send(Object.class, dataRequest, transferProcess::getId);
@@ -72,6 +75,9 @@ public class SyncTransferProcessManager implements TransferProcessManager {
         //create a transfer process in the COMPLETED state
         var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(PROVIDER).build();
+        if (process.getState() == TransferProcessStates.UNSAVED.code()) {
+            process.transitionInitial();
+        }
         transferProcessStore.create(process);
 
         var dataProxy = dataProxyManager.getProxy(dataRequest);

@@ -103,6 +103,9 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         }
         var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
+        if (process.getState() == TransferProcessStates.UNSAVED.code()) {
+            process.transitionInitial();
+        }
         transferProcessStore.create(process);
         invokeForEach(l -> l.created(process));
         return TransferInitiateResult.success(process.getId());

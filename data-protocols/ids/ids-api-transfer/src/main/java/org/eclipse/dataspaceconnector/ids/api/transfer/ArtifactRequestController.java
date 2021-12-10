@@ -135,9 +135,8 @@ public class ArtifactRequestController {
                 .id(randomUUID().toString())
                 .assetId(asset.getId())
                 .dataDestination(dataDestination)
-                .protocol(IDS_REST)
                 .properties(requestProperties)
-                .build();
+                .protocol(IDS_REST).build();
 
         var destinationToken = (String) messageProperties.get(TOKEN_KEY);
 

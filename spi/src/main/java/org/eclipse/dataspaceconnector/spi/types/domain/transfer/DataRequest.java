@@ -51,7 +51,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private TransferType transferType;
 
-    private boolean isSyncRequest = false;
+    private boolean isSync = false;
 
     private DataRequest() {
         transferType = new TransferType();
@@ -148,7 +148,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .contractId(contractId)
                 .dataAddress(dataDestination)
                 .transferType(transferType)
-                .isSyncRequest(isSyncRequest)
+                .isSync(isSync)
                 .managedResources(managedResources)
                 .properties(properties)
                 .build();
@@ -162,8 +162,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return transferType;
     }
 
-    public boolean isSyncRequest() {
-        return isSyncRequest;
+    public boolean isSync() {
+        return isSync;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -214,8 +214,8 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        public Builder isSyncRequest(boolean isSync) {
-            request.isSyncRequest = isSync;
+        public Builder isSync(boolean isSync) {
+            request.isSync = isSync;
             return this;
         }
 

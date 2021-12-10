@@ -110,7 +110,7 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
                 artifactMessage.setProperty("dataspaceconnector-destination-token", serializedToken);
             }
         }
-        artifactMessage.setProperty("dataspaceconnector-is-synch-request", dataRequest.isSyncRequest());
+        artifactMessage.setProperty("dataspaceconnector-is-synch-request", dataRequest.isSync());
 
         var requestBody = writeJson(artifactMessage, mapper);
 

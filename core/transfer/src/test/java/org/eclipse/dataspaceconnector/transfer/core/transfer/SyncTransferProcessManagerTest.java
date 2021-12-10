@@ -137,7 +137,7 @@ class SyncTransferProcessManagerTest {
     private DataRequest createRequest() {
         return DataRequest.Builder.newInstance()
                 .destinationType(TEST_TYPE)
-                .isSyncRequest(true)
+                .isSync(true)
                 .build();
     }
 
