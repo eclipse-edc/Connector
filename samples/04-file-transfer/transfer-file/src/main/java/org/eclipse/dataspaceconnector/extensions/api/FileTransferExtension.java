@@ -65,7 +65,6 @@ public class FileTransferExtension implements ServiceExtension {
     private Policy savePolicies(ServiceExtensionContext context) {
         PolicyRegistry policyRegistry = context.getService(PolicyRegistry.class);
 
-        LiteralExpression spatialExpression = new LiteralExpression("ids:absoluteSpatialPosition");
         var usePermission = Permission.Builder.newInstance()
                 .action(Action.Builder.newInstance().type("idsc:USE").build())
                 .build();
