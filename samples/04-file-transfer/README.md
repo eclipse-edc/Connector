@@ -322,7 +322,7 @@ You can also check the logs of the connectors to see that the transfer has been 
 
 Consumer side:
 ```bash
-INFO 2021-12-08T10:54:46.55678709 Received request for file test-document against provider http://localhost:8181/
+INFO 2021-12-08T10:54:46.55678709 Received request for file test-document against provider http://localhost:8181/api/ids/multipart
 DEBUG 2021-12-08T10:54:47.454351767 Request approved and acknowledged for process: 98512dc2-3985-4696-937e-2c12c5ef77e3
 DEBUG 2021-12-08T10:54:52.123863179 Process 98512dc2-3985-4696-937e-2c12c5ef77e3 is now IN_PROGRESS
 DEBUG 2021-12-08T10:54:52.124975956 Process 98512dc2-3985-4696-937e-2c12c5ef77e3 is now COMPLETED
@@ -332,8 +332,13 @@ Provider side:
 ```bash
 DEBUG 2021-12-08T10:54:47.383011288 Received artifact request for: test-document
 INFO 2021-12-08T10:54:47.399136285 Data transfer request initiated
-INFO 2021-12-08T10:54:51.147997198 Destination path /path/on/yourmachine does not exist, will attempt to create
+DEBUG 2021-12-08T10:54:51.147997198 Destination path /path/on/yourmachine does not exist, will attempt to create
+DEBUG 2021-12-08T10:54:51.148164749 Successfully created destination path /path/on/yourmachine
+INFO 2021-12-08T10:54:51.151692641 Successfully copied file to /path/on/yourmachine
 ```
+
+Note, that the second and third `DEBUG` logs will only appear, if the destination file did not
+previously exist.
 
 ### 5. See transferred file
 
