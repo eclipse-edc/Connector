@@ -14,6 +14,7 @@
 
 val infoModelVersion: String by project
 val rsApi: String by project
+val jerseyVersion: String by project
 
 plugins {
     `java-library`
@@ -28,6 +29,7 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
+    testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
 }
 
 publishing {

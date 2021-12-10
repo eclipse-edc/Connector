@@ -30,7 +30,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.net.URI;
 import java.util.Objects;
@@ -92,6 +91,8 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
                 ._requestedArtifact_(URI.create(dataRequest.getAssetId()))
                 .build();
         artifactMessage.setProperty("dataspaceconnector-data-destination", dataRequest.getDataDestination());
+
+        artifactMessage.setProperty("dataspaceconnector-properties", dataRequest.getProperties());
 
         var processId = context.getProcessId();
 
