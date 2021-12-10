@@ -185,8 +185,11 @@ and the provider will listen on port `8181`.
 
 ### 2. Initiate a contract negotiation
 
-In order to request any data, a contract agreement between provider and consumer is required.
-The provider has stated a contract offer for the file, but the consumer has yet to accept this offer.
+In order to request any data, a contract agreement has to be negotiated between provider and
+consumer. The provider offers all of their assets in the form of contract offers, which are
+the basis for such a negotiation. In the `transfer-file` extension, we've added a contract
+definition (from which contract offers can be created) for the file, but the consumer has yet
+to accept this offer.
 
 The consumer now needs to initiate a contract negotiation sequence with the provider. That sequence
 looks as follows:
@@ -215,7 +218,7 @@ provider and consumer.
 ### 3. Look up the contract agreement ID
 
 After calling the endpoint for initiating a contract negotiation, we get a UUID as the response.
-This UUID is the ID of the `ContractNegotiation` instance that's been created on the consumer side.
+This UUID is the ID of the ongoing contract negotiation between consumer and provider.
 The negotiation sequence between provider and consumer is executed asynchronously in the background
 by a state machine. Once both provider and consumer either reach the `confirmed` or the  `declined`
 state, the negotiation is finished. We can now use the UUID to check the current status of the
