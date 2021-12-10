@@ -43,6 +43,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -87,7 +88,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
                 AssetIndex.FEATURE,
                 ContractNegotiationStore.FEATURE,
                 "edc:ids:transform:v1",
-                "edc:core:contract");
+                ContractNegotiationManager.FEATURE);
     }
 
     @Override

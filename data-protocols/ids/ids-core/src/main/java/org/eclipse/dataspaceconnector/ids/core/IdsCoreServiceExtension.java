@@ -38,6 +38,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -73,7 +74,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
     @Override
     public Set<String> requires() {
-        return Set.of(IdentityService.FEATURE, "edc:core:contract", "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
+        return Set.of(IdentityService.FEATURE, ContractNegotiationManager.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
     }
 
     @Override

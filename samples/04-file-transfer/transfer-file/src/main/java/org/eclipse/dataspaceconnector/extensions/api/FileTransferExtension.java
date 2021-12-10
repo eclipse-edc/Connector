@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -42,7 +43,7 @@ public class FileTransferExtension implements ServiceExtension {
     @Override
     public Set<String> requires() {
         return Set.of("edc:webservice", PolicyRegistry.FEATURE,
-                DataAddressResolver.FEATURE, AssetIndex.FEATURE, "edc:core:contract");
+                DataAddressResolver.FEATURE, AssetIndex.FEATURE, ContractNegotiationManager.FEATURE);
     }
 
     @Override

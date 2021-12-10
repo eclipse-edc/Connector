@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.api.control;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -32,7 +33,7 @@ public class ControlApiServiceExtension implements ServiceExtension {
     @Override
     public Set<String> requires() {
         return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager",
-                "dataspaceconnector:dispatcher", "edc:core:contract");
+                "dataspaceconnector:dispatcher", ContractNegotiationManager.FEATURE);
     }
 
     @Override

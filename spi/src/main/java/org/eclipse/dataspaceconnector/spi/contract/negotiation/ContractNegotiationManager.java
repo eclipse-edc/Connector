@@ -23,6 +23,8 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
  */
 public interface ContractNegotiationManager {
 
+    String FEATURE = "edc:core:contract";
+
     /**
      * A negotiation was declined by the counter-party represented by the claim token.
      */
