@@ -101,6 +101,7 @@ public class ArtifactRequestHandler implements Handler {
         ContractAgreement contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
         if (contractAgreement == null) {
             monitor.info(String.format("ArtifactRequestHandler: No Contract Agreement with Id %s found.", contractIdsId.getValue()));
+            return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
         boolean isContractValid = contractValidationService.validate(verificationResult.token(), contractAgreement);
