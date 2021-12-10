@@ -81,7 +81,8 @@ jobs:
     services:
       omejdn:
         image: ghcr.io/fraunhofer-aisec/omejdn-server:1.2.1
-        ports: [4567:4567]
+        ports:
+          - 4567:4567
         volumes:
           - $PWD/extensions/iam/daps/src/test/resources/config:/opt/config
           - $PWD/extensions/iam/daps/src/test/resources/keys:/opt/keys
