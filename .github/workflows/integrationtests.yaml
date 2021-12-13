@@ -15,7 +15,8 @@ jobs:
     services:
       azurite:
         image: mcr.microsoft.com/azure-storage/azurite
-        ports: [10000:10000]
+        ports:
+          - 10000:10000
         env:
           AZURITE_ACCOUNTS: account1:key1
 
@@ -66,6 +67,15 @@ jobs:
     if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
 
+    services:
+      minio:
+        image: bitnami/minio:latest
+        ports:
+         - 9000:9000
+        env:
+          MINIO_ACCESS_KEY: root
+          MINIO_SECRET_KEY: password
+
     steps:
       - uses: actions/checkout@v2
       - name: Set up JDK 11
@@ -76,8 +86,8 @@ jobs:
       - name: AWS S3 StatusChecker Test
         env:
           RUN_INTEGRATION_TEST: true
-          S3_SECRET_ACCESS_KEY: ${{ secrets.S3_SECRET_ACCESS_KEY }}
-          S3_ACCESS_KEY_ID: ${{ secrets.S3_ACCESS_KEY_ID }}
+          S3_ACCESS_KEY_ID: root
+          S3_SECRET_ACCESS_KEY: password
         run: ./gradlew extensions:aws:s3:provision:check
 
   Daps-Integration-Test:
