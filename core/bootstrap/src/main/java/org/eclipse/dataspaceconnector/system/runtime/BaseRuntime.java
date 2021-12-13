@@ -4,13 +4,15 @@ import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.system.ExtensionLoader;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
-import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.system.ExtensionLoader.bootServiceExtensions;
@@ -34,6 +36,7 @@ import static org.eclipse.dataspaceconnector.system.ExtensionLoader.loadVault;
  */
 public class BaseRuntime {
 
+    private final AtomicReference<HealthCheckResult> startupStatus = new AtomicReference<>(HealthCheckResult.failed("Startup not complete"));
     private Monitor monitor;
 
     public static void main(String[] args) {
@@ -56,17 +59,20 @@ public class BaseRuntime {
         var context = createContext(typeManager, monitor);
         initializeContext(context);
 
+
         var name = getRuntimeName(context);
         try {
             initializeVault(context);
             List<ServiceExtension> serviceExtensions = createExtensions(context);
             java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions, monitor)));
             bootExtensions(context, serviceExtensions);
-
+            var hc = context.getService(HealthCheckService.class);
+            hc.addStartupStatusProvider(this::getStartupStatus);
         } catch (Exception e) {
             onError(e);
 
         }
+        startupStatus.set(HealthCheckResult.success());
         monitor.info(format("%s ready", name));
 
     }
@@ -180,6 +186,10 @@ public class BaseRuntime {
     @NotNull
     private TypeManager createTypeManager() {
         return new TypeManager();
+    }
+
+    private HealthCheckResult getStartupStatus() {
+        return startupStatus.get();
     }
 
 }

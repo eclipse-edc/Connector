@@ -21,6 +21,8 @@ import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
+import org.eclipse.dataspaceconnector.system.health.HealthCheckServiceImpl;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -40,7 +42,7 @@ class CoreServicesExtensionTest {
 
     @Test
     void provides() {
-        assertThat(extension.provides()).containsExactlyInAnyOrder("dataspaceconnector:http-client", "edc:retry-policy");
+        assertThat(extension.provides()).containsExactlyInAnyOrder("dataspaceconnector:http-client", "edc:retry-policy", HealthCheckService.FEATURE);
     }
 
     @Test
@@ -56,11 +58,20 @@ class CoreServicesExtensionTest {
     @Test
     void initialize() {
         ServiceExtensionContext context = mock(ServiceExtensionContext.class);
-        doNothing().when(context).registerService(any(), any());
+
+        doNothing().when(context.registerService(eq(OkHttpClient.class), isA(OkHttpClient.class)));
+        expectLastCall().times(1);
+
         when(context.getSetting(eq("edc.core.retry.retries.max"), anyString())).thenReturn("3");
         when(context.getSetting(eq("edc.core.retry.backoff.min"), anyString())).thenReturn("500");
         when(context.getSetting(eq("edc.core.retry.backoff.max"), anyString())).thenReturn("10000");
-        when(context.getService(eq(PrivateKeyResolver.class))).thenReturn(mock(PrivateKeyResolver.class));
+
+        doNothing().when(context.registerService(eq(RetryPolicy.class), isA(RetryPolicy.class)))
+
+        expect(context.getService(Vault.class)).andReturn(niceMock(Vault.class)).anyTimes();
+        expect(context.getService(eq(PrivateKeyResolver.class))).andReturn(niceMock(PrivateKeyResolver.class));
+
+        context.registerService(eq(HealthCheckService.class), isA(HealthCheckServiceImpl.class));
 
         extension.initialize(context);
 

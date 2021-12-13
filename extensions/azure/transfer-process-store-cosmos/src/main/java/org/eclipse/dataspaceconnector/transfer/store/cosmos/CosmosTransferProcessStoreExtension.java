@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProcessDocument;
 
@@ -29,7 +30,7 @@ import java.util.Set;
  * Provides an in-memory implementation of the {@link org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore} for testing.
  */
 public class CosmosTransferProcessStoreExtension implements ServiceExtension {
-    
+
     @Override
     public String name() {
         return "Cosmos Transfer Process Store";
@@ -60,6 +61,9 @@ public class CosmosTransferProcessStoreExtension implements ServiceExtension {
         context.registerService(TransferProcessStore.class, new CosmosTransferProcessStore(cosmosDbApi, context.getTypeManager(), configuration.getPartitionKey(), connectorId, retryPolicy));
 
         context.getTypeManager().registerTypes(TransferProcessDocument.class);
+
+        context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
+
     }
 }
 

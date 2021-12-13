@@ -33,6 +33,8 @@ import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 import java.util.Set;
 import java.util.function.Supplier;
@@ -78,6 +80,12 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var controller = new IdentityHubController(hub);
         var webService = context.getService(WebService.class);
         webService.registerController(controller);
+
+        // contribute to the liveness probe
+        var hcs = context.getService(HealthCheckService.class, true);
+        if (hcs != null) {
+            hcs.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("IdentityHub Controller").build());
+        }
 
         var httpClient = context.getService(OkHttpClient.class);
 

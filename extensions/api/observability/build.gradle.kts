@@ -23,18 +23,17 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-
-    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
+    implementation(project(":common:util"))
     testImplementation(project(":core:protocol:web"))
     testImplementation(project(":data-protocols:ids"))
 
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
+    //todo: will be removed once PR #384 is merged
+    testImplementation("org.mockito:mockito-core:4.1.0")
     testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation("io.rest-assured:rest-assured:4.4.0")
 
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 
-    implementation(project(":common:util"))
 }
 
 publishing {

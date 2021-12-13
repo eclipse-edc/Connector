@@ -21,6 +21,9 @@ import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
+import org.eclipse.dataspaceconnector.system.health.HealthCheckServiceConfiguration;
+import org.eclipse.dataspaceconnector.system.health.HealthCheckServiceImpl;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
@@ -45,6 +48,7 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @EdcSetting
     private static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
+    private HealthCheckServiceImpl healthCheckService;
 
     @Override
     public String name() {
@@ -55,7 +59,7 @@ public class CoreServicesExtension implements ServiceExtension {
     public Set<String> provides() {
         // the PrivateKeyResolver.FEATURE is not required because it gets registered directly by the
         // ExtensionLoader.
-        return Set.of(FEATURE_HTTP_CLIENT, FEATURE_RETRY_POLICY);
+        return Set.of(FEATURE_HTTP_CLIENT, FEATURE_RETRY_POLICY, HealthCheckService.FEATURE);
     }
 
     @Override
@@ -68,6 +72,15 @@ public class CoreServicesExtension implements ServiceExtension {
         addHttpClient(context);
         addRetryPolicy(context);
         registerParser(context);
+        //todo: remove the DEFAULT constant, replace with config values
+        healthCheckService = new HealthCheckServiceImpl(HealthCheckServiceConfiguration.DEFAULT);
+        context.registerService(HealthCheckService.class, healthCheckService);
+    }
+
+    @Override
+    public void shutdown() {
+        healthCheckService.stop();
+        ServiceExtension.super.shutdown();
     }
 
     private void registerParser(ServiceExtensionContext context) {

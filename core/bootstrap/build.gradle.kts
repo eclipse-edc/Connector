@@ -22,6 +22,10 @@ plugins {
 dependencies {
     api(project(":spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
+    //todo: will be removed once PR #384 is merged
+    testImplementation("org.mockito:mockito-core:4.1.0")
+    testImplementation("org.awaitility:awaitility-kotlin:4.1.1")
+
 }
 
 publishing {
