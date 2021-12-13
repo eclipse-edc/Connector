@@ -13,8 +13,3 @@ variable "aws_region" {
 variable "environment" {
   description = "identifying string that is used in all azure resources"
 }
-
-variable "CERTIFICATE" {
-  type        = string
-  description = "private key file for the primary azure app SP"
-}
