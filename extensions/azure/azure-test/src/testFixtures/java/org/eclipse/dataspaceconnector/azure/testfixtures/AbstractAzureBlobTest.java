@@ -14,50 +14,42 @@
 
 package org.eclipse.dataspaceconnector.azure.testfixtures;
 
-import com.azure.core.credential.AzureSasCredential;
 import com.azure.storage.blob.BlobContainerClient;
 import com.azure.storage.blob.BlobServiceClient;
 import com.azure.storage.blob.BlobServiceClientBuilder;
-import org.jetbrains.annotations.NotNull;
+import com.azure.storage.common.StorageSharedKeyCredential;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 
 import java.io.File;
-import java.util.Objects;
 import java.util.UUID;
 
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public abstract class AbstractAzureBlobTest {
 
-    protected static final String ACCOUNT_NAME = "storageitest";
-    protected static BlobServiceClient blobServiceClient;
+    protected final String accountName = "account1";
+    protected final String accountKey = "key1";
+    protected final String endpoint = "http://127.0.0.1:10000/" + accountName;
+    protected BlobServiceClient blobServiceClient;
     protected String containerName;
-    protected boolean reuseClient = true;
-    protected String testRunId;
+    protected String testRunId = UUID.randomUUID().toString();
 
     @BeforeEach
     public void setupClient() {
-
-        testRunId = UUID.randomUUID().toString();
         containerName = "storage-container-" + testRunId;
 
-        if (blobServiceClient == null || !reuseClient) {
-            var accountSas = getSasToken();
-            blobServiceClient = new BlobServiceClientBuilder().credential(new AzureSasCredential(accountSas)).endpoint("https://" + ACCOUNT_NAME + ".blob.core.windows.net").buildClient();
-        }
+        blobServiceClient = new BlobServiceClientBuilder()
+                .credential(new StorageSharedKeyCredential(accountName, accountKey))
+                .endpoint(endpoint)
+                .buildClient();
 
-        if (blobServiceClient.getBlobContainerClient(containerName).exists()) {
-            fail("Container " + containerName + " already exists - tests  will fail!");
-        }
+        assertFalse(blobServiceClient.getBlobContainerClient(containerName).exists());
 
-        //create container
         BlobContainerClient blobContainerClient = blobServiceClient.createBlobContainer(containerName);
-        if (!blobContainerClient.exists()) {
-            fail("Setup incomplete, tests will fail");
-
-        }
+        assertTrue(blobContainerClient.exists());
     }
 
     @AfterEach
@@ -67,11 +59,6 @@ public abstract class AbstractAzureBlobTest {
         } catch (Exception ex) {
             fail("teardown failed, subsequent tests might fail as well!");
         }
-    }
-
-    @NotNull
-    protected String getSasToken() {
-        return Objects.requireNonNull(propOrEnv("AZ_STORAGE_SAS", null), "AZ_STORAGE_SAS");
     }
 
     protected void putBlob(String name, File file) {
