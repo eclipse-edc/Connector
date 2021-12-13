@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;

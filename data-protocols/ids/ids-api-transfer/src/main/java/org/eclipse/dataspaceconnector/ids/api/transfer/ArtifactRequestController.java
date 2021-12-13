@@ -33,10 +33,12 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static de.fraunhofer.iais.eis.RejectionReason.BAD_PARAMETERS;
 import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
@@ -119,9 +121,6 @@ public class ArtifactRequestController {
         Map<String, Object> messageProperties = message.getProperties();
         var destinationMap = (Map<String, Object>) messageProperties.get(DESTINATION_KEY);
 
-        Object syncRq = message.getProperties().get(ISSYNCREQUEST_KEY);
-        var isSyncRequest = syncRq != null && (Boolean) syncRq;
-
         var type = destinationMap.get("type").toString();
 
         Map<String, String> destinationProperties = (Map<String, String>) destinationMap.get("properties");
@@ -131,11 +130,14 @@ public class ArtifactRequestController {
 
         Map<String, String> requestProperties = (Map<String, String>) messageProperties.get(PROPERTIES_KEY);
 
+        boolean isSyncRequest = Optional.ofNullable(messageProperties.get(ISSYNCREQUEST_KEY)).map(o -> Boolean.parseBoolean(o.toString())).orElse(false);
+
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(randomUUID().toString())
                 .assetId(asset.getId())
                 .dataDestination(dataDestination)
                 .properties(requestProperties)
+                .isSync(isSyncRequest)
                 .protocol(IDS_REST).build();
 
         var destinationToken = (String) messageProperties.get(TOKEN_KEY);
