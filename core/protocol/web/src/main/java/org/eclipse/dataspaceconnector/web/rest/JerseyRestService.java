@@ -38,10 +38,12 @@ public class JerseyRestService implements WebService {
     private final Monitor monitor;
 
     private final Set<Object> controllers = new HashSet<>();
+    private final CorsFilterConfiguration corsConfiguration;
 
-    public JerseyRestService(JettyService jettyService, TypeManager typeManager, Monitor monitor) {
+    public JerseyRestService(JettyService jettyService, TypeManager typeManager, CorsFilterConfiguration corsConfiguration, Monitor monitor) {
         this.jettyService = jettyService;
         this.typeManager = typeManager;
+        this.corsConfiguration = corsConfiguration;
         this.monitor = monitor;
     }
 
@@ -64,7 +66,9 @@ public class JerseyRestService implements WebService {
             resourceConfig.registerInstances(new Binder());
 
             resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
-            resourceConfig.register(new CorsFilter());
+            if (corsConfiguration.isCorsEnabled()) {
+                resourceConfig.register(new CorsFilter(corsConfiguration));
+            }
             resourceConfig.register(MultiPartFeature.class);
 
             // Register the Jersey container with Jetty
@@ -84,7 +88,6 @@ public class JerseyRestService implements WebService {
 
         @Override
         protected void configure() {
-            //noinspection unchecked
             controllers.forEach(c -> bind(c).to((Class<? super Object>) c.getClass()));
         }
     }
