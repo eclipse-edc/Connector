@@ -47,6 +47,7 @@ include(":extensions:ion:ion-client")
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
+include(":extensions:api:observability")
 include(":extensions:aws:s3:provision")
 include(":extensions:aws:s3:s3-schema")
 include(":extensions:aws:s3:writer")

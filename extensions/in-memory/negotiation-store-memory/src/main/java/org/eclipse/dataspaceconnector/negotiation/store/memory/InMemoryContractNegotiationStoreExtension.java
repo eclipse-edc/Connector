@@ -37,6 +37,11 @@ public class InMemoryContractNegotiationStoreExtension implements ServiceExtensi
     }
 
     @Override
+    public LoadPhase phase() {
+        return LoadPhase.PRIMORDIAL;
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(ContractNegotiationStore.FEATURE);
     }
