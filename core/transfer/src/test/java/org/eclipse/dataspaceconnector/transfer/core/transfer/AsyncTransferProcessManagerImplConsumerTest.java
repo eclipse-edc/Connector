@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
@@ -78,7 +78,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
         transferProcessManager = AsyncTransferProcessManager.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(mock(DataFlowManager.class))
-                .waitStrategy(mock(ExponentialWaitStrategy.class))
+                .waitStrategy(mock(TransferWaitStrategy.class))
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)

@@ -19,6 +19,8 @@ import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
  * <br/>
@@ -49,4 +51,10 @@ public interface TransferProcessManager {
     // TODO: will be substituted by the upcoming command queue introduction
     Result<TransferProcessStates> deprovision(String processId);
 
+    /**
+     * Require a transition
+     */
+    void requireTransition(String id);
+
+    CompletableFuture<Void> initiateDataFlow(String id);
 }

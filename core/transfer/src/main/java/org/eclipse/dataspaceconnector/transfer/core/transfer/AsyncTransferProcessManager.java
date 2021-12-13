@@ -37,12 +37,25 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Initiate;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.command.InitiateDataFlow;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireTransition;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.command.TransferProcessCommand;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.ProvisionHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.RequireTransitionHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.TransferProcessCommandHandler;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Queue;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
@@ -92,13 +105,19 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     private Vault vault;
     private TypeManager typeManager;
 
+    private final Queue<CommandRequest> commandQueue = new LinkedBlockingQueue<>();
+    private final List<TransferProcessCommandHandler<? extends TransferProcessCommand>> commandHandlers = new ArrayList<>();
 
     private AsyncTransferProcessManager() {
-
+        commandHandlers.add(new InitiateHandler(transferProcessStore));
     }
 
     public void start(TransferProcessStore processStore) {
         transferProcessStore = processStore;
+        commandHandlers.add(new InitiateHandler(transferProcessStore));
+        commandHandlers.add(new ProvisionHandler(transferProcessStore, manifestGenerator, provisionManager));
+        commandHandlers.add(new RequireTransitionHandler(transferProcessStore, dispatcherRegistry));
+        commandHandlers.add(new InitiateDataFlowHandler(transferProcessStore, dataFlowManager, monitor));
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -161,6 +180,16 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         return Result.success(TransferProcessStates.from(process.getState()));
     }
 
+    @Override
+    public void requireTransition(String id) {
+
+    }
+
+    @Override
+    public CompletableFuture<Void> initiateDataFlow(String id) {
+        return null;
+    }
+
     void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {
         if (deprovisionError != null) {
             monitor.severe("Deprovisioning error: ", deprovisionError);
@@ -219,29 +248,36 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
-        // make the request idempotent: if the process exists, return
-        var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
-        if (processId != null) {
-            return TransferInitiateResult.success(processId);
-        }
         var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
-        if (process.getState() == TransferProcessStates.UNSAVED.code()) {
-            process.transitionInitial();
-        }
-        transferProcessStore.create(process);
-        invokeForEach(l -> l.created(process));
-        return TransferInitiateResult.success(process.getId());
+        commandQueue.add(new CommandRequest(new Initiate(id, type, dataRequest), new CompletableFuture<>()));
+        return TransferInitiateResult.success(id);
     }
 
     private void run() {
         while (active.get()) {
             try {
-                int provisioning = provisionInitialProcesses();
+                var commandRequest = commandQueue.poll();
+
+                if (commandRequest != null) {
+                    var optionalHandler = commandHandlers.stream()
+                            .filter(it -> it.handles().equals(commandRequest.getCommand().getClass()))
+                            .findFirst();
+
+                    if (optionalHandler.isPresent()) {
+                        TransferProcessCommandHandler handler = optionalHandler.get();
+                        var result = handler.handle(commandRequest.getCommand());
+                        getListeners().forEach(listener -> result.getPostAction().apply(listener));
+                        var nextCommand = result.getNextCommand();
+                        commandQueue.add(new CommandRequest(nextCommand, new CompletableFuture<>()));
+                    } else {
+                        monitor.severe(String.format("Transfer Command type %s is not handled", commandRequest.getClass().getName()));
+                    }
+                } else {
+//                    Thread.sleep(waitStrategy.waitForMillis());
+                    Thread.sleep(10);
+                }
 
                 // TODO check processes in provisioning state and timestamps for failed processes
-
-                int sent = sendOrProcessProvisionedRequests();
 
                 int provisioned = checkProvisioned();
 
@@ -251,9 +287,9 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
                 int deprovisioned = checkDeprovisioned();
 
-                if (provisioning + provisioned + sent + finished + deprovisioning + deprovisioned == 0) {
-                    Thread.sleep(waitStrategy.waitForMillis());
-                }
+//                if (provisioned + finished + deprovisioning + deprovisioned == 0) {
+//                    Thread.sleep(waitStrategy.waitForMillis());
+//                }
                 waitStrategy.success();
             } catch (Error e) {
                 throw e; // let the thread die and don't reschedule as the error is unrecoverable
@@ -565,4 +601,18 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         }
     }
 
+    private static class CommandRequest {
+
+        private final TransferProcessCommand command;
+        private final CompletableFuture<?> future;
+
+        public CommandRequest(TransferProcessCommand command, CompletableFuture<?> future) {
+            this.command = command;
+            this.future = future;
+        }
+
+        public TransferProcessCommand getCommand() {
+            return command;
+        }
+    }
 }

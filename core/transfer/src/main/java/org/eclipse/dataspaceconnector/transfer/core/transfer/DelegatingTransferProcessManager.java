@@ -7,6 +7,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
+import java.util.concurrent.CompletableFuture;
+
 /**
  * This transfer process managers delegates {@link DataRequest} objects out to either the {@link SyncTransferProcessManager} or the
  * {@link AsyncTransferProcessManager} depending to whether the {@link DataRequest#isSync()} flag is {@code true} or {@code false}.
@@ -47,6 +49,16 @@ public class DelegatingTransferProcessManager implements TransferProcessManager 
 
     @Override
     public Result<TransferProcessStates> deprovision(String processId) {
+        return null;
+    }
+
+    @Override
+    public void requireTransition(String id) {
+
+    }
+
+    @Override
+    public CompletableFuture<Void> initiateDataFlow(String id) {
         return null;
     }
 

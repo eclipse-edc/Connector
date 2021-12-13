@@ -72,10 +72,11 @@ class AsyncTransferProcessManagerImplTest {
 
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
         manager.initiateProviderRequest(dataRequest);
-
-        // repeat request
+        Thread.sleep(10);
         manager.initiateProviderRequest(dataRequest);
+        Thread.sleep(10);
         manager.stop();
+
         verify(store, times(1)).create(isA(TransferProcess.class));
         verify(store, times(2)).processIdForTransferId(anyString());
     }

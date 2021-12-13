@@ -18,6 +18,7 @@ import java.net.ConnectException;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
@@ -118,6 +119,16 @@ public class SyncTransferProcessManager implements TransferProcessManager {
 
     @Override
     public Result<TransferProcessStates> deprovision(String processId) {
+        return null;
+    }
+
+    @Override
+    public void requireTransition(String id) {
+
+    }
+
+    @Override
+    public CompletableFuture<Void> initiateDataFlow(String id) {
         return null;
     }
 
