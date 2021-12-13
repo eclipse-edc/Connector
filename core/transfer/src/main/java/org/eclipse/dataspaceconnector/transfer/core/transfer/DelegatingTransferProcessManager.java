@@ -5,6 +5,10 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
+/**
+ * This transfer process managers delegates {@link DataRequest} objects out to either the {@link SyncTransferProcessManager} or the
+ * {@link AsyncTransferProcessManager} depending to whether the {@link DataRequest#isSync()} flag is {@code true} or {@code false}.
+ */
 public class DelegatingTransferProcessManager implements TransferProcessManager {
     private final AsyncTransferProcessManager asyncManager;
     private final SyncTransferProcessManager syncManager;

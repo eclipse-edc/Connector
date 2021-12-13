@@ -22,6 +22,16 @@ import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 
+/**
+ * Instead of inserting a {@link TransferProcess} into - and having it traverse through - the state machine implemented by the
+ * {@link AsyncTransferProcessManager}, this implementation returns immediately (= "synchronously"). The {@link TransferProcess} is created
+ * in the {@link TransferProcessStates#COMPLETED} state.
+ * <p>
+ * On the provider side the {@link DataProxyManager} checks if a {@link org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxy} is registered for a particular request and if so, calls it.
+ * <p>
+ * On the consumer side there is a set of {@link ProxyEntryHandler} instances, that receive the resulting {@link ProxyEntry} object. If a {@link ProxyEntryHandler} is registered, the {@link ProxyEntry}
+ * is forwarded to it, and if no {@link ProxyEntryHandler} is registered, the {@link ProxyEntry} object is returned.
+ */
 public class SyncTransferProcessManager implements TransferProcessManager {
 
     private final DataProxyManager dataProxyManager;

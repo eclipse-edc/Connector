@@ -5,7 +5,10 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 import java.util.Map;
 
-//@JsonTypeName("dataspaceconnector:proxyentry")
+/**
+ * This POJO is used by {@link DataProxy} implementations during synchronous data transfers. It is used as transport
+ * container for proxy information obtained by the {@link DataProxy} and sent back to the requesting connector.
+ */
 public class ProxyEntry {
 
     private String type;
