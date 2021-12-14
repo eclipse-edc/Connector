@@ -37,8 +37,8 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
 public class ConsumerApiController {
 
@@ -77,7 +77,8 @@ public class ConsumerApiController {
                 .build();
 
         var result = consumerNegotiationManager.initiate(contractOfferRequest);
-        if (result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
+        if (result.failed() &&
+                result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             return Response.serverError().build();
         }
 
@@ -109,7 +110,7 @@ public class ConsumerApiController {
                 .build();
 
         var result = processManager.initiateConsumerRequest(dataRequest);
-        
+
         return result.failed() ? Response.status(400).build() : Response.ok(result.getContent()).build();
     }
 }

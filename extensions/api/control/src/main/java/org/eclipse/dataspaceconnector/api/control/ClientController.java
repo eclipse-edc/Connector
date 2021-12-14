@@ -74,7 +74,8 @@ public class ClientController {
         }
 
         var result = consumerNegotiationManager.initiate(contractOffer);
-        if (result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
+        if (result.failed() &&
+                result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             return Response.serverError().build();
         }
 
