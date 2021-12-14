@@ -17,13 +17,13 @@ package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
-import org.eclipse.dataspaceconnector.contract.negotiation.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
-import org.eclipse.dataspaceconnector.contract.negotiation.protocol.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
+import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;

@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.core;
 
+import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -30,10 +32,8 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
-import org.eclipse.dataspaceconnector.transfer.core.protocol.provider.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 
