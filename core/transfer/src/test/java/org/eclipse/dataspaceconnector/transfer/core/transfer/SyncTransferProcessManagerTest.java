@@ -2,7 +2,8 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.easymock.Capture;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.ResponseFailure;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
@@ -77,7 +78,8 @@ class SyncTransferProcessManagerTest {
         replay(transferProcessStore);
         DataRequest request = createRequest();
         var result = syncTransferProcessManager.initiateConsumerRequest(request);
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        assertThat(result.getFailure()).isNotNull().extracting(ResponseFailure::status)
+                .isEqualTo(ResponseStatus.FATAL_ERROR);
 
         verify(transferProcessStore);
 
@@ -98,8 +100,13 @@ class SyncTransferProcessManagerTest {
 
         DataRequest request = createRequest();
         var result = syncTransferProcessManager.initiateConsumerRequest(request);
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.FATAL_ERROR);
-        assertThat(result.getError()).isEqualTo("test error");
+        assertThat(result.getFailure())
+                .isNotNull()
+                .satisfies(failure -> {
+                    assertThat(failure.status()).isEqualTo(ResponseStatus.FATAL_ERROR);
+                    assertThat(failure.getMessages()).containsExactly("test error");
+                });
+
         verify(transferProcessStore, messageDispatcherRegistry);
 
     }
@@ -115,7 +122,10 @@ class SyncTransferProcessManagerTest {
 
         var result = syncTransferProcessManager.initiateProviderRequest(request);
 
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.FATAL_ERROR);
+        assertThat(result.getFailure())
+                .isNotNull()
+                .extracting(ResponseFailure::status)
+                .isEqualTo(ResponseStatus.FATAL_ERROR);
         verify(transferProcessStore, messageDispatcherRegistry, dataProxyManager);
     }
 
@@ -136,13 +146,14 @@ class SyncTransferProcessManagerTest {
 
     private DataRequest createRequest() {
         return DataRequest.Builder.newInstance()
+                .id("test-datarequest-id")
                 .destinationType(TEST_TYPE)
                 .isSync(true)
                 .build();
     }
 
-    private void assertSuccess(TransferResponse result) {
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.OK);
+    private void assertSuccess(TransferInitiateResult result) {
+        assertThat(result.succeeded()).isTrue();
     }
 
     @NotNull

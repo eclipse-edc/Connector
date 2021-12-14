@@ -1,8 +1,8 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
@@ -49,7 +49,7 @@ public class SyncTransferProcessManager implements TransferProcessManager {
     }
 
     @Override
-    public TransferResponse initiateConsumerRequest(DataRequest dataRequest) {
+    public TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest) {
         var id = UUID.randomUUID().toString();
         var transferProcess = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(CONSUMER).build();
         if (transferProcess.getState() == TransferProcessStates.UNSAVED.code()) {
@@ -64,7 +64,7 @@ public class SyncTransferProcessManager implements TransferProcessManager {
             transferProcess = transferProcessStore.find(transferProcess.getId());
 
             if (transferProcess.getState() == TransferProcessStates.ERROR.code()) {
-                return TransferResponse.Builder.newInstance().error(transferProcess.getErrorDetail()).id(dataRequest.getId()).status(ResponseStatus.FATAL_ERROR).build();
+                return TransferInitiateResult.error(dataRequest.getId(), ResponseStatus.FATAL_ERROR, transferProcess.getErrorDetail());
             }
 
             var proxyEntry = convert(result);
@@ -73,15 +73,15 @@ public class SyncTransferProcessManager implements TransferProcessManager {
             // raw proxy object
             var handler = Optional.ofNullable(proxyEntryHandlers.get(proxyEntry.getType()));
             var proxyConversionResult = handler.map(peh -> peh.accept(dataRequest, proxyEntry)).orElse(proxyEntry);
-            return TransferResponse.Builder.newInstance().data(proxyConversionResult).id(dataRequest.getId()).status(ResponseStatus.OK).build();
+            return TransferInitiateResult.success(dataRequest.getId());
         } catch (Exception ex) {
             var status = isRetryable(ex.getCause()) ? ResponseStatus.ERROR_RETRY : ResponseStatus.FATAL_ERROR;
-            return TransferResponse.Builder.newInstance().id(dataRequest.getId()).status(status).error(ex.getMessage()).build();
+            return TransferInitiateResult.error(dataRequest.getId(), status, ex.getMessage());
         }
     }
 
     @Override
-    public TransferResponse initiateProviderRequest(DataRequest dataRequest) {
+    public TransferInitiateResult initiateProviderRequest(DataRequest dataRequest) {
         //create a transfer process in the COMPLETED state
         var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(PROVIDER).build();
@@ -93,9 +93,9 @@ public class SyncTransferProcessManager implements TransferProcessManager {
         var dataProxy = dataProxyManager.getProxy(dataRequest);
         if (dataProxy != null) {
             var proxyData = dataProxy.getData(dataRequest);
-            return TransferResponse.Builder.newInstance().id(process.getId()).data(proxyData).status(ResponseStatus.OK).build();
+            return TransferInitiateResult.success(process.getId(), proxyData);
         }
-        return TransferResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.FATAL_ERROR).build();
+        return TransferInitiateResult.error(process.getId(), ResponseStatus.FATAL_ERROR);
     }
 
     private ProxyEntry convert(Object result) {

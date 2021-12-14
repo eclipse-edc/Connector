@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.spi.transfer.TransferResponse;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,48 +31,48 @@ class DelegatingTransferProcessManagerTest {
     @Test
     void initiateConsumerRequest_sync() {
         var request = createRequest(true);
-        expect(syncDelegate.initiateConsumerRequest(request)).andReturn(TransferResponse.Builder.newInstance().build());
+        expect(syncDelegate.initiateConsumerRequest(request)).andReturn(TransferInitiateResult.success(""));
         replay(syncDelegate, asyncDelegate);
 
         var result = manager.initiateConsumerRequest(request);
 
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.OK);
+        assertThat(result.succeeded()).isTrue();
         verify(syncDelegate, asyncDelegate);
     }
 
     @Test
     void initiateConsumerRequest_async() {
         var request = createRequest(false);
-        expect(asyncDelegate.initiateConsumerRequest(request)).andReturn(TransferResponse.Builder.newInstance().build());
+        expect(asyncDelegate.initiateConsumerRequest(request)).andReturn(TransferInitiateResult.success(""));
         replay(syncDelegate, asyncDelegate);
 
         var result = manager.initiateConsumerRequest(request);
 
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.OK);
+        assertThat(result.succeeded()).isTrue();
         verify(syncDelegate, asyncDelegate);
     }
 
     @Test
     void initiateProviderRequest_sync() {
         var request = createRequest(true);
-        expect(syncDelegate.initiateProviderRequest(request)).andReturn(TransferResponse.Builder.newInstance().build());
+        expect(syncDelegate.initiateProviderRequest(request)).andReturn(TransferInitiateResult.success(""));
         replay(syncDelegate, asyncDelegate);
 
         var result = manager.initiateProviderRequest(request);
 
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.OK);
+        assertThat(result.succeeded()).isTrue();
         verify(syncDelegate, asyncDelegate);
     }
 
     @Test
     void initiateProviderRequest_async() {
         var request = createRequest(false);
-        expect(asyncDelegate.initiateProviderRequest(request)).andReturn(TransferResponse.Builder.newInstance().build());
+        expect(asyncDelegate.initiateProviderRequest(request)).andReturn(TransferInitiateResult.success(""));
         replay(syncDelegate, asyncDelegate);
 
         var result = manager.initiateProviderRequest(request);
 
-        assertThat(result.getStatus()).isEqualTo(ResponseStatus.OK);
+        assertThat(result.succeeded()).isTrue();
         verify(syncDelegate, asyncDelegate);
     }
 

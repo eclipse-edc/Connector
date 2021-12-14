@@ -52,7 +52,7 @@ class DemoTopicManagerTest {
         topicManager.subscribe(dataDestination.getDestinationName(), dataDestination.getAccessToken(), consumer1);
         topicManager.subscribe(dataDestination.getDestinationName(), dataDestination.getAccessToken(), consumer2);
 
-        topicManager.connect("destination", dataDestination.getAccessToken()).getConsumer().accept("test".getBytes());
+        topicManager.connect("destination", dataDestination.getAccessToken()).getContent().accept("test".getBytes());
         var result = cdl.await(10, TimeUnit.SECONDS);
         assertTrue(result);
         EasyMock.verify(consumer1, consumer2);
