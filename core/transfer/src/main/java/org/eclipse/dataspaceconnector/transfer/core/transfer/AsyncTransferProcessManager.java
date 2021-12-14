@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
@@ -41,6 +42,7 @@ import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionContextIm
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,7 +55,9 @@ import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 
@@ -138,6 +142,25 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         TransferProcess transferProcess = transferProcessStore.find(processId);
         transferProcess.transitionError(detail);
         transferProcessStore.update(transferProcess);
+    }
+
+    @Override
+    public Result<TransferProcessStates> deprovision(String processId) {
+        var process = transferProcessStore.find(processId);
+        if (process == null) {
+            return Result.failure("not found");
+        }
+
+        if (Set.of(DEPROVISIONED.code(), DEPROVISIONING_REQ.code(), DEPROVISIONING.code(), ENDED.code()).contains(process.getState())) {
+            monitor.info("Request already deprovisioning or deprovisioned.");
+        } else {
+            monitor.info("starting to deprovision data request " + processId);
+            process.transitionCompleted();
+            process.transitionDeprovisionRequested();
+            transferProcessStore.update(process);
+        }
+
+        return Result.success(TransferProcessStates.from(process.getState()));
     }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {

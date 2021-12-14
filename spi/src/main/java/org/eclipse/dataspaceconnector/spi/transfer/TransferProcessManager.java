@@ -14,7 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer;
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
@@ -38,4 +40,6 @@ public interface TransferProcessManager {
     void transitionProvisioned(String processId);
 
     void transitionError(String processId, String detail);
+
+    Result<TransferProcessStates> deprovision(String processId);
 }
