@@ -93,7 +93,7 @@ class ConsumerContractNegotiationManagerImplTest {
 
     @Test
     void testInitiate() {
-        var contractOffer = aContractOffer();
+        var contractOffer = contractOffer();
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -119,7 +119,7 @@ class ConsumerContractNegotiationManagerImplTest {
     @Test
     void testOfferReceivedInvalidId() {
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = aContractOffer();
+        var contractOffer = contractOffer();
 
         var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
 
@@ -131,7 +131,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiationId = createContractNegotiationRequested();
 
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = aContractOffer();
+        var contractOffer = contractOffer();
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
                 .thenReturn(Result.success(contractOffer));
 
@@ -150,7 +150,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiationId = createContractNegotiationRequested();
 
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = aContractOffer();
+        var contractOffer = contractOffer();
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
                 .thenReturn(Result.failure("error"));
 
@@ -170,8 +170,8 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiationId = createContractNegotiationRequested();
 
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = aContractOffer();
-        var counterOffer = aContractOffer();
+        var contractOffer = contractOffer();
+        var counterOffer = contractOffer();
 
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
                 .thenReturn(Result.success(null));
@@ -248,7 +248,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     private String createContractNegotiationRequested() {
-        var lastOffer = aContractOffer();
+        var lastOffer = contractOffer();
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -266,7 +266,7 @@ class ConsumerContractNegotiationManagerImplTest {
     }
 
     private String createContractNegotiationConsumerOffered() {
-        var lastOffer = aContractOffer();
+        var lastOffer = contractOffer();
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -283,7 +283,7 @@ class ConsumerContractNegotiationManagerImplTest {
         return negotiation.getId();
     }
 
-    private ContractOffer aContractOffer() {
+    private ContractOffer contractOffer() {
         return ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
     }
 

@@ -115,15 +115,13 @@ class AsyncTransferProcessManagerImplConsumerTest {
     @Test
     @DisplayName("verifySend: check that the process is in REQUESTED state")
     void verifySend() throws InterruptedException {
-        //arrange
         TransferProcess process = createTransferProcess(PROVISIONED);
         var cdl = new CountDownLatch(1);
-        //prepare provision manager
 
         doAnswer(i -> {
             cdl.countDown();
             return null;
-        }).when(dispatcherRegistry).send(eq(Void.class), any(), any());
+        }).when(dispatcherRegistry).send(eq(Object.class), any(), any());
 
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         when(processStoreMock.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process));
