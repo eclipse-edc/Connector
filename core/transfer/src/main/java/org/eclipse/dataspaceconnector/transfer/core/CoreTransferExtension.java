@@ -99,7 +99,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var vault = context.getService(Vault.class);
 
-        provisionManager = new ProvisionManagerImpl(vault, typeManager, monitor);
+        provisionManager = new ProvisionManagerImpl();
         context.registerService(ProvisionManager.class, provisionManager);
 
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
@@ -117,6 +117,8 @@ public class CoreTransferExtension implements ServiceExtension {
                 .dispatcherRegistry(dispatcherRegistry)
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .monitor(monitor)
+                .vault(vault)
+                .typeManager(typeManager)
                 .build();
 
         var proxyEntryHandlerRegistry = new DefaultProxyEntryHandlerRegistry();
@@ -135,7 +137,7 @@ public class CoreTransferExtension implements ServiceExtension {
     public void start() {
 
 
-        provisionManager.start(transferProcessStore);
+        provisionManager.start(processManager.createProvisionContext());
         processManager.start(transferProcessStore);
     }
 

@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -27,7 +28,7 @@ import static org.mockito.Mockito.when;
 
 class ProvisionManagerImplTest {
 
-    private ProvisionManagerImpl provisionManager = new ProvisionManagerImpl(mock(Vault.class), mock(TypeManager.class), mock(Monitor.class));
+    private final ProvisionManagerImpl provisionManager = new ProvisionManagerImpl();
 
     @BeforeEach
     void setUp() {
@@ -43,7 +44,7 @@ class ProvisionManagerImplTest {
                 .state(TransferProcessStates.REQUESTED.code())
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        provisionManager.start(mock(TransferProcessStore.class));
+        provisionManager.start(mock(ProvisionContext.class));
 
         provisionManager.provision(transferProcess);
 
@@ -61,7 +62,7 @@ class ProvisionManagerImplTest {
                 .state(TransferProcessStates.REQUESTED.code())
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().resources(List.of(new TestProvisionedResource())).build())
                 .build();
-        provisionManager.start(mock(TransferProcessStore.class));
+        provisionManager.start(mock(ProvisionContext.class));
 
         List<ResponseStatus> status = provisionManager.deprovision(transferProcess);
 

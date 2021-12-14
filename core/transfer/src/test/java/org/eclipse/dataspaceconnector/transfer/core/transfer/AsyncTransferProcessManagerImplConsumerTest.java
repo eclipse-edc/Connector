@@ -81,6 +81,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
         when(manifestGenerator.generateConsumerManifest(any(TransferProcess.class))).thenReturn(re);
 
         statusCheckerRegistry = mock(StatusCheckerRegistry.class);
+
         var waitStrategyMock = mock(ExponentialWaitStrategy.class);
 
         transferProcessManager = AsyncTransferProcessManager.Builder.newInstance()
