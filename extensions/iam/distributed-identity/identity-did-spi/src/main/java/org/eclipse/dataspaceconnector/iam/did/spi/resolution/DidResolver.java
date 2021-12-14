@@ -13,6 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -30,6 +32,6 @@ public interface DidResolver {
      * Resolves the DID document.
      */
     @NotNull
-    DidResolutionResult resolve(String didKey);
+    Result<DidDocument> resolve(String didKey);
 
 }

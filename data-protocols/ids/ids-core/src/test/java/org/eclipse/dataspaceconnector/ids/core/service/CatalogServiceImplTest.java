@@ -18,8 +18,9 @@ import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -49,7 +50,7 @@ class CatalogServiceImplTest {
     @Test
     void getDataCatalog() {
         // prepare
-        VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
+        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
 
         var offers = Arrays.asList(
                 ContractOffer.Builder.newInstance()

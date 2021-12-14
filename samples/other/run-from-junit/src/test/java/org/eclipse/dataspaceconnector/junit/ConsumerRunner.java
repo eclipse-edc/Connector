@@ -18,10 +18,11 @@ import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
@@ -50,8 +51,8 @@ import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 @Disabled
 public class ConsumerRunner {
     private static final String PROVIDER_CONNECTOR = "http://localhost:8181/";
-    private static final TokenResult US_TOKEN = TokenResult.Builder.newInstance().token("mock-us").build();
-    private static final TokenResult EU_TOKEN = TokenResult.Builder.newInstance().token("mock-eu").build();
+    private static final TokenRepresentation US_TOKEN = TokenRepresentation.Builder.newInstance().token("mock-us").build();
+    private static final TokenRepresentation EU_TOKEN = TokenRepresentation.Builder.newInstance().token("mock-eu").build();
 
     private CountDownLatch latch;
 
@@ -76,11 +77,11 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     //simulate data egress
@@ -95,7 +96,7 @@ public class ConsumerRunner {
 
                 @Override
                 public void deprovisioned(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     latch.countDown();
@@ -132,11 +133,11 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAws("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     //simulate data egress
@@ -151,7 +152,7 @@ public class ConsumerRunner {
 
                 @Override
                 public void deprovisioned(TransferProcess process) {
-                    if (!process.getId().equals(response.getId())) {
+                    if (!process.getId().equals(response.getContent())) {
                         return;
                     }
                     latch.countDown();
@@ -185,11 +186,11 @@ public class ConsumerRunner {
             // Initiate a request as a U.S.-based connector for an EU or US allowed artifact (will be accepted)
             var usOrEuRequest = createRequestAzure("us-eu-request-" + UUID.randomUUID(), Asset.Builder.newInstance().id(artifact).build());
 
-            TransferInitiateResponse response = processManager.initiateConsumerRequest(usOrEuRequest);
+            TransferInitiateResult response = processManager.initiateConsumerRequest(usOrEuRequest);
             observable.registerListener(new TransferProcessListener() {
                 @Override
                 public void completed(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     //simulate data egress
@@ -204,7 +205,7 @@ public class ConsumerRunner {
 
                 @Override
                 public void deprovisioned(TransferProcess process) {
-                    if (process.getId().equals(response.getId())) {
+                    if (process.getId().equals(response.getContent())) {
                         return;
                     }
                     latch.countDown();
@@ -223,7 +224,7 @@ public class ConsumerRunner {
     @BeforeEach
     void before(EdcExtension extension) {
         IdentityService identityService = EasyMock.createMock(IdentityService.class);
-        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.isA(String.class))).andReturn(US_TOKEN).anyTimes();
+        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.isA(String.class))).andReturn(Result.success(US_TOKEN)).anyTimes();
         EasyMock.replay(identityService);
         latch = new CountDownLatch(1);
 

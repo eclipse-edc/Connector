@@ -14,8 +14,10 @@
 package org.eclipse.dataspaceconnector.iam.did.resolution;
 
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyConverter;
+import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.stream.Collectors;
 
@@ -29,27 +31,27 @@ public class DefaultDidPublicKeyResolver implements DidPublicKeyResolver {
     }
 
     @Override
-    public DidPublicKeyResolver.Result resolvePublicKey(String didUrl) {
+    public Result<PublicKeyWrapper> resolvePublicKey(String didUrl) {
         var didResult = resolverRegistry.resolve(didUrl);
-        if (didResult.invalid()) {
-            return new Result("Invalid DID: " + didResult.getInvalidMessage());
+        if (didResult.failed()) {
+            return Result.failure("Invalid DID: " + String.join(", ", didResult.getFailureMessages()));
         }
-        var didDocument = didResult.getDidDocument();
+        var didDocument = didResult.getContent();
         if (didDocument.getVerificationMethod() == null || didDocument.getVerificationMethod().isEmpty()) {
-            return new Result("DID does not contain a public key");
+            return Result.failure("DID does not contain a public key");
         }
 
         var verificationMethods = didDocument.getVerificationMethod().stream().filter(vm -> ALLOWED_VERIFICATION_TYPES.contains(vm.getType())).collect(Collectors.toList());
         if (verificationMethods.size() > 1) {
-            return new Result("DID contains more than one allowed verification type");
+            return Result.failure("DID contains more than one allowed verification type");
         }
 
         var verificationMethod = didDocument.getVerificationMethod().get(0);
         var jwk = verificationMethod.getPublicKeyJwk();
         try {
-            return new Result(KeyConverter.toPublicKeyWrapper(jwk, verificationMethod.getId()));
+            return Result.success(KeyConverter.toPublicKeyWrapper(jwk, verificationMethod.getId()));
         } catch (IllegalArgumentException e) {
-            return new Result("Public key was not a valid EC key. Details: " + e.getMessage());
+            return Result.failure("Public key was not a valid EC key. Details: " + e.getMessage());
         }
     }
 

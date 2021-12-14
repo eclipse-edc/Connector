@@ -19,7 +19,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
@@ -60,22 +60,22 @@ public class HttpFunctionDataFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
         var requestBody = RequestBody.create(typeManager.writeValueAsString(dataRequest), JSON);
         var request = new Request.Builder().url(transferEndpoint).post(requestBody).build();
         try (var response = clientSupplier.get().newCall(request).execute()) {
             if (response.code() == 200) {
-                return DataFlowInitiateResponse.OK;
+                return DataFlowInitiateResult.success("");
             } else if (response.code() >= 500 && response.code() <= 504) {
                 // retry
-                return new DataFlowInitiateResponse(ERROR_RETRY, "Received error code: " + response.code());
+                return DataFlowInitiateResult.failure(ERROR_RETRY, "Received error code: " + response.code());
             } else {
                 // fatal error
-                return new DataFlowInitiateResponse(FATAL_ERROR, "Received fatal error code: " + response.code());
+                return DataFlowInitiateResult.failure(FATAL_ERROR, "Received fatal error code: " + response.code());
             }
         } catch (IOException e) {
             monitor.severe("Error invoking transfer function", e);
-            return new DataFlowInitiateResponse(ERROR_RETRY, e.getMessage());
+            return DataFlowInitiateResult.failure(ERROR_RETRY, e.getMessage());
         }
     }
 }

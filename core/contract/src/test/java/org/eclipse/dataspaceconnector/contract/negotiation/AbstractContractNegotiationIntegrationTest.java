@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
@@ -131,7 +131,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
 
         public CompletableFuture<Object> send(RemoteMessage message) {
-            NegotiationResponse result;
+            NegotiationResult result;
             if (message instanceof ContractOfferRequest) {
                 var request = (ContractOfferRequest) message;
                 result = consumerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
@@ -146,8 +146,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
             }
 
             CompletableFuture<Object> future = new CompletableFuture<>();
-            if (NegotiationResponse.Status.OK.equals(result.getStatus())) {
-                future.complete((Object) "Success!");
+            if (result.succeeded()) {
+                future.complete("Success!");
             } else {
                 future.completeExceptionally(new Exception("Negotiation failed."));
             }
@@ -173,12 +173,12 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
 
         public CompletableFuture<Object> send(RemoteMessage message) {
-            NegotiationResponse result;
+            NegotiationResult result;
             if (message instanceof ContractOfferRequest) {
                 var request = (ContractOfferRequest) message;
                 consumerNegotiationId = request.getCorrelationId();
                 result = providerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
-                if (NegotiationResponse.Status.FATAL_ERROR.equals(result.getStatus())) {
+                if (NegotiationResult.Status.FATAL_ERROR.equals(result.getFailure().getStatus())) {
                     result = providerManager.requested(token, request);
                 }
             } else if (message instanceof ContractAgreementRequest) {
@@ -192,8 +192,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
             }
 
             CompletableFuture<Object> future = new CompletableFuture<>();
-            if (NegotiationResponse.Status.OK.equals(result.getStatus())) {
-                future.complete((Object) "Success!");
+            if (result.succeeded()) {
+                future.complete("Success!");
             } else {
                 future.completeExceptionally(new Exception("Negotiation failed."));
             }

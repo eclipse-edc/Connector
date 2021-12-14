@@ -23,8 +23,9 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -55,7 +56,7 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
         this.contractOfferService = Objects.requireNonNull(contractOfferService);
     }
 
-    protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult) {
+    protected OfferedAsset retrieveObject(@NotNull IdsId idsId, @NotNull Result<ClaimToken> verificationResult) {
         String assetId = idsId.getValue();
         Asset asset = assetIndex.findById(assetId);
         if (asset == null) {
@@ -63,7 +64,7 @@ public class ResourceDescriptionRequestHandler extends AbstractDescriptionReques
         }
 
         ContractOfferQuery contractOfferQuery = ContractOfferQuery.Builder.newInstance()
-                .claimToken(verificationResult.token())
+                .claimToken(verificationResult.getContent())
                 .criterion(new Criterion(Asset.PROPERTY_ID, "=", assetId))
                 .build();
 

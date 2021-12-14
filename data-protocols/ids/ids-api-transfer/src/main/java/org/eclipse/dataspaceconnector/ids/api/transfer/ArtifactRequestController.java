@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
@@ -82,7 +83,7 @@ public class ArtifactRequestController {
     @Path("request")
     public Response request(ArtifactRequestMessage message) {
         var verificationResult = dapsService.verifyAndConvertToken(message.getSecurityToken().getTokenValue());
-        if (!verificationResult.valid()) {
+        if (verificationResult.failed()) {
             monitor.info(() -> "verification failed for request " + message.getId());
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHENTICATED).build()).build();
         }
@@ -104,7 +105,7 @@ public class ArtifactRequestController {
 
         var consumerConnectorId = message.getIssuerConnector().toString();
         var correlationId = message.getId().toString();
-        var policyResult = policyService.evaluateRequest(consumerConnectorId, correlationId, verificationResult.token(), policy);
+        var policyResult = policyService.evaluateRequest(consumerConnectorId, correlationId, verificationResult.getContent(), policy);
 
         if (!policyResult.valid()) {
             monitor.info("Policy evaluation failed");
@@ -138,16 +139,18 @@ public class ArtifactRequestController {
 
         var response = processManager.initiateProviderRequest(dataRequest);
 
-        switch (response.getStatus()) {
-            case OK:
-                monitor.info("Data transfer request initiated");
-                ArtifactResponseMessageBuilder messageBuilder = new ArtifactResponseMessageBuilder();
-                return Response.ok().entity(messageBuilder.build()).build();
-            case FATAL_ERROR:
+        if (response.succeeded()) {
+            monitor.info("Data transfer request initiated");
+            ArtifactResponseMessageBuilder messageBuilder = new ArtifactResponseMessageBuilder();
+            return Response.ok().entity(messageBuilder.build()).build();
+        } else {
+            if (response.getFailure().status() == ResponseStatus.FATAL_ERROR) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(BAD_PARAMETERS).build()).build();
-            default:
+            } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new RejectionMessageBuilder()._rejectionReason_(TEMPORARILY_NOT_AVAILABLE).build()).build();
+            }
         }
+
     }
 
 }

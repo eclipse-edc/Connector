@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.dataloading;
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,8 +40,8 @@ class DataLoaderTest {
         sinkMock = strictMock(TestEntitySink.class);
         DataLoader.Builder<TestEntity> builder = DataLoader.Builder.newInstance();
         dataLoader = builder.sink(sinkMock)
-                .andPredicate(testEntity -> testEntity.getDescription() != null ? ValidationResult.OK : ValidationResult.error(DESCRIPTION_VALIDATION_MESSAGE))
-                .andPredicate(testEntity -> testEntity.getIndex() > 0 ? ValidationResult.OK : ValidationResult.error(INDEX_VALIDATION_MESSAGE))
+                .andPredicate(testEntity -> testEntity.getDescription() != null ? Result.success(testEntity) : Result.failure(DESCRIPTION_VALIDATION_MESSAGE))
+                .andPredicate(testEntity -> testEntity.getIndex() > 0 ? Result.success(testEntity) : Result.failure(INDEX_VALIDATION_MESSAGE))
                 .build();
     }
 

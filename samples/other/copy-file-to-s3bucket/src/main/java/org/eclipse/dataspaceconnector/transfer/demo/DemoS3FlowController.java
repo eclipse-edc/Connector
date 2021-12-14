@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -62,7 +62,7 @@ public class DemoS3FlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
 
         var awsSecretName = dataRequest.getDataDestination().getKeyName();
         var awsSecret = vault.resolveSecret(awsSecretName);
@@ -76,7 +76,7 @@ public class DemoS3FlowController implements DataFlowController {
     }
 
     @NotNull
-    private DataFlowInitiateResponse copyToBucket(String bucketName, String region, AwsTemporarySecretToken dt) {
+    private DataFlowInitiateResult copyToBucket(String bucketName, String region, AwsTemporarySecretToken dt) {
 
 
         try (S3Client s3 = S3Client.builder()
@@ -98,10 +98,10 @@ public class DemoS3FlowController implements DataFlowController {
                 monitor.info("Data request: transfer not successful");
             }
 
-            return new DataFlowInitiateResponse(ResponseStatus.OK, etag);
+            return DataFlowInitiateResult.success(etag);
         } catch (S3Exception | EdcException ex) {
             monitor.severe("Data request: transfer failed!");
-            return new DataFlowInitiateResponse(ResponseStatus.FATAL_ERROR, ex.getLocalizedMessage());
+            return DataFlowInitiateResult.failure(ResponseStatus.FATAL_ERROR, ex.getLocalizedMessage());
         }
     }
 

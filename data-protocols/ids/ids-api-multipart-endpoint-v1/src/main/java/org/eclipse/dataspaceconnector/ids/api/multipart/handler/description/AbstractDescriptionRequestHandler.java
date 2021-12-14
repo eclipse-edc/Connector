@@ -19,10 +19,10 @@ import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -57,7 +57,7 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
     @Override
     public final MultipartResponse handle(
             @NotNull DescriptionRequestMessage descriptionRequestMessage,
-            @NotNull VerificationResult verificationResult,
+            @NotNull Result<ClaimToken> verificationResult,
             @Nullable String payload) {
         Objects.requireNonNull(descriptionRequestMessage);
 
@@ -67,17 +67,17 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
         }
 
         var result = transformerRegistry.transform(uri, IdsId.class);
-        if (result.hasProblems()) {
+        if (result.failed()) {
             monitor.warning(
                     String.format(
                             "Could not transform URI to IdsId: [%s]",
-                            String.join(", ", result.getProblems())
+                            String.join(", ", result.getFailureMessages())
                     )
             );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        IdsId idsId = result.getOutput();
+        IdsId idsId = result.getContent();
         if (Objects.requireNonNull(idsId).getType() != targetIdsType) {
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
@@ -87,20 +87,20 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
             return createNotFoundErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        TransformResult<S> transformResult = transformerRegistry.transform(retrievedObject, resultType);
-        if (transformResult.hasProblems()) {
+        Result<S> transformResult = transformerRegistry.transform(retrievedObject, resultType);
+        if (transformResult.failed()) {
             monitor.warning(
                     String.format(
                             "Could not transform %s to %S: [%s]",
                             retrievedObject.getClass().getSimpleName(),
                             resultType.getSimpleName(),
-                            String.join(", ", transformResult.getProblems())
+                            String.join(", ", transformResult.getFailureMessages())
                     )
             );
             return createBadParametersErrorMultipartResponse(connectorId, descriptionRequestMessage);
         }
 
-        S handlerResult = transformResult.getOutput();
+        S handlerResult = transformResult.getContent();
 
         DescriptionResponseMessage descriptionResponseMessage = createDescriptionResponseMessage(connectorId, descriptionRequestMessage);
 
@@ -110,5 +110,5 @@ abstract class AbstractDescriptionRequestHandler<T, S> implements DescriptionReq
                 .build();
     }
 
-    protected abstract T retrieveObject(@NotNull IdsId idsId, @NotNull VerificationResult verificationResult);
+    protected abstract T retrieveObject(@NotNull IdsId idsId, @NotNull Result<ClaimToken> verificationResult);
 }

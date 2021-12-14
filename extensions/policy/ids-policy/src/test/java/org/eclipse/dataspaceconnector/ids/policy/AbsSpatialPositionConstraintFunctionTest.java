@@ -11,7 +11,6 @@ import java.util.Map;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.EQ;
-import static org.eclipse.dataspaceconnector.policy.model.Operator.GEQ;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.GT;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.NEQ;

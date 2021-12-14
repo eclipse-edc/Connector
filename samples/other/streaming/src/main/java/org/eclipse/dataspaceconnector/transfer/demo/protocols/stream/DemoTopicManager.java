@@ -16,12 +16,11 @@ package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.AbstractQueuedProvisioner;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.DataDestination;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.ConnectionResult;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamObserver;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.Subscription;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.SubscriptionResult;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -45,29 +44,29 @@ public class DemoTopicManager extends AbstractQueuedProvisioner implements Topic
     }
 
     @Override
-    public ConnectionResult connect(String topicName, String accessToken) {
+    public Result<Consumer<byte[]>> connect(String topicName, String accessToken) {
         var container = containerCache.get(topicName);
         if (container == null) {
-            return new ConnectionResult("Topic not found: " + topicName);
+            return Result.failure("Topic not found: " + topicName);
         } else if (!container.destination.getAccessToken().equals(accessToken)) {
-            return new ConnectionResult("Not authorized");
+            return Result.failure("Not authorized");
         }
-        return new ConnectionResult(data -> {
+        return Result.success(data -> {
             container.containers.values().forEach(c -> c.accept(data));
             observers.values().forEach(o -> o.onPublish(topicName, data));
         });
     }
 
     @Override
-    public SubscriptionResult subscribe(String topicName, String accessToken, Consumer<byte[]> consumer) {
+    public Result<Subscription> subscribe(String topicName, String accessToken, Consumer<byte[]> consumer) {
         Objects.requireNonNull(topicName);
         var subscriptionId = UUID.randomUUID().toString();
         var container = getContainer(topicName);
         if (!container.destination.getAccessToken().equals(accessToken)) {
-            return new SubscriptionResult("Invalid key");
+            return Result.failure("Invalid key");
         }
         container.containers.put(subscriptionId, consumer);
-        return new SubscriptionResult(new Subscription(topicName, subscriptionId));
+        return Result.success(new Subscription(topicName, subscriptionId));
     }
 
     @Override

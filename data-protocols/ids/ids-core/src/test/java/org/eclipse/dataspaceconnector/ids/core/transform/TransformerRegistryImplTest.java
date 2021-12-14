@@ -41,8 +41,9 @@ class TransformerRegistryImplTest {
         registry.register(fooBarTransformer);
         registry.register(fooBazTransformer);
 
-        assertNotNull(registry.transform(new Foo(), Bar.class).getOutput());
+        var result = registry.transform(new Foo(), Bar.class);
 
+        assertNotNull(result.getContent());
         EasyMock.verify(fooBarTransformer, fooBazTransformer);
     }
 
@@ -62,8 +63,7 @@ class TransformerRegistryImplTest {
 
 
         var result = registry.transform(new Foo(), Bar.class);
-        assertNull(result.getOutput());
-        assertTrue(result.hasProblems());
+        assertTrue(result.failed());
 
         EasyMock.verify(fooBarTransformer);
     }

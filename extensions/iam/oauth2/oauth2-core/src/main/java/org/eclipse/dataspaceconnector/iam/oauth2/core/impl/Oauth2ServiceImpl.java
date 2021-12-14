@@ -30,12 +30,11 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRuleResult;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Nullable;
 
@@ -43,11 +42,13 @@ import java.io.IOException;
 import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
@@ -95,7 +96,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     }
 
     @Override
-    public TokenResult obtainClientCredentials(String scope) {
+    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
         String assertion = buildJwt();
 
         RequestBody requestBody = new FormBody.Builder()
@@ -111,50 +112,53 @@ public class Oauth2ServiceImpl implements IdentityService {
             if (!response.isSuccessful()) {
                 try (var body = response.body()) {
                     String message = body == null ? "<empty body>" : body.string();
-                    return TokenResult.Builder.newInstance().error(message).build();
+                    return Result.failure(message);
                 }
             }
 
             ResponseBody responseBody = response.body();
             if (responseBody == null) {
-                return TokenResult.Builder.newInstance().error("<empty token body>").build();
+                return Result.failure("<empty token body>");
             }
 
             String responsePayload = responseBody.string();
             LinkedHashMap<String, Object> deserialized = typeManager.readValue(responsePayload, LinkedHashMap.class);
             String token = (String) deserialized.get("access_token");
             long expiresIn = ((Integer) deserialized.get("expires_in")).longValue();
-            return TokenResult.Builder.newInstance().token(token).expiresIn(expiresIn).build();
+            TokenRepresentation tokenRepresentation = TokenRepresentation.Builder.newInstance().token(token).expiresIn(expiresIn).build();
+            return Result.success(tokenRepresentation);
         } catch (IOException e) {
             throw new EdcException(e);
         }
     }
 
     @Override
-    public VerificationResult verifyJwtToken(String token, String audience) {
+    public Result<ClaimToken> verifyJwtToken(String token, String audience) {
         try {
             var signedJwt = SignedJWT.parse(token);
 
             String publicKeyId = signedJwt.getHeader().getKeyID();
             var verifier = createVerifier(signedJwt.getHeader(), publicKeyId);
             if (verifier == null) {
-                return new VerificationResult("Failed to create verifier");
+                return Result.failure("Failed to create verifier");
             }
 
             if (!signedJwt.verify(verifier)) {
-                return new VerificationResult("Token verification not successful");
+                return Result.failure("Token verification not successful");
             }
             var claimsSet = signedJwt.getJWTClaimsSet();
 
             // now we get the results of all the single rules, lets collate them into one
-            var res = validationRules.stream()
+            var errors = validationRules.stream()
                     .map(r -> r.checkRule(claimsSet, audience))
-                    .reduce(ValidationRuleResult::merge)
-                    .orElseThrow();
+                    .filter(Result::failed)
+                    .map(Result::getFailureMessages)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
 
             // return instantly if there are errors present
-            if (!res.isSuccess()) {
-                return new VerificationResult(res.getErrorMessages());
+            if (!errors.isEmpty()) {
+                return Result.failure(errors);
             }
 
             // build claim tokens
@@ -167,12 +171,12 @@ public class Oauth2ServiceImpl implements IdentityService {
                 }
                 tokenBuilder.claim(k, claimValue);
             });
-            return new VerificationResult(tokenBuilder.build());
+            return Result.success(tokenBuilder.build());
 
         } catch (JOSEException e) {
-            return new VerificationResult(e.getMessage());
+            return Result.failure(e.getMessage());
         } catch (ParseException e) {
-            return new VerificationResult("Token could not be decoded");
+            return Result.failure("Token could not be decoded");
         }
     }
 

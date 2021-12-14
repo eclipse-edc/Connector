@@ -80,11 +80,11 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
         var id = request.getContractAgreement().getId();
         var idsId = IdsId.Builder.newInstance().type(IdsType.CONTRACT_AGREEMENT).value(id).build();
         var idUriResult = transformerRegistry.transform(idsId, URI.class);
-        if (idUriResult.hasProblems()) {
+        if (idUriResult.failed()) {
             throw new EdcException("Cannot convert contract agreement id to URI");
         }
 
-        var message = new ContractAgreementMessageBuilder(idUriResult.getOutput())
+        var message = new ContractAgreementMessageBuilder(idUriResult.getContent())
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
@@ -102,11 +102,11 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
     protected String buildMessagePayload(ContractAgreementRequest request) throws Exception {
         var contractAgreement = request.getContractAgreement();
         var transformationResult = getTransformerRegistry().transform(contractAgreement, ContractAgreement.class);
-        if (transformationResult.hasProblems()) {
+        if (transformationResult.failed()) {
             throw new EdcException("Failed to create IDS contract agreement");
         }
 
-        var idsContractAgreement = transformationResult.getOutput();
+        var idsContractAgreement = transformationResult.getContent();
         return getObjectMapper().writeValueAsString(idsContractAgreement);
     }
 

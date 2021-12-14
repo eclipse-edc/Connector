@@ -15,8 +15,8 @@
 package org.eclipse.dataspaceconnector.security.fs;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -60,7 +60,7 @@ public class FsVault implements Vault {
     }
 
     @Override
-    public synchronized VaultResponse storeSecret(String key, String value) {
+    public synchronized Result<Void> storeSecret(String key, String value) {
         var newSecrets = new HashMap<>(secrets.get());
         newSecrets.put(key, value);
         var properties = new Properties();
@@ -69,15 +69,15 @@ public class FsVault implements Vault {
             try (Writer writer = Files.newBufferedWriter(vaultFile)) {
                 properties.store(writer, null);
             } catch (IOException e) {
-                return new VaultResponse(e.getMessage());
+                return Result.failure(e.getMessage());
             }
         }
         secrets.set(newSecrets);
-        return VaultResponse.OK;
+        return Result.success();
     }
 
     @Override
-    public VaultResponse deleteSecret(String key) {
+    public Result<Void> deleteSecret(String key) {
         var newSecrets = new HashMap<>(secrets.get());
         newSecrets.remove(key);
         var properties = new Properties();
@@ -86,10 +86,10 @@ public class FsVault implements Vault {
             try (Writer writer = Files.newBufferedWriter(vaultFile)) {
                 properties.store(writer, null);
             } catch (IOException e) {
-                return new VaultResponse(e.getMessage());
+                return Result.failure(e.getMessage());
             }
         }
         secrets.set(newSecrets);
-        return VaultResponse.OK;
+        return Result.success();
     }
 }

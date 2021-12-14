@@ -15,7 +15,8 @@
 package org.eclipse.dataspaceconnector.ids.api.multipart.message;
 
 import de.fraunhofer.iais.eis.Message;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -25,9 +26,9 @@ public class MultipartRequest {
 
     private final Message header;
     private final String payload;
-    private final VerificationResult verificationResult;
+    private final Result<ClaimToken> verificationResult;
 
-    private MultipartRequest(@NotNull Message header, @Nullable String payload, @Nullable VerificationResult verificationResult) {
+    private MultipartRequest(@NotNull Message header, @Nullable String payload, @Nullable Result<ClaimToken> verificationResult) {
         this.header = Objects.requireNonNull(header);
         this.payload = payload;
         this.verificationResult = verificationResult;
@@ -44,7 +45,7 @@ public class MultipartRequest {
     }
 
     @Nullable
-    public VerificationResult getVerificationResult() {
+    public Result<ClaimToken> getVerificationResult() {
         return verificationResult;
     }
 
@@ -52,7 +53,7 @@ public class MultipartRequest {
 
         private Message header;
         private String payload;
-        private VerificationResult verificationResult;
+        private Result<ClaimToken> verificationResult;
 
         private Builder() {
         }
@@ -71,7 +72,7 @@ public class MultipartRequest {
             return this;
         }
 
-        public Builder verificationResult(@Nullable VerificationResult verificationResult) {
+        public Builder verificationResult(@Nullable Result<ClaimToken> verificationResult) {
             this.verificationResult = verificationResult;
             return this;
         }

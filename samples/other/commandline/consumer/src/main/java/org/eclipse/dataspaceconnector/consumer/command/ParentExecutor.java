@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.consumer.command;
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
+
 import java.util.Map;
 
 public class ParentExecutor implements CommandExecutor {
@@ -24,14 +26,14 @@ public class ParentExecutor implements CommandExecutor {
     }
 
     @Override
-    public CommandResult execute(ExecutionContext context) {
+    public Result<String> execute(ExecutionContext context) {
         if (context.getParams().isEmpty()) {
-            return new CommandResult(true, "No sub-command specified");
+            return Result.failure("No sub-command specified");
         }
         String cmd = context.getParams().get(0);
         CommandExecutor executor = childExecutors.get(cmd);
         if (executor == null) {
-            return new CommandResult(true, "Unrecognized sub-command: " + cmd);
+            return Result.failure("Unrecognized sub-command: " + cmd);
         }
         ExecutionContext subContext = context.createSubContext();
         return executor.execute(subContext);

@@ -37,7 +37,9 @@ class PolicyEngineImplTest {
         var emptyPolicy = Policy.Builder.newInstance().build();
 
         // No explicit rule specified, policy should evaluate to true
-        assertThat(policyEngine.evaluate(emptyPolicy, agent).valid()).isTrue();
+        var result = policyEngine.evaluate(emptyPolicy, agent);
+
+        assertThat(result.succeeded()).isTrue();
     }
 
     @Test
@@ -52,7 +54,7 @@ class PolicyEngineImplTest {
         var policy = Policy.Builder.newInstance().duty(duty).build();
 
         // The duty is not satisfied, so the policy should evaluate to false
-        assertThat(policyEngine.evaluate(policy, agent).valid()).isFalse();
+        assertThat(policyEngine.evaluate(policy, agent).succeeded()).isFalse();
     }
 
     @Test
@@ -67,7 +69,9 @@ class PolicyEngineImplTest {
         var policy = Policy.Builder.newInstance().permission(permission).build();
 
         // The permission is not granted, so the policy should evaluate to false
-        assertThat(policyEngine.evaluate(policy, agent).valid()).isFalse();
+        var result = policyEngine.evaluate(policy, agent);
+
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
@@ -82,25 +86,31 @@ class PolicyEngineImplTest {
         var policy = Policy.Builder.newInstance().prohibition(prohibition).build();
 
         // The prohibition is triggered (it is true), so the policy should evaluate to false
-        assertThat(policyEngine.evaluate(policy, agent).valid()).isFalse();
+        var result = policyEngine.evaluate(policy, agent);
+
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
     void validatePreValidator() {
         policyEngine.registerPreValidator((policy, context) -> false);
-
         var policy = Policy.Builder.newInstance().build();
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(policy, agent).valid()).isFalse();
+
+        var result = policyEngine.evaluate(policy, agent);
+
+        assertThat(result.succeeded()).isFalse();
     }
 
     @Test
     void validatePostValidator() {
         policyEngine.registerPostValidator((policy, context) -> false);
-
         var policy = Policy.Builder.newInstance().build();
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(policy, agent).valid()).isFalse();
+
+        var result = policyEngine.evaluate(policy, agent);
+
+        assertThat(result.succeeded()).isFalse();
     }
 
     @BeforeEach

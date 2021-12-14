@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
@@ -83,27 +83,27 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     }
 
     @Override
-    public TransferInitiateResponse initiateConsumerRequest(DataRequest dataRequest) {
+    public TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest) {
         return initiateRequest(CONSUMER, dataRequest);
     }
 
     @Override
-    public TransferInitiateResponse initiateProviderRequest(DataRequest dataRequest) {
+    public TransferInitiateResult initiateProviderRequest(DataRequest dataRequest) {
         return initiateRequest(PROVIDER, dataRequest);
     }
 
 
-    private TransferInitiateResponse initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
+    private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
         if (processId != null) {
-            return TransferInitiateResponse.Builder.newInstance().id(processId).status(ResponseStatus.OK).build();
+            return TransferInitiateResult.success(processId);
         }
         var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
         transferProcessStore.create(process);
         invokeForEach(l -> l.created(process));
-        return TransferInitiateResponse.Builder.newInstance().id(process.getId()).status(ResponseStatus.OK).build();
+        return TransferInitiateResult.success(process.getId());
     }
 
     private void run() {
@@ -294,14 +294,14 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 dispatcherRegistry.send(Void.class, dataRequest, process::getId);
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
-                if (ResponseStatus.ERROR_RETRY == response.getStatus()) {
+                if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
                     monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
                     process.transitionProvisioned();
                     transferProcessStore.update(process);
                     invokeForEach(l -> l.provisioned(process));
-                } else if (ResponseStatus.FATAL_ERROR == response.getStatus()) {
-                    monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), response.getError()));
-                    process.transitionError(response.getError());
+                } else if (ResponseStatus.FATAL_ERROR == response.getFailure().status()) {
+                    monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
+                    process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
                     transferProcessStore.update(process);
                     invokeForEach(l -> l.error(process));
                 } else {

@@ -6,14 +6,13 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -166,23 +165,23 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
     private static class FakeConsumerNegotiationManager implements ConsumerContractNegotiationManager {
 
         @Override
-        public NegotiationResponse initiate(ContractOfferRequest contractOffer) {
+        public NegotiationResult initiate(ContractOfferRequest contractOffer) {
             return null;
         }
 
         @Override
-        public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+        public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
             return null;
         }
 
         @Override
-        public NegotiationResponse confirmed(ClaimToken token, String negotiationId,
-                                             ContractAgreement contract, String hash) {
+        public NegotiationResult confirmed(ClaimToken token, String negotiationId,
+                                           ContractAgreement contract, String hash) {
             return null;
         }
 
         @Override
-        public NegotiationResponse declined(ClaimToken token, String negotiationId) {
+        public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return null;
         }
     }

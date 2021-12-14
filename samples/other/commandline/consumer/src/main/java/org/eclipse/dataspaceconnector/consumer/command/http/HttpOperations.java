@@ -18,8 +18,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.eclipse.dataspaceconnector.consumer.command.CommandResult;
 import org.eclipse.dataspaceconnector.consumer.command.ExecutionContext;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -32,34 +32,34 @@ public class HttpOperations {
     private HttpOperations() {
     }
 
-    public static CommandResult executePost(String path, Object payload, ExecutionContext context) {
+    public static Result<String> executePost(String path, Object payload, ExecutionContext context) {
         Request request = new Request.Builder().url(context.getEndpointUrl() + path).post(context.write(payload)).build();
         return executeOperation(request, context);
     }
 
-    public static CommandResult executeDelete(String path, Object payload, ExecutionContext context) {
+    public static Result<String> executeDelete(String path, Object payload, ExecutionContext context) {
         Request request = new Request.Builder().url(context.getEndpointUrl() + path).delete(context.write(payload)).build();
         return executeOperation(request, context);
     }
 
-    public static CommandResult executeGet(String path, ExecutionContext context) {
+    public static Result<String> executeGet(String path, ExecutionContext context) {
         Request request = new Request.Builder().url(context.getEndpointUrl() + path).get().build();
         return executeOperation(request, context);
     }
 
     @NotNull
-    private static CommandResult executeOperation(Request request, ExecutionContext context) {
+    private static Result<String> executeOperation(Request request, ExecutionContext context) {
         OkHttpClient client = HttpFactory.create(context);
         try (Response response = client.newCall(request).execute()) {
             return handleResponse(response, context);
         } catch (IOException e) {
             error(e, context.getTerminal());
-            return new CommandResult(true, "");
+            return Result.failure("");
         }
     }
 
     @NotNull
-    private static CommandResult handleResponse(Response response, ExecutionContext context) throws IOException {
+    private static Result<String> handleResponse(Response response, ExecutionContext context) throws IOException {
         ResponseBody responseBody = response.body();
         String message;
         if (responseBody == null) {
@@ -71,12 +71,12 @@ public class HttpOperations {
             }
         }
         int code = response.code();
-        if (code != 200) {
-            return new CommandResult(code >= 300, code + ":" + message);
+        if (code >= 300) {
+            return Result.failure(code + ":" + message);
         }
         if (message.length() < 10000) {
             context.getTerminal().writer().println("Response: " + message);
         }
-        return new CommandResult(message);
+        return Result.success(message);
     }
 }

@@ -37,7 +37,7 @@ public class PolicyEngineImplScenariosTest {
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(policy, agent).valid()).isTrue();
+        assertThat(policyEngine.evaluate(policy, agent).succeeded()).isTrue();
     }
 
     /**
@@ -52,7 +52,7 @@ public class PolicyEngineImplScenariosTest {
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
 
         policyEngine.registerFunction(Prohibition.class, (rule, context) -> rule.getAction().getType().equals(USE_ACTION.getType()));
-        assertThat(policyEngine.evaluate(policy, agent).valid()).isFalse();
+        assertThat(policyEngine.evaluate(policy, agent).succeeded()).isFalse();
     }
 
     /**
@@ -75,10 +75,10 @@ public class PolicyEngineImplScenariosTest {
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
-        assertThat(policyEngine.evaluate(policy, euAgent).valid()).isTrue();
+        assertThat(policyEngine.evaluate(policy, euAgent).succeeded()).isTrue();
 
         var noRegionAgent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(policy, noRegionAgent).valid()).isFalse();
+        assertThat(policyEngine.evaluate(policy, noRegionAgent).succeeded()).isFalse();
     }
 
     /**
@@ -103,7 +103,7 @@ public class PolicyEngineImplScenariosTest {
         var policy = Policy.Builder.newInstance().permission(usePermission).build();
 
         var agent = new ParticipantAgent(emptyMap(), emptyMap());
-        assertThat(policyEngine.evaluate(policy, agent).valid()).isTrue();
+        assertThat(policyEngine.evaluate(policy, agent).succeeded()).isTrue();
     }
 
     @BeforeEach

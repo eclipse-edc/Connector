@@ -25,27 +25,26 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -54,11 +53,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
@@ -92,13 +93,13 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
     private static class FakeIdentityService implements IdentityService {
         @Override
-        public TokenResult obtainClientCredentials(String scope) {
-            return TokenResult.Builder.newInstance().build();
+        public Result<TokenRepresentation> obtainClientCredentials(String scope) {
+            return Result.success(TokenRepresentation.Builder.newInstance().build());
         }
 
         @Override
-        public VerificationResult verifyJwtToken(String token, String audience) {
-            return new VerificationResult(ClaimToken.Builder.newInstance().build());
+        public Result<ClaimToken> verifyJwtToken(String token, String audience) {
+            return Result.success(ClaimToken.Builder.newInstance().build());
         }
     }
 
@@ -261,13 +262,13 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
     private static class FakeContractValidationService implements ContractValidationService {
 
         @Override
-        public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer) {
-            return new OfferValidationResult(ContractOffer.Builder.newInstance().build());
+        public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {
+            return Result.success(ContractOffer.Builder.newInstance().build());
         }
 
         @Override
-        public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
-            return null;
+        public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
+            return Result.success(offer);
         }
 
         @Override
@@ -317,46 +318,67 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
     private static class FakeProviderContractNegotiationManager implements ProviderContractNegotiationManager {
 
         @Override
-        public NegotiationResponse declined(ClaimToken token, String negotiationId) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse requested(ClaimToken token, ContractOfferRequest request) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
     }
 
     private static class FakeConsumerContractNegotiationManager implements ConsumerContractNegotiationManager {
 
         @Override
-        public NegotiationResponse initiate(ContractOfferRequest contractOffer) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse declined(ClaimToken token, String negotiationId) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
+    }
+
+    private static ContractNegotiation fakeContractNegotiation() {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
+                .counterPartyId("test-counterparty-1")
+                .counterPartyAddress("test-counterparty-address")
+                .protocol("test-protocol")
+                .stateCount(1)
+                .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
+                        .providerAgentId("provider")
+                        .consumerAgentId("consumer")
+                        .asset(Asset.Builder.newInstance().build())
+                        .policy(Policy.Builder.newInstance().build())
+                        .contractSigningDate(LocalDate.MIN.toEpochDay())
+                        .contractStartDate(LocalDate.MIN.toEpochDay())
+                        .contractEndDate(LocalDate.MAX.toEpochDay())
+                        .id("1:2").build())
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .build();
     }
 }

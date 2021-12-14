@@ -64,13 +64,13 @@ public class ContractDefinitionServiceImpl implements ContractDefinitionService 
      */
     private boolean evaluatePolicies(ContractDefinition definition, ParticipantAgent agent) {
         var accessResult = policyEngine.evaluate(definition.getAccessPolicy(), agent);
-        if (!accessResult.valid()) {
-            monitor.info(format("Problem evaluating access control policy for %s: \n%s", definition.getId(), String.join("\n", accessResult.getProblems())));
+        if (accessResult.failed()) {
+            monitor.info(format("Problem evaluating access control policy for %s: \n%s", definition.getId(), String.join("\n", accessResult.getFailureMessages())));
             return false;
         }
         var usageResult = policyEngine.evaluate(definition.getContractPolicy(), agent);
-        if (!usageResult.valid()) {
-            monitor.info(format("Problem evaluating usage control policy for %s: \n%s", definition.getId(), String.join("\n", accessResult.getProblems())));
+        if (usageResult.failed()) {
+            monitor.info(format("Problem evaluating usage control policy for %s: \n%s", definition.getId(), String.join("\n", usageResult.getFailureMessages())));
             return false;
         }
         return true;

@@ -24,8 +24,8 @@ import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.policy.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyContext;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
-import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyResult;
 import org.eclipse.dataspaceconnector.spi.contract.policy.RuleFunction;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,12 +43,12 @@ public class PolicyEngineImpl implements PolicyEngine {
     private List<BiFunction<Policy, PolicyContext, Boolean>> postValidators = new ArrayList<>();
 
     @Override
-    public PolicyResult evaluate(Policy policy, ParticipantAgent agent) {
+    public Result<Policy> evaluate(Policy policy, ParticipantAgent agent) {
         var context = new PolicyContextImpl(agent);
 
         for (BiFunction<Policy, PolicyContext, Boolean> validator : preValidators) {
             if (!validator.apply(policy, context)) {
-                return new PolicyResult(context.hasProblems() ? context.getProblems() : List.of("Pre-validator failed: " + validator.getClass().getName()));
+                return Result.failure(context.hasProblems() ? context.getProblems() : List.of("Pre-validator failed: " + validator.getClass().getName()));
             }
         }
 
@@ -79,12 +79,12 @@ public class PolicyEngineImpl implements PolicyEngine {
         if (result.valid()) {
             for (BiFunction<Policy, PolicyContext, Boolean> validator : postValidators) {
                 if (!validator.apply(policy, context)) {
-                    return new PolicyResult(context.hasProblems() ? context.getProblems() : List.of("Post-validator failed: " + validator.getClass().getName()));
+                    return Result.failure(context.hasProblems() ? context.getProblems() : List.of("Post-validator failed: " + validator.getClass().getName()));
                 }
             }
-            return new PolicyResult();
+            return Result.success(policy);
         } else {
-            return new PolicyResult(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
+            return Result.failure(result.getProblems().stream().map(RuleProblem::getDescription).collect(toList()));
         }
     }
 

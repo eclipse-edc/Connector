@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -43,7 +43,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
         DataAddress dataAddress = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
         String sourceType = dataAddress.getType();
         String destinationType = dataRequest.getDestinationType();
@@ -51,7 +51,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
         var destSecretName = dataRequest.getDataDestination().getKeyName();
         if (destSecretName == null) {
             monitor.severe(format("No credentials found for %s, will not copy!", destinationType));
-            return new DataFlowInitiateResponse(ResponseStatus.ERROR_RETRY, "Did not find credentials for data destination.");
+            return DataFlowInitiateResult.failure(ResponseStatus.ERROR_RETRY, "Did not find credentials for data destination.");
         }
         var secret = vault.resolveSecret(destSecretName);
 
@@ -64,7 +64,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
 
         writer.write(dataRequest.getDataDestination(), dataRequest.getAssetId(), data, secret);
 
-        return DataFlowInitiateResponse.OK;
+        return DataFlowInitiateResult.success("");
     }
 
     private @NotNull DataWriter getWriter(String destinationType) {

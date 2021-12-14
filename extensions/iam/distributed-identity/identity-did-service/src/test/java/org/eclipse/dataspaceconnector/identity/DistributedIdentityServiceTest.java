@@ -26,19 +26,17 @@ import org.eclipse.dataspaceconnector.iam.did.crypto.credentials.VerifiableCrede
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPublicKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.crypto.key.KeyPairFactory;
-import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.credentials.CredentialsVerifier;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -47,6 +45,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test the {@link DistributedIdentityService} with different key algorithms.
@@ -58,24 +59,23 @@ abstract class DistributedIdentityServiceTest {
     private PrivateKeyWrapper privateKey;
     private PublicKeyWrapper publicKey;
 
-
     @Test
     void verifyResolveHubUrl() throws IOException {
         var didJson = Thread.currentThread().getContextClassLoader().getResourceAsStream("dids.json");
         var hubUrlDid = new String(didJson.readAllBytes(), StandardCharsets.UTF_8);
         var url = identityService.getHubUrl(new ObjectMapper().readValue(hubUrlDid, DidDocument.class));
-        Assertions.assertEquals("https://myhub.com", url);
+        assertEquals("https://myhub.com", url);
     }
 
     @Test
     void verifyObtainClientCredentials() throws Exception {
         var result = identityService.obtainClientCredentials("Foo");
 
-        Assertions.assertTrue(result.success());
+        assertTrue(result.succeeded());
 
-        var jwt = SignedJWT.parse(result.getToken());
+        var jwt = SignedJWT.parse(result.getContent().getToken());
         var verifier = publicKey.verifier();
-        Assertions.assertTrue(jwt.verify(verifier));
+        assertTrue(jwt.verify(verifier));
     }
 
     @Test
@@ -96,8 +96,8 @@ abstract class DistributedIdentityServiceTest {
 
         var result = identityService.verifyJwtToken(token, "foo");
 
-        Assertions.assertTrue(result.valid());
-        Assertions.assertEquals("eu", result.token().getClaims().get("region"));
+        assertTrue(result.succeeded());
+        assertEquals("eu", result.getContent().getClaims().get("region"));
     }
 
     @BeforeEach
@@ -111,7 +111,7 @@ abstract class DistributedIdentityServiceTest {
 
         DidResolverRegistry didResolver = new TestResolverRegistry(hubUrlDid, keyPair);
 
-        CredentialsVerifier verifier = (document, url) -> new CredentialsResult(Map.of("region", "eu"));
+        CredentialsVerifier verifier = (document, url) -> Result.success(Map.of("region", "eu"));
         identityService = new DistributedIdentityService(() -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer"), didResolver, verifier, new Monitor() {
         });
 
@@ -172,7 +172,7 @@ abstract class DistributedIdentityServiceTest {
         }
 
         @Override
-        public DidResolutionResult resolve(String didKey) {
+        public Result<DidDocument> resolve(String didKey) {
             try {
                 var did = new ObjectMapper().readValue(hubUrlDid, DidDocument.class);
                 ECKey key = (ECKey) keyPair.toPublicJWK();
@@ -181,7 +181,7 @@ abstract class DistributedIdentityServiceTest {
                         .id("test-key")
                         .publicKeyJwk(new EllipticCurvePublicKey(key.getCurve().getName(), key.getKeyType().toString(), key.getX().toString(), key.getY().toString()))
                         .build());
-                return new DidResolutionResult(did);
+                return Result.success(did);
             } catch (JsonProcessingException e) {
                 throw new AssertionError(e);
             }
