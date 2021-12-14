@@ -22,8 +22,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefiniti
 
 @JsonTypeName("dataspaceconnector:testresourcedefinition")
 @JsonDeserialize(builder = TestResourceDefinition.Builder.class)
-public
-class TestResourceDefinition extends ResourceDefinition {
+public class TestResourceDefinition extends ResourceDefinition {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder extends ResourceDefinition.Builder<TestResourceDefinition, Builder> {
