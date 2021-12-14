@@ -39,7 +39,7 @@ public class ConsumerApiController {
     @Path("health")
     public String checkHealth() {
         monitor.info("%s :: Received a health request");
-        return "I'm alive!";
+        return "{\"response\":\"I'm alive!\"}";
     }
 
     @POST
