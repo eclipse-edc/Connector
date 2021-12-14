@@ -195,7 +195,11 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             transferProcessStore.update(process);
             invokeForEach(l -> l.deprovisioning(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            provisionManager.deprovision(process);
+            List<ResponseStatus> deprovisionResults = provisionManager.deprovision(process);
+            if (deprovisionResults.stream().anyMatch(status -> status != ResponseStatus.OK)) {
+                process.transitionError("Error during deprovisioning");
+                transferProcessStore.update(process);
+            }
         }
 
         return processesDeprovisioning.size();
@@ -273,7 +277,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         invokeForEach(listener -> listener.completed(process));
     }
 
-
     /**
      * Performs consumer-side or provider side provisioning for a service.
      * <br/>
@@ -294,7 +297,14 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             process.transitionProvisioning(manifest);
             transferProcessStore.update(process);
             invokeForEach(l -> l.provisioning(process));
-            provisionManager.provision(process);
+            if (process.getResourceManifest().getDefinitions().isEmpty()) {
+                // no resources to provision, advance state
+                process.transitionProvisioned();
+                transferProcessStore.update(process);
+            } else {
+                provisionManager.provision(process);
+            }
+
         }
         return processes.size();
     }

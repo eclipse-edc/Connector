@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
+import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -67,14 +68,17 @@ class AsyncTransferProcessManagerImplConsumerTest {
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private StatusCheckerRegistry statusCheckerRegistry;
+    private ExponentialWaitStrategy waitStrategyMock;
+    private ResourceManifestGenerator manifestGenerator;
 
     @BeforeEach
     void setup() {
         provisionManager = mock(ProvisionManager.class);
         DataFlowManager dataFlowManager = mock(DataFlowManager.class);
         dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-        ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
-        when(manifestGenerator.generateConsumerManifest(any(TransferProcess.class))).thenReturn(new ResourceManifest());
+
+        ResourceManifest re = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+        when(manifestGenerator.generateConsumerManifest(any(TransferProcess.class))).thenReturn(re);
 
         statusCheckerRegistry = mock(StatusCheckerRegistry.class);
         var waitStrategyMock = mock(ExponentialWaitStrategy.class);
@@ -102,9 +106,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
             return null;
         }).when(provisionManager).provision(any(TransferProcess.class));
 
-        //prepare process store
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         when(processStoreMock.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(process));
+
         processStoreMock.update(process);
         doNothing().when(processStoreMock).update(process);
 

@@ -32,6 +32,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -64,11 +65,6 @@ public class ProvisionManagerImpl implements ProvisionManager {
 
     @Override
     public void provision(TransferProcess process) {
-        if (process.getResourceManifest().getDefinitions().isEmpty()) {
-            // no resources to provision, advance state
-            process.transitionProvisioned();
-            processStore.update(process);
-        }
         for (ResourceDefinition definition : process.getResourceManifest().getDefinitions()) {
             Provisioner<ResourceDefinition, ?> chosenProvisioner = getProvisioner(definition);
             var status = chosenProvisioner.provision(definition);
@@ -76,15 +72,13 @@ public class ProvisionManagerImpl implements ProvisionManager {
     }
 
     @Override
-    public void deprovision(TransferProcess process) {
-        for (ProvisionedResource definition : process.getProvisionedResourceSet().getResources()) {
-            Provisioner<?, ProvisionedResource> chosenProvisioner = getProvisioner(definition);
-            ResponseStatus status = chosenProvisioner.deprovision(definition);
-            if (status != ResponseStatus.OK) {
-                process.transitionError("Error during deprovisioning");
-                processStore.update(process);
-            }
-        }
+    public List<ResponseStatus> deprovision(TransferProcess process) {
+        return process.getProvisionedResourceSet().getResources().stream()
+                .map(definition -> {
+                    Provisioner<?, ProvisionedResource> chosenProvisioner = getProvisioner(definition);
+                    return chosenProvisioner.deprovision(definition);
+                })
+                .collect(Collectors.toList());
     }
 
     void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {
