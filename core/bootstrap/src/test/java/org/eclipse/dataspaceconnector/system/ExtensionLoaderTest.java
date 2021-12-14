@@ -51,10 +51,8 @@ class ExtensionLoaderTest {
 
     @Test
     void loadMonitor_whenMultipleMonitorExtensions() {
-        var mockedMonitor = (Monitor) mock(Monitor.class);
-
         var exts = new ArrayList<MonitorExtension>();
-        exts.add(() -> mockedMonitor);
+        exts.add(() -> mock(Monitor.class));
         exts.add(ConsoleMonitor::new);
 
         var monitor = ExtensionLoader.loadMonitor(exts);

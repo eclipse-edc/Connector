@@ -148,7 +148,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
     @Test
     void testSendContractOfferMessage() throws Exception {
-        var contractOffer = (ContractOffer) mock(ContractOffer.class);
+        var contractOffer = mock(ContractOffer.class);
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
 
@@ -172,7 +172,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
     @Test
     void testSendContractRequestMessage() throws Exception {
-        var contractOffer = (ContractOffer) mock(ContractOffer.class);
+        var contractOffer = mock(ContractOffer.class);
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
 
