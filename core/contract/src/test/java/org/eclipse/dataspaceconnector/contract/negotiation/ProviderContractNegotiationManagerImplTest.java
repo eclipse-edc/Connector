@@ -103,7 +103,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void testRequestedConfirmOffer() {
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = mock(ContractOffer.class);
         when(validationService.validate(token, contractOffer)).thenReturn(Result.success(contractOffer));
 
@@ -131,7 +131,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void testRequestedDeclineOffer() {
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = mock(ContractOffer.class);
         when(validationService.validate(token, contractOffer)).thenReturn(Result.failure("error"));
 
@@ -160,7 +160,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     @Disabled
     void testRequestedCounterOffer() {
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = mock(ContractOffer.class);
         var counterOffer = mock(ContractOffer.class);
         when(validationService.validate(token, contractOffer)).thenReturn(Result.success(null));
@@ -190,7 +190,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void testOfferReceivedInvalidId() {
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = mock(ContractOffer.class);
 
         var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
@@ -201,7 +201,7 @@ class ProviderContractNegotiationManagerImplTest {
     void testOfferReceivedConfirmOffer() {
         var negotiationId = createContractNegotiationProviderOffered();
 
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = mock(ContractOffer.class);
 
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
@@ -221,7 +221,7 @@ class ProviderContractNegotiationManagerImplTest {
     void testOfferReceivedDeclineOffer() {
         var negotiationId = createContractNegotiationProviderOffered();
 
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = mock(ContractOffer.class);
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
                 .thenReturn(Result.failure("error"));
@@ -241,7 +241,7 @@ class ProviderContractNegotiationManagerImplTest {
     void testOfferReceivedCounterOffer() {
         var negotiationId = createContractNegotiationProviderOffered();
 
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractOffer = mock(ContractOffer.class);
         var counterOffer = mock(ContractOffer.class);
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
@@ -260,7 +260,7 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void testConsumerApprovedInvalidId() {
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = (ContractAgreement) mock(ContractAgreement.class);
 
         var result = negotiationManager.consumerApproved(token, "not a valid id", contractAgreement, "hash");
@@ -271,7 +271,7 @@ class ProviderContractNegotiationManagerImplTest {
     void testConsumerApprovedConfirmAgreement() {
         var negotiationId = createContractNegotiationProviderOffered();
 
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = (ContractAgreement) mock(ContractAgreement.class);
 
         when(validationService.validate(token, contractAgreement)).thenReturn(true);
@@ -288,7 +288,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     void testDeclined() {
         var negotiationId = createContractNegotiationProviderOffered();
-        var token = mock(ClaimToken.class);
+        var token = ClaimToken.Builder.newInstance().build();
 
         var result = negotiationManager.declined(token, correlationId);
 
