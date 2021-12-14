@@ -1,8 +1,12 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
@@ -14,57 +18,118 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProvisionManagerImplTest {
 
-    private final ProvisionManagerImpl provisionManager = new ProvisionManagerImpl();
+    private final Provisioner provisioner = mock(Provisioner.class);
+    private final Monitor monitor = mock(Monitor.class);
+    private final ProvisionManagerImpl provisionManager = new ProvisionManagerImpl(monitor);
 
     @BeforeEach
     void setUp() {
+        provisionManager.register(provisioner);
     }
 
     @Test
-    void provisionTransferProcess() {
-        var provisioner = mock(Provisioner.class);
+    void provision_transfer_process() {
         when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
-        provisionManager.register(provisioner);
+        var provisionResponse = ProvisionResponse.Builder.newInstance()
+                .resource(new TestProvisionedDataDestinationResource("test-resource"))
+                .build();
+        when(provisioner.provision(isA(TestResourceDefinition.class))).thenReturn(completedFuture(provisionResponse));
         TransferProcess transferProcess = TransferProcess.Builder.newInstance()
                 .id("id")
                 .state(TransferProcessStates.REQUESTED.code())
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        provisionManager.start(mock(ProvisionContext.class));
 
-        provisionManager.provision(transferProcess);
+        var result = provisionManager.provision(transferProcess);
 
-        verify(provisioner).provision(any());
+        assertThat(result).succeedsWithin(1, SECONDS)
+                .extracting(responses -> responses.get(0))
+                .extracting(ProvisionResponse::getResource)
+                .extracting(ProvisionedDataDestinationResource.class::cast)
+                .extracting(ProvisionedDataDestinationResource::getResourceName)
+                .isEqualTo("test-resource");
     }
 
     @Test
-    void deprovisionTransferProcessReturnsResponseList() {
-        var provisioner = mock(Provisioner.class);
+    void should_handle_provisioner_exception() {
+        when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
+        when(provisioner.provision(isA(TestResourceDefinition.class))).thenThrow(new EdcException("error"));
+        TransferProcess transferProcess = TransferProcess.Builder.newInstance()
+                .id("id")
+                .state(TransferProcessStates.REQUESTED.code())
+                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                .build();
+
+        var result = provisionManager.provision(transferProcess);
+
+        assertThat(result).failsWithin(1, SECONDS);
+    }
+
+    @Test
+    void deprovision_transfer_process_returns_response_list() {
+        var deprovisionResponse = DeprovisionResponse.Builder.newInstance()
+                .resource(new TestProvisionedDataDestinationResource("test-resource"))
+                .build();
         when(provisioner.canDeprovision(isA(ProvisionedResource.class))).thenReturn(true);
-        when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenReturn(ResponseStatus.OK);
-        provisionManager.register(provisioner);
+        when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenReturn(completedFuture(deprovisionResponse));
         TransferProcess transferProcess = TransferProcess.Builder.newInstance()
                 .id("id")
                 .state(TransferProcessStates.REQUESTED.code())
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().resources(List.of(new TestProvisionedResource())).build())
                 .build();
-        provisionManager.start(mock(ProvisionContext.class));
 
-        List<ResponseStatus> status = provisionManager.deprovision(transferProcess);
+        var result = provisionManager.deprovision(transferProcess);
 
-        assertThat(status).containsExactly(ResponseStatus.OK);
-        verify(provisioner).deprovision(any());
+        assertThat(result).succeedsWithin(1, SECONDS)
+                .extracting(responses -> responses.get(0))
+                .extracting(DeprovisionResponse::getResource)
+                .extracting(ProvisionedDataDestinationResource.class::cast)
+                .extracting(ProvisionedDataDestinationResource::getResourceName)
+                .isEqualTo("test-resource");
     }
 
-    private static class TestProvisionedResource extends ProvisionedResource {
+    @Test
+    void should_handle_deprovision_exception() {
+        when(provisioner.canDeprovision(isA(ProvisionedResource.class))).thenReturn(true);
+        when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenThrow(new EdcException("error"));
+        TransferProcess transferProcess = TransferProcess.Builder.newInstance()
+                .id("id")
+                .state(TransferProcessStates.REQUESTED.code())
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().resources(List.of(new TestProvisionedResource())).build())
+                .build();
+
+        var result = provisionManager.deprovision(transferProcess);
+
+        assertThat(result).failsWithin(1, SECONDS);
+    }
+
+    private static class TestProvisionedResource extends ProvisionedResource {}
+
+    private static class TestProvisionedDataDestinationResource extends ProvisionedDataDestinationResource {
+        private final String resourceName;
+
+        protected TestProvisionedDataDestinationResource(String resourceName) {
+            super();
+            this.resourceName = resourceName;
+        }
+
+        @Override
+        public DataAddress createDataDestination() {
+            return null;
+        }
+
+        @Override
+        public String getResourceName() {
+            return resourceName;
+        }
     }
 }

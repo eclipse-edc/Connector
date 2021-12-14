@@ -31,8 +31,6 @@ public abstract class ProvisionedResource implements Polymorphic {
     protected String id;
     protected String transferProcessId;
     protected String resourceDefinitionId;
-    protected boolean error;
-    protected String errorMessage;
 
     @NotNull
     public String getId() {
@@ -51,15 +49,6 @@ public abstract class ProvisionedResource implements Polymorphic {
     public String getResourceDefinitionId() {
         return resourceDefinitionId;
     }
-
-    public boolean isError() {
-        return error;
-    }
-
-    public String getErrorMessage() {
-        return errorMessage;
-    }
-
 
     @JsonPOJOBuilder
     public static class Builder<PR extends ProvisionedResource, B extends Builder<PR, B>> {
@@ -81,16 +70,6 @@ public abstract class ProvisionedResource implements Polymorphic {
 
         public B resourceDefinitionId(String id) {
             provisionedResource.resourceDefinitionId = id;
-            return (B) this;
-        }
-
-        public B error(boolean value) {
-            provisionedResource.error = value;
-            return (B) this;
-        }
-
-        public B errorMessage(String errorMessage) {
-            provisionedResource.errorMessage = errorMessage;
             return (B) this;
         }
 
