@@ -18,6 +18,7 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -29,6 +30,8 @@ import java.net.URI;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
@@ -52,14 +55,14 @@ class CatalogToIdsResourceCatalogTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
     }
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
+        assertThrows(NullPointerException.class, () -> {
             transformer.transform(catalog, null);
         });
     }
@@ -68,24 +71,19 @@ class CatalogToIdsResourceCatalogTransformerTest {
     void testReturnsNull() {
         var result = transformer.transform(null, context);
 
-        Assertions.assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
     void testSuccessfulSimple() {
         var a1 = Asset.Builder.newInstance().id("a1").build();
         var a2 = Asset.Builder.newInstance().id("a2").build();
-        ContractOffer o1 = mock(ContractOffer.class);
-        ContractOffer o2 = mock(ContractOffer.class);
-
-        when(o1.getAsset()).thenReturn(a1);
-        when(o2.getAsset()).thenReturn(a2);
-
+        ContractOffer o1 = ContractOffer.Builder.newInstance().id("o1").asset(a1).policy(Policy.Builder.newInstance().build()).build();
+        ContractOffer o2 = ContractOffer.Builder.newInstance().id("o2").asset(a2).policy(Policy.Builder.newInstance().build()).build();
         Resource resource = new ResourceBuilder().build();
 
         when(catalog.getId()).thenReturn(CATALOG_ID);
         when(catalog.getContractOffers()).thenReturn(List.of(o1, o2));
-
         when(context.transform(isA(OfferedAsset.class), eq(Resource.class))).thenReturn(resource);
 
         var result = transformer.transform(catalog, context);

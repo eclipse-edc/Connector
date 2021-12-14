@@ -28,6 +28,8 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
@@ -51,11 +53,13 @@ public class ContractOfferToIdsContractOfferTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new ContractOfferToIdsContractOfferTransformer();
-        contractOffer = mock(ContractOffer.class);
         policy = mock(Policy.class);
+        contractOffer = ContractOffer.Builder.newInstance()
+                .id(CONTRACT_OFFER_ID)
+                .policy(policy)
+                .provider(PROVIDER_URI)
+                .build();
         context = mock(TransformerContext.class);
-
-        when(contractOffer.getPolicy()).thenReturn(policy);
     }
 
     @Test
@@ -88,11 +92,6 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         Duty edcObligation = mock(Duty.class);
         de.fraunhofer.iais.eis.Duty idsObligation = mock(de.fraunhofer.iais.eis.Duty.class);
 
-        when(contractOffer.getId()).thenReturn(CONTRACT_OFFER_ID);
-        when(contractOffer.getProvider()).thenReturn(PROVIDER_URI);
-        when(contractOffer.getConsumer()).thenReturn(null);
-        when(contractOffer.getContractStart()).thenReturn(null);
-        when(contractOffer.getContractEnd()).thenReturn(null);
         when(policy.getPermissions()).thenReturn(Collections.singletonList(edcPermission));
         when(policy.getProhibitions()).thenReturn(Collections.singletonList(edcProhibition));
         when(policy.getObligations()).thenReturn(Collections.singletonList(edcObligation));
@@ -104,15 +103,14 @@ public class ContractOfferToIdsContractOfferTransformerTest {
 
         var result = transformer.transform(contractOffer, context);
 
-        // verify
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(OFFER_ID, result.getId());
-        Assertions.assertEquals(PROVIDER_URI, result.getProvider());
-        Assertions.assertEquals(1, result.getObligation().size());
-        Assertions.assertEquals(idsObligation, result.getObligation().get(0));
-        Assertions.assertEquals(1, result.getPermission().size());
-        Assertions.assertEquals(idsPermission, result.getPermission().get(0));
-        Assertions.assertEquals(1, result.getProhibition().size());
-        Assertions.assertEquals(idsProhibition, result.getProhibition().get(0));
+        assertNotNull(result);
+        assertEquals(OFFER_ID, result.getId());
+        assertEquals(PROVIDER_URI, result.getProvider());
+        assertEquals(1, result.getObligation().size());
+        assertEquals(idsObligation, result.getObligation().get(0));
+        assertEquals(1, result.getPermission().size());
+        assertEquals(idsPermission, result.getPermission().get(0));
+        assertEquals(1, result.getProhibition().size());
+        assertEquals(idsProhibition, result.getProhibition().get(0));
     }
 }

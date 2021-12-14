@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -43,13 +44,11 @@ class OfferedAssetToIdsResourceTransformerTest {
 
     private OfferedAssetToIdsResourceTransformer transformer;
 
-    private ContractOffer contractOffer;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new OfferedAssetToIdsResourceTransformer();
-        contractOffer = mock(ContractOffer.class);
         context = mock(TransformerContext.class);
     }
 
@@ -63,7 +62,7 @@ class OfferedAssetToIdsResourceTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(assetAndPolicy(contractOffer), null);
+            transformer.transform(assetAndPolicy(), null);
         });
     }
 
@@ -83,7 +82,7 @@ class OfferedAssetToIdsResourceTransformerTest {
         IdsId id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
         when(context.transform(eq(id), eq(URI.class))).thenReturn(RESOURCE_ID_URI);
 
-        var result = transformer.transform(assetAndPolicy(contractOffer), context);
+        var result = transformer.transform(assetAndPolicy(), context);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(RESOURCE_ID_URI, result.getId());
@@ -92,7 +91,11 @@ class OfferedAssetToIdsResourceTransformerTest {
     }
 
     @NotNull
-    private OfferedAsset assetAndPolicy(ContractOffer contractOffer) {
+    private OfferedAsset assetAndPolicy() {
+        var contractOffer = ContractOffer.Builder.newInstance()
+                .id("id")
+                .policy(Policy.Builder.newInstance().build())
+                .build();
         return new OfferedAsset(Asset.Builder.newInstance().id(RESOURCE_ID).build(), Collections.singletonList(contractOffer));
     }
 

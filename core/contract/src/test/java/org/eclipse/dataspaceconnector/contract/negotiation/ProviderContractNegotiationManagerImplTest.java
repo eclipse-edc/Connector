@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -104,7 +105,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     void testRequestedConfirmOffer() {
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = mock(ContractOffer.class);
+        var contractOffer = aContractOffer();
         when(validationService.validate(token, contractOffer)).thenReturn(Result.success(contractOffer));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -132,7 +133,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     void testRequestedDeclineOffer() {
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = mock(ContractOffer.class);
+        var contractOffer = aContractOffer();
         when(validationService.validate(token, contractOffer)).thenReturn(Result.failure("error"));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -161,8 +162,8 @@ class ProviderContractNegotiationManagerImplTest {
     @Disabled
     void testRequestedCounterOffer() {
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = mock(ContractOffer.class);
-        var counterOffer = mock(ContractOffer.class);
+        var contractOffer = aContractOffer();
+        var counterOffer = aContractOffer();
         when(validationService.validate(token, contractOffer)).thenReturn(Result.success(null));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -191,7 +192,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     void testOfferReceivedInvalidId() {
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = mock(ContractOffer.class);
+        var contractOffer = aContractOffer();
 
         var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
         assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
@@ -202,7 +203,7 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiationId = createContractNegotiationProviderOffered();
 
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = mock(ContractOffer.class);
+        var contractOffer = aContractOffer();
 
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
                 .thenReturn(Result.success(contractOffer));
@@ -222,7 +223,7 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiationId = createContractNegotiationProviderOffered();
 
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = mock(ContractOffer.class);
+        var contractOffer = aContractOffer();
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
                 .thenReturn(Result.failure("error"));
 
@@ -242,8 +243,8 @@ class ProviderContractNegotiationManagerImplTest {
         var negotiationId = createContractNegotiationProviderOffered();
 
         var token = ClaimToken.Builder.newInstance().build();
-        var contractOffer = mock(ContractOffer.class);
-        var counterOffer = mock(ContractOffer.class);
+        var contractOffer = aContractOffer();
+        var counterOffer = aContractOffer();
         when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
                 .thenReturn(Result.success(null));
 
@@ -299,7 +300,7 @@ class ProviderContractNegotiationManagerImplTest {
     }
 
     private String createContractNegotiationProviderOffered() {
-        var lastOffer = mock(ContractOffer.class);
+        var lastOffer = aContractOffer();
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -315,6 +316,10 @@ class ProviderContractNegotiationManagerImplTest {
         negotiation.addContractOffer(lastOffer);
         negotiations.put(negotiation.getId(), negotiation);
         return negotiation.getId();
+    }
+
+    private ContractOffer aContractOffer() {
+        return ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
     }
 
 }
