@@ -136,7 +136,7 @@ public class ArtifactRequestHandler implements Handler {
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(ResponseMessageUtil.createDummyResponse(connectorId, artifactRequestMessage)) // TODO Change this response so that it matches our UML pictures
+                .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, artifactRequestMessage)) // TODO Change this response so that it matches our UML pictures
                 .build();
     }
 

@@ -31,19 +31,16 @@ autonumber
 
 participant Consumer as "Consumer" #ConsumerColor
 
-legend right
- <back:#lightblue>Backed by EDC-Extension</back>
-end legend
-
 box EDC Provider #ProviderColor
     participant IDS as "IDS Services\n(Controller, Dispatcher, ...)" #lightblue
-    participant Store as "Contract Store"
+    participant Store as "Contract Negotiation Store"
     participant TransferStore as "Transfer Process Store"
     participant TransferManager as "Transfer Process Manager"
     participant ManifestGenerator as "Resource Manifest Generator"
     participant ProvisionManager as "Provision Manager"
     participant Provisioners as "Provisioners" #lightblue
-    participant DataFlow as "Data Flow Manager\n(e.g. NiFi)" #lightblue
+    participant DataFlow as "Data Flow Manager"
+    participant DataFlowController as "Data Flow Controller" #lightblue
 end box
 
 Consumer -> IDS ++: Artifact Request Message
@@ -51,10 +48,7 @@ IDS -> IDS : validate token & message
 note right: Done by Token Validator
 IDS -> Store ++: get contract
 return contract
-IDS -> IDS: validate contract + consumer + artifact + claims
-
-IDS -> IDS: enforce policies (e.g. geolocation)
-note right: Done by EDC Policy Engine
+IDS -> IDS: validate contract
 
 IDS --> Consumer: Request In Process Message
 IDS -> TransferManager --++: initialize TransferProcess by ContractRef
@@ -63,14 +57,12 @@ return contract
 TransferManager -> TransferStore: store TransferProcess
 
 ' Resource Definition
-...
 TransferManager -> ManifestGenerator ++ : **generate resource definitions**
 return ResourceManifest
 TransferManager -> TransferStore: store TransferProcess
 
 
 ' Provision
-...
 TransferManager -> ProvisionManager++: **provision**
 ProvisionManager -> Provisioners++: provision
 Provisioners --> ProvisionManager--: callback
@@ -78,37 +70,16 @@ ProvisionManager -> TransferStore: store TransferProcess
 deactivate ProvisionManager
 
 ' Transfer
-...
-TransferManager -> DataFlow ++: **initiate transferring the data**
-DataFlow --> TransferManager: callback
-TransferManager -> TransferStore: store TransferProcess
-
-' Notification
-...
-TransferManager -> IDS ++: **status update**
-' TODO: non-edc connectors won't understand this
-' dsc would return a rejection message
-IDS --> Consumer: (Provisioned) Notification Message
+TransferManager -> DataFlow ++: **initiate data transfer**
+DataFlow -> DataFlowController ++ : invoke
 return
-TransferManager -> TransferStore: store TransferProcess
-
-...
-?-> TransferManager: notification transfer finished (multiple sources)
-TransferManager -> TransferStore: store TransferProcess
+return
 
 ' De-Provision
-...
 TransferManager -> ProvisionManager++: **de-provision**
 ProvisionManager -> Provisioners++: de-provision
 Provisioners --> ProvisionManager--: callback
 ProvisionManager -> TransferStore: store TransferProcess
 deactivate ProvisionManager
-
-' Complete
-...
-TransferManager -> IDS ++: **status update**
-IDS --> Consumer: Artifact Response Message
-return
-TransferManager -> TransferStore: store TransferProcess
 
 @enduml

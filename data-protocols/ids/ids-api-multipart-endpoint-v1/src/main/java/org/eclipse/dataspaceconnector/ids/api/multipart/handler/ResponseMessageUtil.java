@@ -19,8 +19,6 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageBuilder;
 import de.fraunhofer.iais.eis.NotificationMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageBuilder;
-import de.fraunhofer.iais.eis.ResponseMessage;
-import de.fraunhofer.iais.eis.ResponseMessageBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -32,47 +30,6 @@ import java.util.Collections;
 import java.util.UUID;
 
 class ResponseMessageUtil {
-
-    public static ResponseMessage createDummyResponse(
-            @Nullable String connectorId,
-            @Nullable Message correlationMessage) {
-
-        URI messageId = URI.create(String.join(IdsIdParser.DELIMITER, IdsIdParser.SCHEME, IdsType.MESSAGE.getValue(), UUID.randomUUID().toString()));
-        ResponseMessageBuilder builder = new ResponseMessageBuilder(messageId);
-
-        builder._contentVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
-        builder._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION);
-
-        String connectorIdUrn = String.join(
-                IdsIdParser.DELIMITER,
-                IdsIdParser.SCHEME,
-                IdsType.CONNECTOR.getValue(),
-                connectorId);
-
-        URI connectorIdUri = URI.create(connectorIdUrn);
-
-        builder._issuerConnector_(connectorIdUri);
-        builder._senderAgent_(connectorIdUri);
-
-        if (correlationMessage != null) {
-            URI id = correlationMessage.getId();
-            if (id != null) {
-                builder._correlationMessage_(id);
-            }
-
-            URI senderAgent = correlationMessage.getSenderAgent();
-            if (senderAgent != null) {
-                builder._recipientAgent_(new ArrayList<>(Collections.singletonList(senderAgent)));
-            }
-
-            URI issuerConnector = correlationMessage.getIssuerConnector();
-            if (issuerConnector != null) {
-                builder._recipientConnector_(new ArrayList<>(Collections.singletonList(issuerConnector)));
-            }
-        }
-
-        return builder.build();
-    }
 
     public static NotificationMessage createRequestInProcessMessage(
             @Nullable String connectorId,

@@ -24,7 +24,6 @@ import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
-import de.fraunhofer.iais.eis.ResponseMessage;
 import okhttp3.OkHttpClient;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
@@ -145,7 +144,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         assertThat(result.getHeader()).isNotNull();
 
         //TODO revise when handler for ArtifactRequestMessage exists
-        assertThat(result.getHeader()).isInstanceOf(ResponseMessage.class);
+        assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
         assertThat(result.getPayload()).isNull();
     }
 

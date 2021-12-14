@@ -32,9 +32,7 @@ autonumber
 participant Consumer #ConsumerColor
 participant Provider #ProviderColor
 
-hnote over Consumer, Provider #WarningColor
-    Is this even a scenario?
-    As far as I know only the EDC Connector will be able to push data (for now).
-end hnote
+Consumer -> Provider ++ : Artifact Request Message
+return Request In Process Message
 
 @enduml
