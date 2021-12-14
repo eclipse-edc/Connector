@@ -33,6 +33,9 @@ import java.net.URISyntaxException;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockAssetIndex;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockDescriptionRequestMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockTransformerRegistry;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -59,7 +62,7 @@ public class RepresentationDescriptionRequestHandlerTest {
         when(representation.getId()).thenReturn(new URI("urn:representation:hello"));
 
         assetIndex = mockAssetIndex();
-        when(assetIndex.findById(anyString())).thenReturn(mock(Asset.class));
+        when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
 
         transformerRegistry = mockTransformerRegistry(IdsType.REPRESENTATION);
         when(transformerRegistry.transform(isA(Asset.class), eq(Representation.class))).thenReturn(Result.success(representation));
@@ -72,13 +75,13 @@ public class RepresentationDescriptionRequestHandlerTest {
     @Test
     @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(monitor, null, assetIndex, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, null, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null));
     }
 
@@ -87,8 +90,8 @@ public class RepresentationDescriptionRequestHandlerTest {
         var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
         var result = representationDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, null);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertNotNull(result.getHeader());
-        Assertions.assertEquals(representation, result.getPayload());
+        assertNotNull(result);
+        assertNotNull(result.getHeader());
+        assertEquals(representation, result.getPayload());
     }
 }

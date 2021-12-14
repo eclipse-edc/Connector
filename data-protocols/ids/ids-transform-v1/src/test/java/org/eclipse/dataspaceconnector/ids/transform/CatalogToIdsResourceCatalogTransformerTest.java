@@ -73,13 +73,11 @@ class CatalogToIdsResourceCatalogTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        Asset a1 = mock(Asset.class);
-        Asset a2 = mock(Asset.class);
+        var a1 = Asset.Builder.newInstance().id("a1").build();
+        var a2 = Asset.Builder.newInstance().id("a2").build();
         ContractOffer o1 = mock(ContractOffer.class);
         ContractOffer o2 = mock(ContractOffer.class);
 
-        when(a1.getId()).thenReturn("a1");
-        when(a2.getId()).thenReturn("a2");
         when(o1.getAsset()).thenReturn(a1);
         when(o2.getAsset()).thenReturn(a2);
 

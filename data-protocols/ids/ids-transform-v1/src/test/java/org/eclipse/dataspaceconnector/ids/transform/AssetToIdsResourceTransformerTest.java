@@ -27,6 +27,9 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
+import static java.util.Collections.emptyMap;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -37,18 +40,14 @@ class AssetToIdsResourceTransformerTest {
     private static final String RESOURCE_ID = "test_id";
     private static final URI RESOURCE_ID_URI = URI.create("urn:resource:1");
 
-    // subject
     private AssetToIdsResourceTransformer transformer;
 
-    // mocks
-    private Asset asset;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
-        transformer = new AssetToIdsResourceTransformer();
-        asset = mock(Asset.class);
         context = mock(TransformerContext.class);
+        transformer = new AssetToIdsResourceTransformer();
     }
 
     @Test
@@ -61,7 +60,7 @@ class AssetToIdsResourceTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(asset, null);
+            transformer.transform(Asset.Builder.newInstance().build(), null);
         });
     }
 
@@ -74,25 +73,19 @@ class AssetToIdsResourceTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
-        when(asset.getId()).thenReturn(RESOURCE_ID);
-        when(asset.getProperties()).thenReturn(Collections.emptyMap());
-
+        var asset = Asset.Builder.newInstance().id(RESOURCE_ID).build();
         var representation = new RepresentationBuilder().build();
         when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);
 
         IdsId id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
         when(context.transform(eq(id), eq(URI.class))).thenReturn(RESOURCE_ID_URI);
 
-        // record
-        // invoke
         var result = transformer.transform(asset, context);
 
-        // verify
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(RESOURCE_ID_URI, result.getId());
-        Assertions.assertEquals(1, result.getRepresentation().size());
-        Assertions.assertEquals(representation, result.getRepresentation().get(0));
+        assertNotNull(result);
+        assertEquals(RESOURCE_ID_URI, result.getId());
+        assertEquals(1, result.getRepresentation().size());
+        assertEquals(representation, result.getRepresentation().get(0));
     }
 
 }

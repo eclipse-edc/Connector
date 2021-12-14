@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,17 +43,13 @@ class OfferedAssetToIdsResourceTransformerTest {
 
     private OfferedAssetToIdsResourceTransformer transformer;
 
-    private Asset asset;
     private ContractOffer contractOffer;
-    private OfferedAsset assetAndPolicy;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new OfferedAssetToIdsResourceTransformer();
-        asset = mock(Asset.class);
         contractOffer = mock(ContractOffer.class);
-        assetAndPolicy = new OfferedAsset(asset, Collections.singletonList(contractOffer));
         context = mock(TransformerContext.class);
     }
 
@@ -66,7 +63,7 @@ class OfferedAssetToIdsResourceTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(assetAndPolicy, null);
+            transformer.transform(assetAndPolicy(contractOffer), null);
         });
     }
 
@@ -79,9 +76,6 @@ class OfferedAssetToIdsResourceTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        when(asset.getId()).thenReturn(RESOURCE_ID);
-        when(asset.getProperties()).thenReturn(Collections.emptyMap());
-
         var representation = new RepresentationBuilder().build();
         when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);
         when(context.transform(any(ContractOffer.class), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(new ContractOfferBuilder().build());
@@ -89,12 +83,17 @@ class OfferedAssetToIdsResourceTransformerTest {
         IdsId id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
         when(context.transform(eq(id), eq(URI.class))).thenReturn(RESOURCE_ID_URI);
 
-        var result = transformer.transform(assetAndPolicy, context);
+        var result = transformer.transform(assetAndPolicy(contractOffer), context);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(RESOURCE_ID_URI, result.getId());
         Assertions.assertEquals(1, result.getRepresentation().size());
         Assertions.assertEquals(representation, result.getRepresentation().get(0));
+    }
+
+    @NotNull
+    private OfferedAsset assetAndPolicy(ContractOffer contractOffer) {
+        return new OfferedAsset(Asset.Builder.newInstance().id(RESOURCE_ID).build(), Collections.singletonList(contractOffer));
     }
 
 }

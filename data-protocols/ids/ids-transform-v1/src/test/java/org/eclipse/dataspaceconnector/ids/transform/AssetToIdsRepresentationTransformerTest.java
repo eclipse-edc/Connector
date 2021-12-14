@@ -41,17 +41,13 @@ class AssetToIdsRepresentationTransformerTest {
     private static final URI REPRESENTATION_ID_URI = URI.create("urn:representation:1");
     private static final String ASSET_FILE_EXTENSION = "file_extension";
 
-    // subject
-    private AssetToIdsRepresentationTransformer transformer;
-
-    // mocks
-    private Asset asset;
     private TransformerContext context;
+
+    private AssetToIdsRepresentationTransformer transformer;
 
     @BeforeEach
     void setUp() {
         transformer = new AssetToIdsRepresentationTransformer();
-        asset = mock(Asset.class);
         context = mock(TransformerContext.class);
     }
 
@@ -65,7 +61,7 @@ class AssetToIdsRepresentationTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(asset, null);
+            transformer.transform(Asset.Builder.newInstance().build(), null);
         });
     }
 
@@ -78,9 +74,7 @@ class AssetToIdsRepresentationTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        when(asset.getId()).thenReturn(REPRESENTATION_ID);
-        when(asset.getProperties()).thenReturn(Collections.emptyMap());
-
+        var asset = Asset.Builder.newInstance().id(REPRESENTATION_ID).build();
         var artifact = new ArtifactBuilder().build();
         when(context.transform(any(Asset.class), eq(Artifact.class))).thenReturn(artifact);
 
@@ -95,14 +89,8 @@ class AssetToIdsRepresentationTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        when(asset.getId()).thenReturn(REPRESENTATION_ID);
-        Map<String, Object> properties = new HashMap<>() {
-            {
-                put(TransformKeys.KEY_ASSET_FILE_EXTENSION, ASSET_FILE_EXTENSION);
-            }
-        };
-        when(asset.getProperties()).thenReturn(properties);
-
+        var properties = new HashMap<>(Map.of(TransformKeys.KEY_ASSET_FILE_EXTENSION, ASSET_FILE_EXTENSION));
+        var asset = Asset.Builder.newInstance().properties(properties).id(REPRESENTATION_ID).build();
         var artifact = new ArtifactBuilder().build();
         when(context.transform(any(Asset.class), eq(Artifact.class))).thenReturn(artifact);
 

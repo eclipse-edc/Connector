@@ -34,9 +34,8 @@ final class DescriptionRequestHandlerMocks {
 
     public static AssetIndex mockAssetIndex() {
         AssetIndex assetIndex = mock(AssetIndex.class);
-        Asset asset = mock(Asset.class);
+        Asset asset = Asset.Builder.newInstance().id("urn:asset:123456").build();
         when(assetIndex.findById(isA(String.class))).thenReturn(asset);
-        when(asset.getId()).thenReturn("urn:asset:123456");
         return assetIndex;
     }
 

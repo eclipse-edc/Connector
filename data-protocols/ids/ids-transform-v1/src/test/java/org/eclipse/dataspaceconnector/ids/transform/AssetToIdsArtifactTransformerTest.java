@@ -41,13 +41,11 @@ class AssetToIdsArtifactTransformerTest {
 
     private AssetToIdsArtifactTransformer transformer;
 
-    private Asset asset;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new AssetToIdsArtifactTransformer();
-        asset = mock(Asset.class);
         context = mock(TransformerContext.class);
     }
 
@@ -61,7 +59,7 @@ class AssetToIdsArtifactTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(asset, null);
+            transformer.transform(Asset.Builder.newInstance().build(), null);
         });
     }
 
@@ -74,8 +72,7 @@ class AssetToIdsArtifactTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        when(asset.getId()).thenReturn(ASSET_ID);
-        when(asset.getProperties()).thenReturn(Collections.emptyMap());
+        var asset = Asset.Builder.newInstance().id(ASSET_ID).build();
 
         IdsId id = IdsId.Builder.newInstance().value(ASSET_ID).type(IdsType.ARTIFACT).build();
         when(context.transform(eq(id), eq(URI.class))).thenReturn(ASSET_ID_URI);
@@ -88,14 +85,8 @@ class AssetToIdsArtifactTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        when(asset.getId()).thenReturn(ASSET_ID);
-        Map<String, Object> properties = new HashMap<>() {
-            {
-                put(TransformKeys.KEY_ASSET_FILE_NAME, ASSET_FILENAME);
-                put(TransformKeys.KEY_ASSET_BYTE_SIZE, ASSET_BYTESIZE);
-            }
-        };
-        when(asset.getProperties()).thenReturn(properties);
+        var properties = new HashMap<>(Map.of(TransformKeys.KEY_ASSET_FILE_NAME, ASSET_FILENAME, TransformKeys.KEY_ASSET_BYTE_SIZE, ASSET_BYTESIZE));
+        var asset = Asset.Builder.newInstance().properties(properties).id(ASSET_ID).build();
 
         IdsId id = IdsId.Builder.newInstance().value(ASSET_ID).type(IdsType.ARTIFACT).build();
         when(context.transform(eq(id), eq(URI.class))).thenReturn(ASSET_ID_URI);
