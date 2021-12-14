@@ -119,6 +119,26 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         return initiateRequest(PROVIDER, dataRequest);
     }
 
+    @Override
+    public void transitionRequestAck(String processId) {
+        TransferProcess transferProcess = transferProcessStore.find(processId);
+        transferProcess.transitionRequestAck();
+        transferProcessStore.update(transferProcess);
+    }
+
+    @Override
+    public void transitionProvisioned(String processId) {
+        TransferProcess transferProcess = transferProcessStore.find(processId);
+        transferProcess.transitionProvisioned();
+        transferProcessStore.update(transferProcess);
+    }
+
+    @Override
+    public void transitionError(String processId, String detail) {
+        TransferProcess transferProcess = transferProcessStore.find(processId);
+        transferProcess.transitionError(detail);
+        transferProcessStore.update(transferProcess);
+    }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return

@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,8 +65,9 @@ class DataRequestMessageSenderTest {
         IdentityService identityService = mock(IdentityService.class);
         var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(faker.lorem().characters()).build();
         Result<TokenRepresentation> tokenResult = Result.success(tokenRepresentation);
+
         when(identityService.obtainClientCredentials(connectorId)).thenReturn(tokenResult);
-        sender = new DataRequestMessageSender(connectorId, identityService, mock(TransferProcessStore.class), mock(Vault.class), httpClient, mapper, mock(Monitor.class));
+        sender = new DataRequestMessageSender(connectorId, identityService, mock(Vault.class), httpClient, mapper, mock(Monitor.class), mock(TransferProcessManager.class));
     }
 
     @Test

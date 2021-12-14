@@ -46,6 +46,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.ArrayList;
@@ -143,7 +144,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
      * Assembles the IDS remote message dispatcher and its senders.
      */
     private void assembleIdsDispatcher(String connectorId, ServiceExtensionContext context, IdentityService identityService) {
-        var processStore = context.getService(TransferProcessStore.class);
+        var processManager = context.getService(TransferProcessManager.class);
         var vault = context.getService(Vault.class);
         var httpClient = context.getService(OkHttpClient.class);
 
@@ -153,7 +154,7 @@ public class IdsCoreServiceExtension implements ServiceExtension {
 
         var restDispatcher = new IdsRestRemoteMessageDispatcher();
         restDispatcher.register(new QueryMessageSender(connectorId, identityService, httpClient, mapper, monitor));
-        restDispatcher.register(new DataRequestMessageSender(connectorId, identityService, processStore, vault, httpClient, mapper, monitor));
+        restDispatcher.register(new DataRequestMessageSender(connectorId, identityService, vault, httpClient, mapper, monitor, processManager));
 
         var registry = context.getService(RemoteMessageDispatcherRegistry.class);
         registry.register(restDispatcher);

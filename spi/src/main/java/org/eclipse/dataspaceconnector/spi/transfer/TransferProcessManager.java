@@ -33,4 +33,9 @@ public interface TransferProcessManager {
      */
     TransferInitiateResult initiateProviderRequest(DataRequest dataRequest);
 
+    void transitionRequestAck(String processId);
+
+    void transitionProvisioned(String processId);
+
+    void transitionError(String processId, String detail);
 }
