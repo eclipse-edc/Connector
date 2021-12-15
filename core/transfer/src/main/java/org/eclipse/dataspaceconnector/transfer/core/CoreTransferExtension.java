@@ -54,6 +54,7 @@ public class CoreTransferExtension implements ServiceExtension {
     private ProvisionManagerImpl provisionManager;
     private DelegatingTransferProcessManager processManager;
     private TransferProcessStore transferProcessStore;
+    private AsyncTransferProcessManager asyncMgr;
 
     @Override
     public String name() {
@@ -109,7 +110,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
 
         transferProcessStore = context.getService(TransferProcessStore.class);
-        var asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
+        asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)
@@ -137,7 +138,7 @@ public class CoreTransferExtension implements ServiceExtension {
     public void start() {
 
 
-        provisionManager.start(processManager.createProvisionContext());
+        provisionManager.start(asyncMgr.createProvisionContext());
         processManager.start(transferProcessStore);
     }
 

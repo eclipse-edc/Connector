@@ -484,7 +484,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     public ProvisionContext createProvisionContext() {
-        return new ProvisionContextImpl(this.transferProcessStore, this::onResource, this::onDestinationResource, this::onDeprovisionComplete);
+        return new ProvisionContextImpl(this::onResource, this::onDestinationResource, this::onDeprovisionComplete);
     }
 
     void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {

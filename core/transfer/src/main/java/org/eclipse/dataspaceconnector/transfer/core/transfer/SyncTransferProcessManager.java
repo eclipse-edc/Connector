@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
@@ -96,6 +97,26 @@ public class SyncTransferProcessManager implements TransferProcessManager {
             return TransferInitiateResult.success(process.getId(), proxyData);
         }
         return TransferInitiateResult.error(process.getId(), ResponseStatus.FATAL_ERROR);
+    }
+
+    @Override
+    public void transitionRequestAck(String processId) {
+
+    }
+
+    @Override
+    public void transitionProvisioned(String processId) {
+
+    }
+
+    @Override
+    public void transitionError(String processId, String detail) {
+
+    }
+
+    @Override
+    public Result<TransferProcessStates> deprovision(String processId) {
+        return null;
     }
 
     private ProxyEntry convert(Object result) {

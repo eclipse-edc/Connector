@@ -1,9 +1,11 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
 /**
  * This transfer process managers delegates {@link DataRequest} objects out to either the {@link SyncTransferProcessManager} or the
@@ -26,6 +28,26 @@ public class DelegatingTransferProcessManager implements TransferProcessManager 
     @Override
     public TransferInitiateResult initiateProviderRequest(DataRequest dataRequest) {
         return dataRequest.isSync() ? syncManager.initiateProviderRequest(dataRequest) : asyncManager.initiateProviderRequest(dataRequest);
+    }
+
+    @Override
+    public void transitionRequestAck(String processId) {
+
+    }
+
+    @Override
+    public void transitionProvisioned(String processId) {
+
+    }
+
+    @Override
+    public void transitionError(String processId, String detail) {
+
+    }
+
+    @Override
+    public Result<TransferProcessStates> deprovision(String processId) {
+        return null;
     }
 
     public void start(TransferProcessStore transferProcessStore) {
