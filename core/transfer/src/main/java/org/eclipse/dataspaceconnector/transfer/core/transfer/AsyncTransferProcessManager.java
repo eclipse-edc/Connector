@@ -50,7 +50,24 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 
-public class TransferProcessManagerImpl extends TransferProcessObservable implements TransferProcessManager {
+/**
+ * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state machine (cf {@link TransferProcessStates}.
+ * When submitting a new {@link TransferProcess} it gets created and inserted into the {@link TransferProcessStore}, then returns to the caller.
+ * <p>
+ * All subsequent state transitions happen asynchronously, the {@code AsyncTransferProcessManager#initiate*Request()} will return immediately.
+ * <p>
+ * A data transfer processes transitions through a series of states, which allows the system to model both terminating and non-terminating (e.g. streaming) transfers. Transitions
+ * occur asynchronously, since long-running processes such as resource provisioning may need to be completed before transitioning to a subsequent state. The permissible state
+ * transitions are defined by {@link org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates}.
+ * <br/>
+ * The transfer manager performs continual iterations, which seek to advance the state of transfer processes, including recovery, in a FIFO state-based ordering.
+ * Each iteration will seek to transition a set number of processes for each state to avoid situations where an excessive number of processes in one state block progress of
+ * processes in other states.
+ * <br/>
+ * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link TransferWaitStrategy} before conducting the next iteration.
+ * A wait strategy may implement a backoff scheme.
+ */
+public class AsyncTransferProcessManager extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
@@ -64,7 +81,8 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private ExecutorService executor;
     private StatusCheckerRegistry statusCheckerRegistry;
 
-    private TransferProcessManagerImpl() {
+
+    private AsyncTransferProcessManager() {
 
     }
 
@@ -101,6 +119,9 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         }
         var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
+        if (process.getState() == TransferProcessStates.UNSAVED.code()) {
+            process.transitionInitial();
+        }
         transferProcessStore.create(process);
         invokeForEach(l -> l.created(process));
         return TransferInitiateResult.success(process.getId());
@@ -291,7 +312,11 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 process.transitionRequested();
                 transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
                 invokeForEach(l -> l.requested(process));
-                dispatcherRegistry.send(Void.class, dataRequest, process::getId);
+                dispatcherRegistry.send(Object.class, dataRequest, process::getId).whenComplete((o, throwable) -> {
+                    if (o != null) {
+                        monitor.info("Object received: " + o.toString());
+                    }
+                });
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
                 if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
@@ -324,10 +349,10 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     }
 
     public static class Builder {
-        private final TransferProcessManagerImpl manager;
+        private final AsyncTransferProcessManager manager;
 
         private Builder() {
-            manager = new TransferProcessManagerImpl();
+            manager = new AsyncTransferProcessManager();
         }
 
         public static Builder newInstance() {
@@ -374,7 +399,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             return this;
         }
 
-        public TransferProcessManagerImpl build() {
+        public AsyncTransferProcessManager build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
             Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");

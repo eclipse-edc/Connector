@@ -54,11 +54,11 @@ import static org.easymock.EasyMock.partialMockBuilder;
 import static org.easymock.EasyMock.replay;
 import static org.easymock.EasyMock.verify;
 
-class TransferProcessManagerImplConsumerTest {
+class AsyncTransferProcessManagerImplConsumerTest {
 
     private static final long TIMEOUT = 5;
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
-    private TransferProcessManagerImpl transferProcessManager;
+    private AsyncTransferProcessManager transferProcessManager;
     private ProvisionManager provisionManager;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private StatusCheckerRegistry statusCheckerRegistry;
@@ -80,7 +80,7 @@ class TransferProcessManagerImplConsumerTest {
                 .addMockedMethod("success").strictMock();
 
 
-        transferProcessManager = TransferProcessManagerImpl.Builder.newInstance()
+        transferProcessManager = AsyncTransferProcessManager.Builder.newInstance()
                 .provisionManager(provisionManager)
                 .dataFlowManager(dataFlowManager)
                 .waitStrategy(waitStrategyMock)
@@ -129,7 +129,7 @@ class TransferProcessManagerImplConsumerTest {
         TransferProcess process = createTransferProcess(TransferProcessStates.PROVISIONED);
         var cdl = new CountDownLatch(1);
         //prepare provision manager
-        expect(dispatcherRegistry.send(eq(Void.class), anyObject(), anyObject())).andAnswer(() -> {
+        expect(dispatcherRegistry.send(eq(Object.class), anyObject(), anyObject())).andAnswer(() -> {
             cdl.countDown();
             return null;
         }).times(1);
@@ -463,6 +463,7 @@ class TransferProcessManagerImplConsumerTest {
         var processes = new ArrayList<TransferProcess>();
         for (int i = 0; i < numProcesses; i++) {
             TransferProcess process = createTransferProcess(TransferProcessStates.UNSAVED);
+            process.transitionInitial();
             processes.add(process);
             inMemoryProcessStore.create(process);
         }

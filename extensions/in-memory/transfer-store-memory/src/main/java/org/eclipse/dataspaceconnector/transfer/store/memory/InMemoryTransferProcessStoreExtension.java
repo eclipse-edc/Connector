@@ -27,13 +27,18 @@ import java.util.Set;
 public class InMemoryTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
-    public String name() {
-        return "In-Memory Transfer Process Store";
+    public Set<String> provides() {
+        return Set.of(TransferProcessStore.FEATURE);
     }
 
     @Override
-    public Set<String> provides() {
-        return Set.of("dataspaceconnector:transferprocessstore");
+    public LoadPhase phase() {
+        return LoadPhase.PRIMORDIAL;
+    }
+
+    @Override
+    public String name() {
+        return "In-Memory Transfer Process Store";
     }
 
     @Override

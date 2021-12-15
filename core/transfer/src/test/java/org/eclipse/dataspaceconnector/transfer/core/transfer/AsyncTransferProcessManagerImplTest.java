@@ -35,10 +35,10 @@ import static org.easymock.EasyMock.createNiceMock;
 import static org.easymock.EasyMock.niceMock;
 
 
-class TransferProcessManagerImplTest {
+class AsyncTransferProcessManagerImplTest {
 
 
-    private TransferProcessManagerImpl manager;
+    private AsyncTransferProcessManager manager;
     private TransferProcessStore store;
 
 
@@ -57,7 +57,7 @@ class TransferProcessManagerImplTest {
 
         EasyMock.replay(store);
 
-        manager = TransferProcessManagerImpl.Builder.newInstance()
+        manager = AsyncTransferProcessManager.Builder.newInstance()
                 .dispatcherRegistry(createNiceMock(RemoteMessageDispatcherRegistry.class))
                 .provisionManager(createNiceMock(ProvisionManager.class))
                 .dataFlowManager(createNiceMock(DataFlowManager.class))

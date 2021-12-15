@@ -57,14 +57,11 @@ public class ArtifactRequestControllerTest {
     public static final String DESTINATION_KEY = "dataspaceconnector-data-destination";
     public static final String PROPERTIES_KEY = "dataspaceconnector-properties";
     static Faker faker = new Faker();
-
-    private ArtifactRequestController controller;
-    private TransferProcessManager manager;
-
     private final String consumerConnectorAddress = faker.internet().url();
     private final String artifactMessageId = faker.internet().uuid();
     private final String assetId = faker.internet().url();
-
+    private ArtifactRequestController controller;
+    private TransferProcessManager manager;
 
     @BeforeEach
     public void setUp() {
