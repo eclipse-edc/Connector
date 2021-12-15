@@ -20,6 +20,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -73,6 +74,7 @@ class CosmosFederatedCacheNodeDirectoryTest {
                     assertThat(doc.getPartitionKey()).isEqualTo(PARTITION_KEY);
                     assertNodesAreEqual(doc.getWrappedInstance(), node);
                 });
+        verify(api).saveItem(any(FederatedCacheNodeDocument.class));
     }
 
     @Test
@@ -92,5 +94,6 @@ class CosmosFederatedCacheNodeDirectoryTest {
 
         assertThat(result).hasSize(nbNodes);
         nodes.forEach(expected -> assertThat(result).anySatisfy(node -> assertNodesAreEqual(expected, node)));
+        verify(api).queryAllItems(anyString());
     }
 }

@@ -26,9 +26,12 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DutyToIdsDutyTransformerTest {
@@ -41,17 +44,13 @@ class DutyToIdsDutyTransformerTest {
     private static final String ASSIGNEE = "https://assignee.com";
     private static final URI ASSIGNEE_URI = URI.create(ASSIGNEE);
 
-    // subject
     private DutyToIdsDutyTransformer transformer;
 
-    // mocks
-    private Duty duty;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new DutyToIdsDutyTransformer();
-        duty = mock(Duty.class);
         context = mock(TransformerContext.class);
     }
 
@@ -65,7 +64,7 @@ class DutyToIdsDutyTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(duty, null);
+            transformer.transform(Duty.Builder.newInstance().build(), null);
         });
     }
 
@@ -78,18 +77,13 @@ class DutyToIdsDutyTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // prepare
         Action edcAction = mock(Action.class);
         de.fraunhofer.iais.eis.Action idsAction = de.fraunhofer.iais.eis.Action.READ;
         Constraint edcConstraint = mock(Constraint.class);
         de.fraunhofer.iais.eis.Constraint idsConstraint = mock(de.fraunhofer.iais.eis.Constraint.class);
-
-        when(duty.getTarget()).thenReturn(TARGET);
-        when(duty.getAssigner()).thenReturn(ASSIGNER);
-        when(duty.getAssignee()).thenReturn(ASSIGNEE);
-
-        when(duty.getConstraints()).thenReturn(Collections.singletonList(edcConstraint));
-        when(duty.getAction()).thenReturn(edcAction);
+        var duty = Duty.Builder.newInstance().target(TARGET).assigner(ASSIGNER).assignee(ASSIGNEE)
+                .constraint(edcConstraint).action(edcAction)
+                .build();
         when(context.transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class))).thenReturn(idsAction);
         when(context.transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class))).thenReturn(idsConstraint);
         when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(PERMISSION_ID);
@@ -107,6 +101,9 @@ class DutyToIdsDutyTransformerTest {
         Assertions.assertEquals(idsAction, result.getAction().get(0));
         Assertions.assertEquals(1, result.getConstraint().size());
         Assertions.assertEquals(idsConstraint, result.getConstraint().get(0));
+        verify(context).transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class));
+        verify(context).transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class));
+        verify(context).transform(isA(IdsId.class), eq(URI.class));
     }
 
 }

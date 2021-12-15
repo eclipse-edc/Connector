@@ -31,6 +31,7 @@ import java.net.URI;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IdsConstraintToConstraintTransformerTest {
@@ -76,7 +77,6 @@ public class IdsConstraintToConstraintTransformerTest {
 
     @Test
     void testTransform() {
-        // prepare
         var expectedLeftExpression = new LiteralExpression("left");
         var expectedRightExpression = new LiteralExpression("right");
 
@@ -95,6 +95,9 @@ public class IdsConstraintToConstraintTransformerTest {
         Assertions.assertNotNull(result.getOperator());
         Assertions.assertNotNull(result.getRightExpression());
         Assertions.assertEquals(result.getRightExpression(), expectedRightExpression);
+        verify(context).transform(any(LeftOperand.class), eq(Expression.class));
+        verify(context).transform(any(BinaryOperator.class), eq(Operator.class));
+        verify(context).transform(any(RdfResource.class), eq(Expression.class));
     }
 
 }

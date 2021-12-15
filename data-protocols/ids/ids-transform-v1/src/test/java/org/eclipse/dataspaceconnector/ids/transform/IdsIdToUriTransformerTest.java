@@ -31,16 +31,13 @@ class IdsIdToUriTransformerTest {
 
     private IdsIdToUriTransformer transformer;
 
-    private IdsId idsId;
     private TransformerContext context;
 
     @BeforeEach
     public void setup() {
         transformer = new IdsIdToUriTransformer();
-        idsId = mock(IdsId.class);
         context = mock(TransformerContext.class);
     }
-
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
@@ -52,7 +49,7 @@ class IdsIdToUriTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(idsId, null);
+            transformer.transform(IdsId.Builder.newInstance().build(), null);
         });
     }
 
@@ -66,8 +63,7 @@ class IdsIdToUriTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        when(idsId.getType()).thenReturn(IDS_ID_TYPE);
-        when(idsId.getValue()).thenReturn(IDS_ID_VALUE);
+        var idsId = IdsId.Builder.newInstance().type(IDS_ID_TYPE).value(IDS_ID_VALUE).build();
 
         var result = transformer.transform(idsId, context);
 

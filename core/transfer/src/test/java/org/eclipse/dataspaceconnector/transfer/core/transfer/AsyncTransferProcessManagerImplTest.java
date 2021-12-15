@@ -46,12 +46,6 @@ class AsyncTransferProcessManagerImplTest {
     void setup() {
         store = mock(TransferProcessStore.class);
 
-        when(store.processIdForTransferId("1"))
-                .thenReturn(null) // first invoke returns no as there is no store process
-                .thenReturn("2");
-
-        when(store.nextForState(anyInt(), anyInt())).thenReturn(emptyList());
-
         manager = AsyncTransferProcessManager.Builder.newInstance()
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .provisionManager(mock(ProvisionManager.class))
@@ -68,6 +62,9 @@ class AsyncTransferProcessManagerImplTest {
      */
     @Test
     void verifyIdempotency() {
+        when(store.processIdForTransferId("1"))
+                .thenReturn(null) // first invoke returns no as there is no store process
+                .thenReturn("2");
 
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
         manager.initiateProviderRequest(dataRequest);

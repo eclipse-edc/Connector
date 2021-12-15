@@ -12,6 +12,7 @@ import java.util.List;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class QueryEngineImplTest {
@@ -32,6 +33,7 @@ class QueryEngineImplTest {
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
         assertThat(catalog.getErrors()).isEmpty();
         assertThat(catalog.getAssets()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
+        verify(registry).executeQuery(any());
     }
 
     @Test
@@ -49,6 +51,7 @@ class QueryEngineImplTest {
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
         assertThat(catalog.getErrors()).hasSize(1).containsExactly("some error");
         assertThat(catalog.getAssets()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
+        verify(registry).executeQuery(any());
     }
 
     @Test
@@ -66,5 +69,6 @@ class QueryEngineImplTest {
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.NO_ADAPTER_FOUND);
         assertThat(catalog.getErrors()).hasSize(1);
         assertThat(catalog.getAssets()).isEmpty();
+        verify(registry).executeQuery(any());
     }
 }

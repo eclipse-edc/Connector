@@ -41,6 +41,7 @@ import static java.util.Map.entry;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DataRequestMessageSenderTest {
@@ -73,7 +74,6 @@ class DataRequestMessageSenderTest {
         DataRequest dataRequest = createDataRequest();
         DataAddress dataDestination = dataRequest.getDataDestination();
 
-        // record
         var requestCapture = ArgumentCaptor.forClass(Request.class);
         when(httpClient.newCall(requestCapture.capture())).thenReturn(mock(Call.class));
 
@@ -87,6 +87,7 @@ class DataRequestMessageSenderTest {
         var properties = artifactMessageRequest.getProperties();
         assertThat((Map<String, Object>) properties.get(DESTINATION_KEY)).contains(entry("keyName", dataDestination.getKeyName()), entry("type", dataDestination.getType()));
         assertThat(properties.get(PROPERTIES_KEY)).isEqualTo(dataRequest.getProperties());
+        verify(httpClient).newCall(requestCapture.capture());
     }
 
     private DataRequest createDataRequest() {

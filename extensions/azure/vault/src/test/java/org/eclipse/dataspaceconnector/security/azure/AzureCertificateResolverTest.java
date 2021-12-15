@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AzureCertificateResolverTest {
@@ -47,6 +48,7 @@ class AzureCertificateResolverTest {
         when(vault.resolveSecret("test")).thenReturn(TEST);
 
         assertNotNull(certificateResolver.resolveCertificate("test"));
+        verify(vault).resolveSecret("test");
     }
 
 }

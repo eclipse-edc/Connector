@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class IdsLogicalConstraintToConstraintTransformerTest {
@@ -55,6 +56,7 @@ class IdsLogicalConstraintToConstraintTransformerTest {
 
         assertThat(transformed).isInstanceOf(AndConstraint.class);
         assertThat(((MultiplicityConstraint) transformed).getConstraints()).isNotEmpty();
+        verify(context).transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class));
     }
 
     @Test
@@ -74,6 +76,7 @@ class IdsLogicalConstraintToConstraintTransformerTest {
 
         assertThat(transformed).isInstanceOf(OrConstraint.class);
         assertThat(((MultiplicityConstraint) transformed).getConstraints()).isNotEmpty();
+        verify(context).transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class));
     }
 
     @Test
@@ -93,6 +96,7 @@ class IdsLogicalConstraintToConstraintTransformerTest {
 
         assertThat(transformed).isInstanceOf(XoneConstraint.class);
         assertThat(((MultiplicityConstraint) transformed).getConstraints()).isNotEmpty();
+        verify(context).transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class));
     }
 
     @BeforeEach

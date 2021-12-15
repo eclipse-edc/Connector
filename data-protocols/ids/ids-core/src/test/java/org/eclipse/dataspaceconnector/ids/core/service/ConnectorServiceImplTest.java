@@ -29,6 +29,7 @@ import java.net.URI;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ConnectorServiceImplTest {
@@ -67,7 +68,6 @@ class ConnectorServiceImplTest {
         when(connectorServiceSettings.getEndpoint()).thenReturn(CONNECTOR_ENDPOINT);
         when(connectorServiceSettings.getMaintainer()).thenReturn(CONNECTOR_MAINTAINER);
         when(connectorServiceSettings.getCurator()).thenReturn(CONNECTOR_CURATOR);
-
         when(connectorVersionProvider.getVersion()).thenReturn(CONNECTOR_VERSION);
 
         var result = connectorService.getConnector(Result.success(ClaimToken.Builder.newInstance().build()));
@@ -81,6 +81,15 @@ class ConnectorServiceImplTest {
         assertThat(result.getMaintainer()).isEqualTo(CONNECTOR_MAINTAINER);
         assertThat(result.getCurator()).isEqualTo(CONNECTOR_CURATOR);
         assertThat(result.getConnectorVersion()).isEqualTo(CONNECTOR_VERSION);
+        verify(dataCatalogService).getDataCatalog(any());
+        verify(connectorServiceSettings).getId();
+        verify(connectorServiceSettings).getTitle();
+        verify(connectorServiceSettings).getDescription();
+        verify(connectorServiceSettings).getSecurityProfile();
+        verify(connectorServiceSettings).getEndpoint();
+        verify(connectorServiceSettings).getMaintainer();
+        verify(connectorServiceSettings).getCurator();
+        verify(connectorVersionProvider).getVersion();
     }
 
 }

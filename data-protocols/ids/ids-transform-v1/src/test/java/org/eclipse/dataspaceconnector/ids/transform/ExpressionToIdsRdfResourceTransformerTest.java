@@ -27,13 +27,11 @@ class ExpressionToIdsRdfResourceTransformerTest {
 
     private ExpressionToIdsRdfResourceTransformer transformer;
 
-    private LiteralExpression expression;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ExpressionToIdsRdfResourceTransformer();
-        expression = mock(LiteralExpression.class);
         context = mock(TransformerContext.class);
     }
 
@@ -47,7 +45,7 @@ class ExpressionToIdsRdfResourceTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(expression, null);
+            transformer.transform(new LiteralExpression("any"), null);
         });
     }
 
@@ -60,14 +58,12 @@ class ExpressionToIdsRdfResourceTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        var value = "COUNT";
-        when(expression.asString()).thenReturn(value);
+        var expression = new LiteralExpression("COUNT");
 
         var result = transformer.transform(expression, context);
 
-        // verify
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(value, result.getValue());
+        Assertions.assertEquals(expression.asString(), result.getValue());
     }
 
 }

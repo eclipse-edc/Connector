@@ -42,13 +42,11 @@ public class ConstraintToIdsConstraintTransformerTest {
 
     private ConstraintToIdsConstraintTransformer transformer;
 
-    private AtomicConstraint constraint;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ConstraintToIdsConstraintTransformer();
-        constraint = mock(AtomicConstraint.class);
         context = mock(TransformerContext.class);
     }
 
@@ -62,7 +60,7 @@ public class ConstraintToIdsConstraintTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(constraint, null);
+            transformer.transform(AtomicConstraint.Builder.newInstance().build(), null);
         });
     }
 
@@ -93,9 +91,11 @@ public class ConstraintToIdsConstraintTransformerTest {
         Expression rightExpression = mock(Expression.class);
         Operator operator = Operator.EQ;
 
-        when(constraint.getOperator()).thenReturn(operator);
-        when(constraint.getLeftExpression()).thenReturn(leftExpression);
-        when(constraint.getRightExpression()).thenReturn(rightExpression);
+        var constraint = AtomicConstraint.Builder.newInstance()
+                .operator(operator)
+                .leftExpression(leftExpression)
+                .rightExpression(rightExpression)
+                .build();
 
         var idsId = IdsId.Builder.newInstance().value(constraint.hashCode()).type(IdsType.CONSTRAINT).build();
         when(context.transform(eq(idsId), eq(URI.class))).thenReturn(CONSTRAINT_ID);
@@ -110,5 +110,9 @@ public class ConstraintToIdsConstraintTransformerTest {
         Assertions.assertEquals(leftOperand, result.getLeftOperand());
         Assertions.assertEquals(rightOperand, result.getRightOperand());
         Assertions.assertEquals(binaryOperator, result.getOperator());
+        verify(context).transform(eq(idsId), eq(URI.class));
+        verify(context).transform(eq(leftExpression), eq(LeftOperand.class));
+        verify(context).transform(eq(rightExpression), eq(RdfResource.class));
+        verify(context).transform(eq(operator), eq(BinaryOperator.class));
     }
 }

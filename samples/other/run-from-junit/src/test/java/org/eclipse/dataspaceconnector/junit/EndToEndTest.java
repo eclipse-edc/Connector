@@ -47,6 +47,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
@@ -77,6 +78,8 @@ public class EndToEndTest {
         processManager.initiateConsumerRequest(request);
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
+        verify(dispatcher).protocol();
+        verify(dispatcher).send(notNull(), isA(RemoteMessage.class), isA(MessageContext.class));
     }
 
     @Test
@@ -93,7 +96,6 @@ public class EndToEndTest {
 
         dataFlowManager.register(controllerMock);
 
-
         var artifactId = "test123";
         var connectorId = "https://test";
 
@@ -104,6 +106,8 @@ public class EndToEndTest {
         processManager.initiateProviderRequest(request);
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
+        verify(controllerMock).canHandle(isA(DataRequest.class));
+        verify(controllerMock).initiateFlow(isA(DataRequest.class));
     }
 
     @BeforeEach

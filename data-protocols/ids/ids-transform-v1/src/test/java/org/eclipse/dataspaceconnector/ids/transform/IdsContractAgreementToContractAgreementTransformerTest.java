@@ -34,6 +34,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IdsContractAgreementToContractAgreementTransformerTest {
@@ -73,7 +74,6 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
         Asset asset = Asset.Builder.newInstance().build();
         input = ContractTransformerInput.Builder.newInstance().contract(idsContractAgreement).asset(asset).build();
         context = mock(TransformerContext.class);
-
     }
 
     @Test
@@ -118,5 +118,8 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
         Assertions.assertEquals(edcPermission, policy.getPermissions().get(0));
         Assertions.assertEquals(1, policy.getProhibitions().size());
         Assertions.assertEquals(edcProhibition, policy.getProhibitions().get(0));
+        verify(context).transform(eq(idsPermission), eq(Permission.class));
+        verify(context).transform(eq(idsProhibition), eq(Prohibition.class));
+        verify(context).transform(eq(idsDuty), eq(Duty.class));
     }
 }

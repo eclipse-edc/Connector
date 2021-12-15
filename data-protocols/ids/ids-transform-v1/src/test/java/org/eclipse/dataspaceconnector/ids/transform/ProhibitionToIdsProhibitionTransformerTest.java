@@ -30,6 +30,7 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ProhibitionToIdsProhibitionTransformerTest {
@@ -40,13 +41,11 @@ public class ProhibitionToIdsProhibitionTransformerTest {
 
     private ProhibitionToIdsProhibitionTransformer transformer;
 
-    private Prohibition prohibition;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ProhibitionToIdsProhibitionTransformer();
-        prohibition = mock(Prohibition.class);
         context = mock(TransformerContext.class);
     }
 
@@ -60,7 +59,7 @@ public class ProhibitionToIdsProhibitionTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(prohibition, null);
+            transformer.transform(Prohibition.Builder.newInstance().build(), null);
         });
     }
 
@@ -77,13 +76,10 @@ public class ProhibitionToIdsProhibitionTransformerTest {
         de.fraunhofer.iais.eis.Action idsAction = de.fraunhofer.iais.eis.Action.READ;
         Constraint edcConstraint = mock(Constraint.class);
         de.fraunhofer.iais.eis.Constraint idsConstraint = mock(de.fraunhofer.iais.eis.Constraint.class);
-
-        when(prohibition.getTarget()).thenReturn(TARGET);
-        when(prohibition.getAssigner()).thenReturn(ASSIGNER);
-        when(prohibition.getAssignee()).thenReturn(ASSIGNEE);
-
-        when(prohibition.getConstraints()).thenReturn(Collections.singletonList(edcConstraint));
-        when(prohibition.getAction()).thenReturn(edcAction);
+        var prohibition = Prohibition.Builder.newInstance()
+                .target(TARGET).assignee(ASSIGNEE).assigner(ASSIGNER)
+                .constraint(edcConstraint).action(edcAction)
+                .build();
         when(context.transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class))).thenReturn(idsAction);
         when(context.transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class))).thenReturn(idsConstraint);
         when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("https://example.com/"));
@@ -97,5 +93,8 @@ public class ProhibitionToIdsProhibitionTransformerTest {
         Assertions.assertEquals(idsAction, result.getAction().get(0));
         Assertions.assertEquals(1, result.getConstraint().size());
         Assertions.assertEquals(idsConstraint, result.getConstraint().get(0));
+        verify(context).transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class));
+        verify(context).transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class));
+        verify(context).transform(isA(IdsId.class), eq(URI.class));
     }
 }

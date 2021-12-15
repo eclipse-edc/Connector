@@ -81,6 +81,7 @@ class IdentityHubImplTest {
         var response = new GenericJweReader().mapper(objectMapper).jwe(responseJwe).privateKey(privateKey).readType(CommitQueryResponse.class);
 
         assertNotNull(response.getCommits().get(0));
+        verify(store).query(isA(CommitQuery.class));
     }
 
     @Test
@@ -103,6 +104,7 @@ class IdentityHubImplTest {
         var response = new GenericJweReader().mapper(objectMapper).jwe(responseJwe).privateKey(privateKey).readType(ObjectQueryResponse.class);
 
         assertThat(response.getObjects()).allMatch(o -> o.getId().equals("123"));
+        verify(store).query(isA(ObjectQuery.class));
     }
 
     @BeforeEach

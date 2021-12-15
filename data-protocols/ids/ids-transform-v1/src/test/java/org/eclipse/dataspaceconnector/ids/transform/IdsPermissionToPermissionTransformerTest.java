@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import de.fraunhofer.iais.eis.ConstraintBuilder;
 import de.fraunhofer.iais.eis.DutyBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.junit.jupiter.api.Assertions;
@@ -29,6 +30,7 @@ import java.util.Collections;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IdsPermissionToPermissionTransformerTest {
@@ -87,8 +89,8 @@ public class IdsPermissionToPermissionTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        Constraint edcConstraint = mock(Constraint.class);
-        Duty edcDuty = mock(Duty.class);
+        var edcConstraint = AtomicConstraint.Builder.newInstance().build();
+        var edcDuty = Duty.Builder.newInstance().build();
 
         when(context.transform(eq(idsDuty), eq(Duty.class))).thenReturn(edcDuty);
         when(context.transform(eq(idsConstraint), eq(Constraint.class))).thenReturn(edcConstraint);
@@ -108,5 +110,7 @@ public class IdsPermissionToPermissionTransformerTest {
         Assertions.assertEquals(edcConstraint, result.getConstraints().get(0));
         Assertions.assertEquals(1, result.getDuties().size());
         Assertions.assertEquals(edcDuty, result.getDuties().get(0));
+        verify(context).transform(eq(idsDuty), eq(Duty.class));
+        verify(context).transform(eq(idsConstraint), eq(Constraint.class));
     }
 }

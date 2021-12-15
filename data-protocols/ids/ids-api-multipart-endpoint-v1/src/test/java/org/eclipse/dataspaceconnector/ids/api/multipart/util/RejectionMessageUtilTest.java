@@ -18,13 +18,16 @@ import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RejectionReason;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class RejectionMessageUtilTest {
@@ -43,6 +46,13 @@ class RejectionMessageUtilTest {
         when(correlationMessage.getId()).thenReturn(correlationMessageId);
         when(correlationMessage.getSenderAgent()).thenReturn(senderAgent);
         when(correlationMessage.getIssuerConnector()).thenReturn(issuerConnector);
+    }
+
+    @AfterEach
+    void tearDown() {
+        verify(correlationMessage, atLeastOnce()).getId();
+        verify(correlationMessage, atLeastOnce()).getSenderAgent();
+        verify(correlationMessage, atLeastOnce()).getIssuerConnector();
     }
 
     @Test

@@ -25,6 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class SyncTransferProcessManagerTest {
@@ -59,6 +60,8 @@ class SyncTransferProcessManagerTest {
         assertSuccess(result);
         assertThat(tpCapture.getValue().getState()).isEqualTo(TransferProcessStates.COMPLETED.code());
         assertThat(tpCapture.getValue().getErrorDetail()).isNull();
+        verify(transferProcessStore).find(anyString());
+        verify(messageDispatcherRegistry).send(any(), any(), any());
     }
 
     @Test
@@ -71,6 +74,7 @@ class SyncTransferProcessManagerTest {
 
         assertThat(result.getFailure()).isNotNull().extracting(ResponseFailure::status)
                 .isEqualTo(ResponseStatus.FATAL_ERROR);
+        verify(transferProcessStore).create(tpCapture.capture());
     }
 
     @Test
@@ -94,6 +98,9 @@ class SyncTransferProcessManagerTest {
                     assertThat(failure.status()).isEqualTo(ResponseStatus.FATAL_ERROR);
                     assertThat(failure.getMessages()).containsExactly("test error");
                 });
+        verify(transferProcessStore).create(tpCapture.capture());
+        verify(transferProcessStore).find(anyString());
+        verify(messageDispatcherRegistry).send(any(), any(), any());
     }
 
     @Test
@@ -109,6 +116,8 @@ class SyncTransferProcessManagerTest {
                 .isNotNull()
                 .extracting(ResponseFailure::status)
                 .isEqualTo(ResponseStatus.FATAL_ERROR);
+        verify(transferProcessStore).create(tpCapture.capture());
+        verify(dataProxyManager).getProxy(request);
     }
 
     @Test
@@ -122,6 +131,8 @@ class SyncTransferProcessManagerTest {
 
         assertSuccess(result);
         assertThat(result.getData()).isInstanceOf(ProxyEntry.class).extracting("type").isEqualTo(TEST_TYPE);
+        verify(transferProcessStore).create(tpCapture.capture());
+        verify(dataProxyManager).getProxy(request);
     }
 
     private DataRequest createRequest() {

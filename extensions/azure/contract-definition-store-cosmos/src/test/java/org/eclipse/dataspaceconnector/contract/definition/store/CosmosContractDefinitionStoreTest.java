@@ -43,6 +43,7 @@ class CosmosContractDefinitionStoreTest {
         var all = store.findAll();
 
         assertThat(all).hasSize(2).containsExactlyInAnyOrder(doc1.getWrappedInstance(), doc2.getWrappedInstance());
+        verify(cosmosDbApiMock).queryAllItems();
     }
 
     @Test
@@ -51,6 +52,7 @@ class CosmosContractDefinitionStoreTest {
 
         var all = store.findAll();
         assertThat(all).isEmpty();
+        verify(cosmosDbApiMock).queryAllItems();
     }
 
     @Test
@@ -63,6 +65,8 @@ class CosmosContractDefinitionStoreTest {
         store.save(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
+        verify(cosmosDbApiMock).queryAllItems();
+        verify(cosmosDbApiMock).saveItem(captor.capture());
     }
 
     @Test
@@ -78,6 +82,8 @@ class CosmosContractDefinitionStoreTest {
         var all = store.findAll();
 
         assertThat(all).isNotEmpty().containsExactlyInAnyOrder((ContractDefinition) captor.getValue().getWrappedInstance());
+        verify(cosmosDbApiMock).queryAllItems();
+        verify(cosmosDbApiMock).saveItem(captor.capture());
     }
 
     @Test
@@ -90,6 +96,8 @@ class CosmosContractDefinitionStoreTest {
         store.update(definition);
 
         assertThat(captor.getValue().getWrappedInstance()).isEqualTo(definition);
+        verify(cosmosDbApiMock).queryAllItems();
+        verify(cosmosDbApiMock).saveItem(captor.capture());
     }
 
     @Test

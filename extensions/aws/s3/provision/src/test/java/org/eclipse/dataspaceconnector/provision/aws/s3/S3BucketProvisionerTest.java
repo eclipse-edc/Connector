@@ -49,6 +49,7 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class S3BucketProvisionerTest {
@@ -112,6 +113,12 @@ class S3BucketProvisionerTest {
         s3Future.complete(CreateBucketResponse.builder().build());
 
         assertTrue(latch.await(10, TimeUnit.SECONDS));
+
+        verify(iamMock).getUser();
+        verify(iamMock).createRole(isA(CreateRoleRequest.class));
+        verify(iamMock).putRolePolicy(isA(PutRolePolicyRequest.class));
+        verify(stsMock).assumeRole(isA(AssumeRoleRequest.class));
+        verify(s3Mock).createBucket(isA(CreateBucketRequest.class));
     }
 
     private ClientProvider mockProvider(IamAsyncClient iamMock, StsAsyncClient stsMock, S3AsyncClient s3Mock) {

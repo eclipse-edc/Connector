@@ -34,6 +34,7 @@ import java.util.Map;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AssetToIdsRepresentationTransformerTest {
@@ -85,6 +86,8 @@ class AssetToIdsRepresentationTransformerTest {
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(REPRESENTATION_ID_URI, result.getId());
+        verify(context).transform(any(Asset.class), eq(Artifact.class));
+        verify(context).transform(eq(id), eq(URI.class));
     }
 
     @Test
@@ -102,5 +105,7 @@ class AssetToIdsRepresentationTransformerTest {
         Assertions.assertNotNull(result);
         Assertions.assertEquals(REPRESENTATION_ID_URI, result.getId());
         Assertions.assertEquals(ASSET_FILE_EXTENSION, result.getMediaType().getFilenameExtension());
+        verify(context).transform(any(Asset.class), eq(Artifact.class));
+        verify(context).transform(eq(id), eq(URI.class));
     }
 }

@@ -22,6 +22,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -40,5 +41,6 @@ class ParticipantAgentServiceImplTest {
         var participantAgent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build());
 
         assertThat(participantAgent.getAttributes().containsKey("foo")).isTrue();
+        verify(extension).attributesFor(isA(ClaimToken.class));
     }
 }

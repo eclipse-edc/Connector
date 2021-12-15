@@ -26,6 +26,7 @@ import java.util.concurrent.TimeUnit;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractNegotiationIntegrationTest extends AbstractContractNegotiationIntegrationTest {
@@ -69,6 +70,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
+        verify(validationService).validate(token, offer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -115,6 +118,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
+        verify(validationService).validate(token, offer);
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -163,6 +167,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
+        verify(validationService).validate(token, offer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -220,6 +226,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
+        verify(validationService).validate(token, initialOffer);
+        verify(validationService).validate(token, counterOffer, initialOffer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+
         // Stop provider and consumer negotiation managers
         providerManager.stop();
         consumerManager.stop();
@@ -274,6 +284,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
+        verify(validationService).validate(token, initialOffer);
+        verify(validationService).validate(token, counterOffer, initialOffer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -346,6 +359,11 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
+        verify(validationService).validate(token, initialOffer);
+        verify(validationService).validate(token, counterOffer, initialOffer);
+        verify(validationService).validate(token, consumerCounterOffer, counterOffer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
+
         // Stop provider and consumer negotiation managers
         providerManager.stop();
         consumerManager.stop();
@@ -412,6 +430,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
+
+        verify(validationService).validate(token, initialOffer);
+        verify(validationService).validate(token, counterOffer, initialOffer);
+        verify(validationService).validate(token, consumerCounterOffer, counterOffer);
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();

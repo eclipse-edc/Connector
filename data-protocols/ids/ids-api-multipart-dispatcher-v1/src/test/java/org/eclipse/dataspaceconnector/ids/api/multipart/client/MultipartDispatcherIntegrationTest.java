@@ -64,6 +64,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
@@ -144,6 +146,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         //TODO revise when handler for ArtifactRequestMessage exists
         assertThat(result.getHeader()).isInstanceOf(ResponseMessage.class);
         assertThat(result.getPayload()).isNull();
+        verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test
@@ -168,6 +171,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
         assertThat(result.getPayload()).isNull();
+        verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
@@ -193,6 +197,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         // TODO Should be RequestInProcess
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(result.getPayload()).isNull();
+        verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
@@ -223,6 +228,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessageImpl.class);
         assertThat(result.getPayload()).isNull();
+        verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test

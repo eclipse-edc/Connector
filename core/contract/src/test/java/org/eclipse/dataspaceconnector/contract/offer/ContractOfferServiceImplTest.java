@@ -36,6 +36,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractOfferServiceImplTest {
@@ -84,5 +85,8 @@ class ContractOfferServiceImplTest {
         ContractOfferQuery query = ContractOfferQuery.builder().claimToken(ClaimToken.Builder.newInstance().build()).build();
 
         assertThat(contractOfferService.queryContractOffers(query)).hasSize(2);
+        verify(agentService).createFor(isA(ClaimToken.class));
+        verify(contractDefinitionService).definitionsFor(isA(ParticipantAgent.class));
+        verify(assetIndex).queryAssets(isA(AssetSelectorExpression.class));
     }
 }

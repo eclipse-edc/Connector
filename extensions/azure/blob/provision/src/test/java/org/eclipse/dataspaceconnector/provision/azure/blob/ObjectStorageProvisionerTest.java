@@ -32,6 +32,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.booleanThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
@@ -79,9 +80,9 @@ class ObjectStorageProvisionerTest {
     void provision_success() {
         var resourceDef = createResourceDef();
 
-        when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
         String accountName = resourceDef.getAccountName();
         String containerName = resourceDef.getContainerName();
+        when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
         var resourceArgument = ArgumentCaptor.forClass(ProvisionedDataDestinationResource.class);
@@ -94,7 +95,9 @@ class ObjectStorageProvisionerTest {
         assertThat(resourceArgument.getValue().getErrorMessage()).isNull();
         assertThat(resourceArgument.getValue().getTransferProcessId()).isEqualTo(resourceDef.getTransferProcessId());
         assertThat(tokenArgument.getValue().getSas()).isEqualTo("?some-sas");
+        verify(blobStoreApiMock).exists(anyString(), anyString());
         verify(blobStoreApiMock).createContainer(accountName, containerName);
+        verify(provisionContextMock).callback(resourceArgument.capture(), tokenArgument.capture());
     }
 
     @Test
@@ -116,6 +119,9 @@ class ObjectStorageProvisionerTest {
         assertThat(resourceArgument.getValue().getErrorMessage()).isNull();
         assertThat(resourceArgument.getValue().getTransferProcessId()).isEqualTo(resourceDef.getTransferProcessId());
         assertThat(tokenArgument.getValue().getSas()).isEqualTo("?some-sas");
+        verify(blobStoreApiMock).exists(anyString(), anyString());
+        verify(blobStoreApiMock).createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any());
+        verify(provisionContextMock).callback(resourceArgument.capture(), tokenArgument.capture());
     }
 
 
@@ -126,7 +132,7 @@ class ObjectStorageProvisionerTest {
                 .thenThrow(new IllegalArgumentException("No Object Storage credential found in vault!"));
 
         assertThatThrownBy(() -> provisioner.provision(createResourceDef())).isInstanceOf(IllegalArgumentException.class);
-        verify(blobStoreApiMock);
+        verify(blobStoreApiMock).exists(any(), any());
     }
 
     @Test
@@ -139,6 +145,7 @@ class ObjectStorageProvisionerTest {
         doThrow(new BlobStorageException("not authorized", null, null)).when(blobStoreApiMock).createContainer(accountName, containerName);
 
         assertThatThrownBy(() -> provisioner.provision(resourceDef)).isInstanceOf(BlobStorageException.class);
+        verify(blobStoreApiMock).exists(anyString(), anyString());
     }
 
     private ObjectStorageResourceDefinition createResourceDef() {

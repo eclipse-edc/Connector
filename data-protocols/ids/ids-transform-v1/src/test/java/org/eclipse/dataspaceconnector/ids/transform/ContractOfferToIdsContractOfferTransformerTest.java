@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,10 +32,8 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -46,19 +45,11 @@ public class ContractOfferToIdsContractOfferTransformerTest {
 
     private ContractOfferToIdsContractOfferTransformer transformer;
 
-    private Policy policy;
-    private ContractOffer contractOffer;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ContractOfferToIdsContractOfferTransformer();
-        policy = mock(Policy.class);
-        contractOffer = ContractOffer.Builder.newInstance()
-                .id(CONTRACT_OFFER_ID)
-                .policy(policy)
-                .provider(PROVIDER_URI)
-                .build();
         context = mock(TransformerContext.class);
     }
 
@@ -72,7 +63,7 @@ public class ContractOfferToIdsContractOfferTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(contractOffer, null);
+            transformer.transform(contractOffer(Policy.Builder.newInstance().build()), null);
         });
     }
 
@@ -92,9 +83,12 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         Duty edcObligation = mock(Duty.class);
         de.fraunhofer.iais.eis.Duty idsObligation = mock(de.fraunhofer.iais.eis.Duty.class);
 
-        when(policy.getPermissions()).thenReturn(Collections.singletonList(edcPermission));
-        when(policy.getProhibitions()).thenReturn(Collections.singletonList(edcProhibition));
-        when(policy.getObligations()).thenReturn(Collections.singletonList(edcObligation));
+        var policy = Policy.Builder.newInstance()
+                .permission(edcPermission)
+                .prohibition(edcProhibition)
+                .duty(edcObligation)
+                .build();
+        var contractOffer = contractOffer(policy);
 
         when(context.transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class))).thenReturn(idsPermission);
         when(context.transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class))).thenReturn(idsProhibition);
@@ -112,5 +106,19 @@ public class ContractOfferToIdsContractOfferTransformerTest {
         assertEquals(idsPermission, result.getPermission().get(0));
         assertEquals(1, result.getProhibition().size());
         assertEquals(idsProhibition, result.getProhibition().get(0));
+
+        verify(context).transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class));
+        verify(context).transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class));
+        verify(context).transform(any(Duty.class), eq(de.fraunhofer.iais.eis.Duty.class));
+        verify(context).transform(isA(IdsId.class), eq(URI.class));
+    }
+
+    @NotNull
+    private ContractOffer contractOffer(Policy policy) {
+        return ContractOffer.Builder.newInstance()
+                .id(CONTRACT_OFFER_ID)
+                .policy(policy)
+                .provider(PROVIDER_URI)
+                .build();
     }
 }

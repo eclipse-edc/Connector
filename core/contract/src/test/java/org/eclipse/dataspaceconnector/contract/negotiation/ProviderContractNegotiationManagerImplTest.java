@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProviderContractNegotiationManagerImplTest {
@@ -128,6 +129,7 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getCorrelationId()).isEqualTo(request.getCorrelationId());
         assertThat(negotiation.getContractOffers()).hasSize(1);
         assertThat(negotiation.getLastContractOffer()).isEqualTo(contractOffer);
+        verify(validationService).validate(token, contractOffer);
     }
 
     @Test
@@ -156,6 +158,7 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getCorrelationId()).isEqualTo(request.getCorrelationId());
         assertThat(negotiation.getContractOffers()).hasSize(1);
         assertThat(negotiation.getLastContractOffer()).isEqualTo(contractOffer);
+        verify(validationService).validate(token, contractOffer);
     }
 
     @Test
@@ -187,6 +190,7 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getContractOffers()).hasSize(2);
         assertThat(negotiation.getContractOffers().get(0)).isEqualTo(contractOffer);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(counterOffer);
+        verify(validationService).validate(token, contractOffer);
     }
 
     @Test
@@ -216,6 +220,7 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMING.code());
         assertThat(negotiation.getContractOffers()).hasSize(2);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
@@ -235,6 +240,7 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
         assertThat(negotiation.getContractOffers()).hasSize(2);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
@@ -257,6 +263,7 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getContractOffers()).hasSize(3);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
         assertThat(negotiation.getContractOffers().get(2)).isEqualTo(counterOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
@@ -265,6 +272,7 @@ class ProviderContractNegotiationManagerImplTest {
         var contractAgreement = (ContractAgreement) mock(ContractAgreement.class);
 
         var result = negotiationManager.consumerApproved(token, "not a valid id", contractAgreement, "hash");
+
         assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
     }
 
@@ -274,8 +282,6 @@ class ProviderContractNegotiationManagerImplTest {
 
         var token = ClaimToken.Builder.newInstance().build();
         var contractAgreement = (ContractAgreement) mock(ContractAgreement.class);
-
-        when(validationService.validate(token, contractAgreement)).thenReturn(true);
 
         var result = negotiationManager.consumerApproved(token, correlationId, contractAgreement, "hash");
 

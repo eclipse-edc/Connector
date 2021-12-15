@@ -58,6 +58,7 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class IdsTransformServiceExtensionTest {
@@ -124,6 +125,7 @@ class IdsTransformServiceExtensionTest {
         assertThat(knownConvertibles).containsKey(inputType);
         assertThat(knownConvertibles).extracting((m) -> m.get(inputType)).isNotNull();
         assertThat(knownConvertibles.get(inputType)).contains(outputType);
+        verify(serviceExtensionContext).getService(TransformerRegistry.class);
     }
 
     private static class TestTransformerRegistry implements TransformerRegistry {

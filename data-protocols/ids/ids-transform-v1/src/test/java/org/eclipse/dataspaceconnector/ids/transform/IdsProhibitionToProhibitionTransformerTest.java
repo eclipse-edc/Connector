@@ -26,8 +26,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IdsProhibitionToProhibitionTransformerTest {
@@ -85,17 +88,12 @@ public class IdsProhibitionToProhibitionTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
         Constraint edcConstraint = mock(Constraint.class);
-        Duty edcDuty = mock(Duty.class);
 
         when(context.transform(eq(idsConstraint), eq(Constraint.class))).thenReturn(edcConstraint);
 
-        // record
-        // invoke
         var result = transformer.transform(idsPermission, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getAction());
         Assertions.assertNotNull(result.getConstraints());
@@ -105,6 +103,7 @@ public class IdsProhibitionToProhibitionTransformerTest {
         Assertions.assertEquals(ASSIGNEE, result.getAssignee());
         Assertions.assertEquals(1, result.getConstraints().size());
         Assertions.assertEquals(edcConstraint, result.getConstraints().get(0));
+        verify(context, times(1)).transform(any(), any());
     }
 
 }

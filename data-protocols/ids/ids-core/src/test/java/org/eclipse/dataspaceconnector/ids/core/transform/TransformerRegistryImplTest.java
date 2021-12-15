@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -42,8 +43,8 @@ class TransformerRegistryImplTest {
         registry.register(fooBazTransformer);
 
         assertNotNull(registry.transform(new Foo(), Bar.class).getContent());
+        verify(fooBarTransformer).transform(isA(Foo.class), isA(TransformerContext.class));
     }
-
 
     @Test
     void verifyProblems() {
@@ -59,8 +60,8 @@ class TransformerRegistryImplTest {
         var result = registry.transform(new Foo(), Bar.class);
 
         assertTrue(result.failed());
+        verify(fooBarTransformer).transform(isA(Foo.class), isA(TransformerContext.class));
     }
-
 
     @BeforeEach
     void setUp() {

@@ -30,6 +30,8 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class PermissionToIdsPermissionTransformerTest {
@@ -44,13 +46,11 @@ public class PermissionToIdsPermissionTransformerTest {
 
     private PermissionToIdsPermissionTransformer transformer;
 
-    private Permission permission;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new PermissionToIdsPermissionTransformer();
-        permission = mock(Permission.class);
         context = mock(TransformerContext.class);
     }
 
@@ -64,7 +64,7 @@ public class PermissionToIdsPermissionTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(permission, null);
+            transformer.transform(Permission.Builder.newInstance().build(), null);
         });
     }
 
@@ -84,13 +84,13 @@ public class PermissionToIdsPermissionTransformerTest {
         Duty edcDuty = mock(Duty.class);
         de.fraunhofer.iais.eis.Duty idsDuty = mock(de.fraunhofer.iais.eis.Duty.class);
 
-        when(permission.getTarget()).thenReturn(TARGET);
-        when(permission.getAssigner()).thenReturn(ASSIGNER);
-        when(permission.getAssignee()).thenReturn(ASSIGNEE);
+        var permission = Permission.Builder.newInstance()
+                .target(TARGET).assigner(ASSIGNER).assignee(ASSIGNEE)
+                .constraint(edcConstraint)
+                .duty(edcDuty)
+                .action(edcAction)
+                .build();
 
-        when(permission.getConstraints()).thenReturn(Collections.singletonList(edcConstraint));
-        when(permission.getDuties()).thenReturn(Collections.singletonList(edcDuty));
-        when(permission.getAction()).thenReturn(edcAction);
         when(context.transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class))).thenReturn(idsAction);
         when(context.transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class))).thenReturn(idsConstraint);
         when(context.transform(eq(edcDuty), eq(de.fraunhofer.iais.eis.Duty.class))).thenReturn(idsDuty);
@@ -108,5 +108,9 @@ public class PermissionToIdsPermissionTransformerTest {
         Assertions.assertEquals(idsAction, result.getAction().get(0));
         Assertions.assertEquals(1, result.getConstraint().size());
         Assertions.assertEquals(idsConstraint, result.getConstraint().get(0));
+        verify(context).transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class));
+        verify(context).transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class));
+        verify(context).transform(eq(edcDuty), eq(de.fraunhofer.iais.eis.Duty.class));
+        verify(context, times(2)).transform(any(IdsId.class), eq(URI.class));
     }
 }

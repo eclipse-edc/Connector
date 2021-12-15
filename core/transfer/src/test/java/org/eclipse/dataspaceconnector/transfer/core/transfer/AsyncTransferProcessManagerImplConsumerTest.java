@@ -51,10 +51,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AsyncTransferProcessManagerImplConsumerTest {
@@ -110,6 +112,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be PROVISIONING").isEqualTo(TransferProcessStates.PROVISIONING.code());
+        verify(provisionManager, atLeastOnce()).provision(any(TransferProcess.class));
+        verify(processStoreMock, atLeastOnce()).nextForState(eq(INITIAL.code()), anyInt());
+        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -131,6 +136,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be REQUESTED").isEqualTo(TransferProcessStates.REQUESTED.code());
+        verify(dispatcherRegistry, atLeastOnce()).send(any(), any(), any());
+        verify(processStoreMock, atLeastOnce()).nextForState(eq(INITIAL.code()), anyInt());
+        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -156,6 +164,8 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
+        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
+        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -181,6 +191,8 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be STREAMING").isEqualTo(TransferProcessStates.STREAMING.code());
+        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
+        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -208,6 +220,8 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be REQUESTED_ACK").isEqualTo(REQUESTED_ACK.code());
+        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
+        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -234,6 +248,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
+        verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
+        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
+        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -261,6 +278,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
+        verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
+        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
+        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -283,12 +303,11 @@ class AsyncTransferProcessManagerImplConsumerTest {
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(processStoreMock).update(process);
 
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn((i, l) -> false);
-
         transferProcessManager.start(processStoreMock);
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
+        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
     }
 
     @Test
@@ -313,12 +332,11 @@ class AsyncTransferProcessManagerImplConsumerTest {
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(processStoreMock).update(process);
 
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn(null);
-
         transferProcessManager.start(processStoreMock);
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
+        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
     }
 
     @Test
@@ -344,6 +362,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
+        verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
+        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
+        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -377,6 +398,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
             assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore").isNotNull();
             assertThat(storedProcess.getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
         });
+        verify(provisionManager, atLeastOnce()).provision(any());
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {

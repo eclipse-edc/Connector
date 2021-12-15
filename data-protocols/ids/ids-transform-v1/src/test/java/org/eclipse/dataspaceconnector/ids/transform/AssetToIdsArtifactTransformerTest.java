@@ -31,6 +31,7 @@ import java.util.Map;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AssetToIdsArtifactTransformerTest {
@@ -81,6 +82,7 @@ class AssetToIdsArtifactTransformerTest {
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(ASSET_ID_URI, result.getId());
+        verify(context).transform(eq(id), eq(URI.class));
     }
 
     @Test
@@ -97,6 +99,7 @@ class AssetToIdsArtifactTransformerTest {
         Assertions.assertEquals(ASSET_ID_URI, result.getId());
         Assertions.assertEquals(ASSET_FILENAME, result.getFileName());
         Assertions.assertEquals(ASSET_BYTESIZE, result.getByteSize());
+        verify(context).transform(eq(id), eq(URI.class));
     }
 
 }

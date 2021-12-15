@@ -34,6 +34,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 
@@ -62,6 +63,9 @@ class InMemoryFccQueryAdapterRegistryTest {
         Collection<CacheQueryAdapter> adapters = registry.getAllAdapters();
 
         assertThat(collectAssetsFromAdapters(adapters)).isEqualTo(Arrays.asList(ASSET_ABC, ASSET_DEF, ASSET_XYZ));
+        verify(adapter1).executeQuery(any());
+        verify(adapter2).executeQuery(any());
+        verify(adapter3).executeQuery(any());
     }
 
     @BeforeEach

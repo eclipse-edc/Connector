@@ -29,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DescriptionHandlerTest {
@@ -109,6 +110,7 @@ class DescriptionHandlerTest {
 
         assertThat(result).isNotNull();
         assertThat(result).extracting(MultipartResponse::getHeader).isEqualTo(responseHeader);
+        verify(connectorDescriptionRequestHandler).handle(requestHeader, verificationResult, multipartRequest.getPayload());
     }
 
 }

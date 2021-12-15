@@ -31,6 +31,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -79,15 +80,17 @@ class ExtensionLoaderTest {
         verify(contextMock).registerService(eq(Vault.class), isA(Vault.class));
         verify(contextMock).registerService(eq(PrivateKeyResolver.class), any());
         verify(contextMock).registerService(eq(CertificateResolver.class), any());
+        verify(contextMock, atLeastOnce()).getMonitor();
+        verify(contextMock).loadSingletonExtension(VaultExtension.class, false);
     }
 
     @Test
     void loadVault() {
         DefaultServiceExtensionContext contextMock = mock(DefaultServiceExtensionContext.class);
-        when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
         Vault vaultMock = mock(Vault.class);
         PrivateKeyResolver resolverMock = mock(PrivateKeyResolver.class);
         CertificateResolver certResolverMock = mock(CertificateResolver.class);
+        when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
         when(contextMock.loadSingletonExtension(VaultExtension.class, false)).thenReturn(new VaultExtension() {
 
             @Override
@@ -109,5 +112,7 @@ class ExtensionLoaderTest {
         ExtensionLoader.loadVault(contextMock);
 
         verify(contextMock, times(1)).registerService(Vault.class, vaultMock);
+        verify(contextMock, atLeastOnce()).getMonitor();
+        verify(contextMock).loadSingletonExtension(VaultExtension.class, false);
     }
 }

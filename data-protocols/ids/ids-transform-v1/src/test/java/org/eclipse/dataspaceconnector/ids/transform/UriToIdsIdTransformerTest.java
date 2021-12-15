@@ -25,6 +25,7 @@ import java.net.URI;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class UriToIdsIdTransformerTest {
@@ -66,9 +67,6 @@ class UriToIdsIdTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        var idsId = IdsId.Builder.newInstance().type(IDS_ID_TYPE).value(IDS_ID_VALUE).build();
-        when(context.transform(eq(URI), eq(IdsId.class))).thenReturn(idsId);
-
         var result = transformer.transform(URI, context);
 
         Assertions.assertNotNull(result);

@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -30,11 +29,12 @@ import java.net.URI;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CatalogToIdsResourceCatalogTransformerTest {
@@ -43,13 +43,11 @@ class CatalogToIdsResourceCatalogTransformerTest {
 
     private CatalogToIdsResourceCatalogTransformer transformer;
 
-    private Catalog catalog;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new CatalogToIdsResourceCatalogTransformer();
-        catalog = mock(Catalog.class);
         context = mock(TransformerContext.class);
     }
 
@@ -63,7 +61,7 @@ class CatalogToIdsResourceCatalogTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         assertThrows(NullPointerException.class, () -> {
-            transformer.transform(catalog, null);
+            transformer.transform(Catalog.Builder.newInstance().build(), null);
         });
     }
 
@@ -81,9 +79,10 @@ class CatalogToIdsResourceCatalogTransformerTest {
         ContractOffer o1 = ContractOffer.Builder.newInstance().id("o1").asset(a1).policy(Policy.Builder.newInstance().build()).build();
         ContractOffer o2 = ContractOffer.Builder.newInstance().id("o2").asset(a2).policy(Policy.Builder.newInstance().build()).build();
         Resource resource = new ResourceBuilder().build();
-
-        when(catalog.getId()).thenReturn(CATALOG_ID);
-        when(catalog.getContractOffers()).thenReturn(List.of(o1, o2));
+        var catalog = Catalog.Builder.newInstance()
+                .id(CATALOG_ID)
+                .contractOffers(List.of(o1, o2))
+                .build();
         when(context.transform(isA(OfferedAsset.class), eq(Resource.class))).thenReturn(resource);
 
         var result = transformer.transform(catalog, context);
@@ -91,6 +90,7 @@ class CatalogToIdsResourceCatalogTransformerTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(EXPECTED_CATALOG_ID);
         assertThat(result.getOfferedResource()).hasSize(2);
+        verify(context, times(2)).transform(isA(OfferedAsset.class), eq(Resource.class));
     }
 
 }

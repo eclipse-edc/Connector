@@ -34,6 +34,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IdsContractRequestToContractOfferTransformerTest {
@@ -46,7 +47,6 @@ public class IdsContractRequestToContractOfferTransformerTest {
 
     private IdsContractRequestToContractOfferTransformer transformer;
 
-    private de.fraunhofer.iais.eis.ContractRequest idsContractRequest;
     private de.fraunhofer.iais.eis.Permission idsPermission;
     private de.fraunhofer.iais.eis.Prohibition idsProhibition;
     private de.fraunhofer.iais.eis.Duty idsDuty;
@@ -59,7 +59,7 @@ public class IdsContractRequestToContractOfferTransformerTest {
         idsPermission = new de.fraunhofer.iais.eis.PermissionBuilder().build();
         idsProhibition = new de.fraunhofer.iais.eis.ProhibitionBuilder().build();
         idsDuty = new de.fraunhofer.iais.eis.DutyBuilder().build();
-        idsContractRequest = new de.fraunhofer.iais.eis.ContractRequestBuilder(REQUEST_ID)
+        de.fraunhofer.iais.eis.ContractRequest idsContractRequest = new de.fraunhofer.iais.eis.ContractRequestBuilder(REQUEST_ID)
                 ._provider_(PROVIDER_URI)
                 ._provider_(CONSUMER_URI)
                 ._permission_(new ArrayList<>(Collections.singletonList(idsPermission)))
@@ -96,8 +96,6 @@ public class IdsContractRequestToContractOfferTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
-
         Permission edcPermission = mock(Permission.class);
         Prohibition edcProhibition = mock(Prohibition.class);
         Duty edcObligation = mock(Duty.class);
@@ -108,7 +106,6 @@ public class IdsContractRequestToContractOfferTransformerTest {
 
         var result = transformer.transform(input, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getPolicy());
         var policy = result.getPolicy();
@@ -118,5 +115,8 @@ public class IdsContractRequestToContractOfferTransformerTest {
         Assertions.assertEquals(edcPermission, policy.getPermissions().get(0));
         Assertions.assertEquals(1, policy.getProhibitions().size());
         Assertions.assertEquals(edcProhibition, policy.getProhibitions().get(0));
+        verify(context).transform(eq(idsPermission), eq(Permission.class));
+        verify(context).transform(eq(idsProhibition), eq(Prohibition.class));
+        verify(context).transform(eq(idsDuty), eq(Duty.class));
     }
 }

@@ -26,10 +26,18 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class FsConfigurationExtensionTest {
     private FsConfigurationExtension configurationExtension;
+
+    @BeforeEach
+    void setUp() throws URISyntaxException {
+        Path location = Paths.get(getClass().getClassLoader().getResource("edc-configuration.properties").toURI());
+
+        configurationExtension = new FsConfigurationExtension(location);
+    }
 
     @Test
     void verifyResolution() {
@@ -40,13 +48,7 @@ class FsConfigurationExtensionTest {
 
         assertEquals("testvalue1", configurationExtension.getSetting("testkey1"));
         assertNull(configurationExtension.getSetting("notthere"));
-    }
-
-    @BeforeEach
-    void setUp() throws URISyntaxException {
-        Path location = Paths.get(getClass().getClassLoader().getResource("edc-configuration.properties").toURI());
-
-        configurationExtension = new FsConfigurationExtension(location);
+        verify(context).getMonitor();
     }
 
 }

@@ -32,7 +32,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class AssetToIdsResourceTransformerTest {
@@ -86,6 +89,7 @@ class AssetToIdsResourceTransformerTest {
         assertEquals(RESOURCE_ID_URI, result.getId());
         assertEquals(1, result.getRepresentation().size());
         assertEquals(representation, result.getRepresentation().get(0));
+        verify(context, times(2)).transform(any(), any());
     }
 
 }

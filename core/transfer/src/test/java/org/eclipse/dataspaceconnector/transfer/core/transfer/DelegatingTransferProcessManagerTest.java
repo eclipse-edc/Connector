@@ -34,6 +34,7 @@ class DelegatingTransferProcessManagerTest {
         var result = manager.initiateConsumerRequest(request);
 
         assertThat(result.succeeded()).isTrue();
+        verify(syncDelegate).initiateConsumerRequest(request);
     }
 
     @Test
@@ -44,6 +45,7 @@ class DelegatingTransferProcessManagerTest {
         var result = manager.initiateConsumerRequest(request);
 
         assertThat(result.succeeded()).isTrue();
+        verify(asyncDelegate).initiateConsumerRequest(request);
     }
 
     @Test
@@ -54,6 +56,7 @@ class DelegatingTransferProcessManagerTest {
         var result = manager.initiateProviderRequest(request);
 
         assertThat(result.succeeded()).isTrue();
+        verify(syncDelegate).initiateProviderRequest(request);
     }
 
     @Test
@@ -64,6 +67,7 @@ class DelegatingTransferProcessManagerTest {
         var result = manager.initiateProviderRequest(request);
 
         assertThat(result.succeeded()).isTrue();
+        verify(asyncDelegate).initiateProviderRequest(request);
     }
 
     @Test

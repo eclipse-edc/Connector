@@ -43,6 +43,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ResourceDescriptionRequestHandlerTest {
@@ -101,5 +102,9 @@ public class ResourceDescriptionRequestHandlerTest {
         assertNotNull(result);
         assertNotNull(result.getHeader());
         assertEquals(resource, result.getPayload());
+        verify(resource).getId();
+        verify(assetIndex).findById(anyString());
+        verify(transformerRegistry).transform(isA(OfferedAsset.class), eq(Resource.class));
+        verify(contractOfferService).queryContractOffers(isA(ContractOfferQuery.class));
     }
 }

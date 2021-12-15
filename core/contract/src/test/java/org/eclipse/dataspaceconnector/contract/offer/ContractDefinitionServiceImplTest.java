@@ -17,7 +17,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractDefinitionServiceImplTest {
@@ -42,6 +45,8 @@ class ContractDefinitionServiceImplTest {
         var definitions = definitionService.definitionsFor(agent);
 
         assertThat(definitions).hasSize(1);
+        verify(policyEngine, atLeastOnce()).evaluate(policy, agent);
+        verify(definitionStore).findAll();
     }
 
     @Test
@@ -56,6 +61,8 @@ class ContractDefinitionServiceImplTest {
         when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
+        verify(policyEngine, atLeastOnce()).evaluate(policy, agent);
+        verify(definitionStore).findAll();
     }
 
     @Test
@@ -71,6 +78,8 @@ class ContractDefinitionServiceImplTest {
         when(definitionStore.findAll()).thenReturn(List.of(contractDefinition));
 
         assertThat(definitionService.definitionsFor(agent)).isEmpty();
+        verify(policyEngine, atLeastOnce()).evaluate(policy, agent);
+        verify(definitionStore).findAll();
     }
 
     @Test
@@ -84,5 +93,7 @@ class ContractDefinitionServiceImplTest {
 
         assertThat(definitionService.definitionFor(agent, "1")).isNotNull();
         assertThat(definitionService.definitionFor(agent, "nodefinition")).isNull();
+        verify(policyEngine, atLeastOnce()).evaluate(policy, agent);
+        verify(definitionStore, times(2)).findAll();
     }
 }

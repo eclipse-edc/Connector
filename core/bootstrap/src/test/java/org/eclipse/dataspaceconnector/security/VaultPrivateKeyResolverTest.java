@@ -16,6 +16,7 @@ import javax.crypto.interfaces.DHPrivateKey;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -39,6 +40,7 @@ class VaultPrivateKeyResolverTest {
         var result = resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class);
 
         assertThat(result).isNotNull();
+        verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
     }
 
     @Test
@@ -53,6 +55,7 @@ class VaultPrivateKeyResolverTest {
         when(vault.resolveSecret(TEST_SECRET_ALIAS)).thenReturn(PrivateTestKeys.ENCODED_PRIVATE_KEY_NOPEM);
 
         assertThatThrownBy(() -> resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isInstanceOf(IllegalArgumentException.class);
+        verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
     }
 
     @Test
@@ -61,6 +64,7 @@ class VaultPrivateKeyResolverTest {
 
         assertThatThrownBy(() -> resolver.resolvePrivateKey(TEST_SECRET_ALIAS, DHPrivateKey.class)).isInstanceOf(EdcException.class)
                 .hasMessageStartingWith("Cannot find KeyParser for type");
+        verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
     }
 
     @Test
@@ -74,6 +78,7 @@ class VaultPrivateKeyResolverTest {
 
         //same resolve call should work now
         assertThat(resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isNotNull();
+        verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
     }
 
     @Test
@@ -87,6 +92,7 @@ class VaultPrivateKeyResolverTest {
 
         //same resolve call should work now
         assertThat(resolver.resolvePrivateKey(TEST_SECRET_ALIAS, RSAPrivateKey.class)).isNotNull();
+        verify(vault, atLeastOnce()).resolveSecret(TEST_SECRET_ALIAS);
     }
 
     private static class DummyParser implements KeyParser<RSAPrivateKey> {

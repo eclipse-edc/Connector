@@ -32,6 +32,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CrawlerImplTest {
@@ -80,6 +81,7 @@ class CrawlerImplTest {
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
         assertThat(crawler.join()).isTrue();
         assertThat(queue).hasSize(1);
+        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
     }
 
     @Test
@@ -99,6 +101,7 @@ class CrawlerImplTest {
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
         assertThat(crawler.join()).isTrue();
         assertThat(queue).isEmpty();
+        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
     }
 
     @Test
@@ -125,6 +128,9 @@ class CrawlerImplTest {
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
         assertThat(crawler.join()).isTrue();
         assertThat(queue).hasSize(1);
+        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
+        verify(registry).findForProtocol(anyString());
+        verify(secondAdapter).sendRequest(isA(UpdateRequest.class));
     }
 
     @Test
@@ -146,6 +152,7 @@ class CrawlerImplTest {
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();
         assertThat(crawler.join()).isTrue();
         assertThat(queue).hasSize(3);
+        verify(protocolAdapterMock).sendRequest(isA(UpdateRequest.class));
     }
 
     @Test
@@ -178,7 +185,7 @@ class CrawlerImplTest {
 
         assertThat(l.await(5, TimeUnit.SECONDS)).isTrue();
         assertThat(workQueue).hasSize(0); //1).allSatisfy(wi -> assertThat(wi.getErrors()).isNotNull().hasSize(1));
-
+        verify(errorHandlerMock).accept(isA(WorkItem.class));
     }
 
     private RetryPolicy<Object> createRetryPolicy() {

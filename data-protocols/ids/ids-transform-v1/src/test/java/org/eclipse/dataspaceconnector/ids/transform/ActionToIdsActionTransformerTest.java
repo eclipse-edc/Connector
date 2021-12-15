@@ -25,17 +25,13 @@ import static org.mockito.Mockito.when;
 
 class ActionToIdsActionTransformerTest {
 
-    // subject
     private ActionToIdsActionTransformer transformer;
 
-    // mocks
-    private Action action;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ActionToIdsActionTransformer();
-        action = mock(Action.class);
         context = mock(TransformerContext.class);
     }
 
@@ -49,7 +45,7 @@ class ActionToIdsActionTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(action, null);
+            transformer.transform(Action.Builder.newInstance().type("USE").build(), null);
         });
     }
 
@@ -62,7 +58,7 @@ class ActionToIdsActionTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        when(action.getType()).thenReturn("USE");
+        var action = Action.Builder.newInstance().type("USE").build();
 
         var result = transformer.transform(action, context);
 

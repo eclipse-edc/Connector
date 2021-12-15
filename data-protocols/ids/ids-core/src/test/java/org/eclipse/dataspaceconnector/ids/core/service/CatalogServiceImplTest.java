@@ -29,6 +29,7 @@ import java.util.Arrays;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CatalogServiceImplTest {
@@ -64,6 +65,7 @@ class CatalogServiceImplTest {
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
         assertThat(result.getContractOffers()).hasSameElementsAs(offers);
+        verify(contractOfferService).queryContractOffers(any(ContractOfferQuery.class));
     }
 
 }

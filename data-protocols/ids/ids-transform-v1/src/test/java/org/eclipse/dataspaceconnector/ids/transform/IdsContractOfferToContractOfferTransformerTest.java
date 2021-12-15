@@ -32,6 +32,7 @@ import javax.xml.datatype.XMLGregorianCalendar;
 
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class IdsContractOfferToContractOfferTransformerTest {
@@ -91,8 +92,6 @@ public class IdsContractOfferToContractOfferTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
-
         Permission edcPermission = mock(Permission.class);
         Prohibition edcProhibition = mock(Prohibition.class);
         Duty edcObligation = mock(Duty.class);
@@ -112,5 +111,8 @@ public class IdsContractOfferToContractOfferTransformerTest {
         Assertions.assertEquals(edcPermission, policy.getPermissions().get(0));
         Assertions.assertEquals(1, policy.getProhibitions().size());
         Assertions.assertEquals(edcProhibition, policy.getProhibitions().get(0));
+        verify(context).transform(eq(idsPermission), eq(Permission.class));
+        verify(context).transform(eq(idsProhibition), eq(Prohibition.class));
+        verify(context).transform(eq(idsDuty), eq(Duty.class));
     }
 }

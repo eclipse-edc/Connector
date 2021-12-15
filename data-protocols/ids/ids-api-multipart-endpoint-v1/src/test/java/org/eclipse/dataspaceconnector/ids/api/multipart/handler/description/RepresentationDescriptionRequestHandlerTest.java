@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,6 +41,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class RepresentationDescriptionRequestHandlerTest {
@@ -93,5 +95,8 @@ public class RepresentationDescriptionRequestHandlerTest {
         assertNotNull(result);
         assertNotNull(result.getHeader());
         assertEquals(representation, result.getPayload());
+        verify(representation).getId();
+        verify(assetIndex).findById(anyString());
+        verify(transformerRegistry).transform(isA(Asset.class), eq(Representation.class));
     }
 }

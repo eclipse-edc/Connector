@@ -28,10 +28,14 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.contentOf;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.EQ;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ConstraintToIdsLogicalConstraintTransformerTest {
@@ -60,6 +64,7 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
         var transformed = (LogicalConstraint) transformer.transform(andConstraint, context);
 
         assertThat(transformed.getAnd()).isNotEmpty();
+        verify(context, times(3)).transform(any(), any());
     }
 
     @Test
@@ -79,6 +84,7 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
 
         assertThat(transformed).isNotNull();
         assertThat(transformed.getOr()).isNotNull();
+        verify(context, times(3)).transform(any(), any());
 
     }
 
@@ -100,7 +106,7 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
 
         assertThat(transformed).isNotNull();
         assertThat(transformed.getXone()).isNotNull();
-
+        verify(context, times(3)).transform(any(), any());
     }
 
 }

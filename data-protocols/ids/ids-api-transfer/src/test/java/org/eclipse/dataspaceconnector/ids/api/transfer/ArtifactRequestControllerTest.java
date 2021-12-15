@@ -45,6 +45,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ArtifactRequestControllerTest {
@@ -61,7 +62,10 @@ public class ArtifactRequestControllerTest {
     @BeforeEach
     public void setUp() {
         manager = mock(TransferProcessManager.class);
+    }
 
+    @Test
+    public void initiateDataRequest() {
         DapsService dapsService = mock(DapsService.class);
         Result<ClaimToken> verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
         AssetIndex assetIndex = mock(AssetIndex.class);
@@ -77,12 +81,7 @@ public class ArtifactRequestControllerTest {
         when(policyService.evaluateRequest(eq(consumerConnectorAddress), eq(artifactMessageId), any(), any())).thenReturn(policyEvaluationResult);
 
         controller = new ArtifactRequestController(dapsService, assetIndex, manager, policyService, policyRegistry, mock(Vault.class), mock(Monitor.class));
-    }
 
-    @Test
-    public void initiateDataRequest() {
-
-        // prepare
         var requestProperties = Map.of(faker.lorem().word(), faker.lorem().word(), faker.lorem().word(), faker.lorem().word());
         var type = faker.lorem().word();
         var secretName = faker.lorem().word();
@@ -100,6 +99,12 @@ public class ArtifactRequestControllerTest {
         assertThat(dataRequest.getDataDestination().getKeyName()).isEqualTo(secretName);
         assertThat(dataRequest.getDataDestination().getType()).isEqualTo(type);
         assertThat(dataRequest.getDataDestination().getProperties()).isEqualTo(Map.of("type", type, "keyName", secretName));
+        verify(dapsService).verifyAndConvertToken(anyString());
+        verify(assetIndex).findById(assetId);
+        verify(policyRegistry).resolvePolicy(any());
+        verify(policyEvaluationResult).valid();
+        verify(policyService).evaluateRequest(eq(consumerConnectorAddress), eq(artifactMessageId), any(), any());
+        verify(manager).initiateProviderRequest(requestCapture.capture());
     }
 
     @NotNull

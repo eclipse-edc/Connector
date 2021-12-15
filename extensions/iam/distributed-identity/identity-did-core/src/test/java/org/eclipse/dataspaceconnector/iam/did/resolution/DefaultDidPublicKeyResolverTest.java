@@ -18,6 +18,7 @@ import java.util.Scanner;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class DefaultDidPublicKeyResolverTest {
@@ -48,6 +49,7 @@ class DefaultDidPublicKeyResolverTest {
         var result = resolver.resolvePublicKey(DID_URL);
 
         assertThat(result.getContent()).isNotNull();
+        verify(resolverRegistry).resolve(DID_URL);
     }
 
     @Test
@@ -57,6 +59,7 @@ class DefaultDidPublicKeyResolverTest {
         var result = resolver.resolvePublicKey(DID_URL);
 
         assertThat(result.failed()).isTrue();
+        verify(resolverRegistry).resolve(DID_URL);
     }
 
     @Test
@@ -67,6 +70,7 @@ class DefaultDidPublicKeyResolverTest {
         var result = resolver.resolvePublicKey(DID_URL);
 
         assertThat(result.failed()).isTrue();
+        verify(resolverRegistry).resolve(DID_URL);
     }
 
     @Test
@@ -81,6 +85,7 @@ class DefaultDidPublicKeyResolverTest {
         var result = resolver.resolvePublicKey(DID_URL);
 
         assertThat(result.failed()).isTrue();
+        verify(resolverRegistry).resolve(DID_URL);
     }
 
     @Test
@@ -96,6 +101,7 @@ class DefaultDidPublicKeyResolverTest {
         var result = resolver.resolvePublicKey(DID_URL);
 
         assertThat(result.failed()).isTrue();
+        verify(resolverRegistry).resolve(DID_URL);
     }
 
     public String readFile(String filename) {

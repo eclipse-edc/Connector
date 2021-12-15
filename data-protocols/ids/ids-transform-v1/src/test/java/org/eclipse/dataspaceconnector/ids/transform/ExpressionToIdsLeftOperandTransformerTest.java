@@ -28,13 +28,11 @@ class ExpressionToIdsLeftOperandTransformerTest {
 
     private ExpressionToIdsLeftOperandTransformer transformer;
 
-    private LiteralExpression expression;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ExpressionToIdsLeftOperandTransformer();
-        expression = mock(LiteralExpression.class);
         context = mock(TransformerContext.class);
     }
 
@@ -48,7 +46,7 @@ class ExpressionToIdsLeftOperandTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(expression, null);
+            transformer.transform(new LiteralExpression("any"), null);
         });
     }
 
@@ -61,7 +59,7 @@ class ExpressionToIdsLeftOperandTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        when(expression.asString()).thenReturn("COUNT");
+        var expression = new LiteralExpression("COUNT");
 
         var result = transformer.transform(expression, context);
 

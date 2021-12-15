@@ -35,6 +35,7 @@ import java.util.Collections;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class OfferedAssetToIdsResourceTransformerTest {
@@ -76,10 +77,9 @@ class OfferedAssetToIdsResourceTransformerTest {
     @Test
     void testSuccessfulSimple() {
         var representation = new RepresentationBuilder().build();
+        var id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
         when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);
         when(context.transform(any(ContractOffer.class), eq(de.fraunhofer.iais.eis.ContractOffer.class))).thenReturn(new ContractOfferBuilder().build());
-
-        IdsId id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
         when(context.transform(eq(id), eq(URI.class))).thenReturn(RESOURCE_ID_URI);
 
         var result = transformer.transform(assetAndPolicy(), context);
@@ -88,6 +88,9 @@ class OfferedAssetToIdsResourceTransformerTest {
         Assertions.assertEquals(RESOURCE_ID_URI, result.getId());
         Assertions.assertEquals(1, result.getRepresentation().size());
         Assertions.assertEquals(representation, result.getRepresentation().get(0));
+        verify(context).transform(any(Asset.class), eq(Representation.class));
+        verify(context).transform(any(ContractOffer.class), eq(de.fraunhofer.iais.eis.ContractOffer.class));
+        verify(context).transform(eq(id), eq(URI.class));
     }
 
     @NotNull

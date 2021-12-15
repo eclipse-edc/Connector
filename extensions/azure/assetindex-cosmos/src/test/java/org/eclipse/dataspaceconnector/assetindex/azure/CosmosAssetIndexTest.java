@@ -35,7 +35,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CosmosAssetIndexTest {
@@ -83,6 +85,7 @@ class CosmosAssetIndexTest {
         Asset actualAsset = assetIndex.findById(id);
 
         assertThat(actualAsset.getProperties()).isEqualTo(document.getWrappedAsset().getProperties());
+        verify(api).queryItemById(eq(id));
     }
 
     @Test
@@ -93,6 +96,7 @@ class CosmosAssetIndexTest {
                 .thenThrow(new EdcException("Failed again to find object"));
 
         assertThatExceptionOfType(EdcException.class).isThrownBy(() -> assetIndex.findById(id));
+        verify(api, atLeastOnce()).queryItemById(eq(id));
     }
 
     @Test
@@ -103,6 +107,7 @@ class CosmosAssetIndexTest {
         Asset actualAsset = assetIndex.findById(id);
 
         assertThat(actualAsset).isNull();
+        verify(api).queryItemById(eq(id));
     }
 
     @Test
@@ -116,6 +121,7 @@ class CosmosAssetIndexTest {
         assertThat(assets)
                 .anyMatch(asset -> asset.getId().equals(id1))
                 .anyMatch(asset -> asset.getId().equals(id2));
+        verify(api).queryItems(any(SqlQuerySpec.class));
     }
 
     @Test
@@ -136,6 +142,7 @@ class CosmosAssetIndexTest {
                 .anyMatch(asset -> asset.getId().equals(id1))
                 .anyMatch(asset -> asset.getId().equals(id2));
         assertThat(queryCapture.getValue().getQueryText()).contains("WHERE AssetDocument.wrappedInstance.asset_prop_id IN (" + id1 + "," + id2 + ")");
+        verify(api).queryItems(queryCapture.capture());
     }
 
     @Test
@@ -154,5 +161,6 @@ class CosmosAssetIndexTest {
                 .anyMatch(asset -> asset.getId().equals(id1))
                 .anyMatch(asset -> asset.getId().equals(id2));
         assertThat(queryCapture.getValue().getQueryText()).matches(".*WHERE AssetDocument.* = 'somename'");
+        verify(api).queryItems(queryCapture.capture());
     }
 }

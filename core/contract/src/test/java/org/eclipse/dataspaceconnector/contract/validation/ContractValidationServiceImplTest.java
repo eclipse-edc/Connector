@@ -26,6 +26,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ContractValidationServiceImplTest {
@@ -36,14 +37,9 @@ class ContractValidationServiceImplTest {
 
     @Test
     void verifyContractOfferValidation() {
-        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
-
         var originalPolicy = Policy.Builder.newInstance().build();
-
         var newPolicy = Policy.Builder.newInstance().build();
-
         var asset = Asset.Builder.newInstance().id("1").build();
-
         var contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
                 .accessPolicy(Policy.Builder.newInstance().build())
@@ -51,11 +47,9 @@ class ContractValidationServiceImplTest {
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
-
-        //noinspection unchecked
         when(assetIndex.queryAssets(isA(List.class))).thenReturn(Stream.of(asset));
-
 
         var claimToken = ClaimToken.Builder.newInstance().build();
         var offer = ContractOffer.Builder.newInstance().asset(asset).policy(originalPolicy).id("1:2").build();
@@ -64,12 +58,13 @@ class ContractValidationServiceImplTest {
 
         assertThat(result.getContent()).isNotNull();
         assertThat(result.getContent().getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
-
+        verify(agentService).createFor(isA(ClaimToken.class));
+        verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
+        verify(assetIndex).queryAssets(isA(List.class));
     }
 
     @Test
     void verifyContractAgreementValidation() {
-        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         var originalPolicy = Policy.Builder.newInstance().build();
         var newPolicy = Policy.Builder.newInstance().build();
 
@@ -80,6 +75,7 @@ class ContractValidationServiceImplTest {
                 .selectorExpression(AssetSelectorExpression.SELECT_ALL)
                 .build();
 
+        when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
 
         var claimToken = ClaimToken.Builder.newInstance().build();
@@ -94,6 +90,8 @@ class ContractValidationServiceImplTest {
                 .id("1:2").build();
 
         assertThat(validationService.validate(claimToken, agreement)).isTrue();
+        verify(agentService).createFor(isA(ClaimToken.class));
+        verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
     }
 
     @Test

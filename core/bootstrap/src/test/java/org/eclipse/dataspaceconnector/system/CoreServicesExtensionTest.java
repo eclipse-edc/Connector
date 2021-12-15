@@ -28,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -55,17 +56,17 @@ class CoreServicesExtensionTest {
     @Test
     void initialize() {
         ServiceExtensionContext context = mock(ServiceExtensionContext.class);
-        when(context.getMonitor()).thenReturn(new Monitor() {});
+        doNothing().when(context).registerService(any(), any());
         when(context.getSetting(eq("edc.core.retry.retries.max"), anyString())).thenReturn("3");
         when(context.getSetting(eq("edc.core.retry.backoff.min"), anyString())).thenReturn("500");
         when(context.getSetting(eq("edc.core.retry.backoff.max"), anyString())).thenReturn("10000");
-        doNothing().when(context).registerService(any(), any());
-        when(context.getService(Vault.class)).thenReturn(mock(Vault.class));
         when(context.getService(eq(PrivateKeyResolver.class))).thenReturn(mock(PrivateKeyResolver.class));
 
         extension.initialize(context);
 
         verify(context).registerService(eq(OkHttpClient.class), isA(OkHttpClient.class));
         verify(context).registerService(eq(RetryPolicy.class), isA(RetryPolicy.class));
+        verify(context, atLeastOnce()).getSetting(any(), anyString());
+        verify(context).getService(eq(PrivateKeyResolver.class));
     }
 }

@@ -32,8 +32,10 @@ import java.util.stream.IntStream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 /**
@@ -90,6 +92,7 @@ class PartitionManagerImplIntegrationTest {
         partitionManager.schedule(new RunOnceExecutionPlan());
 
         assertThat(latch.await(1, TimeUnit.MINUTES)).withFailMessage("latch was expected to be 0 but was: " + latch.getCount()).isTrue();
+        verify(queueListener, atLeastOnce()).unlocked();
     }
 
     /**

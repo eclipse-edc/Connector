@@ -7,7 +7,9 @@ import org.mockito.ArgumentCaptor;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class CorsFilterConfigurationTest {
@@ -25,6 +27,7 @@ class CorsFilterConfigurationTest {
         assertThat(config.getAllowedHeaders()).isEqualTo("origin, content-type, accept, authorization");
         assertThat(config.getAllowedOrigins()).isEqualTo("*");
         assertThat(config.isCorsEnabled()).isFalse();
+        verify(ctx, atLeastOnce()).getSetting(anyString(), defaultValueCapture.capture());
     }
 
     @Test
@@ -41,5 +44,6 @@ class CorsFilterConfigurationTest {
         assertThat(config.getAllowedHeaders()).isEqualTo("origin, authorization");
         assertThat(config.getAllowedOrigins()).isEqualTo("localhost");
         assertThat(config.isCorsEnabled()).isTrue();
+        verify(ctx, atLeastOnce()).getSetting(anyString(), anyString());
     }
 }

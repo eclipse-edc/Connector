@@ -17,6 +17,7 @@ import java.util.concurrent.TimeUnit;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -50,6 +51,7 @@ class LoaderManagerImplTest {
         loaderManager.start(queue);
 
         assertThat(completionSignal.await(100L, TimeUnit.MILLISECONDS)).isTrue();
+        verify(waitStrategyMock, atLeastOnce()).retryInMillis();
     }
 
     @Test
@@ -68,6 +70,7 @@ class LoaderManagerImplTest {
         assertThat(completionSignal.await(5, TimeUnit.SECONDS)).isTrue();
 
         verify(loaderMock, times(1)).load(any());
+        verify(waitStrategyMock).success();
     }
 
 }

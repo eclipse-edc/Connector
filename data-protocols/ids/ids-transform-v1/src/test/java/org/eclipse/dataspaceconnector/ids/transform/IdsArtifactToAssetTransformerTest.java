@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
+import de.fraunhofer.iais.eis.ArtifactBuilder;
+import de.fraunhofer.iais.eis.ArtifactImpl;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -42,13 +44,11 @@ public class IdsArtifactToAssetTransformerTest {
 
     private IdsArtifactToAssetTransformer transformer;
 
-    private Artifact artifact;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new IdsArtifactToAssetTransformer();
-        artifact = mock(Artifact.class);
         context = mock(TransformerContext.class);
     }
 
@@ -62,7 +62,7 @@ public class IdsArtifactToAssetTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(artifact, null);
+            transformer.transform(new ArtifactBuilder().build(), null);
         });
     }
 
@@ -75,9 +75,10 @@ public class IdsArtifactToAssetTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        when(artifact.getId()).thenReturn(ARTIFACT_URI);
-        when(artifact.getFileName()).thenReturn(ASSET_FILENAME);
-        when(artifact.getByteSize()).thenReturn(ASSET_BYTESIZE);
+        var artifact = new ArtifactBuilder(ARTIFACT_URI)
+                ._fileName_(ASSET_FILENAME)
+                ._byteSize_(ASSET_BYTESIZE)
+                .build();
 
         var result = transformer.transform(artifact, context);
 

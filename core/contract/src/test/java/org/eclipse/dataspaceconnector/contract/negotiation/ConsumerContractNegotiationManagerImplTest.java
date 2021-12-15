@@ -41,6 +41,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ConsumerContractNegotiationManagerImplTest {
@@ -143,6 +144,7 @@ class ConsumerContractNegotiationManagerImplTest {
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.CONSUMER_APPROVING.code());
         assertThat(negotiation.getContractOffers()).hasSize(2);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
@@ -162,6 +164,7 @@ class ConsumerContractNegotiationManagerImplTest {
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
         assertThat(negotiation.getContractOffers()).hasSize(2);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
@@ -185,6 +188,7 @@ class ConsumerContractNegotiationManagerImplTest {
         assertThat(negotiation.getContractOffers()).hasSize(3);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
         assertThat(negotiation.getContractOffers().get(2)).isEqualTo(counterOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
@@ -193,6 +197,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var contractAgreement = mock(ContractAgreement.class);
 
         var result = negotiationManager.confirmed(token, "not a valid id", contractAgreement, "hash");
+
         assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
     }
 
@@ -213,6 +218,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiation = negotiations.values().iterator().next();
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMED.code());
         assertThat(negotiation.getContractAgreement()).isEqualTo(contractAgreement);
+        verify(validationService).validate(eq(token), eq(contractAgreement), any(ContractOffer.class));
     }
 
     @Test
@@ -232,6 +238,7 @@ class ConsumerContractNegotiationManagerImplTest {
         var negotiation = negotiations.values().iterator().next();
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
         assertThat(negotiation.getContractAgreement()).isNull();
+        verify(validationService).validate(eq(token), eq(contractAgreement), any(ContractOffer.class));
     }
 
     @Test

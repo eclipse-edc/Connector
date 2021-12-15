@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,6 +34,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 public class ContractAgreementToIdsContractAgreementTransformerTest {
@@ -41,18 +43,12 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
 
     private ContractAgreementToIdsContractAgreementTransformer transformer;
 
-    private Policy policy;
-    private ContractAgreement contractAgreement;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ContractAgreementToIdsContractAgreementTransformer();
-        contractAgreement = mock(ContractAgreement.class);
-        policy = mock(Policy.class);
         context = mock(TransformerContext.class);
-
-        when(contractAgreement.getPolicy()).thenReturn(policy);
     }
 
     @Test
@@ -65,7 +61,7 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
     @Test
     void testThrowsNullPointerExceptionForContext() {
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(contractAgreement, null);
+            transformer.transform(contractAgreement(Policy.Builder.newInstance().build()), null);
         });
     }
 
@@ -84,23 +80,18 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
         de.fraunhofer.iais.eis.Prohibition idsProhibition = mock(de.fraunhofer.iais.eis.Prohibition.class);
         Duty edcObligation = mock(Duty.class);
         de.fraunhofer.iais.eis.Duty idsObligation = mock(de.fraunhofer.iais.eis.Duty.class);
-
-        when(contractAgreement.getId()).thenReturn(String.valueOf(AGREEMENT_ID));
-        when(contractAgreement.getProviderAgentId()).thenReturn(PROVIDER_ID);
-        when(contractAgreement.getConsumerAgentId()).thenReturn(null);
-        when(contractAgreement.getContractStartDate()).thenReturn(Instant.MIN.getEpochSecond());
-        when(contractAgreement.getContractEndDate()).thenReturn(Instant.MAX.getEpochSecond());
-        when(contractAgreement.getContractSigningDate()).thenReturn(Instant.now().getEpochSecond());
-        when(policy.getPermissions()).thenReturn(Collections.singletonList(edcPermission));
-        when(policy.getProhibitions()).thenReturn(Collections.singletonList(edcProhibition));
-        when(policy.getObligations()).thenReturn(Collections.singletonList(edcObligation));
+        var policy = Policy.Builder.newInstance()
+                .permission(edcPermission)
+                .prohibition(edcProhibition)
+                .duty(edcObligation)
+                .build();
 
         when(context.transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class))).thenReturn(idsPermission);
         when(context.transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class))).thenReturn(idsProhibition);
         when(context.transform(any(Duty.class), eq(de.fraunhofer.iais.eis.Duty.class))).thenReturn(idsObligation);
         when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(AGREEMENT_ID);
 
-        var result = transformer.transform(contractAgreement, context);
+        var result = transformer.transform(contractAgreement(policy), context);
 
         Assertions.assertNotNull(result);
         Assertions.assertEquals(AGREEMENT_ID, result.getId());
@@ -111,5 +102,22 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
         Assertions.assertEquals(idsPermission, result.getPermission().get(0));
         Assertions.assertEquals(1, result.getProhibition().size());
         Assertions.assertEquals(idsProhibition, result.getProhibition().get(0));
+        verify(context).transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class));
+        verify(context).transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class));
+        verify(context).transform(any(Duty.class), eq(de.fraunhofer.iais.eis.Duty.class));
+        verify(context).transform(isA(IdsId.class), eq(URI.class));
+    }
+
+    private ContractAgreement contractAgreement(Policy policy) {
+        return ContractAgreement.Builder.newInstance()
+                .id(String.valueOf(AGREEMENT_ID))
+                .providerAgentId(PROVIDER_ID)
+                .asset(Asset.Builder.newInstance().build())
+                .consumerAgentId("id")
+                .contractStartDate(Instant.MIN.getEpochSecond())
+                .contractEndDate(Instant.MAX.getEpochSecond())
+                .contractSigningDate(Instant.now().getEpochSecond())
+                .policy(policy)
+                .build();
     }
 }
