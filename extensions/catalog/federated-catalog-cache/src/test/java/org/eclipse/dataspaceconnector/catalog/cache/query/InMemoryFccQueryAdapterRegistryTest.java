@@ -38,13 +38,14 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createOffer;
 
 class InMemoryFccQueryAdapterRegistryTest {
-    private static final CachedAsset ASSET_ABC = CachedAsset.Builder.newInstance().id("ABC").build();
-    private static final CachedAsset ASSET_DEF = CachedAsset.Builder.newInstance().id("DEF").build();
-    private static final CachedAsset ASSET_XYZ = CachedAsset.Builder.newInstance().id("XYZ").build();
-
+    private static final ContractOffer ASSET_ABC = createOffer("ABC");
+    private static final ContractOffer ASSET_DEF = createOffer("DEF");
+    private static final ContractOffer ASSET_XYZ = createOffer("XYZ");
     private CacheQueryAdapterRegistryImpl registry;
+
 
     @Test
     void getAllAdapters() {
@@ -157,7 +158,7 @@ class InMemoryFccQueryAdapterRegistryTest {
     private CacheQueryAdapter matchingAdapter() {
         CacheQueryAdapter adapter1 = mock(CacheQueryAdapter.class);
         when(adapter1.canExecute(any())).thenReturn(true);
-        Supplier<ContractOffer> as = () -> ContractOffer.Builder.newInstance().build();
+        Supplier<ContractOffer> as = () -> createOffer("test-offer");
         when(adapter1.executeQuery(any())).thenReturn(Stream.of(as.get(), as.get(), as.get()));
         return adapter1;
     }

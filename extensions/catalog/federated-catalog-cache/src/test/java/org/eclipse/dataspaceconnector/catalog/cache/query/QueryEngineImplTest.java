@@ -4,7 +4,6 @@ import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.Test;
 
@@ -18,9 +17,9 @@ import static org.mockito.Mockito.when;
 
 class QueryEngineImplTest {
 
-    private static final ContractOffer ASSET_ABC = ContractOffer.Builder.newInstance().id("ABC").build();
-    private static final ContractOffer ASSET_DEF = ContractOffer.Builder.newInstance().id("DEF").build();
-    private static final ContractOffer ASSET_XYZ = ContractOffer.Builder.newInstance().id("XYZ").build();
+    private static final ContractOffer ASSET_ABC = createOffer("ABC");
+    private static final ContractOffer ASSET_DEF = createOffer("DEF");
+    private static final ContractOffer ASSET_XYZ = createOffer("XYZ");
 
     @Test
     void getCatalog() {

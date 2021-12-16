@@ -9,11 +9,11 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
@@ -23,10 +23,10 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createOffer;
 
 @ExtendWith(EdcExtension.class)
 class FederatedCatalogCacheEndToEndTest {
@@ -45,6 +45,11 @@ class FederatedCatalogCacheEndToEndTest {
         System.clearProperty("web.http.port");
     }
 
+    @BeforeEach
+    void setup(EdcExtension extension) {
+        extension.registerSystemExtension(ServiceExtension.class, new FccTestExtension());
+    }
+
     @Test
     void verifySuccess(FederatedCacheStore store, OkHttpClient client) throws IOException {
         int nbAssets = 3;
@@ -52,7 +57,7 @@ class FederatedCatalogCacheEndToEndTest {
         // generate assets and populate the store
         List<ContractOffer> assets = new ArrayList<>();
         for (int i = 0; i < nbAssets; i++) {
-            assets.add(buildAsset());
+            assets.add(createOffer("some-offer-" + i));
         }
         assets.forEach(store::save);
 
@@ -70,13 +75,6 @@ class FederatedCatalogCacheEndToEndTest {
         assertThat(response.code()).isEqualTo(200);
         List<ContractOffer> actualAssets = Arrays.asList(MAPPER.readValue(Objects.requireNonNull(response.body()).string(), ContractOffer[].class));
         compareAssetsById(actualAssets, assets);
-    }
-
-    private ContractOffer buildAsset() {
-        return ContractOffer.Builder.newInstance()
-                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
-                .policy(Policy.Builder.newInstance().build())
-                .build();
     }
 
     private void compareAssetsById(List<ContractOffer> actual, List<ContractOffer> expected) {

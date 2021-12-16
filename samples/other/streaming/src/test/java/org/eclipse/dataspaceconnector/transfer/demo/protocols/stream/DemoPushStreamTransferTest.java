@@ -24,12 +24,15 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamC
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisher;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
 import static java.util.concurrent.TimeUnit.MINUTES;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.DESTINATION_NAME;
 import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.ENDPOINT_ADDRESS;
 import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols.PUSH_STREAM_HTTP;
@@ -39,6 +42,15 @@ import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoPro
  * Demonstrates an-end-to-end push stream transfer.
  */
 class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
+
+    @BeforeEach
+    void setup() {
+        var port = 2000 + new Random().nextInt(8000);
+        System.setProperty("web.http.port", String.valueOf(port));
+        System.setProperty("edc.demo.protocol.ws.pubsub", "ws://localhost:" + port + "/pubsub/");
+        System.setProperty("edc.demo.protocol.http.pubsub", "http://localhost:" + port + "/api/demo/pubsub/");
+
+    }
 
     /**
      * Perform a push stream flow over Web Sockets using the loopback protocol.
@@ -73,8 +85,8 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
 
         processManager.initiateConsumerRequest(dataRequestWs);
 
-        requestLatch.await(1, MINUTES);
-        receiveLatch.await(1, MINUTES);
+        assertThat(requestLatch.await(1, MINUTES)).isTrue();
+        assertThat(receiveLatch.await(1, MINUTES)).isTrue();
     }
 
     /**
@@ -110,8 +122,8 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
 
         processManager.initiateConsumerRequest(dataRequestHttp);
 
-        requestLatch.await(1, MINUTES);
-        receiveLatch.await(1, MINUTES);
+        assertThat(requestLatch.await(1, MINUTES)).isTrue();
+        assertThat(receiveLatch.await(1, MINUTES)).isTrue();
     }
 
     private static class TestStreamPublisher implements StreamPublisher {

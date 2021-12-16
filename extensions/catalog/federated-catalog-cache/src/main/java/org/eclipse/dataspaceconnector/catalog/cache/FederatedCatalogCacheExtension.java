@@ -8,6 +8,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.loader.LoaderManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.DefaultCacheQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.cache.query.IdsMultipartNodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
@@ -22,6 +23,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -80,7 +82,12 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
 
         // CRAWLER SUBSYSTEM
-        context.registerService(NodeQueryAdapterRegistry.class, new NodeQueryAdapterRegistryImpl());
+        var nodeQueryAdapterRegistry = new NodeQueryAdapterRegistryImpl();
+        var dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class);
+
+        // catalog queries via IDS multipart are supported by default
+        nodeQueryAdapterRegistry.register("ids-multipart", new IdsMultipartNodeQueryAdapter(context.getConnectorId(), dispatcherRegistry));
+        context.registerService(NodeQueryAdapterRegistry.class, nodeQueryAdapterRegistry);
 
         updateResponseQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_LENGTH);
 

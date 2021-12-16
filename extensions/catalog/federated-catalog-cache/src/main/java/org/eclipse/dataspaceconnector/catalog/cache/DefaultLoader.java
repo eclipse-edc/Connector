@@ -18,17 +18,7 @@ public class DefaultLoader implements Loader {
 
         for (var response : responses) {
             var catalog = response.getCatalog();
-            var originator = response.getSource();
-
-            catalog.getContractOffers().forEach(contractOffer -> {
-//                var asset = CachedAsset.Builder.newInstance()
-//                        .copyFrom(receivedAsset)
-//                        .originator(originator)
-//                        //.policy(somePolicy) //not yet implemented
-//                        .build();
-                store.save(contractOffer);
-            });
-
+            catalog.getContractOffers().forEach(store::save);
         }
     }
 }
