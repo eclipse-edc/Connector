@@ -99,8 +99,8 @@ jobs:
         ports:
           - 4567:4567
         volumes:
-          - $PWD/extensions/iam/daps/src/test/resources/config:/opt/config
-          - $PWD/extensions/iam/daps/src/test/resources/keys:/opt/keys
+          - /home/runner/work/DataSpaceConnector/DataSpaceConnector/extensions/iam/daps/src/test/resources/config:/opt/config
+          - /home/runner/work/DataSpaceConnector/DataSpaceConnector/extensions/iam/daps/src/test/resources/keys:/opt/keys
 
     steps:
       - uses: actions/checkout@v2
