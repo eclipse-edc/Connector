@@ -407,7 +407,12 @@ class AsyncTransferProcessManagerImplConsumerTest {
                 .id(processId)
                 .transferType(type)
                 .managedResources(managed)
+<<<<<<< HEAD
                 .dataDestination(DataAddress.Builder.newInstance().type("destination-type").build())
+=======
+                .dataDestination(DataAddress.Builder.newInstance().build())
+                .destinationType("destination-type")
+>>>>>>> 663912a81 (spi: make provisioner async)
                 .build();
 
         return TransferProcess.Builder.newInstance()

@@ -22,6 +22,7 @@ import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.joining;

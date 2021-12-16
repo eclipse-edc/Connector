@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import org.jetbrains.annotations.Nullable;

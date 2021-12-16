@@ -24,10 +24,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
-import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.Role;
-import software.amazon.awssdk.services.s3.S3AsyncClient;
-import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.services.sts.model.Credentials;
 
 import java.util.concurrent.CompletableFuture;

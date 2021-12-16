@@ -41,7 +41,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -494,30 +493,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         getListeners().forEach(action);
     }
 
-    private void updateProcessWithProvisionedResource(ProvisionedResource provisionedResource, TransferProcess transferProcess) {
-        transferProcess.addProvisionedResource(provisionedResource);
-
-        if (provisionedResource.isError()) {
-            var processId = transferProcess.getId();
-            var resourceId = provisionedResource.getResourceDefinitionId();
-            monitor.severe(format("Error provisioning resource %s for process %s: %s", resourceId, processId, provisionedResource.getErrorMessage()));
-            transferProcessStore.update(transferProcess);
-            return;
-        }
-
-        if (TransferProcessStates.ERROR.code() != transferProcess.getState() && transferProcess.provisioningComplete()) {
-            // TODO If all resources provisioned, delete scratch data
-            transferProcess.transitionProvisioned();
-        }
-        transferProcessStore.update(transferProcess);
-    }
-
-    private void processNotFound(ProvisionedResource provisionedResource) {
-        var resourceId = provisionedResource.getResourceDefinitionId();
-        var processId = provisionedResource.getTransferProcessId();
-        monitor.severe(format("Error received when provisioning resource %s Process id not found for: %s", resourceId, processId));
-    }
-
     public static class Builder {
         private final AsyncTransferProcessManager manager;
 
@@ -589,6 +564,5 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             return manager;
         }
     }
-
 
 }
