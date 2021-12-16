@@ -15,7 +15,7 @@
 
 package org.eclipse.dataspaceconnector.catalog.spi;
 
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ import java.util.List;
 public class QueryResponse {
     private Status status;
     private List<String> errors = new ArrayList<>();
-    private List<Asset> assets = new ArrayList<>();
+    private List<ContractOffer> offers = new ArrayList<>();
 
     private QueryResponse(Status status) {
         this.status = status;
@@ -34,15 +34,15 @@ public class QueryResponse {
 
     }
 
-    public static QueryResponse ok(List<Asset> result) {
+    public static QueryResponse ok(List<ContractOffer> result) {
         return Builder.newInstance()
                 .status(Status.ACCEPTED)
-                .assets(result)
+                .offers(result)
                 .build();
     }
 
-    public List<Asset> getAssets() {
-        return assets;
+    public List<ContractOffer> getOffers() {
+        return offers;
     }
 
     public Status getStatus() {
@@ -71,8 +71,8 @@ public class QueryResponse {
             return new Builder();
         }
 
-        public Builder assets(List<Asset> assets) {
-            response.assets = assets;
+        public Builder offers(List<ContractOffer> assets) {
+            response.offers = assets;
             return this;
         }
 

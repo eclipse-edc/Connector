@@ -7,10 +7,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -49,7 +50,7 @@ class FederatedCatalogCacheEndToEndTest {
         int nbAssets = 3;
 
         // generate assets and populate the store
-        List<CachedAsset> assets = new ArrayList<>();
+        List<ContractOffer> assets = new ArrayList<>();
         for (int i = 0; i < nbAssets; i++) {
             assets.add(buildAsset());
         }
@@ -67,20 +68,20 @@ class FederatedCatalogCacheEndToEndTest {
 
         // test
         assertThat(response.code()).isEqualTo(200);
-        List<Asset> actualAssets = Arrays.asList(MAPPER.readValue(Objects.requireNonNull(response.body()).string(), Asset[].class));
+        List<ContractOffer> actualAssets = Arrays.asList(MAPPER.readValue(Objects.requireNonNull(response.body()).string(), ContractOffer[].class));
         compareAssetsById(actualAssets, assets);
     }
 
-    private CachedAsset buildAsset() {
-        return CachedAsset.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .name("demo-test")
+    private ContractOffer buildAsset() {
+        return ContractOffer.Builder.newInstance()
+                .asset(Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build())
+                .policy(Policy.Builder.newInstance().build())
                 .build();
     }
 
-    private void compareAssetsById(List<Asset> actual, List<CachedAsset> expected) {
-        List<String> actualAssetIds = actual.stream().map(Asset::getId).sorted().collect(Collectors.toList());
-        List<String> expectedAssetIds = expected.stream().map(CachedAsset::getId).sorted().collect(Collectors.toList());
+    private void compareAssetsById(List<ContractOffer> actual, List<ContractOffer> expected) {
+        List<String> actualAssetIds = actual.stream().map(co -> co.getAsset().getId()).sorted().collect(Collectors.toList());
+        List<String> expectedAssetIds = expected.stream().map(co -> co.getAsset().getId()).sorted().collect(Collectors.toList());
         assertThat(actualAssetIds).isEqualTo(expectedAssetIds);
     }
 }

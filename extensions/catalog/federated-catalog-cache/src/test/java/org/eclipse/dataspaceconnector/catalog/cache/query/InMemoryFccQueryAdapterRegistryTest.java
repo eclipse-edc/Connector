@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -78,7 +79,7 @@ class InMemoryFccQueryAdapterRegistryTest {
         var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
 
         assertThat(result).isNotNull();
-        assertThat(result.getAssets()).isEmpty();
+        assertThat(result.getOffers()).isEmpty();
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.NO_ADAPTER_FOUND);
     }
@@ -94,8 +95,7 @@ class InMemoryFccQueryAdapterRegistryTest {
         registry.register(adapter3);
 
         var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
-
-        assertThat(result.getAssets()).hasSize(6);
+        assertThat(result.getOffers()).hasSize(6);
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
     }
@@ -109,8 +109,7 @@ class InMemoryFccQueryAdapterRegistryTest {
         registry.register(adapter2);
 
         var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
-
-        assertThat(result.getAssets()).hasSize(6);
+        assertThat(result.getOffers()).hasSize(6);
         assertThat(result.getErrors()).isEmpty();
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
     }
@@ -126,8 +125,7 @@ class InMemoryFccQueryAdapterRegistryTest {
         registry.register(adapter3);
 
         var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
-
-        assertThat(result.getAssets()).hasSize(6);
+        assertThat(result.getOffers()).hasSize(6);
         assertThat(result.getErrors()).isNotEmpty().hasSize(1);
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
     }
@@ -143,8 +141,7 @@ class InMemoryFccQueryAdapterRegistryTest {
         registry.register(adapter3);
 
         var result = registry.executeQuery(mock(FederatedCatalogCacheQuery.class));
-
-        assertThat(result.getAssets()).hasSize(0);
+        assertThat(result.getOffers()).hasSize(0);
         assertThat(result.getErrors()).isNotEmpty().hasSize(3);
         assertThat(result.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
     }
@@ -160,7 +157,7 @@ class InMemoryFccQueryAdapterRegistryTest {
     private CacheQueryAdapter matchingAdapter() {
         CacheQueryAdapter adapter1 = mock(CacheQueryAdapter.class);
         when(adapter1.canExecute(any())).thenReturn(true);
-        Supplier<CachedAsset> as = () -> CachedAsset.Builder.newInstance().build();
+        Supplier<ContractOffer> as = () -> ContractOffer.Builder.newInstance().build();
         when(adapter1.executeQuery(any())).thenReturn(Stream.of(as.get(), as.get(), as.get()));
         return adapter1;
     }
@@ -172,8 +169,8 @@ class InMemoryFccQueryAdapterRegistryTest {
         return adapter1;
     }
 
-    private List<Asset> collectAssetsFromAdapters(Collection<CacheQueryAdapter> adapters) {
-        List<Asset> assets = new ArrayList<>();
+    private List<ContractOffer> collectAssetsFromAdapters(Collection<CacheQueryAdapter> adapters) {
+        List<ContractOffer> assets = new ArrayList<>();
         adapters.forEach(cacheQueryAdapter -> assets.addAll(cacheQueryAdapter.executeQuery(null).collect(Collectors.toList())));
         return assets;
     }

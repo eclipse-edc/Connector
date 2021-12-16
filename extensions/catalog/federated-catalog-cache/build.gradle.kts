@@ -21,7 +21,7 @@ val rsApi: String by project
 dependencies {
     api(project(":spi"))
 
-    implementation(project(":extensions:catalog:federated-catalog-spi"))
+    api(project(":extensions:catalog:federated-catalog-spi"))
     implementation(project(":common:util"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

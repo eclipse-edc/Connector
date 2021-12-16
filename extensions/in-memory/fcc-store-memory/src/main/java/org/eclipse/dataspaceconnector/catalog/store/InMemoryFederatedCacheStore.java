@@ -1,9 +1,9 @@
 package org.eclipse.dataspaceconnector.catalog.store;
 
-import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.asset.CriterionConverter;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.util.Collection;
 import java.util.List;
@@ -17,20 +17,20 @@ import java.util.stream.Collectors;
  */
 public class InMemoryFederatedCacheStore implements FederatedCacheStore {
 
-    private final Map<String, CachedAsset> cache = new ConcurrentHashMap<>();
-    private final CriterionConverter<Predicate<CachedAsset>> converter;
+    private final Map<String, ContractOffer> cache = new ConcurrentHashMap<>();
+    private final CriterionConverter<Predicate<ContractOffer>> converter;
 
-    public InMemoryFederatedCacheStore(CriterionConverter<Predicate<CachedAsset>> converter) {
+    public InMemoryFederatedCacheStore(CriterionConverter<Predicate<ContractOffer>> converter) {
         this.converter = converter;
     }
 
     @Override
-    public void save(CachedAsset asset) {
+    public void save(ContractOffer asset) {
         cache.put(asset.getId(), asset);
     }
 
     @Override
-    public Collection<CachedAsset> query(List<Criterion> query) {
+    public Collection<ContractOffer> query(List<Criterion> query) {
         //AND all predicates
         var rootPredicate = query.stream().map(converter::convert).reduce(x -> true, Predicate::and);
         return cache.values().stream().filter(rootPredicate).collect(Collectors.toList());

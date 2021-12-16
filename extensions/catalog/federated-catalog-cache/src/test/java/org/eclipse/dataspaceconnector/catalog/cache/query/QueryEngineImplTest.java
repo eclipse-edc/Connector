@@ -5,6 +5,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -17,9 +18,9 @@ import static org.mockito.Mockito.when;
 
 class QueryEngineImplTest {
 
-    private static final Asset ASSET_ABC = Asset.Builder.newInstance().id("ABC").build();
-    private static final Asset ASSET_DEF = Asset.Builder.newInstance().id("DEF").build();
-    private static final Asset ASSET_XYZ = Asset.Builder.newInstance().id("XYZ").build();
+    private static final ContractOffer ASSET_ABC = ContractOffer.Builder.newInstance().id("ABC").build();
+    private static final ContractOffer ASSET_DEF = ContractOffer.Builder.newInstance().id("DEF").build();
+    private static final ContractOffer ASSET_XYZ = ContractOffer.Builder.newInstance().id("XYZ").build();
 
     @Test
     void getCatalog() {
@@ -32,7 +33,8 @@ class QueryEngineImplTest {
         QueryResponse catalog = queryEngine.getCatalog(FederatedCatalogCacheQuery.Builder.newInstance().build());
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
         assertThat(catalog.getErrors()).isEmpty();
-        assertThat(catalog.getAssets()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
+        assertThat(catalog.getOffers()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
+
         verify(registry).executeQuery(any());
     }
 
@@ -41,7 +43,7 @@ class QueryEngineImplTest {
         CacheQueryAdapterRegistry registry = mock(CacheQueryAdapterRegistry.class);
 
         when(registry.executeQuery(any())).thenReturn(QueryResponse.Builder.newInstance()
-                .assets(List.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ))
+                .offers(List.of(ASSET_ABC, ASSET_DEF, ASSET_XYZ))
                 .error("some error")
                 .build());
 
@@ -50,7 +52,7 @@ class QueryEngineImplTest {
         QueryResponse catalog = queryEngine.getCatalog(FederatedCatalogCacheQuery.Builder.newInstance().build());
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.ACCEPTED);
         assertThat(catalog.getErrors()).hasSize(1).containsExactly("some error");
-        assertThat(catalog.getAssets()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
+        assertThat(catalog.getOffers()).containsExactlyInAnyOrder(ASSET_ABC, ASSET_DEF, ASSET_XYZ);
         verify(registry).executeQuery(any());
     }
 
@@ -68,7 +70,7 @@ class QueryEngineImplTest {
         QueryResponse catalog = queryEngine.getCatalog(FederatedCatalogCacheQuery.Builder.newInstance().build());
         assertThat(catalog.getStatus()).isEqualTo(QueryResponse.Status.NO_ADAPTER_FOUND);
         assertThat(catalog.getErrors()).hasSize(1);
-        assertThat(catalog.getAssets()).isEmpty();
+        assertThat(catalog.getOffers()).isEmpty();
         verify(registry).executeQuery(any());
     }
 }
