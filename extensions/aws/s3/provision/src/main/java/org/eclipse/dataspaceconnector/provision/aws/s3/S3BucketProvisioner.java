@@ -18,10 +18,8 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 
@@ -35,7 +33,6 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     private final int sessionDuration;
     private final Monitor monitor;
     private final RetryPolicy<Object> retryPolicy;
-    private ProvisionContext context;
 
     /**
      * Ctor.
@@ -50,11 +47,6 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
         this.sessionDuration = sessionDuration;
         this.monitor = monitor;
         this.retryPolicy = retryPolicy;
-    }
-
-    @Override
-    public void initialize(ProvisionContext context) {
-        this.context = context;
     }
 
     @Override
@@ -86,8 +78,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
                 .monitor(monitor)
                 .resource().build();
 
-        return pipeline.deprovision(provisionedResource, throwable -> context.deprovisioned(provisionedResource, throwable))
-                .thenApply(empty -> DeprovisionResponse.Builder.newInstance().ok().resource(provisionedResource).build());
+        return pipeline.deprovision(provisionedResource);
     }
 }
 

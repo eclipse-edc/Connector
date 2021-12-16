@@ -15,10 +15,8 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.ProtocolsSecretToken;
@@ -34,10 +32,6 @@ public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefi
 
     public PushStreamProvisioner(TopicManager topicManager) {
         this.topicManager = topicManager;
-    }
-
-    @Override
-    public void initialize(ProvisionContext context) {
     }
 
     @Override

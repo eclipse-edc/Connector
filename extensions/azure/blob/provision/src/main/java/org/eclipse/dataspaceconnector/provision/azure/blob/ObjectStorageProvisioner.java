@@ -19,10 +19,8 @@ import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.provision.azure.AzureSasToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -36,17 +34,11 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
     private final RetryPolicy<Object> retryPolicy;
     private final Monitor monitor;
     private final BlobStoreApi blobStoreApi;
-    private ProvisionContext context;
 
     public ObjectStorageProvisioner(RetryPolicy<Object> retryPolicy, Monitor monitor, BlobStoreApi blobStoreApi) {
         this.retryPolicy = retryPolicy;
         this.monitor = monitor;
         this.blobStoreApi = blobStoreApi;
-    }
-
-    @Override
-    public void initialize(ProvisionContext context) {
-        this.context = context;
     }
 
     @Override
@@ -94,11 +86,8 @@ public class ObjectStorageProvisioner implements Provisioner<ObjectStorageResour
     @Override
     public CompletableFuture<DeprovisionResponse> deprovision(ObjectContainerProvisionedResource provisionedResource) {
         return with(retryPolicy).runAsync(() -> blobStoreApi.deleteContainer(provisionedResource.getAccountName(), provisionedResource.getContainerName()))
-                .thenApply(empty -> {
-                    //the sas token will expire automatically. there is no way of revoking them other than a stored access policy
-                    context.deprovisioned(provisionedResource, null);
-                    return DeprovisionResponse.Builder.newInstance().ok().resource(provisionedResource).build();
-                });
+                //the sas token will expire automatically. there is no way of revoking them other than a stored access policy
+                .thenApply(empty -> DeprovisionResponse.Builder.newInstance().ok().resource(provisionedResource).build());
     }
 
     @NotNull

@@ -127,7 +127,6 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        provisionManager.start(asyncMgr.createProvisionContext());
         processManager.start(transferProcessStore);
     }
 

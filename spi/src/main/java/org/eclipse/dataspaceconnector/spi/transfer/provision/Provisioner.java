@@ -29,16 +29,8 @@ import java.util.concurrent.CompletableFuture;
 public interface Provisioner<RD extends ResourceDefinition, PR extends ProvisionedResource> {
 
     /**
-     * Initializes the provisioner with a threadsafe execution context.
-     * This context is used to persist recovery data and return results when {@link #provision(ResourceDefinition)} completes.
-     *
-     * @param context the provision context
-     */
-    void initialize(ProvisionContext context);
-
-    /**
-     * Returns true if the provisioner handles the resource type.
-     */
+    * Returns true if the provisioner handles the resource type.
+    */
     boolean canProvision(ResourceDefinition resourceDefinition);
 
     /**

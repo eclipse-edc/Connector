@@ -18,9 +18,12 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.DeleteRolePolicyRequest;
 import software.amazon.awssdk.services.iam.model.DeleteRoleRequest;
+import software.amazon.awssdk.services.iam.model.DeleteRoleResponse;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.Delete;
 import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
@@ -44,7 +47,7 @@ public class S3DeprovisionPipeline {
         this.monitor = monitor;
     }
 
-    public CompletableFuture<Void> deprovision(S3BucketProvisionedResource resource, Consumer<Throwable> callback) {
+    public CompletableFuture<DeprovisionResponse> deprovision(S3BucketProvisionedResource resource) {
         var s3Client = clientProvider.clientFor(S3AsyncClient.class, resource.getRegion());
         var iamClient = clientProvider.clientFor(IamAsyncClient.class, resource.getRegion());
 
@@ -74,11 +77,7 @@ public class S3DeprovisionPipeline {
                     monitor.info("S3 Deprovisioning: delete role");
                     return iamClient.deleteRole(DeleteRoleRequest.builder().roleName(role).build());
                 }))
-                .thenAccept(deleteRoleResponse -> callback.accept(null))
-                .exceptionally(throwable -> {
-                    callback.accept(throwable);
-                    return null;
-                });
+                .thenApply(response -> DeprovisionResponse.Builder.newInstance().ok().resource(resource).build());
     }
 
     private DeleteBucketRequest deleteBucket(String bucketName) {

@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
@@ -45,7 +44,6 @@ class ProvisionManagerImplTest {
                 .state(TransferProcessStates.REQUESTED.code())
                 .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
                 .build();
-        provisionManager.start(mock(ProvisionContext.class));
 
         var result = provisionManager.provision(transferProcess);
 
@@ -66,7 +64,6 @@ class ProvisionManagerImplTest {
                 .state(TransferProcessStates.REQUESTED.code())
                 .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().resources(List.of(new TestProvisionedResource())).build())
                 .build();
-        provisionManager.start(mock(ProvisionContext.class));
 
         var result = provisionManager.deprovision(transferProcess);
 
