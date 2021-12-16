@@ -35,11 +35,15 @@ public interface TransferProcessManager {
      */
     TransferInitiateResult initiateProviderRequest(DataRequest dataRequest);
 
+    // TODO: will be substituted by the upcoming command queue introduction
     void transitionRequestAck(String processId);
 
+    // TODO: will be substituted by the upcoming command queue introduction
     void transitionProvisioned(String processId);
 
+    // TODO: will be substituted by the upcoming command queue introduction
     void transitionError(String processId, String detail);
 
+    // TODO: will be substituted by the upcoming command queue introduction
     Result<TransferProcessStates> deprovision(String processId);
 }
