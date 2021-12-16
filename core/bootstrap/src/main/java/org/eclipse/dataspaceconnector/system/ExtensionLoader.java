@@ -64,7 +64,7 @@ public class ExtensionLoader {
         }
         vaultExtension.initialize(context.getMonitor());
         context.getMonitor().info("Initialized " + vaultExtension.name());
-        vaultExtension.intializeVault(context);
+        vaultExtension.initializeVault(context);
         context.registerService(Vault.class, vaultExtension.getVault());
         context.registerService(PrivateKeyResolver.class, vaultExtension.getPrivateKeyResolver());
         context.registerService(CertificateResolver.class, vaultExtension.getCertificateResolver());

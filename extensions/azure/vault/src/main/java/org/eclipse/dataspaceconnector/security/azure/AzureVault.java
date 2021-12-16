@@ -71,7 +71,6 @@ public class AzureVault implements Vault {
     @Override
     public @Nullable String resolveSecret(String key) {
         try {
-
             key = sanitizeKey(key);
             var secret = secretClient.getSecret(key);
             return secret.getValue();

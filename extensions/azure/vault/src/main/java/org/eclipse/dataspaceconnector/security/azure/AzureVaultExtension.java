@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.security.azure;
 
 import org.eclipse.dataspaceconnector.security.VaultPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
@@ -26,6 +27,21 @@ import static org.eclipse.dataspaceconnector.common.string.StringUtils.isNullOrE
 
 
 public class AzureVaultExtension implements VaultExtension {
+
+    @EdcSetting
+    private static final String VAULT_CLIENT_ID = "edc.vault.clientid";
+
+    @EdcSetting
+    private static final String VAULT_TENANT_ID = "edc.vault.tenantid";
+
+    @EdcSetting
+    private static final String VAULT_NAME = "edc.vault.name";
+
+    @EdcSetting
+    private static final String VAULT_CLIENT_SECRET = "edc.vault.clientsecret";
+
+    @EdcSetting
+    private static final String VAULT_CERTIFICATE = "edc.vault.certificate";
 
     private Vault vault;
 
@@ -55,28 +71,28 @@ public class AzureVaultExtension implements VaultExtension {
     }
 
     @Override
-    public void intializeVault(ServiceExtensionContext context) {
-        String clientId = context.getSetting("edc.vault.clientid", null);
-        if (isNullOrEmpty(clientId)) {
-            throw new AzureVaultException("'edc.vault.clientid' must be supplied but was null!");
+    public void initializeVault(ServiceExtensionContext context) {
+        String clientId = getMandatorySetting(context, VAULT_CLIENT_ID);
+        String tenantId = getMandatorySetting(context, VAULT_TENANT_ID);
+        String keyVaultName = getMandatorySetting(context, VAULT_NAME);
+
+        String clientSecret = context.getSetting(VAULT_CLIENT_SECRET, null);
+        String certPath = context.getSetting(VAULT_CERTIFICATE, null);
+        if (isNullOrEmpty(certPath) && isNullOrEmpty(clientSecret)) {
+            throw new AzureVaultException(String.format("Either '%s' or '%s' must be supplied but both were null", VAULT_CERTIFICATE, VAULT_CLIENT_SECRET));
         }
 
-        String tenantId = context.getSetting("edc.vault.tenantid", null);
-        if (isNullOrEmpty(tenantId)) {
-            throw new AzureVaultException("'edc.vault.tenantid' must be supplied but was null!");
-        }
+        vault = (certPath != null) ? AzureVault.authenticateWithCertificate(context.getMonitor(), clientId, tenantId, certPath, keyVaultName) :
+                AzureVault.authenticateWithSecret(context.getMonitor(), clientId, tenantId, clientSecret, keyVaultName);
 
-        String certPath = context.getSetting("edc.vault.certificate", null);
-        if (isNullOrEmpty(certPath)) {
-            throw new AzureVaultException("'edc.vault.certificate' must be supplied but was null!");
-        }
-
-        String keyVaultName = context.getSetting("edc.vault.name", null);
-        if (isNullOrEmpty(keyVaultName)) {
-            throw new AzureVaultException("'edc.vault.name' must be supplied but was null!");
-        }
-
-        vault = AzureVault.authenticateWithCertificate(context.getMonitor(), clientId, tenantId, certPath, keyVaultName);
         context.getMonitor().info("AzureVaultExtension: authentication/initialization complete.");
+    }
+
+    private static String getMandatorySetting(ServiceExtensionContext context, String setting) {
+        String value = context.getSetting(setting, null);
+        if (isNullOrEmpty(setting)) {
+            throw new AzureVaultException(String.format("'%s' must be supplied but was null", setting));
+        }
+        return value;
     }
 }
