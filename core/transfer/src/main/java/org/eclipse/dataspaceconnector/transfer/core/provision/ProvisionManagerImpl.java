@@ -27,10 +27,6 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-<<<<<<< HEAD
-=======
-import java.util.stream.Collector;
->>>>>>> 663912a81 (spi: make provisioner async)
 import java.util.stream.Collectors;
 
 /**
@@ -39,13 +35,6 @@ import java.util.stream.Collectors;
 public class ProvisionManagerImpl implements ProvisionManager {
     private final List<Provisioner<?, ?>> provisioners = new ArrayList<>();
 
-<<<<<<< HEAD
-=======
-    public void start(ProvisionContext provisionContext) {
-        provisioners.forEach(provisioner -> provisioner.initialize(provisionContext));
-    }
-
->>>>>>> 663912a81 (spi: make provisioner async)
     @Override
     public <RD extends ResourceDefinition, PR extends ProvisionedResource> void register(Provisioner<RD, PR> provisioner) {
         provisioners.add(provisioner);
@@ -54,7 +43,6 @@ public class ProvisionManagerImpl implements ProvisionManager {
     @Override
     public List<CompletableFuture<ProvisionResponse>> provision(TransferProcess process) {
         return process.getResourceManifest().getDefinitions().stream()
-<<<<<<< HEAD
                 .map(definition -> {
                     try {
                         return getProvisioner(definition).provision(definition);
@@ -62,14 +50,10 @@ public class ProvisionManagerImpl implements ProvisionManager {
                         return CompletableFuture.<ProvisionResponse>failedFuture(e);
                     }
                 })
-=======
-                .map(definition -> getProvisioner(definition).provision(definition))
->>>>>>> 663912a81 (spi: make provisioner async)
                 .collect(Collectors.toList());
     }
 
     @Override
-<<<<<<< HEAD
     public List<CompletableFuture<DeprovisionResponse>> deprovision(TransferProcess process) {
         return process.getProvisionedResourceSet().getResources().stream()
                 .map(definition -> {
@@ -79,11 +63,6 @@ public class ProvisionManagerImpl implements ProvisionManager {
                         return CompletableFuture.<DeprovisionResponse>failedFuture(e);
                     }
                 })
-=======
-    public List<CompletableFuture<ResponseStatus>> deprovision(TransferProcess process) {
-        return process.getProvisionedResourceSet().getResources().stream()
-                .map(definition -> getProvisioner(definition).deprovision(definition))
->>>>>>> 663912a81 (spi: make provisioner async)
                 .collect(Collectors.toList());
     }
 
