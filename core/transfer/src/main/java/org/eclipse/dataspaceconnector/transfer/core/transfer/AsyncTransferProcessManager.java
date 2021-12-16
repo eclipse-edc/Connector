@@ -165,7 +165,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     public ProvisionContext createProvisionContext() {
-        return new ProvisionContextImpl(this::onResource, this::onDestinationResource, this::onDeprovisionComplete);
+        return new ProvisionContextImpl(this::onResource, this::onProvision, this::onDeprovisionComplete);
     }
 
     void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {
@@ -186,7 +186,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         }
     }
 
-    void onDestinationResource(ProvisionedDataDestinationResource destinationResource, SecretToken secretToken) {
+    void onProvision(ProvisionedDataDestinationResource destinationResource, SecretToken secretToken) {
         var processId = destinationResource.getTransferProcessId();
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
@@ -411,7 +411,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 provisionManager.provision(process).forEach(future -> {
                     future.whenComplete((result, throwable) -> {
                         if (result != null) {
-                            onDestinationResource(result.getResource(), result.getSecretToken());
+                            onProvision(result.getResource(), result.getSecretToken());
                         } else {
                             monitor.severe("Error while provisioning a resource", throwable);
                         }
