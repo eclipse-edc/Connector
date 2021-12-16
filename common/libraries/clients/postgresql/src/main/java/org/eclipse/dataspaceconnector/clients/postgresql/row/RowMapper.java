@@ -1,0 +1,35 @@
+/*
+ *  Copyright (c) 2021 Daimler TSS GmbH
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Daimler TSS GmbH - Initial API and Implementation
+ *
+ */
+
+package org.eclipse.dataspaceconnector.clients.postgresql.row;
+
+import java.sql.ResultSet;
+import java.sql.SQLException;
+
+/**
+ * Component capable of mapping {@link java.sql.ResultSet} to e.g. POJO.
+ *
+ * @param <T> generic type param of the resulting type
+ */
+public interface RowMapper<T> {
+
+    /**
+     * Maps a sql result set into a object.
+     *
+     * @param resultSet containing columns of a row
+     * @return result
+     * @throws SQLException if something went wrong
+     */
+    T mapRow(ResultSet resultSet) throws SQLException;
+}

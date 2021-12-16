@@ -17,6 +17,7 @@ rootProject.name = "dataspaceconnector"
 // modules for common/util code
 
 include(":common:util")
+include(":common:libraries:clients:postgresql")
 
 // EDC core modules
 include(":core")
