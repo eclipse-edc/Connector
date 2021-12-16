@@ -564,5 +564,4 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             return manager;
         }
     }
-
 }
