@@ -19,6 +19,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataD
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Performs provisioning and de-provisioning of a specific resource type.
@@ -43,15 +46,16 @@ public interface Provisioner<RD extends ResourceDefinition, PR extends Provision
      */
     boolean canDeprovision(ProvisionedResource resourceDefinition);
 
+    // TODO: fix async methods javadoc
     /**
-     * Provisions a resource required to perform the data transfer, asynchronously if necessary. Results are returned via
-     * {@link ProvisionContext#callback(ProvisionedResource)} or {@link ProvisionContext#callback(ProvisionedDataDestinationResource, SecretToken)}.
+     * Asynchronously provisions a resource required to perform the data transfer.
      * Implementations must be idempotent.
      * Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted, return
      * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
      * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#FATAL_ERROR}.
      */
-    ResponseStatus provision(RD resourceDefinition);
+    @NotNull
+    CompletableFuture<ProvisionResponse> provision(RD resourceDefinition);
 
     /**
      * Removes ephemeral resources of a specific type associated with the data transfer. Implements must be idempotent.
@@ -59,6 +63,7 @@ public interface Provisioner<RD extends ResourceDefinition, PR extends Provision
      * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
      * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#FATAL_ERROR}.
      */
-    ResponseStatus deprovision(PR provisionedResource);
+    @NotNull
+    CompletableFuture<ResponseStatus> deprovision(PR provisionedResource);
 
 }

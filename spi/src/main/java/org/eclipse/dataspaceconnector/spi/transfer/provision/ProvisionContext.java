@@ -27,11 +27,6 @@ public interface ProvisionContext {
     /**
      * Invoked when a provision request has completed.
      */
-    void callback(ProvisionedResource resource);
-
-    /**
-     * Invoked when a provision request has completed.
-     */
     void callback(ProvisionedDataDestinationResource resource, @Nullable SecretToken secretToken);
 
     /**

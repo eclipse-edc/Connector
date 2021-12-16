@@ -27,21 +27,13 @@ import java.util.function.Consumer;
  * Provision context backed by a {@link TransferProcessStore}.
  */
 public class ProvisionContextImpl implements ProvisionContext {
-    private final Consumer<ProvisionedResource> resourceCallback;
     private final BiConsumer<ProvisionedDataDestinationResource, SecretToken> destinationCallback;
     private final BiConsumer<ProvisionedDataDestinationResource, Throwable> deprovisionCallback;
 
-    public ProvisionContextImpl(Consumer<ProvisionedResource> resourceCallback,
-                                BiConsumer<ProvisionedDataDestinationResource, SecretToken> destinationCallback,
+    public ProvisionContextImpl(BiConsumer<ProvisionedDataDestinationResource, SecretToken> destinationCallback,
                                 BiConsumer<ProvisionedDataDestinationResource, Throwable> deprovisionCallback) {
-        this.resourceCallback = resourceCallback;
         this.destinationCallback = destinationCallback;
         this.deprovisionCallback = deprovisionCallback;
-    }
-
-    @Override
-    public void callback(ProvisionedResource resource) {
-        resourceCallback.accept(resource);
     }
 
     @Override

@@ -19,14 +19,14 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import software.amazon.awssdk.awscore.exception.AwsServiceException;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
 import software.amazon.awssdk.services.iam.model.CreateRoleResponse;
 import software.amazon.awssdk.services.iam.model.GetUserResponse;
 import software.amazon.awssdk.services.iam.model.PutRolePolicyRequest;
-import software.amazon.awssdk.services.iam.model.PutRolePolicyResponse;
+import software.amazon.awssdk.services.iam.model.Role;
 import software.amazon.awssdk.services.iam.model.Tag;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
@@ -34,6 +34,7 @@ import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
 import software.amazon.awssdk.services.sts.model.AssumeRoleResponse;
+import software.amazon.awssdk.utils.Pair;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -71,10 +72,8 @@ class S3ProvisionPipeline {
     private final RetryPolicy<Object> retryPolicy;
     private ClientProvider clientProvider;
     private S3BucketResourceDefinition resourceDefinition;
-    private ProvisionContext context;
     private int sessionDuration;
     private Monitor monitor;
-    private AsyncContext asyncContext;
 
     private S3ProvisionPipeline(RetryPolicy<Object> generalPolicy) {
         retryPolicy = generalPolicy.copy()
@@ -85,22 +84,37 @@ class S3ProvisionPipeline {
     /**
      * Performs a non-blocking provisioning operation.
      */
-    public void provision() {
-        asyncContext = new AsyncContext();
+    public CompletableFuture<ProvisionResponse> provision() {
+        S3AsyncClient s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, resourceDefinition.getRegionId());
 
-        String region = resourceDefinition.getRegionId();
+        CreateBucketRequest request = CreateBucketRequest.builder()
+                .bucket(resourceDefinition.getBucketName())
+                .createBucketConfiguration(CreateBucketConfiguration.builder().build())
+                .build();
 
-        String bucketName = resourceDefinition.getBucketName();
-
-        S3AsyncClient s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, region);
-
-        CreateBucketRequest request = CreateBucketRequest.builder().bucket(bucketName).createBucketConfiguration(CreateBucketConfiguration.builder().build()).build();
-        s3AsyncClient.createBucket(request)
+        return s3AsyncClient.createBucket(request)
                 .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> getUser(resourceDefinition)))
-                .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> createRole(resourceDefinition, r)))
-                .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> createRolePolicy(resourceDefinition, bucketName, asyncContext, r)))
-                .thenCompose(r -> Failsafe.with(retryPolicy).getStageAsync(() -> assumeRole(resourceDefinition, asyncContext)))
-                .whenComplete((r, e) -> createAndSendToken(resourceDefinition, r, e));
+                .thenCompose(response -> Failsafe.with(retryPolicy).getStageAsync(() -> createRole(resourceDefinition, response)))
+                .thenCompose(response -> Failsafe.with(retryPolicy).getStageAsync(() -> createRolePolicy(resourceDefinition, response)))
+                .thenCompose(role -> Failsafe.with(retryPolicy).getStageAsync(() -> assumeRole(resourceDefinition, role)))
+                .thenApply(result -> {
+                    monitor.debug("S3ProvisionPipeline: STS credentials obtained, continuing...");
+                    var resource = S3BucketProvisionedResource.Builder.newInstance()
+                            .id(resourceDefinition.getBucketName())
+                            .resourceDefinitionId(resourceDefinition.getId())
+                            .region(resourceDefinition.getRegionId())
+                            .bucketName(resourceDefinition.getBucketName())
+                            .role(result.left().roleName())
+                            .transferProcessId(resourceDefinition.getTransferProcessId())
+                            .build();
+
+                    var credentials = result.right().credentials();
+                    var secretToken = new AwsTemporarySecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());
+
+                    monitor.debug("Bucket request submitted: " + resourceDefinition.getBucketName());
+                    return ProvisionResponse.Builder.newInstance().resource(resource).secretToken(secretToken).build();
+                })
+                .exceptionally(throwable -> sendErroredResource(resourceDefinition, throwable));
     }
 
     private CompletableFuture<GetUserResponse> getUser(S3BucketResourceDefinition resourceDefinition) {
@@ -110,73 +124,58 @@ class S3ProvisionPipeline {
 
     private CompletableFuture<CreateRoleResponse> createRole(S3BucketResourceDefinition resourceDefinition, GetUserResponse response) {
         String userArn = response.user().arn();
-        CreateRoleRequest.Builder roleBuilder = CreateRoleRequest.builder();
         Tag tag = Tag.builder().key("dataspaceconnector:process").value(resourceDefinition.getTransferProcessId()).build();
-        roleBuilder.roleName(resourceDefinition.getTransferProcessId()).description("EDC transfer process role")
-                .assumeRolePolicyDocument(format(ASSUME_ROLE_TRUST, userArn)).maxSessionDuration(sessionDuration).tags(tag);
+
         monitor.debug("S3ProvisionPipeline: create role for user" + userArn);
-        return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).createRole(roleBuilder.build());
+        CreateRoleRequest createRoleRequest = CreateRoleRequest.builder()
+                .roleName(resourceDefinition.getTransferProcessId()).description("EDC transfer process role")
+                .assumeRolePolicyDocument(format(ASSUME_ROLE_TRUST, userArn))
+                .maxSessionDuration(sessionDuration)
+                .tags(tag)
+                .build();
+
+        return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).createRole(createRoleRequest);
     }
 
-    private CompletableFuture<PutRolePolicyResponse> createRolePolicy(S3BucketResourceDefinition resourceDefinition, String bucketName, AsyncContext asyncContext, CreateRoleResponse response) {
-        String processId = resourceDefinition.getTransferProcessId();
-        asyncContext.roleArn = response.role().arn();
-        asyncContext.roleName = response.role().roleName();
-        String policyDocument = format(BUCKET_POLICY, bucketName);
-        PutRolePolicyRequest policyRequest = PutRolePolicyRequest.builder().policyName(processId).roleName(response.role().roleName()).policyDocument(policyDocument).build();
-        monitor.debug("S3ProvisionPipeline: attach bucket policy to role " + asyncContext.roleArn);
-        return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).putRolePolicy(policyRequest);
+    private CompletableFuture<Role> createRolePolicy(S3BucketResourceDefinition resourceDefinition, CreateRoleResponse response) {
+        Role role = response.role();
+        PutRolePolicyRequest policyRequest = PutRolePolicyRequest.builder()
+                .policyName(resourceDefinition.getTransferProcessId())
+                .roleName(role.roleName())
+                .policyDocument(format(BUCKET_POLICY, resourceDefinition.getBucketName()))
+                .build();
+
+        monitor.debug("S3ProvisionPipeline: attach bucket policy to role " + role.arn());
+        return clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId()).putRolePolicy(policyRequest)
+                .thenApply(policyResponse -> role);
     }
 
-    private CompletableFuture<AssumeRoleResponse> assumeRole(S3BucketResourceDefinition resourceDefinition, AsyncContext asyncContext) {
-
-        AssumeRoleRequest.Builder roleBuilder = AssumeRoleRequest.builder();
-        roleBuilder.roleArn(asyncContext.roleArn).roleSessionName("transfer").externalId("123");
+    private CompletableFuture<Pair<Role, AssumeRoleResponse>> assumeRole(S3BucketResourceDefinition resourceDefinition, Role role) {
         monitor.debug("S3ProvisionPipeline: attempting to assume the role");
-        return clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId()).assumeRole(roleBuilder.build());
+        AssumeRoleRequest roleRequest = AssumeRoleRequest.builder()
+                .roleArn(role.arn())
+                .roleSessionName("transfer")
+                .externalId("123")
+                .build();
+
+        return clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId()).assumeRole(roleRequest)
+                .thenApply(response -> Pair.of(role, response));
     }
 
 
-    private void createAndSendToken(S3BucketResourceDefinition resourceDefinition, AssumeRoleResponse response, Throwable exception) {
-        String bucketName = resourceDefinition.getBucketName();
-        if (response != null) {
-            var credentials = response.credentials();
-
-            var transferProcessId = resourceDefinition.getTransferProcessId();
-
-            monitor.debug("S3ProvisionPipeline: STS credentials obtained, continuing...");
-            var resource = S3BucketProvisionedResource.Builder.newInstance().id(bucketName)
-                    .resourceDefinitionId(resourceDefinition.getId())
-                    .region(resourceDefinition.getRegionId())
-                    .bucketName(resourceDefinition.getBucketName())
-                    .role(asyncContext.roleName)
-                    .transferProcessId(transferProcessId).build();
-
-            var secretToken = new AwsTemporarySecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());
-
-            context.callback(resource, secretToken);
-        } else if (exception != null) {
-            sendErroredResource(resourceDefinition, bucketName, exception);
-        }
-    }
-
-    private void sendErroredResource(S3BucketResourceDefinition resourceDefinition, String bucketName, Throwable exception) {
+    private ProvisionResponse sendErroredResource(S3BucketResourceDefinition resourceDefinition, Throwable exception) {
         var exceptionToLog = exception.getCause() != null ? exception.getCause() : exception;
         String resourceId = resourceDefinition.getId();
         String errorMessage = exceptionToLog.getMessage();
         S3BucketProvisionedResource erroredResource = S3BucketProvisionedResource.Builder.newInstance()
-                .id(bucketName)
+                .id(resourceDefinition.getBucketName())
                 .transferProcessId(resourceDefinition.getTransferProcessId())
                 .resourceDefinitionId(resourceId)
                 .error(true)
                 .errorMessage(errorMessage)
                 .build();
-        context.callback(erroredResource, null);
-    }
 
-    private static class AsyncContext {
-        public String roleName;
-        String roleArn;
+        return ProvisionResponse.Builder.newInstance().resource(erroredResource).build();
     }
 
     static class Builder {
@@ -202,11 +201,6 @@ class S3ProvisionPipeline {
 
         public Builder sessionDuration(int sessionDuration) {
             pipeline.sessionDuration = sessionDuration;
-            return this;
-        }
-
-        public Builder context(ProvisionContext context) {
-            pipeline.context = context;
             return this;
         }
 

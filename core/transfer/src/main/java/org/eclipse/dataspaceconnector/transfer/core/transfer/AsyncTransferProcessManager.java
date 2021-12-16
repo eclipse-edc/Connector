@@ -43,6 +43,7 @@ import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionContextIm
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -301,7 +302,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             transferProcessStore.update(process);
             invokeForEach(l -> l.deprovisioning(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            List<ResponseStatus> deprovisionResults = provisionManager.deprovision(process);
+            List<ResponseStatus> deprovisionResults = provisionManager.deprovision(process).stream().map(CompletableFuture::join).collect(Collectors.toList());
             if (deprovisionResults.stream().anyMatch(status -> status != ResponseStatus.OK)) {
                 process.transitionError("Error during deprovisioning");
                 transferProcessStore.update(process);
@@ -407,7 +408,15 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 process.transitionProvisioned();
                 transferProcessStore.update(process);
             } else {
-                provisionManager.provision(process);
+                provisionManager.provision(process).forEach(future -> {
+                    future.whenComplete((result, throwable) -> {
+                        if (result != null) {
+                            onDestinationResource(result.getResource(), result.getSecretToken());
+                        } else {
+                            monitor.severe("Error while provisioning a resource", throwable);
+                        }
+                    });
+                });
             }
 
         }
@@ -571,4 +580,5 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             return manager;
         }
     }
+
 }

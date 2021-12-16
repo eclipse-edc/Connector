@@ -194,7 +194,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
     @Test
     @DisplayName("checkProvisioned: empty provisioned resources")
     void verifyCheckProvisioned_emptyProvisionedResoures() throws InterruptedException {
-        //arrange
         TransferProcess process = createTransferProcess(REQUESTED_ACK);
 
         var cdl = new CountDownLatch(1);
@@ -202,6 +201,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
         //prepare process store
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         when(processStoreMock.nextForState(eq(REQUESTED_ACK.code()), anyInt())).thenReturn(List.of(process));
+
         // flip the latch on the next cycle
         when(processStoreMock.nextForState(anyInt(), anyInt())).thenAnswer(i -> {
             cdl.countDown();
@@ -291,7 +291,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         when(processStoreMock.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process));
-
         when(processStoreMock.nextForState(anyInt(), anyInt())).thenAnswer(i -> {
             cdl.countDown();
             return emptyList();
@@ -372,7 +371,8 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         var processes = new ArrayList<TransferProcess>();
         for (int i = 0; i < numProcesses; i++) {
-            TransferProcess process = createTransferProcess(TransferProcessStates.UNSAVED);
+            ProvisionedResourceSet resourceSet = ProvisionedResourceSet.Builder.newInstance().resources(List.of(new TestResource())).build();
+            TransferProcess process = createTransferProcess(TransferProcessStates.UNSAVED).toBuilder().provisionedResourceSet(resourceSet).build();
             process.transitionInitial();
             processes.add(process);
             inMemoryProcessStore.create(process);
@@ -402,21 +402,21 @@ class AsyncTransferProcessManagerImplConsumerTest {
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState, TransferType type, boolean managed) {
-
         String processId = UUID.randomUUID().toString();
 
         var dataRequest = DataRequest.Builder.newInstance()
                 .id(processId)
                 .transferType(type)
                 .managedResources(managed)
+                .dataDestination(DataAddress.Builder.newInstance().build())
                 .destinationType("destination-type")
                 .build();
 
         return TransferProcess.Builder.newInstance()
-                .state(inState.code())
-                .id("test-process-" + processId)
-                .provisionedResourceSet(new ProvisionedResourceSet())
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().build())
                 .type(TransferProcess.Type.CONSUMER)
+                .id("test-process-" + processId)
+                .state(inState.code())
                 .dataRequest(dataRequest)
                 .build();
     }

@@ -18,10 +18,13 @@ import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Asynchronously provisions S3 buckets.
@@ -64,26 +67,27 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     }
 
     @Override
-    public ResponseStatus provision(S3BucketResourceDefinition resourceDefinition) {
-        S3ProvisionPipeline.Builder builder = S3ProvisionPipeline.Builder.newInstance(retryPolicy);
-        S3ProvisionPipeline pipeline = builder.resourceDefinition(resourceDefinition).clientProvider(clientProvider).sessionDuration(sessionDuration).context(context).monitor(monitor).build();
+    public CompletableFuture<ProvisionResponse> provision(S3BucketResourceDefinition resourceDefinition) {
+        S3ProvisionPipeline pipeline = S3ProvisionPipeline.Builder.newInstance(retryPolicy)
+                .resourceDefinition(resourceDefinition)
+                .clientProvider(clientProvider)
+                .sessionDuration(sessionDuration)
+                .monitor(monitor)
+                .build();
 
-        pipeline.provision();
-
-        monitor.debug("Bucket request submitted: " + resourceDefinition.getBucketName());
-        return ResponseStatus.OK;
+        return pipeline.provision();
     }
 
     @Override
-    public ResponseStatus deprovision(S3BucketProvisionedResource provisionedResource) {
+    public CompletableFuture<ResponseStatus> deprovision(S3BucketProvisionedResource provisionedResource) {
         S3DeprovisionPipeline pipeline = S3DeprovisionPipeline.Builder.newInstance().clientProvider(clientProvider)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor)
                 .resource().build();
-        pipeline.deprovision(provisionedResource, throwable -> context.deprovisioned(provisionedResource, throwable));
-        return ResponseStatus.OK;
-    }
 
+        return pipeline.deprovision(provisionedResource, throwable -> context.deprovisioned(provisionedResource, throwable))
+                .thenApply(empty -> ResponseStatus.OK);
+    }
 }
 
 

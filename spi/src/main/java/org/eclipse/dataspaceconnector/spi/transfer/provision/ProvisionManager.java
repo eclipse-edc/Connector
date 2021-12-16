@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefiniti
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Manages resource provisioning for a data transfer.
@@ -34,10 +35,10 @@ public interface ProvisionManager {
     /**
      * Provisions resources required to perform the data transfer. This operation is idempotent.
      */
-    void provision(TransferProcess process);
+    List<CompletableFuture<ProvisionResponse>> provision(TransferProcess process);
 
     /**
      * Removes ephemeral resources associated with the data transfer. this operation is idempotent.
      */
-    List<ResponseStatus> deprovision(TransferProcess process);
+    List<CompletableFuture<ResponseStatus>> deprovision(TransferProcess process);
 }

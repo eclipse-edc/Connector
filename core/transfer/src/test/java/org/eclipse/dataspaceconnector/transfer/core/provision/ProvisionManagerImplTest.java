@@ -1,38 +1,39 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResourceSet;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
+import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ProvisionManagerImplTest {
 
     private final ProvisionManagerImpl provisionManager = new ProvisionManagerImpl();
 
-    @BeforeEach
-    void setUp() {
-    }
-
     @Test
     void provisionTransferProcess() {
         var provisioner = mock(Provisioner.class);
         when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
+        var provisionResponse = ProvisionResponse.Builder.newInstance()
+                .resource(new TestProvisionedDataDestinationResource("test-resource"))
+                .build();
+        when(provisioner.provision(isA(TestResourceDefinition.class))).thenReturn(completedFuture(provisionResponse));
         provisionManager.register(provisioner);
         TransferProcess transferProcess = TransferProcess.Builder.newInstance()
                 .id("id")
@@ -41,16 +42,17 @@ class ProvisionManagerImplTest {
                 .build();
         provisionManager.start(mock(ProvisionContext.class));
 
-        provisionManager.provision(transferProcess);
+        var result = provisionManager.provision(transferProcess);
 
-        verify(provisioner).provision(any());
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).join().getResource().getResourceName()).isEqualTo("test-resource");
     }
 
     @Test
     void deprovisionTransferProcessReturnsResponseList() {
         var provisioner = mock(Provisioner.class);
         when(provisioner.canDeprovision(isA(ProvisionedResource.class))).thenReturn(true);
-        when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenReturn(ResponseStatus.OK);
+        when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenReturn(completedFuture(ResponseStatus.OK));
         provisionManager.register(provisioner);
         TransferProcess transferProcess = TransferProcess.Builder.newInstance()
                 .id("id")
@@ -59,11 +61,30 @@ class ProvisionManagerImplTest {
                 .build();
         provisionManager.start(mock(ProvisionContext.class));
 
-        List<ResponseStatus> status = provisionManager.deprovision(transferProcess);
+        var result = provisionManager.deprovision(transferProcess);
 
-        assertThat(status).containsExactly(ResponseStatus.OK);
-        verify(provisioner).deprovision(any());
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).join()).isEqualTo(ResponseStatus.OK);
     }
 
     private static class TestProvisionedResource extends ProvisionedResource {}
+
+    private static class TestProvisionedDataDestinationResource extends ProvisionedDataDestinationResource {
+        private final String resourceName;
+
+        protected TestProvisionedDataDestinationResource(String resourceName) {
+            super();
+            this.resourceName = resourceName;
+        }
+
+        @Override
+        public DataAddress createDataDestination() {
+            return null;
+        }
+
+        @Override
+        public String getResourceName() {
+            return resourceName;
+        }
+    }
 }

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.core.provision;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
@@ -26,6 +27,8 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 /**
@@ -33,9 +36,6 @@ import java.util.stream.Collectors;
  */
 public class ProvisionManagerImpl implements ProvisionManager {
     private final List<Provisioner<?, ?>> provisioners = new ArrayList<>();
-
-    public ProvisionManagerImpl() {
-    }
 
     public void start(ProvisionContext provisionContext) {
         provisioners.forEach(provisioner -> provisioner.initialize(provisionContext));
@@ -47,51 +47,35 @@ public class ProvisionManagerImpl implements ProvisionManager {
     }
 
     @Override
-    public void provision(TransferProcess process) {
-        for (ResourceDefinition definition : process.getResourceManifest().getDefinitions()) {
-            Provisioner<ResourceDefinition, ?> chosenProvisioner = getProvisioner(definition);
-            var status = chosenProvisioner.provision(definition);
-        }
+    public List<CompletableFuture<ProvisionResponse>> provision(TransferProcess process) {
+        return process.getResourceManifest().getDefinitions().stream()
+                .map(definition -> getProvisioner(definition).provision(definition))
+                .collect(Collectors.toList());
     }
 
     @Override
-    public List<ResponseStatus> deprovision(TransferProcess process) {
+    public List<CompletableFuture<ResponseStatus>> deprovision(TransferProcess process) {
         return process.getProvisionedResourceSet().getResources().stream()
-                .map(definition -> {
-                    Provisioner<?, ProvisionedResource> chosenProvisioner = getProvisioner(definition);
-                    return chosenProvisioner.deprovision(definition);
-                })
+                .map(definition -> getProvisioner(definition).deprovision(definition))
                 .collect(Collectors.toList());
     }
 
     @NotNull
     private Provisioner<ResourceDefinition, ?> getProvisioner(ResourceDefinition definition) {
-        Provisioner<ResourceDefinition, ?> provisioner = null;
-        for (Provisioner<?, ?> candidate : provisioners) {
-            if (candidate.canProvision(definition)) {
-                provisioner = (Provisioner<ResourceDefinition, ?>) candidate;
-                break;
-            }
-        }
-        if (provisioner == null) {
-            throw new EdcException("Unknown provision type" + definition.getClass().getName());
-        }
-        return provisioner;
+        return provisioners.stream()
+                .filter(it -> it.canProvision(definition))
+                .findFirst()
+                .map(it -> (Provisioner<ResourceDefinition, ?>) it)
+                .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()));
     }
 
     @NotNull
     private Provisioner<?, ProvisionedResource> getProvisioner(ProvisionedResource provisionedResource) {
-        Provisioner<?, ProvisionedResource> provisioner = null;
-        for (Provisioner<?, ?> candidate : provisioners) {
-            if (candidate.canDeprovision(provisionedResource)) {
-                provisioner = (Provisioner<?, ProvisionedResource>) candidate;
-                break;
-            }
-        }
-        if (provisioner == null) {
-            throw new EdcException("Unknown provision type" + provisionedResource.getClass().getName());
-        }
-        return provisioner;
+        return provisioners.stream()
+                .filter(it -> it.canDeprovision(provisionedResource))
+                .findFirst()
+                .map(it -> (Provisioner<?, ProvisionedResource>) it)
+                .orElseThrow(() -> new EdcException("Unknown provision type" + provisionedResource.getClass().getName()));
     }
 
 

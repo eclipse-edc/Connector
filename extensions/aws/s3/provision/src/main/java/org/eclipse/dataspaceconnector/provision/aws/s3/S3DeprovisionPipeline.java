@@ -28,6 +28,7 @@ import software.amazon.awssdk.services.s3.model.DeleteObjectsRequest;
 import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.ObjectIdentifier;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -43,7 +44,7 @@ public class S3DeprovisionPipeline {
         this.monitor = monitor;
     }
 
-    public void deprovision(S3BucketProvisionedResource resource, Consumer<Throwable> callback) {
+    public CompletableFuture<Void> deprovision(S3BucketProvisionedResource resource, Consumer<Throwable> callback) {
         var s3Client = clientProvider.clientFor(S3AsyncClient.class, resource.getRegion());
         var iamClient = clientProvider.clientFor(IamAsyncClient.class, resource.getRegion());
 
@@ -51,7 +52,7 @@ public class S3DeprovisionPipeline {
 
         monitor.info("S3 Deprovisioning: list bucket contents");
         String role = resource.getRole();
-        s3Client.listObjectsV2(listBucket(bucketName))
+        return s3Client.listObjectsV2(listBucket(bucketName))
                 .thenCompose(listObjectsResponse -> {
                     //todo: collect identifiers into a single request using the stream api
                     var identifiers = listObjectsResponse.contents().stream()
@@ -73,7 +74,11 @@ public class S3DeprovisionPipeline {
                     monitor.info("S3 Deprovisioning: delete role");
                     return iamClient.deleteRole(DeleteRoleRequest.builder().roleName(role).build());
                 }))
-                .whenComplete((deleteRoleResponse, throwable) -> callback.accept(throwable));
+                .thenAccept(deleteRoleResponse -> callback.accept(null))
+                .exceptionally(throwable -> {
+                    callback.accept(throwable);
+                    return null;
+                });
     }
 
     private DeleteBucketRequest deleteBucket(String bucketName) {
