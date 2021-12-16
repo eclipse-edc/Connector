@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.provision.aws.s3;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
@@ -79,14 +80,14 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     }
 
     @Override
-    public CompletableFuture<ResponseStatus> deprovision(S3BucketProvisionedResource provisionedResource) {
+    public CompletableFuture<DeprovisionResponse> deprovision(S3BucketProvisionedResource provisionedResource) {
         S3DeprovisionPipeline pipeline = S3DeprovisionPipeline.Builder.newInstance().clientProvider(clientProvider)
                 .retryPolicy(retryPolicy)
                 .monitor(monitor)
                 .resource().build();
 
         return pipeline.deprovision(provisionedResource, throwable -> context.deprovisioned(provisionedResource, throwable))
-                .thenApply(empty -> ResponseStatus.OK);
+                .thenApply(empty -> DeprovisionResponse.Builder.newInstance().ok().resource(provisionedResource).build());
     }
 }
 

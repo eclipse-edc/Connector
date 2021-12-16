@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
@@ -25,16 +26,20 @@ import static org.mockito.Mockito.when;
 class ProvisionManagerImplTest {
 
     private final ProvisionManagerImpl provisionManager = new ProvisionManagerImpl();
+    private final Provisioner provisioner = mock(Provisioner.class);
+
+    @BeforeEach
+    void setUp() {
+        provisionManager.register(provisioner);
+    }
 
     @Test
     void provisionTransferProcess() {
-        var provisioner = mock(Provisioner.class);
         when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
         var provisionResponse = ProvisionResponse.Builder.newInstance()
                 .resource(new TestProvisionedDataDestinationResource("test-resource"))
                 .build();
         when(provisioner.provision(isA(TestResourceDefinition.class))).thenReturn(completedFuture(provisionResponse));
-        provisionManager.register(provisioner);
         TransferProcess transferProcess = TransferProcess.Builder.newInstance()
                 .id("id")
                 .state(TransferProcessStates.REQUESTED.code())
@@ -50,10 +55,12 @@ class ProvisionManagerImplTest {
 
     @Test
     void deprovisionTransferProcessReturnsResponseList() {
-        var provisioner = mock(Provisioner.class);
+        var deprovisionResponse = DeprovisionResponse.Builder.newInstance()
+                .ok()
+                .resource(new TestProvisionedDataDestinationResource("test-resource"))
+                .build();
         when(provisioner.canDeprovision(isA(ProvisionedResource.class))).thenReturn(true);
-        when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenReturn(completedFuture(ResponseStatus.OK));
-        provisionManager.register(provisioner);
+        when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenReturn(completedFuture(deprovisionResponse));
         TransferProcess transferProcess = TransferProcess.Builder.newInstance()
                 .id("id")
                 .state(TransferProcessStates.REQUESTED.code())
@@ -64,7 +71,7 @@ class ProvisionManagerImplTest {
         var result = provisionManager.deprovision(transferProcess);
 
         assertThat(result).hasSize(1);
-        assertThat(result.get(0).join()).isEqualTo(ResponseStatus.OK);
+        assertThat(result.get(0).join().getStatus()).isEqualTo(ResponseStatus.OK);
     }
 
     private static class TestProvisionedResource extends ProvisionedResource {}

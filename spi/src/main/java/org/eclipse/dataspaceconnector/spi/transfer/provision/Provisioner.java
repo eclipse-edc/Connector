@@ -64,6 +64,6 @@ public interface Provisioner<RD extends ResourceDefinition, PR extends Provision
      * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#FATAL_ERROR}.
      */
     @NotNull
-    CompletableFuture<ResponseStatus> deprovision(PR provisionedResource);
+    CompletableFuture<DeprovisionResponse> deprovision(PR provisionedResource);
 
 }

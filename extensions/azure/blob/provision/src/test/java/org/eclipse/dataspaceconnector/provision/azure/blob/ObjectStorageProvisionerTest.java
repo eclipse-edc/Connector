@@ -75,7 +75,7 @@ class ObjectStorageProvisionerTest {
     void deprovision_should_not_do_anything() {
         var deprovision = provisioner.deprovision(new ObjectContainerProvisionedResource()).join();
 
-        assertThat(deprovision).isEqualTo(ResponseStatus.OK);
+        assertThat(deprovision.getStatus()).isEqualTo(ResponseStatus.OK);
     }
 
     @Test

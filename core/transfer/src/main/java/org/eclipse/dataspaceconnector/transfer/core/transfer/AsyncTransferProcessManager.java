@@ -302,8 +302,20 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             transferProcessStore.update(process);
             invokeForEach(l -> l.deprovisioning(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            List<ResponseStatus> deprovisionResults = provisionManager.deprovision(process).stream().map(CompletableFuture::join).collect(Collectors.toList());
-            if (deprovisionResults.stream().anyMatch(status -> status != ResponseStatus.OK)) {
+            var responses = provisionManager.deprovision(process).stream()
+                    .map(future -> {
+                        return future.whenComplete((response, throwable) -> {
+                            if (response != null) {
+                                onDeprovisionComplete(response.getResource(), null);
+                            } else {
+                                monitor.severe("Deprovisioning error: ", throwable);
+                            }
+                        });
+                    })
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList());
+
+            if (responses.stream().anyMatch(response -> response.getStatus() != ResponseStatus.OK)) {
                 process.transitionError("Error during deprovisioning");
                 transferProcessStore.update(process);
             }
@@ -411,7 +423,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 provisionManager.provision(process).forEach(future -> {
                     future.whenComplete((result, throwable) -> {
                         if (result != null) {
-                            onProvision(result.getResource(), result.getSecretToken());
+                            onProvisionComplete(result.getResource(), result.getSecretToken());
                         } else {
                             monitor.severe("Error while provisioning a resource", throwable);
                         }

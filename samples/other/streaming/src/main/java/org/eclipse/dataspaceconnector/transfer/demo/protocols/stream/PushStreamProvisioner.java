@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
@@ -68,9 +69,9 @@ public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefi
     }
 
     @Override
-    public CompletableFuture<ResponseStatus> deprovision(PushStreamProvisionedResourceDefinition provisionedResource) {
+    public CompletableFuture<DeprovisionResponse> deprovision(PushStreamProvisionedResourceDefinition provisionedResource) {
         // FIXME
         // topicManager.deprovision(provisionedResource);
-        return CompletableFuture.completedFuture(ResponseStatus.OK);
+        return CompletableFuture.completedFuture(DeprovisionResponse.Builder.newInstance().ok().resource(provisionedResource).build());
     }
 }

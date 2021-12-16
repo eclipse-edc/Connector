@@ -40,5 +40,5 @@ public interface ProvisionManager {
     /**
      * Removes ephemeral resources associated with the data transfer. this operation is idempotent.
      */
-    List<CompletableFuture<ResponseStatus>> deprovision(TransferProcess process);
+    List<CompletableFuture<DeprovisionResponse>> deprovision(TransferProcess process);
 }

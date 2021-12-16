@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
@@ -54,7 +55,7 @@ public class ProvisionManagerImpl implements ProvisionManager {
     }
 
     @Override
-    public List<CompletableFuture<ResponseStatus>> deprovision(TransferProcess process) {
+    public List<CompletableFuture<DeprovisionResponse>> deprovision(TransferProcess process) {
         return process.getProvisionedResourceSet().getResources().stream()
                 .map(definition -> getProvisioner(definition).deprovision(definition))
                 .collect(Collectors.toList());
