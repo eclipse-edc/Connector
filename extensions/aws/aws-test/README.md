@@ -1,5 +1,12 @@
 # AWS Test
 
-To set AWS credentials you can set the `AWS_PROFILE` environment variable with the name of the profile stored into the aws credential file.
+To run AWS integration tests you will need a MinIO instance running:
+```
+docker run -d -p 9000:9000 -e MINIO_ACCESS_KEY=root -e MINIO_SECRET_KEY=password bitnami/minio:latest
+```
 
-Otherwise, you can set the `S3_ACCESS_KEY_ID` and the `S3_SECRET_ACCESS_KEY` environment variables.
+Then set the two environment variables:
+```
+S3_ACCESS_KEY_ID=root
+S3_SECRET_ACCESS_KEY=password
+```
