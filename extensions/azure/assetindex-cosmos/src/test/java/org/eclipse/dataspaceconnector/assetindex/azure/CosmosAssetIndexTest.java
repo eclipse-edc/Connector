@@ -38,6 +38,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class CosmosAssetIndexTest {
@@ -97,6 +98,7 @@ class CosmosAssetIndexTest {
 
         assertThatExceptionOfType(EdcException.class).isThrownBy(() -> assetIndex.findById(id));
         verify(api, atLeastOnce()).queryItemById(eq(id));
+        verifyNoMoreInteractions(api);
     }
 
     @Test
@@ -108,6 +110,7 @@ class CosmosAssetIndexTest {
 
         assertThat(actualAsset).isNull();
         verify(api).queryItemById(eq(id));
+        verifyNoMoreInteractions(api);
     }
 
     @Test
@@ -122,6 +125,7 @@ class CosmosAssetIndexTest {
                 .anyMatch(asset -> asset.getId().equals(id1))
                 .anyMatch(asset -> asset.getId().equals(id2));
         verify(api).queryItems(any(SqlQuerySpec.class));
+        verifyNoMoreInteractions(api);
     }
 
     @Test
@@ -143,6 +147,7 @@ class CosmosAssetIndexTest {
                 .anyMatch(asset -> asset.getId().equals(id2));
         assertThat(queryCapture.getValue().getQueryText()).contains("WHERE AssetDocument.wrappedInstance.asset_prop_id IN (" + id1 + "," + id2 + ")");
         verify(api).queryItems(queryCapture.capture());
+        verifyNoMoreInteractions(api);
     }
 
     @Test
@@ -162,5 +167,6 @@ class CosmosAssetIndexTest {
                 .anyMatch(asset -> asset.getId().equals(id2));
         assertThat(queryCapture.getValue().getQueryText()).matches(".*WHERE AssetDocument.* = 'somename'");
         verify(api).queryItems(queryCapture.capture());
+        verifyNoMoreInteractions(api);
     }
 }

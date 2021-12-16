@@ -26,20 +26,21 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 
 class DataLoaderTest {
 
     private static final String INDEX_VALIDATION_MESSAGE = "index must be > 0!";
     private static final String DESCRIPTION_VALIDATION_MESSAGE = "Description cannot be null!";
+    private final TestEntitySink sink = mock(TestEntitySink.class);
     private DataLoader<TestEntity> dataLoader;
-    private TestEntitySink sinkMock;
 
     @BeforeEach
     void setUp() {
-        sinkMock = mock(TestEntitySink.class);
-        DataLoader.Builder<TestEntity> builder = DataLoader.Builder.newInstance();
-        dataLoader = builder.sink(sinkMock)
+        dataLoader = DataLoader.Builder.<TestEntity>newInstance()
+                .sink(sink)
                 .andPredicate(testEntity -> testEntity.getDescription() != null ? Result.success(testEntity) : Result.failure(DESCRIPTION_VALIDATION_MESSAGE))
                 .andPredicate(testEntity -> testEntity.getIndex() > 0 ? Result.success(testEntity) : Result.failure(INDEX_VALIDATION_MESSAGE))
                 .build();
@@ -51,7 +52,8 @@ class DataLoaderTest {
 
         dataLoader.insert(te);
 
-        verify(sinkMock).accept(te);
+        verify(sink).accept(te);
+        verifyNoMoreInteractions(sink);
     }
 
     @Test
@@ -60,7 +62,7 @@ class DataLoaderTest {
 
         assertThatThrownBy(() -> dataLoader.insert(te)).isInstanceOf(ValidationException.class)
                 .hasMessage(INDEX_VALIDATION_MESSAGE);
-        verify(sinkMock);
+        verifyNoMoreInteractions(sink);
     }
 
     @Test
@@ -70,6 +72,7 @@ class DataLoaderTest {
         assertThatThrownBy(() -> dataLoader.insert(te)).isInstanceOf(ValidationException.class)
                 .hasMessageContaining(INDEX_VALIDATION_MESSAGE)
                 .hasMessageContaining(DESCRIPTION_VALIDATION_MESSAGE);
+        verifyNoInteractions(sink);
     }
 
     @Test
@@ -78,7 +81,8 @@ class DataLoaderTest {
 
         dataLoader.insertAll(items);
 
-        verify(sinkMock, times(9)).accept(any(TestEntity.class));
+        verify(sink, times(9)).accept(any(TestEntity.class));
+        verifyNoMoreInteractions(sink);
     }
 
     @Test
@@ -88,6 +92,7 @@ class DataLoaderTest {
 
         assertThatThrownBy(() -> dataLoader.insertAll(items)).isInstanceOf(ValidationException.class)
                 .hasMessageContaining(INDEX_VALIDATION_MESSAGE);
+        verifyNoInteractions(sink);
     }
 
     @Test
@@ -99,6 +104,7 @@ class DataLoaderTest {
         assertThatThrownBy(() -> dataLoader.insertAll(items)).isInstanceOf(ValidationException.class)
                 .hasMessageContaining(INDEX_VALIDATION_MESSAGE)
                 .hasMessageContaining(DESCRIPTION_VALIDATION_MESSAGE);
+        verifyNoInteractions(sink);
     }
 
     @Test
@@ -107,5 +113,6 @@ class DataLoaderTest {
 
         assertThatThrownBy(() -> dataLoader.insertAll(items)).isInstanceOf(ValidationException.class)
                 .hasMessageContaining(DESCRIPTION_VALIDATION_MESSAGE);
+        verifyNoInteractions(sink);
     }
 }

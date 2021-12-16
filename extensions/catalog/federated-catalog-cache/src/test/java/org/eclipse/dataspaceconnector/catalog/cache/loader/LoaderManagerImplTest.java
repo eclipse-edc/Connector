@@ -28,20 +28,19 @@ class LoaderManagerImplTest {
 
     private final Loader loaderMock = mock(Loader.class);
     private final WaitStrategy waitStrategyMock = mock(WaitStrategy.class);
-    private BlockingQueue<UpdateResponse> queue;
+    private final int batchSize = 3;
+    private final BlockingQueue<UpdateResponse> queue = new ArrayBlockingQueue<>(batchSize);
     private LoaderManagerImpl loaderManager;
 
     @BeforeEach
     void setup() {
-        int batchSize = 3;
-        queue = new ArrayBlockingQueue<>(batchSize); //default batch size of the loader
         loaderManager = new LoaderManagerImpl(List.of(loaderMock), batchSize, waitStrategyMock, mock(Monitor.class));
     }
 
     @Test
     @DisplayName("Verify that the loader manager waits one pass when the queue does not yet contain sufficient elements")
     void batchSizeNotReachedWithinTimeframe() throws InterruptedException {
-        range(0, 3).forEach(i -> queue.offer(new UpdateResponse()));
+        range(0, batchSize).forEach(i -> queue.offer(new UpdateResponse()));
         var completionSignal = new CountDownLatch(1);
         when(waitStrategyMock.retryInMillis()).thenAnswer(i -> {
             completionSignal.countDown();
@@ -57,7 +56,7 @@ class LoaderManagerImplTest {
     @Test
     @DisplayName("Verify that the LoaderManager does not sleep when a complete batch was processed")
     void batchSizeReachedWithinTimeframe() throws InterruptedException {
-        range(0, 3).forEach(i -> queue.offer(new UpdateResponse()));
+        range(0, batchSize).forEach(i -> queue.offer(new UpdateResponse()));
         var completionSignal = new CountDownLatch(1);
 
         doAnswer(i -> {
