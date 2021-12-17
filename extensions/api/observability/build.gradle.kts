@@ -28,9 +28,6 @@ dependencies {
     testImplementation(project(":data-protocols:ids"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
-    //todo: will be removed once PR #384 is merged
-    testImplementation("org.mockito:mockito-core:4.1.0")
     testImplementation(testFixtures(project(":launchers:junit")))
 
 

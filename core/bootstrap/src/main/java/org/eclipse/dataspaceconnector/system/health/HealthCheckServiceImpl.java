@@ -84,15 +84,33 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     private void queryReadiness() {
-        readinessProviders.parallelStream().forEach(rp -> cachedReadinessResults.put(rp, rp.get()));
+        readinessProviders.parallelStream().forEach(rp -> {
+            try {
+                cachedReadinessResults.put(rp, rp.get());
+            } catch (Exception ex) {
+                cachedReadinessResults.put(rp, HealthCheckResult.failed(ex.getMessage()));
+            }
+        });
     }
 
     private void queryLiveness() {
-        livenessProviders.parallelStream().forEach(rp -> cachedLivenessResults.put(rp, rp.get()));
+        livenessProviders.parallelStream().forEach(rp -> {
+            try {
+                cachedLivenessResults.put(rp, rp.get());
+            } catch (Exception ex) {
+                cachedLivenessResults.put(rp, HealthCheckResult.failed(ex.getMessage()));
+            }
+        });
     }
 
     private void queryStartupStatus() {
-        startupStatusProviders.parallelStream().forEach(rp -> cachedStartupStatus.put(rp, rp.get()));
+        startupStatusProviders.parallelStream().forEach(rp -> {
+            try {
+                cachedStartupStatus.put(rp, rp.get());
+            } catch (Exception ex) {
+                cachedStartupStatus.put(rp, HealthCheckResult.failed(ex.getMessage()));
+            }
+        });
     }
 
 }
