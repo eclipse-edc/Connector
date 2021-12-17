@@ -19,10 +19,8 @@ import de.fraunhofer.iais.eis.ArtifactBuilder;
 import de.fraunhofer.iais.eis.CustomMediaTypeBuilder;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,6 +30,8 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static org.mockito.Mockito.mock;
+
 public class IdsRepresentationToAssetTransformerTest {
     private static final String ASSET_ID = "1";
     private static final URI REPRESENTATION_URI = URI.create("urn:representation:1");
@@ -39,10 +39,8 @@ public class IdsRepresentationToAssetTransformerTest {
     private static final String ASSET_FILE_EXTENSION = "txt";
     private static final BigInteger ASSET_BYTESIZE = BigInteger.valueOf(5);
 
-    // subject
     private IdsRepresentationToAssetTransformer transformer;
 
-    // mocks
     private Representation representation;
     private TransformerContext context;
 
@@ -55,13 +53,11 @@ public class IdsRepresentationToAssetTransformerTest {
                 ._instance_(new ArrayList<>(Collections.singletonList(artifact)))
                 ._mediaType_(new CustomMediaTypeBuilder()._filenameExtension_(ASSET_FILE_EXTENSION).build())
                 .build();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -69,8 +65,6 @@ public class IdsRepresentationToAssetTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(representation, null);
         });
@@ -78,8 +72,6 @@ public class IdsRepresentationToAssetTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -87,23 +79,13 @@ public class IdsRepresentationToAssetTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // record
-        EasyMock.replay(context);
-
-        // invoke
         var result = transformer.transform(representation, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(ASSET_ID, result.getId());
         Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_BYTE_SIZE), ASSET_BYTESIZE);
         Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_FILE_NAME), ASSET_FILENAME);
         Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_FILE_EXTENSION), ASSET_FILE_EXTENSION);
-    }
-
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(context);
     }
 
 }

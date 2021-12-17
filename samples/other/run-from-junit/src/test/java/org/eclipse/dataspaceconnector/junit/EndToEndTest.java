@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.junit;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.security.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -44,6 +43,13 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.ArgumentMatchers.notNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 @ExtendWith(EdcExtension.class)
 public class EndToEndTest {
 
@@ -51,19 +57,14 @@ public class EndToEndTest {
     void processConsumerRequest(TransferProcessManager processManager, RemoteMessageDispatcherRegistry dispatcherRegistry) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
 
-        RemoteMessageDispatcher dispatcher = EasyMock.createMock(RemoteMessageDispatcher.class);
+        RemoteMessageDispatcher dispatcher = mock(RemoteMessageDispatcher.class);
 
-        dispatcher.protocol();
-        EasyMock.expectLastCall().andReturn("ids-rest");
+        when(dispatcher.protocol()).thenReturn("ids-rest");
 
-        EasyMock.expect(dispatcher.send(EasyMock.notNull(), EasyMock.isA(RemoteMessage.class), EasyMock.isA(MessageContext.class))).andAnswer(() -> {
-            var future = new CompletableFuture<>();
-            future.complete(null);
+        when(dispatcher.send(notNull(), isA(RemoteMessage.class), isA(MessageContext.class))).thenAnswer(i -> {
             latch.countDown();
-            return future;
+            return CompletableFuture.completedFuture(null);
         });
-
-        EasyMock.replay(dispatcher);
 
         dispatcherRegistry.register(dispatcher);
 
@@ -76,27 +77,24 @@ public class EndToEndTest {
 
         processManager.initiateConsumerRequest(request);
 
-        latch.await(1, TimeUnit.MINUTES);
-
-        EasyMock.verify(dispatcher);
+        assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
+        verify(dispatcher).protocol();
+        verify(dispatcher).send(notNull(), isA(RemoteMessage.class), isA(MessageContext.class));
     }
 
     @Test
     void processProviderRequest(TransferProcessManager processManager, DataFlowManager dataFlowManager) throws InterruptedException {
         CountDownLatch latch = new CountDownLatch(1);
 
-        DataFlowController controllerMock = EasyMock.createMock(DataFlowController.class);
+        DataFlowController controllerMock = mock(DataFlowController.class);
 
-        EasyMock.expect(controllerMock.canHandle(EasyMock.isA(DataRequest.class))).andReturn(true);
-        EasyMock.expect(controllerMock.initiateFlow(EasyMock.isA(DataRequest.class))).andAnswer(() -> {
+        when(controllerMock.canHandle(isA(DataRequest.class))).thenReturn(true);
+        when(controllerMock.initiateFlow(isA(DataRequest.class))).thenAnswer(i -> {
             latch.countDown();
             return DataFlowInitiateResult.success("");
         });
 
-        EasyMock.replay(controllerMock);
-
         dataFlowManager.register(controllerMock);
-
 
         var artifactId = "test123";
         var connectorId = "https://test";
@@ -107,9 +105,9 @@ public class EndToEndTest {
 
         processManager.initiateProviderRequest(request);
 
-        latch.await(1, TimeUnit.MINUTES);
-
-        EasyMock.verify(controllerMock);
+        assertThat(latch.await(1, TimeUnit.MINUTES)).isTrue();
+        verify(controllerMock).canHandle(isA(DataRequest.class));
+        verify(controllerMock).initiateFlow(isA(DataRequest.class));
     }
 
     @BeforeEach

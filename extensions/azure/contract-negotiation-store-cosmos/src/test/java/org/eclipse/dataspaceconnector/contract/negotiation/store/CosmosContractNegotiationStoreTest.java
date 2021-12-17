@@ -12,98 +12,95 @@ import org.junit.jupiter.api.Test;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.strictMock;
-import static org.easymock.EasyMock.verify;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 class CosmosContractNegotiationStoreTest {
     private CosmosContractNegotiationStore store;
-    private CosmosDbApi cosmosDbApiMock;
+    private CosmosDbApi cosmosDbApi;
 
     @BeforeEach
     void setup() {
-        cosmosDbApiMock = strictMock(CosmosDbApi.class);
+        cosmosDbApi = mock(CosmosDbApi.class);
         var typeManager = new TypeManager();
         var retryPolicy = new RetryPolicy<>();
-        store = new CosmosContractNegotiationStore(cosmosDbApiMock, typeManager, retryPolicy, "test-connector");
+        store = new CosmosContractNegotiationStore(cosmosDbApi, typeManager, retryPolicy, "test-connector");
     }
 
     @Test
     void find() {
         var doc = generateDocument();
-        expect(cosmosDbApiMock.queryItemById("test-id-1")).andReturn(doc);
-        replay(cosmosDbApiMock);
+        when(cosmosDbApi.queryItemById("test-id-1")).thenReturn(doc);
 
         var result = store.find("test-id-1");
-        assertThat(result).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
-        verify(cosmosDbApiMock);
 
+        assertThat(result).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
+        verify(cosmosDbApi).queryItemById("test-id-1");
+        verifyNoMoreInteractions(cosmosDbApi);
     }
 
     @Test
     void find_notFound() {
-        expect(cosmosDbApiMock.queryItemById(anyString())).andReturn(null);
-        replay(cosmosDbApiMock);
-        assertThat(store.find("test-id-1")).isNull();
-        verify(cosmosDbApiMock);
+        when(cosmosDbApi.queryItemById(anyString())).thenReturn(null);
 
+        assertThat(store.find("test-id-1")).isNull();
+        verify(cosmosDbApi).queryItemById(anyString());
+        verifyNoMoreInteractions(cosmosDbApi);
     }
 
     @Test
     void findForCorrelationId() {
         var doc = generateDocument();
-        expect(cosmosDbApiMock.queryItems(anyObject(SqlQuerySpec.class))).andReturn(Stream.of(doc));
-        replay(cosmosDbApiMock);
+        when(cosmosDbApi.queryItems(any(SqlQuerySpec.class))).thenReturn(Stream.of(doc));
 
         assertThat(store.findForCorrelationId("some-correlation-id")).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance());
-        verify(cosmosDbApiMock);
-
+        verify(cosmosDbApi).queryItems(any(SqlQuerySpec.class));
+        verifyNoMoreInteractions(cosmosDbApi);
     }
 
     @Test
     void findContractAgreement() {
         var doc = generateDocument();
-        expect(cosmosDbApiMock.queryItems(anyObject(SqlQuerySpec.class))).andReturn(Stream.of(doc));
-        replay(cosmosDbApiMock);
+        when(cosmosDbApi.queryItems(any(SqlQuerySpec.class))).thenReturn(Stream.of(doc));
+
         assertThat(store.findContractAgreement("test-contract-id")).usingRecursiveComparison().isEqualTo(doc.getWrappedInstance().getContractAgreement());
-        verify(cosmosDbApiMock);
+        verify(cosmosDbApi).queryItems(any(SqlQuerySpec.class));
     }
 
     @Test
     void save() {
+        var negotiation = generateNegotiation();
 
-        cosmosDbApiMock.saveItem(anyObject(ContractNegotiationDocument.class));
-        expectLastCall();
-        replay(cosmosDbApiMock);
-        var n = generateNegotiation();
-        store.save(n);
-        verify(cosmosDbApiMock);
+        store.save(negotiation);
 
+        verify(cosmosDbApi).saveItem(any(ContractNegotiationDocument.class));
+        verifyNoMoreInteractions(cosmosDbApi);
     }
 
     @Test
     void delete() {
-        cosmosDbApiMock.deleteItem("test-id");
-        expectLastCall();
-        replay(cosmosDbApiMock);
-
         store.delete("test-id");
-        verify(cosmosDbApiMock);
+
+        verify(cosmosDbApi).deleteItem("test-id");
+        verifyNoMoreInteractions(cosmosDbApi);
     }
 
     @Test
     void nextForState() {
         var state = ContractNegotiationStates.CONFIRMED;
-        expect(cosmosDbApiMock.invokeStoredProcedure("nextForState", String.valueOf(state.code()), state.code(), 100, "test-connector"))
-                .andReturn("[]");
-        replay(cosmosDbApiMock);
-        store.nextForState(state.code(), 100);
-        verify(cosmosDbApiMock);
+        when(cosmosDbApi.invokeStoredProcedure("nextForState", String.valueOf(state.code()), state.code(), 100, "test-connector"))
+                .thenReturn("[]");
+
+        var result = store.nextForState(state.code(), 100);
+
+        assertThat(result).isEmpty();
+        verify(cosmosDbApi).invokeStoredProcedure("nextForState", String.valueOf(state.code()), state.code(), 100, "test-connector");
+        verifyNoMoreInteractions(cosmosDbApi);
     }
 }

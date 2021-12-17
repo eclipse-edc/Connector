@@ -13,7 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.contract.agent;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentServiceExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.junit.jupiter.api.Test;
@@ -21,6 +20,10 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * verifies the {@link ParticipantAgentServiceImpl}.
@@ -29,9 +32,8 @@ class ParticipantAgentServiceImplTest {
 
     @Test
     void verifyRegisteredExtensionIsInvoked() {
-        ParticipantAgentServiceExtension extension = EasyMock.createMock(ParticipantAgentServiceExtension.class);
-        EasyMock.expect(extension.attributesFor(EasyMock.isA(ClaimToken.class))).andReturn(Map.of("foo", "bar"));
-        EasyMock.replay(extension);
+        ParticipantAgentServiceExtension extension = mock(ParticipantAgentServiceExtension.class);
+        when(extension.attributesFor(isA(ClaimToken.class))).thenReturn(Map.of("foo", "bar"));
 
         var participantAgentService = new ParticipantAgentServiceImpl();
         participantAgentService.register(extension);
@@ -39,7 +41,6 @@ class ParticipantAgentServiceImplTest {
         var participantAgent = participantAgentService.createFor(ClaimToken.Builder.newInstance().build());
 
         assertThat(participantAgent.getAttributes().containsKey("foo")).isTrue();
-
-        EasyMock.verify(extension);
+        verify(extension).attributesFor(isA(ClaimToken.class));
     }
 }

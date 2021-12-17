@@ -13,7 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.negotiation.store.memory.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.policy.model.Action;
@@ -43,6 +42,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
 
+import static org.mockito.Mockito.mock;
+
 /**
  * Setup for the contract negotiation integration test.
  */
@@ -68,7 +69,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     @BeforeEach
     void setUp() {
         // Create contract validation service mock, method mocking has to be done in test methods
-        validationService = EasyMock.createNiceMock(ContractValidationService.class);
+        validationService = mock(ContractValidationService.class);
 
         // Create a monitor that logs to the console
         Monitor monitor = new FakeConsoleMonitor();

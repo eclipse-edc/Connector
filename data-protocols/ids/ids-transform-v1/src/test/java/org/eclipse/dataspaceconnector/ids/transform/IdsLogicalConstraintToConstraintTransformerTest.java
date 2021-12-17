@@ -18,7 +18,6 @@ import de.fraunhofer.iais.eis.ConstraintBuilder;
 import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.LogicalConstraintBuilder;
 import de.fraunhofer.iais.eis.util.RdfResource;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
@@ -30,6 +29,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class IdsLogicalConstraintToConstraintTransformerTest {
     private IdsLogicalConstraintToConstraintTransformer transformer;
@@ -37,9 +41,8 @@ class IdsLogicalConstraintToConstraintTransformerTest {
 
     @Test
     void verifyAndConstraint() {
-        EasyMock.expect(context.transform(EasyMock.isA(de.fraunhofer.iais.eis.Constraint.class), EasyMock.eq(Constraint.class)))
-                .andReturn(AtomicConstraint.Builder.newInstance().build());
-        EasyMock.replay(context);
+        when(context.transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class)))
+                .thenReturn(AtomicConstraint.Builder.newInstance().build());
 
         var constraint = new ConstraintBuilder()
                 ._leftOperand_(LeftOperand.COUNT)
@@ -53,15 +56,13 @@ class IdsLogicalConstraintToConstraintTransformerTest {
 
         assertThat(transformed).isInstanceOf(AndConstraint.class);
         assertThat(((MultiplicityConstraint) transformed).getConstraints()).isNotEmpty();
-
-        EasyMock.verify(context);
+        verify(context).transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class));
     }
 
     @Test
     void verifyOrConstraint() {
-        EasyMock.expect(context.transform(EasyMock.isA(de.fraunhofer.iais.eis.Constraint.class), EasyMock.eq(Constraint.class)))
-                .andReturn(AtomicConstraint.Builder.newInstance().build());
-        EasyMock.replay(context);
+        when(context.transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class)))
+                .thenReturn(AtomicConstraint.Builder.newInstance().build());
 
         var constraint = new ConstraintBuilder()
                 ._leftOperand_(LeftOperand.COUNT)
@@ -75,15 +76,13 @@ class IdsLogicalConstraintToConstraintTransformerTest {
 
         assertThat(transformed).isInstanceOf(OrConstraint.class);
         assertThat(((MultiplicityConstraint) transformed).getConstraints()).isNotEmpty();
-
-        EasyMock.verify(context);
+        verify(context).transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class));
     }
 
     @Test
     void verifyXoneConstraint() {
-        EasyMock.expect(context.transform(EasyMock.isA(de.fraunhofer.iais.eis.Constraint.class), EasyMock.eq(Constraint.class)))
-                .andReturn(AtomicConstraint.Builder.newInstance().build());
-        EasyMock.replay(context);
+        when(context.transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class)))
+                .thenReturn(AtomicConstraint.Builder.newInstance().build());
 
         var constraint = new ConstraintBuilder()
                 ._leftOperand_(LeftOperand.COUNT)
@@ -97,14 +96,13 @@ class IdsLogicalConstraintToConstraintTransformerTest {
 
         assertThat(transformed).isInstanceOf(XoneConstraint.class);
         assertThat(((MultiplicityConstraint) transformed).getConstraints()).isNotEmpty();
-
-        EasyMock.verify(context);
+        verify(context).transform(isA(de.fraunhofer.iais.eis.Constraint.class), eq(Constraint.class));
     }
 
     @BeforeEach
     void setUp() {
         transformer = new IdsLogicalConstraintToConstraintTransformer();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
 }

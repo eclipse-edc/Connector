@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.junit;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -46,6 +45,9 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
 @Disabled
@@ -223,9 +225,9 @@ public class ConsumerRunner {
 
     @BeforeEach
     void before(EdcExtension extension) {
-        IdentityService identityService = EasyMock.createMock(IdentityService.class);
-        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.isA(String.class))).andReturn(Result.success(US_TOKEN)).anyTimes();
-        EasyMock.replay(identityService);
+        IdentityService identityService = mock(IdentityService.class);
+        when(identityService.obtainClientCredentials(isA(String.class))).thenReturn(Result.success(US_TOKEN));
+
         latch = new CountDownLatch(1);
 
         extension.registerSystemExtension(ServiceExtension.class, TestExtensions.mockIamExtension(identityService));

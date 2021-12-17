@@ -28,7 +28,7 @@ import java.security.interfaces.RSAPublicKey;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.niceMock;
+import static org.mockito.Mockito.mock;
 
 class IdentityProviderKeyResolverTest {
     private static final String JWKS_URL = "https://login.microsoftonline.com/common/discovery/v2.0/keys";
@@ -49,7 +49,7 @@ class IdentityProviderKeyResolverTest {
     @BeforeEach
     void setUp() {
         resolver = new IdentityProviderKeyResolver(JWKS_URL, new Monitor() {
-        }, niceMock(OkHttpClient.class), new TypeManager());
+        }, mock(OkHttpClient.class), new TypeManager());
 
         try (InputStream in = getClass().getClassLoader().getResourceAsStream(JWKS_FILE)) {
             keys = new ObjectMapper().readValue(in, JwkKeys.class);

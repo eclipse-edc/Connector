@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.node.directory.azure;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.catalog.node.directory.azure.model.FederatedCacheNodeDocument;
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNode;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
@@ -17,14 +16,13 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.reset;
-import static org.easymock.EasyMock.strictMock;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 class CosmosFederatedCacheNodeDirectoryTest {
 
@@ -52,28 +50,21 @@ class CosmosFederatedCacheNodeDirectoryTest {
         TypeManager typeManager = new TypeManager();
         typeManager.registerTypes(FederatedCacheNodeDocument.class, FederatedCacheNode.class);
         RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(1);
-        api = strictMock(CosmosDbApi.class);
+        api = mock(CosmosDbApi.class);
         directory = new CosmosFederatedCacheNodeDirectory(api, PARTITION_KEY, typeManager, retryPolicy);
-    }
-
-    @AfterEach
-    public void tearDown() {
-        reset(api);
     }
 
     @Test
     void insert() {
         FederatedCacheNode node = createNode();
-        api.saveItem(anyObject(FederatedCacheNodeDocument.class));
+        api.saveItem(any(FederatedCacheNodeDocument.class));
 
         List<FederatedCacheNodeDocument> documents = new ArrayList<>();
-        expectLastCall().andAnswer(() -> {
-            FederatedCacheNodeDocument passedNode = (FederatedCacheNodeDocument) EasyMock.getCurrentArguments()[0];
+        doAnswer(i -> {
+            FederatedCacheNodeDocument passedNode = i.getArgument(0);
             documents.add(passedNode);
             return null;
-        });
-
-        replay(api);
+        }).when(api).saveItem(any(FederatedCacheNodeDocument.class));
 
         directory.insert(node);
 
@@ -83,8 +74,7 @@ class CosmosFederatedCacheNodeDirectoryTest {
                     assertThat(doc.getPartitionKey()).isEqualTo(PARTITION_KEY);
                     assertNodesAreEqual(doc.getWrappedInstance(), node);
                 });
-
-        verify(api);
+        verify(api).saveItem(any(FederatedCacheNodeDocument.class));
     }
 
     @Test
@@ -98,14 +88,12 @@ class CosmosFederatedCacheNodeDirectoryTest {
                 .map(CosmosFederatedCacheNodeDirectoryTest::createDocument)
                 .collect(Collectors.toList());
 
-        expect(api.queryAllItems(anyString())).andReturn(documents);
-
-        replay(api);
+        when(api.queryAllItems(anyString())).thenReturn(documents);
 
         List<FederatedCacheNode> result = directory.getAll();
+
         assertThat(result).hasSize(nbNodes);
         nodes.forEach(expected -> assertThat(result).anySatisfy(node -> assertNodesAreEqual(expected, node)));
-
-        verify(api);
+        verify(api).queryAllItems(anyString());
     }
 }

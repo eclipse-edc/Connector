@@ -18,15 +18,12 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static org.easymock.EasyMock.createMock;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.strictMock;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 
 class IdentityDidCoreExtensionTest {
 
@@ -36,41 +33,26 @@ class IdentityDidCoreExtensionTest {
     @BeforeEach
     void setUp() {
         extension = new IdentityDidCoreExtension();
-        contextMock = createMock(ServiceExtensionContext.class);
+        contextMock = mock(ServiceExtensionContext.class);
     }
 
     @Test
     void verifyCorrectInitialization_withPkResolverPresent() {
-        expect(contextMock.getService(IdentityHubStore.class)).andReturn(niceMock(IdentityHubStore.class));
-        expect(contextMock.getTypeManager()).andReturn(new TypeManager());
+        when(contextMock.getService(IdentityHubStore.class)).thenReturn(mock(IdentityHubStore.class));
+        when(contextMock.getTypeManager()).thenReturn(new TypeManager());
+        when(contextMock.getService(PrivateKeyResolver.class)).thenReturn(mock(PrivateKeyResolver.class));
+        when(contextMock.getConnectorId()).thenReturn("test-connector");
+        WebService webserviceMock = mock(WebService.class);
+        when(contextMock.getService(WebService.class)).thenReturn(webserviceMock);
+        when(contextMock.getService(OkHttpClient.class)).thenReturn(mock(OkHttpClient.class));
+        when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
 
-        expect(contextMock.getService(PrivateKeyResolver.class)).andReturn(niceMock(PrivateKeyResolver.class));
-        expect(contextMock.getConnectorId()).andReturn("test-connector");
-
-
-        contextMock.registerService(eq(DidResolverRegistry.class), isA(DidResolverRegistry.class));
-        expectLastCall();
-
-        contextMock.registerService(eq(DidPublicKeyResolver.class), isA(DefaultDidPublicKeyResolver.class));
-        expectLastCall();
-
-        contextMock.registerService(eq(IdentityHub.class), isA(IdentityHubImpl.class));
-        expectLastCall();
-
-        WebService webserviceMock = strictMock(WebService.class);
-        expect(contextMock.getService(WebService.class)).andReturn(webserviceMock);
-        webserviceMock.registerController(isA(IdentityHubController.class));
-        expectLastCall();
-
-        expect(contextMock.getService(OkHttpClient.class)).andReturn(niceMock(OkHttpClient.class));
-        contextMock.registerService(eq(IdentityHubClient.class), isA(IdentityHubClientImpl.class));
-        expectLastCall();
-
-        replay(contextMock);
-        replay(webserviceMock);
         extension.initialize(contextMock);
 
-        verify(webserviceMock);
-        verify(contextMock);
+        verify(contextMock).registerService(eq(DidResolverRegistry.class), isA(DidResolverRegistry.class));
+        verify(contextMock).registerService(eq(DidPublicKeyResolver.class), isA(DefaultDidPublicKeyResolver.class));
+        verify(contextMock).registerService(eq(IdentityHub.class), isA(IdentityHubImpl.class));
+        verify(contextMock).registerService(eq(IdentityHubClient.class), isA(IdentityHubClientImpl.class));
+        verify(webserviceMock).registerController(isA(IdentityHubController.class));
     }
 }

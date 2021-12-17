@@ -39,10 +39,9 @@ import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyString;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 class Oauth2ServiceImplTest {
 
@@ -68,6 +67,7 @@ class Oauth2ServiceImplTest {
     @Test
     void verifyInvalidAudienceToken() {
         var jwt = createJwt("different.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
+
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isFalse();
@@ -77,6 +77,7 @@ class Oauth2ServiceImplTest {
     @Test
     void verifyInvalidAttemptUseNotBeforeToken() {
         var jwt = createJwt("test.audience", Date.from(Instant.now().plusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
+
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isFalse();
@@ -86,6 +87,7 @@ class Oauth2ServiceImplTest {
     @Test
     void verifyExpiredToken() {
         var jwt = createJwt("test.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().minusSeconds(1000)));
+
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isFalse();
@@ -95,6 +97,7 @@ class Oauth2ServiceImplTest {
     @Test
     void verifyValidJwt() {
         var jwt = createJwt("test.audience", Date.from(Instant.now().minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
+
         var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
 
         assertThat(result.succeeded()).isTrue();
@@ -108,14 +111,12 @@ class Oauth2ServiceImplTest {
                 .keyID(UUID.randomUUID().toString()) // give the key a unique ID
                 .generate();
 
-        // prepare RS keys for testing
         var pk = testKey.toPrivateKey();
         jwsSignerSupplier = () -> new RSASSASigner(pk);
-        //set up a resolver that resolves that test key
-        PublicKeyResolver publicKeyResolverMock = niceMock(PublicKeyResolver.class);
-        PrivateKeyResolver privateKeyResolverMock = niceMock(PrivateKeyResolver.class);
-        CertificateResolver certificateResolverMock = niceMock(CertificateResolver.class);
-        expect(publicKeyResolverMock.resolveKey(anyString())).andReturn((RSAPublicKey) testKey.toPublicKey());
+        PublicKeyResolver publicKeyResolverMock = mock(PublicKeyResolver.class);
+        PrivateKeyResolver privateKeyResolverMock = mock(PrivateKeyResolver.class);
+        CertificateResolver certificateResolverMock = mock(CertificateResolver.class);
+        when(publicKeyResolverMock.resolveKey(anyString())).thenReturn((RSAPublicKey) testKey.toPublicKey());
         Oauth2Configuration configuration = Oauth2Configuration.Builder.newInstance()
                 .tokenUrl(TOKEN_URL)
                 .clientId(CLIENT_ID)
@@ -127,8 +128,6 @@ class Oauth2ServiceImplTest {
                 .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
-        replay(publicKeyResolverMock);
-
         authService = new Oauth2ServiceImpl(configuration, jwsSignerSupplier, new OkHttpClient.Builder().build(), new JwtDecoratorRegistryImpl(), new TypeManager());
     }
 
@@ -137,7 +136,7 @@ class Oauth2ServiceImplTest {
                 .audience(aud)
                 .notBeforeTime(nbf)
                 .expirationTime(exp).build();
-        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
+        var header = new JWSHeader.Builder(JWSAlgorithm.RS256).keyID("an-id").build();
 
         try {
             SignedJWT jwt = new SignedJWT(header, claimsSet);
