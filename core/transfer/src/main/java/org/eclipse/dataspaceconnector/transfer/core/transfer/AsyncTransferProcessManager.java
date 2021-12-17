@@ -319,17 +319,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 });
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
-                if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
-                    monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
-                    process.transitionProvisioned();
-                    transferProcessStore.update(process);
-                    invokeForEach(l -> l.provisioned(process));
-                } else if (ResponseStatus.FATAL_ERROR == response.getFailure().status()) {
-                    monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
-                    process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
-                    transferProcessStore.update(process);
-                    invokeForEach(l -> l.error(process));
-                } else {
+                if (response.succeeded()) {
                     if (process.getDataRequest().getTransferType().isFinite()) {
                         process.transitionInProgress();
                     } else {
@@ -337,6 +327,18 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                     }
                     transferProcessStore.update(process);
                     invokeForEach(l -> l.inProgress(process));
+                } else {
+                    if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
+                        monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
+                        process.transitionProvisioned();
+                        transferProcessStore.update(process);
+                        invokeForEach(l -> l.provisioned(process));
+                    } else { //ERROR_FATAL
+                        monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
+                        process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
+                        transferProcessStore.update(process);
+                        invokeForEach(l -> l.error(process));
+                    }
                 }
             }
         }
