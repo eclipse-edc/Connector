@@ -63,8 +63,6 @@ jobs:
         run: ./gradlew extensions:azure:contract-negotiation-store-cosmos:check
 
   Aws-Integration-Test:
-    # run only on upstream repo
-    if: github.repository_owner == 'eclipse-dataspaceconnector'
     runs-on: ubuntu-latest
 
     services:
