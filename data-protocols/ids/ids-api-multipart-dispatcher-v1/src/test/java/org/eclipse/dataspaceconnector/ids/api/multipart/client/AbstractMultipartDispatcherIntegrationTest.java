@@ -19,7 +19,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -41,6 +40,10 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartDispatcherIntegrationTest {
@@ -95,12 +98,9 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
 
         var tokenResult = TokenRepresentation.Builder.newInstance().token("token").build();
         var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
-
-        identityService = EasyMock.createMock(IdentityService.class);
-        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.anyObject())).andReturn(Result.success(tokenResult));
-        EasyMock.expect(identityService.verifyJwtToken(EasyMock.anyObject(), EasyMock.anyObject()))
-                .andReturn(Result.success(claimToken));
-        EasyMock.replay(identityService);
+        identityService = mock(IdentityService.class);
+        when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
+        when(identityService.verifyJwtToken(any(), any())).thenReturn(Result.success(claimToken));
 
         extension.registerSystemExtension(ServiceExtension.class,
                 new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(identityService));

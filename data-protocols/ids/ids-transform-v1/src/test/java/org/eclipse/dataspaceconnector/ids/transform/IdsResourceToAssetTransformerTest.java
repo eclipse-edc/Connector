@@ -20,7 +20,6 @@ import de.fraunhofer.iais.eis.CustomMediaTypeBuilder;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceBuilder;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.junit.jupiter.api.AfterEach;
@@ -32,6 +31,8 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import static org.mockito.Mockito.mock;
 
 public class IdsResourceToAssetTransformerTest {
     private static final String ASSET_ID = "1";
@@ -58,13 +59,11 @@ public class IdsResourceToAssetTransformerTest {
                 .build();
 
         resource = new ResourceBuilder(RESOURCE_ID)._representation_(new ArrayList<>(Collections.singletonList(representation))).build();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -72,8 +71,6 @@ public class IdsResourceToAssetTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(resource, null);
         });
@@ -81,8 +78,6 @@ public class IdsResourceToAssetTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -90,13 +85,8 @@ public class IdsResourceToAssetTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // record
-        EasyMock.replay(context);
-
-        // invoke
         var result = transformer.transform(resource, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(ASSET_ID, result.getId());
         Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_BYTE_SIZE), ASSET_BYTESIZE);
@@ -104,8 +94,4 @@ public class IdsResourceToAssetTransformerTest {
         Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_FILE_EXTENSION), ASSET_FILE_EXTENSION);
     }
 
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(context);
-    }
 }

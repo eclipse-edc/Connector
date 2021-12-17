@@ -30,11 +30,11 @@ import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.easymock.EasyMock.anyBoolean;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class DefaultServiceExtensionContextTest {
 
@@ -44,8 +44,8 @@ class DefaultServiceExtensionContextTest {
     @BeforeEach
     void setUp() {
         TypeManager typeManager = new TypeManager();
-        Monitor monitor = niceMock(Monitor.class);
-        serviceLocatorMock = niceMock(ServiceLocator.class);
+        Monitor monitor = mock(Monitor.class);
+        serviceLocatorMock = mock(ServiceLocator.class);
         context = new DefaultServiceExtensionContext(typeManager, monitor, serviceLocatorMock);
     }
 
@@ -55,14 +55,13 @@ class DefaultServiceExtensionContextTest {
 
         var service1 = new ServiceExtension() {
         };
-        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(service1));
-        replay(serviceLocatorMock);
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(service1));
 
         var list = context.loadServiceExtensions();
 
         assertThat(list).hasSize(1);
         assertThat(list).contains(service1);
-
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
@@ -73,12 +72,12 @@ class DefaultServiceExtensionContextTest {
         var service2 = new ServiceExtension() {
         };
 
-        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(service1, service2));
-        replay(serviceLocatorMock);
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(service1, service2));
 
         var list = context.loadServiceExtensions();
         assertThat(list).hasSize(2);
         assertThat(list).containsExactlyInAnyOrder(service1, service2);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
@@ -97,12 +96,11 @@ class DefaultServiceExtensionContextTest {
             }
         };
 
-        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(depending, coreService));
-        replay(serviceLocatorMock);
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, coreService));
 
         var services = context.loadServiceExtensions();
         assertThat(services).containsExactly(coreService, depending);
-
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
@@ -121,10 +119,10 @@ class DefaultServiceExtensionContextTest {
             }
         };
 
-        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(depending, coreService));
-        replay(serviceLocatorMock);
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, coreService));
 
         assertThatThrownBy(() -> context.loadServiceExtensions()).isInstanceOf(EdcException.class);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
@@ -146,11 +144,11 @@ class DefaultServiceExtensionContextTest {
         var thirdService = new ServiceExtension() {
         };
 
-        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(depending, thirdService, coreService));
-        replay(serviceLocatorMock);
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, thirdService, coreService));
 
         var services = context.loadServiceExtensions();
         assertThat(services).containsExactlyInAnyOrder(coreService, depending, thirdService);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
@@ -179,10 +177,10 @@ class DefaultServiceExtensionContextTest {
             }
         };
 
-        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(s1, s2));
-        replay(serviceLocatorMock);
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(s1, s2));
 
         assertThatThrownBy(() -> context.loadServiceExtensions()).isInstanceOf(CyclicDependencyException.class);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
@@ -201,12 +199,12 @@ class DefaultServiceExtensionContextTest {
             }
         };
 
-        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(depending, coreService));
-        replay(serviceLocatorMock);
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, coreService));
 
         assertThatThrownBy(() -> context.loadServiceExtensions())
                 .isInstanceOf(EdcException.class)
                 .hasMessageContaining("not found: no-one-provides-this");
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
@@ -225,11 +223,11 @@ class DefaultServiceExtensionContextTest {
             }
         };
 
-        expect(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).andReturn(mutableListOf(depending, coreService));
-        replay(serviceLocatorMock);
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, coreService));
 
         var services = context.loadServiceExtensions();
         assertThat(services).containsExactly(coreService, depending);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     private <T> List<T> mutableListOf(T... elements) {

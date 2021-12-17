@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Resource;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
@@ -27,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,15 +36,22 @@ import java.util.stream.Stream;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockAssetIndex;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockDescriptionRequestMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockTransformerRegistry;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class ResourceDescriptionRequestHandlerTest {
 
     private static final String CONNECTOR_ID = "urn:connector:edc";
 
-    // subject
     private ResourceDescriptionRequestHandler resourceDescriptionRequestHandler;
 
-    // mocks
     private Monitor monitor;
     private TransformerRegistry transformerRegistry;
     private DescriptionRequestMessage descriptionRequestMessage;
@@ -57,12 +62,11 @@ public class ResourceDescriptionRequestHandlerTest {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @BeforeEach
     public void setup() throws URISyntaxException {
-        monitor = EasyMock.createMock(Monitor.class);
-        resource = EasyMock.createMock(Resource.class);
-        EasyMock.expect(resource.getId()).andReturn(new URI("urn:resource:hello"));
-        EasyMock.replay(monitor, resource);
+        monitor = mock(Monitor.class);
+        resource = mock(Resource.class);
+        when(resource.getId()).thenReturn(new URI("urn:resource:hello"));
 
-        contractOfferService = EasyMock.createMock(ContractOfferService.class);
+        contractOfferService = mock(ContractOfferService.class);
         descriptionRequestMessage = mockDescriptionRequestMessage(resource.getId());
         assetIndex = mockAssetIndex();
         transformerRegistry = mockTransformerRegistry(IdsType.RESOURCE);
@@ -73,39 +77,34 @@ public class ResourceDescriptionRequestHandlerTest {
     @Test
     @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new ResourceDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, contractOfferService, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new ResourceDescriptionRequestHandler(monitor, null, assetIndex, contractOfferService, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, null, contractOfferService, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new ResourceDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, contractOfferService, null));
     }
 
     @Test
     public void testSimpleSuccessPath() {
-        // prepare
         var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
-
-        EasyMock.expect(assetIndex.findById(EasyMock.anyString())).andReturn(EasyMock.createMock(Asset.class));
-
+        when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
         var resourceResult = Result.success(resource);
-        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(OfferedAsset.class), EasyMock.eq(Resource.class)))
-                .andReturn(resourceResult);
+        when(transformerRegistry.transform(isA(OfferedAsset.class), eq(Resource.class))).thenReturn(resourceResult);
+        when(contractOfferService.queryContractOffers(isA(ContractOfferQuery.class))).thenReturn(Stream.empty());
 
-        EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.isA(ContractOfferQuery.class))).andReturn(Stream.empty());
-
-        EasyMock.replay(assetIndex, contractOfferService, transformerRegistry, descriptionRequestMessage);
-
-        // invoke
         var result = resourceDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, null);
 
-        // validate
-        Assertions.assertNotNull(result);
-        Assertions.assertNotNull(result.getHeader());
-        Assertions.assertEquals(resource, result.getPayload());
+        assertNotNull(result);
+        assertNotNull(result.getHeader());
+        assertEquals(resource, result.getPayload());
+        verify(resource).getId();
+        verify(assetIndex).findById(anyString());
+        verify(transformerRegistry).transform(isA(OfferedAsset.class), eq(Resource.class));
+        verify(contractOfferService).queryContractOffers(isA(ContractOfferQuery.class));
     }
 }

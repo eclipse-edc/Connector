@@ -19,7 +19,6 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
@@ -29,10 +28,8 @@ import java.nio.charset.StandardCharsets;
 
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
-/**
- * Verifies Web DID resolution.
- */
 class WebDidResolverTest {
 
     @Test
@@ -78,9 +75,8 @@ class WebDidResolverTest {
             builder.addInterceptor(interceptor);
         }
         var mapper = new ObjectMapper();
-        Monitor monitor = EasyMock.niceMock(Monitor.class);
+        Monitor monitor = mock(Monitor.class);
         return new WebDidResolver(builder.build(), mapper, monitor);
     }
-
 
 }

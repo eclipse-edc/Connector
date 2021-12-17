@@ -26,7 +26,6 @@ import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
 import okhttp3.OkHttpClient;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
@@ -38,6 +37,7 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
+import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -62,6 +62,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
@@ -80,12 +86,11 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
     @BeforeEach
     void init() {
-        Monitor monitor = EasyMock.createNiceMock(Monitor.class);
-        EasyMock.replay(monitor);
+        Monitor monitor = mock(Monitor.class);
 
-        transformerRegistry = EasyMock.createNiceMock(TransformerRegistry.class);
+        transformerRegistry = mock(TransformerRegistry.class);
 
-        Vault vault = EasyMock.niceMock(Vault.class);
+        Vault vault = mock(Vault.class);
         var httpClient = new OkHttpClient.Builder().build();
 
         var idsWebhookAddress = "http://webhook";
@@ -129,14 +134,23 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         addAgreement(contractAgreement);
 
-        var dataDestination = (DataAddress) EasyMock.createNiceMock(DataAddress.class);
-        EasyMock.replay(dataDestination);
+        when(transformerRegistry.transform(any(IdsId.class), any()))
+                .thenAnswer(invocation -> {
 
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
-                .andReturn(Result.success(URI.create("urn:artifact:" + asset.getId())));
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
-                .andReturn(Result.success(URI.create("urn:contract:" + contractAgreement.getId())));
-        EasyMock.replay(transformerRegistry);
+                    IdsId id = invocation.getArgument(0);
+                    switch (id.getType()) {
+                        case RESOURCE:
+                        case REPRESENTATION:
+                        case ARTIFACT:
+                            return Result.success(URI.create("urn:artifact:" + asset.getId()));
+                        case CONTRACT:
+                        case CONTRACT_AGREEMENT:
+                        case CONTRACT_OFFER:
+                            return Result.success(URI.create("urn:contract:" + contractAgreement.getId()));
+                        default:
+                            throw new UnsupportedOperationException();
+                    }
+                });
 
         var request = DataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
@@ -144,7 +158,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractId(contractAgreement.getId())
                 .assetId(asset.getId())
-                .dataDestination(dataDestination)
+                .dataDestination(DataAddress.Builder.newInstance().build())
                 .build();
 
         var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
@@ -154,16 +168,14 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessage.class);
         assertThat(result.getPayload()).isNull();
+        verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test
     void testSendContractOfferMessage() throws Exception {
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(contractOffer);
-
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
-                .andReturn(Result.success(getIdsContractOffer()));
-        EasyMock.replay(transformerRegistry);
+        var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
+        when(transformerRegistry.transform(any(), any()))
+                .thenReturn(Result.success(getIdsContractOffer()));
 
         var request = ContractOfferRequest.Builder.newInstance()
                 .type(ContractOfferRequest.Type.COUNTER_OFFER)
@@ -181,16 +193,14 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
         assertThat(result.getPayload()).isNull();
+        verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
     void testSendContractRequestMessage() throws Exception {
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(contractOffer);
-
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.anyObject()))
-                .andReturn(Result.success(getIdsContractOffer()));
-        EasyMock.replay(transformerRegistry);
+        var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
+        when(transformerRegistry.transform(any(), any()))
+                .thenReturn(Result.success(getIdsContractOffer()));
 
         var request = ContractOfferRequest.Builder.newInstance()
                 .type(ContractOfferRequest.Type.INITIAL)
@@ -209,6 +219,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         // TODO Should be RequestInProcess
         assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
         assertThat(result.getPayload()).isNull();
+        verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
@@ -221,11 +232,10 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         addAgreement(contractAgreement);
 
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.eq(de.fraunhofer.iais.eis.ContractAgreement.class)))
-                .andReturn(Result.success(getIdsContractAgreement()));
-        EasyMock.expect(transformerRegistry.transform(EasyMock.anyObject(), EasyMock.eq(URI.class)))
-                .andReturn(Result.success(URI.create("https://example.com")));
-        EasyMock.replay(transformerRegistry);
+        when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractAgreement.class)))
+                .thenReturn(Result.success(getIdsContractAgreement()));
+        when(transformerRegistry.transform(any(), eq(URI.class)))
+                .thenReturn(Result.success(URI.create("https://example.com")));
 
         var request = ContractAgreementRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
@@ -242,6 +252,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessageImpl.class);
         assertThat(result.getPayload()).isNull();
+        verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test

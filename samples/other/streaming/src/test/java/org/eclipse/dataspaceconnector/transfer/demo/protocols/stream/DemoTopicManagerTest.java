@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -25,6 +24,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 
 class DemoTopicManagerTest {
     private DemoTopicManager topicManager;
@@ -35,27 +38,27 @@ class DemoTopicManagerTest {
 
         var dataDestination = topicManager.provision("destination").get();
         var cdl = new CountDownLatch(2);
-        Consumer<byte[]> consumer1 = EasyMock.createMock(Consumer.class);
-        consumer1.accept(EasyMock.isA(byte[].class));
-        EasyMock.expectLastCall().andAnswer(() -> {
+
+        Consumer<byte[]> consumer1 = mock(Consumer.class);
+        Consumer<byte[]> consumer2 = mock(Consumer.class);
+        doAnswer(i -> {
             cdl.countDown();
             return null;
-        });
-        Consumer<byte[]> consumer2 = EasyMock.createMock(Consumer.class);
-        consumer2.accept(EasyMock.isA(byte[].class));
-        EasyMock.expectLastCall().andAnswer(() -> {
+        }).when(consumer1).accept(isA(byte[].class));
+        doAnswer(i -> {
             cdl.countDown();
             return null;
-        });
-        EasyMock.replay(consumer1, consumer2);
+        }).when(consumer2).accept(isA(byte[].class));
 
         topicManager.subscribe(dataDestination.getDestinationName(), dataDestination.getAccessToken(), consumer1);
         topicManager.subscribe(dataDestination.getDestinationName(), dataDestination.getAccessToken(), consumer2);
 
         topicManager.connect("destination", dataDestination.getAccessToken()).getContent().accept("test".getBytes());
         var result = cdl.await(10, TimeUnit.SECONDS);
+
         assertTrue(result);
-        EasyMock.verify(consumer1, consumer2);
+        verify(consumer1).accept(isA(byte[].class));
+        verify(consumer2).accept(isA(byte[].class));
     }
 
     @BeforeEach

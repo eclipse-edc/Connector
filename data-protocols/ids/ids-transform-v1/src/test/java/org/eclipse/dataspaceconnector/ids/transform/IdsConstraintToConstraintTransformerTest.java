@@ -17,27 +17,29 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import de.fraunhofer.iais.eis.BinaryOperator;
 import de.fraunhofer.iais.eis.LeftOperand;
 import de.fraunhofer.iais.eis.util.RdfResource;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Expression;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class IdsConstraintToConstraintTransformerTest {
 
     private static final URI CONSTRAINT_ID = URI.create("https://constraint.com");
 
-    // subject
     private IdsConstraintToConstraintTransformer transformer;
 
-    // mocks
     private de.fraunhofer.iais.eis.Constraint idsConstraint;
     private TransformerContext context;
 
@@ -49,13 +51,11 @@ public class IdsConstraintToConstraintTransformerTest {
                 ._operator_(BinaryOperator.EQ)
                 ._rightOperand_(new RdfResource("hello"))
                 .build();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -63,8 +63,6 @@ public class IdsConstraintToConstraintTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(idsConstraint, null);
         });
@@ -72,8 +70,6 @@ public class IdsConstraintToConstraintTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -81,35 +77,27 @@ public class IdsConstraintToConstraintTransformerTest {
 
     @Test
     void testTransform() {
-        // prepare
         var expectedLeftExpression = new LiteralExpression("left");
         var expectedRightExpression = new LiteralExpression("right");
 
-        EasyMock.expect(context.transform(EasyMock.anyObject(LeftOperand.class), EasyMock.eq(Expression.class)))
-                .andReturn(expectedLeftExpression);
-        EasyMock.expect(context.transform(EasyMock.anyObject(BinaryOperator.class), EasyMock.eq(Operator.class)))
-                .andReturn(Operator.EQ);
-        EasyMock.expect(context.transform(EasyMock.anyObject(RdfResource.class), EasyMock.eq(Expression.class)))
-                .andReturn(expectedRightExpression);
+        when(context.transform(any(LeftOperand.class), eq(Expression.class)))
+                .thenReturn(expectedLeftExpression);
+        when(context.transform(any(BinaryOperator.class), eq(Operator.class)))
+                .thenReturn(Operator.EQ);
+        when(context.transform(any(RdfResource.class), eq(Expression.class)))
+                .thenReturn(expectedRightExpression);
 
-        // record
-        EasyMock.replay(context);
-
-
-        // invoke
         var result = (AtomicConstraint) transformer.transform(idsConstraint, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getLeftExpression());
         Assertions.assertEquals(result.getLeftExpression(), expectedLeftExpression);
         Assertions.assertNotNull(result.getOperator());
         Assertions.assertNotNull(result.getRightExpression());
         Assertions.assertEquals(result.getRightExpression(), expectedRightExpression);
+        verify(context).transform(any(LeftOperand.class), eq(Expression.class));
+        verify(context).transform(any(BinaryOperator.class), eq(Operator.class));
+        verify(context).transform(any(RdfResource.class), eq(Expression.class));
     }
 
-    @AfterEach
-    void teardown() {
-        EasyMock.verify(context);
-    }
 }

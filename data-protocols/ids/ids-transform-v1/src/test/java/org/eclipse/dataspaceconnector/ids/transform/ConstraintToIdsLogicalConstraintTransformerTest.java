@@ -15,7 +15,6 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.ConstraintBuilder;
 import de.fraunhofer.iais.eis.LogicalConstraint;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.AndConstraint;
@@ -29,18 +28,31 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.contentOf;
 import static org.eclipse.dataspaceconnector.policy.model.Operator.EQ;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ConstraintToIdsLogicalConstraintTransformerTest {
     private ConstraintToIdsLogicalConstraintTransformer transformer;
     private TransformerContext context;
 
+    @BeforeEach
+    void setUp() {
+        transformer = new ConstraintToIdsLogicalConstraintTransformer();
+        context = mock(TransformerContext.class);
+    }
+
     @Test
     void verifyAndConstraint() {
-        EasyMock.expect(context.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(URI.create("foo"));
-        EasyMock.expect(context.transform(EasyMock.isA(AtomicConstraint.class), EasyMock.eq(de.fraunhofer.iais.eis.Constraint.class)))
-                .andReturn(new ConstraintBuilder().build()).times(2);
-        EasyMock.replay(context);
+        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
+        when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
+                .thenReturn(new ConstraintBuilder().build());
 
         var atomicConstraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("1"))
@@ -50,17 +62,16 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
         var andConstraint = AndConstraint.Builder.newInstance().constraint(atomicConstraint).constraint(atomicConstraint).build();
 
         var transformed = (LogicalConstraint) transformer.transform(andConstraint, context);
-        assertThat(transformed.getAnd()).isNotEmpty();
-        EasyMock.verify(context);
-    }
 
+        assertThat(transformed.getAnd()).isNotEmpty();
+        verify(context, times(3)).transform(any(), any());
+    }
 
     @Test
     void verifyOrConstraint() {
-        EasyMock.expect(context.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(URI.create("foo"));
-        EasyMock.expect(context.transform(EasyMock.isA(AtomicConstraint.class), EasyMock.eq(de.fraunhofer.iais.eis.Constraint.class)))
-                .andReturn(new ConstraintBuilder().build()).times(2);
-        EasyMock.replay(context);
+        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
+        when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
+                .thenReturn(new ConstraintBuilder().build());
 
         var atomicConstraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("1"))
@@ -70,19 +81,19 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
         var orConstraint = OrConstraint.Builder.newInstance().constraint(atomicConstraint).constraint(atomicConstraint).build();
 
         var transformed = transformer.transform(orConstraint, context);
+
         assertThat(transformed).isNotNull();
         assertThat(transformed.getOr()).isNotNull();
+        verify(context, times(3)).transform(any(), any());
 
-        EasyMock.verify(context);
     }
 
 
     @Test
     void verifyXoneConstraint() {
-        EasyMock.expect(context.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(URI.create("foo"));
-        EasyMock.expect(context.transform(EasyMock.isA(AtomicConstraint.class), EasyMock.eq(de.fraunhofer.iais.eis.Constraint.class)))
-                .andReturn(new ConstraintBuilder().build()).times(2);
-        EasyMock.replay(context);
+        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(URI.create("foo"));
+        when(context.transform(isA(AtomicConstraint.class), eq(de.fraunhofer.iais.eis.Constraint.class)))
+                .thenReturn(new ConstraintBuilder().build());
 
         var atomicConstraint = AtomicConstraint.Builder.newInstance()
                 .leftExpression(new LiteralExpression("1"))
@@ -92,16 +103,10 @@ class ConstraintToIdsLogicalConstraintTransformerTest {
         var xoneConstraint = XoneConstraint.Builder.newInstance().constraint(atomicConstraint).constraint(atomicConstraint).build();
 
         var transformed = transformer.transform(xoneConstraint, context);
+
         assertThat(transformed).isNotNull();
         assertThat(transformed.getXone()).isNotNull();
-
-        EasyMock.verify(context);
+        verify(context, times(3)).transform(any(), any());
     }
 
-
-    @BeforeEach
-    void setUp() {
-        transformer = new ConstraintToIdsLogicalConstraintTransformer();
-        context = EasyMock.createMock(TransformerContext.class);
-    }
 }

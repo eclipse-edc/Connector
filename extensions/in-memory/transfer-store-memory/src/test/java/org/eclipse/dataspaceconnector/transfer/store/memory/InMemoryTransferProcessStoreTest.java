@@ -27,8 +27,6 @@ import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -119,7 +117,6 @@ class InMemoryTransferProcessStoreTest {
 
         var found = store.nextForState(TransferProcessStates.INITIAL.code(), 3);
         assertEquals(2, found.size());
-
     }
 
     @Test
@@ -157,8 +154,7 @@ class InMemoryTransferProcessStoreTest {
     }
 
     private TransferProcess createProcess(String name) {
-        DataRequest mock = niceMock(DataRequest.class);
-        replay(mock);
+        DataRequest mock = DataRequest.Builder.newInstance().destinationType("type").build();
         return TransferProcess.Builder.newInstance()
                 .type(TransferProcess.Type.CONSUMER)
                 .id(name)

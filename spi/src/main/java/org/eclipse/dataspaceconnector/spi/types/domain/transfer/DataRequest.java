@@ -256,7 +256,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
-        private Builder transferType(TransferType transferType) {
+        public Builder transferType(TransferType transferType) {
             request.transferType = transferType;
             return this;
         }

@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
@@ -28,29 +27,34 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.Collections;
 
+import static java.util.Collections.emptyMap;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 class AssetToIdsResourceTransformerTest {
 
     private static final String RESOURCE_ID = "test_id";
     private static final URI RESOURCE_ID_URI = URI.create("urn:resource:1");
 
-    // subject
     private AssetToIdsResourceTransformer transformer;
 
-    // mocks
-    private Asset asset;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
+        context = mock(TransformerContext.class);
         transformer = new AssetToIdsResourceTransformer();
-        asset = EasyMock.createMock(Asset.class);
-        context = EasyMock.createMock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(asset, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -58,17 +62,13 @@ class AssetToIdsResourceTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(asset, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(asset, null);
+            transformer.transform(Asset.Builder.newInstance().build(), null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(asset, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -76,30 +76,20 @@ class AssetToIdsResourceTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
-        EasyMock.expect(asset.getId()).andReturn(RESOURCE_ID);
-        EasyMock.expect(asset.getProperties()).andReturn(Collections.emptyMap());
-
+        var asset = Asset.Builder.newInstance().id(RESOURCE_ID).build();
         var representation = new RepresentationBuilder().build();
-        EasyMock.expect(context.transform(EasyMock.anyObject(Asset.class), EasyMock.eq(Representation.class))).andReturn(representation);
+        when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);
 
         IdsId id = IdsId.Builder.newInstance().value(RESOURCE_ID).type(IdsType.RESOURCE).build();
-        EasyMock.expect(context.transform(EasyMock.eq(id), EasyMock.eq(URI.class))).andReturn(RESOURCE_ID_URI);
+        when(context.transform(eq(id), eq(URI.class))).thenReturn(RESOURCE_ID_URI);
 
-        context.reportProblem(EasyMock.anyString());
-        EasyMock.expectLastCall().atLeastOnce();
-
-        // record
-        EasyMock.replay(asset, context);
-
-        // invoke
         var result = transformer.transform(asset, context);
 
-        // verify
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(RESOURCE_ID_URI, result.getId());
-        Assertions.assertEquals(1, result.getRepresentation().size());
-        Assertions.assertEquals(representation, result.getRepresentation().get(0));
+        assertNotNull(result);
+        assertEquals(RESOURCE_ID_URI, result.getId());
+        assertEquals(1, result.getRepresentation().size());
+        assertEquals(representation, result.getRepresentation().get(0));
+        verify(context, times(2)).transform(any(), any());
     }
 
 }

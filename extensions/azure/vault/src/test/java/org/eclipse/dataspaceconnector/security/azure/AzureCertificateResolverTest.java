@@ -14,17 +14,14 @@
 
 package org.eclipse.dataspaceconnector.security.azure;
 
-import org.easymock.EasyMock;
-import org.easymock.EasyMockExtension;
-import org.easymock.Mock;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@ExtendWith(EasyMockExtension.class)
 class AzureCertificateResolverTest {
 
     static String TEST = "-----BEGIN CERTIFICATE-----" +
@@ -42,22 +39,16 @@ class AzureCertificateResolverTest {
             "jC9UeuErhaA/zzWi8ewMTFZW/WshOrm3fNvcMrMLKtH534JKvcdMg6qIdjTFINIr" +
             "evnAhf0cwULaebn+lMs8Pdl7y37+sfluVok=" +
             "-----END CERTIFICATE-----";
-    @Mock
-    Vault vault;
-    private AzureCertificateResolver certificateResolver;
+
+    private final Vault vault = mock(Vault.class);
+    private final AzureCertificateResolver certificateResolver = new AzureCertificateResolver(vault);
 
     @Test
     void verifyResolution() {
-        EasyMock.expect(vault.resolveSecret("test")).andReturn(TEST);
-        EasyMock.replay(vault);
+        when(vault.resolveSecret("test")).thenReturn(TEST);
 
         assertNotNull(certificateResolver.resolveCertificate("test"));
-        EasyMock.verify(vault);
-    }
-
-    @BeforeEach
-    void setUp() {
-        certificateResolver = new AzureCertificateResolver(vault);
+        verify(vault).resolveSecret("test");
     }
 
 }

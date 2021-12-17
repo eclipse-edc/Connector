@@ -1455,9 +1455,9 @@ Stax2 API
 * Maven Artifact: org.codehaus.woodstox/stax2-api/4.2.1
 * License: BSD-2-Clause
 
-EasyMock
-* Maven Artifact: org.easymock/easymock/4.2
-* License: Apache-2.0
+Mockito
+* Maven Artifact: org.mockito:mockito-core/4.1.0
+* License: MIT
 
 Jetty :: Jakarta Servlet API and Schemas for JPMS and OSGi
 * Source: scm:git:https://github.com/eclipse/jetty.toolchain.git

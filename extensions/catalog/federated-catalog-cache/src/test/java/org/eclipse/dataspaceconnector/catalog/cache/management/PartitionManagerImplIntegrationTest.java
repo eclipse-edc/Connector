@@ -30,12 +30,13 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * This tests the PartitionManagerImpl with real crawlers and in a real multithreading environment.
@@ -43,7 +44,7 @@ import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkIt
  */
 class PartitionManagerImplIntegrationTest {
     public static final int WORK_ITEM_COUNT = 1000;
-    private final Monitor monitorMock = niceMock(Monitor.class);
+    private final Monitor monitorMock = mock(Monitor.class);
     private WorkItemQueue signallingWorkItemQueue;
     private List<WorkItem> staticWorkLoad;
     private Function<WorkItemQueue, Crawler> generatorFunction;
@@ -54,18 +55,17 @@ class PartitionManagerImplIntegrationTest {
     void setup() {
 
         latch = new CountDownLatch(WORK_ITEM_COUNT);
-        queueListener = niceMock(WorkQueueListener.class);
+        queueListener = mock(WorkQueueListener.class);
         signallingWorkItemQueue = new SignalingWorkItemQueue(WORK_ITEM_COUNT + 1, queueListener);
         staticWorkLoad = IntStream.range(0, WORK_ITEM_COUNT).mapToObj(i -> createWorkItem()).collect(Collectors.toList());
 
-        NodeQueryAdapter adapterMock = niceMock(NodeQueryAdapter.class);
-        expect(adapterMock.sendRequest(isA(UpdateRequest.class))).andReturn(CompletableFuture.completedFuture(new UpdateResponse())).times(WORK_ITEM_COUNT);
-        replay(adapterMock);
+        NodeQueryAdapter adapterMock = mock(NodeQueryAdapter.class);
+        when(adapterMock.sendRequest(isA(UpdateRequest.class))).thenReturn(CompletableFuture.completedFuture(new UpdateResponse()));
 
         var registry = new NodeQueryAdapterRegistryImpl();
         registry.register("test-protocol", adapterMock);
 
-        BlockingQueue<UpdateResponse> loaderQueueMock = niceMock(BlockingQueue.class);
+        BlockingQueue<UpdateResponse> loaderQueueMock = mock(BlockingQueue.class);
         generatorFunction = workItemQueue -> CrawlerImpl.Builder.newInstance()
                 .retryPolicy(new RetryPolicy<>())
                 .monitor(monitorMock)
@@ -83,17 +83,16 @@ class PartitionManagerImplIntegrationTest {
     @ValueSource(ints = { 10, 50, 500 })
     @DisplayName("Verify that " + WORK_ITEM_COUNT + " work items are correctly processed by a number of crawlers")
     void runManyCrawlers_verifyCompletion(int crawlerCount) throws InterruptedException {
-
-        queueListener.unlocked();
-        expectLastCall().andAnswer(() -> {
+        doAnswer(i -> {
             latch.countDown();
             return null;
-        }).anyTimes();
-        replay(queueListener);
+        }).when(queueListener).unlocked();
         var partitionManager = new PartitionManagerImpl(monitorMock, signallingWorkItemQueue, generatorFunction, crawlerCount, () -> staticWorkLoad);
-        partitionManager.schedule(new RunOnceExecutionPlan());
-        assertThat(latch.await(1, TimeUnit.MINUTES)).withFailMessage("latch was expected to be 0 but was: " + latch.getCount()).isTrue();
 
+        partitionManager.schedule(new RunOnceExecutionPlan());
+
+        assertThat(latch.await(1, TimeUnit.MINUTES)).withFailMessage("latch was expected to be 0 but was: " + latch.getCount()).isTrue();
+        verify(queueListener, atLeastOnce()).unlocked();
     }
 
     /**
@@ -109,7 +108,7 @@ class PartitionManagerImplIntegrationTest {
         default void tryLock() {
         }
 
-        default void polled(WorkItem polledItem) {
+        default void polled() {
         }
     }
 
@@ -147,7 +146,7 @@ class PartitionManagerImplIntegrationTest {
         @Override
         public WorkItem poll(long timeout, TimeUnit unit) throws InterruptedException {
             var polledItem = super.poll(timeout, unit);
-            listener.polled(polledItem);
+            listener.polled();
             return polledItem;
         }
     }

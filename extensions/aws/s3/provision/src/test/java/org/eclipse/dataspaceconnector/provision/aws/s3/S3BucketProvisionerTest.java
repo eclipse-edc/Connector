@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
 import net.jodah.failsafe.RetryPolicy;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
@@ -48,39 +47,39 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class S3BucketProvisionerTest {
 
     @Test
     void verifyBasicProvision() throws InterruptedException {
-
         var latch = new CountDownLatch(1);
 
         // get user
         var userFuture = new CompletableFuture<GetUserResponse>();
 
-        IamAsyncClient iamMock = EasyMock.createMock(IamAsyncClient.class);
-        iamMock.getUser();
-        EasyMock.expectLastCall().andReturn(userFuture);
+        IamAsyncClient iamMock = mock(IamAsyncClient.class);
+        when(iamMock.getUser()).thenReturn(userFuture);
 
         // create role
         var roleFuture = new CompletableFuture<CreateRoleResponse>();
-        EasyMock.expect(iamMock.createRole(EasyMock.isA(CreateRoleRequest.class))).andReturn(roleFuture);
+        when(iamMock.createRole(isA(CreateRoleRequest.class))).thenReturn(roleFuture);
 
         var putRoleFuture = new CompletableFuture<PutRolePolicyResponse>();
-        EasyMock.expect(iamMock.putRolePolicy(EasyMock.isA(PutRolePolicyRequest.class))).andReturn(putRoleFuture);
+        when(iamMock.putRolePolicy(isA(PutRolePolicyRequest.class))).thenReturn(putRoleFuture);
 
         // assume the role
-        StsAsyncClient stsMock = EasyMock.createMock(StsAsyncClient.class);
+        StsAsyncClient stsMock = mock(StsAsyncClient.class);
         var assumeRoleFuture = new CompletableFuture<AssumeRoleResponse>();
-        EasyMock.expect(stsMock.assumeRole(EasyMock.isA(AssumeRoleRequest.class))).andReturn(assumeRoleFuture);
+        when(stsMock.assumeRole(isA(AssumeRoleRequest.class))).thenReturn(assumeRoleFuture);
 
         // create the bucket
-        S3AsyncClient s3Mock = EasyMock.createMock(S3AsyncClient.class);
+        S3AsyncClient s3Mock = mock(S3AsyncClient.class);
         var s3Future = new CompletableFuture<CreateBucketResponse>();
-        EasyMock.expect(s3Mock.createBucket(EasyMock.isA(CreateBucketRequest.class))).andReturn(s3Future);
-
-        EasyMock.replay(iamMock, stsMock, s3Mock);
+        when(s3Mock.createBucket(isA(CreateBucketRequest.class))).thenReturn(s3Future);
 
         ClientProvider clientProvider = mockProvider(iamMock, stsMock, s3Mock);
 
@@ -114,8 +113,12 @@ class S3BucketProvisionerTest {
         s3Future.complete(CreateBucketResponse.builder().build());
 
         assertTrue(latch.await(10, TimeUnit.SECONDS));
-        EasyMock.verify(iamMock, stsMock, s3Mock);
 
+        verify(iamMock).getUser();
+        verify(iamMock).createRole(isA(CreateRoleRequest.class));
+        verify(iamMock).putRolePolicy(isA(PutRolePolicyRequest.class));
+        verify(stsMock).assumeRole(isA(AssumeRoleRequest.class));
+        verify(s3Mock).createBucket(isA(CreateBucketRequest.class));
     }
 
     private ClientProvider mockProvider(IamAsyncClient iamMock, StsAsyncClient stsMock, S3AsyncClient s3Mock) {

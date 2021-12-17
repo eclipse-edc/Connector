@@ -13,7 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -25,21 +24,20 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ContractNegotiationIntegrationTest extends AbstractContractNegotiationIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferAccepted() throws Exception {
-        // Reset the consumer negotiation id
         consumerNegotiationId = null;
-
-        // Create a contract offer
         ContractOffer offer = getContractOffer();
-
-        EasyMock.expect(validationService.validate(token, offer)).andReturn(Result.success(offer));
-        EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.anyObject(ContractAgreement.class),
-                EasyMock.anyObject(ContractOffer.class))).andReturn(true);
-        EasyMock.replay(validationService);
+        when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
+        when(validationService.validate(eq(token), any(ContractAgreement.class),
+                any(ContractOffer.class))).thenReturn(true);
 
         // Create signaling stores for provider and consumer
         providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
@@ -72,6 +70,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
+        verify(validationService).validate(token, offer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -80,15 +80,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     void testNegotiation_initialOfferDeclined() throws Exception {
-        // Reset the consumer negotiation id
         consumerNegotiationId = null;
-
-        // Create a contract offer
         ContractOffer offer = getContractOffer();
 
-        // Mock validation service methods
-        EasyMock.expect(validationService.validate(token, offer)).andReturn(Result.success(offer));
-        EasyMock.replay(validationService);
+        when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
 
         // Create signaling stores for provider and consumer
         providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
@@ -123,6 +118,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
+        verify(validationService).validate(token, offer);
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -131,16 +127,12 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
     @Test
     void testNegotiation_agreementDeclined() throws Exception {
-        // Reset the consumer negotiation id
         consumerNegotiationId = null;
-
-        // Create a contract offer
         ContractOffer offer = getContractOffer();
 
-        EasyMock.expect(validationService.validate(token, offer)).andReturn(Result.success(offer));
-        EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.anyObject(ContractAgreement.class),
-                EasyMock.anyObject(ContractOffer.class))).andReturn(false);
-        EasyMock.replay(validationService);
+        when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
+        when(validationService.validate(eq(token), any(ContractAgreement.class),
+                any(ContractOffer.class))).thenReturn(false);
 
         // Create signaling stores for provider and consumer
         providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
@@ -175,6 +167,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
+        verify(validationService).validate(token, offer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -184,18 +178,14 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     @Disabled
     void testNegotiation_counterOfferAccepted() throws Exception {
-        // Reset the consumer negotiation id
         consumerNegotiationId = null;
-
-        // Create an initial contract offer and a counter offer
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
 
-        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(Result.success(null));
-        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(Result.success(null));
-        EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.anyObject(ContractAgreement.class),
-                EasyMock.eq(counterOffer))).andReturn(true);
-        EasyMock.replay(validationService);
+        when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
+        when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
+        when(validationService.validate(eq(token), any(ContractAgreement.class),
+                eq(counterOffer))).thenReturn(true);
 
         // Create signaling stores for provider and consumer
         providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
@@ -235,6 +225,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that same agreement is stored on both sides
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
+
+        verify(validationService).validate(token, initialOffer);
+        verify(validationService).validate(token, counterOffer, initialOffer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -244,16 +238,13 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     @Disabled
     void testNegotiation_counterOfferDeclined() throws Exception {
-        // Reset the consumer negotiation id
         consumerNegotiationId = null;
 
-        // Create an initial contract offer and a counter offer
         ContractOffer initialOffer = getContractOffer();
         ContractOffer counterOffer = getCounterOffer();
 
-        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(Result.success(null));
-        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(Result.success(null));
-        EasyMock.replay(validationService);
+        when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
+        when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
 
         // Create signaling stores for provider and consumer
         providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
@@ -293,6 +284,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
+        verify(validationService).validate(token, initialOffer);
+        verify(validationService).validate(token, counterOffer, initialOffer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -302,7 +296,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     @Disabled
     void testNegotiation_consumerCounterOfferAccepted() throws Exception {
-        // Reset the consumer negotiation id
         consumerNegotiationId = null;
 
         // Create an initial contract offer and two counter offers
@@ -311,19 +304,18 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer consumerCounterOffer = getConsumerCounterOffer();
 
         // Mock validation of initial offer on provider side => counter offer
-        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(Result.success(null));
+        when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
 
         //Mock validation of counter offer on consumer side => counter offer
-        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(Result.success(null));
+        when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
 
         //Mock validation of second counter offer on provider side => accept
-        EasyMock.expect(validationService.validate(token, consumerCounterOffer, counterOffer)).andReturn(Result.success(null));
+        when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
 
         // Mock validation of agreement on consumer side
-        EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.anyObject(ContractAgreement.class),
-                EasyMock.eq(consumerCounterOffer))).andReturn(true);
+        when(validationService.validate(eq(token), any(ContractAgreement.class),
+                eq(consumerCounterOffer))).thenReturn(true);
 
-        EasyMock.replay(validationService);
 
         // Create signaling stores for provider and consumer
         providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
@@ -367,6 +359,11 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
+        verify(validationService).validate(token, initialOffer);
+        verify(validationService).validate(token, counterOffer, initialOffer);
+        verify(validationService).validate(token, consumerCounterOffer, counterOffer);
+        verify(validationService).validate(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
+
         // Stop provider and consumer negotiation managers
         providerManager.stop();
         consumerManager.stop();
@@ -375,7 +372,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
     @Test
     @Disabled
     void testNegotiation_consumerCounterOfferDeclined() throws Exception {
-        // Reset the consumer negotiation id
         consumerNegotiationId = null;
 
         // Create an initial contract offer and two counter offers
@@ -383,11 +379,15 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer counterOffer = getCounterOffer();
         ContractOffer consumerCounterOffer = getConsumerCounterOffer();
 
-        EasyMock.expect(validationService.validate(token, initialOffer)).andReturn(Result.success(null));
-        EasyMock.expect(validationService.validate(token, counterOffer, initialOffer)).andReturn(Result.success(null));
-        EasyMock.expect(validationService.validate(token, consumerCounterOffer, counterOffer)).andReturn(Result.success(null));
+        // Mock validation of initial offer on provider side => counter offer
+        when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
 
-        EasyMock.replay(validationService);
+        //Mock validation of counter offer on consumer side => counter offer
+        when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
+
+        //Mock validation of second counter offer on provider side => decline
+        when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
+
 
         // Create signaling stores for provider and consumer
         providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
@@ -430,6 +430,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
+
+        verify(validationService).validate(token, initialOffer);
+        verify(validationService).validate(token, counterOffer, initialOffer);
+        verify(validationService).validate(token, consumerCounterOffer, counterOffer);
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();

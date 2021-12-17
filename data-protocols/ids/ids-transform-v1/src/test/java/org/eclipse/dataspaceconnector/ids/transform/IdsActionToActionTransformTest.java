@@ -15,31 +15,28 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Action;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.mockito.Mockito.mock;
+
 public class IdsActionToActionTransformTest {
 
-    // subject
     private IdsActionToActionTransform transformer;
 
-    // mocks
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new IdsActionToActionTransform();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -47,8 +44,6 @@ public class IdsActionToActionTransformTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(Action.USE, null);
         });
@@ -56,8 +51,6 @@ public class IdsActionToActionTransformTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -65,17 +58,10 @@ public class IdsActionToActionTransformTest {
 
     @Test
     void testSuccessfulMap() {
-        EasyMock.replay(context);
-        // invoke
         var result = transformer.transform(Action.USE, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals("USE", result.getType());
     }
 
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(context);
-    }
 }
