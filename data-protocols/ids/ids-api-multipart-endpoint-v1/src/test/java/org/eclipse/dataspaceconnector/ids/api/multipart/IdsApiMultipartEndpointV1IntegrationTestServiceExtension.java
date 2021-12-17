@@ -78,6 +78,12 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
     }
 
     @Override
+    public LoadPhase phase() {
+        //this is necessary because the CoreServicesExtension requires the TransferProcessStore and it is loaded in the PRIMORDIAL phase
+        return LoadPhase.PRIMORDIAL;
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(IdentityService.class, new FakeIdentityService());
         context.registerService(TransferProcessStore.class, new FakeTransferProcessStore());

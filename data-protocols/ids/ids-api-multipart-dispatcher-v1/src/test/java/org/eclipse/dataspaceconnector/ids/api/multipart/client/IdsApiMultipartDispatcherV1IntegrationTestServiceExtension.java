@@ -73,7 +73,14 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
     @Override
     public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", "dataspaceconnector:dispatcher", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
+        return Set.of("edc:iam", "edc:core:contract", TransferProcessStore.FEATURE, "dataspaceconnector:dispatcher", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
+    }
+
+    @Override
+    public LoadPhase phase() {
+        // this is necessary for now because the CoreServicesExtension is PRIMORDIAL.
+        // FIXME: remove once the loadphases get abandoned altogether.
+        return LoadPhase.PRIMORDIAL;
     }
 
     @Override

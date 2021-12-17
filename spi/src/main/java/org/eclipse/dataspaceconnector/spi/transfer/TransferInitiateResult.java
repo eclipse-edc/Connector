@@ -15,15 +15,38 @@
 package org.eclipse.dataspaceconnector.spi.transfer;
 
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
+import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class TransferInitiateResult extends AbstractResult<String, ResponseFailure> {
 
-    public static TransferInitiateResult success(String processId) {
-        return new TransferInitiateResult(processId, null);
-    }
+    private @Nullable Object data;
 
     private TransferInitiateResult(String content, ResponseFailure failure) {
         super(content, failure);
     }
 
+    public static TransferInitiateResult success(String id) {
+        return new TransferInitiateResult(id, null);
+    }
+
+    public static TransferInitiateResult success(String id, Object data) {
+        var successResult = success(id);
+        successResult.data = data;
+
+        return successResult;
+    }
+
+    public static TransferInitiateResult error(String id, ResponseStatus status, String... errors) {
+        var e = Stream.of(errors).filter(Objects::nonNull).collect(Collectors.toList());
+        return new TransferInitiateResult(id, new ResponseFailure(status, e));
+    }
+
+    public @Nullable Object getData() {
+        return data;
+    }
 }

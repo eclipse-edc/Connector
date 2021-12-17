@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.web;
 
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.web.rest.CorsFilterConfiguration;
 import org.eclipse.dataspaceconnector.web.rest.JerseyRestService;
 import org.eclipse.dataspaceconnector.web.transport.JettyService;
 
@@ -58,7 +58,9 @@ public class WebServiceExtension implements ServiceExtension {
         jettyService = new JettyService(context::getSetting, monitor);
         context.registerService(JettyService.class, jettyService);
 
-        jerseyRestService = new JerseyRestService(jettyService, typeManager, monitor);
+        var corsConfiguration = CorsFilterConfiguration.from(context);
+
+        jerseyRestService = new JerseyRestService(jettyService, typeManager, corsConfiguration, monitor);
 
         context.registerService(WebService.class, jerseyRestService);
     }
