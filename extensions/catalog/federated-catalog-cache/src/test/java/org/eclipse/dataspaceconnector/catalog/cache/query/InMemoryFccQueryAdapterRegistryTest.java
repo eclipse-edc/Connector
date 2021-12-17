@@ -14,11 +14,9 @@
 package org.eclipse.dataspaceconnector.catalog.cache.query;
 
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapter;
-import org.eclipse.dataspaceconnector.catalog.spi.CachedAsset;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,12 +31,11 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createOffer;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-
-import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createOffer;
 
 class InMemoryFccQueryAdapterRegistryTest {
     private static final ContractOffer ASSET_ABC = createOffer("ABC");

@@ -27,14 +27,12 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 
 class AsyncTransferProcessManagerImplTest {
@@ -62,9 +60,8 @@ class AsyncTransferProcessManagerImplTest {
      */
     @Test
     void verifyIdempotency() {
-        when(store.processIdForTransferId("1"))
-                .thenReturn(null) // first invoke returns no as there is no store process
-                .thenReturn("2");
+        doReturn(null, "2")
+                .when(store).processIdForTransferId("1");
 
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
         manager.initiateProviderRequest(dataRequest);
