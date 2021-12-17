@@ -232,7 +232,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         when(processStoreMock.nextForState(eq(IN_PROGRESS.code()), anyInt()))
                 .thenReturn(List.of(process)).thenReturn(emptyList());
-
         doAnswer(i -> {
             cdl.countDown();
             return null;
@@ -408,8 +407,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
                 .id(processId)
                 .transferType(type)
                 .managedResources(managed)
-                .dataDestination(DataAddress.Builder.newInstance().build())
-                .destinationType("destination-type")
+                .dataDestination(DataAddress.Builder.newInstance().type("destination-type").build())
                 .build();
 
         return TransferProcess.Builder.newInstance()

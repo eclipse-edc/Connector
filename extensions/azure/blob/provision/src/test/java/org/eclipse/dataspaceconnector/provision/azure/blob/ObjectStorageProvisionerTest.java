@@ -40,15 +40,13 @@ import static org.mockito.Mockito.when;
 
 class ObjectStorageProvisionerTest {
 
+    private final BlobStoreApi blobStoreApiMock = mock(BlobStoreApi.class);
     private ObjectStorageProvisioner provisioner;
-    private BlobStoreApi blobStoreApiMock;
 
     @BeforeEach
     void setup() {
         RetryPolicy<Object> retryPolicy = new RetryPolicy<>().withMaxRetries(0);
-        Monitor monitor = mock(Monitor.class);
-        blobStoreApiMock = mock(BlobStoreApi.class);
-        provisioner = new ObjectStorageProvisioner(retryPolicy, monitor, blobStoreApiMock);
+        provisioner = new ObjectStorageProvisioner(retryPolicy, mock(Monitor.class), blobStoreApiMock);
     }
 
     @Test
@@ -75,7 +73,6 @@ class ObjectStorageProvisionerTest {
     @Test
     void provision_success() {
         var resourceDef = resourceDefinition().transferProcessId("tpId").build();
-
         String accountName = resourceDef.getAccountName();
         String containerName = resourceDef.getContainerName();
         when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
@@ -100,7 +97,6 @@ class ObjectStorageProvisionerTest {
         var resourceDef = resourceDefinition().transferProcessId("tpId").build();
         String accountName = resourceDef.getAccountName();
         String containerName = resourceDef.getContainerName();
-
         when(blobStoreApiMock.exists(accountName, containerName)).thenReturn(true);
         when(blobStoreApiMock.createContainerSasToken(eq(accountName), eq(containerName), eq("w"), any())).thenReturn("some-sas");
 
@@ -121,7 +117,6 @@ class ObjectStorageProvisionerTest {
     @Test
     void provision_no_key_found_in_vault() {
         var resourceDefinition = resourceDefinition().build();
-
         when(blobStoreApiMock.exists(any(), anyString()))
                 .thenThrow(new IllegalArgumentException("No Object Storage credential found in vault"));
 
@@ -132,12 +127,9 @@ class ObjectStorageProvisionerTest {
     @Test
     void provision_key_not_authorized() {
         var resourceDef = resourceDefinition().build();
-
         when(blobStoreApiMock.exists(anyString(), anyString())).thenReturn(false);
-
-        String accountName = resourceDef.getAccountName();
-        String containerName = resourceDef.getContainerName();
-        doThrow(new BlobStorageException("not authorized", null, null)).when(blobStoreApiMock).createContainer(accountName, containerName);
+        doThrow(new BlobStorageException("not authorized", null, null))
+                .when(blobStoreApiMock).createContainer(resourceDef.getAccountName(), resourceDef.getContainerName());
 
         assertThatThrownBy(() -> provisioner.provision(resourceDef).join()).hasCauseInstanceOf(BlobStorageException.class);
         verify(blobStoreApiMock).exists(anyString(), anyString());
