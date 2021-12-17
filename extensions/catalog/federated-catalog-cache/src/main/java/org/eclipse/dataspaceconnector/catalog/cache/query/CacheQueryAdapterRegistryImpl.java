@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -42,17 +42,17 @@ public class CacheQueryAdapterRegistryImpl implements CacheQueryAdapterRegistry 
 
         var responseBuilder = QueryResponse.Builder.newInstance()
                 .status(QueryResponse.Status.ACCEPTED);
-        Stream<Asset> assets = Stream.empty();
+        Stream<ContractOffer> offers = Stream.empty();
 
         // add the results of all query adapters to the union stream
         for (var adapter : adapters) {
             try {
-                assets = Stream.concat(assets, adapter.executeQuery(query));
+                offers = Stream.concat(offers, adapter.executeQuery(query));
             } catch (EdcException ex) {
                 responseBuilder.error("Adapter failed: " + ex.getMessage());
             }
         }
 
-        return responseBuilder.assets(assets.collect(Collectors.toList())).build();
+        return responseBuilder.offers(offers.collect(Collectors.toList())).build();
     }
 }
