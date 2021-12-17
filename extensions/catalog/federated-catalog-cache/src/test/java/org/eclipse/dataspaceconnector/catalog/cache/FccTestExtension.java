@@ -8,24 +8,16 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
@@ -60,26 +52,11 @@ public class FccTestExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         List<Asset> assets = Collections.emptyList();
-        context.registerService(IdentityService.class, new FakeIdentityService());
         context.registerService(TransferProcessStore.class, new FakeTransferProcessStore());
         context.registerService(RemoteMessageDispatcherRegistry.class, new FakeRemoteMessageDispatcherRegistry());
         context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
         context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
         context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
-        context.registerService(ContractValidationService.class, new FakeContractValidationService());
-        context.registerService(ContractNegotiationStore.class, new FakeContractNegotiationStore());
-    }
-
-    private static class FakeIdentityService implements IdentityService {
-        @Override
-        public Result<TokenRepresentation> obtainClientCredentials(String scope) {
-            return Result.success(TokenRepresentation.Builder.newInstance().build());
-        }
-
-        @Override
-        public Result<ClaimToken> verifyJwtToken(String token, String audience) {
-            return Result.success(ClaimToken.Builder.newInstance().build());
-        }
     }
 
     private static class FakeAssetIndex implements AssetIndex {
@@ -238,60 +215,5 @@ public class FccTestExtension implements ServiceExtension {
         }
     }
 
-    private static class FakeContractValidationService implements ContractValidationService {
-
-        @Override
-        public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {
-            return Result.success(ContractOffer.Builder.newInstance().build());
-        }
-
-        @Override
-        public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
-            return Result.success(offer);
-        }
-
-        @Override
-        public boolean validate(ClaimToken token, ContractAgreement agreement) {
-            return true;
-        }
-
-        @Override
-        public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
-            return false;
-        }
-    }
-
-    private static class FakeContractNegotiationStore implements ContractNegotiationStore {
-
-        @Override
-        public @Nullable ContractNegotiation find(String negotiationId) {
-            return null;
-        }
-
-        @Override
-        public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
-            return null;
-        }
-
-        @Override
-        public @Nullable ContractAgreement findContractAgreement(String contractId) {
-            return null;
-        }
-
-        @Override
-        public void save(ContractNegotiation negotiation) {
-
-        }
-
-        @Override
-        public void delete(String negotiationId) {
-
-        }
-
-        @Override
-        public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-            return null;
-        }
-    }
 
 }

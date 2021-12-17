@@ -24,7 +24,7 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamC
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisher;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -43,8 +43,9 @@ import static org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoPro
  */
 class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
 
-    @BeforeEach
-    void setup() {
+    @BeforeAll
+    static void setup() {
+        //let's randomize the port
         var port = 2000 + new Random().nextInt(8000);
         System.setProperty("web.http.port", String.valueOf(port));
         System.setProperty("edc.demo.protocol.ws.pubsub", "ws://localhost:" + port + "/pubsub/");
