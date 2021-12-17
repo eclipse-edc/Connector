@@ -37,7 +37,7 @@ import static org.mockito.Mockito.when;
 
 class CrawlerImplTest {
     public static final int QUEUE_CAPACITY = 3;
-    public static final int JOIN_WAIT_TIME = 100;
+    public static final int JOIN_WAIT_TIME = 1000;
     public static final int WORK_QUEUE_POLL_TIMEOUT = 500;
     private CrawlerImpl crawler;
     private NodeQueryAdapter protocolAdapterMock;
