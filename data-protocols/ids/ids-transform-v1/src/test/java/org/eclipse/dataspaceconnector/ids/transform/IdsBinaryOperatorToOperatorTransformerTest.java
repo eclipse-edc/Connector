@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.BinaryOperator;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.junit.jupiter.api.AfterEach;
@@ -29,6 +28,8 @@ import org.junit.jupiter.params.provider.ArgumentsSource;
 import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.mock;
 
 class IdsBinaryOperatorToOperatorTransformerTest {
 
@@ -42,17 +43,15 @@ class IdsBinaryOperatorToOperatorTransformerTest {
     void setUp() {
         transformer = new IdsBinaryOperatorToOperatorTransformer();
 
-        transformerContext = EasyMock.mock(TransformerContext.class);
+        transformerContext = mock(TransformerContext.class);
     }
 
     @ParameterizedTest
     @ArgumentsSource(IdsBinaryOperatorToOperatorTransformerTest.TransformParameterArgumentSource.class)
     void transform(BinaryOperator source, Operator expected) {
         if (expected == null) {
-            transformerContext.reportProblem(EasyMock.anyString());
+            transformerContext.reportProblem(anyString());
         }
-
-        EasyMock.replay(transformerContext);
 
         var result = transformer.transform(source, transformerContext);
 
@@ -72,10 +71,5 @@ class IdsBinaryOperatorToOperatorTransformerTest {
                     Arguments.arguments(BinaryOperator.LTEQ, Operator.LEQ),
                     Arguments.arguments(BinaryOperator.IN, Operator.IN));
         }
-    }
-
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(transformerContext);
     }
 }

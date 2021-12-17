@@ -15,7 +15,8 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.Artifact;
-import org.easymock.EasyMock;
+import de.fraunhofer.iais.eis.ArtifactBuilder;
+import de.fraunhofer.iais.eis.ArtifactImpl;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -26,6 +27,9 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.net.URI;
+
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Transforms an IDS Artifact into an {@link Asset}.
@@ -38,24 +42,18 @@ public class IdsArtifactToAssetTransformerTest {
     private static final String ASSET_FILENAME = "test_filename";
     private static final BigInteger ASSET_BYTESIZE = BigInteger.valueOf(5);
 
-    // subject
     private IdsArtifactToAssetTransformer transformer;
 
-    // mocks
-    private Artifact artifact;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new IdsArtifactToAssetTransformer();
-        artifact = EasyMock.createMock(Artifact.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(artifact, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -63,17 +61,13 @@ public class IdsArtifactToAssetTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(artifact, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(artifact, null);
+            transformer.transform(new ArtifactBuilder().build(), null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(artifact, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -81,27 +75,17 @@ public class IdsArtifactToAssetTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // prepare
-        EasyMock.expect(artifact.getId()).andReturn(ARTIFACT_URI);
-        EasyMock.expect(artifact.getFileName()).andReturn(ASSET_FILENAME);
-        EasyMock.expect(artifact.getByteSize()).andReturn(ASSET_BYTESIZE);
+        var artifact = new ArtifactBuilder(ARTIFACT_URI)
+                ._fileName_(ASSET_FILENAME)
+                ._byteSize_(ASSET_BYTESIZE)
+                .build();
 
-        // record
-        EasyMock.replay(artifact, context);
-
-        // invoke
         var result = transformer.transform(artifact, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(ASSET_ID, result.getId());
         Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_BYTE_SIZE), ASSET_BYTESIZE);
         Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_FILE_NAME), ASSET_FILENAME);
-    }
-
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(artifact, context);
     }
 
 }

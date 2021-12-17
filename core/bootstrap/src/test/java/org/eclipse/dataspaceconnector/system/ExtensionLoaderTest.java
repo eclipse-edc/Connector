@@ -26,24 +26,22 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.eq;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.isA;
-import static org.easymock.EasyMock.mock;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.verify;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ExtensionLoaderTest {
 
     @Test
     void loadMonitor_whenSingleMonitorExtension() {
-        var mockedMonitor = (Monitor) mock(Monitor.class);
-
+        var mockedMonitor = mock(Monitor.class);
         var exts = new ArrayList<MonitorExtension>();
         exts.add(() -> mockedMonitor);
 
@@ -54,10 +52,8 @@ class ExtensionLoaderTest {
 
     @Test
     void loadMonitor_whenMultipleMonitorExtensions() {
-        var mockedMonitor = (Monitor) mock(Monitor.class);
-
         var exts = new ArrayList<MonitorExtension>();
-        exts.add(() -> mockedMonitor);
+        exts.add(() -> mock(Monitor.class));
         exts.add(ConsoleMonitor::new);
 
         var monitor = ExtensionLoader.loadMonitor(exts);
@@ -67,38 +63,35 @@ class ExtensionLoaderTest {
 
     @Test
     void loadMonitor_whenNoMonitorExtension() {
-
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
 
         assertTrue(monitor instanceof ConsoleMonitor);
-
     }
 
     @Test
     void loadVault_whenNotRegistered() {
-        DefaultServiceExtensionContext contextMock = niceMock(DefaultServiceExtensionContext.class);
+        DefaultServiceExtensionContext contextMock = mock(DefaultServiceExtensionContext.class);
 
-        expect(contextMock.getMonitor()).andReturn(niceMock(Monitor.class)).anyTimes();
-
-        expect(contextMock.loadSingletonExtension(VaultExtension.class, false)).andReturn(null);
-        contextMock.registerService(eq(Vault.class), isA(Vault.class));
-        contextMock.registerService(eq(PrivateKeyResolver.class), anyObject()); //these are not null but a lambda returning null
-        contextMock.registerService(eq(CertificateResolver.class), anyObject());
-        replay(contextMock);
+        when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
+        when(contextMock.loadSingletonExtension(VaultExtension.class, false)).thenReturn(null);
 
         ExtensionLoader.loadVault(contextMock);
 
-        verify(contextMock);
+        verify(contextMock).registerService(eq(Vault.class), isA(Vault.class));
+        verify(contextMock).registerService(eq(PrivateKeyResolver.class), any());
+        verify(contextMock).registerService(eq(CertificateResolver.class), any());
+        verify(contextMock, atLeastOnce()).getMonitor();
+        verify(contextMock).loadSingletonExtension(VaultExtension.class, false);
     }
 
     @Test
     void loadVault() {
-        DefaultServiceExtensionContext contextMock = niceMock(DefaultServiceExtensionContext.class);
-        expect(contextMock.getMonitor()).andReturn(niceMock(Monitor.class)).anyTimes();
+        DefaultServiceExtensionContext contextMock = mock(DefaultServiceExtensionContext.class);
         Vault vaultMock = mock(Vault.class);
         PrivateKeyResolver resolverMock = mock(PrivateKeyResolver.class);
         CertificateResolver certResolverMock = mock(CertificateResolver.class);
-        expect(contextMock.loadSingletonExtension(VaultExtension.class, false)).andReturn(new VaultExtension() {
+        when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
+        when(contextMock.loadSingletonExtension(VaultExtension.class, false)).thenReturn(new VaultExtension() {
 
             @Override
             public Vault getVault() {
@@ -116,12 +109,10 @@ class ExtensionLoaderTest {
             }
         });
 
-        contextMock.registerService(Vault.class, vaultMock);
-        expectLastCall().once();
-        replay(contextMock);
-
         ExtensionLoader.loadVault(contextMock);
 
-        verify(contextMock);
+        verify(contextMock, times(1)).registerService(Vault.class, vaultMock);
+        verify(contextMock, atLeastOnce()).getMonitor();
+        verify(contextMock).loadSingletonExtension(VaultExtension.class, false);
     }
 }

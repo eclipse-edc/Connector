@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler.description;
 
 import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Representation;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -24,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,15 +34,22 @@ import java.net.URISyntaxException;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockAssetIndex;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockDescriptionRequestMessage;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DescriptionRequestHandlerMocks.mockTransformerRegistry;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class RepresentationDescriptionRequestHandlerTest {
 
     private static final String CONNECTOR_ID = "urn:connector:edc";
 
-    // subject
     private RepresentationDescriptionRequestHandler representationDescriptionRequestHandler;
 
-    // mocks
     private Monitor monitor;
     private TransformerRegistry transformerRegistry;
     private DescriptionRequestMessage descriptionRequestMessage;
@@ -52,22 +59,17 @@ public class RepresentationDescriptionRequestHandlerTest {
     @SuppressWarnings({ "rawtypes", "unchecked" })
     @BeforeEach
     public void setup() throws URISyntaxException {
-        monitor = EasyMock.createMock(Monitor.class);
-        representation = EasyMock.createMock(Representation.class);
-        EasyMock.expect(representation.getId()).andReturn(new URI("urn:representation:hello"));
-        EasyMock.replay(monitor, representation);
+        monitor = mock(Monitor.class);
+        representation = mock(Representation.class);
+        when(representation.getId()).thenReturn(new URI("urn:representation:hello"));
 
         assetIndex = mockAssetIndex();
-        EasyMock.expect(assetIndex.findById(EasyMock.anyString())).andReturn(EasyMock.createMock(Asset.class));
-        EasyMock.replay(assetIndex);
+        when(assetIndex.findById(anyString())).thenReturn(Asset.Builder.newInstance().build());
 
         transformerRegistry = mockTransformerRegistry(IdsType.REPRESENTATION);
-        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(Asset.class), EasyMock.eq(Representation.class)))
-                .andReturn(Result.success(representation));
-        EasyMock.replay(transformerRegistry);
+        when(transformerRegistry.transform(isA(Asset.class), eq(Representation.class))).thenReturn(Result.success(representation));
 
         descriptionRequestMessage = mockDescriptionRequestMessage(representation.getId());
-        EasyMock.replay(descriptionRequestMessage);
 
         representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, transformerRegistry);
     }
@@ -75,13 +77,13 @@ public class RepresentationDescriptionRequestHandlerTest {
     @Test
     @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(monitor, null, assetIndex, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, null, transformerRegistry));
-        Assertions.assertThrows(NullPointerException.class,
+        assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(monitor, CONNECTOR_ID, assetIndex, null));
     }
 
@@ -90,8 +92,11 @@ public class RepresentationDescriptionRequestHandlerTest {
         var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
         var result = representationDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, null);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertNotNull(result.getHeader());
-        Assertions.assertEquals(representation, result.getPayload());
+        assertNotNull(result);
+        assertNotNull(result.getHeader());
+        assertEquals(representation, result.getPayload());
+        verify(representation).getId();
+        verify(assetIndex).findById(anyString());
+        verify(transformerRegistry).transform(isA(Asset.class), eq(Representation.class));
     }
 }

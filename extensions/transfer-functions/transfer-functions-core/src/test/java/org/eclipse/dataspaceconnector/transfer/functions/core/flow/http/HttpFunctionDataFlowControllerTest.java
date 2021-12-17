@@ -18,7 +18,6 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -26,92 +25,73 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.IOException;
-
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.createNiceMock;
 import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.FATAL_ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
-/**
- * Verifies HTTP transfer function flow.
- */
+
 class HttpFunctionDataFlowControllerTest {
     private HttpFunctionDataFlowController flowController;
     private OkHttpClient httpClient;
-    private Interceptor interceptor;
+
+    @BeforeEach
+    void setUp() {
+        var typeManager = new TypeManager();
+        var configuration = HttpFunctionConfiguration.Builder.newInstance()
+                .transferEndpoint("https://localhost:9090/check")
+                .clientSupplier(() -> httpClient)
+                .monitor(mock(Monitor.class))
+                .typeManager(typeManager)
+                .build();
+        flowController = new HttpFunctionDataFlowController(configuration);
+    }
 
     @Test
-    void verifyOkResponse() throws IOException {
+    void verifyOkResponse() {
         Interceptor delegate = chain -> new Response.Builder()
                 .request(chain.request())
                 .protocol(HTTP_1_1).code(200)
                 .body(ResponseBody.create("", MediaType.get("application/json"))).message("ok")
                 .build();
 
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
+        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
-        assertThat(flowController.initiateFlow(dataRequest).succeeded()).isTrue();
 
-        EasyMock.verify(interceptor);
+        assertThat(flowController.initiateFlow(dataRequest).succeeded()).isTrue();
     }
 
     @Test
-    void verifyRetryErrorResponse() throws IOException {
+    void verifyRetryErrorResponse() {
         Interceptor delegate = chain -> new Response.Builder()
                 .request(chain.request())
                 .protocol(HTTP_1_1).code(500)
                 .body(ResponseBody.create("", MediaType.get("application/json"))).message("ok")
                 .build();
 
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
+        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
-        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getFailure().status());
 
-        EasyMock.verify(interceptor);
+        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getFailure().status());
     }
 
     @Test
-    void verifyFatalErrorResponse() throws IOException {
+    void verifyFatalErrorResponse() {
         Interceptor delegate = chain -> new Response.Builder()
                 .request(chain.request())
                 .protocol(HTTP_1_1).code(400)
                 .body(ResponseBody.create("", MediaType.get("application/json"))).message("ok")
                 .build();
 
-        //noinspection ConstantConditions
-        EasyMock.expect(interceptor.intercept(EasyMock.isA(Interceptor.Chain.class))).andDelegateTo(delegate);
-        EasyMock.replay(interceptor);
+        httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
+
         assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).getFailure().status());
-
-        EasyMock.verify(interceptor);
     }
-
-
-    @BeforeEach
-    void setUp() {
-        interceptor = EasyMock.createMock(Interceptor.class);
-
-        var typeManager = new TypeManager();
-        httpClient = new OkHttpClient.Builder().addInterceptor(interceptor).build();
-        var configuration = HttpFunctionConfiguration.Builder.newInstance()
-                .transferEndpoint("https://localhost:9090/check")
-                .clientSupplier(() -> httpClient)
-                .monitor(createNiceMock(Monitor.class))
-                .typeManager(typeManager)
-                .build();
-        flowController = new HttpFunctionDataFlowController(configuration);
-    }
-
 
 }

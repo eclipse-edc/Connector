@@ -14,13 +14,13 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -30,32 +30,29 @@ import java.net.URI;
 import java.time.Instant;
 import java.util.Collections;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class ContractAgreementToIdsContractAgreementTransformerTest {
     private static final URI AGREEMENT_ID = URI.create("urn:agreement:456uz984390236s");
     private static final String PROVIDER_ID = "https://provider.com/";
 
-    // subject
     private ContractAgreementToIdsContractAgreementTransformer transformer;
 
-    // mocks
-    private Policy policy;
-    private ContractAgreement contractAgreement;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ContractAgreementToIdsContractAgreementTransformer();
-        contractAgreement = EasyMock.createNiceMock(ContractAgreement.class);
-        policy = EasyMock.createNiceMock(Policy.class);
-        context = EasyMock.createNiceMock(TransformerContext.class);
-
-        EasyMock.expect(contractAgreement.getPolicy()).andReturn(policy);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(contractAgreement, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -63,17 +60,13 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(contractAgreement, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(contractAgreement, null);
+            transformer.transform(contractAgreement(Policy.Builder.newInstance().build()), null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(contractAgreement, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -81,40 +74,25 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
+        Permission edcPermission = mock(Permission.class);
+        de.fraunhofer.iais.eis.Permission idsPermission = mock(de.fraunhofer.iais.eis.Permission.class);
+        Prohibition edcProhibition = mock(Prohibition.class);
+        de.fraunhofer.iais.eis.Prohibition idsProhibition = mock(de.fraunhofer.iais.eis.Prohibition.class);
+        Duty edcObligation = mock(Duty.class);
+        de.fraunhofer.iais.eis.Duty idsObligation = mock(de.fraunhofer.iais.eis.Duty.class);
+        var policy = Policy.Builder.newInstance()
+                .permission(edcPermission)
+                .prohibition(edcProhibition)
+                .duty(edcObligation)
+                .build();
 
-        Permission edcPermission = EasyMock.createMock(Permission.class);
-        de.fraunhofer.iais.eis.Permission idsPermission = EasyMock.createMock(de.fraunhofer.iais.eis.Permission.class);
-        Prohibition edcProhibition = EasyMock.createMock(Prohibition.class);
-        de.fraunhofer.iais.eis.Prohibition idsProhibition = EasyMock.createMock(de.fraunhofer.iais.eis.Prohibition.class);
-        Duty edcObligation = EasyMock.createMock(Duty.class);
-        de.fraunhofer.iais.eis.Duty idsObligation = EasyMock.createMock(de.fraunhofer.iais.eis.Duty.class);
+        when(context.transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class))).thenReturn(idsPermission);
+        when(context.transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class))).thenReturn(idsProhibition);
+        when(context.transform(any(Duty.class), eq(de.fraunhofer.iais.eis.Duty.class))).thenReturn(idsObligation);
+        when(context.transform(isA(IdsId.class), eq(URI.class))).thenReturn(AGREEMENT_ID);
 
-        EasyMock.expect(contractAgreement.getId()).andReturn(String.valueOf(AGREEMENT_ID));
-        EasyMock.expect(contractAgreement.getProviderAgentId()).andReturn(PROVIDER_ID);
-        EasyMock.expect(contractAgreement.getConsumerAgentId()).andReturn(null);
-        EasyMock.expect(contractAgreement.getContractStartDate()).andReturn(Instant.MIN.getEpochSecond());
-        EasyMock.expect(contractAgreement.getContractEndDate()).andReturn(Instant.MAX.getEpochSecond());
-        EasyMock.expect(contractAgreement.getContractSigningDate()).andReturn(Instant.now().getEpochSecond());
-        EasyMock.expect(policy.getPermissions()).andReturn(Collections.singletonList(edcPermission)).times(2);
-        EasyMock.expect(policy.getProhibitions()).andReturn(Collections.singletonList(edcProhibition)).times(2);
-        EasyMock.expect(policy.getObligations()).andReturn(Collections.singletonList(edcObligation)).times(2);
+        var result = transformer.transform(contractAgreement(policy), context);
 
-        EasyMock.expect(context.transform(EasyMock.anyObject(Permission.class), EasyMock.eq(de.fraunhofer.iais.eis.Permission.class))).andReturn(idsPermission);
-        EasyMock.expect(context.transform(EasyMock.anyObject(Prohibition.class), EasyMock.eq(de.fraunhofer.iais.eis.Prohibition.class))).andReturn(idsProhibition);
-        EasyMock.expect(context.transform(EasyMock.anyObject(Duty.class), EasyMock.eq(de.fraunhofer.iais.eis.Duty.class))).andReturn(idsObligation);
-        EasyMock.expect(context.transform(EasyMock.isA(IdsId.class), EasyMock.eq(URI.class))).andReturn(AGREEMENT_ID);
-
-        context.reportProblem(EasyMock.anyString());
-        EasyMock.expectLastCall().atLeastOnce();
-
-        // record
-        EasyMock.replay(contractAgreement, policy, context);
-
-        // invoke
-        var result = transformer.transform(contractAgreement, context);
-
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(AGREEMENT_ID, result.getId());
         Assertions.assertEquals(PROVIDER_ID, String.valueOf(result.getProvider()));
@@ -124,5 +102,22 @@ public class ContractAgreementToIdsContractAgreementTransformerTest {
         Assertions.assertEquals(idsPermission, result.getPermission().get(0));
         Assertions.assertEquals(1, result.getProhibition().size());
         Assertions.assertEquals(idsProhibition, result.getProhibition().get(0));
+        verify(context).transform(any(Permission.class), eq(de.fraunhofer.iais.eis.Permission.class));
+        verify(context).transform(any(Prohibition.class), eq(de.fraunhofer.iais.eis.Prohibition.class));
+        verify(context).transform(any(Duty.class), eq(de.fraunhofer.iais.eis.Duty.class));
+        verify(context).transform(isA(IdsId.class), eq(URI.class));
+    }
+
+    private ContractAgreement contractAgreement(Policy policy) {
+        return ContractAgreement.Builder.newInstance()
+                .id(String.valueOf(AGREEMENT_ID))
+                .providerAgentId(PROVIDER_ID)
+                .asset(Asset.Builder.newInstance().build())
+                .consumerAgentId("id")
+                .contractStartDate(Instant.MIN.getEpochSecond())
+                .contractEndDate(Instant.MAX.getEpochSecond())
+                .contractSigningDate(Instant.now().getEpochSecond())
+                .policy(policy)
+                .build();
     }
 }

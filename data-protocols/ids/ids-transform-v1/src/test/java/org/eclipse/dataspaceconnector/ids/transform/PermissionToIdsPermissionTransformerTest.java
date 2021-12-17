@@ -14,20 +14,25 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
 import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class PermissionToIdsPermissionTransformerTest {
 
@@ -39,24 +44,18 @@ public class PermissionToIdsPermissionTransformerTest {
     private static final String ASSIGNEE = "https://assignee.com";
     private static final URI ASSIGNEE_URI = URI.create(ASSIGNEE);
 
-    // subject
     private PermissionToIdsPermissionTransformer transformer;
 
-    // mocks
-    private Permission permission;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new PermissionToIdsPermissionTransformer();
-        permission = EasyMock.createMock(Permission.class);
-        context = EasyMock.createNiceMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(permission, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -64,17 +63,13 @@ public class PermissionToIdsPermissionTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(permission, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(permission, null);
+            transformer.transform(Permission.Builder.newInstance().build(), null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(permission, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -82,33 +77,27 @@ public class PermissionToIdsPermissionTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
-        Action edcAction = EasyMock.createMock(Action.class);
+        Action edcAction = mock(Action.class);
         de.fraunhofer.iais.eis.Action idsAction = de.fraunhofer.iais.eis.Action.READ;
-        Constraint edcConstraint = EasyMock.createMock(Constraint.class);
-        de.fraunhofer.iais.eis.Constraint idsConstraint = EasyMock.createMock(de.fraunhofer.iais.eis.Constraint.class);
-        Duty edcDuty = EasyMock.createMock(Duty.class);
-        de.fraunhofer.iais.eis.Duty idsDuty = EasyMock.createMock(de.fraunhofer.iais.eis.Duty.class);
+        Constraint edcConstraint = mock(Constraint.class);
+        de.fraunhofer.iais.eis.Constraint idsConstraint = mock(de.fraunhofer.iais.eis.Constraint.class);
+        Duty edcDuty = mock(Duty.class);
+        de.fraunhofer.iais.eis.Duty idsDuty = mock(de.fraunhofer.iais.eis.Duty.class);
 
-        EasyMock.expect(permission.getTarget()).andReturn(TARGET);
-        EasyMock.expect(permission.getAssigner()).andReturn(ASSIGNER);
-        EasyMock.expect(permission.getAssignee()).andReturn(ASSIGNEE);
+        var permission = Permission.Builder.newInstance()
+                .target(TARGET).assigner(ASSIGNER).assignee(ASSIGNEE)
+                .constraint(edcConstraint)
+                .duty(edcDuty)
+                .action(edcAction)
+                .build();
 
-        EasyMock.expect(permission.getConstraints()).andReturn(Collections.singletonList(edcConstraint)).anyTimes();
-        EasyMock.expect(permission.getDuties()).andReturn(Collections.singletonList(edcDuty)).anyTimes();
-        EasyMock.expect(permission.getAction()).andReturn(edcAction).anyTimes();
-        EasyMock.expect(context.transform(EasyMock.eq(edcAction), EasyMock.eq(de.fraunhofer.iais.eis.Action.class))).andReturn(idsAction);
-        EasyMock.expect(context.transform(EasyMock.eq(edcConstraint), EasyMock.eq(de.fraunhofer.iais.eis.Constraint.class))).andReturn(idsConstraint);
-        EasyMock.expect(context.transform(EasyMock.eq(edcDuty), EasyMock.eq(de.fraunhofer.iais.eis.Duty.class))).andReturn(idsDuty);
-        EasyMock.expect(context.transform(EasyMock.anyObject(IdsId.class), EasyMock.eq(URI.class))).andReturn(PERMISSION_ID);
+        when(context.transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class))).thenReturn(idsAction);
+        when(context.transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class))).thenReturn(idsConstraint);
+        when(context.transform(eq(edcDuty), eq(de.fraunhofer.iais.eis.Duty.class))).thenReturn(idsDuty);
+        when(context.transform(any(IdsId.class), eq(URI.class))).thenReturn(PERMISSION_ID);
 
-        // record
-        EasyMock.replay(permission, context);
-
-        // invoke
         var result = transformer.transform(permission, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertEquals(PERMISSION_ID, result.getId());
         Assertions.assertEquals(1, result.getAssigner().size());
@@ -119,10 +108,9 @@ public class PermissionToIdsPermissionTransformerTest {
         Assertions.assertEquals(idsAction, result.getAction().get(0));
         Assertions.assertEquals(1, result.getConstraint().size());
         Assertions.assertEquals(idsConstraint, result.getConstraint().get(0));
-    }
-
-    @AfterEach
-    void teardown() {
-        EasyMock.verify(permission, context);
+        verify(context).transform(eq(edcAction), eq(de.fraunhofer.iais.eis.Action.class));
+        verify(context).transform(eq(edcConstraint), eq(de.fraunhofer.iais.eis.Constraint.class));
+        verify(context).transform(eq(edcDuty), eq(de.fraunhofer.iais.eis.Duty.class));
+        verify(context, times(2)).transform(any(IdsId.class), eq(URI.class));
     }
 }

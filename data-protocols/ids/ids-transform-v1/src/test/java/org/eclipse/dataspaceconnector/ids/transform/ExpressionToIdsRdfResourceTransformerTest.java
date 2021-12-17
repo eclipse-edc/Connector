@@ -14,34 +14,29 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
 class ExpressionToIdsRdfResourceTransformerTest {
 
-    // subject
     private ExpressionToIdsRdfResourceTransformer transformer;
 
-    // mocks
-    private LiteralExpression expression;
     private TransformerContext context;
 
     @BeforeEach
     void setUp() {
         transformer = new ExpressionToIdsRdfResourceTransformer();
-        expression = EasyMock.createMock(LiteralExpression.class);
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(expression, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -49,17 +44,13 @@ class ExpressionToIdsRdfResourceTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(expression, context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(expression, null);
+            transformer.transform(new LiteralExpression("any"), null);
         });
     }
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(expression, context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -67,24 +58,12 @@ class ExpressionToIdsRdfResourceTransformerTest {
 
     @Test
     void testSuccessfulMap() {
-        // prepare
-        var value = "COUNT";
-        EasyMock.expect(expression.asString()).andReturn(value);
+        var expression = new LiteralExpression("COUNT");
 
-        // record
-        EasyMock.replay(expression, context);
-
-        // invoke
         var result = transformer.transform(expression, context);
 
-        // verify
         Assertions.assertNotNull(result);
-        Assertions.assertEquals(value, result.getValue());
-    }
-
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(expression, context);
+        Assertions.assertEquals(expression.asString(), result.getValue());
     }
 
 }

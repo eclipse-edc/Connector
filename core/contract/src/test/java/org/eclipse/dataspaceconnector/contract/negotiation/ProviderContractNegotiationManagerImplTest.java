@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import org.easymock.EasyMock;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -36,6 +36,13 @@ import java.util.Map;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class ProviderContractNegotiationManagerImplTest {
 
@@ -51,22 +58,22 @@ class ProviderContractNegotiationManagerImplTest {
         negotiations.clear();
 
         // Mock contract negotiation store -> persist negotiations in map
-        ContractNegotiationStore negotiationStore = EasyMock.createNiceMock(ContractNegotiationStore.class);
-        negotiationStore.save(EasyMock.anyObject(ContractNegotiation.class));
-        EasyMock.expectLastCall().andAnswer(() -> {
-            var negotiation = (ContractNegotiation) EasyMock.getCurrentArgument(0);
+        ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
+
+        doAnswer(invocation -> {
+            var negotiation = invocation.getArgument(0, ContractNegotiation.class);
             if (ContractNegotiationStates.UNSAVED.code() == negotiation.getState()) {
                 negotiation.transitionRequested();
             }
             negotiations.put(negotiation.getId(), negotiation);
             return null;
-        });
-        EasyMock.expect(negotiationStore.find(EasyMock.anyString())).andAnswer(() -> {
-            var id = (String) EasyMock.getCurrentArgument(0);
+        }).when(negotiationStore).save(any(ContractNegotiation.class));
+        when(negotiationStore.find(anyString())).thenAnswer(invocation -> {
+            var id = invocation.getArgument(0, String.class);
             return negotiations.get(id);
         });
-        EasyMock.expect(negotiationStore.findForCorrelationId(EasyMock.anyString())).andAnswer(() -> {
-            var id = (String) EasyMock.getCurrentArgument(0);
+        when(negotiationStore.findForCorrelationId(anyString())).thenAnswer(invocation -> {
+            var id = invocation.getArgument(0, String.class);
             for (Map.Entry<String, ContractNegotiation> entry : negotiations.entrySet()) {
                 if (entry.getValue().getCorrelationId().equals(id)) {
                     return entry.getValue();
@@ -74,18 +81,15 @@ class ProviderContractNegotiationManagerImplTest {
             }
             return null;
         });
-        EasyMock.replay(negotiationStore);
 
         // Create contract validation service mock, method mocking has to be done in test methods
-        validationService = EasyMock.createNiceMock(ContractValidationService.class);
+        validationService = mock(ContractValidationService.class);
 
         // Create dispatcher registry mock in order to create manager, not used in unit tests
-        RemoteMessageDispatcherRegistry dispatcherRegistry = EasyMock.createNiceMock(RemoteMessageDispatcherRegistry.class);
-        EasyMock.replay(dispatcherRegistry);
+        RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
 
         // Create monitor mock
-        Monitor monitor = EasyMock.createNiceMock(Monitor.class);
-        EasyMock.replay(monitor);
+        Monitor monitor = mock(Monitor.class);
 
         negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .validationService(validationService)
@@ -101,12 +105,9 @@ class ProviderContractNegotiationManagerImplTest {
 
     @Test
     void testRequestedConfirmOffer() {
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(token, contractOffer);
-
-        EasyMock.expect(validationService.validate(token, contractOffer)).andReturn(Result.success(contractOffer));
-        EasyMock.replay(validationService);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
+        when(validationService.validate(token, contractOffer)).thenReturn(Result.success(contractOffer));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -128,16 +129,14 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getCorrelationId()).isEqualTo(request.getCorrelationId());
         assertThat(negotiation.getContractOffers()).hasSize(1);
         assertThat(negotiation.getLastContractOffer()).isEqualTo(contractOffer);
+        verify(validationService).validate(token, contractOffer);
     }
 
     @Test
     void testRequestedDeclineOffer() {
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(token, contractOffer);
-
-        EasyMock.expect(validationService.validate(token, contractOffer)).andReturn(Result.failure("error"));
-        EasyMock.replay(validationService);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
+        when(validationService.validate(token, contractOffer)).thenReturn(Result.failure("error"));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -159,18 +158,16 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getCorrelationId()).isEqualTo(request.getCorrelationId());
         assertThat(negotiation.getContractOffers()).hasSize(1);
         assertThat(negotiation.getLastContractOffer()).isEqualTo(contractOffer);
+        verify(validationService).validate(token, contractOffer);
     }
 
     @Test
     @Disabled
     void testRequestedCounterOffer() {
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        var counterOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(token, contractOffer, counterOffer);
-
-        EasyMock.expect(validationService.validate(token, contractOffer)).andReturn(Result.success(null));
-        EasyMock.replay(validationService);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
+        var counterOffer = contractOffer();
+        when(validationService.validate(token, contractOffer)).thenReturn(Result.success(null));
 
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
                 .connectorId("connectorId")
@@ -193,13 +190,13 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getContractOffers()).hasSize(2);
         assertThat(negotiation.getContractOffers().get(0)).isEqualTo(contractOffer);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(counterOffer);
+        verify(validationService).validate(token, contractOffer);
     }
 
     @Test
     void testOfferReceivedInvalidId() {
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(token, contractOffer);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
 
         var result = negotiationManager.offerReceived(token, "not a valid id", contractOffer, "hash");
         assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
@@ -209,13 +206,11 @@ class ProviderContractNegotiationManagerImplTest {
     void testOfferReceivedConfirmOffer() {
         var negotiationId = createContractNegotiationProviderOffered();
 
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(token, contractOffer);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
 
-        EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.eq(contractOffer), EasyMock.anyObject(ContractOffer.class)))
-                .andReturn(Result.success(contractOffer));
-        EasyMock.replay(validationService);
+        when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
+                .thenReturn(Result.success(contractOffer));
 
         var result = negotiationManager.offerReceived(token, correlationId, contractOffer, "hash");
 
@@ -225,19 +220,17 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.CONFIRMING.code());
         assertThat(negotiation.getContractOffers()).hasSize(2);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
     void testOfferReceivedDeclineOffer() {
         var negotiationId = createContractNegotiationProviderOffered();
 
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(token, contractOffer);
-
-        EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.eq(contractOffer), EasyMock.anyObject(ContractOffer.class)))
-                .andReturn(Result.failure("error"));
-        EasyMock.replay(validationService);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
+        when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
+                .thenReturn(Result.failure("error"));
 
         var result = negotiationManager.offerReceived(token, correlationId, contractOffer, "hash");
 
@@ -247,6 +240,7 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getState()).isEqualTo(ContractNegotiationStates.DECLINING.code());
         assertThat(negotiation.getContractOffers()).hasSize(2);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
@@ -254,14 +248,11 @@ class ProviderContractNegotiationManagerImplTest {
     void testOfferReceivedCounterOffer() {
         var negotiationId = createContractNegotiationProviderOffered();
 
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        var counterOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(token, contractOffer, counterOffer);
-
-        EasyMock.expect(validationService.validate(EasyMock.eq(token), EasyMock.eq(contractOffer), EasyMock.anyObject(ContractOffer.class)))
-                .andReturn(Result.success(null));
-        EasyMock.replay(validationService);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractOffer = contractOffer();
+        var counterOffer = contractOffer();
+        when(validationService.validate(eq(token), eq(contractOffer), any(ContractOffer.class)))
+                .thenReturn(Result.success(null));
 
         var result = negotiationManager.offerReceived(token, correlationId, contractOffer, "hash");
 
@@ -272,15 +263,16 @@ class ProviderContractNegotiationManagerImplTest {
         assertThat(negotiation.getContractOffers()).hasSize(3);
         assertThat(negotiation.getContractOffers().get(1)).isEqualTo(contractOffer);
         assertThat(negotiation.getContractOffers().get(2)).isEqualTo(counterOffer);
+        verify(validationService).validate(eq(token), eq(contractOffer), any(ContractOffer.class));
     }
 
     @Test
     void testConsumerApprovedInvalidId() {
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractAgreement = (ContractAgreement) EasyMock.createNiceMock(ContractAgreement.class);
-        EasyMock.replay(token, contractAgreement);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractAgreement = (ContractAgreement) mock(ContractAgreement.class);
 
         var result = negotiationManager.consumerApproved(token, "not a valid id", contractAgreement, "hash");
+
         assertThat(result.getFailure().getStatus()).isEqualTo(NegotiationResult.Status.FATAL_ERROR);
     }
 
@@ -288,12 +280,8 @@ class ProviderContractNegotiationManagerImplTest {
     void testConsumerApprovedConfirmAgreement() {
         var negotiationId = createContractNegotiationProviderOffered();
 
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        var contractAgreement = (ContractAgreement) EasyMock.createNiceMock(ContractAgreement.class);
-        EasyMock.replay(token, contractAgreement);
-
-        EasyMock.expect(validationService.validate(token, contractAgreement)).andReturn(true);
-        EasyMock.replay(validationService);
+        var token = ClaimToken.Builder.newInstance().build();
+        var contractAgreement = (ContractAgreement) mock(ContractAgreement.class);
 
         var result = negotiationManager.consumerApproved(token, correlationId, contractAgreement, "hash");
 
@@ -307,8 +295,7 @@ class ProviderContractNegotiationManagerImplTest {
     @Test
     void testDeclined() {
         var negotiationId = createContractNegotiationProviderOffered();
-        var token = (ClaimToken) EasyMock.createNiceMock(ClaimToken.class);
-        EasyMock.replay(token);
+        var token = ClaimToken.Builder.newInstance().build();
 
         var result = negotiationManager.declined(token, correlationId);
 
@@ -319,8 +306,7 @@ class ProviderContractNegotiationManagerImplTest {
     }
 
     private String createContractNegotiationProviderOffered() {
-        var lastOffer = (ContractOffer) EasyMock.createNiceMock(ContractOffer.class);
-        EasyMock.replay(lastOffer);
+        var lastOffer = contractOffer();
 
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -336,6 +322,10 @@ class ProviderContractNegotiationManagerImplTest {
         negotiation.addContractOffer(lastOffer);
         negotiations.put(negotiation.getId(), negotiation);
         return negotiation.getId();
+    }
+
+    private ContractOffer contractOffer() {
+        return ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
     }
 
 }

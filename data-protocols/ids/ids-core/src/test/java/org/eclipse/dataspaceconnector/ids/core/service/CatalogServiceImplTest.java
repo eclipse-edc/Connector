@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.core.service;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -22,34 +21,32 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class CatalogServiceImplTest {
     private static final String CATALOG_ID = "catalogId";
 
-    // subject
     private CatalogServiceImpl dataCatalogService;
-
-    // mocks
-    private Monitor monitor;
     private ContractOfferService contractOfferService;
 
     @BeforeEach
     void setUp() {
-        monitor = EasyMock.createMock(Monitor.class);
-        contractOfferService = EasyMock.createMock(ContractOfferService.class);
+        Monitor monitor = mock(Monitor.class);
+        contractOfferService = mock(ContractOfferService.class);
         dataCatalogService = new CatalogServiceImpl(monitor, CATALOG_ID, contractOfferService);
     }
 
     @Test
     void getDataCatalog() {
-        // prepare
         var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
 
         var offers = Arrays.asList(
@@ -61,22 +58,14 @@ class CatalogServiceImplTest {
                         .policy(Policy.Builder.newInstance().build())
                         .id("1")
                         .build());
-        EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.anyObject(ContractOfferQuery.class))).andReturn(offers.stream());
+        when(contractOfferService.queryContractOffers(any(ContractOfferQuery.class))).thenReturn(offers.stream());
 
-        // record
-        EasyMock.replay(monitor, contractOfferService);
-
-        // invoke
         var result = dataCatalogService.getDataCatalog(verificationResult);
 
-        // verify
         assertThat(result).isNotNull();
         assertThat(result.getId()).isEqualTo(CATALOG_ID);
         assertThat(result.getContractOffers()).hasSameElementsAs(offers);
+        verify(contractOfferService).queryContractOffers(any(ContractOfferQuery.class));
     }
 
-    @AfterEach
-    void tearDown() {
-        EasyMock.verify(monitor);
-    }
 }

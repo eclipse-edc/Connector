@@ -203,7 +203,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
 
     /**
-     * Transition all processes, who have provisioned resources, into the IN_PROCRESS or STREAMING status, depending on
+     * Transition all processes, who have provisioned resources, into the IN_PROGRESS or STREAMING status, depending on
      * whether they're finite or not.
      * If a process does not have provisioned resources, it will remain in REQUESTED_ACK.
      */

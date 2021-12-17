@@ -23,31 +23,32 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class FsConfigurationExtensionTest {
     private FsConfigurationExtension configurationExtension;
-
-    @Test
-    void verifyResolution() {
-        ServiceExtensionContext context = niceMock(ServiceExtensionContext.class);
-        expect(context.getMonitor()).andReturn(niceMock(Monitor.class));
-        replay(context);
-        configurationExtension.initialize(context.getMonitor());
-
-        assertEquals("testvalue1", configurationExtension.getSetting("testkey1"));
-        assertNull(configurationExtension.getSetting("notthere"));
-    }
 
     @BeforeEach
     void setUp() throws URISyntaxException {
         Path location = Paths.get(getClass().getClassLoader().getResource("edc-configuration.properties").toURI());
 
         configurationExtension = new FsConfigurationExtension(location);
+    }
+
+    @Test
+    void verifyResolution() {
+        ServiceExtensionContext context = mock(ServiceExtensionContext.class);
+        when(context.getMonitor()).thenReturn(mock(Monitor.class));
+
+        configurationExtension.initialize(context.getMonitor());
+
+        assertEquals("testvalue1", configurationExtension.getSetting("testkey1"));
+        assertNull(configurationExtension.getSetting("notthere"));
+        verify(context).getMonitor();
     }
 
 }

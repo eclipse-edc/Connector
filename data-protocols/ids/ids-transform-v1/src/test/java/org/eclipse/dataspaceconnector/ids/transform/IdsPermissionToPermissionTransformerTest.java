@@ -16,11 +16,10 @@ package org.eclipse.dataspaceconnector.ids.transform;
 
 import de.fraunhofer.iais.eis.ConstraintBuilder;
 import de.fraunhofer.iais.eis.DutyBuilder;
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Constraint;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -28,6 +27,11 @@ import org.junit.jupiter.api.Test;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
+
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 public class IdsPermissionToPermissionTransformerTest {
 
@@ -39,10 +43,8 @@ public class IdsPermissionToPermissionTransformerTest {
     private static final String ASSIGNEE = "https://assignee.com";
     private static final URI ASSIGNEE_URI = URI.create(ASSIGNEE);
 
-    // subject
     private IdsPermissionToPermissionTransformer transformer;
 
-    // mocks
     private de.fraunhofer.iais.eis.Permission idsPermission;
     private de.fraunhofer.iais.eis.Duty idsDuty;
     private de.fraunhofer.iais.eis.Constraint idsConstraint;
@@ -61,13 +63,11 @@ public class IdsPermissionToPermissionTransformerTest {
                 ._assignee_(new ArrayList<>(Collections.singletonList(ASSIGNEE_URI)))
                 ._assigner_(new ArrayList<>(Collections.singletonList(ASSIGNER_URI)))
                 .build();
-        context = EasyMock.createMock(TransformerContext.class);
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -75,8 +75,6 @@ public class IdsPermissionToPermissionTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(idsPermission, null);
         });
@@ -84,8 +82,6 @@ public class IdsPermissionToPermissionTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -93,20 +89,14 @@ public class IdsPermissionToPermissionTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
-        Constraint edcConstraint = EasyMock.createMock(Constraint.class);
-        Duty edcDuty = EasyMock.createMock(Duty.class);
+        var edcConstraint = AtomicConstraint.Builder.newInstance().build();
+        var edcDuty = Duty.Builder.newInstance().build();
 
-        EasyMock.expect(context.transform(EasyMock.eq(idsDuty), EasyMock.eq(Duty.class))).andReturn(edcDuty);
-        EasyMock.expect(context.transform(EasyMock.eq(idsConstraint), EasyMock.eq(Constraint.class))).andReturn(edcConstraint);
+        when(context.transform(eq(idsDuty), eq(Duty.class))).thenReturn(edcDuty);
+        when(context.transform(eq(idsConstraint), eq(Constraint.class))).thenReturn(edcConstraint);
 
-        // record
-        EasyMock.replay(context);
-
-        // invoke
         var result = transformer.transform(idsPermission, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getAction());
         Assertions.assertNotNull(result.getConstraints());
@@ -120,10 +110,7 @@ public class IdsPermissionToPermissionTransformerTest {
         Assertions.assertEquals(edcConstraint, result.getConstraints().get(0));
         Assertions.assertEquals(1, result.getDuties().size());
         Assertions.assertEquals(edcDuty, result.getDuties().get(0));
-    }
-
-    @AfterEach
-    void teardown() {
-        EasyMock.verify(context);
+        verify(context).transform(eq(idsDuty), eq(Duty.class));
+        verify(context).transform(eq(idsConstraint), eq(Constraint.class));
     }
 }

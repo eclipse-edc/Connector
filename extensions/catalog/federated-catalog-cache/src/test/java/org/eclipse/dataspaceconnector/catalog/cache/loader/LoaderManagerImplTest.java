@@ -8,88 +8,68 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.anyObject;
-import static org.easymock.EasyMock.expect;
-import static org.easymock.EasyMock.expectLastCall;
-import static org.easymock.EasyMock.niceMock;
-import static org.easymock.EasyMock.replay;
-import static org.easymock.EasyMock.strictMock;
-import static org.easymock.EasyMock.verify;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.atLeastOnce;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 class LoaderManagerImplTest {
 
+    private final Loader loaderMock = mock(Loader.class);
+    private final WaitStrategy waitStrategyMock = mock(WaitStrategy.class);
+    private final int batchSize = 3;
+    private final BlockingQueue<UpdateResponse> queue = new ArrayBlockingQueue<>(batchSize);
     private LoaderManagerImpl loaderManager;
-    private BlockingQueue<UpdateResponse> queue;
-    private Loader loaderMock;
-    private WaitStrategy waitStrategyMock;
 
     @BeforeEach
     void setup() {
-        waitStrategyMock = niceMock(WaitStrategy.class);
-        int batchSize = 3;
-        queue = new ArrayBlockingQueue<>(batchSize); //default batch size of the loader
-        loaderMock = strictMock(Loader.class);
-        loaderManager = new LoaderManagerImpl(Collections.singletonList(loaderMock), batchSize, waitStrategyMock, niceMock(Monitor.class));
+        loaderManager = new LoaderManagerImpl(List.of(loaderMock), batchSize, waitStrategyMock, mock(Monitor.class));
     }
 
     @Test
     @DisplayName("Verify that the loader manager waits one pass when the queue does not yet contain sufficient elements")
     void batchSizeNotReachedWithinTimeframe() throws InterruptedException {
-        for (var i = 0; i < loaderManager.getBatchSize() - 1; i++) {
-            queue.offer(new UpdateResponse());
-        }
+        range(0, batchSize).forEach(i -> queue.offer(new UpdateResponse()));
         var completionSignal = new CountDownLatch(1);
-
-        // set the completion signal when the wait strategy was called
-        expect(waitStrategyMock.retryInMillis()).andAnswer(() -> {
+        when(waitStrategyMock.retryInMillis()).thenAnswer(i -> {
             completionSignal.countDown();
-            return 10L;
+            return 2L;
         });
-        replay(waitStrategyMock);
 
-        replay(loaderMock);
         loaderManager.start(queue);
 
-        //wait for completion signal
-        assertThat(completionSignal.await(20L, TimeUnit.MILLISECONDS)).isTrue();
-
-        verify(loaderMock);
+        assertThat(completionSignal.await(100L, TimeUnit.MILLISECONDS)).isTrue();
+        verify(waitStrategyMock, atLeastOnce()).retryInMillis();
     }
-
 
     @Test
     @DisplayName("Verify that the LoaderManager does not sleep when a complete batch was processed")
     void batchSizeReachedWithinTimeframe() throws InterruptedException {
-        for (var i = 0; i < loaderManager.getBatchSize(); i++) {
-            queue.offer(new UpdateResponse());
-        }
+        range(0, batchSize).forEach(i -> queue.offer(new UpdateResponse()));
         var completionSignal = new CountDownLatch(1);
 
-        // set the completion signal when the wait strategy was called
-        waitStrategyMock.success();
-        expectLastCall().andAnswer(() -> {
+        doAnswer(i -> {
             completionSignal.countDown();
             return null;
-        });
-        replay(waitStrategyMock);
-
-        loaderMock.load(anyObject());
-        expectLastCall().once();
-        replay(loaderMock);
+        }).when(waitStrategyMock).success();
 
         loaderManager.start(queue);
 
-        //wait for completion signal
         assertThat(completionSignal.await(5, TimeUnit.SECONDS)).isTrue();
 
-        verify(loaderMock);
+        verify(loaderMock, times(1)).load(any());
+        verify(waitStrategyMock).success();
     }
 
 }

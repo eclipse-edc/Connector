@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
@@ -33,6 +32,11 @@ import java.util.GregorianCalendar;
 import javax.xml.datatype.DatatypeFactory;
 import javax.xml.datatype.XMLGregorianCalendar;
 
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 public class IdsContractAgreementToContractAgreementTransformerTest {
     private static final URI AGREEMENT_ID = URI.create("urn:contractagreement:456uz984390236s");
     private static final URI PROVIDER_URI = URI.create("https://provider.com/");
@@ -42,7 +46,6 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
     private static final XMLGregorianCalendar CONTRACT_END = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar(2021, Calendar.FEBRUARY, 2));
     private static final XMLGregorianCalendar SIGNING_DATE = DatatypeFactory.newDefaultInstance().newXMLGregorianCalendar(new GregorianCalendar(2021, Calendar.FEBRUARY, 2));
 
-    // subject
     private IdsContractAgreementToContractAgreementTransformer transformer;
 
     private de.fraunhofer.iais.eis.Permission idsPermission;
@@ -70,14 +73,11 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
                 .build();
         Asset asset = Asset.Builder.newInstance().build();
         input = ContractTransformerInput.Builder.newInstance().contract(idsContractAgreement).asset(asset).build();
-        context = EasyMock.createMock(TransformerContext.class);
-
+        context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(null, null);
         });
@@ -85,8 +85,6 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        EasyMock.replay(context);
-
         Assertions.assertThrows(NullPointerException.class, () -> {
             transformer.transform(input, null);
         });
@@ -94,8 +92,6 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
 
     @Test
     void testReturnsNull() {
-        EasyMock.replay(context);
-
         var result = transformer.transform(null, context);
 
         Assertions.assertNull(result);
@@ -103,24 +99,16 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        // prepare
+        Permission edcPermission = mock(Permission.class);
+        Prohibition edcProhibition = mock(Prohibition.class);
+        Duty edcObligation = mock(Duty.class);
 
-        Permission edcPermission = EasyMock.createMock(Permission.class);
-        Prohibition edcProhibition = EasyMock.createMock(Prohibition.class);
-        Duty edcObligation = EasyMock.createMock(Duty.class);
+        when(context.transform(eq(idsPermission), eq(Permission.class))).thenReturn(edcPermission);
+        when(context.transform(eq(idsProhibition), eq(Prohibition.class))).thenReturn(edcProhibition);
+        when(context.transform(eq(idsDuty), eq(Duty.class))).thenReturn(edcObligation);
 
-        EasyMock.expect(context.transform(EasyMock.eq(idsPermission), EasyMock.eq(Permission.class))).andReturn(edcPermission);
-        EasyMock.expect(context.transform(EasyMock.eq(idsProhibition), EasyMock.eq(Prohibition.class))).andReturn(edcProhibition);
-        EasyMock.expect(context.transform(EasyMock.eq(idsDuty), EasyMock.eq(Duty.class))).andReturn(edcObligation);
-        EasyMock.expectLastCall().atLeastOnce();
-
-        // record
-        EasyMock.replay(context);
-
-        // invoke
         var result = transformer.transform(input, context);
 
-        // verify
         Assertions.assertNotNull(result);
         Assertions.assertNotNull(result.getPolicy());
         var policy = result.getPolicy();
@@ -130,5 +118,8 @@ public class IdsContractAgreementToContractAgreementTransformerTest {
         Assertions.assertEquals(edcPermission, policy.getPermissions().get(0));
         Assertions.assertEquals(1, policy.getProhibitions().size());
         Assertions.assertEquals(edcProhibition, policy.getProhibitions().get(0));
+        verify(context).transform(eq(idsPermission), eq(Permission.class));
+        verify(context).transform(eq(idsProhibition), eq(Prohibition.class));
+        verify(context).transform(eq(idsDuty), eq(Duty.class));
     }
 }
