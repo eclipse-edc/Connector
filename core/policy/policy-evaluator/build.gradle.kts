@@ -21,8 +21,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("policy-model") {
-            artifactId = "policy-model"
+        create<MavenPublication>("policy-evaluator") {
+            artifactId = "policy-evaluator"
             from(components["java"])
         }
     }
