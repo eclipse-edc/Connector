@@ -16,9 +16,7 @@ package org.eclipse.dataspaceconnector.system;
 
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
@@ -31,9 +29,9 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.Mockito.atLeastOnce;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class CoreServicesExtensionTest {
@@ -59,19 +57,11 @@ class CoreServicesExtensionTest {
     void initialize() {
         ServiceExtensionContext context = mock(ServiceExtensionContext.class);
 
-        doNothing().when(context.registerService(eq(OkHttpClient.class), isA(OkHttpClient.class)));
-        expectLastCall().times(1);
-
         when(context.getSetting(eq("edc.core.retry.retries.max"), anyString())).thenReturn("3");
         when(context.getSetting(eq("edc.core.retry.backoff.min"), anyString())).thenReturn("500");
         when(context.getSetting(eq("edc.core.retry.backoff.max"), anyString())).thenReturn("10000");
+        when(context.getService(eq(PrivateKeyResolver.class))).thenReturn(mock(PrivateKeyResolver.class));
 
-        doNothing().when(context.registerService(eq(RetryPolicy.class), isA(RetryPolicy.class)))
-
-        expect(context.getService(Vault.class)).andReturn(niceMock(Vault.class)).anyTimes();
-        expect(context.getService(eq(PrivateKeyResolver.class))).andReturn(niceMock(PrivateKeyResolver.class));
-
-        context.registerService(eq(HealthCheckService.class), isA(HealthCheckServiceImpl.class));
 
         extension.initialize(context);
 
@@ -79,5 +69,7 @@ class CoreServicesExtensionTest {
         verify(context).registerService(eq(RetryPolicy.class), isA(RetryPolicy.class));
         verify(context, atLeastOnce()).getSetting(any(), anyString());
         verify(context).getService(eq(PrivateKeyResolver.class));
+        verify(context).registerService(eq(HealthCheckService.class), isA(HealthCheckServiceImpl.class));
+        verifyNoMoreInteractions(context);
     }
 }

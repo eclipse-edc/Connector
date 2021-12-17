@@ -10,6 +10,7 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -46,7 +47,7 @@ class IdentityDidCoreExtensionTest {
         when(contextMock.getService(WebService.class)).thenReturn(webserviceMock);
         when(contextMock.getService(OkHttpClient.class)).thenReturn(mock(OkHttpClient.class));
         when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
-        when(contextMock.getService(HealthCheckService.class, true)).thenReturn(niceMock(HealthCheckService.class));
+        when(contextMock.getService(HealthCheckService.class, true)).thenReturn(mock(HealthCheckService.class));
 
         extension.initialize(contextMock);
 
