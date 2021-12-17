@@ -42,12 +42,11 @@ import static org.mockito.Mockito.when;
 
 class AsyncTransferProcessManagerImplTest {
 
+    private final TransferProcessStore store = mock(TransferProcessStore.class);
     private AsyncTransferProcessManager manager;
-    private TransferProcessStore store;
 
     @BeforeEach
     void setup() {
-        store = mock(TransferProcessStore.class);
         when(store.nextForState(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
         manager = AsyncTransferProcessManager.Builder.newInstance()
@@ -65,14 +64,13 @@ class AsyncTransferProcessManagerImplTest {
      * All creations operations must be idempotent in order to support reliability (e.g. messages/requests may be delivered more than once).
      */
     @Test
-    void verifyIdempotency() {
+    void verifyIdempotency() throws InterruptedException {
         doReturn(null, "2")
                 .when(store)
                 .processIdForTransferId("1");
 
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
         manager.initiateProviderRequest(dataRequest);
-        Thread.sleep(10);
         manager.initiateProviderRequest(dataRequest);
         Thread.sleep(10);
         manager.stop();

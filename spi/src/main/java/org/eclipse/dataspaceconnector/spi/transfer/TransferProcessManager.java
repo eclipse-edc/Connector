@@ -53,8 +53,10 @@ public interface TransferProcessManager {
 
     /**
      * Require a transition
+     * @return
      */
-    void requireTransition(String id);
+    CompletableFuture<Void> requireTransition(String id);
 
     CompletableFuture<Void> initiateDataFlow(String id);
+
 }

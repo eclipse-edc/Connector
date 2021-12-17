@@ -8,8 +8,8 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class TransferProcessCommandResult {
-    private TransferProcessCommand nextCommand;
-    private Function<TransferProcessListener, Consumer<TransferProcess>> postAction;
+    private final TransferProcessCommand nextCommand;
+    private final Function<TransferProcessListener, Consumer<TransferProcess>> postAction;
 
     public TransferProcessCommandResult(TransferProcessCommand nextCommand, Function<TransferProcessListener, Consumer<TransferProcess>> postAction) {
         this.nextCommand = nextCommand;

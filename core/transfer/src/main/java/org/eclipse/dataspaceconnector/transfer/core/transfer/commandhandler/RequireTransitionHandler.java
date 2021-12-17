@@ -5,6 +5,10 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireTransition;
 
+
+/**
+ * Sends provisioned requests to the provider connector.
+ */
 public class RequireTransitionHandler implements TransferProcessCommandHandler<RequireTransition>  {
 
     private final TransferProcessStore transferProcessStore;

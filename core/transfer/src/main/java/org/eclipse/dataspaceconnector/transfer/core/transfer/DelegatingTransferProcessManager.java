@@ -53,8 +53,9 @@ public class DelegatingTransferProcessManager implements TransferProcessManager 
     }
 
     @Override
-    public void requireTransition(String id) {
+    public CompletableFuture<Void> requireTransition(String id) {
 
+        return null;
     }
 
     @Override

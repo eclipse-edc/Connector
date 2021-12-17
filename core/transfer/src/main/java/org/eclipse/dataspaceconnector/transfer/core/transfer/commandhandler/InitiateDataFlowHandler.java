@@ -11,9 +11,7 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.command.TransferPro
 import static java.lang.String.format;
 
 /**
- * On a consumer, sends provisioned requests to the provider connector. On the provider, sends provisioned requests to the data flow manager.
- *
- * @return the number of requests processed
+ * Sends provisioned requests to the data flow manager.
  */
 public class InitiateDataFlowHandler implements TransferProcessCommandHandler<InitiateDataFlow> {
 

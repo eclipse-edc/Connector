@@ -37,10 +37,12 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Complete;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Initiate;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.InitiateDataFlow;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireTransition;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.TransferProcessCommand;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.CompleteHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.ProvisionHandler;
@@ -58,11 +60,11 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
@@ -109,7 +111,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     private final List<TransferProcessCommandHandler<? extends TransferProcessCommand>> commandHandlers = new ArrayList<>();
 
     private AsyncTransferProcessManager() {
-        commandHandlers.add(new InitiateHandler(transferProcessStore));
+
     }
 
     public void start(TransferProcessStore processStore) {
@@ -118,11 +120,13 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         commandHandlers.add(new ProvisionHandler(transferProcessStore, manifestGenerator, provisionManager));
         commandHandlers.add(new RequireTransitionHandler(transferProcessStore, dispatcherRegistry));
         commandHandlers.add(new InitiateDataFlowHandler(transferProcessStore, dataFlowManager, monitor));
+        commandHandlers.add(new CompleteHandler(transferProcessStore, statusCheckerRegistry, monitor));
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
     }
 
+    // TODO: stop whould wait some time to empty the command queue before shutdown the executor
     public void stop() {
         active.set(false);
         if (executor != null) {
@@ -181,8 +185,8 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     @Override
-    public void requireTransition(String id) {
-
+    public CompletableFuture<Void> requireTransition(String id) {
+        return null;
     }
 
     @Override
@@ -247,6 +251,12 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         transferProcessStore.update(transferProcess);
     }
 
+    public CompletableFuture<Void> complete(String id) {
+        var future = new CompletableFuture<Void>();
+        commandQueue.add(new CommandRequest(new Complete(id), future));
+        return future;
+    }
+
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         var id = randomUUID().toString();
         commandQueue.add(new CommandRequest(new Initiate(id, type, dataRequest), new CompletableFuture<>()));
@@ -266,6 +276,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                     if (optionalHandler.isPresent()) {
                         TransferProcessCommandHandler handler = optionalHandler.get();
                         var result = handler.handle(commandRequest.getCommand());
+                        commandRequest.getFuture().complete(null);
                         getListeners().forEach(listener -> result.getPostAction().apply(listener));
                         var nextCommand = result.getNextCommand();
                         commandQueue.add(new CommandRequest(nextCommand, new CompletableFuture<>()));
@@ -280,8 +291,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 // TODO check processes in provisioning state and timestamps for failed processes
 
                 int provisioned = checkProvisioned();
-
-                int finished = checkCompleted();
 
                 int deprovisioning = checkDeprovisioningRequested();
 
@@ -392,7 +401,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         //deal with all the consumer processes
         var processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
 
-        for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(Collectors.toList())) {
+        for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(toList())) {
             if (process.getDataRequest().isManagedResources()) {
                 var resources = process.getProvisionedResourceSet().getResources();
                 var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
@@ -613,6 +622,10 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
         public TransferProcessCommand getCommand() {
             return command;
+        }
+
+        public CompletableFuture<?> getFuture() {
+            return future;
         }
     }
 }
