@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer;
 
+import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
@@ -8,6 +9,7 @@ import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.OrConstraint;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.reader.azure.blob.BlobStoreReader;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -16,7 +18,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
+import org.eclipse.dataspaceconnector.writer.s3.S3BucketWriter;
 
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import static java.util.Arrays.asList;
@@ -33,15 +39,26 @@ public class CloudTransferExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        registerFlowController(context);
+        registerDataEntries(context);
+        savePolicies(context);
+    }
+
+    private void registerFlowController(ServiceExtensionContext context) {
+        var vault = context.getService(Vault.class);
         var dataFlowMgr = context.getService(DataFlowManager.class);
         DataAddressResolver dataAddressResolver = context.getService(DataAddressResolver.class);
         var blobStoreApi = context.getService(BlobStoreApi.class);
-        var flowController = new BlobToS3DataFlowController(context.getService(Vault.class), context.getMonitor(), context.getTypeManager(), dataAddressResolver, blobStoreApi);
-        dataFlowMgr.register(flowController);
 
+        var dataOperatorRegistry = context.getService(DataOperatorRegistry.class);
+        dataOperatorRegistry.registerReader(new BlobStoreReader(blobStoreApi));
 
-        registerDataEntries(context);
-        savePolicies(context);
+        RetryPolicy<Object> retryPolicy = new RetryPolicy<>()
+                .withBackoff(500, 5000, ChronoUnit.MILLIS)
+                .withMaxRetries(3);
+        dataOperatorRegistry.registerWriter(new S3BucketWriter(context.getMonitor(), context.getTypeManager(), retryPolicy));
+
+        dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver));
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {

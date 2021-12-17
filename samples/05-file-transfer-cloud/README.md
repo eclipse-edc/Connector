@@ -85,7 +85,6 @@ For this chapter the file transfer extension (`CloudTransferExtension.java`) has
 notable are these changes:
 
 - the extension now creates different catalog entries
-- the flow controller (`BlobToS3DataFlowController.java`) is more powerful
 - there are additional dependencies that take care of provisioning S3 buckets and reading blobs from Azure
 
 Currently, we have implementations to _provision_ S3 buckets and Azure Storage accounts, but this example only contains
@@ -134,13 +133,14 @@ it's generally advisable to do it.
 
 The requesting of data offers and data transfer can also be initiated using IDS multipart.
 
-
 Request Data Offers from the provider by running
+
 ```bash
 curl -X GET -H 'X-Api-Key: password' http://localhost:9191/api/control/catalog?provider=http://localhost:8181/api/ids/multipart
 ```
 
 To transfer data from the provider create a `request.json` file with the following content
+
 ```json
 {
   "edctype": "dataspaceconnector:datarequest",
@@ -172,8 +172,8 @@ And then call the control endpoint for data transfer
 curl -X POST -H 'X-Api-Key: password' -H "Content-Type: application/json" -d @request.json http://localhost:9191/api/control/transfer
 ```
 
-
 ContractOfferRequest
+
 ```json
 {
   "type": "INITIAL",
@@ -182,50 +182,50 @@ ContractOfferRequest
   "connectorAddress": "http://localhost:8181/api/ids/multipart",
   "correlationId": null,
   "contractOffer": {
-            "id": "urn:contractoffer:1",
-            "policy": {
-                "uid": "7185d17a-44d9-4fc6-b5c1-8643526b1fec",
-                "permissions": [
-                    {
-                        "edctype": "dataspaceconnector:permission",
-                        "uid": null,
-                        "target": "1",
-                        "action": {
-                            "type": "USE",
-                            "includedIn": null,
-                            "constraint": null
-                        },
-                        "assignee": null,
-                        "assigner": null,
-                        "constraints": [],
-                        "duties": []
-                    }
-                ],
-                "prohibitions": [],
-                "obligations": [],
-                "extensibleProperties": {},
-                "inheritsFrom": null,
-                "assigner": null,
-                "assignee": null,
-                "target": null,
-                "@type": {
-                    "@policytype": "set"
-                }
-            },
-            "asset": {
-                "properties": {
-                    "ids:byteSize": null,
-                    "asset:prop:id": "1",
-                    "ids:fileName": null
-                }
-            },
-            "provider": null,
-            "consumer": null,
-            "offerStart": null,
-            "offerEnd": null,
-            "contractStart": null,
-            "contractEnd": null
-        },
+    "id": "urn:contractoffer:1",
+    "policy": {
+      "uid": "7185d17a-44d9-4fc6-b5c1-8643526b1fec",
+      "permissions": [
+        {
+          "edctype": "dataspaceconnector:permission",
+          "uid": null,
+          "target": "1",
+          "action": {
+            "type": "USE",
+            "includedIn": null,
+            "constraint": null
+          },
+          "assignee": null,
+          "assigner": null,
+          "constraints": [],
+          "duties": []
+        }
+      ],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "asset": {
+      "properties": {
+        "ids:byteSize": null,
+        "asset:prop:id": "1",
+        "ids:fileName": null
+      }
+    },
+    "provider": null,
+    "consumer": null,
+    "offerStart": null,
+    "offerEnd": null,
+    "contractStart": null,
+    "contractEnd": null
+  },
   "asset": "1",
   "provider": "https://provider.com",
   "consumer": "https://consumer.com",

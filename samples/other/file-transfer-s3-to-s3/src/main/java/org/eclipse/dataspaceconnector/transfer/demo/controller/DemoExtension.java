@@ -28,6 +28,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,13 +55,15 @@ public class DemoExtension implements ServiceExtension {
         this.context = context;
         monitor = context.getMonitor();
 
-        var typeManager = context.getTypeManager();
         var dataFlowMgr = context.getService(DataFlowManager.class);
+        var vault = context.getService(Vault.class);
+
         var dataAddressResolver = context.getService(DataAddressResolver.class);
 
-        var flowController = new S3toS3TransferFlowController(context.getService(Vault.class), monitor, dataAddressResolver, typeManager);
+        var dataOperatorRegistry = context.getService(DataOperatorRegistry.class);
+        dataOperatorRegistry.registerStreamPublisher(new S3toS3DataStreamer(context.getMonitor(), vault, context.getTypeManager(), dataAddressResolver));
 
-        dataFlowMgr.register(flowController);
+        dataFlowMgr.register(new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver));
     }
 
     @Override
