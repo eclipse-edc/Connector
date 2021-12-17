@@ -1,11 +1,11 @@
 package org.eclipse.dataspaceconnector.extensions.transfer;
 
-import org.eclipse.dataspaceconnector.common.azure.BlobStoreApiImpl;
+import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
@@ -23,12 +23,14 @@ public class BlobToS3DataFlowController implements DataFlowController {
     private final Monitor monitor;
     private final TypeManager typeManager;
     private final DataAddressResolver dataAddressResolver;
+    private final BlobStoreApi blobStoreApi;
 
-    public BlobToS3DataFlowController(Vault vault, Monitor monitor, TypeManager typeManager, DataAddressResolver dataAddressResolver) {
+    public BlobToS3DataFlowController(Vault vault, Monitor monitor, TypeManager typeManager, DataAddressResolver dataAddressResolver, BlobStoreApi blobStoreApi) {
         this.vault = vault;
         this.monitor = monitor;
         this.typeManager = typeManager;
         this.dataAddressResolver = dataAddressResolver;
+        this.blobStoreApi = blobStoreApi;
     }
 
     @Override
@@ -41,7 +43,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
         DataAddress dataAddress = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
         String sourceType = dataAddress.getType();
         String destinationType = dataRequest.getDestinationType();
@@ -49,7 +51,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
         var destSecretName = dataRequest.getDataDestination().getKeyName();
         if (destSecretName == null) {
             monitor.severe(format("No credentials found for %s, will not copy!", destinationType));
-            return new DataFlowInitiateResponse(ResponseStatus.ERROR_RETRY, "Did not find credentials for data destination.");
+            return DataFlowInitiateResult.failure(ResponseStatus.ERROR_RETRY, "Did not find credentials for data destination.");
         }
         var secret = vault.resolveSecret(destSecretName);
 
@@ -62,7 +64,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
 
         writer.write(dataRequest.getDataDestination(), dataRequest.getAssetId(), data, secret);
 
-        return DataFlowInitiateResponse.OK;
+        return DataFlowInitiateResult.success("");
     }
 
     private @NotNull DataWriter getWriter(String destinationType) {
@@ -82,7 +84,7 @@ public class BlobToS3DataFlowController implements DataFlowController {
             case "AmazonS3":
                 return new S3BucketReader();
             case "AzureStorage":
-                return new BlobStoreReader(new BlobStoreApiImpl(vault));
+                return new BlobStoreReader(blobStoreApi);
             default:
                 throw new IllegalArgumentException("Unknown source type " + sourceType);
         }

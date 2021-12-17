@@ -27,6 +27,7 @@ include(":core:protocol:web")
 include(":core:schema")
 include(":core:transfer")
 include(":core:contract")
+include(":core:base")
 
 // modules that provide implementations for data ingress/egress
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
@@ -143,3 +144,6 @@ include(":samples:05-file-transfer-cloud:provider")
 include(":samples:05-file-transfer-cloud:api")
 include(":samples:05-file-transfer-cloud:data-seeder")
 include(":samples:05-file-transfer-cloud:transfer-file")
+
+include(":samples:04.1-file-transfer-listener:consumer")
+include(":samples:04.1-file-transfer-listener:listener")

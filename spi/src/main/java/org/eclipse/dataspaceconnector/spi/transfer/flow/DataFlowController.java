@@ -34,6 +34,6 @@ public interface DataFlowController {
      * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#FATAL_ERROR} in the response. </p>
      */
     @NotNull
-    DataFlowInitiateResponse initiateFlow(DataRequest dataRequest);
+    DataFlowInitiateResult initiateFlow(DataRequest dataRequest);
 
 }

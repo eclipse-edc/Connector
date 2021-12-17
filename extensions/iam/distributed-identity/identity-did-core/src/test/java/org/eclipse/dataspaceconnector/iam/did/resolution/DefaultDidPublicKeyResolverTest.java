@@ -7,8 +7,8 @@ import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.EllipticCurvePublicKey;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.Service;
 import org.eclipse.dataspaceconnector.iam.did.spi.document.VerificationMethod;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -44,29 +44,33 @@ class DefaultDidPublicKeyResolverTest {
 
     @Test
     void resolve() {
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult(didDocument));
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.success(didDocument));
         replay(resolverRegistry);
 
-        var pk = resolver.resolvePublicKey(DID_URL);
-        assertThat(pk.getWrapper()).isNotNull();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.getContent()).isNotNull();
     }
 
     @Test
     void resolve_didNotFound() {
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult("Not found"));
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.failure("Not found"));
         replay(resolverRegistry);
 
-        var pk = resolver.resolvePublicKey(DID_URL);
-        assertThat(pk.invalid()).isTrue();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
     void resolve_didDoesNotContainPublicKey() {
         didDocument.getVerificationMethod().clear();
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult(didDocument));
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.success(didDocument));
         replay(resolverRegistry);
 
-        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -76,10 +80,12 @@ class DefaultDidPublicKeyResolverTest {
                 .publicKeyJwk(new EllipticCurvePublicKey(publicKey.getCurve().getName(), publicKey.getKeyType().getValue(), publicKey.getX().toString(), publicKey.getY().toString()))
                 .build();
         didDocument.getVerificationMethod().add(vm);
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult(didDocument));
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.success(didDocument));
         replay(resolverRegistry);
 
-        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.failed()).isTrue();
     }
 
     @Test
@@ -90,10 +96,12 @@ class DefaultDidPublicKeyResolverTest {
                 .build();
         didDocument.getVerificationMethod().add(vm);
 
-        expect(resolverRegistry.resolve(DID_URL)).andReturn(new DidResolutionResult(didDocument));
+        expect(resolverRegistry.resolve(DID_URL)).andReturn(Result.success(didDocument));
         replay(resolverRegistry);
 
-        assertThat(resolver.resolvePublicKey(DID_URL).invalid()).isTrue();
+        var result = resolver.resolvePublicKey(DID_URL);
+
+        assertThat(result.failed()).isTrue();
     }
 
     public String readFile(String filename) {

@@ -11,6 +11,11 @@ import java.util.Set;
 public class ApiEndpointExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "API Endpoint";
+    }
+
+    @Override
     public Set<String> requires() {
         return Set.of("edc:webservice");
     }
@@ -21,6 +26,5 @@ public class ApiEndpointExtension implements ServiceExtension {
         var processManager = context.getService(TransferProcessManager.class);
         var processStore = context.getService(TransferProcessStore.class);
         webService.registerController(new ConsumerApiController(context.getMonitor(), processManager, processStore));
-        context.getMonitor().info("Initialized API Extension");
     }
 }

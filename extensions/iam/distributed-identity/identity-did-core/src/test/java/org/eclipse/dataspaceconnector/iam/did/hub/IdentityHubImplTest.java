@@ -19,8 +19,8 @@ import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.ObjectQueryRespons
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.WriteResponse;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.spi.key.PublicKeyWrapper;
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidPublicKeyResolver;
 import org.eclipse.dataspaceconnector.iam.did.testfixtures.TemporaryKeyLoader;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -117,6 +117,6 @@ class IdentityHubImplTest {
         publicKey = new RsaPublicKeyWrapper(keys.toRSAPublicKey());
         store = EasyMock.createMock(IdentityHubStore.class);
         objectMapper = new ObjectMapper();
-        hub = new IdentityHubImpl(store, () -> privateKey, did -> new DidPublicKeyResolver.Result(publicKey), objectMapper);
+        hub = new IdentityHubImpl(store, () -> privateKey, did -> Result.success(publicKey), objectMapper);
     }
 }

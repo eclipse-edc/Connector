@@ -28,24 +28,6 @@ The deployment scripts will provision all resources in Azure and AWS (that's why
 and store all access credentials in an Azure Vault (learn
 more [here](https://azure.microsoft.com/de-de/services/key-vault/#product-overview)).
 
-## Create a certificate for Azure
-
-The cloud resources hosted in Azure require a certificate for authentication, so you need to create one:
-
-```bash
-# create certificate:
-openssl req -newkey rsa:2048 -new -nodes -x509 -days 3650 -keyout key.pem -out cert.pem
-# create pfx file, we'll need this later (without password)
-openssl pkcs12 -export -in cert.pem -inkey key.pem -out cert.pfx    
-```
-
-Of course you can tune the parameters to your liking. Due to the way how Terraform interprets environment variables, we
-need to store the contents of the certificate in an environment variable named `TF_VAR_CERTIFICATE`:
-
-```bash
-TF_VAR_CERTIFICATE=$(<cert.pem)
-```
-
 ## Deploy cloud resources
 
 It's as simple as running the main terraform script:
@@ -62,6 +44,12 @@ enter "yes" and let terraform work its magic.
 It shouldn't take more than a couple of minutes, and when it's done it will log the `client_id`, `tenant_id`
 , `vault-name`, `storage-container-name` and `storage-account-name`.
 > Take a note of these values!
+
+Download the certificate used to authenticate the generated service principal against Azure Active Directory:
+
+```bash
+terraform output -raw certificate | base64 --decode > cert.pfx
+```
 
 ## Update connector config
 
@@ -128,7 +116,7 @@ curl -X POST -H "Content-Type: application/json" -d @samples/05-file-transfer-cl
 like before that'll return a UUID. Using that UUID we can then query the status of the transfer process by executing:
 
 ```bash
-curl -X GET "http://localhost:9191/api/datarequest/<UUID>/state
+curl -X GET "http://localhost:9191/api/datarequest/<UUID>/state"
 ```
 
 which will return one of

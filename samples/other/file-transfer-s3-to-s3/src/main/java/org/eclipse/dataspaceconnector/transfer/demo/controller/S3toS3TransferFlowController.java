@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -52,7 +52,7 @@ public class S3toS3TransferFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
         var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
 
         final String sourceKey = source.getKeyName();
@@ -69,7 +69,7 @@ public class S3toS3TransferFlowController implements DataFlowController {
     }
 
     @NotNull
-    private DataFlowInitiateResponse copyToBucket(
+    private DataFlowInitiateResult copyToBucket(
             final String sourceBucketName,
             final String sourceKey,
             final String destinationBucketName,
@@ -101,10 +101,10 @@ public class S3toS3TransferFlowController implements DataFlowController {
                 monitor.info("Data request: transfer not successful");
             }
 
-            return new DataFlowInitiateResponse(ResponseStatus.OK, etag);
+            return DataFlowInitiateResult.success(etag);
         } catch (S3Exception | EdcException ex) {
             monitor.severe("Data request: transfer failed!");
-            return new DataFlowInitiateResponse(ResponseStatus.FATAL_ERROR, ex.getLocalizedMessage());
+            return DataFlowInitiateResult.failure(ResponseStatus.FATAL_ERROR, ex.getLocalizedMessage());
         }
     }
 

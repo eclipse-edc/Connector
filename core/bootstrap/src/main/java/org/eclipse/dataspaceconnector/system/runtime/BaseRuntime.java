@@ -140,9 +140,11 @@ public class BaseRuntime {
      * @param monitor           A monitor - should you need one.
      */
     protected void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
-        ListIterator<ServiceExtension> iter = serviceExtensions.listIterator(serviceExtensions.size());
+        var iter = serviceExtensions.listIterator(serviceExtensions.size());
         while (iter.hasPrevious()) {
-            iter.previous().shutdown();
+            var extension = iter.previous();
+            extension.shutdown();
+            monitor.info("Shutdown " + extension);
         }
         monitor.info("Connector shutdown complete");
     }

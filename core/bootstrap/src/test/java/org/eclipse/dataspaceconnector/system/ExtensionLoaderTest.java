@@ -76,11 +76,9 @@ class ExtensionLoaderTest {
 
     @Test
     void loadVault_whenNotRegistered() {
-
         DefaultServiceExtensionContext contextMock = niceMock(DefaultServiceExtensionContext.class);
 
-        expect(contextMock.getMonitor()).andReturn(new Monitor() {
-        });
+        expect(contextMock.getMonitor()).andReturn(niceMock(Monitor.class)).anyTimes();
 
         expect(contextMock.loadSingletonExtension(VaultExtension.class, false)).andReturn(null);
         contextMock.registerService(eq(Vault.class), isA(Vault.class));
@@ -89,13 +87,14 @@ class ExtensionLoaderTest {
         replay(contextMock);
 
         ExtensionLoader.loadVault(contextMock);
-        verify(contextMock);
 
+        verify(contextMock);
     }
 
     @Test
     void loadVault() {
         DefaultServiceExtensionContext contextMock = niceMock(DefaultServiceExtensionContext.class);
+        expect(contextMock.getMonitor()).andReturn(niceMock(Monitor.class)).anyTimes();
         Vault vaultMock = mock(Vault.class);
         PrivateKeyResolver resolverMock = mock(PrivateKeyResolver.class);
         CertificateResolver certResolverMock = mock(CertificateResolver.class);
@@ -119,11 +118,10 @@ class ExtensionLoaderTest {
 
         contextMock.registerService(Vault.class, vaultMock);
         expectLastCall().once();
-
-
         replay(contextMock);
-        ExtensionLoader.loadVault(contextMock);
-        verify(contextMock);
 
+        ExtensionLoader.loadVault(contextMock);
+
+        verify(contextMock);
     }
 }

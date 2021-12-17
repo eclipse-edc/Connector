@@ -21,8 +21,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
-import java.net.URI;
-import java.time.ZonedDateTime;
 import java.util.Objects;
 
 /**

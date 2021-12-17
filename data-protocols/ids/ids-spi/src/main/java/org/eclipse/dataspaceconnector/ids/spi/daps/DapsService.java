@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.spi.daps;
 
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.Nullable;
 
 /**
@@ -26,6 +26,6 @@ public interface DapsService {
     /**
      * Verifies the token and returns a contained {@link ClaimToken} if valid.
      */
-    VerificationResult verifyAndConvertToken(@Nullable String token);
+    Result<ClaimToken> verifyAndConvertToken(@Nullable String token);
 
 }

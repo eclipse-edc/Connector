@@ -264,6 +264,10 @@ public class TransferProcess {
     }
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
+        if (end.code() < state) {
+            return; //we cannot transition "back"
+        }
+
         if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
         }

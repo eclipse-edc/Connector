@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.vault;
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.jetbrains.annotations.Nullable;
 
 public class SingletonVault implements Vault {
@@ -32,16 +32,16 @@ public class SingletonVault implements Vault {
     }
 
     @Override
-    public VaultResponse storeSecret(
+    public Result<Void> storeSecret(
             final String key, final String value
     ) {
         // NOTE: Intentionally do nothing
-        return VaultResponse.OK;
+        return Result.success();
     }
 
     @Override
-    public VaultResponse deleteSecret(final String key) {
+    public Result<Void> deleteSecret(final String key) {
         // NOTE: Intentionally do nothing
-        return VaultResponse.OK;
+        return Result.success();
     }
 }

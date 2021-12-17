@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added dependencies
  *
  */
 
@@ -21,6 +22,7 @@ val rsApi: String by project
 
 dependencies {
     api(project(":spi"))
+    implementation(project(":common:util"))
 
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

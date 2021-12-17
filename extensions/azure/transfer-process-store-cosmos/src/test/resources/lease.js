@@ -21,7 +21,7 @@ function lease(processId, connectorId, shouldLease) {
 
     // first query
     var filterQuery = {
-        'query': 'SELECT * FROM TransferProcessDocuments t WHERE t.id = @processId',
+        'query': 'SELECT * FROM t WHERE t.wrappedInstance.id = @processId',
         'parameters': [
             {
                 'name': '@processId', 'value': processId

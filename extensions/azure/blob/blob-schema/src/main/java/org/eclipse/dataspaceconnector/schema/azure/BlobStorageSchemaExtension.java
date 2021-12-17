@@ -21,15 +21,15 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 public class BlobStorageSchemaExtension implements ServiceExtension {
 
     @Override
-    public void initialize(ServiceExtensionContext context) {
-        var monitor = context.getMonitor();
+    public String name() {
+        return "Azure Blob Schemas";
+    }
 
+    @Override
+    public void initialize(ServiceExtensionContext context) {
         var sr = context.getService(SchemaRegistry.class);
         sr.register(new AzureBlobStoreSchema());
         sr.register(new AzureBlobHasPolicyRelationshipSchema());
-
-        monitor.info("Initialized Azure Blob Schemas");
-
     }
 }
 

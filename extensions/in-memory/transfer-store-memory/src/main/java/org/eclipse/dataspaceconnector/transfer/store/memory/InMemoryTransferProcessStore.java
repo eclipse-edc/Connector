@@ -72,7 +72,6 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public void create(TransferProcess process) {
         writeLock(() -> {
-            process.transitionInitial();
             delete(process.getId());
             TransferProcess internalCopy = process.copy();
             processesById.put(process.getId(), internalCopy);

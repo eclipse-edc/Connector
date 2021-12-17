@@ -23,8 +23,8 @@ import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
 import com.azure.security.keyvault.secrets.models.DeletedSecret;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.security.VaultResponse;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,20 +95,20 @@ public class AzureVault implements Vault {
     }
 
     @Override
-    public VaultResponse storeSecret(String key, String value) {
+    public Result<Void> storeSecret(String key, String value) {
         try {
             key = sanitizeKey(key);
             var secret = secretClient.setSecret(key, value);
             monitor.debug("storing secret successful");
-            return VaultResponse.OK;
+            return Result.success();
         } catch (Exception ex) {
             monitor.severe("Error storing secret", ex);
-            return new VaultResponse(ex.getMessage());
+            return Result.failure(ex.getMessage());
         }
     }
 
     @Override
-    public VaultResponse deleteSecret(String key) {
+    public Result<Void> deleteSecret(String key) {
         key = sanitizeKey(key);
         SyncPoller<DeletedSecret, Void> poller = null;
         try {
@@ -117,10 +117,10 @@ public class AzureVault implements Vault {
             poller.waitForCompletion(Duration.ofMinutes(1));
 
             monitor.debug("deletion complete");
-            return VaultResponse.OK;
+            return Result.success();
         } catch (ResourceNotFoundException ex) {
             monitor.severe("Error deleting secret - does not exist!");
-            return new VaultResponse(ex.getMessage());
+            return Result.failure(ex.getMessage());
         } catch (RuntimeException re) {
             monitor.severe("Error deleting secret", re);
 
@@ -131,10 +131,10 @@ public class AzureVault implements Vault {
                     }
                 } catch (Exception e) {
                     monitor.severe("Failed to abort the deletion. ", e);
-                    return new VaultResponse(e.getMessage());
+                    return Result.failure(e.getMessage());
                 }
             }
-            return new VaultResponse(re.getMessage());
+            return Result.failure(re.getMessage());
         } finally {
             try {
                 secretClient.purgeDeletedSecret(key);

@@ -25,30 +25,19 @@ import java.util.Set;
  * Provides an in-memory implementation of the {@link ContractDefinitionStore}.
  */
 public class InMemoryContractDefinitionStoreExtension implements ServiceExtension {
-    private static final String NAME = "In-Memory Contract Definition Store Extension";
-    private Monitor monitor;
+
+    @Override
+    public String name() {
+        return "In-Memory Contract Definition Store";
+    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         context.registerService(ContractDefinitionStore.class, new InMemoryContractDefinitionStore());
-
-        monitor.info(String.format("Initialized %s", NAME));
     }
 
     @Override
     public Set<String> provides() {
         return Set.of(ContractDefinitionStore.FEATURE);
-    }
-
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdown %s", NAME));
     }
 }

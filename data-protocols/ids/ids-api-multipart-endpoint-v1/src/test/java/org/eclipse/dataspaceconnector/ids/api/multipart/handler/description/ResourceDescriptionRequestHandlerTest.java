@@ -18,14 +18,14 @@ import de.fraunhofer.iais.eis.DescriptionRequestMessage;
 import de.fraunhofer.iais.eis.Resource;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.types.container.OfferedAsset;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -88,18 +88,17 @@ public class ResourceDescriptionRequestHandlerTest {
     @Test
     public void testSimpleSuccessPath() {
         // prepare
-        VerificationResult verificationResult = EasyMock.createMock(VerificationResult.class);
+        var verificationResult = Result.success(ClaimToken.Builder.newInstance().build());
 
         EasyMock.expect(assetIndex.findById(EasyMock.anyString())).andReturn(EasyMock.createMock(Asset.class));
 
-        @SuppressWarnings("rawtypes") TransformResult resourceResult = EasyMock.createMock(TransformResult.class);
-        EasyMock.expect(resourceResult.getOutput()).andReturn(resource);
-        EasyMock.expect(resourceResult.hasProblems()).andReturn(false);
-        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(OfferedAsset.class), EasyMock.eq(Resource.class))).andReturn(resourceResult);
+        var resourceResult = Result.success(resource);
+        EasyMock.expect(transformerRegistry.transform(EasyMock.isA(OfferedAsset.class), EasyMock.eq(Resource.class)))
+                .andReturn(resourceResult);
 
         EasyMock.expect(contractOfferService.queryContractOffers(EasyMock.isA(ContractOfferQuery.class))).andReturn(Stream.empty());
 
-        EasyMock.replay(assetIndex, contractOfferService, transformerRegistry, descriptionRequestMessage, resourceResult);
+        EasyMock.replay(assetIndex, contractOfferService, transformerRegistry, descriptionRequestMessage);
 
         // invoke
         var result = resourceDescriptionRequestHandler.handle(descriptionRequestMessage, verificationResult, null);

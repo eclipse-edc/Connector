@@ -26,7 +26,7 @@ The project maintains the following source code repositoriy:
 
 * https://github.com/eclipse-dataspaceconnector/DataSpaceConnector
 
-## Third-party Content
+## Third-party Content (Overarching All Modules)
 
 AWS SDK for Java - BOM
 * Project: https://aws.amazon.com/sdkforjava

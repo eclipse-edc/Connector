@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.demo.protocols.object;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,7 +36,7 @@ public class ObjectStorageFlowController implements DataFlowController {
     }
 
     @Override
-    public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
+    public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
         return null;
     }
 

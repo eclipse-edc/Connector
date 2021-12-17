@@ -14,6 +14,8 @@
 package org.eclipse.dataspaceconnector.dataloading;
 
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.function.Function;
@@ -26,7 +28,7 @@ import java.util.stream.Stream;
  * @param <T> The type of objects that are to be ingested.
  */
 public class DataLoader<T> {
-    private Collection<Function<T, ValidationResult>> validationPredicates;
+    private Collection<Function<T, Result<T>>> validationPredicates;
     private DataSink<T> sink;
 
     protected DataLoader() {
@@ -41,12 +43,16 @@ public class DataLoader<T> {
      */
     public void insert(T item) {
         // see that the item satisfies all predicates
-        var failedValidations = validate(item).filter(ValidationResult::isInvalid)
+        var failedValidations = validate(item).filter(Result::failed)
                 .collect(Collectors.toUnmodifiableList());
 
         // throw exception if item does not pass all validations
         if (!failedValidations.isEmpty()) {
-            throw new ValidationException(failedValidations.stream().map(ValidationResult::getError).collect(Collectors.joining("; ")));
+            String message = failedValidations.stream()
+                    .map(Result::getFailureMessages)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.joining("; "));
+            throw new ValidationException(message);
         }
 
         sink.accept(item);
@@ -66,7 +72,11 @@ public class DataLoader<T> {
 
         var allValidationResults = items.stream().flatMap(this::validate);
 
-        var errorMessages = allValidationResults.filter(ValidationResult::isInvalid).map(ValidationResult::getError).collect(Collectors.toList());
+        var errorMessages = allValidationResults
+                .filter(Result::failed)
+                .map(Result::getFailureMessages)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
 
         if (!errorMessages.isEmpty()) {
             throw new ValidationException(String.join("; ", errorMessages));
@@ -75,7 +85,7 @@ public class DataLoader<T> {
         items.forEach(sink::accept);
     }
 
-    private Stream<ValidationResult> validate(T item) {
+    private Stream<Result<T>> validate(T item) {
         return validationPredicates.stream().map(vr -> vr.apply(item));
     }
 
@@ -95,12 +105,12 @@ public class DataLoader<T> {
             return this;
         }
 
-        public Builder<T> andPredicate(Function<T, ValidationResult> predicate) {
+        public Builder<T> andPredicate(Function<T, Result<T>> predicate) {
             loader.validationPredicates.add(predicate);
             return this;
         }
 
-        public Builder<T> predicates(Collection<Function<T, ValidationResult>> predicates) {
+        public Builder<T> predicates(Collection<Function<T, Result<T>>> predicates) {
             loader.validationPredicates = predicates;
             return this;
         }

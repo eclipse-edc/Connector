@@ -14,7 +14,6 @@ import org.eclipse.dataspaceconnector.common.collection.CollectionUtil;
 import org.eclipse.dataspaceconnector.metadata.catalog.CatalogService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
@@ -70,14 +69,13 @@ public class DemoApiController {
         }
         request = request.copy(UUID.randomUUID().toString()); //assign random ID
         monitor.info("Received new data request, ID = " + request.getId());
-        var response = transferProcessManager.initiateConsumerRequest(request);
-        monitor.info("Created new transfer process, ID = " + response.getId());
+        var result = transferProcessManager.initiateConsumerRequest(request);
+        monitor.info("Created new transfer process, ID = " + result.getContent());
 
-        ResponseStatus status = response.getStatus();
-        if (status == ResponseStatus.OK) {
-            return Response.ok(formatAsJson(response.getId())).build();
+        if (result.succeeded()) {
+            return Response.ok(formatAsJson(result.getContent())).build();
         } else {
-            return Response.status(Response.Status.BAD_REQUEST).entity(response.getStatus().name()).build();
+            return Response.status(Response.Status.BAD_REQUEST).entity(result.getFailure().status().name()).build();
         }
     }
 

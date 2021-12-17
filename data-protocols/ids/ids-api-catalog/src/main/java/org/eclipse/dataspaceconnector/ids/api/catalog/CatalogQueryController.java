@@ -47,8 +47,8 @@ public class CatalogQueryController {
     public Response query(QueryMessage message) {
         var connectorId = message.getIssuerConnector().toString();
 
-        var verificationResult = dapsService.verifyAndConvertToken(message.getSecurityToken().getTokenValue());
-        if (!verificationResult.valid()) {
+        var result = dapsService.verifyAndConvertToken(message.getSecurityToken().getTokenValue());
+        if (result.failed()) {
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHENTICATED).build()).build();
         }
 
@@ -64,7 +64,7 @@ public class CatalogQueryController {
 
         var correlationId = message.getId().toString();
 
-        var consumerToken = verificationResult.token();
+        var consumerToken = result.getContent();
 
         var results = queryEngine.execute(correlationId, consumerToken, connectorId, language, query);
         return Response.ok(results).build();

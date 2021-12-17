@@ -23,9 +23,11 @@ import java.util.Arrays;
 import java.util.Set;
 
 public class IdsTransformServiceExtension implements ServiceExtension {
-    private static final String NAME = "IDS Transform extension";
 
-    private Monitor monitor;
+    @Override
+    public String name() {
+        return "IDS Transform Extension";
+    }
 
     @Override
     public Set<String> requires() {
@@ -39,11 +41,7 @@ public class IdsTransformServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        monitor = serviceExtensionContext.getMonitor();
-
         registerTransformers(serviceExtensionContext);
-
-        monitor.info(String.format("Initialized %s", NAME));
     }
 
     private void registerTransformers(ServiceExtensionContext serviceExtensionContext) {
@@ -87,13 +85,4 @@ public class IdsTransformServiceExtension implements ServiceExtension {
         ).forEach(registry::register);
     }
 
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdown %s", NAME));
-    }
 }

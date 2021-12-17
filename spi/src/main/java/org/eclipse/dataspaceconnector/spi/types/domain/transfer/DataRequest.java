@@ -21,6 +21,8 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
+import java.util.Map;
+
 /**
  * Polymorphic data request.
  */
@@ -45,7 +47,11 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private boolean managedResources = true;
 
+    private Map<String, String> properties = Map.of();
+
     private TransferType transferType;
+
+    private boolean isSync = false;
 
     private DataRequest() {
         transferType = new TransferType();
@@ -120,6 +126,13 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         return dataDestination;
     }
 
+    /**
+     * Custom properties that are passed to the provider connector.
+     */
+    public Map<String, String> getProperties() {
+        return properties;
+    }
+
     public boolean isManagedResources() {
         return managedResources;
     }
@@ -135,7 +148,9 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .contractId(contractId)
                 .dataAddress(dataDestination)
                 .transferType(transferType)
+                .isSync(isSync)
                 .managedResources(managedResources)
+                .properties(properties)
                 .build();
     }
 
@@ -145,6 +160,10 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     public TransferType getTransferType() {
         return transferType;
+    }
+
+    public boolean isSync() {
+        return isSync;
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -195,6 +214,11 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return this;
         }
 
+        public Builder isSync(boolean isSync) {
+            request.isSync = isSync;
+            return this;
+        }
+
         public Builder destinationType(String type) {
             if (request.dataDestination == null) {
                 request.dataDestination = DataAddress.Builder.newInstance()
@@ -212,6 +236,11 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
         public Builder managedResources(boolean value) {
             request.managedResources = value;
+            return this;
+        }
+
+        public Builder properties(Map<String, String> value) {
+            request.properties = value == null ? null : Map.copyOf(value);
             return this;
         }
 

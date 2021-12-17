@@ -24,7 +24,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.util.Set;
 
 public class InMemoryAssetIndexExtension implements ServiceExtension {
-    private Monitor monitor;
+
+    @Override
+    public String name() {
+        return "In-Memory Asset Index";
+    }
 
     @Override
     public Set<String> provides() {
@@ -33,23 +37,9 @@ public class InMemoryAssetIndexExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        monitor = context.getMonitor();
-
         var service = new InMemoryAssetLoader(new CriterionToPredicateConverter());
         context.registerService(AssetIndex.class, service);
         context.registerService(AssetLoader.class, service);
         context.registerService(DataAddressResolver.class, service);
-
-        monitor.info("Initialized In-Memory Asset Index extension");
-    }
-
-    @Override
-    public void start() {
-        monitor.info("Started In-Memory Asset Index extension");
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info("Shutdown In-Memory Asset Index extension");
     }
 }

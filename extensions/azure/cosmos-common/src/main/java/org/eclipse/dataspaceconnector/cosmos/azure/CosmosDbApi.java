@@ -11,6 +11,10 @@ public interface CosmosDbApi {
 
     void saveItem(CosmosDocument<?> item);
 
+    void saveItems(Collection<CosmosDocument<?>> definitions);
+    
+    void deleteItem(String id);
+
     @Nullable Object queryItemById(String id);
 
     @Nullable Object queryItemById(String id, String partitionKey);
@@ -23,9 +27,5 @@ public interface CosmosDbApi {
 
     Stream<Object> queryItems(String query);
 
-    void deleteItem(String id);
-
-    void createItems(Collection<CosmosDocument<?>> definitions);
-
-    <T> String invokeStoredProcedure(String procedureName, String partitionKey, Object... args);
+    String invokeStoredProcedure(String procedureName, String partitionKey, Object... args);
 }

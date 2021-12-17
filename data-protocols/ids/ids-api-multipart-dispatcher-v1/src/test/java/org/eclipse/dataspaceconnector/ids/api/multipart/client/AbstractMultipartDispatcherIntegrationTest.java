@@ -24,10 +24,12 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartCont
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.iam.TokenResult;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,7 +48,9 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final AtomicReference<Integer> PORT = new AtomicReference<>();
-    private static final List<Asset> ASSETS = new LinkedList<>();
+    public static final List<Asset> ASSETS = new LinkedList<>();
+    public static final List<ContractNegotiation> CONTRACT_NEGOTIATIONS = new LinkedList<>();
+    public static final List<ContractAgreement> CONTRACT_AGREEMENTS = new LinkedList<>();
 
     static {
         OBJECT_MAPPER.registerModule(new JavaTimeModule());
@@ -71,6 +75,8 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
     @AfterEach
     void after() {
         ASSETS.clear();
+        CONTRACT_NEGOTIATIONS.clear();
+        CONTRACT_AGREEMENTS.clear();
 
         for (String key : getSystemProperties().keySet()) {
             System.clearProperty(key);
@@ -87,21 +93,29 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
             System.setProperty(entry.getKey(), entry.getValue());
         }
 
-        var tokenResult = TokenResult.Builder.newInstance().token("token").build();
+        var tokenResult = TokenRepresentation.Builder.newInstance().token("token").build();
         var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
-        var verificationResult = new VerificationResult(claimToken);
 
         identityService = EasyMock.createMock(IdentityService.class);
-        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.anyObject())).andReturn(tokenResult);
-        EasyMock.expect(identityService.verifyJwtToken(EasyMock.anyObject(), EasyMock.anyObject())).andReturn(verificationResult);
+        EasyMock.expect(identityService.obtainClientCredentials(EasyMock.anyObject())).andReturn(Result.success(tokenResult));
+        EasyMock.expect(identityService.verifyJwtToken(EasyMock.anyObject(), EasyMock.anyObject()))
+                .andReturn(Result.success(claimToken));
         EasyMock.replay(identityService);
 
         extension.registerSystemExtension(ServiceExtension.class,
-                new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService));
+                new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(identityService));
     }
 
     protected void addAsset(Asset asset) {
         ASSETS.add(asset);
+    }
+
+    protected void addNegotiation(ContractNegotiation contractNegotiation) {
+        CONTRACT_NEGOTIATIONS.add(contractNegotiation);
+    }
+
+    protected void addAgreement(ContractAgreement contractAgreement) {
+        CONTRACT_AGREEMENTS.add(contractAgreement);
     }
 
     protected int getPort() {

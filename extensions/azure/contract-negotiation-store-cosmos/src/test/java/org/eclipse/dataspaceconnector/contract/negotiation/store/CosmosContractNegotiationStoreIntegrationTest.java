@@ -42,7 +42,7 @@ import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunc
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
 
 @IntegrationTest
-public class CosmosContractNegotiationStoreIntegrationTest {
+class CosmosContractNegotiationStoreIntegrationTest {
     public static final String REGION = "westeurope";
     public static final String CONNECTOR_ID = "test-connector";
     private static final String TEST_ID = UUID.randomUUID().toString();
@@ -165,8 +165,8 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
         var allObjs = container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class);
 
-        assertThat(allObjs).hasSize(1);
-        assertThat(allObjs).allSatisfy(o -> assertThat(toNegotiation(o)).usingRecursiveComparison().isEqualTo(negotiation));
+        assertThat(allObjs).hasSize(1)
+                .allSatisfy(o -> assertThat(toNegotiation(o)).usingRecursiveComparison().isEqualTo(negotiation));
     }
 
     @Test
@@ -183,11 +183,11 @@ public class CosmosContractNegotiationStoreIntegrationTest {
 
         var allObjs = container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class);
 
-        assertThat(allObjs).hasSize(1);
-        assertThat(allObjs).allSatisfy(o -> {
-            var actual = toNegotiation(o);
-            assertThat(actual.getContractOffers()).hasSize(1).containsExactlyInAnyOrder(newOffer);
-        });
+        assertThat(allObjs).hasSize(1)
+                .allSatisfy(o -> {
+                    var actual = toNegotiation(o);
+                    assertThat(actual.getContractOffers()).hasSize(1).containsExactlyInAnyOrder(newOffer);
+                });
     }
 
     @Test
@@ -211,8 +211,8 @@ public class CosmosContractNegotiationStoreIntegrationTest {
                 .collect(Collectors.toList());
 
         var result = store.nextForState(state.code(), 4);
-        assertThat(result).hasSize(4);
-        assertThat(result).allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
+        assertThat(result).hasSize(4)
+                .allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
     }
 
 

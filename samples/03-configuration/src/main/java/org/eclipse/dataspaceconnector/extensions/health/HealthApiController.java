@@ -27,6 +27,6 @@ public class HealthApiController {
     @Path("health")
     public String checkHealth() {
         monitor.info(format("%s :: Received a health request", logPrefix));
-        return "I'm alive!";
+        return "{\"response\":\"I'm alive!\"}";
     }
 }

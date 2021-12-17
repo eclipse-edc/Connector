@@ -27,6 +27,7 @@ val jacksonVersion: String by project
 val javaVersion: String by project
 
 val jupiterVersion: String by project
+val groupId: String = "org.eclipse.dataspaceconnector"
 var edcVersion: String = "0.0.1-SNAPSHOT"
 
 if (project.version == "unspecified") {
@@ -71,8 +72,9 @@ allprojects {
     }
 
     pluginManager.withPlugin("java-library") {
-        group = "org.eclipse.dataspaceconnector"
+        group = groupId
         version = edcVersion
+
         dependencies {
             api("org.jetbrains:annotations:${jetBrainsAnnotationsVersion}")
             api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
@@ -85,14 +87,14 @@ allprojects {
             testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
             testImplementation("org.easymock:easymock:4.2")
             testImplementation("org.assertj:assertj-core:3.19.0")
-
+            testImplementation("com.github.javafaker:javafaker:1.0.2")
         }
 
         publishing {
             repositories {
                 maven {
                     name = "GitHubPackages"
-                    url = uri("https://maven.pkg.github.com/eclipse-datasspaceconnector/dataspaceconnector")
+                    url = uri("https://maven.pkg.github.com/eclipse-dataspaceconnector/DataSpaceConnector")
                     credentials {
                         username = System.getenv("GITHUB_ACTOR")
                         password = System.getenv("GITHUB_TOKEN")
@@ -100,7 +102,6 @@ allprojects {
                 }
             }
         }
-
 
     }
 

@@ -52,6 +52,11 @@ public class AwsProvisionExtension implements ServiceExtension {
     private SdkClientProvider clientProvider;
 
     @Override
+    public String name() {
+        return "AWS Provision";
+    }
+
+    @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
 
@@ -73,8 +78,6 @@ public class AwsProvisionExtension implements ServiceExtension {
         statusCheckerReg.register(S3BucketSchema.TYPE, new S3StatusChecker(clientProvider, retryPolicy));
 
         registerTypes(context.getTypeManager());
-
-        monitor.info("Initialized AWS Provision extension");
     }
 
     @Override
@@ -88,18 +91,12 @@ public class AwsProvisionExtension implements ServiceExtension {
     }
 
     @Override
-    public void start() {
-        monitor.info("Started AWS Provision extension");
-    }
-
-    @Override
     public void shutdown() {
         try {
             clientProvider.shutdown();
         } catch (Exception e) {
             monitor.info("Error closing S3 client provider", e);
         }
-        monitor.info("Shutdown AWS Provision extension");
     }
 
     @NotNull

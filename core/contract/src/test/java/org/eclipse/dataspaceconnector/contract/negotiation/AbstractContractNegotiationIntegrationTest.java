@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
@@ -29,6 +29,8 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -39,6 +41,7 @@ import java.net.URI;
 import java.time.ZonedDateTime;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Setup for the contract negotiation integration test.
@@ -57,6 +60,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
 
     protected ClaimToken token;
 
+    protected CountDownLatch countDownLatch;
+
     /**
      * Prepares the test setup
      */
@@ -68,8 +73,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         // Create a monitor that logs to the console
         Monitor monitor = new FakeConsoleMonitor();
 
-        // Create the provider contract negotiation store and manager
-        providerStore = new InMemoryContractNegotiationStore();
+        // Create the provider contract negotiation manager
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(new FakeProviderDispatcherRegistry())
                 .monitor(monitor)
@@ -77,14 +81,37 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .waitStrategy(() -> 1000)
                 .build();
 
-        // Create the consumer contract negotiation store and manager
-        consumerStore = new InMemoryContractNegotiationStore();
+        // Create the consumer contract negotiation manager
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(new FakeConsumerDispatcherRegistry())
                 .monitor(monitor)
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
                 .build();
+
+        countDownLatch = new CountDownLatch(2);
+    }
+
+    /**
+     * Implementation of the InMemoryContractNegotiationStore that signals the CountDownLatch
+     * when a certain state has been reached.
+     */
+    protected class SignalingInMemoryContractNegotiationStore extends InMemoryContractNegotiationStore {
+        private CountDownLatch countDownLatch;
+        private ContractNegotiationStates desiredEndState;
+
+        public SignalingInMemoryContractNegotiationStore(CountDownLatch countDownLatch, ContractNegotiationStates desiredEndState) {
+            this.countDownLatch = countDownLatch;
+            this.desiredEndState = desiredEndState;
+        }
+
+        @Override
+        public void save(ContractNegotiation negotiation) {
+            super.save(negotiation);
+            if (desiredEndState.code() == negotiation.getState()) {
+                countDownLatch.countDown();
+            }
+        }
     }
 
     /**
@@ -104,7 +131,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
 
         public CompletableFuture<Object> send(RemoteMessage message) {
-            NegotiationResponse result;
+            NegotiationResult result;
             if (message instanceof ContractOfferRequest) {
                 var request = (ContractOfferRequest) message;
                 result = consumerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
@@ -119,8 +146,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
             }
 
             CompletableFuture<Object> future = new CompletableFuture<>();
-            if (NegotiationResponse.Status.OK.equals(result.getStatus())) {
-                future.complete((Object) "Success!");
+            if (result.succeeded()) {
+                future.complete("Success!");
             } else {
                 future.completeExceptionally(new Exception("Negotiation failed."));
             }
@@ -146,12 +173,12 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         }
 
         public CompletableFuture<Object> send(RemoteMessage message) {
-            NegotiationResponse result;
+            NegotiationResult result;
             if (message instanceof ContractOfferRequest) {
                 var request = (ContractOfferRequest) message;
                 consumerNegotiationId = request.getCorrelationId();
                 result = providerManager.offerReceived(token, request.getCorrelationId(), request.getContractOffer(), "hash");
-                if (NegotiationResponse.Status.FATAL_ERROR.equals(result.getStatus())) {
+                if (NegotiationResult.Status.FATAL_ERROR.equals(result.getFailure().getStatus())) {
                     result = providerManager.requested(token, request);
                 }
             } else if (message instanceof ContractAgreementRequest) {
@@ -165,8 +192,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
             }
 
             CompletableFuture<Object> future = new CompletableFuture<>();
-            if (NegotiationResponse.Status.OK.equals(result.getStatus())) {
-                future.complete((Object) "Success!");
+            if (result.succeeded()) {
+                future.complete("Success!");
             } else {
                 future.completeExceptionally(new Exception("Negotiation failed."));
             }

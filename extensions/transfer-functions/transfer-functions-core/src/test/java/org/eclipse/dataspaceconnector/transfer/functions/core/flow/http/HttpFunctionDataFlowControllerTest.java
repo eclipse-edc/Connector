@@ -20,7 +20,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.easymock.EasyMock;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -30,6 +29,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 
 import static okhttp3.Protocol.HTTP_1_1;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.easymock.EasyMock.createNiceMock;
 import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.FATAL_ERROR;
@@ -56,7 +56,7 @@ class HttpFunctionDataFlowControllerTest {
         EasyMock.replay(interceptor);
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
-        assertEquals(DataFlowInitiateResponse.OK, flowController.initiateFlow(dataRequest));
+        assertThat(flowController.initiateFlow(dataRequest).succeeded()).isTrue();
 
         EasyMock.verify(interceptor);
     }
@@ -74,7 +74,7 @@ class HttpFunctionDataFlowControllerTest {
         EasyMock.replay(interceptor);
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
-        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getStatus());
+        assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getFailure().status());
 
         EasyMock.verify(interceptor);
     }
@@ -92,7 +92,7 @@ class HttpFunctionDataFlowControllerTest {
         EasyMock.replay(interceptor);
 
         var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
-        assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).getStatus());
+        assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).getFailure().status());
 
         EasyMock.verify(interceptor);
     }

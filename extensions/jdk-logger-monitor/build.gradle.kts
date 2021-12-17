@@ -14,14 +14,12 @@
 
 plugins {
     `java-library`
-    `maven-publish`
 }
 
 
 dependencies {
     api(project(":spi"))
 
-    testImplementation("com.github.javafaker:javafaker:1.0.2")
     testImplementation("org.assertj:assertj-core:3.21.0")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.1")
@@ -31,9 +29,7 @@ dependencies {
 publishing {
     publications {
         create<MavenPublication>("jdk-logger-monitor") {
-            groupId = "org.eclipse.dataspaceconnector.logger"
             artifactId = "jdk-logger-monitor"
-            version = "0.1"
             from(components["java"])
         }
     }

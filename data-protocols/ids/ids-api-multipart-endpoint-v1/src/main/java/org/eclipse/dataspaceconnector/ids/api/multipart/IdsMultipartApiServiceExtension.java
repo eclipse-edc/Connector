@@ -43,6 +43,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -71,9 +72,12 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
-    private static final String NAME = "IDS Multipart API extension";
-
     private Monitor monitor;
+
+    @Override
+    public String name() {
+        return "IDS Multipart API";
+    }
 
     @Override
     public Set<String> provides() {
@@ -87,7 +91,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
                 AssetIndex.FEATURE,
                 ContractNegotiationStore.FEATURE,
                 "edc:ids:transform:v1",
-                "edc:core:contract");
+                ContractNegotiationManager.FEATURE);
     }
 
     @Override
@@ -95,18 +99,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         monitor = serviceExtensionContext.getMonitor();
 
         registerControllers(serviceExtensionContext);
-
-        monitor.info(String.format("Initialized %s", NAME));
-    }
-
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdown %s", NAME));
     }
 
     private void registerControllers(ServiceExtensionContext serviceExtensionContext) {

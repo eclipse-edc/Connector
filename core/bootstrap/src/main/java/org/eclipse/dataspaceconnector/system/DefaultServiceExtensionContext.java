@@ -58,8 +58,8 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         this.monitor = monitor;
         this.serviceLocator = serviceLocator;
         // register as services
-        services.put(TypeManager.class, typeManager);
-        services.put(Monitor.class, monitor);
+        registerService(TypeManager.class, typeManager);
+        registerService(Monitor.class, monitor);
     }
 
     @Override
@@ -122,6 +122,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     @Override
     public <T> void registerService(Class<T> type, T service) {
+        if (hasService(type)) {
+            monitor.warning("A service of the type " + type.getCanonicalName() + " was already registered and has now been replaced");
+        }
         services.put(type, service);
     }
 
@@ -153,7 +156,10 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public void initialize() {
         configurationExtensions = loadExtensions(ConfigurationExtension.class, false);
-        configurationExtensions.forEach(ext -> ext.initialize(monitor));
+        configurationExtensions.forEach(ext -> {
+            ext.initialize(monitor);
+            monitor.info("Initialized " + ext.name());
+        });
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
     }
 

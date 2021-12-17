@@ -23,6 +23,6 @@ public class HealthApiController {
     @Path("health")
     public String checkHealth() {
         monitor.info("Received a health request");
-        return "I'm alive!";
+        return "{\"response\":\"I'm alive!\"}";
     }
 }

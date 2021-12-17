@@ -42,14 +42,17 @@ public class FsVaultExtension implements VaultExtension {
     private CertificateResolver certificateResolver;
 
     @Override
+    public String name() {
+        return "FS Vault";
+    }
+
+    @Override
     public void initialize(Monitor monitor) {
         vault = initializeVault();
 
         KeyStore keyStore = loadKeyStore();
         privateKeyResolver = new FsPrivateKeyResolver(KEYSTORE_PASSWORD, keyStore);
         certificateResolver = new FsCertificateResolver(keyStore);
-
-        monitor.info("Initialized FS Vault extension");
     }
 
     @Override

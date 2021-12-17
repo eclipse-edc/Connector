@@ -58,8 +58,8 @@ class ContractValidationServiceImplTest {
 
         var result = validationService.validate(claimToken, offer);
 
-        assertThat(result.getValidatedOffer()).isNotNull();
-        assertThat(result.getValidatedOffer().getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
+        assertThat(result.getContent()).isNotNull();
+        assertThat(result.getContent().getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
 
         EasyMock.verify(agentService, definitionService, assetIndex);
     }

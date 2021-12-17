@@ -13,9 +13,10 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.resolution;
 
-import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolutionResult;
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolver;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -29,7 +30,7 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
     private static final int DID_PREFIX = 0;
     private static final int DID_METHOD_NAME = 1;
 
-    private Map<String, DidResolver> resolvers = new HashMap<>();
+    private final Map<String, DidResolver> resolvers = new HashMap<>();
 
     @Override
     public void register(DidResolver resolver) {
@@ -37,20 +38,20 @@ public class DidResolverRegistryImpl implements DidResolverRegistry {
     }
 
     @Override
-    public DidResolutionResult resolve(String didKey) {
+    public Result<DidDocument> resolve(String didKey) {
         Objects.requireNonNull(didKey);
         // for the definition of DID syntax, .cf https://www.w3.org/TR/did-core/#did-syntax
         var tokens = didKey.split(":");
         if (tokens.length < 3) {
-            return new DidResolutionResult("Invalid DID format. The DID must be in the form:  \"did:\" method-name \":\" method-specific-id");
+            return Result.failure("Invalid DID format. The DID must be in the form:  \"did:\" method-name \":\" method-specific-id");
         }
         if (!DID.equalsIgnoreCase(tokens[DID_PREFIX])) {
-            return new DidResolutionResult("Invalid DID prefix");
+            return Result.failure("Invalid DID prefix");
         }
         var methodName = tokens[DID_METHOD_NAME];
         var resolver = resolvers.get(methodName);
         if (resolver == null) {
-            return new DidResolutionResult("No resolver registered for DID Method: " + methodName);
+            return Result.failure("No resolver registered for DID Method: " + methodName);
         }
         return resolver.resolve(didKey);
     }

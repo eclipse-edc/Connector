@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.catalog.cache.crawler;
 
-import info.schnatterer.mobynamesgenerator.MobyNamesGenerator;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
 import org.eclipse.dataspaceconnector.catalog.spi.CrawlerErrorHandler;
@@ -16,6 +15,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.time.Duration;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,7 +47,7 @@ public class CrawlerImpl implements Crawler {
         this.workQueuePollTimeout = workQueuePollTimeout;
         this.errorHandler = errorHandler;
         isActive = new AtomicBoolean(true);
-        crawlerId = format("\"%s\"", MobyNamesGenerator.getRandomName().replace("_", " "));
+        crawlerId = format("\"Crawler-%s\"", UUID.randomUUID());
     }
 
 

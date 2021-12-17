@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.api.control;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -18,8 +19,6 @@ import java.util.function.Predicate;
 
 public class ControlApiServiceExtension implements ServiceExtension {
 
-    private static final String NAME = "EDC Control API extension";
-
     @EdcSetting
     public static final String EDC_API_CONTROL_AUTH_APIKEY_KEY = "edc.api.control.auth.apikey.key";
     public static final String EDC_API_CONTROL_AUTH_APIKEY_KEY_DEFAULT = "X-Api-Key";
@@ -30,8 +29,14 @@ public class ControlApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
+    public String name() {
+        return "EDC Control API";
+    }
+
+    @Override
     public Set<String> requires() {
-        return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager", "dataspaceconnector:dispatcher");
+        return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager",
+                "dataspaceconnector:dispatcher", ContractNegotiationManager.FEATURE);
     }
 
     @Override
@@ -57,18 +62,6 @@ public class ControlApiServiceExtension implements ServiceExtension {
                 AuthenticationContainerRequestContextPredicate.INSTANCE);
 
         webService.registerController(httpApiKeyAuthContainerRequestFilter);
-
-        monitor.info(String.format("Initialized %s", NAME));
-    }
-
-    @Override
-    public void start() {
-        monitor.info(String.format("Started %s", NAME));
-    }
-
-    @Override
-    public void shutdown() {
-        monitor.info(String.format("Shutdown %s", NAME));
     }
 
     private String resolveApiKeyHeaderName(@NotNull ServiceExtensionContext context) {

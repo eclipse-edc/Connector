@@ -27,8 +27,9 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -74,7 +75,7 @@ public class DescriptionHandler implements Handler {
 
     @Override
     public MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest,
-                                           @NotNull VerificationResult verificationResult) {
+                                           @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
@@ -88,7 +89,7 @@ public class DescriptionHandler implements Handler {
     }
 
     public MultipartResponse handleRequestInternal(@NotNull MultipartRequest multipartRequest,
-                                                   @NotNull VerificationResult verificationResult) {
+                                                   @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
@@ -100,11 +101,11 @@ public class DescriptionHandler implements Handler {
         IdsId idsId = null;
         if (requestedElement != null) {
             var result = transformerRegistry.transform(requestedElement, IdsId.class);
-            if (result.hasProblems() || (idsId = result.getOutput()) == null) {
+            if (result.failed() || (idsId = result.getContent()) == null) {
                 monitor.warning(
                         String.format(
                                 "Could not transform URI to IdsId: [%s]",
-                                String.join(", ", result.getProblems())
+                                String.join(", ", result.getFailureMessages())
                         )
                 );
                 return createBadParametersErrorMultipartResponse(descriptionRequestMessage);

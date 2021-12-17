@@ -72,10 +72,10 @@ public class PubSubServerEndpoint {
                         monitor.severe("Error connecting to websocket client", e);
                     }
                 });
-                if (!result.success()) {
+                if (result.failed()) {
                     session.close(NOT_AUTHORIZED_REASON);
                 } else {
-                    subscription = result.getSubscription();
+                    subscription = result.getContent();
                 }
                 break;
             case UNSUBSCRIBE:
@@ -93,10 +93,10 @@ public class PubSubServerEndpoint {
             case PUBLISH:
                 var publish = (PublishMessage) message;
                 var connectResult = topicManager.connect(publish.getTopicName(), publish.getAccessToken());
-                if (!connectResult.success()) {
+                if (connectResult.failed()) {
                     session.close(NOT_AUTHORIZED_REASON);
                 } else {
-                    connectResult.getConsumer().accept(publish.getPayload());
+                    connectResult.getContent().accept(publish.getPayload());
                 }
                 break;
             default:

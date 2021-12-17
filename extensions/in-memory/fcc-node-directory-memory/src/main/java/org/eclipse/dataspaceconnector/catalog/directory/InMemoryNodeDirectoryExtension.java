@@ -7,6 +7,12 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.util.Set;
 
 public class InMemoryNodeDirectoryExtension implements ServiceExtension {
+
+    @Override
+    public String name() {
+        return "In-Memory Node Directory";
+    }
+
     @Override
     public Set<String> provides() {
         return Set.of(FederatedCacheNodeDirectory.FEATURE);
@@ -15,6 +21,5 @@ public class InMemoryNodeDirectoryExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(FederatedCacheNodeDirectory.class, new InMemoryNodeDirectory());
-        context.getMonitor().info("Initialized In-Memory Node Directory");
     }
 }

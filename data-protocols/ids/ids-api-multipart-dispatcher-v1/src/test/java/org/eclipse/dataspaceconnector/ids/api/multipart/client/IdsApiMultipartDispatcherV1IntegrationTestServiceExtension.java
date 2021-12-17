@@ -24,22 +24,25 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResponse;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
-import org.eclipse.dataspaceconnector.spi.contract.validation.OfferValidationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -48,28 +51,37 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
-    private final List<Asset> assets;
-
     private final IdentityService identityService;
 
-    public IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(List<Asset> assets, IdentityService identityService) {
-        this.assets = Objects.requireNonNull(assets);
-        this.identityService = identityService;
+    public IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(
+            @NotNull IdentityService identityService) {
+        this.identityService = Objects.requireNonNull(identityService);
     }
 
     @Override
     public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", "dataspaceconnector:dispatcher", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
+        return Set.of("edc:iam", "edc:core:contract",
+                ContractNegotiationStore.FEATURE,
+                TransferProcessStore.FEATURE, "dataspaceconnector:dispatcher", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
+    }
+
+    @Override
+    public LoadPhase phase() {
+        // this is necessary for now because the CoreServicesExtension is PRIMORDIAL.
+        // FIXME: remove once the loadphases get abandoned altogether.
+        return LoadPhase.PRIMORDIAL;
     }
 
     @Override
@@ -77,24 +89,21 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         context.registerService(IdentityService.class, identityService);
         context.registerService(TransferProcessStore.class, new FakeTransferProcessStore());
         context.registerService(RemoteMessageDispatcherRegistry.class, new FakeRemoteMessageDispatcherRegistry());
-        context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
-        context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
+        context.registerService(AssetIndex.class, new FakeAssetIndex());
+        context.registerService(ContractOfferService.class, new FakeContractOfferService());
         context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
         context.registerService(ContractValidationService.class, new FakeContractValidationService());
+        context.registerService(ContractNegotiationStore.class, new FakeContractNegotiationStore());
         context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
         context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
     }
 
     private static class FakeAssetIndex implements AssetIndex {
-        private final List<Asset> assets;
 
-        private FakeAssetIndex(List<Asset> assets) {
-            this.assets = Objects.requireNonNull(assets);
-        }
 
         @Override
         public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
-            return assets.stream();
+            return AbstractMultipartDispatcherIntegrationTest.ASSETS.stream();
         }
 
         @Override
@@ -104,21 +113,16 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
         @Override
         public Asset findById(String assetId) {
-            return assets.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
+            return AbstractMultipartDispatcherIntegrationTest.ASSETS.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
         }
     }
 
     private static class FakeContractOfferService implements ContractOfferService {
-        private final List<Asset> assets;
-
-        private FakeContractOfferService(List<Asset> assets) {
-            this.assets = assets;
-        }
 
         @Override
         @NotNull
         public Stream<ContractOffer> queryContractOffers(ContractOfferQuery query) {
-            return assets.stream().map(asset ->
+            return AbstractMultipartDispatcherIntegrationTest.ASSETS.stream().map(asset ->
                     ContractOffer.Builder.newInstance()
                             .policy(createEverythingAllowedPolicy())
                             .id("1")
@@ -153,7 +157,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
         @Override
         public @NotNull List<TransferProcess> nextForState(int state, int max) {
-            return Collections.EMPTY_LIST;
+            return Collections.emptyList();
         }
 
         @Override
@@ -260,13 +264,13 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
     private static class FakeContractValidationService implements ContractValidationService {
 
         @Override
-        public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer) {
-            return new OfferValidationResult(ContractOffer.Builder.newInstance().build());
+        public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {
+            return Result.success(ContractOffer.Builder.newInstance().build());
         }
 
         @Override
-        public @NotNull OfferValidationResult validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
-            return null;
+        public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
+            return Result.success(offer);
         }
 
         @Override
@@ -283,46 +287,109 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
     private static class FakeProviderContractNegotiationManager implements ProviderContractNegotiationManager {
 
         @Override
-        public NegotiationResponse declined(ClaimToken token, String negotiationId) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse requested(ClaimToken token, ContractOfferRequest request) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
     }
 
     private static class FakeConsumerContractNegotiationManager implements ConsumerContractNegotiationManager {
 
         @Override
-        public NegotiationResponse initiate(ContractOfferRequest contractOffer) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement contract, String hash) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
 
         @Override
-        public NegotiationResponse declined(ClaimToken token, String negotiationId) {
-            return new NegotiationResponse(NegotiationResponse.Status.OK);
+        public NegotiationResult declined(ClaimToken token, String negotiationId) {
+            return NegotiationResult.success(fakeContractNegotiation());
         }
+    }
+
+    private static class FakeContractNegotiationStore implements ContractNegotiationStore {
+
+        @Override
+        public @Nullable ContractNegotiation find(String negotiationId) {
+            return AbstractMultipartDispatcherIntegrationTest.CONTRACT_NEGOTIATIONS.stream()
+                    .filter(n -> n.getId().equals(negotiationId))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        @Override
+        public @Nullable ContractNegotiation findForCorrelationId(String correlationId) {
+            return AbstractMultipartDispatcherIntegrationTest.CONTRACT_NEGOTIATIONS.stream()
+                    .filter(n -> n.getCorrelationId().equals(correlationId))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        @Override
+        public @Nullable ContractAgreement findContractAgreement(String contractId) {
+            return AbstractMultipartDispatcherIntegrationTest.CONTRACT_AGREEMENTS.stream()
+                    .filter(c -> c.getId().equals(contractId))
+                    .findFirst()
+                    .orElse(null);
+        }
+
+        @Override
+        public void save(ContractNegotiation negotiation) {
+            AbstractMultipartDispatcherIntegrationTest.CONTRACT_NEGOTIATIONS.add(negotiation);
+        }
+
+        @Override
+        public void delete(String negotiationId) {
+            AbstractMultipartDispatcherIntegrationTest.CONTRACT_NEGOTIATIONS.remove(find(negotiationId));
+        }
+
+        @Override
+        public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
+            return null;
+        }
+    }
+
+    private static ContractNegotiation fakeContractNegotiation() {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
+                .counterPartyId("test-counterparty-1")
+                .counterPartyAddress("test-counterparty-address")
+                .protocol("test-protocol")
+                .stateCount(1)
+                .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
+                        .providerAgentId("provider")
+                        .consumerAgentId("consumer")
+                        .asset(Asset.Builder.newInstance().build())
+                        .policy(Policy.Builder.newInstance().build())
+                        .contractSigningDate(LocalDate.MIN.toEpochDay())
+                        .contractStartDate(LocalDate.MIN.toEpochDay())
+                        .contractEndDate(LocalDate.MAX.toEpochDay())
+                        .id("1:2").build())
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .build();
     }
 }

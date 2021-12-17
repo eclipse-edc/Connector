@@ -17,16 +17,17 @@ package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
-import org.eclipse.dataspaceconnector.contract.negotiation.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
-import org.eclipse.dataspaceconnector.contract.negotiation.protocol.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
+import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -44,7 +45,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import java.util.Set;
 
 public class ContractServiceExtension implements ServiceExtension {
-    private static final String NAME = "Core Contract Service Extension";
 
     private Monitor monitor;
     private ServiceExtensionContext context;
@@ -55,8 +55,13 @@ public class ContractServiceExtension implements ServiceExtension {
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
 
     @Override
+    public String name() {
+        return "Core Contract Service";
+    }
+
+    @Override
     public final Set<String> provides() {
-        return Set.of("edc:core:contract");
+        return Set.of(ContractNegotiationManager.FEATURE);
     }
 
     @Override
@@ -71,8 +76,6 @@ public class ContractServiceExtension implements ServiceExtension {
 
         registerTypes(context);
         registerServices(context);
-
-        monitor.info(String.format("Initialized %s", NAME));
     }
 
     @Override
@@ -81,8 +84,6 @@ public class ContractServiceExtension implements ServiceExtension {
         var negotiationStore = context.getService(ContractNegotiationStore.class);
         consumerNegotiationManager.start(negotiationStore);
         providerNegotiationManager.start(negotiationStore);
-
-        monitor.info(String.format("Started %s", NAME));
     }
 
     @Override
@@ -94,8 +95,6 @@ public class ContractServiceExtension implements ServiceExtension {
         if (providerNegotiationManager != null) {
             providerNegotiationManager.stop();
         }
-
-        monitor.info(String.format("Shutdown %s", NAME));
     }
 
     private void registerServices(ServiceExtensionContext context) {

@@ -9,26 +9,26 @@ import java.util.concurrent.TimeUnit;
  */
 public class RecurringExecutionPlan implements ExecutionPlan {
     private final Duration schedule;
-    private final boolean withInitialDelay;
+    private final Duration withInitialDelay;
 
     /**
      * Instantiates the {@code RecurringExecutionPlan}.
      *
-     * @param schedule         A time span used for initial delay and for the period.
-     * @param withInitialDelay Specifies whether the execution plan should run right away or after an initial delay passes. That delay is equal to {@code schedule}.
+     * @param schedule     A time span used for initial delay and for the period.
+     * @param initialDelay Specifies whether the execution plan should run right away or after an initial delay passes. .
      */
-    public RecurringExecutionPlan(Duration schedule, boolean withInitialDelay) {
+    public RecurringExecutionPlan(Duration schedule, Duration initialDelay) {
         this.schedule = schedule;
-        this.withInitialDelay = withInitialDelay;
+        withInitialDelay = initialDelay;
     }
 
     /**
-     * Instantiates the {@code RecurringExecutionPlan}.
+     * Instantiates the {@code RecurringExecutionPlan} with no initial delay
      *
-     * @param schedule         A time span used for initial delay and for the period.
+     * @param schedule A time span used for initial delay and for the period.
      */
     public RecurringExecutionPlan(Duration schedule) {
-        this(schedule, false);
+        this(schedule, Duration.ofSeconds(0));
     }
 
 
@@ -40,7 +40,6 @@ public class RecurringExecutionPlan implements ExecutionPlan {
     @Override
     public void run(Runnable task) {
         var ses = Executors.newSingleThreadScheduledExecutor();
-        long initialDelay = withInitialDelay ? schedule.toMillis() : 0;
-        ses.scheduleAtFixedRate(task, initialDelay, schedule.toMillis(), TimeUnit.MILLISECONDS);
+        ses.scheduleAtFixedRate(task, withInitialDelay.toMillis(), schedule.toMillis(), TimeUnit.MILLISECONDS);
     }
 }

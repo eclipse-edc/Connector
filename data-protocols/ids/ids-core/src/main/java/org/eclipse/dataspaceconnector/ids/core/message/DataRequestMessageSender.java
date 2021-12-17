@@ -16,12 +16,15 @@ package org.eclipse.dataspaceconnector.ids.core.message;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessageBuilder;
+import de.fraunhofer.iais.eis.ArtifactResponseMessage;
 import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.DynamicAttributeTokenBuilder;
+import de.fraunhofer.iais.eis.RejectionMessage;
 import de.fraunhofer.iais.eis.TokenFormat;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.Response;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -30,8 +33,8 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
+import java.io.IOException;
 import java.net.URI;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -41,7 +44,7 @@ import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.w
 /**
  * Binds and sends {@link DataRequest} messages through the IDS protocol.
  */
-public class DataRequestMessageSender implements IdsMessageSender<DataRequest, Void> {
+public class DataRequestMessageSender implements IdsMessageSender<DataRequest, Object> {
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
     private final Monitor monitor;
@@ -74,7 +77,7 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
     }
 
     @Override
-    public CompletableFuture<Void> send(@NotNull DataRequest dataRequest, @NotNull MessageContext context) {
+    public CompletableFuture<Object> send(@NotNull DataRequest dataRequest, @NotNull MessageContext context) {
         Objects.requireNonNull(dataRequest, "dataRequest");
         Objects.requireNonNull(context, "messageContext");
 
@@ -82,7 +85,9 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
 
         var tokenResult = identityService.obtainClientCredentials(connectorId);
 
-        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getToken()).build();
+        DynamicAttributeToken token = new DynamicAttributeTokenBuilder()
+                ._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getContent().getToken())
+                .build();
 
         var artifactMessage = new ArtifactRequestMessageBuilder()
                 // FIXME handle timezone issue ._issued_(gregorianNow())
@@ -93,12 +98,19 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
                 .build();
         artifactMessage.setProperty("dataspaceconnector-data-destination", dataRequest.getDataDestination());
 
+        artifactMessage.setProperty("dataspaceconnector-properties", dataRequest.getProperties());
+
         var processId = context.getProcessId();
 
-        var serializedToken = vault.resolveSecret(dataRequest.getDataDestination().getKeyName());
-        if (serializedToken != null) {
-            artifactMessage.setProperty("dataspaceconnector-destination-token", serializedToken);
+        var keyName = dataRequest.getDataDestination().getKeyName();
+        // there might not be a keyname, e.g. with PULL style data transfers
+        if (keyName != null) {
+            var serializedToken = vault.resolveSecret(keyName);
+            if (serializedToken != null) {
+                artifactMessage.setProperty("dataspaceconnector-destination-token", serializedToken);
+            }
         }
+        artifactMessage.setProperty("dataspaceconnector-is-synch-request", dataRequest.isSync());
 
         var requestBody = writeJson(artifactMessage, mapper);
 
@@ -113,7 +125,7 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
 
         Request request = new Request.Builder().url(connectorEndpoint).addHeader("Content-Type", DataRequestMessageSender.JSON).post(requestBody).build();
 
-        CompletableFuture<Void> future = new CompletableFuture<>();
+        CompletableFuture<Object> future = new CompletableFuture<>();
 
         httpClient.newCall(request).enqueue(new FutureCallback<>(future, r -> {
             try (r) {
@@ -121,6 +133,9 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
                 if (r.isSuccessful()) {
                     monitor.debug("Request approved and acknowledged for process: " + processId);
                     transferProcess.transitionRequestAck();
+                    Object dataObject = extractArtifactResponse(r);
+                    future.complete(dataObject);
+
                 } else if (r.code() == 500) {
                     transferProcess.transitionProvisioned();  // force retry
                 } else {
@@ -129,7 +144,12 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
                         monitor.severe("Received not authorized from connector for process: " + processId);
                     }
                     // Fatal error
-                    transferProcess.transitionError("General error, HTTP response code: " + r.code());
+                    var rejectionMsg = extractRejectionMessage(r);
+                    String message = rejectionMsg != null ?
+                            String.format("IDS Rejection: '%s', code %s", rejectionMsg.getRejectionReason().name(), r.code()) :
+                            "General error, HTTP response code: " + r.code();
+                    monitor.info(message);
+                    transferProcess.transitionError(message);
                 }
                 transferProcessStore.update(transferProcess);
                 return null;
@@ -138,12 +158,32 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, V
         return future;
     }
 
+    private RejectionMessage extractRejectionMessage(Response r) {
+        try {
+            return mapper.readValue(r.body().string(), RejectionMessage.class);
+        } catch (IOException ex) {
+            monitor.severe("Could not read body of response", ex);
+            return null;
+        }
+    }
+
+    private Object extractArtifactResponse(Response httpResponse) {
+        try {
+            var body = httpResponse.body().string();
+            var artifactResponse = mapper.readValue(body, ArtifactResponseMessage.class);
+            return artifactResponse.getProperties().get("dataspaceconnector-data-object");
+        } catch (IOException e) {
+            monitor.severe("Could not read body of response", e);
+            return null;
+        }
+    }
+
     @NotNull
-    private CompletableFuture<Void> transitionToErrorState(String error, MessageContext context) {
+    private CompletableFuture<Object> transitionToErrorState(String error, MessageContext context) {
         TransferProcess transferProcess = transferProcessStore.find(context.getProcessId());
         transferProcess.transitionError(error);
         transferProcessStore.update(transferProcess);
-        CompletableFuture<Void> future = new CompletableFuture<>();
+        CompletableFuture<Object> future = new CompletableFuture<>();
         future.complete(null);
         return future;
     }

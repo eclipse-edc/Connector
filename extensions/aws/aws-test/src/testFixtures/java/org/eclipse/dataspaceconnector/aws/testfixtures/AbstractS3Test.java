@@ -14,28 +14,31 @@
 
 package org.eclipse.dataspaceconnector.aws.testfixtures;
 
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.regions.Regions;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.CreateBucketRequest;
-import com.amazonaws.services.s3.model.DeleteBucketRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
-import com.amazonaws.services.s3.model.S3ObjectSummary;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentials;
+import software.amazon.awssdk.auth.credentials.ProfileCredentialsProvider;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Configuration;
+import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteBucketRequest;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.HeadBucketRequest;
+import software.amazon.awssdk.services.s3.model.ListObjectsRequest;
+import software.amazon.awssdk.services.s3.model.NoSuchBucketException;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -45,21 +48,29 @@ import static org.junit.jupiter.api.Assertions.fail;
  */
 public abstract class AbstractS3Test {
 
-    protected static final String REGION = System.getProperty("it.aws.region", Regions.US_EAST_1.getName());
+    protected static final String REGION = System.getProperty("it.aws.region", Region.US_EAST_1.id());
     // Adding REGION to bucket prevents errors of
     //      "A conflicting conditional operation is currently in progress against this resource."
     // when bucket is rapidly added/deleted and consistency propagation causes this error.
     // (Should not be necessary if REGION remains static, but added to prevent future frustration.)
     // [see http://stackoverflow.com/questions/13898057/aws-error-message-a-conflicting-conditional-operation-is-currently-in-progress]
-    protected AmazonS3 client;
-    protected String bucketName;
-    protected AWSCredentials credentials;
+
+    protected final UUID processId = UUID.randomUUID();
+    protected String bucketName = createBucketName();
+    protected S3AsyncClient client;
+    protected final String s3Endpoint = "http://localhost:9000";
 
     @BeforeEach
-    public void setupClient() {
-        bucketName = createBucketName();
-        credentials = getCredentials();
-        client = AmazonS3ClientBuilder.standard().withCredentials(new AWSStaticCredentialsProvider(credentials)).withRegion(REGION).build();
+    public void setupClient() throws URISyntaxException {
+        client = S3AsyncClient.builder()
+                .serviceConfiguration(S3Configuration.builder()
+                        .pathStyleAccessEnabled(true)
+                        .build())
+                .region(Region.of(REGION))
+                .credentialsProvider(this::getCredentials)
+                .endpointOverride(new URI(s3Endpoint))
+                .build();
+
         createBucket(bucketName);
     }
 
@@ -70,77 +81,87 @@ public abstract class AbstractS3Test {
 
     @NotNull
     protected String createBucketName() {
-        var rnd = UUID.randomUUID().toString();
-        return "test-bucket-" + rnd + "-" + REGION;
+        return "test-bucket-" + processId + "-" + REGION;
     }
 
-    protected @NotNull AWSCredentials getCredentials() {
+    private @NotNull AwsCredentials getCredentials() {
+        String profile = propOrEnv("AWS_PROFILE", null);
+        if (profile != null) {
+            return ProfileCredentialsProvider.create(profile).resolveCredentials();
+        }
+
         var accessKeyId = propOrEnv("S3_ACCESS_KEY_ID", null);
         Objects.requireNonNull(accessKeyId, "S3_ACCESS_KEY_ID cannot be null!");
         var secretKey = propOrEnv("S3_SECRET_ACCESS_KEY", null);
         Objects.requireNonNull(secretKey, "S3_SECRET_ACCESS_KEY cannot be null");
 
-        return new BasicAWSCredentials(accessKeyId, secretKey);
+        return AwsBasicCredentials.create(accessKeyId, secretKey);
     }
 
     protected void createBucket(String bucketName) {
-        if (client.doesBucketExistV2(bucketName)) {
+        if (bucketExists(bucketName)) {
             fail("Bucket " + bucketName + " exists. Choose a different bucket name to continue test");
         }
 
-        CreateBucketRequest request = AbstractS3Test.REGION.contains("east")
-                ? new CreateBucketRequest(bucketName) // See https://github.com/boto/boto3/issues/125
-                : new CreateBucketRequest(bucketName, AbstractS3Test.REGION);
-        client.createBucket(request);
+        client.createBucket(CreateBucketRequest.builder().bucket(bucketName).build()).join();
 
-        if (!client.doesBucketExistV2(bucketName)) {
+        if (!bucketExists(bucketName)) {
             fail("Setup incomplete, tests will fail");
         }
     }
 
     protected void deleteBucket(String bucketName) {
-        // Empty the bucket before deleting it, otherwise the AWS S3 API fails
         try {
             if (client == null) {
                 return;
             }
 
-            ObjectListing objectListing = client.listObjects(bucketName);
+            // Empty the bucket before deleting it, otherwise the AWS S3 API fails
+            deleteBucketObjects(bucketName);
 
-            while (true) {
-                for (S3ObjectSummary objectSummary : objectListing.getObjectSummaries()) {
-                    client.deleteObject(bucketName, objectSummary.getKey());
-                }
-
-                if (objectListing.isTruncated()) {
-                    objectListing = client.listNextBatchOfObjects(objectListing);
-                } else {
-                    break;
-                }
-            }
-
-            DeleteBucketRequest dbr = new DeleteBucketRequest(bucketName);
-            client.deleteBucket(dbr);
-        } catch (AmazonS3Exception e) {
+            client.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build()).join();
+        } catch (Exception e) {
             System.err.println("Unable to delete bucket " + bucketName + e);
         }
 
-        if (client.doesBucketExistV2(bucketName)) {
+        if (bucketExists(bucketName)) {
             fail("Incomplete teardown, subsequent tests might fail");
         }
-
     }
 
-    protected PutObjectResult putTestFile(String key, File file, String bucketName) throws AmazonS3Exception {
-        PutObjectRequest putRequest = new PutObjectRequest(bucketName, key, file);
+    private void deleteBucketObjects(String bucketName) {
+        var objectListing = client.listObjects(ListObjectsRequest.builder().bucket(bucketName).build()).join();
 
-        return client.putObject(putRequest);
+        CompletableFuture.allOf(objectListing.contents().stream()
+                .map(object -> client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(object.key()).build()))
+                .toArray(CompletableFuture[]::new)).join();
+
+        for (var objectSummary : objectListing.contents()) {
+            client.deleteObject(DeleteObjectRequest.builder().bucket(bucketName).key(objectSummary.key()).build()).join();
+        }
+
+        if (objectListing.isTruncated()) {
+            deleteBucketObjects(bucketName);
+        }
     }
 
-    protected S3Object fetchTestFile(String bucket, String key) {
-        GetObjectRequest request = new GetObjectRequest(bucket, key);
-        return client.getObject(request);
+    private boolean bucketExists(String bucketName) {
+        try {
+            HeadBucketRequest request = HeadBucketRequest.builder().bucket(bucketName).build();
+            return client.headBucket(request).join()
+                    .sdkHttpResponse()
+                    .isSuccessful();
+        } catch (CompletionException e) {
+            if (e.getCause() instanceof NoSuchBucketException) {
+                return false;
+            } else {
+                throw e;
+            }
+        }
     }
 
+    protected CompletableFuture<PutObjectResponse> putTestFile(String key, File file, String bucketName) {
+        return client.putObject(PutObjectRequest.builder().bucket(bucketName).key(key).build(), file.toPath());
+    }
 
 }

@@ -52,6 +52,6 @@ public class QueryEngineImpl implements QueryEngine {
                 .filter(p -> policyService.evaluateRequest(connectorId, correlationId, consumerToken, p).valid())
                 .collect(toList());
 
-        return assetIndex.queryAssets(AssetSelectorExpression.Builder.newInstance().build()).collect(toList());
+        return assetIndex.queryAssets(AssetSelectorExpression.SELECT_ALL).collect(toList());
     }
 }

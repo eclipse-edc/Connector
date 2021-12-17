@@ -23,6 +23,11 @@ import java.util.Set;
 public class InMemoryIdentityHubExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "In-Memory Identity Hub";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(IdentityHubStore.FEATURE);
     }
@@ -31,7 +36,5 @@ public class InMemoryIdentityHubExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var store = new InMemoryIdentityHubStore();
         context.registerService(IdentityHubStore.class, store);
-
-        context.getMonitor().info("Initialized In-Memory Identity Hub extension");
     }
 }

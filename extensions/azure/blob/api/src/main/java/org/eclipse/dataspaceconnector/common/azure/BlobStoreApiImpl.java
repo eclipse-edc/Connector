@@ -37,10 +37,12 @@ import java.util.stream.Collectors;
 public class BlobStoreApiImpl implements BlobStoreApi {
 
     private final Vault vault;
+    private String blobstoreEndpoint;
     private final Map<String, BlobServiceClient> cache = new HashMap<>();
 
-    public BlobStoreApiImpl(Vault vault) {
+    public BlobStoreApiImpl(Vault vault, String blobstoreEndpoint) {
         this.vault = vault;
+        this.blobstoreEndpoint = blobstoreEndpoint;
     }
 
 
@@ -117,8 +119,7 @@ public class BlobStoreApiImpl implements BlobStoreApi {
 
 
     private String createEndpoint(String accountName) {
-
-        return "https://" + accountName + ".blob.core.windows.net";
+        return Objects.requireNonNullElseGet(blobstoreEndpoint, () -> "https://" + accountName + ".blob.core.windows.net");
     }
 
     private StorageSharedKeyCredential createCredential(String accountKey, String accountName) {

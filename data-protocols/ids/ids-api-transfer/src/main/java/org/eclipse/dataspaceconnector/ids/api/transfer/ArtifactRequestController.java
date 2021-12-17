@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.api.transfer;
 
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
+import de.fraunhofer.iais.eis.ArtifactResponseMessage;
 import de.fraunhofer.iais.eis.ArtifactResponseMessageBuilder;
 import de.fraunhofer.iais.eis.RejectionMessageBuilder;
 import jakarta.ws.rs.Consumes;
@@ -30,10 +31,12 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 import java.util.Map;
+import java.util.Optional;
 
 import static de.fraunhofer.iais.eis.RejectionReason.BAD_PARAMETERS;
 import static de.fraunhofer.iais.eis.RejectionReason.NOT_AUTHENTICATED;
@@ -50,9 +53,12 @@ import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/ids")
 public class ArtifactRequestController {
+    public static final String ISSYNCREQUEST_KEY = "dataspaceconnector-is-synch-request";
     private static final String TOKEN_KEY = "dataspaceconnector-destination-token";
     private static final String DESTINATION_KEY = "dataspaceconnector-data-destination";
+    private static final String PROPERTIES_KEY = "dataspaceconnector-properties";
 
+    private static final String DATA_OBJECT_KEY = "dataspaceconnector-data-object";
     private final DapsService dapsService;
     private final AssetIndex assetIndex;
     private final TransferProcessManager processManager;
@@ -81,7 +87,7 @@ public class ArtifactRequestController {
     @Path("request")
     public Response request(ArtifactRequestMessage message) {
         var verificationResult = dapsService.verifyAndConvertToken(message.getSecurityToken().getTokenValue());
-        if (!verificationResult.valid()) {
+        if (verificationResult.failed()) {
             monitor.info(() -> "verification failed for request " + message.getId());
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHENTICATED).build()).build();
         }
@@ -103,26 +109,36 @@ public class ArtifactRequestController {
 
         var consumerConnectorId = message.getIssuerConnector().toString();
         var correlationId = message.getId().toString();
-        var policyResult = policyService.evaluateRequest(consumerConnectorId, correlationId, verificationResult.token(), policy);
+        var policyResult = policyService.evaluateRequest(consumerConnectorId, correlationId, verificationResult.getContent(), policy);
 
         if (!policyResult.valid()) {
             monitor.info("Policy evaluation failed");
             return Response.status(Response.Status.FORBIDDEN).entity(new RejectionMessageBuilder()._rejectionReason_(NOT_AUTHORIZED).build()).build();
         }
 
+        Map<String, Object> messageProperties = message.getProperties();
+        var destinationMap = (Map<String, Object>) messageProperties.get(DESTINATION_KEY);
 
-        // TODO this needs to be deserialized from the artifact request message
-        var destinationMap = (Map<String, Object>) message.getProperties().get(ArtifactRequestController.DESTINATION_KEY);
-        var type = (String) destinationMap.get("type");
+        var type = destinationMap.get("type").toString();
 
-        Map<String, String> properties = (Map<String, String>) destinationMap.get("properties");
+        Map<String, String> destinationProperties = (Map<String, String>) destinationMap.get("properties");
         var secretName = (String) destinationMap.get("keyName");
 
-        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(properties).keyName(secretName).build();
+        var dataDestination = DataAddress.Builder.newInstance().type(type).properties(destinationProperties).keyName(secretName).build();
 
-        var dataRequest = DataRequest.Builder.newInstance().id(randomUUID().toString()).assetId(asset.getId()).dataDestination(dataDestination).protocol(IDS_REST).build();
+        Map<String, String> requestProperties = (Map<String, String>) messageProperties.get(PROPERTIES_KEY);
 
-        var destinationToken = (String) message.getProperties().get(ArtifactRequestController.TOKEN_KEY);
+        boolean isSyncRequest = Optional.ofNullable(messageProperties.get(ISSYNCREQUEST_KEY)).map(o -> Boolean.parseBoolean(o.toString())).orElse(false);
+
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(randomUUID().toString())
+                .assetId(asset.getId())
+                .dataDestination(dataDestination)
+                .properties(requestProperties)
+                .isSync(isSyncRequest)
+                .protocol(IDS_REST).build();
+
+        var destinationToken = (String) messageProperties.get(TOKEN_KEY);
 
         if (destinationToken != null) {
             vault.storeSecret(secretName, destinationToken);
@@ -130,16 +146,20 @@ public class ArtifactRequestController {
 
         var response = processManager.initiateProviderRequest(dataRequest);
 
-        switch (response.getStatus()) {
-            case OK:
-                monitor.info("Data transfer request initiated");
-                ArtifactResponseMessageBuilder messageBuilder = new ArtifactResponseMessageBuilder();
-                return Response.ok().entity(messageBuilder.build()).build();
-            case FATAL_ERROR:
+        if (response.succeeded()) {
+            monitor.info("Data transfer request initiated");
+            ArtifactResponseMessageBuilder messageBuilder = new ArtifactResponseMessageBuilder();
+            ArtifactResponseMessage build = messageBuilder.build();
+            build.setProperty(DATA_OBJECT_KEY, response.getData());
+            return Response.ok().entity(build).build();
+        } else {
+            if (response.getFailure().status() == ResponseStatus.FATAL_ERROR) {
                 return Response.status(Response.Status.BAD_REQUEST).entity(new RejectionMessageBuilder()._rejectionReason_(BAD_PARAMETERS).build()).build();
-            default:
+            } else {
                 return Response.status(Response.Status.INTERNAL_SERVER_ERROR).entity(new RejectionMessageBuilder()._rejectionReason_(TEMPORARILY_NOT_AVAILABLE).build()).build();
+            }
         }
+
     }
 
 }

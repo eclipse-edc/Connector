@@ -82,17 +82,17 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 .type(IdsType.CONTRACT)
                 .build();
         var artifactTransformationResult = getTransformerRegistry().transform(artifactIdsId, URI.class);
-        if (artifactTransformationResult.hasProblems()) {
+        if (artifactTransformationResult.failed()) {
             throw new EdcException("Failed to create artifact ID from asset.");
         }
 
         var contractTransformationResult = getTransformerRegistry().transform(contractIdsId, URI.class);
-        if (contractTransformationResult.hasProblems()) {
+        if (contractTransformationResult.failed()) {
             throw new EdcException("Failed to create contract ID from asset.");
         }
 
-        var artifactId = artifactTransformationResult.getOutput();
-        var contractId = contractTransformationResult.getOutput();
+        var artifactId = artifactTransformationResult.getContent();
+        var contractId = contractTransformationResult.getContent();
 
         return new ArtifactRequestMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)

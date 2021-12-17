@@ -13,6 +13,9 @@
  */
 package org.eclipse.dataspaceconnector.iam.did.spi.resolution;
 
+import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+
 /**
  * Delegates to a {@link DidResolver} to resolve a DID document.
  */
@@ -27,6 +30,6 @@ public interface DidResolverRegistry {
     /**
      * Resolves a DID document based on the DID method.
      */
-    DidResolutionResult resolve(String didKey);
+    Result<DidDocument> resolve(String didKey);
 
 }

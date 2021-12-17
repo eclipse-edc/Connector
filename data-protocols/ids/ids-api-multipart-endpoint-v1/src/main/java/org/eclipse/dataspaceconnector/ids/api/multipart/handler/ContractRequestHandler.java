@@ -23,12 +23,12 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRespons
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.ContractTransformerInput;
-import org.eclipse.dataspaceconnector.ids.spi.transform.TransformResult;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.iam.VerificationResult;
+import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +74,7 @@ public class ContractRequestHandler implements Handler {
     }
 
     @Override
-    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull VerificationResult verificationResult) {
+    public @Nullable MultipartResponse handleRequest(@NotNull MultipartRequest multipartRequest, @NotNull Result<ClaimToken> verificationResult) {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
@@ -123,14 +123,14 @@ public class ContractRequestHandler implements Handler {
                 .asset(asset)
                 .build();
 
-        TransformResult<ContractOffer> result = transformerRegistry.transform(input, ContractOffer.class);
-        if (result.hasProblems()) {
+        Result<ContractOffer> result = transformerRegistry.transform(input, ContractOffer.class);
+        if (result.failed()) {
             monitor.debug(String.format("Could not transform contract request: [%s]",
-                    String.join(", ", result.getProblems())));
+                    String.join(", ", result.getFailureMessages())));
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        var contractOffer = result.getOutput();
+        var contractOffer = result.getContent();
         var requestObj = ContractOfferRequest.Builder.newInstance()
                 .protocol(Protocols.IDS_MULTIPART)
                 .connectorAddress(idsWebhookAddress.toString())
@@ -141,7 +141,7 @@ public class ContractRequestHandler implements Handler {
                 .build();
 
         // Start negotiation process
-        negotiationManager.requested(verificationResult.token(), requestObj);
+        negotiationManager.requested(verificationResult.getContent(), requestObj);
 
         return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, message))

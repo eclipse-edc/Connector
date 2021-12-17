@@ -41,6 +41,11 @@ import java.util.function.Supplier;
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Override
+    public String name() {
+        return "Identity Did Core";
+    }
+
+    @Override
     public Set<String> provides() {
         return Set.of(IdentityHub.FEATURE, IdentityHubClient.FEATURE, DidResolverRegistry.FEATURE);
     }
@@ -78,8 +83,6 @@ public class IdentityDidCoreExtension implements ServiceExtension {
 
         var hubClient = new IdentityHubClientImpl(supplier, httpClient, objectMapper);
         context.registerService(IdentityHubClient.class, hubClient);
-
-        context.getMonitor().info("Initialized Identity Did Core extension");
     }
 
     private void registerParsers(PrivateKeyResolver resolver) {

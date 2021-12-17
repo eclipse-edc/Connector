@@ -39,7 +39,6 @@ class IdentityDidCoreExtensionTest {
         contextMock = createMock(ServiceExtensionContext.class);
     }
 
-
     @Test
     void verifyCorrectInitialization_withPkResolverPresent() {
         expect(contextMock.getService(IdentityHubStore.class)).andReturn(niceMock(IdentityHubStore.class));
@@ -66,9 +65,6 @@ class IdentityDidCoreExtensionTest {
         expect(contextMock.getService(OkHttpClient.class)).andReturn(niceMock(OkHttpClient.class));
         contextMock.registerService(eq(IdentityHubClient.class), isA(IdentityHubClientImpl.class));
         expectLastCall();
-
-        expect(contextMock.getMonitor()).andReturn(new Monitor() {
-        });
 
         replay(contextMock);
         replay(webserviceMock);
