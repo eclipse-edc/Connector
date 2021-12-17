@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -136,9 +137,7 @@ class CrawlerImplTest {
     @Test
     @DisplayName("Should not insert when Queue is at capacity")
     void shouldLogError_whenQueueFull() throws InterruptedException {
-        queue.add(new UpdateResponse());
-        queue.add(new UpdateResponse());
-        queue.add(new UpdateResponse()); //queue is full now
+        range(0, QUEUE_CAPACITY).forEach(i -> queue.add(new UpdateResponse())); //queue is full now
 
         var l = new CountDownLatch(1);
         when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).thenAnswer(i -> {
@@ -147,6 +146,7 @@ class CrawlerImplTest {
         });
 
         workQueue.put(createWorkItem());
+
         executorService.submit(crawler);
 
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();

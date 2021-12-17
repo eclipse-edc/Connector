@@ -14,9 +14,12 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.provision;
 
+import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+
+import java.util.List;
 
 /**
  * Manages resource provisioning for a data transfer.
@@ -36,5 +39,5 @@ public interface ProvisionManager {
     /**
      * Removes ephemeral resources associated with the data transfer. this operation is idempotent.
      */
-    void deprovision(TransferProcess process);
+    List<ResponseStatus> deprovision(TransferProcess process);
 }

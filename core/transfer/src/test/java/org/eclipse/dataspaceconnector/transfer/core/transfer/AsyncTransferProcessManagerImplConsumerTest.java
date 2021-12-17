@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
+import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -63,26 +64,21 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
     private static final long TIMEOUT = 5;
     private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
+    private final ProvisionManager provisionManager = mock(ProvisionManager.class);
+    private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
+    private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
+    private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
     private AsyncTransferProcessManager transferProcessManager;
-    private ProvisionManager provisionManager;
-    private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private StatusCheckerRegistry statusCheckerRegistry;
 
     @BeforeEach
     void setup() {
-        provisionManager = mock(ProvisionManager.class);
-        DataFlowManager dataFlowManager = mock(DataFlowManager.class);
-        dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-        ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
-        when(manifestGenerator.generateConsumerManifest(any(TransferProcess.class))).thenReturn(new ResourceManifest());
-
-        statusCheckerRegistry = mock(StatusCheckerRegistry.class);
-        var waitStrategyMock = mock(ExponentialWaitStrategy.class);
+        var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
+        when(manifestGenerator.generateConsumerManifest(any(TransferProcess.class))).thenReturn(resourceManifest);
 
         transferProcessManager = AsyncTransferProcessManager.Builder.newInstance()
                 .provisionManager(provisionManager)
-                .dataFlowManager(dataFlowManager)
-                .waitStrategy(waitStrategyMock)
+                .dataFlowManager(mock(DataFlowManager.class))
+                .waitStrategy(mock(ExponentialWaitStrategy.class))
                 .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
@@ -102,9 +98,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
             return null;
         }).when(provisionManager).provision(any(TransferProcess.class));
 
-        //prepare process store
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
         when(processStoreMock.nextForState(eq(INITIAL.code()), anyInt())).thenReturn(List.of(process));
+
         processStoreMock.update(process);
         doNothing().when(processStoreMock).update(process);
 
