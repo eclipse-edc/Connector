@@ -56,11 +56,9 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
-    private ProvisionManagerImpl provisionManager;
     private DelegatingTransferProcessManager processManager;
     @Inject
     private TransferProcessStore transferProcessStore;
-    private AsyncTransferProcessManager asyncMgr;
 
     @Override
     public String name() {
@@ -92,7 +90,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var vault = context.getService(Vault.class);
 
-        provisionManager = new ProvisionManagerImpl();
+        ProvisionManagerImpl provisionManager = new ProvisionManagerImpl();
         context.registerService(ProvisionManager.class, provisionManager);
 
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
@@ -100,8 +98,8 @@ public class CoreTransferExtension implements ServiceExtension {
         var dataProxyRegistry = new DataProxyManagerImpl();
         context.registerService(DataProxyManager.class, dataProxyRegistry);
 
-
-        asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
+        transferProcessStore = context.getService(TransferProcessStore.class);
+        AsyncTransferProcessManager asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)
