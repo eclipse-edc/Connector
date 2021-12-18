@@ -99,6 +99,7 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(DataProxyManager.class, dataProxyRegistry);
 
         transferProcessStore = context.getService(TransferProcessStore.class);
+
         var asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
