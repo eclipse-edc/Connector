@@ -23,6 +23,7 @@ dependencies {
     implementation(project(":extensions:inline-data-transfer:inline-data-transfer-core"))
 
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
+    testImplementation("org.awaitility:awaitility:4.1.1")
 }
 
 
