@@ -22,21 +22,17 @@ val jupiterVersion: String by project
 val testContainersVersion: String by project
 
 dependencies {
-    implementation(project(":spi"))
+    api(project(":spi"))
     implementation(project(":common:libraries:clients:postgresql"))
+    implementation(project(":common:libraries:clients:postgresql-repository"))
 
-    testImplementation("ch.qos.logback:logback-classic:1.2.6")
-    testImplementation("org.testcontainers:postgresql:${testContainersVersion}")
-    testImplementation("org.testcontainers:junit-jupiter:${testContainersVersion}")
-
-    testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
-    testFixturesRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")
+    implementation(project(":extensions:dataloading:dataloading-asset"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("postgresql-repository") {
-            artifactId = "postgresql-repository"
+        create<MavenPublication>("postgresql-asset-loader") {
+            artifactId = "postgresql-asset-loader"
             from(components["java"])
         }
     }

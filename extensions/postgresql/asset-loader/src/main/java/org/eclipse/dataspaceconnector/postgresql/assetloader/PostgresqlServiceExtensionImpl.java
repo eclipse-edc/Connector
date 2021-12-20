@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.postgresql.assetindex;
+package org.eclipse.dataspaceconnector.postgresql.assetloader;
 
 import org.eclipse.dataspaceconnector.clients.postgresql.PostgresqlClient;
 import org.eclipse.dataspaceconnector.clients.postgresql.PostgresqlClientImpl;
@@ -24,8 +24,9 @@ import org.eclipse.dataspaceconnector.clients.postgresql.connection.ConnectionFa
 import org.eclipse.dataspaceconnector.clients.postgresql.connection.pool.ConnectionPool;
 import org.eclipse.dataspaceconnector.clients.postgresql.connection.pool.commons.CommonsConnectionPool;
 import org.eclipse.dataspaceconnector.clients.postgresql.connection.pool.commons.CommonsConnectionPoolConfig;
-import org.eclipse.dataspaceconnector.postgresql.assetindex.settings.CommonsConnectionPoolConfigFactory;
-import org.eclipse.dataspaceconnector.postgresql.assetindex.settings.ConnectionFactoryConfigFactory;
+import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
+import org.eclipse.dataspaceconnector.postgresql.assetloader.settings.CommonsConnectionPoolConfigFactory;
+import org.eclipse.dataspaceconnector.postgresql.assetloader.settings.ConnectionFactoryConfigFactory;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -35,7 +36,7 @@ import java.util.Set;
 
 public class PostgresqlServiceExtensionImpl implements ServiceExtension {
 
-    private static final String NAME = "PostgreSql Asset Index Service Extension";
+    private static final String NAME = "PostgreSql Asset Loader Service Extension";
 
     @Override
     public Set<String> provides() {
@@ -45,14 +46,14 @@ public class PostgresqlServiceExtensionImpl implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
 
-        AssetIndex assetIndex = createAssetIndex(context);
-        context.registerService(AssetIndex.class, assetIndex);
+        AssetLoader assetIndex = createAssetLoader(context);
+        context.registerService(AssetLoader.class, assetIndex);
 
         context.getMonitor().info(String.format("Initialized %s", NAME));
     }
 
     @NotNull
-    private AssetIndex createAssetIndex(ServiceExtensionContext context) {
+    private AssetLoader createAssetLoader(ServiceExtensionContext context) {
         ConnectionFactoryConfigFactory connectionFactoryConfigFactory = new ConnectionFactoryConfigFactory(context);
         ConnectionFactoryConfig connectionFactoryConfig = connectionFactoryConfigFactory.create();
         ConnectionFactory connectionFactory = new ConnectionFactoryImpl(connectionFactoryConfig);
@@ -60,7 +61,7 @@ public class PostgresqlServiceExtensionImpl implements ServiceExtension {
         CommonsConnectionPoolConfig commonsConnectionPoolConfig = commonsConnectionPoolConfigFactory.create();
         ConnectionPool connectionPool = new CommonsConnectionPool(connectionFactory, commonsConnectionPoolConfig);
         PostgresqlClient postgresqlClient = new PostgresqlClientImpl(connectionPool);
-        Repository repository = new RepositoryImpl(postgresqlClient);
-        return new PostgresqlAssetIndex(repository);
+        Repository assetRepository = new RepositoryImpl(postgresqlClient);
+        return new PostgresAssetLoader(assetRepository);
     }
 }

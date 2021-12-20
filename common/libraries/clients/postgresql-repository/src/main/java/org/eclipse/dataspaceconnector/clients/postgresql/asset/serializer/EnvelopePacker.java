@@ -38,7 +38,7 @@ public class EnvelopePacker {
             return OBJECT_MAPPER.writeValueAsString(new Envelope(obj, obj.getClass().getName()));
         } catch (JsonProcessingException e) {
             throw new EdcException(
-                    String.format("PostgreSQL-Asset: Property value of type %s must be serializable.", obj.getClass()));
+                    String.format("PostgreSQL-Repository: Property value of type %s must be serializable.", obj.getClass()));
         }
     }
 
@@ -67,9 +67,9 @@ public class EnvelopePacker {
             //noinspection unchecked
             return (T) OBJECT_MAPPER.convertValue(obj, targetClass);
         } catch (JsonProcessingException e) {
-            throw new EdcException("PostgreSQL-Asset: Cannot deserialize property value envelope", e);
+            throw new EdcException("PostgreSQL-Repository: Cannot deserialize property value envelope", e);
         } catch (ClassNotFoundException e) {
-            throw new EdcException("PostgreSQL-Asset: Enveloped class not found", e);
+            throw new EdcException("PostgreSQL-Repository: Enveloped class not found", e);
         }
     }
 }

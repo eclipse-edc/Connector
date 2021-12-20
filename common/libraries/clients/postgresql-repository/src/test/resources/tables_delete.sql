@@ -11,6 +11,10 @@
 --       Daimler TSS GmbH - Initial SQL Query
 --
 
-DROP TABLE IF EXISTS properties;
+DROP TABLE IF EXISTS assets_properties;
+
+DROP TABLE IF EXISTS addresses_properties;
+
+DROP TABLE IF EXISTS addresses;
 
 DROP TABLE IF EXISTS assets;

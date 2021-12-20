@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.clients.postgresql.connection.pool.commons
 import org.eclipse.dataspaceconnector.clients.postgresql.connection.pool.commons.CommonsConnectionPoolConfig;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -96,23 +97,40 @@ class RepositoryIntegrationTest {
                 .version("1.0.0")
                 .build();
 
-        repository.create(asset);
+        DataAddress address = DataAddress.Builder.newInstance()
+                .property("foo", "bar")
+                .property("type", "foo")
+                .build();
 
-        List<Property> properties = postgresqlClient.execute(new PropertyMapper(),
-                PreparedStatementResourceReader.readPropertiesSelectByAssetId(), asset.getId());
-        List<Boolean> exists = postgresqlClient.execute(new ExistsMapper(),
+        String addressId = asset.getId();
+
+        repository.create(asset, address);
+
+        List<Property> assetProperties = postgresqlClient.execute(new PropertyMapper(),
+                PreparedStatementResourceReader.readAssetPropertiesSelectByAssetId(), asset.getId());
+        List<Property> addressProperties = postgresqlClient.execute(new PropertyMapper(),
+                PreparedStatementResourceReader.readAddressPropertiesSelectByAddressId(), addressId);
+        List<Boolean> assetExists = postgresqlClient.execute(new ExistsMapper(),
                 PreparedStatementResourceReader.readAssetExists(), asset.getId());
+        List<Boolean> addressExists = postgresqlClient.execute(new ExistsMapper(),
+                PreparedStatementResourceReader.readAddressExists(), addressId);
 
-        Assertions.assertTrue(exists.size() == 1 && exists.get(0));
-        Assertions.assertEquals(3, properties.size());
-        assertThat(properties)
+        Assertions.assertTrue(assetExists.size() == 1 && assetExists.get(0));
+        Assertions.assertTrue(addressExists.size() == 1 && assetExists.get(0));
+        Assertions.assertEquals(3, assetProperties.size());
+        Assertions.assertEquals(2, addressProperties.size());
+        assertThat(assetProperties)
                 .contains(new Property(Asset.PROPERTY_ID, asset.getId()))
                 .contains(new Property(Asset.PROPERTY_CONTENT_TYPE, asset.getContentType()))
                 .contains(new Property(Asset.PROPERTY_VERSION, asset.getVersion()));
+
+        assertThat(addressProperties)
+                .contains(new Property("foo", "bar"))
+                .contains(new Property("type", "foo"));
     }
 
     @Test
-    public void testSelectAllQuery() throws SQLException {
+    public void testSelectAllAssetsQuery() throws SQLException {
 
         Asset asset1 = Asset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -122,11 +140,13 @@ class RepositoryIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .build();
 
-        repository.create(asset1);
-        repository.create(asset2);
+        DataAddress dataAddress = DataAddress.Builder.newInstance().type("foo").build();
+
+        repository.create(asset1, dataAddress);
+        repository.create(asset2, dataAddress);
 
         Criterion selectAll = new Criterion("*", "=", "*");
-        List<Asset> assets = repository.query(Collections.singletonList(selectAll));
+        List<Asset> assets = repository.queryAssets(Collections.singletonList(selectAll));
 
         org.assertj.core.api.Assertions.assertThat(assets.stream().map(Asset::getId).collect(Collectors.toUnmodifiableList()))
                 .contains(asset1.getId())
@@ -134,7 +154,24 @@ class RepositoryIntegrationTest {
     }
 
     @Test
-    public void testSelectById() throws SQLException {
+    public void testSelectAllAddressesQuery() throws SQLException {
+
+        DataAddress dataAddress1 = DataAddress.Builder.newInstance().type("foo").build();
+        DataAddress dataAddress2 = DataAddress.Builder.newInstance().type("bar").build();
+
+        repository.create(createUniqueAsset(), dataAddress1);
+        repository.create(createUniqueAsset(), dataAddress2);
+
+        Criterion selectAll = new Criterion("*", "=", "*");
+        List<DataAddress> addresses = repository.queryAddress(Collections.singletonList(selectAll));
+
+        org.assertj.core.api.Assertions.assertThat(addresses.stream().map(DataAddress::getType).collect(Collectors.toUnmodifiableList()))
+                .contains(dataAddress1.getType())
+                .contains(dataAddress2.getType());
+    }
+
+    @Test
+    public void testSelectAssetsById() throws SQLException {
 
         Asset asset1 = Asset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -144,18 +181,38 @@ class RepositoryIntegrationTest {
                 .id(UUID.randomUUID().toString())
                 .build();
 
-        repository.create(asset1);
-        repository.create(asset2);
+        DataAddress dataAddress = DataAddress.Builder.newInstance().type("foo").build();
+
+        repository.create(asset1, dataAddress);
+        repository.create(asset2, dataAddress);
 
         Criterion select = new Criterion(Asset.PROPERTY_ID, "=", asset1.getId());
-        List<Asset> assets = repository.query(Collections.singletonList(select));
+        List<Asset> assets = repository.queryAssets(Collections.singletonList(select));
 
         org.assertj.core.api.Assertions.assertThat(assets.stream().map(Asset::getId).collect(Collectors.toUnmodifiableList()))
                 .contains(asset1.getId());
     }
 
     @Test
-    public void testSelectMultiple() throws SQLException {
+    public void testAddressByByAssetId() throws SQLException {
+        Asset asset = Asset.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .build();
+
+        DataAddress dataAddress = DataAddress.Builder.newInstance().type("foo").build();
+
+        repository.create(asset, dataAddress);
+
+        Criterion select = new Criterion("asset_id", "=", asset.getId());
+        List<DataAddress> addresses = repository.queryAddress(Collections.singletonList(select));
+
+        org.assertj.core.api.Assertions.assertThat(addresses.stream().map(DataAddress::getType).collect(Collectors.toUnmodifiableList()))
+                .contains(dataAddress.getType())
+                .size().isEqualTo(1);
+    }
+
+    @Test
+    public void testSelectMultipleAssets() throws SQLException {
 
         Asset asset1 = Asset.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
@@ -169,16 +226,41 @@ class RepositoryIntegrationTest {
                 .version("1.0.0")
                 .build();
 
-        repository.create(asset1);
-        repository.create(asset2);
+        DataAddress dataAddress = DataAddress.Builder.newInstance().type("foo").build();
+
+        repository.create(asset1, dataAddress);
+        repository.create(asset2, dataAddress);
 
         Criterion select1 = new Criterion(Asset.PROPERTY_CONTENT_TYPE, "=", "pdf");
         Criterion select2 = new Criterion(Asset.PROPERTY_VERSION, "=", "1.0.0");
-        List<Asset> assets = repository.query(Arrays.asList(select1, select2));
+        List<Asset> assets = repository.queryAssets(Arrays.asList(select1, select2));
 
         org.assertj.core.api.Assertions.assertThat(assets.stream().map(Asset::getId).collect(Collectors.toUnmodifiableList()))
                 .contains(asset1.getId())
                 .contains(asset2.getId());
+    }
+
+    @Test
+    public void testSelectMultipleAddressesQuery() throws SQLException {
+
+        DataAddress dataAddress1 = DataAddress.Builder.newInstance().type("selected")
+                .keyName("foo").build();
+        DataAddress dataAddress2 = DataAddress.Builder.newInstance().type("selected")
+                .keyName("bar").build();
+        DataAddress dataAddress3 = DataAddress.Builder.newInstance().type("skipped")
+                .keyName("foobar").build();
+
+        repository.create(createUniqueAsset(), dataAddress1);
+        repository.create(createUniqueAsset(), dataAddress2);
+        repository.create(createUniqueAsset(), dataAddress3);
+
+        Criterion selectAll = new Criterion("type", "=", "selected");
+        List<DataAddress> addresses = repository.queryAddress(Collections.singletonList(selectAll));
+
+        org.assertj.core.api.Assertions.assertThat(addresses.stream().map(DataAddress::getKeyName).collect(Collectors.toUnmodifiableList()))
+                .contains(dataAddress1.getKeyName())
+                .contains(dataAddress2.getKeyName())
+                .doesNotContain(dataAddress3.getKeyName());
     }
 
     @Test
@@ -198,11 +280,13 @@ class RepositoryIntegrationTest {
                 .name("updatedAsset")
                 .build();
 
-        repository.create(base);
+        DataAddress dataAddress = DataAddress.Builder.newInstance().type("foo").build();
+
+        repository.create(base, dataAddress);
         repository.update(asset);
 
         List<Property> properties = postgresqlClient.execute(new PropertyMapper(),
-                PreparedStatementResourceReader.readPropertiesSelectByAssetId(), asset.getId());
+                PreparedStatementResourceReader.readAssetPropertiesSelectByAssetId(), asset.getId());
         List<Boolean> exists = postgresqlClient.execute(new ExistsMapper(),
                 PreparedStatementResourceReader.readAssetExists(), asset.getId());
 
@@ -215,6 +299,42 @@ class RepositoryIntegrationTest {
                 .contains(new Property(Asset.PROPERTY_VERSION, asset.getVersion()));
     }
 
+
+    @Test
+    public void testAddressUpdate() throws SQLException {
+
+        Asset asset = Asset.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .contentType("pdf")
+                .version("1.0.0")
+                .property("foo", "bar")
+                .build();
+
+        DataAddress dataAddress = DataAddress.Builder.newInstance()
+                .type("type")
+                .property("delete", "me")
+                .build();
+
+        DataAddress dataAddress2 = DataAddress.Builder.newInstance()
+                .type("update-me")
+                .property("add", "me")
+                .build();
+
+        repository.create(asset, dataAddress);
+        repository.update(asset, dataAddress2);
+
+        List<Property> properties = postgresqlClient.execute(new PropertyMapper(),
+                PreparedStatementResourceReader.readAddressPropertiesSelectByAddressId(), asset.getId());
+        List<Boolean> exists = postgresqlClient.execute(new ExistsMapper(),
+                PreparedStatementResourceReader.readAddressExists(), asset.getId());
+
+        Assertions.assertTrue(exists.size() == 1 && exists.get(0));
+        Assertions.assertEquals(2, properties.size());
+        assertThat(properties)
+                .contains(new Property("type", "update-me"))
+                .contains(new Property("add", "me"));
+    }
+
     @Test
     public void testAssetDelete() throws SQLException {
 
@@ -224,15 +344,29 @@ class RepositoryIntegrationTest {
                 .version("1.0.0")
                 .build();
 
-        repository.create(asset);
+        DataAddress address = DataAddress.Builder.newInstance().type("foo").build();
+
+        String addressId = asset.getId();
+
+        repository.create(asset, address);
         repository.delete(asset);
 
-        List<Property> properties = postgresqlClient.execute(new PropertyMapper(),
-                PreparedStatementResourceReader.readPropertiesSelectByAssetId(), asset.getId());
-        List<Boolean> exists = postgresqlClient.execute(new ExistsMapper(),
+        List<Property> assetProperties = postgresqlClient.execute(new PropertyMapper(),
+                PreparedStatementResourceReader.readAssetPropertiesSelectByAssetId(), asset.getId());
+        List<Boolean> assetExists = postgresqlClient.execute(new ExistsMapper(),
                 PreparedStatementResourceReader.readAssetExists(), asset.getId());
+        List<Property> addressProperties = postgresqlClient.execute(new PropertyMapper(),
+                PreparedStatementResourceReader.readAddressPropertiesSelectByAddressId(), addressId);
+        List<Boolean> addressExists = postgresqlClient.execute(new ExistsMapper(),
+                PreparedStatementResourceReader.readAddressExists(), addressId);
 
-        Assertions.assertFalse(exists.size() == 1 && exists.get(0));
-        Assertions.assertEquals(0, properties.size());
+        Assertions.assertFalse(assetExists.size() == 1 && assetExists.get(0));
+        Assertions.assertFalse(addressExists.size() == 1 && assetExists.get(0));
+        Assertions.assertEquals(0, assetProperties.size());
+        Assertions.assertEquals(0, addressProperties.size());
+    }
+
+    private Asset createUniqueAsset() {
+        return Asset.Builder.newInstance().id(UUID.randomUUID().toString()).build();
     }
 }

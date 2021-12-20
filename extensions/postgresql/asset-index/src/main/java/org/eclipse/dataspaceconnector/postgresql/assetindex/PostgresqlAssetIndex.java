@@ -41,7 +41,7 @@ public class PostgresqlAssetIndex implements AssetIndex {
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         try {
             return repository
-                    .query(expression.getCriteria())
+                    .queryAssets(expression.getCriteria())
                     .stream();
         } catch (SQLException e) {
             throw new EdcException(e);
@@ -52,7 +52,7 @@ public class PostgresqlAssetIndex implements AssetIndex {
     public Stream<Asset> queryAssets(List<Criterion> criteria) {
         try {
             return repository
-                    .query(criteria)
+                    .queryAssets(criteria)
                     .stream();
         } catch (SQLException e) {
             throw new EdcException(e);
@@ -63,7 +63,7 @@ public class PostgresqlAssetIndex implements AssetIndex {
     public @Nullable Asset findById(String assetId) {
         try {
             return repository
-                    .query(Collections.singletonList(
+                    .queryAssets(Collections.singletonList(
                             new Criterion(Asset.PROPERTY_ID, "=", assetId)
                     ))
                     .stream()

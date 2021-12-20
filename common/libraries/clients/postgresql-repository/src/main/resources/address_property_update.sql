@@ -11,10 +11,7 @@
 --       Daimler TSS GmbH - Initial SQL Query
 --
 
-SELECT DISTINCT p.asset_id id
-FROM assets_properties p
-WHERE p.asset_id IN (
-    SELECT p.asset_id
-    FROM assets_properties p
-    WHERE (p.k = ? and p.v = ?)
-)
+UPDATE addresses_properties
+SET v=?
+WHERE address_id=?
+  AND k=?

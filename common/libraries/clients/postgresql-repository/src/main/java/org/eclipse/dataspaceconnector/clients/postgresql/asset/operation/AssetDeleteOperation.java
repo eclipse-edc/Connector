@@ -22,10 +22,10 @@ import org.jetbrains.annotations.NotNull;
 import java.sql.SQLException;
 import java.util.Objects;
 
-public class DeleteOperation {
+public class AssetDeleteOperation {
     private final PostgresqlClient postgresqlClient;
 
-    public DeleteOperation(@NotNull PostgresqlClient postgresClient) {
+    public AssetDeleteOperation(@NotNull PostgresqlClient postgresClient) {
         this.postgresqlClient = Objects.requireNonNull(postgresClient);
     }
 

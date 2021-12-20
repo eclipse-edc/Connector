@@ -103,6 +103,7 @@ include(":extensions:dataloading:dataloading-contractdef")
 include(":extensions:policy:ids-policy")
 include(":extensions:jdk-logger-monitor")
 include(":extensions:postgresql:asset-index")
+include(":extensions:postgresql:asset-loader")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")

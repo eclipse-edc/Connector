@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS assets
 
 ---
 
-CREATE TABLE IF NOT EXISTS properties
+CREATE TABLE IF NOT EXISTS assets_properties
 (
     asset_id VARCHAR(255) NOT NULL,
     k        VARCHAR(255) NOT NULL,
@@ -30,4 +30,28 @@ CREATE TABLE IF NOT EXISTS properties
 
 ---
 
-CREATE INDEX IF NOT EXISTS kv_index ON properties(k, v);
+CREATE TABLE IF NOT EXISTS addresses
+(
+    asset_id VARCHAR(255) NOT NULL,
+    PRIMARY KEY (asset_id),
+    FOREIGN KEY (asset_id) REFERENCES assets (id) ON DELETE CASCADE
+);
+
+---
+
+CREATE TABLE IF NOT EXISTS addresses_properties
+(
+    address_id VARCHAR(255) NOT NULL,
+    k        VARCHAR(255) NOT NULL,
+    v        VARCHAR(65535),
+    PRIMARY KEY (address_id, k),
+    FOREIGN KEY (address_id) REFERENCES addresses (asset_id) ON DELETE CASCADE
+);
+
+---
+
+CREATE INDEX IF NOT EXISTS kv_index ON addresses_properties(k, v);
+
+---
+
+CREATE INDEX IF NOT EXISTS kv_index ON assets_properties(k, v);

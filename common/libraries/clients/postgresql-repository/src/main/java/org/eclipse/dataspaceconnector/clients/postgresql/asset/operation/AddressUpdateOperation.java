@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.clients.postgresql.asset.serializer.Envelo
 import org.eclipse.dataspaceconnector.clients.postgresql.asset.types.Property;
 import org.eclipse.dataspaceconnector.clients.postgresql.asset.util.PreparedStatementResourceReader;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
@@ -29,34 +30,42 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class UpdateOperation {
+public class AddressUpdateOperation {
     private final PostgresqlClient postgresqlClient;
 
-    public UpdateOperation(@NotNull PostgresqlClient postgresClient) {
+    public AddressUpdateOperation(@NotNull PostgresqlClient postgresClient) {
         this.postgresqlClient = Objects.requireNonNull(postgresClient);
     }
 
-    public void invoke(@NotNull Asset asset) throws SQLException {
+    public void invoke(@NotNull Asset asset, @NotNull DataAddress address) throws SQLException {
         Objects.requireNonNull(asset);
+        Objects.requireNonNull(address);
 
-        String sqlAssetExists = PreparedStatementResourceReader.readAssetExists();
-        String sqlProperties = PreparedStatementResourceReader.readPropertiesSelectByAssetId();
-        String sqlPropertyCreate = PreparedStatementResourceReader.readPropertyCreate();
-        String sqlPropertyDelete = PreparedStatementResourceReader.readPropertyDelete();
-        String sqlPropertyUpdate = PreparedStatementResourceReader.readPropertyUpdate();
+        String sqlAddressExists = PreparedStatementResourceReader.readAddressExists();
+        String sqlAssetExists = PreparedStatementResourceReader.readAddressExists();
+        String sqlProperties = PreparedStatementResourceReader.readAddressPropertiesSelectByAddressId();
+        String sqlPropertyCreate = PreparedStatementResourceReader.readAddressPropertyCreate();
+        String sqlPropertyDelete = PreparedStatementResourceReader.readAddressPropertyDelete();
+        String sqlPropertyUpdate = PreparedStatementResourceReader.readAddressPropertyUpdate();
 
-        List<Boolean> existsResult = postgresqlClient.execute(new ExistsMapper(), sqlAssetExists, asset.getId());
-        boolean exists = existsResult.size() == 1 && existsResult.get(0);
-        if (!exists) {
+        List<Boolean> existsAssetResult = postgresqlClient.execute(new ExistsMapper(), sqlAssetExists, asset.getId());
+        boolean existsAsset = existsAssetResult.size() == 1 && existsAssetResult.get(0);
+        if (!existsAsset) {
             throw new SQLException(String.format("Asset with id %s does not exist", asset.getId()));
+        }
+
+        List<Boolean> existsAddressResult = postgresqlClient.execute(new ExistsMapper(), sqlAddressExists, asset.getId());
+        boolean existsAddress = existsAddressResult.size() == 1 && existsAddressResult.get(0);
+        if (!existsAddress) {
+            throw new SQLException(String.format("Address with asset id %s does not exist", asset.getId()));
         }
 
         postgresqlClient.doInTransaction(client -> {
             List<Property> storedProperties = client.execute(new PropertyMapper(), sqlProperties, asset.getId());
 
-            List<Property> propertyToDelete = findPropertiesToDelete(asset, storedProperties);
-            List<Property> propertyToInsert = findPropertiesToInsert(asset, storedProperties);
-            List<Property> propertyToUpdate = findPropertiesToUpdate(asset, storedProperties);
+            List<Property> propertyToDelete = findPropertiesToDelete(address, storedProperties);
+            List<Property> propertyToInsert = findPropertiesToInsert(address, storedProperties);
+            List<Property> propertyToUpdate = findPropertiesToUpdate(address, storedProperties);
 
             for (var property : propertyToDelete) {
                 client.execute(sqlPropertyDelete, asset.getId(), property.getKey());
@@ -72,16 +81,16 @@ public class UpdateOperation {
         });
     }
 
-    private List<Property> findPropertiesToUpdate(Asset asset, List<Property> storedProperties) {
+    private List<Property> findPropertiesToUpdate(DataAddress address, List<Property> storedProperties) {
         List<Property> propertiesToUpdate = new ArrayList<>();
-        Map<String, Object> assetProperties = asset.getProperties();
+        Map<String, String> assetProperties = address.getProperties();
 
         for (Property storedProperty : storedProperties) {
             if (!assetProperties.containsKey(storedProperty.getKey())) {
                 continue;
             }
 
-            Object value = assetProperties.get(storedProperty.getKey());
+            String value = assetProperties.get(storedProperty.getKey());
 
             if (!value.equals(storedProperty.getValue())) {
                 propertiesToUpdate.add(new Property(storedProperty.getKey(), value));
@@ -91,9 +100,9 @@ public class UpdateOperation {
         return propertiesToUpdate;
     }
 
-    private List<Property> findPropertiesToDelete(Asset asset, List<Property> storedProperties) {
+    private List<Property> findPropertiesToDelete(DataAddress address, List<Property> storedProperties) {
         List<Property> propertiesToDelete = new ArrayList<>();
-        Map<String, Object> assetProperties = asset.getProperties();
+        Map<String, String> assetProperties = address.getProperties();
 
         for (Property storedProperty : storedProperties) {
             if (!assetProperties.containsKey(storedProperty.getKey())) {
@@ -104,9 +113,9 @@ public class UpdateOperation {
         return propertiesToDelete;
     }
 
-    private List<Property> findPropertiesToInsert(Asset asset, List<Property> storedProperties) {
+    private List<Property> findPropertiesToInsert(DataAddress address, List<Property> storedProperties) {
         List<Property> propertiesToInsert = new ArrayList<>();
-        Map<String, Object> assetProperties = asset.getProperties();
+        Map<String, String> assetProperties = address.getProperties();
 
         for (var assetProperty : assetProperties.entrySet()) {
             if (storedProperties.stream()

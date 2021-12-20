@@ -11,10 +11,6 @@
 --       Daimler TSS GmbH - Initial SQL Query
 --
 
-SELECT DISTINCT p.asset_id id
+SELECT p.k, p.v
 FROM assets_properties p
-WHERE p.asset_id IN (
-    SELECT p.asset_id
-    FROM assets_properties p
-    WHERE (p.k = ? and p.v = ?)
-)
+WHERE p.asset_id = ?

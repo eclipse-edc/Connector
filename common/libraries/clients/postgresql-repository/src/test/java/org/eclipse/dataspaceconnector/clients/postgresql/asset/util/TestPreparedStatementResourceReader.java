@@ -38,7 +38,7 @@ public class TestPreparedStatementResourceReader {
     private static String readContent(String resourceName) {
         try (InputStream inputStream = PreparedStatementResourceReader.class.getClassLoader().getResourceAsStream(resourceName)) {
             if (inputStream == null) {
-                throw new EdcException(String.format("PostgreSQL-Asset: Resource not found  %s", resourceName));
+                throw new EdcException(String.format("PostgreSQL-Repository: Resource not found  %s", resourceName));
             }
 
             return new BufferedReader(new InputStreamReader(inputStream))

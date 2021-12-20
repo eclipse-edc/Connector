@@ -53,7 +53,7 @@ public class PostgresqlAssetIndexTest {
         List<Asset> assets = new ArrayList<>();
         assets.add(asset);
 
-        Mockito.when(repository.query(criteria)).thenReturn(assets);
+        Mockito.when(repository.queryAssets(criteria)).thenReturn(assets);
 
         AssetSelectorExpression expression =
                 AssetSelectorExpression.Builder.newInstance().criteria(criteria).build();
@@ -72,7 +72,7 @@ public class PostgresqlAssetIndexTest {
         List<Asset> assets = new ArrayList<>();
         assets.add(asset);
 
-        Mockito.when(repository.query(criteria)).thenReturn(assets);
+        Mockito.when(repository.queryAssets(criteria)).thenReturn(assets);
 
         Stream<Asset> result = assetIndex.queryAssets(criteria);
 
@@ -86,7 +86,7 @@ public class PostgresqlAssetIndexTest {
         List<Asset> assets = new ArrayList<>();
         assets.add(asset);
 
-        Mockito.when(repository.query(
+        Mockito.when(repository.queryAssets(
                 Collections.singletonList(new Criterion(Asset.PROPERTY_ID, "=", asset.getId()))
         )).thenReturn(assets);
 

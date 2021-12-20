@@ -18,23 +18,27 @@ import org.eclipse.dataspaceconnector.clients.postgresql.PostgresqlClient;
 import org.eclipse.dataspaceconnector.clients.postgresql.asset.serializer.EnvelopePacker;
 import org.eclipse.dataspaceconnector.clients.postgresql.asset.util.PreparedStatementResourceReader;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
 import java.util.Objects;
 
-public class CreateOperation {
+public class AssetAndAddressCreateOperation {
     private final PostgresqlClient postgresClient;
 
-    public CreateOperation(@NotNull PostgresqlClient postgresqlClient) {
+    public AssetAndAddressCreateOperation(@NotNull PostgresqlClient postgresqlClient) {
         this.postgresClient = Objects.requireNonNull(postgresqlClient);
     }
 
-    public void invoke(@NotNull Asset asset) throws SQLException {
+    public void invoke(@NotNull Asset asset, @NotNull DataAddress dataAddress) throws SQLException {
         Objects.requireNonNull(asset);
+        Objects.requireNonNull(dataAddress);
 
         String sqlCreateAsset = PreparedStatementResourceReader.readAssetCreate();
-        String sqlCreateProperty = PreparedStatementResourceReader.readPropertyCreate();
+        String sqlCreateAddress = PreparedStatementResourceReader.readAddressCreate();
+        String sqlCreateAssetProperty = PreparedStatementResourceReader.readAssetPropertyCreate();
+        String sqlCreateAddressProperty = PreparedStatementResourceReader.readAddressPropertyCreate();
 
         postgresClient.doInTransaction(client -> {
             client.execute(sqlCreateAsset, asset.getId());
@@ -44,7 +48,17 @@ public class CreateOperation {
                 String key = entrySet.getKey();
                 String value = EnvelopePacker.pack(entrySet.getValue());
 
-                client.execute(sqlCreateProperty, id, key, value);
+                client.execute(sqlCreateAssetProperty, id, key, value);
+            }
+
+            client.execute(sqlCreateAddress, asset.getId());
+
+            for (var entrySet : dataAddress.getProperties().entrySet()) {
+                String id = asset.getId();
+                String key = entrySet.getKey();
+                String value = EnvelopePacker.pack(entrySet.getValue());
+
+                client.execute(sqlCreateAddressProperty, id, key, value);
             }
         });
     }

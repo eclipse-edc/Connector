@@ -33,11 +33,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class QueryOperation {
+public class AssetQueryOperation {
 
     private final PostgresqlClient postgresqlClient;
 
-    public QueryOperation(@NotNull PostgresqlClient postgresClient) {
+    public AssetQueryOperation(@NotNull PostgresqlClient postgresClient) {
         this.postgresqlClient = Objects.requireNonNull(postgresClient);
     }
 
@@ -51,8 +51,8 @@ public class QueryOperation {
         }
 
         String sqlQueryTemplate = PreparedStatementResourceReader.readAssetQuery();
-        String sqlPropertiesByKv = PreparedStatementResourceReader.readPropertiesSelectByKv();
-        String sqlPropertiesByAssetId = PreparedStatementResourceReader.readPropertiesSelectByAssetId();
+        String sqlPropertiesByKv = PreparedStatementResourceReader.readAssetPropertiesSelectByKv();
+        String sqlPropertiesByAssetId = PreparedStatementResourceReader.readAssetPropertiesSelectByAssetId();
         String sqlAssetsAll = PreparedStatementResourceReader.readAssetSelectAll();
 
         List<String> targetAssetIds;
@@ -94,10 +94,10 @@ public class QueryOperation {
 
         for (Criterion criterion : criteria) {
             if (!(criterion.getOperandLeft() instanceof String)) {
-                throw new EdcException("PostgreSQL-Asset: Criterion left operand must be of type string");
+                throw new EdcException("PostgreSQL-Repository: Criterion left operand must be of type string");
             }
             if (!criterion.getOperator().equals("=") && !criterion.getOperator().equals("eq")) {
-                throw new EdcException("PostgreSQL-Asset: Criterion operator must be Equals-Operator ('eq' or '=')");
+                throw new EdcException("PostgreSQL-Repository: Criterion operator must be Equals-Operator ('eq' or '=')");
             }
         }
     }
