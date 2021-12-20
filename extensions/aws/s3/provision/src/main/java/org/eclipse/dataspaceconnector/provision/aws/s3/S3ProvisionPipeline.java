@@ -56,16 +56,16 @@ public class S3ProvisionPipeline {
     private final IamAsyncClient iamClient;
     private final StsAsyncClient stsClient;
     private final Monitor monitor;
-    private final int sessionDuration;
+    private final int roleMaxSessionDuration;
 
     private S3ProvisionPipeline(RetryPolicy<Object> retryPolicy, S3AsyncClient s3AsyncClient, IamAsyncClient iamClient,
-                                StsAsyncClient stsClient, Monitor monitor, int sessionDuration) {
+                                StsAsyncClient stsClient, Monitor monitor, int roleMaxSessionDuration) {
         this.retryPolicy = retryPolicy;
         this.s3AsyncClient = s3AsyncClient;
         this.iamClient = iamClient;
         this.stsClient = stsClient;
         this.monitor = monitor;
-        this.sessionDuration = sessionDuration;
+        this.roleMaxSessionDuration = roleMaxSessionDuration;
     }
 
     /**
@@ -108,7 +108,7 @@ public class S3ProvisionPipeline {
             CreateRoleRequest createRoleRequest = CreateRoleRequest.builder()
                     .roleName(resourceDefinition.getTransferProcessId()).description("EDC transfer process role")
                     .assumeRolePolicyDocument(format(ASSUME_ROLE_TRUST, userArn))
-                    .maxSessionDuration(sessionDuration)
+                    .maxSessionDuration(roleMaxSessionDuration)
                     .tags(tag)
                     .build();
 
@@ -142,7 +142,7 @@ public class S3ProvisionPipeline {
         private S3AsyncClient s3AsyncClient;
         private IamAsyncClient iamClient;
         private StsAsyncClient stsClient;
-        private int sessionDuration;
+        private int roleMaxSessionDuration;
         private Monitor monitor;
 
         private Builder(RetryPolicy<Object> retryPolicy) {
@@ -168,8 +168,8 @@ public class S3ProvisionPipeline {
             return this;
         }
 
-        public Builder sessionDuration(int sessionDuration) {
-            this.sessionDuration = sessionDuration;
+        public Builder roleMaxSessionDuration(int roleMaxSessionDuration) {
+            this.roleMaxSessionDuration = roleMaxSessionDuration;
             return this;
         }
 
@@ -184,7 +184,7 @@ public class S3ProvisionPipeline {
             Objects.requireNonNull(iamClient);
             Objects.requireNonNull(stsClient);
             Objects.requireNonNull(monitor);
-            return new S3ProvisionPipeline(retryPolicy, s3AsyncClient, iamClient, stsClient, monitor, sessionDuration);
+            return new S3ProvisionPipeline(retryPolicy, s3AsyncClient, iamClient, stsClient, monitor, roleMaxSessionDuration);
         }
     }
 

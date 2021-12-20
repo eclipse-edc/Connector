@@ -38,25 +38,17 @@ import java.util.concurrent.CompletableFuture;
 public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefinition, S3BucketProvisionedResource> {
 
     private final ClientProvider clientProvider;
-    private final int sessionDuration;
     private final Monitor monitor;
     private final RetryPolicy<Object> retryPolicy;
+    private final S3BucketProvisionerConfiguration configuration;
 
-    /**
-     * Ctor.
-     *
-     * @param clientProvider  the provider for SDK clients
-     * @param sessionDuration role duration in seconds
-     * @param monitor         the monitor
-     * @param retryPolicy     the retry policy
-     */
-    public S3BucketProvisioner(ClientProvider clientProvider, int sessionDuration, Monitor monitor, RetryPolicy<Object> retryPolicy) {
+    public S3BucketProvisioner(ClientProvider clientProvider, Monitor monitor, RetryPolicy<Object> retryPolicy, S3BucketProvisionerConfiguration configuration) {
         this.clientProvider = clientProvider;
-        this.sessionDuration = sessionDuration;
         this.monitor = monitor;
+        this.configuration = configuration;
         this.retryPolicy = retryPolicy.copy()
-                .withMaxRetries(10)
-                .handle(AwsServiceException.class);;
+                .withMaxRetries(configuration.getMaxRetries())
+                .handle(AwsServiceException.class);
     }
 
     @Override
@@ -79,7 +71,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
                 .s3Client(s3AsyncClient)
                 .iamClient(iamClient)
                 .stsClient(stsClient)
-                .sessionDuration(sessionDuration)
+                .roleMaxSessionDuration(configuration.getRoleMaxSessionDuration())
                 .monitor(monitor)
                 .build()
                 .provision(resourceDefinition)

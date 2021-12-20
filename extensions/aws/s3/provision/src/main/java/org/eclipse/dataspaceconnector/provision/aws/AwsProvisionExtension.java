@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.provision.aws.provider.SdkClientProvider;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisionedResource;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisioner;
+import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisionerConfiguration;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketResourceDefinition;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3ResourceDefinitionConsumerGenerator;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3StatusChecker;
@@ -43,10 +44,16 @@ import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 @Provides(ClientProvider.class)
 public class AwsProvisionExtension implements ServiceExtension {
     @EdcSetting
-    private static final String AWS_ACCESS_KEY = "edc.aws.access.key";
+    public static final String AWS_ACCESS_KEY = "edc.aws.access.key";
 
     @EdcSetting
-    private static final String AWS_SECRET_KEY = "edc.aws.secret.access.key";
+    public static final String AWS_SECRET_KEY = "edc.aws.secret.access.key";
+
+    @EdcSetting
+    public static final String PROVISION_MAX_RETRY = "edc.aws.provision.retry.retries.max";
+
+    @EdcSetting
+    public static final String PROVISION_MAX_ROLE_SESSION_DURATION = "edc.aws.provision.role.duration.session.max";
 
     private Monitor monitor;
     private SdkClientProvider clientProvider;
@@ -66,8 +73,9 @@ public class AwsProvisionExtension implements ServiceExtension {
         clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(createCredentialsProvider(context)).build();
         context.registerService(ClientProvider.class, clientProvider);
 
-        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
-        var s3BucketProvisioner = new S3BucketProvisioner(clientProvider, 3600, monitor, retryPolicy);
+        @SuppressWarnings("unchecked") var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
+        var provisionerConfiguration = S3BucketProvisionerConfiguration.Builder.newInstance(context).build();
+        var s3BucketProvisioner = new S3BucketProvisioner(clientProvider, monitor, retryPolicy, provisionerConfiguration);
         provisionManager.register(s3BucketProvisioner);
 
         // register the generator
