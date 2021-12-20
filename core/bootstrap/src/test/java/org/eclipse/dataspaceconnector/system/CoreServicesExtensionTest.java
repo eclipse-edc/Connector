@@ -57,11 +57,15 @@ class CoreServicesExtensionTest {
     void initialize() {
         ServiceExtensionContext context = mock(ServiceExtensionContext.class);
 
-        when(context.getSetting(eq("edc.core.retry.retries.max"), anyString())).thenReturn("3");
-        when(context.getSetting(eq("edc.core.retry.backoff.min"), anyString())).thenReturn("500");
-        when(context.getSetting(eq("edc.core.retry.backoff.max"), anyString())).thenReturn("10000");
+        when(context.getSetting(eq(CoreServicesExtension.MAX_RETRIES), anyString())).thenReturn("3");
+        when(context.getSetting(eq(CoreServicesExtension.BACKOFF_MIN_MILLIS), anyString())).thenReturn("500");
+        when(context.getSetting(eq(CoreServicesExtension.BACKOFF_MAX_MILLIS), anyString())).thenReturn("10000");
         when(context.getService(eq(PrivateKeyResolver.class))).thenReturn(mock(PrivateKeyResolver.class));
 
+        when(context.getSetting(eq(CoreServicesExtension.LIVENESS_PERIOD_SECONDS_SETTING), anyString())).thenReturn("60");
+        when(context.getSetting(eq(CoreServicesExtension.READINESS_PERIOD_SECONDS_SETTING), anyString())).thenReturn("60");
+        when(context.getSetting(eq(CoreServicesExtension.STARTUP_PERIOD_SECONDS_SETTING), anyString())).thenReturn("60");
+        when(context.getSetting(eq(CoreServicesExtension.THREADPOOL_SIZE_SETTING), anyString())).thenReturn("3");
 
         extension.initialize(context);
 

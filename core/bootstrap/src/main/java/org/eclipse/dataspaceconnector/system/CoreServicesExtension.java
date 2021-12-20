@@ -30,6 +30,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.interfaces.RSAPrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
+import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Base64;
 import java.util.Set;
@@ -41,13 +42,26 @@ public class CoreServicesExtension implements ServiceExtension {
     public static final String FEATURE_RETRY_POLICY = "edc:retry-policy";
 
     @EdcSetting
-    private static final String MAX_RETRIES = "edc.core.retry.retries.max";
+    public static final String MAX_RETRIES = "edc.core.retry.retries.max";
 
     @EdcSetting
-    private static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
+    public static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
 
     @EdcSetting
-    private static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
+    public static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
+
+    @EdcSetting
+    public static final String LIVENESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.liveness-period";
+    @EdcSetting
+    public static final String STARTUP_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.startup-period";
+    @EdcSetting
+    public static final String READINESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.readiness-period";
+    @EdcSetting
+    public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
+    private static final String DEFAULT_DURATION = "60";
+    private static final String DEFAULT_TP_SIZE = "3";
+
+
     private HealthCheckServiceImpl healthCheckService;
 
     @Override
@@ -72,8 +86,8 @@ public class CoreServicesExtension implements ServiceExtension {
         addHttpClient(context);
         addRetryPolicy(context);
         registerParser(context);
-        //todo: remove the DEFAULT constant, replace with config values
-        healthCheckService = new HealthCheckServiceImpl(HealthCheckServiceConfiguration.DEFAULT);
+        var config = getHealthCheckConfig(context);
+        healthCheckService = new HealthCheckServiceImpl(config);
         context.registerService(HealthCheckService.class, healthCheckService);
     }
 
@@ -81,6 +95,17 @@ public class CoreServicesExtension implements ServiceExtension {
     public void shutdown() {
         healthCheckService.stop();
         ServiceExtension.super.shutdown();
+    }
+
+    private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
+
+        return HealthCheckServiceConfiguration.Builder.newInstance()
+                .livenessPeriod(Duration.ofSeconds(Long.parseLong(context.getSetting(LIVENESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION))))
+                .startupStatusPeriod(Duration.ofSeconds(Long.parseLong(context.getSetting(STARTUP_PERIOD_SECONDS_SETTING, DEFAULT_DURATION))))
+                .readinessPeriod(Duration.ofSeconds(Long.parseLong(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION))))
+                .readinessPeriod(Duration.ofSeconds(Long.parseLong(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION))))
+                .threadPoolSize(Integer.parseInt(context.getSetting(THREADPOOL_SIZE_SETTING, DEFAULT_TP_SIZE)))
+                .build();
     }
 
     private void registerParser(ServiceExtensionContext context) {

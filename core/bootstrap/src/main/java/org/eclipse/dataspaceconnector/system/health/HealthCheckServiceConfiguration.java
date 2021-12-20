@@ -3,9 +3,9 @@ package org.eclipse.dataspaceconnector.system.health;
 import java.time.Duration;
 
 public class HealthCheckServiceConfiguration {
-    public static final HealthCheckServiceConfiguration DEFAULT = HealthCheckServiceConfiguration.Builder.newInstance().build();
-    private static final long DEFAULT_PERIOD_SECONDS = 10;
-    private int threadPoolSize = 3;
+    public static final long DEFAULT_PERIOD_SECONDS = 60;
+    public static final int DEFAULT_THREADPOOL_SIZE = 3;
+    private int threadPoolSize = DEFAULT_THREADPOOL_SIZE;
     private Duration readinessPeriod = Duration.ofSeconds(DEFAULT_PERIOD_SECONDS);
     private Duration livenessPeriod = Duration.ofSeconds(DEFAULT_PERIOD_SECONDS);
     private Duration startupStatusPeriod = Duration.ofSeconds(DEFAULT_PERIOD_SECONDS);
