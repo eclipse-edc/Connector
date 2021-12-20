@@ -163,7 +163,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     public boolean isSync() {
-        return isSync;
+        return Boolean.parseBoolean(getProperties().get("isSync"));
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -251,13 +251,13 @@ public class DataRequest implements RemoteMessage, Polymorphic {
             return request;
         }
 
-        private Builder dataAddress(DataAddress dataAddress) {
-            request.dataDestination = dataAddress;
+        public Builder transferType(TransferType transferType) {
+            request.transferType = transferType;
             return this;
         }
 
-        public Builder transferType(TransferType transferType) {
-            request.transferType = transferType;
+        private Builder dataAddress(DataAddress dataAddress) {
+            request.dataDestination = dataAddress;
             return this;
         }
 

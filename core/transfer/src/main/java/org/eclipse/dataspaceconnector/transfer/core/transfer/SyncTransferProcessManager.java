@@ -120,7 +120,15 @@ public class SyncTransferProcessManager implements TransferProcessManager {
     }
 
     private ProxyEntry convert(Object result) {
-        return typeManager.readValue(typeManager.writeValueAsString(result), ProxyEntry.class);
+        try {
+            var payloadField = result.getClass().getDeclaredField("payload");
+            payloadField.setAccessible(true);
+            var payload = payloadField.get(result).toString();
+
+            return typeManager.readValue(payload, ProxyEntry.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return ProxyEntry.Builder.newInstance().build();
+        }
     }
 
     private boolean isRetryable(Throwable ex) {
