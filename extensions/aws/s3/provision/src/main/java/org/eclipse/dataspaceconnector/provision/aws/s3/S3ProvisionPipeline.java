@@ -68,6 +68,9 @@ public class S3ProvisionPipeline {
         this.sessionDuration = sessionDuration;
     }
 
+    /**
+     * Performs a non-blocking provisioning operation.
+     */
     public CompletableFuture<Pair<Role, Credentials>> provision(S3BucketResourceDefinition resourceDefinition) {
         var request = CreateBucketRequest.builder()
                 .bucket(resourceDefinition.getBucketName())
