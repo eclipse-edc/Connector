@@ -40,7 +40,7 @@ public interface TransferProcessManager {
     TransferInitiateResult initiateProviderRequest(DataRequest dataRequest);
 
     // TODO: will be substituted by the upcoming command queue introduction
-    void transitionRequestAck(String processId);
+    CompletableFuture<Void> transitionRequestAck(String processId);
 
     // TODO: will be substituted by the upcoming command queue introduction
     void transitionProvisioned(String processId);

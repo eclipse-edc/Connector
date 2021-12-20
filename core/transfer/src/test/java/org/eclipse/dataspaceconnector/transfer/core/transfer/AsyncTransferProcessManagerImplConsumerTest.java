@@ -37,7 +37,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
@@ -47,11 +46,13 @@ import java.util.concurrent.TimeoutException;
 import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED_ACK;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 import static org.mockito.ArgumentMatchers.any;
@@ -113,7 +114,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
         transferProcessManager.start(processStoreMock);
         transferProcessManager.initiateProviderRequest(process.getDataRequest());
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be PROVISIONING").isEqualTo(TransferProcessStates.PROVISIONING.code());
         verify(provisionManager, atLeastOnce()).provision(any(TransferProcess.class));
         verify(processStoreMock, atLeastOnce()).update(process);
@@ -136,9 +137,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
         when(processStoreMock.find(process.getId())).thenReturn(process);
 
         transferProcessManager.start(processStoreMock);
-        transferProcessManager.requireTransition(process.getId()).get(5, TimeUnit.SECONDS);
+        transferProcessManager.requireTransition(process.getId()).get(5, SECONDS);
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be REQUESTED").isEqualTo(TransferProcessStates.REQUESTED.code());
         verify(processStoreMock, atLeastOnce()).update(process);
     }
@@ -146,25 +147,16 @@ class AsyncTransferProcessManagerImplConsumerTest {
     @Test
     @DisplayName("checkProvisioned: all resources belong to finite processes")
     void verifyCheckProvisioned_allAreFinite() throws InterruptedException {
-        //arrange
-        TransferProcess process = createTransferProcess(REQUESTED_ACK);
+        TransferProcess process = createTransferProcess(REQUESTED);
         process.getProvisionedResourceSet().addResource(new TestResource());
 
-        var cdl = new CountDownLatch(1);
-
-        //prepare process store
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
-        when(processStoreMock.nextForState(eq(REQUESTED_ACK.code()), anyInt())).thenReturn(List.of(process));
-
-        processStoreMock.update(process);
-        doAnswer(i -> {
-            cdl.countDown();
-            return null;
-        }).when(processStoreMock).update(process);
+        when(processStoreMock.find(process.getId())).thenReturn(process);
 
         transferProcessManager.start(processStoreMock);
+        var future = transferProcessManager.transitionRequestAck(process.getId());
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(future).succeedsWithin(5, SECONDS);
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
         verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
         verify(processStoreMock, atLeastOnce()).update(process);
@@ -172,57 +164,37 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
     @Test
     @DisplayName("checkProvisioned: all resources belong to non-finite processes")
-    void verifyCheckProvisioned_allAreNonFinite() throws InterruptedException {
+    void verifyCheckProvisioned_allAreNonFinite() throws InterruptedException, ExecutionException, TimeoutException {
         TransferType type = TransferType.Builder.transferType()
                 .isFinite(false).build();
 
-        TransferProcess process = createTransferProcess(REQUESTED_ACK, type, true);
+        TransferProcess process = createTransferProcess(REQUESTED, type, true);
         process.getProvisionedResourceSet().addResource(new TestResource());
 
-        var cdl = new CountDownLatch(1);
-
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
-        when(processStoreMock.nextForState(eq(REQUESTED_ACK.code()), anyInt())).thenReturn(List.of(process));
-
-        doAnswer(i -> {
-            cdl.countDown();
-            return null;
-        }).when(processStoreMock).update(process);
+        when(processStoreMock.find(process.getId())).thenReturn(process);
 
         transferProcessManager.start(processStoreMock);
+        transferProcessManager.transitionRequestAck(process.getId()).get(5, SECONDS);
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be STREAMING").isEqualTo(TransferProcessStates.STREAMING.code());
-        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
         verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
     @DisplayName("checkProvisioned: empty provisioned resources")
     void verifyCheckProvisioned_emptyProvisionedResoures() throws InterruptedException {
-        TransferProcess process = createTransferProcess(REQUESTED_ACK);
+        TransferProcess process = createTransferProcess(REQUESTED);
 
-        var cdl = new CountDownLatch(1);
-
-        //prepare process store
         TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        when(processStoreMock.find(process.getId())).thenReturn(process);
         when(processStoreMock.nextForState(eq(REQUESTED_ACK.code()), anyInt())).thenReturn(List.of(process));
 
-        // flip the latch on the next cycle
-        when(processStoreMock.nextForState(anyInt(), anyInt())).thenAnswer(i -> {
-            cdl.countDown();
-            return emptyList();
-        });
-
-        processStoreMock.update(process);
-        doThrow(new AssertionError("update() should not be called as process was not updated"))
-                .when(processStoreMock).update(process);
-
         transferProcessManager.start(processStoreMock);
+        var future = transferProcessManager.transitionRequestAck(process.getId());
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(future).succeedsWithin(5, SECONDS);
         assertThat(process.getState()).describedAs("State should be REQUESTED_ACK").isEqualTo(REQUESTED_ACK.code());
-        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
         verify(processStoreMock, atLeastOnce()).update(process);
     }
 
@@ -249,9 +221,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((i, l) -> true);
 
         transferProcessManager.start(processStoreMock);
-        transferProcessManager.complete(process.getId()).get(5, TimeUnit.SECONDS);
+        transferProcessManager.complete(process.getId()).get(5, SECONDS);
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
         verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
         verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
@@ -281,9 +253,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((i, l) -> true);
 
         transferProcessManager.start(processStoreMock);
-        transferProcessManager.complete(process.getId()).get(5, TimeUnit.SECONDS);
+        transferProcessManager.complete(process.getId()).get(5, SECONDS);
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
         verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
         verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
@@ -311,7 +283,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         transferProcessManager.start(processStoreMock);
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
         verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
     }
@@ -340,7 +312,7 @@ class AsyncTransferProcessManagerImplConsumerTest {
 
         transferProcessManager.start(processStoreMock);
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
         verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
     }
@@ -366,9 +338,9 @@ class AsyncTransferProcessManagerImplConsumerTest {
         when(statusCheckerRegistry.resolve(anyString())).thenReturn(null);
 
         transferProcessManager.start(processStoreMock);
-        transferProcessManager.complete(process.getId()).get(5, TimeUnit.SECONDS);
+        transferProcessManager.complete(process.getId()).get(5, SECONDS);
 
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
         verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
         verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
@@ -382,15 +354,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
         var dataRequests = range(0, numProcesses).mapToObj(i -> createTransferProcess(UNSAVED))
                 .map(TransferProcess::getDataRequest).collect(Collectors.toList());
         TransferProcessStore inMemoryProcessStore = new InMemoryTransferProcessStore();
-
-        var processes = new ArrayList<TransferProcess>();
-        for (int i = 0; i < numProcesses; i++) {
-            ProvisionedResourceSet resourceSet = ProvisionedResourceSet.Builder.newInstance().resources(List.of(new TestResource())).build();
-            TransferProcess process = createTransferProcess(TransferProcessStates.UNSAVED).toBuilder().provisionedResourceSet(resourceSet).build();
-            process.transitionInitial();
-            processes.add(process);
-            inMemoryProcessStore.create(process);
-        }
 
         var processesToProvision = new CountDownLatch(numProcesses); //all processes should be provisioned
 

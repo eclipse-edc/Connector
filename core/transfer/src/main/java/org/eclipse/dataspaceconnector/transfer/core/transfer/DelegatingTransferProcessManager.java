@@ -33,8 +33,9 @@ public class DelegatingTransferProcessManager implements TransferProcessManager 
     }
 
     @Override
-    public void transitionRequestAck(String processId) {
-
+    public CompletableFuture<Void> transitionRequestAck(String processId) {
+        // TODO
+        return null;
     }
 
     @Override

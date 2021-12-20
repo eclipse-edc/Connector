@@ -103,8 +103,8 @@ public class SyncTransferProcessManager implements TransferProcessManager {
     }
 
     @Override
-    public void transitionRequestAck(String processId) {
-
+    public CompletableFuture<Void> transitionRequestAck(String processId) {
+        return null; // TODO
     }
 
     @Override

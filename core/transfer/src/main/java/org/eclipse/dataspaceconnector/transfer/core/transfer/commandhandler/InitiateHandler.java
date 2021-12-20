@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Initiate;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.command.PrepareProvision;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Provision;
 
 /**
@@ -34,7 +35,7 @@ public class InitiateHandler implements TransferProcessCommandHandler<Initiate> 
             process.transitionInitial();
             transferProcessStore.create(process);
         }
-        return new TransferProcessCommandResult(new Provision(id), listener -> listener::created);
+        return new TransferProcessCommandResult(new PrepareProvision(id), listener -> listener::created);
     }
 
 }

@@ -1,10 +1,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler;
 
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.InitiateDataFlow;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Provision;
@@ -21,12 +18,10 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  */
 public class ProvisionHandler implements TransferProcessCommandHandler<Provision> {
     private final TransferProcessStore transferProcessStore;
-    private final ResourceManifestGenerator manifestGenerator;
     private final ProvisionManager provisionManager;
 
-    public ProvisionHandler(TransferProcessStore transferProcessStore, ResourceManifestGenerator manifestGenerator, ProvisionManager provisionManager) {
+    public ProvisionHandler(TransferProcessStore transferProcessStore, ProvisionManager provisionManager) {
         this.transferProcessStore = transferProcessStore;
-        this.manifestGenerator = manifestGenerator;
         this.provisionManager = provisionManager;
     }
 
@@ -38,21 +33,19 @@ public class ProvisionHandler implements TransferProcessCommandHandler<Provision
     @Override
     public TransferProcessCommandResult handle(Provision command) {
         TransferProcess process = transferProcessStore.find(command.getId());
-        DataRequest dataRequest = process.getDataRequest();
-        ResourceManifest manifest;
         TransferProcessCommand nextCommand;
-        if (process.getType() == CONSUMER) {
-            // if resources are managed by this connector, generate the manifest; otherwise create an empty one
-            manifest = dataRequest.isManagedResources() ? manifestGenerator.generateConsumerManifest(process) : ResourceManifest.Builder.newInstance().build();
-            nextCommand = new RequireTransition(process.getId());
+        if (process.getResourceManifest().getDefinitions().isEmpty()) {
+            // TODO will not needed since provision manager will return the future
+            nextCommand = process.getType() == CONSUMER ? new RequireTransition(process.getId()) : new InitiateDataFlow(process.getId());
+            process.transitionProvisioned();
         } else {
-            manifest = manifestGenerator.generateProviderManifest(process);
-            nextCommand = new InitiateDataFlow(process.getId());
+            nextCommand = null;
+            provisionManager.provision(process); // TODO: on provision complete, do state change (provisioned)
         }
-        process.transitionProvisioning(manifest);
+
         transferProcessStore.update(process);
-        provisionManager.provision(process);
-        return new TransferProcessCommandResult(nextCommand, listener -> listener::provisioning);
+
+        return new TransferProcessCommandResult(nextCommand, listener -> listener::provisioned);
     }
 
 }

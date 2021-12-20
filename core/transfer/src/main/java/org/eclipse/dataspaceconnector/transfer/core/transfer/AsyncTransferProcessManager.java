@@ -40,12 +40,16 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Complete;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Initiate;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.InitiateDataFlow;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireAck;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireTransition;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.CompleteHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowConsumerHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.PrepareProvisionHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.ProvisionHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.RequireAckHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.RequireTransitionHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.TransferProcessCommandHandler;
 
@@ -117,16 +121,19 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     public void start(TransferProcessStore processStore) {
         transferProcessStore = processStore;
         commandHandlers.add(new InitiateHandler(transferProcessStore));
-        commandHandlers.add(new ProvisionHandler(transferProcessStore, manifestGenerator, provisionManager));
+        commandHandlers.add(new PrepareProvisionHandler(transferProcessStore, manifestGenerator));
+        commandHandlers.add(new ProvisionHandler(transferProcessStore, provisionManager));
         commandHandlers.add(new RequireTransitionHandler(transferProcessStore, dispatcherRegistry));
         commandHandlers.add(new InitiateDataFlowHandler(transferProcessStore, dataFlowManager, monitor));
         commandHandlers.add(new CompleteHandler(transferProcessStore, statusCheckerRegistry, monitor));
+        commandHandlers.add(new RequireAckHandler(transferProcessStore));
+        commandHandlers.add(new InitiateDataFlowConsumerHandler(transferProcessStore, monitor));
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
     }
 
-    // TODO: stop whould wait some time to empty the command queue before shutdown the executor
+    // TODO: stop should wait some time to empty the command queue before shutdown the executor
     public void stop() {
         active.set(false);
         if (executor != null) {
@@ -145,10 +152,10 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     @Override
-    public void transitionRequestAck(String processId) {
-        TransferProcess transferProcess = transferProcessStore.find(processId);
-        transferProcess.transitionRequestAck();
-        transferProcessStore.update(transferProcess);
+    public CompletableFuture<Void> transitionRequestAck(String processId) {
+        var future = new CompletableFuture<Void>();
+        commandQueue.add(new CommandRequest(new RequireAck(processId), future));
+        return future;
     }
 
     @Override
@@ -276,21 +283,24 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                     if (optionalHandler.isPresent()) {
                         TransferProcessCommandHandler handler = optionalHandler.get();
                         var result = handler.handle(commandRequest.getCommand());
-                        commandRequest.getFuture().complete(null);
-                        getListeners().forEach(listener -> result.getPostAction().apply(listener));
+
                         var nextCommand = result.getNextCommand();
-                        commandQueue.add(new CommandRequest(nextCommand, new CompletableFuture<>()));
+                        if (nextCommand != null) {
+                            commandQueue.add(new CommandRequest(nextCommand, commandRequest.getFuture()));
+                        } else {
+                            commandRequest.getFuture().complete(null);
+                        }
+                        getListeners().forEach(listener -> result.getPostAction().apply(listener));
+
                     } else {
                         monitor.severe(String.format("Transfer Command type %s is not handled", commandRequest.getClass().getName()));
                     }
                 } else {
 //                    Thread.sleep(waitStrategy.waitForMillis());
-                    Thread.sleep(10);
+                    Thread.sleep(10); // TODO: resolve this
                 }
 
                 // TODO check processes in provisioning state and timestamps for failed processes
-
-                int provisioned = checkProvisioned();
 
                 int deprovisioning = checkDeprovisioningRequested();
 
