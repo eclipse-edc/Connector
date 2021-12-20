@@ -68,10 +68,7 @@ class S3BucketProvisionerTest {
     void setUp() {
         when(clientProvider.clientFor(any(), anyString())).thenAnswer(chooseClient());
 
-        ServiceExtensionContext context = mock(ServiceExtensionContext.class);
-        when(context.getSetting(eq(PROVISION_MAX_RETRY), anyString())).thenReturn("2");
-        when(context.getSetting(eq(PROVISION_MAX_ROLE_SESSION_DURATION), anyString())).thenReturn("3600");
-        var configuration = S3BucketProvisionerConfiguration.Builder.newInstance(context).build();
+        var configuration = new S3BucketProvisionerConfiguration(2, 3600);
 
         provisioner = new S3BucketProvisioner(clientProvider, new Monitor() {
         }, new RetryPolicy<>(), configuration);
