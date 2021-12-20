@@ -11,6 +11,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -67,6 +68,13 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
 
     @Override
     public void save(ContractNegotiation negotiation) {
+        if (ContractNegotiationStates.UNSAVED.code() == negotiation.getState()) {
+            if (ContractNegotiation.Type.CONSUMER.equals(negotiation.getType())) {
+                negotiation.transitionRequesting();
+            } else {
+                negotiation.transitionRequested();
+            }
+        }
         cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation));
     }
 
@@ -78,7 +86,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
 
-        var partitionKey = String.valueOf(state);
+        var partitionKey = "negotiationPartition1"; //TODO: make this configurable!!!
         String rawJson = cosmosDbApi.invokeStoredProcedure("nextForState", partitionKey, state, max, connectorId);
         var typeRef = new TypeReference<List<Object>>() {
         };

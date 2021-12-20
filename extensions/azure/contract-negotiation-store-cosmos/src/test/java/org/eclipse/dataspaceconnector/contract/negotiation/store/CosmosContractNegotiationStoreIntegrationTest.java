@@ -17,6 +17,7 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -51,6 +52,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     private static final String CONTAINER_PREFIX = "ContractNegotiationStore-";
     private static CosmosContainer container;
     private static CosmosDatabase database;
+    private final String partitionKey = "negotiationPartition1";
     private TypeManager typeManager;
     private CosmosContractNegotiationStore store;
 
@@ -163,7 +165,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var negotiation = generateNegotiation();
         store.save(negotiation);
 
-        var allObjs = container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class);
+        var allObjs = container.readAllItems(new PartitionKey(partitionKey), Object.class);
 
         assertThat(allObjs).hasSize(1)
                 .allSatisfy(o -> assertThat(toNegotiation(o)).usingRecursiveComparison().isEqualTo(negotiation));
@@ -174,19 +176,19 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var negotiation = generateNegotiation();
         container.createItem(new ContractNegotiationDocument(negotiation));
 
-        assertThat(container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class)).hasSize(1);
+        assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).hasSize(1);
 
         //add an offer, should modifu
-        var newOffer = ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build()).id("new-offer-1").build();
+        var newOffer = ContractOffer.Builder.newInstance().policy(Policy.Builder.newInstance().build()).asset(Asset.Builder.newInstance().build()).id("new-offer-1").build();
         negotiation.getContractOffers().add(newOffer);
         store.save(negotiation);
 
-        var allObjs = container.readAllItems(new PartitionKey(String.valueOf(negotiation.getState())), Object.class);
+        var allObjs = container.readAllItems(new PartitionKey(partitionKey), Object.class);
 
         assertThat(allObjs).hasSize(1)
                 .allSatisfy(o -> {
                     var actual = toNegotiation(o);
-                    assertThat(actual.getContractOffers()).hasSize(1).containsExactlyInAnyOrder(newOffer);
+                    assertThat(actual.getContractOffers()).hasSize(1).extracting(ContractOffer::getId).containsExactlyInAnyOrder(newOffer.getId());
                 });
     }
 
@@ -271,7 +273,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
         // let's verify that the first invocation correctly sets the lease
         var result = store.nextForState(state.code(), 10);
         assertThat(result).hasSize(1); //should contain the lease already
-        var object = container.readAllItems(new PartitionKey(doc.getPartitionKey()), Object.class).stream().findFirst().get();
+        var object = container.readAllItems(new PartitionKey(partitionKey), Object.class).stream().findFirst().get();
         var storedNegotiation = toDocument(object);
         assertThat(storedNegotiation.getLease()).isNotNull().hasFieldOrPropertyWithValue("leasedBy", CONNECTOR_ID);
 

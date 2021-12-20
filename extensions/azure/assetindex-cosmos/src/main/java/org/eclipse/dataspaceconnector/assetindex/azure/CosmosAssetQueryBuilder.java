@@ -50,6 +50,11 @@ public class CosmosAssetQueryBuilder {
         return new SqlQuerySpec("SELECT * FROM " + AssetDocument.class.getSimpleName() + whereClause.getWhere(), whereClause.getParameters());
     }
 
+    public SqlQuerySpec from(List<Criterion> criteria) {
+        WhereClause whereClause = new WhereClause(criteria);
+        return new SqlQuerySpec("SELECT * FROM " + AssetDocument.class.getSimpleName() + whereClause.getWhere(), whereClause.getParameters());
+    }
+
     private static class WhereClause {
         private static final List<String> SUPPORTED_OPERATOR = List.of("=", "IN");
         private final List<SqlParameter> parameters = new ArrayList<>();
@@ -61,6 +66,9 @@ public class CosmosAssetQueryBuilder {
             }
         }
 
+        public WhereClause(List<Criterion> criteria) {
+            criteria.stream().distinct().forEach(this::criterion);
+        }
 
         public String getWhere() {
             return where;

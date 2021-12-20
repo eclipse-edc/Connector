@@ -44,7 +44,7 @@ class ContractNegotiationDocumentSerializationTest {
         assertThat(s).isNotNull()
                 .contains("wrappedInstance")
                 .contains("\"id\":\"" + def.getId() + "\"")
-                .contains("\"partitionKey\":\"" + pk + "\"");
+                .contains("\"partitionKey\":\"negotiationPartition1\"");
     }
 
     @Test
