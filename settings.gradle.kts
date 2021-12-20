@@ -18,6 +18,7 @@ rootProject.name = "dataspaceconnector"
 
 include(":common:util")
 include(":common:libraries:clients:postgresql")
+include(":common:libraries:clients:postgresql-repository")
 
 // EDC core modules
 include(":core")
@@ -101,6 +102,7 @@ include(":extensions:dataloading:dataloading-asset")
 include(":extensions:dataloading:dataloading-contractdef")
 include(":extensions:policy:ids-policy")
 include(":extensions:jdk-logger-monitor")
+include(":extensions:postgresql:asset-index")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
