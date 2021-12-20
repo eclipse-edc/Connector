@@ -90,7 +90,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var vault = context.getService(Vault.class);
 
-        ProvisionManagerImpl provisionManager = new ProvisionManagerImpl();
+        var provisionManager = new ProvisionManagerImpl();
         context.registerService(ProvisionManager.class, provisionManager);
 
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
@@ -99,7 +99,7 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(DataProxyManager.class, dataProxyRegistry);
 
         transferProcessStore = context.getService(TransferProcessStore.class);
-        AsyncTransferProcessManager asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
+        var asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)
