@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
+
 public class S3BucketProvisionerConfiguration {
 
     private final int maxRetries;
@@ -17,5 +18,4 @@ public class S3BucketProvisionerConfiguration {
     public int getRoleMaxSessionDuration() {
         return roleMaxSessionDuration;
     }
-
 }

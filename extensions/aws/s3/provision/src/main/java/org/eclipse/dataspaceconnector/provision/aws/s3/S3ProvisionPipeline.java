@@ -4,6 +4,7 @@ import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
 import software.amazon.awssdk.services.iam.model.CreateRoleResponse;
@@ -16,8 +17,6 @@ import software.amazon.awssdk.services.s3.model.CreateBucketConfiguration;
 import software.amazon.awssdk.services.s3.model.CreateBucketRequest;
 import software.amazon.awssdk.services.sts.StsAsyncClient;
 import software.amazon.awssdk.services.sts.model.AssumeRoleRequest;
-import software.amazon.awssdk.services.sts.model.Credentials;
-import software.amazon.awssdk.utils.Pair;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -158,13 +157,13 @@ public class S3ProvisionPipeline {
             return this;
         }
 
-        public Builder monitor(Monitor monitor) {
-            this.monitor = monitor;
+        public Builder clientProvider(ClientProvider clientProvider) {
+            this.clientProvider = clientProvider;
             return this;
         }
 
-        public Builder clientProvider(ClientProvider clientProvider) {
-            this.clientProvider = clientProvider;
+        public Builder monitor(Monitor monitor) {
+            this.monitor = monitor;
             return this;
         }
 
