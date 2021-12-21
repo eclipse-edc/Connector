@@ -51,6 +51,4 @@ public interface TransferProcessManager {
     // TODO: will be substituted by the upcoming command queue introduction
     Result<TransferProcessStates> deprovision(String processId);
 
-    CompletableFuture<Void> initiateDataFlow(String id);
-
 }

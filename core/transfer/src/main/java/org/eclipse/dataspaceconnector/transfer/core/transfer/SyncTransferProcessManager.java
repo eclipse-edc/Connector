@@ -122,11 +122,6 @@ public class SyncTransferProcessManager implements TransferProcessManager {
         return null;
     }
 
-    @Override
-    public CompletableFuture<Void> initiateDataFlow(String id) {
-        return null;
-    }
-
     private ProxyEntry convert(Object result) {
         try {
             var payloadField = result.getClass().getDeclaredField("payload");

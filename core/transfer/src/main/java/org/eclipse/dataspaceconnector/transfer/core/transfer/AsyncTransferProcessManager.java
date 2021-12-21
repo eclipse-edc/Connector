@@ -173,68 +173,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         return Result.success(TransferProcessStates.from(process.getState()));
     }
 
-    @Override
-    public CompletableFuture<Void> initiateDataFlow(String id) {
-        return null;
-    }
-
-    void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {
-        if (deprovisionError != null) {
-            monitor.severe("Deprovisioning error: ", deprovisionError);
-        } else {
-            monitor.info("Deprovisioning successfully completed.");
-
-            TransferProcess transferProcess = transferProcessStore.find(resource.getTransferProcessId());
-            if (transferProcess != null) {
-                transferProcess.transitionDeprovisioned();
-                transferProcessStore.update(transferProcess);
-                monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
-            } else {
-                monitor.severe("ProvisionManager: no TransferProcess found for deprovisioned resource");
-            }
-
-        }
-    }
-
-    void onProvisionComplete(ProvisionedResource destinationResource, SecretToken secretToken) {
-        var processId = destinationResource.getTransferProcessId();
-        var transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            monitor.severe(format("Error received when provisioning resource %s Process id not found for: %s",
-                    destinationResource.getResourceDefinitionId(), destinationResource.getTransferProcessId()));
-            return;
-        }
-
-        if (destinationResource instanceof ProvisionedDataDestinationResource) {
-            var dataDestinationResource = (ProvisionedDataDestinationResource) destinationResource;
-            if (!destinationResource.isError()) {
-                transferProcess.getDataRequest().updateDestination(dataDestinationResource.createDataDestination());
-            }
-
-            if (secretToken != null) {
-                String keyName = dataDestinationResource.getResourceName();
-                vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-                transferProcess.getDataRequest().getDataDestination().setKeyName(keyName);
-            }
-        }
-
-        transferProcess.addProvisionedResource(destinationResource);
-
-        if (destinationResource.isError()) {
-            var processId1 = transferProcess.getId();
-            var resourceId = destinationResource.getResourceDefinitionId();
-            monitor.severe(format("Error provisioning resource %s for process %s: %s", resourceId, processId1, destinationResource.getErrorMessage()));
-            transferProcessStore.update(transferProcess);
-            return;
-        }
-
-        if (TransferProcessStates.ERROR.code() != transferProcess.getState() && transferProcess.provisioningComplete()) {
-            // TODO If all resources provisioned, delete scratch data
-            transferProcess.transitionProvisioned();
-        }
-        transferProcessStore.update(transferProcess);
-    }
-
     public CompletableFuture<Void> complete(String id) {
         var future = new CompletableFuture<Void>();
         commandQueue.add(new CommandRequest(new Complete(id), future));

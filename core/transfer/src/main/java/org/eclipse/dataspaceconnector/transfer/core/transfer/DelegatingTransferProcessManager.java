@@ -54,11 +54,6 @@ public class DelegatingTransferProcessManager implements TransferProcessManager 
     }
 
 
-    @Override
-    public CompletableFuture<Void> initiateDataFlow(String id) {
-        return null;
-    }
-
     public void start(TransferProcessStore transferProcessStore) {
         asyncManager.start(transferProcessStore);
     }
