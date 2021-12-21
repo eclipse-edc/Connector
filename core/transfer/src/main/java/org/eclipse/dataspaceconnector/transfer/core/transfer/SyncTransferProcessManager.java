@@ -68,6 +68,8 @@ public class SyncTransferProcessManager implements TransferProcessManager {
                 return TransferInitiateResult.error(dataRequest.getId(), ResponseStatus.FATAL_ERROR, transferProcess.getErrorDetail());
             }
 
+            // we expect "result" to have a string field named "payload"
+            // and we convert that into a ProxyEntry
             var proxyEntry = convert(result);
 
             // if there is one or more handlers for this particular transfer type, return the result of these handlers, otherwise return the

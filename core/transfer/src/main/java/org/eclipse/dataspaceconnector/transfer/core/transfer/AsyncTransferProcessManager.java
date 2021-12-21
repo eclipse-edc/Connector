@@ -427,17 +427,23 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 process.transitionRequested();
                 transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
                 invokeForEach(l -> l.requested(process));
-                dispatcherRegistry.send(Object.class, dataRequest, process::getId).whenComplete((o, throwable) -> {
-                    if (o != null) {
-                        monitor.info("Object received: " + o.toString());
-                        if (dataRequest.getTransferType().isFinite()) {
-                            process.transitionInProgress();
-                        } else {
-                            process.transitionStreaming();
-                        }
-                        transferProcessStore.update(process);
-                    }
-                });
+                dispatcherRegistry.send(Object.class, dataRequest, process::getId)
+                        .thenApply(o -> {
+                            transitionRequestAck(process.getId());
+                            transferProcessStore.update(process);
+                            return o;
+                        })
+                        .whenComplete((o, throwable) -> {
+                            if (o != null) {
+                                monitor.info("Object received: " + o);
+                                if (dataRequest.getTransferType().isFinite()) {
+                                    process.transitionInProgress();
+                                } else {
+                                    process.transitionStreaming();
+                                }
+                                transferProcessStore.update(process);
+                            }
+                        });
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
                 if (response.succeeded()) {
