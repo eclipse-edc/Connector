@@ -86,7 +86,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 public class AsyncTransferProcessManager extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
-    private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    private TransferWaitStrategy waitStrategy = () -> 50L;
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private TransferProcessStore transferProcessStore;
@@ -202,8 +202,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                         monitor.severe(String.format("Transfer Command type %s is not handled", commandRequest.getClass().getName()));
                     }
                 } else {
-//                    Thread.sleep(waitStrategy.waitForMillis());
-                    Thread.sleep(10); // TODO: resolve this
+                    Thread.sleep(waitStrategy.waitForMillis());
                 }
 
                 waitStrategy.success();
