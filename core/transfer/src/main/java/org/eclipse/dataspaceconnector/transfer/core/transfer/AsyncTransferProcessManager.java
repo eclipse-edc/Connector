@@ -26,7 +26,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -38,9 +37,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Complete;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Initiate;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.command.InitiateDataFlow;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireAck;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireTransition;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.CompleteHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowConsumerHandler;
@@ -65,16 +62,13 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state machine (cf {@link TransferProcessStates}.
@@ -182,7 +176,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         } else {
             monitor.info("starting to deprovision data request " + processId);
             process.transitionCompleted();
-            process.transitionDeprovisionRequested();
+            process.transitionDeprovisioning();
             transferProcessStore.update(process);
         }
 
@@ -347,7 +341,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
      * @return the number of transfer processes in DEPROVISIONING_REQ
      */
     private int checkDeprovisioningRequested() {
-        List<TransferProcess> processesDeprovisioning = transferProcessStore.nextForState(DEPROVISIONING_REQ.code(), batchSize);
+        List<TransferProcess> processesDeprovisioning = transferProcessStore.nextForState(DEPROVISIONING.code(), batchSize);
 
         for (var process : processesDeprovisioning) {
             process.transitionDeprovisioning();
@@ -369,135 +363,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         }
 
         return processesDeprovisioning.size();
-    }
-
-    /**
-     * Transition all processes, who have provisioned resources, into the IN_PROGRESS or STREAMING status, depending on
-     * whether they're finite or not.
-     * If a process does not have provisioned resources, it will remain in REQUESTED_ACK.
-     */
-    private int checkProvisioned() {
-        var requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
-
-        for (var process : requestAcked) {
-            // process must either have a non-empty list of provisioned resources, or not have managed resources at all.
-            if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-
-                if (process.getDataRequest().getTransferType().isFinite()) {
-                    process.transitionInProgress();
-                } else {
-                    process.transitionStreaming();
-                }
-                transferProcessStore.update(process);
-                invokeForEach(l -> l.inProgress(process));
-                monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            } else {
-                monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
-            }
-        }
-
-        return requestAcked.size();
-
-    }
-
-    /**
-     * Checks all provisioned resources that are assigned to a transfer process for completion. If no StatusChecker exists
-     * for a particular ProvisionedResource, it is automatically assumed to be complete.
-     */
-    private int checkCompleted() {
-
-        //deal with all the consumer processes
-        var processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
-
-        for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(toList())) {
-            if (process.getDataRequest().isManagedResources()) {
-                var resources = process.getProvisionedResourceSet().getResources();
-                var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
-                if (checker == null) {
-                    monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
-                } else if (checker.isComplete(process, resources)) {
-                    // checker passed, transition the process to the COMPLETED state
-                    transitionToCompleted(process);
-                }
-            } else {
-                var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
-                if (checker != null) {
-                    if (checker.isComplete(process, emptyList())) {
-                        //checker passed, transition the process to the COMPLETED state automatically
-                        transitionToCompleted(process);
-                    }
-                } else {
-                    //no checker, transition the process to the COMPLETED state automatically
-                    transitionToCompleted(process);
-                }
-            }
-        }
-        return processesInProgress.size();
-    }
-
-    private void transitionToCompleted(TransferProcess process) {
-        process.transitionCompleted();
-        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
-        transferProcessStore.update(process);
-        invokeForEach(listener -> listener.completed(process));
-    }
-
-    /**
-     * On a consumer, sends provisioned requests to the provider connector. On the provider, sends provisioned requests to the data flow manager.
-     *
-     * @return the number of requests processed
-     */
-    private int sendOrProcessProvisionedRequests() {
-        var processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
-        for (TransferProcess process : processes) {
-            DataRequest dataRequest = process.getDataRequest();
-            if (CONSUMER == process.getType()) {
-                process.transitionRequested();
-                transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
-                invokeForEach(l -> l.requested(process));
-                dispatcherRegistry.send(Object.class, dataRequest, process::getId)
-                        .thenApply(o -> {
-                            transitionRequestAck(process.getId());
-                            transferProcessStore.update(process);
-                            return o;
-                        })
-                        .whenComplete((o, throwable) -> {
-                            if (o != null) {
-                                monitor.info("Object received: " + o);
-                                if (dataRequest.getTransferType().isFinite()) {
-                                    process.transitionInProgress();
-                                } else {
-                                    process.transitionStreaming();
-                                }
-                                transferProcessStore.update(process);
-                            }
-                        });
-            } else {
-                var response = dataFlowManager.initiate(dataRequest);
-                if (response.succeeded()) {
-                    if (process.getDataRequest().getTransferType().isFinite()) {
-                        process.transitionInProgress();
-                    } else {
-                        process.transitionStreaming();
-                    }
-                    transferProcessStore.update(process);
-                    invokeForEach(l -> l.inProgress(process));
-                } else {
-                    if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
-                        monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
-                        process.transitionProvisioned();
-                        transferProcessStore.update(process);
-                        invokeForEach(l -> l.provisioned(process));
-                    } else { //ERROR_FATAL
-                        monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
-                        process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
-                        transferProcessStore.update(process);
-                        invokeForEach(l -> l.error(process));
-                    }
-                }
-            }
-        }
-        return processes.size();
     }
 
     private void invokeForEach(Consumer<TransferProcessListener> action) {

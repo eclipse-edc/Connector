@@ -2,9 +2,11 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
@@ -41,6 +43,7 @@ import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
@@ -92,6 +95,15 @@ public class AsyncTransferProcessManagerIntegrationTest {
             var provisionResponse = ProvisionResponse.Builder.newInstance().resource(resourceDefinition).build();
             return List.of(CompletableFuture.completedFuture(provisionResponse));
         });
+        when(provisionManager.deprovision(any())).thenAnswer(i -> {
+            var process = i.getArgument(0, TransferProcess.class);
+            var resourceDefinition = TestProvisionedDataDestinationResource.Builder.newInstance()
+                    .id(randomUUID().toString()).transferProcessId(process.getId())
+                    .resourceDefinitionId(resourceDefinitionId)
+                    .build();
+            var provisionResponse = DeprovisionResponse.Builder.newInstance().ok().resource(resourceDefinition).build();
+            return List.of(CompletableFuture.completedFuture(provisionResponse));
+        });
         when(dataFlowManager.initiate(any())).thenReturn(DataFlowInitiateResult.success("something"));
         StatusChecker statusChecker = mock(StatusChecker.class);
         when(statusChecker.isComplete(any(), any())).thenReturn(true);
@@ -103,7 +115,13 @@ public class AsyncTransferProcessManagerIntegrationTest {
         await().untilAsserted(() -> {
             TransferProcess actual = store.find(result.getContent());
             assertThat(actual).matches(it -> it.getState() == COMPLETED.code());
-            // TODO: should also deprovision
+        });
+
+        transferProcessManager.deprovision(result.getContent());
+
+        await().untilAsserted(() -> {
+            TransferProcess actual = store.find(result.getContent());
+            assertThat(actual).matches(it -> it.getState() == ENDED.code());
         });
     }
 
@@ -124,6 +142,15 @@ public class AsyncTransferProcessManagerIntegrationTest {
             var provisionResponse = ProvisionResponse.Builder.newInstance().resource(resourceDefinition).build();
             return List.of(CompletableFuture.completedFuture(provisionResponse));
         });
+        when(provisionManager.deprovision(any())).thenAnswer(i -> {
+            var process = i.getArgument(0, TransferProcess.class);
+            var resourceDefinition = TestProvisionedDataDestinationResource.Builder.newInstance()
+                    .id(randomUUID().toString()).transferProcessId(process.getId())
+                    .resourceDefinitionId(resourceDefinitionId)
+                    .build();
+            var provisionResponse = DeprovisionResponse.Builder.newInstance().ok().resource(resourceDefinition).build();
+            return List.of(CompletableFuture.completedFuture(provisionResponse));
+        });
         StatusChecker statusChecker = mock(StatusChecker.class);
         when(statusChecker.isComplete(any(), any())).thenReturn(true);
         when(statusCheckerRegistry.resolve(any())).thenReturn(statusChecker);
@@ -141,7 +168,13 @@ public class AsyncTransferProcessManagerIntegrationTest {
         await().untilAsserted(() -> {
             TransferProcess actual = store.find(result.getContent());
             assertThat(actual).matches(it -> it.getState() == COMPLETED.code());
-            // TODO: should also deprovision
+        });
+
+        transferProcessManager.deprovision(result.getContent());
+
+        await().untilAsserted(() -> {
+            TransferProcess actual = store.find(result.getContent());
+            assertThat(actual).matches(it -> it.getState() == ENDED.code());
         });
     }
 
