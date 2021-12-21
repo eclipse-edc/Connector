@@ -3,9 +3,11 @@ package org.eclipse.dataspaceconnector.assetindex.azure;
 import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
+import org.eclipse.dataspaceconnector.common.collection.CollectionUtil;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
@@ -82,6 +84,7 @@ public class CosmosAssetQueryBuilder {
             if (!SUPPORTED_OPERATOR.contains(criterion.getOperator())) {
                 throw new EdcException("Cannot build SqlParameter for operator: " + criterion.getOperator());
             }
+            criterion = escape(criterion);
             String field = AssetDocument.sanitize(criterion.getOperandLeft().toString());
             String param = "@" + field;
             where += parameters.isEmpty() ? " WHERE" : " AND";
@@ -89,6 +92,21 @@ public class CosmosAssetQueryBuilder {
             where += String.join(" " + criterion.getOperator() + " ",
                     " " + PATH_TO_PROPERTIES + "." + field,
                     (String) criterion.getOperandRight());
+        }
+
+        private Criterion escape(Criterion criterion) {
+            var s = criterion.getOperandLeft().toString();
+            if (CollectionUtil.isAnyOf(s,
+                    Asset.PROPERTY_POLICY_ID,
+                    Asset.PROPERTY_ID, Asset.PROPERTY_CONTENT_TYPE,
+                    Asset.PROPERTY_NAME, Asset.PROPERTY_VERSION)) {
+                var or = criterion.getOperandRight().toString();
+                or = "'" + or + "'";
+                criterion = new Criterion(s, criterion.getOperator(), or);
+            }
+
+            return criterion;
+
         }
     }
 }
