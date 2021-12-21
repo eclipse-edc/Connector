@@ -206,7 +206,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
                         var nextCommand = result.getNextCommand();
                         if (nextCommand != null) {
-                            commandQueue.add(new CommandRequest(nextCommand, commandRequest.getFuture()));
+                            commandQueue.add(new CommandRequest(nextCommand, new CompletableFuture<>()));
                         } else {
                             commandRequest.getFuture().complete(null);
                         }
