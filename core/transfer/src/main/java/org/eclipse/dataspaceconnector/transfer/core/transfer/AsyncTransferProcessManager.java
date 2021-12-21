@@ -34,7 +34,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Complete;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Initiate;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.PrepareDeprovision;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireAck;
@@ -134,12 +133,16 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
     @Override
     public TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest) {
-        return initiateRequest(CONSUMER, dataRequest);
+        var id = randomUUID().toString();
+        commandQueue.add(new CommandRequest(new Initiate(id, CONSUMER, dataRequest), new CompletableFuture<>()));
+        return TransferInitiateResult.success(id);
     }
 
     @Override
     public TransferInitiateResult initiateProviderRequest(DataRequest dataRequest) {
-        return initiateRequest(PROVIDER, dataRequest);
+        var id = randomUUID().toString();
+        commandQueue.add(new CommandRequest(new Initiate(id, PROVIDER, dataRequest), new CompletableFuture<>()));
+        return TransferInitiateResult.success(id);
     }
 
     @Override
@@ -171,18 +174,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
         var process = transferProcessStore.find(processId);
         return Result.success(TransferProcessStates.from(process.getState()));
-    }
-
-    public CompletableFuture<Void> complete(String id) {
-        var future = new CompletableFuture<Void>();
-        commandQueue.add(new CommandRequest(new Complete(id), future));
-        return future;
-    }
-
-    private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
-        var id = randomUUID().toString();
-        commandQueue.add(new CommandRequest(new Initiate(id, type, dataRequest), new CompletableFuture<>()));
-        return TransferInitiateResult.success(id);
     }
 
     private void run() {
