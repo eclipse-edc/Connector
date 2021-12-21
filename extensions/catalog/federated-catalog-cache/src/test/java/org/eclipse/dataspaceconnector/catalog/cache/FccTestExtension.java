@@ -205,7 +205,7 @@ public class FccTestExtension implements ServiceExtension {
         }
 
         @Override
-        public void delete(String id) {
+        public void delete(ContractDefinition definition) {
             throw new NotImplementedError();
         }
 
@@ -214,6 +214,4 @@ public class FccTestExtension implements ServiceExtension {
             throw new NotImplementedError();
         }
     }
-
-
 }

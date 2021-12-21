@@ -3,6 +3,8 @@ package org.eclipse.dataspaceconnector.contract.definition.store;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,7 +104,13 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void delete() {
-        store.delete("some-id");
+        var def = ContractDefinition.Builder.newInstance().id("some-id")
+                .selectorExpression(AssetSelectorExpression.SELECT_ALL)
+                .contractPolicy(Policy.Builder.newInstance().build())
+                .accessPolicy(Policy.Builder.newInstance().build())
+                .build();
+
+        store.delete(def);
 
         verify(cosmosDbApiMock).deleteItem(notNull());
     }

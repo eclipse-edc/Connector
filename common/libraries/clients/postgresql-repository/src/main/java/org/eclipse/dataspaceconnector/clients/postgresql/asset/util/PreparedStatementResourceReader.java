@@ -44,6 +44,10 @@ public class PreparedStatementResourceReader {
     private static final String ASSET_PROPERTY_UPDATE = "asset_property_update.sql";
     private static final String ASSET_PROPERTIES_SELECT_BY_K_V = "asset_properties_select_by_k_v.sql";
     private static final String ASSET_PROPERTIES_SELECT_BY_ASSET_ID = "asset_properties_select_by_asset_id.sql";
+    private static final String CONTRACT_DEFINITION_CREATE = "contract_definition_create.sql";
+    private static final String CONTRACT_DEFINITION_DELETE = "contract_definition_delete.sql";
+    private static final String CONTRACT_DEFINITION_SELECT_ALL = "contract_definition_select_all.sql";
+    private static final String CONTRACT_DEFINITION_UPDATE = "contract_definition_update.sql";
 
     public static String readAddressCreate() {
         return readContent(ADDRESS_CREATE);
@@ -123,6 +127,22 @@ public class PreparedStatementResourceReader {
 
     public static String readAssetPropertiesSelectByAssetId() {
         return readContent(ASSET_PROPERTIES_SELECT_BY_ASSET_ID);
+    }
+
+    public static String readContractDefinitionCreate() {
+        return readContent(CONTRACT_DEFINITION_CREATE);
+    }
+
+    public static String readContractDefinitionDelete() {
+        return readContent(CONTRACT_DEFINITION_DELETE);
+    }
+
+    public static String readContractDefinitionSelectAll() {
+        return readContent(CONTRACT_DEFINITION_SELECT_ALL);
+    }
+
+    public static String readContractDefinitionUpdate() {
+        return readContent(CONTRACT_DEFINITION_UPDATE);
     }
 
     private static String readContent(String resourceName) {

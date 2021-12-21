@@ -16,10 +16,12 @@ package org.eclipse.dataspaceconnector.clients.postgresql.asset;
 
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 
 /**
@@ -62,6 +64,14 @@ public interface Repository {
     @NotNull List<DataAddress> queryAddress(@NotNull List<Criterion> criteria) throws SQLException;
 
     /**
+     * Query the repository for all contract definitions.
+     *
+     * @return all contract definitions
+     * @throws SQLException exception
+     */
+    @NotNull List<ContractDefinition> queryAllContractDefinitions() throws SQLException;
+
+    /**
      * Stores the asset and its corresponding data address.
      *
      * @param asset       asset to store
@@ -69,6 +79,23 @@ public interface Repository {
      * @throws SQLException exception
      */
     void create(@NotNull Asset asset, @NotNull DataAddress dataAddress) throws SQLException;
+
+    /**
+     * Stores the contract definition.
+     *
+     * @param contractDefinition definition to store
+     * @throws SQLException exception
+     */
+    void create(@NotNull ContractDefinition contractDefinition) throws SQLException;
+
+
+    /**
+     * Stores the contract definition in one transaction
+     *
+     * @param contractDefinitions definitions to store
+     * @throws SQLException exception
+     */
+    void create(@NotNull Collection<ContractDefinition> contractDefinitions) throws SQLException;
 
     /**
      * Updates the asset.
@@ -81,16 +108,33 @@ public interface Repository {
     /**
      * Updates the address.
      *
+     * @param asset       corresponding asset
      * @param dataAddress address to update
      * @throws SQLException exception
      */
     void update(@NotNull Asset asset, @NotNull DataAddress dataAddress) throws SQLException;
 
     /**
-     * Deletes the asset.
+     * Updates the contract definition.
+     *
+     * @param contractDefinition contract definition to update
+     * @throws SQLException exception
+     */
+    void update(@NotNull ContractDefinition contractDefinition) throws SQLException;
+
+    /**
+     * Deletes the asset and its corresponding data address.
      *
      * @param asset asset to delete
      * @throws SQLException exception
      */
     void delete(@NotNull Asset asset) throws SQLException;
+
+    /**
+     * Deletes the contrat definition.
+     *
+     * @param contractDefinition contract definition to delete
+     * @throws SQLException exception
+     */
+    void delete(@NotNull ContractDefinition contractDefinition) throws SQLException;
 }

@@ -42,10 +42,21 @@ CREATE TABLE IF NOT EXISTS addresses
 CREATE TABLE IF NOT EXISTS addresses_properties
 (
     address_id VARCHAR(255) NOT NULL,
-    k        VARCHAR(255) NOT NULL,
-    v        VARCHAR(65535),
+    k          VARCHAR(255) NOT NULL,
+    v          VARCHAR(65535),
     PRIMARY KEY (address_id, k),
     FOREIGN KEY (address_id) REFERENCES addresses (asset_id) ON DELETE CASCADE
+);
+
+---
+
+CREATE TABLE IF NOT EXISTS contract_definitions
+(
+    id                        VARCHAR(255) NOT NULL,
+    access_policy             VARCHAR(65535) NOT NULL,
+    contract_policy           VARCHAR(65535) NOT NULL,
+    asset_selector_expression VARCHAR(65535) NOT NULL,
+    PRIMARY KEY(id)
 );
 
 ---

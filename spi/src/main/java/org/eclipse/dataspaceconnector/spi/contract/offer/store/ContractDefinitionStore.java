@@ -49,7 +49,7 @@ public interface ContractDefinitionStore {
     /**
      * Deletes the definition with the given id.
      */
-    void delete(String id);
+    void delete(ContractDefinition definition);
 
     /**
      * Signals the store should reload its internal cache if updates were may. If the implementation does not implement caching, this method will do nothing.

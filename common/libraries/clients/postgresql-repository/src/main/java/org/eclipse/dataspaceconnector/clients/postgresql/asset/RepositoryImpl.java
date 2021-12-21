@@ -21,12 +21,18 @@ import org.eclipse.dataspaceconnector.clients.postgresql.asset.operation.AssetAn
 import org.eclipse.dataspaceconnector.clients.postgresql.asset.operation.AssetDeleteOperation;
 import org.eclipse.dataspaceconnector.clients.postgresql.asset.operation.AssetQueryOperation;
 import org.eclipse.dataspaceconnector.clients.postgresql.asset.operation.AssetUpdateOperation;
+import org.eclipse.dataspaceconnector.clients.postgresql.asset.operation.ContractDefinitionCreateOperation;
+import org.eclipse.dataspaceconnector.clients.postgresql.asset.operation.ContractDefinitionDeleteOperation;
+import org.eclipse.dataspaceconnector.clients.postgresql.asset.operation.ContractDefinitionQueryOperation;
+import org.eclipse.dataspaceconnector.clients.postgresql.asset.operation.ContractDefinitionUpdateOperation;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.SQLException;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -38,6 +44,10 @@ public class RepositoryImpl implements Repository {
     private final AssetQueryOperation assetQueryOperation;
     private final AddressUpdateOperation addressUpdateOperation;
     private final AddressQueryOperation addressQueryOperation;
+    private final ContractDefinitionCreateOperation contractDefinitionCreateOperation;
+    private final ContractDefinitionDeleteOperation contractDefinitionDeleteOperation;
+    private final ContractDefinitionQueryOperation contractDefinitionQueryOperation;
+    private final ContractDefinitionUpdateOperation contractDefinitionUpdateOperation;
 
     public RepositoryImpl(@NotNull PostgresqlClient postgresqlClient) {
         Objects.requireNonNull(postgresqlClient);
@@ -47,6 +57,10 @@ public class RepositoryImpl implements Repository {
         assetQueryOperation = new AssetQueryOperation(postgresqlClient);
         addressUpdateOperation = new AddressUpdateOperation(postgresqlClient);
         addressQueryOperation = new AddressQueryOperation(postgresqlClient);
+        contractDefinitionCreateOperation = new ContractDefinitionCreateOperation(postgresqlClient);
+        contractDefinitionDeleteOperation = new ContractDefinitionDeleteOperation(postgresqlClient);
+        contractDefinitionQueryOperation = new ContractDefinitionQueryOperation(postgresqlClient);
+        contractDefinitionUpdateOperation = new ContractDefinitionUpdateOperation(postgresqlClient);
     }
 
     @NotNull
@@ -61,10 +75,25 @@ public class RepositoryImpl implements Repository {
     }
 
     @Override
+    public @NotNull List<ContractDefinition> queryAllContractDefinitions() throws SQLException {
+        return contractDefinitionQueryOperation.invoke();
+    }
+
+    @Override
     public void create(@NotNull Asset asset, @NotNull DataAddress dataAddress) throws SQLException {
         assetAndAddressCreateOperation.invoke(
                 Objects.requireNonNull(asset),
                 Objects.requireNonNull(dataAddress));
+    }
+
+    @Override
+    public void create(@NotNull ContractDefinition contractDefinition) throws SQLException {
+        contractDefinitionCreateOperation.invoke(Objects.requireNonNull(contractDefinition));
+    }
+
+    @Override
+    public void create(@NotNull Collection<ContractDefinition> contractDefinitions) throws SQLException {
+        contractDefinitionCreateOperation.invoke(Objects.requireNonNull(contractDefinitions));
     }
 
     @Override
@@ -78,7 +107,17 @@ public class RepositoryImpl implements Repository {
     }
 
     @Override
+    public void update(@NotNull ContractDefinition contractDefinition) throws SQLException {
+        contractDefinitionUpdateOperation.invoke(Objects.requireNonNull(contractDefinition));
+    }
+
+    @Override
     public void delete(@NotNull Asset asset) throws SQLException {
         assetDeleteOperation.invoke(Objects.requireNonNull(asset));
+    }
+
+    @Override
+    public void delete(@NotNull ContractDefinition contractDefinition) throws SQLException {
+        contractDefinitionDeleteOperation.invoke(Objects.requireNonNull(contractDefinition));
     }
 }

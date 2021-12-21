@@ -37,7 +37,7 @@ class InMemoryContractDefinitionStoreTest {
         store.save(List.of(definition2));
         assertThat(store.findAll()).contains(definition1);
 
-        store.delete(definition1.getId());
+        store.delete(definition1);
         assertThat(store.findAll()).doesNotContain(definition1);
     }
 }

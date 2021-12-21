@@ -31,12 +31,12 @@ public class PostgresqlAssetLoaderTest {
     private AssetLoader assetLoader;
 
     // mocks
-    private Repository assetRepository;
+    private Repository repository;
 
     @BeforeEach
     public void setup() {
-        assetRepository = Mockito.mock(Repository.class);
-        assetLoader = new PostgresAssetLoader(assetRepository);
+        repository = Mockito.mock(Repository.class);
+        assetLoader = new PostgresAssetLoader(repository);
     }
 
     @Test
@@ -46,7 +46,7 @@ public class PostgresqlAssetLoaderTest {
 
         assetLoader.accept(asset, address);
 
-        Mockito.verify(assetRepository, times(1))
+        Mockito.verify(repository, times(1))
                 .create(asset, address);
     }
 
@@ -57,7 +57,7 @@ public class PostgresqlAssetLoaderTest {
 
         assetLoader.accept(new AssetEntry(asset, address));
 
-        Mockito.verify(assetRepository, times(1))
+        Mockito.verify(repository, times(1))
                 .create(asset, address);
     }
 }

@@ -192,14 +192,15 @@ public class CosmosContractDefinitionStoreIntegrationTest {
         var doc1 = generateDocument();
         container.createItem(doc1);
 
-        store.delete(doc1.getId());
+        store.delete(doc1.getWrappedInstance());
 
         assertThat(container.readAllItems(new PartitionKey(doc1.getPartitionKey()), Object.class)).isEmpty();
     }
 
     @Test
     void delete_notExist() {
-        assertThatThrownBy(() -> store.delete("not-exist-id"))
+        var def = ContractDefinition.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+        assertThatThrownBy(() -> store.delete(def))
                 .isInstanceOf(NotFoundException.class)
                 .hasMessageContaining("An object with the ID not-exist-id could not be found!");
     }
