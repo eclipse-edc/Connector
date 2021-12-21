@@ -63,13 +63,12 @@ class AsyncTransferProcessManagerImplTest {
      * All creations operations must be idempotent in order to support reliability (e.g. messages/requests may be delivered more than once).
      */
     @Test
-    void verifyIdempotency() throws InterruptedException {
+    void verifyIdempotency() {
         when(store.processIdForTransferId("1")).thenReturn(null, "2");
 
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
         manager.initiateProviderRequest(dataRequest);
         manager.initiateProviderRequest(dataRequest);
-        Thread.sleep(100);
         manager.stop();
 
         verify(store, times(1)).create(isA(TransferProcess.class));

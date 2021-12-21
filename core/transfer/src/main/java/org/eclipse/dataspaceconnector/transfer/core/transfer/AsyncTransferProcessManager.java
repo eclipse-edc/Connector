@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.transfer.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
@@ -56,6 +57,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -98,7 +100,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     private Vault vault;
     private TypeManager typeManager;
 
-    private final Queue<CommandRequest> commandQueue = new LinkedBlockingQueue<>();
+    private final Queue<CommandRequest> commandQueue = new ConcurrentLinkedQueue<>();
     private final List<TransferProcessCommandHandler<? extends TransferProcessCommand>> commandHandlers = new ArrayList<>();
 
     private AsyncTransferProcessManager() {
@@ -123,11 +125,23 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         executor.submit(this::run);
     }
 
-    // TODO: stop should wait some time to empty the command queue before shutdown the executor
+    // TODO: implement a graceful shutdown handling
     public void stop() {
-        active.set(false);
-        if (executor != null) {
-            executor.shutdownNow();
+        if (!commandQueue.isEmpty()) {
+            try {
+                Thread.sleep(50);
+                stop();
+            } catch (InterruptedException e) {
+                active.set(false);
+                if (executor != null) {
+                    executor.shutdownNow();
+                }
+            }
+        } else {
+            active.set(false);
+            if (executor != null) {
+                executor.shutdownNow();
+            }
         }
     }
 
