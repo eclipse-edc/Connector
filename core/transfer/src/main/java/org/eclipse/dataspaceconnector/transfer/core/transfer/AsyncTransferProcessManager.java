@@ -42,6 +42,7 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireAck;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.CompleteHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.DeprovisionHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.EndHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowConsumerHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateHandler;
@@ -122,6 +123,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         commandHandlers.add(new InitiateDataFlowConsumerHandler(transferProcessStore, monitor));
         commandHandlers.add(new PrepareDeprovisionHandler(transferProcessStore));
         commandHandlers.add(new DeprovisionHandler(transferProcessStore, provisionManager, monitor));
+        commandHandlers.add(new EndHandler(transferProcessStore));
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -285,15 +287,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                     Thread.sleep(10); // TODO: resolve this
                 }
 
-                // TODO check processes in provisioning state and timestamps for failed processes
-
-//                int deprovisioning = checkDeprovisioningRequested();
-
-                int deprovisioned = checkDeprovisioned();
-
-//                if (provisioned + finished + deprovisioning + deprovisioned == 0) {
-//                    Thread.sleep(waitStrategy.waitForMillis());
-//                }
                 waitStrategy.success();
             } catch (Error e) {
                 throw e; // let the thread die and don't reschedule as the error is unrecoverable
@@ -312,54 +305,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 }
             }
         }
-    }
-
-    private int checkDeprovisioned() {
-        var deprovisionedProcesses = transferProcessStore.nextForState(DEPROVISIONED.code(), batchSize);
-
-        for (var process : deprovisionedProcesses) {
-            invokeForEach(l -> l.deprovisioned(process));
-            process.transitionEnded();
-            transferProcessStore.update(process);
-            invokeForEach(l -> l.ended(process));
-            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-        }
-        return deprovisionedProcesses.size();
-    }
-
-    /**
-     * Transitions all processes that are in state DEPROVISIONING_REQ and deprovisions their associated
-     * resources. Then they are moved to DEPROVISIONING
-     *
-     * @return the number of transfer processes in DEPROVISIONING_REQ
-     */
-    private int checkDeprovisioningRequested() {
-        List<TransferProcess> processesDeprovisioning = transferProcessStore.nextForState(DEPROVISIONING.code(), batchSize);
-
-        for (var process : processesDeprovisioning) {
-            process.transitionDeprovisioning();
-            transferProcessStore.update(process);
-            invokeForEach(l -> l.deprovisioning(process));
-            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            provisionManager.deprovision(process)
-                    .forEach(future -> {
-                        future.whenComplete((response, throwable) -> {
-                            if (response != null) {
-                                onDeprovisionComplete(response.getResource(), null);
-                            } else {
-                                monitor.severe("Error during deprovisioning", throwable);
-                                process.transitionError("Error during deprovisioning: " + throwable.getLocalizedMessage());
-                                transferProcessStore.update(process);
-                            }
-                        });
-                    });
-        }
-
-        return processesDeprovisioning.size();
-    }
-
-    private void invokeForEach(Consumer<TransferProcessListener> action) {
-        getListeners().forEach(action);
     }
 
     public static class Builder {
