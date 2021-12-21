@@ -111,7 +111,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         transferProcessStore = processStore;
         commandHandlers.add(new InitiateHandler(transferProcessStore));
         commandHandlers.add(new PrepareProvisionHandler(transferProcessStore, manifestGenerator));
-        commandHandlers.add(new ProvisionHandler(transferProcessStore, provisionManager, monitor, vault, typeManager, commandQueue)); // TODO: command queue?
+        commandHandlers.add(new ProvisionHandler(transferProcessStore, provisionManager, monitor, vault, typeManager, commandQueue));
         commandHandlers.add(new RequireTransitionHandler(transferProcessStore, dispatcherRegistry));
         commandHandlers.add(new InitiateDataFlowHandler(transferProcessStore, dataFlowManager, monitor));
         commandHandlers.add(new CompleteHandler(transferProcessStore, statusCheckerRegistry, monitor));
@@ -125,7 +125,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         executor.submit(this::run);
     }
 
-    // TODO: implement a graceful shutdown handling
+    // TODO: implement a proper graceful shutdown strategy
     public void stop() {
         if (!commandQueue.isEmpty()) {
             try {
@@ -196,25 +196,31 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 var commandRequest = commandQueue.poll();
 
                 if (commandRequest != null) {
-                    var optionalHandler = commandHandlers.stream()
-                            .filter(it -> it.handles().equals(commandRequest.getCommand().getClass()))
-                            .findFirst();
+                    try {
+                        var optionalHandler = commandHandlers.stream()
+                                .filter(it -> it.handles().equals(commandRequest.getCommand().getClass()))
+                                .findFirst();
 
-                    if (optionalHandler.isPresent()) {
-                        TransferProcessCommandHandler handler = optionalHandler.get();
-                        var result = handler.handle(commandRequest.getCommand());
+                        if (optionalHandler.isPresent()) {
+                            TransferProcessCommandHandler handler = optionalHandler.get();
+                            var result = handler.handle(commandRequest.getCommand());
 
-                        var nextCommand = result.getNextCommand();
-                        if (nextCommand != null) {
-                            commandQueue.add(new CommandRequest(nextCommand, new CompletableFuture<>()));
-                        } else {
+                            var nextCommand = result.getNextCommand();
+                            if (nextCommand != null) {
+                                commandQueue.add(new CommandRequest(nextCommand, new CompletableFuture<>()));
+                            }
                             commandRequest.getFuture().complete(null);
-                        }
-                        getListeners().forEach(listener -> result.getPostAction().apply(listener));
+                            getListeners().forEach(listener -> result.getPostAction().apply(listener));
 
-                    } else {
-                        monitor.severe(String.format("Transfer Command type %s is not handled", commandRequest.getClass().getName()));
+                        } else {
+                            monitor.severe(String.format("Transfer Command type %s is not handled", commandRequest.getClass().getName()));
+                        }
+                    } catch (Exception e) {
+                        if (!commandRequest.future.isDone()) {
+                            commandRequest.future.completeExceptionally(e);
+                        }
                     }
+
                 } else {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }

@@ -101,7 +101,7 @@ public class AsyncTransferProcessManagerIntegrationTest {
 
         assertStateIs(processId, REQUESTED);
 
-        transferProcessManager.transitionRequestAck(processId).join();
+        transferProcessManager.transitionRequestAck(processId);
 
         assertStateIs(processId, COMPLETED);
 
@@ -123,7 +123,7 @@ public class AsyncTransferProcessManagerIntegrationTest {
 
         assertStateIs(processId, REQUESTED);
 
-        transferProcessManager.transitionRequestAck(processId).join();
+        transferProcessManager.transitionRequestAck(processId);
 
         assertStateIs(processId, COMPLETED);
 
