@@ -123,12 +123,6 @@ public class SyncTransferProcessManager implements TransferProcessManager {
     }
 
     @Override
-    public CompletableFuture<Void> requireTransition(String id) {
-
-        return null;
-    }
-
-    @Override
     public CompletableFuture<Void> initiateDataFlow(String id) {
         return null;
     }

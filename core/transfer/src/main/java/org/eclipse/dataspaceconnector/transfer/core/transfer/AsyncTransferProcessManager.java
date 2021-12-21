@@ -174,11 +174,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     @Override
-    public CompletableFuture<Void> requireTransition(String id) {
-        return null;
-    }
-
-    @Override
     public CompletableFuture<Void> initiateDataFlow(String id) {
         return null;
     }

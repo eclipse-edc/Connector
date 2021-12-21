@@ -45,7 +45,6 @@ import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED_ACK;
 import static org.mockito.ArgumentMatchers.any;
@@ -54,7 +53,6 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -83,30 +81,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
                 .monitor(mock(Monitor.class))
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .build();
-    }
-
-    @Test
-    @DisplayName("verifySend: check that the process is in REQUESTED state")
-    void verifySend() throws InterruptedException, ExecutionException, TimeoutException {
-        TransferProcess process = createTransferProcess(PROVISIONED);
-        var cdl = new CountDownLatch(1);
-
-        doAnswer(i -> {
-            cdl.countDown();
-            return null;
-        }).when(dispatcherRegistry).send(eq(Void.class), any(), any());
-
-        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
-        when(processStoreMock.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process));
-        doNothing().when(processStoreMock).update(process);
-        when(processStoreMock.find(process.getId())).thenReturn(process);
-
-        transferProcessManager.start(processStoreMock);
-        transferProcessManager.requireTransition(process.getId()).get(5, SECONDS);
-
-        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
-        assertThat(process.getState()).describedAs("State should be REQUESTED").isEqualTo(TransferProcessStates.REQUESTED.code());
-        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -191,7 +165,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
         assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
         verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
         verify(processStoreMock, atLeastOnce()).update(process);
     }
 
@@ -223,92 +196,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
         assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
         verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
-        verify(processStoreMock, atLeastOnce()).update(process);
-    }
-
-    @Test
-    @DisplayName("checkComplete: should not transition process if checker returns not yet completed")
-    void verifyCompleted_notAllYetCompleted() throws InterruptedException {
-        //arrange
-        TransferProcess process = createTransferProcess(IN_PROGRESS);
-        process.getProvisionedResourceSet().addResource(new TestResource());
-        process.getProvisionedResourceSet().addResource(new TestResource());
-
-        var cdl = new CountDownLatch(1);
-
-        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
-        when(processStoreMock.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process));
-        when(processStoreMock.nextForState(anyInt(), anyInt())).thenAnswer(i -> {
-            cdl.countDown();
-            return emptyList();
-        });
-        doThrow(new AssertionError("update() should not be called as process was not updated"))
-                .when(processStoreMock).update(process);
-
-        transferProcessManager.start(processStoreMock);
-
-        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
-        assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
-        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
-    }
-
-    @Test
-    @DisplayName("checkComplete: should not transition process with managed resources but no status checker")
-    void verifyCompleted_noCheckerForManaged() throws InterruptedException {
-        //arrange
-        TransferProcess process = createTransferProcess(IN_PROGRESS);
-        process.getProvisionedResourceSet().addResource(new TestResource());
-        process.getProvisionedResourceSet().addResource(new TestResource());
-
-        var cdl = new CountDownLatch(1);
-
-        //prepare process store
-        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
-        when(processStoreMock.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process));
-        // flip the latch on the next cycle
-        when(processStoreMock.nextForState(anyInt(), anyInt())).thenAnswer(i -> {
-            cdl.countDown();
-            return emptyList();
-        });
-
-        doThrow(new AssertionError("update() should not be called as process was not updated"))
-                .when(processStoreMock).update(process);
-
-        transferProcessManager.start(processStoreMock);
-
-        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
-        assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
-        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
-    }
-
-    @Test
-    @DisplayName("checkComplete: should automatically transition process with no managed resources if no checker")
-    void verifyCompleted_noCheckerForSomeResources() throws InterruptedException, ExecutionException, TimeoutException {
-        TransferProcess process = createTransferProcess(IN_PROGRESS, new TransferType(), false);
-        process.getProvisionedResourceSet().addResource(new TestResource());
-        process.getProvisionedResourceSet().addResource(new TestResource());
-
-        var cdl = new CountDownLatch(1);
-
-        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
-        when(processStoreMock.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process));
-        when(processStoreMock.find(process.getId())).thenReturn(process);
-
-        doAnswer(i -> {
-            cdl.countDown();
-            return null;
-        }).when(processStoreMock).update(process);
-
-        when(statusCheckerRegistry.resolve(anyString())).thenReturn(null);
-
-        transferProcessManager.start(processStoreMock);
-        transferProcessManager.complete(process.getId()).get(5, SECONDS);
-
-        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
-        assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
-        verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
-        verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
         verify(processStoreMock, atLeastOnce()).update(process);
     }
 
