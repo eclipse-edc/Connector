@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
@@ -62,14 +61,11 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static java.lang.String.format;
 import static java.util.UUID.randomUUID;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state machine (cf {@link TransferProcessStates}.
@@ -91,7 +87,6 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 public class AsyncTransferProcessManager extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
-    private int batchSize = 5;
     private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
@@ -318,11 +313,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             return new Builder();
         }
 
-        public Builder batchSize(int size) {
-            manager.batchSize = size;
-            return this;
-        }
-
         public Builder waitStrategy(TransferWaitStrategy waitStrategy) {
             manager.waitStrategy = waitStrategy;
             return this;
@@ -379,7 +369,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         }
     }
 
-    private static class CommandRequest {
+    public static class CommandRequest {
 
         private final TransferProcessCommand command;
         private final CompletableFuture<?> future;

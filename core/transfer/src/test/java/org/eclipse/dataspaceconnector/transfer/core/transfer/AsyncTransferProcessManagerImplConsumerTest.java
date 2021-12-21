@@ -63,7 +63,6 @@ import static org.mockito.Mockito.when;
 class AsyncTransferProcessManagerImplConsumerTest {
 
     private static final long TIMEOUT = 5;
-    private static final int TRANSFER_MANAGER_BATCHSIZE = 10;
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
     private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
@@ -79,7 +78,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
                 .provisionManager(provisionManager)
                 .dataFlowManager(mock(DataFlowManager.class))
                 .waitStrategy(mock(TransferWaitStrategy.class))
-                .batchSize(TRANSFER_MANAGER_BATCHSIZE)
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
