@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -29,6 +30,7 @@ import java.util.Map;
 @JsonTypeName("dataspaceconnector:datarequest")
 @JsonDeserialize(builder = DataRequest.Builder.class)
 public class DataRequest implements RemoteMessage, Polymorphic {
+    public static final String PROP_IS_SYNC = "isSync";
     private String id;
 
     private String processId;
@@ -47,11 +49,9 @@ public class DataRequest implements RemoteMessage, Polymorphic {
 
     private boolean managedResources = true;
 
-    private Map<String, String> properties = Map.of();
+    private Map<String, String> properties = new HashMap<>();
 
     private TransferType transferType;
-
-    private boolean isSync = false;
 
     private DataRequest() {
         transferType = new TransferType();
@@ -148,7 +148,6 @@ public class DataRequest implements RemoteMessage, Polymorphic {
                 .contractId(contractId)
                 .dataAddress(dataDestination)
                 .transferType(transferType)
-                .isSync(isSync)
                 .managedResources(managedResources)
                 .properties(properties)
                 .build();
@@ -163,7 +162,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
     }
 
     public boolean isSync() {
-        return Boolean.parseBoolean(getProperties().get("isSync"));
+        return Boolean.parseBoolean(getProperties().get(PROP_IS_SYNC));
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -215,7 +214,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         }
 
         public Builder isSync(boolean isSync) {
-            request.isSync = isSync;
+            request.properties.put(PROP_IS_SYNC, Boolean.toString(isSync));
             return this;
         }
 
@@ -240,7 +239,7 @@ public class DataRequest implements RemoteMessage, Polymorphic {
         }
 
         public Builder properties(Map<String, String> value) {
-            request.properties = value == null ? null : Map.copyOf(value);
+            request.properties = value;
             return this;
         }
 
