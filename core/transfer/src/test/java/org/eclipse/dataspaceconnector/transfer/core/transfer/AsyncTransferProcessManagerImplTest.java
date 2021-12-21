@@ -33,7 +33,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -65,9 +64,7 @@ class AsyncTransferProcessManagerImplTest {
      */
     @Test
     void verifyIdempotency() throws InterruptedException {
-        doReturn(null, "2")
-                .when(store)
-                .processIdForTransferId("1");
+        when(store.processIdForTransferId("1")).thenReturn(null, "2");
 
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
         manager.initiateProviderRequest(dataRequest);
