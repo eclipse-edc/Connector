@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
@@ -15,6 +16,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataD
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
@@ -31,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 import static org.mockito.ArgumentMatchers.any;
@@ -42,6 +45,8 @@ public class AsyncTransferProcessManagerIntegrationTest {
     private final InMemoryTransferProcessStore store = new InMemoryTransferProcessStore();
     private final ProvisionManager provisionManager = mock(ProvisionManager.class);
     private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
+    private final DataFlowManager dataFlowManager = mock(DataFlowManager.class);
+    private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
     private AsyncTransferProcessManager transferProcessManager;
 
     @BeforeEach
@@ -49,10 +54,10 @@ public class AsyncTransferProcessManagerIntegrationTest {
         transferProcessManager = AsyncTransferProcessManager.Builder.newInstance()
                 .manifestGenerator(manifestGenerator)
                 .provisionManager(provisionManager)
-                .dataFlowManager(mock(DataFlowManager.class))
+                .dataFlowManager(dataFlowManager)
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .monitor(mock(Monitor.class))
-                .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
+                .statusCheckerRegistry(statusCheckerRegistry)
                 .build();
 
         transferProcessManager.start(store);
@@ -75,13 +80,17 @@ public class AsyncTransferProcessManagerIntegrationTest {
             var provisionResponse = ProvisionResponse.Builder.newInstance().resource(resourceDefinition).build();
             return List.of(CompletableFuture.completedFuture(provisionResponse));
         });
+        when(dataFlowManager.initiate(any())).thenReturn(DataFlowInitiateResult.success("something"));
+        StatusChecker statusChecker = mock(StatusChecker.class);
+        when(statusChecker.isComplete(any(), any())).thenReturn(true);
+        when(statusCheckerRegistry.resolve(any())).thenReturn(statusChecker);
         DataRequest dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).id("dataRequestId").build();
 
         TransferInitiateResult result = transferProcessManager.initiateProviderRequest(dataRequest);
 
         await().untilAsserted(() -> {
             TransferProcess actual = store.find(result.getContent());
-            assertThat(actual).matches(it -> it.getState() == PROVISIONED.code());
+            assertThat(actual).matches(it -> it.getState() == COMPLETED.code());
         });
     }
 
