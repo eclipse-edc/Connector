@@ -27,7 +27,7 @@ dependencies {
     implementation(project(":core:transfer"))
     implementation(project(":core:contract"))
     implementation(project(":core:protocol:web"))
-    implementation(project(":core:policy:policy-model"))
+    implementation(project(":core:policy:policy-evaluator"))
     implementation(project(":core:policy:policy-engine"))
 
     implementation(project(":extensions:in-memory:assetindex-memory"))

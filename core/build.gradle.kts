@@ -22,7 +22,7 @@ dependencies {
     api(project(":core:bootstrap"))
     api(project(":core:contract"))
     api(project(":core:policy:policy-engine"))
-    api(project(":core:policy:policy-model"))
+    api(project(":core:policy:policy-evaluator"))
     api(project(":core:schema"))
     api(project(":core:protocol:web"))
     api(project(":core:transfer"))

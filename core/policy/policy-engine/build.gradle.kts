@@ -18,7 +18,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:policy:policy-model"))
+    api(project(":core:policy:policy-evaluator"))
 }
 
 publishing {
