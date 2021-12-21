@@ -112,17 +112,13 @@ public class AsyncTransferProcessManagerIntegrationTest {
 
         TransferInitiateResult result = transferProcessManager.initiateProviderRequest(dataRequest);
 
-        await().untilAsserted(() -> {
-            TransferProcess actual = store.find(result.getContent());
-            assertThat(actual).matches(it -> it.getState() == COMPLETED.code());
-        });
+        String processId = result.getContent();
 
-        transferProcessManager.deprovision(result.getContent());
+        assertStateIs(processId, COMPLETED);
 
-        await().untilAsserted(() -> {
-            TransferProcess actual = store.find(result.getContent());
-            assertThat(actual).matches(it -> it.getState() == ENDED.code());
-        });
+        transferProcessManager.deprovision(processId);
+
+        assertStateIs(processId, ENDED);
     }
 
     @Test
@@ -158,23 +154,23 @@ public class AsyncTransferProcessManagerIntegrationTest {
 
         TransferInitiateResult result = transferProcessManager.initiateConsumerRequest(dataRequest);
 
+        String processId = result.getContent();
+
+        assertStateIs(processId, REQUESTED);
+
+        transferProcessManager.transitionRequestAck(processId).join();
+
+        assertStateIs(processId, COMPLETED);
+
+        transferProcessManager.deprovision(processId);
+
+        assertStateIs(processId, ENDED);
+    }
+
+    private void assertStateIs(String processId, TransferProcessStates state) {
         await().untilAsserted(() -> {
-            TransferProcess actual = store.find(result.getContent());
-            assertThat(actual).matches(it -> it.getState() == REQUESTED.code());
-        });
-
-        transferProcessManager.transitionRequestAck(result.getContent()).join();
-
-        await().untilAsserted(() -> {
-            TransferProcess actual = store.find(result.getContent());
-            assertThat(actual).matches(it -> it.getState() == COMPLETED.code());
-        });
-
-        transferProcessManager.deprovision(result.getContent());
-
-        await().untilAsserted(() -> {
-            TransferProcess actual = store.find(result.getContent());
-            assertThat(actual).matches(it -> it.getState() == ENDED.code());
+            TransferProcess actual = store.find(processId);
+            assertThat(actual).matches(it -> it.getState() == state.code());
         });
     }
 
