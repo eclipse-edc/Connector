@@ -32,7 +32,6 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -75,7 +74,6 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 
 /**
@@ -122,7 +120,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         transferProcessStore = processStore;
         commandHandlers.add(new InitiateHandler(transferProcessStore));
         commandHandlers.add(new PrepareProvisionHandler(transferProcessStore, manifestGenerator));
-        commandHandlers.add(new ProvisionHandler(transferProcessStore, provisionManager));
+        commandHandlers.add(new ProvisionHandler(transferProcessStore, provisionManager, monitor, vault, typeManager, commandQueue));
         commandHandlers.add(new RequireTransitionHandler(transferProcessStore, dispatcherRegistry));
         commandHandlers.add(new InitiateDataFlowHandler(transferProcessStore, dataFlowManager, monitor));
         commandHandlers.add(new CompleteHandler(transferProcessStore, statusCheckerRegistry, monitor));
@@ -442,48 +440,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
         transferProcessStore.update(process);
         invokeForEach(listener -> listener.completed(process));
-    }
-
-    /**
-     * Performs consumer-side or provider side provisioning for a service.
-     * <br/>
-     * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
-     * map involve preprocessing data or other operations.
-     */
-    private int provisionInitialProcesses() {
-        var processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
-        for (TransferProcess process : processes) {
-            DataRequest dataRequest = process.getDataRequest();
-            ResourceManifest manifest;
-            if (process.getType() == CONSUMER) {
-                // if resources are managed by this connector, generate the manifest; otherwise create an empty one
-                manifest = dataRequest.isManagedResources() ? manifestGenerator.generateConsumerManifest(process) : ResourceManifest.Builder.newInstance().build();
-            } else {
-                manifest = manifestGenerator.generateProviderManifest(process);
-            }
-            process.transitionProvisioning(manifest);
-            transferProcessStore.update(process);
-            invokeForEach(l -> l.provisioning(process));
-            if (process.getResourceManifest().getDefinitions().isEmpty()) {
-                // no resources to provision, advance state
-                process.transitionProvisioned();
-                transferProcessStore.update(process);
-            } else {
-                provisionManager.provision(process).forEach(future -> {
-                    future.whenComplete((result, throwable) -> {
-                        if (result != null) {
-                            onProvisionComplete(result.getResource(), result.getSecretToken());
-                        } else {
-                            monitor.severe("Error during provisioning", throwable);
-                            process.transitionError("Error during provisioning: " + throwable.getLocalizedMessage());
-                            transferProcessStore.update(process);
-                        }
-                    });
-                });
-            }
-
-        }
-        return processes.size();
     }
 
     /**

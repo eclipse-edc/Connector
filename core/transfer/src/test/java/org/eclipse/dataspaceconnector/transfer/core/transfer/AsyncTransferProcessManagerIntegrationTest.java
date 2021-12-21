@@ -4,8 +4,8 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
+import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
@@ -14,30 +14,40 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
+import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+
+import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class AsyncTransferProcessManagerIntegrationTest {
 
     private final InMemoryTransferProcessStore store = new InMemoryTransferProcessStore();
-    private final ProvisionManagerImpl provisionManager = new ProvisionManagerImpl();
+    private final ProvisionManager provisionManager = mock(ProvisionManager.class);
+    private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
     private AsyncTransferProcessManager transferProcessManager;
 
     @BeforeEach
     void setUp() {
         transferProcessManager = AsyncTransferProcessManager.Builder.newInstance()
-                .manifestGenerator(mock(ResourceManifestGenerator.class))
+                .manifestGenerator(manifestGenerator)
                 .provisionManager(provisionManager)
                 .dataFlowManager(mock(DataFlowManager.class))
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
@@ -46,19 +56,32 @@ public class AsyncTransferProcessManagerIntegrationTest {
                 .build();
 
         transferProcessManager.start(store);
-        provisionManager.register(new TestProvisioner());
-        provisionManager.start(transferProcessManager.createProvisionContext());
     }
 
     @Test
     void provider_request_provisioning() {
+        var resourceDefinitionId = randomUUID().toString();
+        when(manifestGenerator.generateProviderManifest(any())).thenAnswer(i -> {
+            var process = i.getArgument(0, TransferProcess.class);
+            var resourceDefinition = TestResourceDefinition.Builder.newInstance().id(resourceDefinitionId).transferProcessId(process.getId()).build();
+            return ResourceManifest.Builder.newInstance().definitions(List.of(resourceDefinition)).build();
+        });
+        when(provisionManager.provision(any())).thenAnswer(i -> {
+            var process = i.getArgument(0, TransferProcess.class);
+            var resourceDefinition = TestProvisionedDataDestinationResource.Builder.newInstance()
+                    .id(randomUUID().toString()).transferProcessId(process.getId())
+                    .resourceDefinitionId(resourceDefinitionId)
+                    .build();
+            var provisionResponse = ProvisionResponse.Builder.newInstance().resource(resourceDefinition).build();
+            return List.of(CompletableFuture.completedFuture(provisionResponse));
+        });
         DataRequest dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).id("dataRequestId").build();
 
         TransferInitiateResult result = transferProcessManager.initiateProviderRequest(dataRequest);
 
         await().untilAsserted(() -> {
             TransferProcess actual = store.find(result.getContent());
-            assertThat(actual).matches(it -> it.getState() == IN_PROGRESS.code());
+            assertThat(actual).matches(it -> it.getState() == PROVISIONED.code());
         });
     }
 
@@ -74,51 +97,4 @@ public class AsyncTransferProcessManagerIntegrationTest {
         });
     }
 
-    private class TestProvisioner implements Provisioner<ResourceDefinition, ProvisionedDataDestinationResource> {
-
-        private ProvisionContext context;
-
-        @Override
-        public void initialize(ProvisionContext context) {
-            this.context = context;
-        }
-
-        @Override
-        public boolean canProvision(ResourceDefinition resourceDefinition) {
-            return true;
-        }
-
-        @Override
-        public boolean canDeprovision(ProvisionedResource resourceDefinition) {
-            return true;
-        }
-
-        @Override
-        public ResponseStatus provision(ResourceDefinition resourceDefinition) {
-            context.callback(new TestResource());
-            return ResponseStatus.OK;
-        }
-
-        @Override
-        public ResponseStatus deprovision(ProvisionedDataDestinationResource provisionedResource) {
-            context.deprovisioned(new TestResource(), null);
-            return ResponseStatus.OK;
-        }
-    }
-
-    private static class TestResource extends ProvisionedDataDestinationResource {
-        protected TestResource() {
-            super();
-        }
-
-        @Override
-        public DataAddress createDataDestination() {
-            return null;
-        }
-
-        @Override
-        public String getResourceName() {
-            return "test-resource";
-        }
-    }
 }
