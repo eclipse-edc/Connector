@@ -37,12 +37,15 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Complete;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.Initiate;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.command.PrepareDeprovision;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.RequireAck;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.CompleteHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.DeprovisionHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowConsumerHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateDataFlowHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.InitiateHandler;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.PrepareDeprovisionHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.PrepareProvisionHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.ProvisionHandler;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.commandhandler.RequireAckHandler;
@@ -53,7 +56,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Queue;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -67,8 +69,6 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state machine (cf {@link TransferProcessStates}.
@@ -114,12 +114,14 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         transferProcessStore = processStore;
         commandHandlers.add(new InitiateHandler(transferProcessStore));
         commandHandlers.add(new PrepareProvisionHandler(transferProcessStore, manifestGenerator));
-        commandHandlers.add(new ProvisionHandler(transferProcessStore, provisionManager, monitor, vault, typeManager, commandQueue));
+        commandHandlers.add(new ProvisionHandler(transferProcessStore, provisionManager, monitor, vault, typeManager, commandQueue)); // TODO: command queue?
         commandHandlers.add(new RequireTransitionHandler(transferProcessStore, dispatcherRegistry));
         commandHandlers.add(new InitiateDataFlowHandler(transferProcessStore, dataFlowManager, monitor));
         commandHandlers.add(new CompleteHandler(transferProcessStore, statusCheckerRegistry, monitor));
         commandHandlers.add(new RequireAckHandler(transferProcessStore));
         commandHandlers.add(new InitiateDataFlowConsumerHandler(transferProcessStore, monitor));
+        commandHandlers.add(new PrepareDeprovisionHandler(transferProcessStore));
+        commandHandlers.add(new DeprovisionHandler(transferProcessStore, provisionManager, monitor));
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -166,20 +168,11 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
     @Override
     public Result<TransferProcessStates> deprovision(String processId) {
+        var future = new CompletableFuture<>();
+        commandQueue.add(new CommandRequest(new PrepareDeprovision(processId), future));
+        future.join();
+
         var process = transferProcessStore.find(processId);
-        if (process == null) {
-            return Result.failure("not found");
-        }
-
-        if (Set.of(DEPROVISIONED.code(), DEPROVISIONING_REQ.code(), DEPROVISIONING.code(), ENDED.code()).contains(process.getState())) {
-            monitor.info("Request already deprovisioning or deprovisioned.");
-        } else {
-            monitor.info("starting to deprovision data request " + processId);
-            process.transitionCompleted();
-            process.transitionDeprovisioning();
-            transferProcessStore.update(process);
-        }
-
         return Result.success(TransferProcessStates.from(process.getState()));
     }
 
@@ -294,7 +287,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
                 // TODO check processes in provisioning state and timestamps for failed processes
 
-                int deprovisioning = checkDeprovisioningRequested();
+//                int deprovisioning = checkDeprovisioningRequested();
 
                 int deprovisioned = checkDeprovisioned();
 
