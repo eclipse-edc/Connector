@@ -138,6 +138,7 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
                     Object dataObject = extractArtifactResponse(r);
                     future.complete(dataObject);
                 } else if (r.code() == 500) {
+                    // TODO: why this status change on error?
                     transferProcessManager.transitionProvisioned(processId);
                     future.completeExceptionally(new EdcException("Received InternalServerError " + r.message()));
                 } else {

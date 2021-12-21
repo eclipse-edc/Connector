@@ -47,7 +47,10 @@ public interface TransferProcessStore {
      * @param state The state that the processes of interest should be in.
      * @param max   The maximum amount of result items.
      * @return A list of TransferProcesses (at most _max_) that are in the desired state.
+     *
+     * @deprecated should be removed since it is not used by any production code.
      */
+    @Deprecated
     @NotNull
     List<TransferProcess> nextForState(int state, int max);
 
