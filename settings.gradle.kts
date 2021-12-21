@@ -105,6 +105,7 @@ include(":extensions:jdk-logger-monitor")
 include(":extensions:postgresql:asset-index")
 include(":extensions:postgresql:asset-loader")
 include(":extensions:postgresql:contract-definition-store")
+include(":extensions:postgresql:contract-definition-loader")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
