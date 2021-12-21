@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
@@ -32,7 +31,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
-import org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -41,20 +39,15 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyList;
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED_ACK;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -92,32 +85,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
                 .monitor(mock(Monitor.class))
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .build();
-    }
-
-    @Test
-    void run_shouldProvision() throws InterruptedException, ExecutionException, TimeoutException {
-        //arrange
-        TransferProcess process = createTransferProcess(INITIAL);
-        var cdl = new CountDownLatch(1);
-        //prepare provision manager
-        doAnswer(i -> {
-            cdl.countDown();
-            return null;
-        }).when(provisionManager).provision(any(TransferProcess.class));
-
-        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
-        when(processStoreMock.find(any())).thenReturn(process);
-
-        processStoreMock.update(process);
-        doNothing().when(processStoreMock).update(process);
-
-        transferProcessManager.start(processStoreMock);
-        transferProcessManager.initiateProviderRequest(process.getDataRequest());
-
-        assertThat(cdl.await(TIMEOUT, SECONDS)).isTrue();
-        assertThat(process.getState()).describedAs("State should be PROVISIONING").isEqualTo(TransferProcessStates.PROVISIONING.code());
-        verify(provisionManager, atLeastOnce()).provision(any(TransferProcess.class));
-        verify(processStoreMock, atLeastOnce()).update(process);
     }
 
     @Test
@@ -345,34 +312,6 @@ class AsyncTransferProcessManagerImplConsumerTest {
         verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
         verify(processStoreMock, atLeastOnce()).nextForState(anyInt(), anyInt());
         verify(processStoreMock, atLeastOnce()).update(process);
-    }
-
-    @Test
-    @DisplayName("Verify that no process 'starves' during two consecutive runs, when the batch size > number of processes")
-    void verifyProvision_shouldNotStarve() throws InterruptedException {
-        var numProcesses = TRANSFER_MANAGER_BATCHSIZE * 2;
-        var dataRequests = range(0, numProcesses).mapToObj(i -> createTransferProcess(UNSAVED))
-                .map(TransferProcess::getDataRequest).collect(Collectors.toList());
-        TransferProcessStore inMemoryProcessStore = new InMemoryTransferProcessStore();
-
-        var processesToProvision = new CountDownLatch(numProcesses); //all processes should be provisioned
-
-        doAnswer(i -> {
-            processesToProvision.countDown();
-            return null;
-        }).when(provisionManager).provision(any(TransferProcess.class));
-
-        transferProcessManager.start(inMemoryProcessStore);
-        var ids = dataRequests.stream().map(transferProcessManager::initiateConsumerRequest)
-                .map(TransferInitiateResult::getContent).collect(Collectors.toList());
-
-        assertThat(processesToProvision.await(5, TimeUnit.SECONDS)).isTrue();
-        var actualProcesses = ids.stream().map(inMemoryProcessStore::find).collect(Collectors.toList());
-        assertThat(actualProcesses).describedAs("All transfer processes should be in PROVISIONING state").allSatisfy(p -> {
-            assertThat(p).describedAs("Should exist in the TransferProcessStore").isNotNull();
-            assertThat(p.getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
-        });
-        verify(provisionManager, atLeastOnce()).provision(any());
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
