@@ -38,6 +38,6 @@ public class TestFunctions {
     }
 
     public static ContractNegotiationDocument generateDocument() {
-        return new ContractNegotiationDocument(generateNegotiation());
+        return new ContractNegotiationDocument(generateNegotiation(), "test-part-key");
     }
 }

@@ -163,6 +163,61 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         return Result.success(TransferProcessStates.from(process.getState()));
     }
 
+    public ProvisionContext createProvisionContext() {
+        return new ProvisionContextImpl(this::onResource, this::onDestinationResource, this::onDeprovisionComplete);
+    }
+
+    void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {
+        if (deprovisionError != null) {
+            monitor.severe("Deprovisioning error: ", deprovisionError);
+        } else {
+            monitor.info("Deprovisioning successfully completed.");
+
+            TransferProcess transferProcess = transferProcessStore.find(resource.getTransferProcessId());
+            if (transferProcess != null) {
+                transferProcess.transitionDeprovisioned();
+                transferProcessStore.update(transferProcess);
+                monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
+            } else {
+                monitor.severe("ProvisionManager: no TransferProcess found for deprovisioned resource");
+            }
+
+        }
+    }
+
+    void onDestinationResource(ProvisionedDataDestinationResource destinationResource, SecretToken secretToken) {
+        var processId = destinationResource.getTransferProcessId();
+        var transferProcess = transferProcessStore.find(processId);
+        if (transferProcess == null) {
+            processNotFound(destinationResource);
+            return;
+        }
+
+        if (!destinationResource.isError()) {
+            transferProcess.getDataRequest().updateDestination(destinationResource.createDataDestination());
+        }
+
+        if (secretToken != null) {
+            String keyName = destinationResource.getResourceName();
+            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+            transferProcess.getDataRequest().getDataDestination().setKeyName(keyName);
+
+        }
+
+        updateProcessWithProvisionedResource(destinationResource, transferProcess);
+    }
+
+    void onResource(ProvisionedResource provisionedResource) {
+        var processId = provisionedResource.getTransferProcessId();
+        var transferProcess = transferProcessStore.find(processId);
+        if (transferProcess == null) {
+            processNotFound(provisionedResource);
+            return;
+        }
+
+        updateProcessWithProvisionedResource(provisionedResource, transferProcess);
+    }
+
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
@@ -255,7 +310,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
         return processesDeprovisioning.size();
     }
-
 
     /**
      * Transition all processes, who have provisioned resources, into the IN_PROGRESS or STREAMING status, depending on
@@ -373,11 +427,23 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 process.transitionRequested();
                 transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
                 invokeForEach(l -> l.requested(process));
-                dispatcherRegistry.send(Object.class, dataRequest, process::getId).whenComplete((o, throwable) -> {
-                    if (o != null) {
-                        monitor.info("Object received: " + o.toString());
-                    }
-                });
+                dispatcherRegistry.send(Object.class, dataRequest, process::getId)
+                        .thenApply(o -> {
+                            transitionRequestAck(process.getId());
+                            transferProcessStore.update(process);
+                            return o;
+                        })
+                        .whenComplete((o, throwable) -> {
+                            if (o != null) {
+                                monitor.info("Object received: " + o);
+                                if (dataRequest.getTransferType().isFinite()) {
+                                    process.transitionInProgress();
+                                } else {
+                                    process.transitionStreaming();
+                                }
+                                transferProcessStore.update(process);
+                            }
+                        });
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
                 if (response.succeeded()) {
@@ -406,9 +472,32 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         return processes.size();
     }
 
-
     private void invokeForEach(Consumer<TransferProcessListener> action) {
         getListeners().forEach(action);
+    }
+
+    private void updateProcessWithProvisionedResource(ProvisionedResource provisionedResource, TransferProcess transferProcess) {
+        transferProcess.addProvisionedResource(provisionedResource);
+
+        if (provisionedResource.isError()) {
+            var processId = transferProcess.getId();
+            var resourceId = provisionedResource.getResourceDefinitionId();
+            monitor.severe(format("Error provisioning resource %s for process %s: %s", resourceId, processId, provisionedResource.getErrorMessage()));
+            transferProcessStore.update(transferProcess);
+            return;
+        }
+
+        if (TransferProcessStates.ERROR.code() != transferProcess.getState() && transferProcess.provisioningComplete()) {
+            // TODO If all resources provisioned, delete scratch data
+            transferProcess.transitionProvisioned();
+        }
+        transferProcessStore.update(transferProcess);
+    }
+
+    private void processNotFound(ProvisionedResource provisionedResource) {
+        var resourceId = provisionedResource.getResourceDefinitionId();
+        var processId = provisionedResource.getTransferProcessId();
+        monitor.severe(format("Error received when provisioning resource %s Process id not found for: %s", resourceId, processId));
     }
 
     public static class Builder {
@@ -481,84 +570,5 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
             return manager;
         }
-    }
-
-    public ProvisionContext createProvisionContext() {
-        return new ProvisionContextImpl(this::onResource, this::onDestinationResource, this::onDeprovisionComplete);
-    }
-
-    void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {
-        if (deprovisionError != null) {
-            monitor.severe("Deprovisioning error: ", deprovisionError);
-        } else {
-            monitor.info("Deprovisioning successfully completed.");
-
-            TransferProcess transferProcess = transferProcessStore.find(resource.getTransferProcessId());
-            if (transferProcess != null) {
-                transferProcess.transitionDeprovisioned();
-                transferProcessStore.update(transferProcess);
-                monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
-            } else {
-                monitor.severe("ProvisionManager: no TransferProcess found for deprovisioned resource");
-            }
-
-        }
-    }
-
-    void onDestinationResource(ProvisionedDataDestinationResource destinationResource, SecretToken secretToken) {
-        var processId = destinationResource.getTransferProcessId();
-        var transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            processNotFound(destinationResource);
-            return;
-        }
-
-        if (!destinationResource.isError()) {
-            transferProcess.getDataRequest().updateDestination(destinationResource.createDataDestination());
-        }
-
-        if (secretToken != null) {
-            String keyName = destinationResource.getResourceName();
-            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-            transferProcess.getDataRequest().getDataDestination().setKeyName(keyName);
-
-        }
-
-        updateProcessWithProvisionedResource(destinationResource, transferProcess);
-    }
-
-    void onResource(ProvisionedResource provisionedResource) {
-        var processId = provisionedResource.getTransferProcessId();
-        var transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            processNotFound(provisionedResource);
-            return;
-        }
-
-        updateProcessWithProvisionedResource(provisionedResource, transferProcess);
-    }
-
-    private void updateProcessWithProvisionedResource(ProvisionedResource provisionedResource, TransferProcess transferProcess) {
-        transferProcess.addProvisionedResource(provisionedResource);
-
-        if (provisionedResource.isError()) {
-            var processId = transferProcess.getId();
-            var resourceId = provisionedResource.getResourceDefinitionId();
-            monitor.severe(format("Error provisioning resource %s for process %s: %s", resourceId, processId, provisionedResource.getErrorMessage()));
-            transferProcessStore.update(transferProcess);
-            return;
-        }
-
-        if (TransferProcessStates.ERROR.code() != transferProcess.getState() && transferProcess.provisioningComplete()) {
-            // TODO If all resources provisioned, delete scratch data
-            transferProcess.transitionProvisioned();
-        }
-        transferProcessStore.update(transferProcess);
-    }
-
-    private void processNotFound(ProvisionedResource provisionedResource) {
-        var resourceId = provisionedResource.getResourceDefinitionId();
-        var processId = provisionedResource.getTransferProcessId();
-        monitor.severe(format("Error received when provisioning resource %s Process id not found for: %s", resourceId, processId));
     }
 }

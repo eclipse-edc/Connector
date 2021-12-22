@@ -29,9 +29,9 @@ public class ContractNegotiationDocument extends CosmosDocument<ContractNegotiat
     private Lease lease;
 
     @JsonCreator
-    public ContractNegotiationDocument(@JsonProperty("wrappedInstance") ContractNegotiation contractNegotiation) {
+    public ContractNegotiationDocument(@JsonProperty("wrappedInstance") ContractNegotiation contractNegotiation, @JsonProperty("partitionKey") String partitionKey) {
         //todo: lets think about whether this a good partition key
-        super(contractNegotiation, String.valueOf(contractNegotiation.getState()));
+        super(contractNegotiation, partitionKey);
     }
 
     public Lease getLease() {
