@@ -58,7 +58,10 @@ public class CosmosAssetQueryBuilder {
     }
 
     private static class WhereClause {
-        private static final List<String> SUPPORTED_OPERATOR = List.of("=", "IN");
+        public static final String EQUALS_OPERATOR = "=";
+        public static final String IN_OPERATOR = "IN";
+        private static final List<String> SUPPORTED_OPERATOR = List.of(EQUALS_OPERATOR, IN_OPERATOR);
+
         private final List<SqlParameter> parameters = new ArrayList<>();
         private String where = "";
 
@@ -96,10 +99,13 @@ public class CosmosAssetQueryBuilder {
 
         private Criterion escape(Criterion criterion) {
             var s = criterion.getOperandLeft().toString();
-            if (CollectionUtil.isAnyOf(s,
-                    Asset.PROPERTY_POLICY_ID,
-                    Asset.PROPERTY_ID, Asset.PROPERTY_CONTENT_TYPE,
-                    Asset.PROPERTY_NAME, Asset.PROPERTY_VERSION)) {
+            var isEqualsOperator = criterion.getOperator().equals(EQUALS_OPERATOR);
+            // need to add ticks if right-operand is a string type
+            if (isEqualsOperator &&
+                    CollectionUtil.isAnyOf(s,
+                            Asset.PROPERTY_POLICY_ID,
+                            Asset.PROPERTY_ID, Asset.PROPERTY_CONTENT_TYPE,
+                            Asset.PROPERTY_NAME, Asset.PROPERTY_VERSION)) {
                 var or = criterion.getOperandRight().toString();
                 or = "'" + or + "'";
                 criterion = new Criterion(s, criterion.getOperator(), or);

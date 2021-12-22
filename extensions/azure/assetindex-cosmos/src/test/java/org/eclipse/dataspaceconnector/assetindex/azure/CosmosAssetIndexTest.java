@@ -158,7 +158,7 @@ class CosmosAssetIndexTest {
         var queryCapture = ArgumentCaptor.forClass(SqlQuerySpec.class);
         when(api.queryItems(queryCapture.capture())).thenReturn(Stream.of(createDocument(id1), createDocument(id2)));
         CosmosAssetIndex assetIndex = new CosmosAssetIndex(api, TEST_PARTITION_KEY, typeManager, retryPolicy);
-        var selectByName = AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "'somename'").build();
+        var selectByName = AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "somename").build();
 
         var assets = assetIndex.queryAssets(selectByName);
 
