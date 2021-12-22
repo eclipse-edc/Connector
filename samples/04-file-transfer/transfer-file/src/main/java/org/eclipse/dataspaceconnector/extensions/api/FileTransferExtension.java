@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.extensions.api;
 
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
-import org.eclipse.dataspaceconnector.policy.model.LiteralExpression;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -25,12 +24,16 @@ import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
 import java.nio.file.Path;
 import java.util.Set;
@@ -48,11 +51,15 @@ public class FileTransferExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        var vault = context.getService(Vault.class);
         var dataFlowMgr = context.getService(DataFlowManager.class);
         var dataAddressResolver = context.getService(DataAddressResolver.class);
 
-        var flowController = new FileTransferFlowController(context.getMonitor(), dataAddressResolver);
-        dataFlowMgr.register(flowController);
+        var dataOperatorRegistry = context.getService(DataOperatorRegistry.class);
+        dataOperatorRegistry.registerStreamPublisher(new FileTransferDataStreamPublisher(context.getMonitor(), dataAddressResolver));
+
+        DataFlowController dataFlowController = new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver);
+        dataFlowMgr.register(dataFlowController);
 
         var policy = savePolicies(context);
 

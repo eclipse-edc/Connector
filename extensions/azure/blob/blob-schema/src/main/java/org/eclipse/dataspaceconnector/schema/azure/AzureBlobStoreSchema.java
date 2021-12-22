@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.schema.SchemaAttribute;
 
 public class AzureBlobStoreSchema extends DataSchema {
 
-
     public static final String TYPE = "AzureStorage";
     public static final String CONTAINER_NAME = "container";
     public static final String ACCOUNT_NAME = "account";
@@ -37,5 +36,4 @@ public class AzureBlobStoreSchema extends DataSchema {
         attributes.add(new SchemaAttribute(BLOB_NAME, false));
         attributes.add(new SchemaAttribute(CONTAINER_NAME, true));
     }
-
 }

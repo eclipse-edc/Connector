@@ -22,6 +22,8 @@ plugins {
 
 dependencies {
     api(project(":spi"))
+    api(project(":extensions:inline-data-transfer:inline-data-transfer-spi"))
+    implementation(project(":extensions:inline-data-transfer:inline-data-transfer-core"))
     implementation(project(":core:protocol:web"))
     implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
     implementation("jakarta.websocket:jakarta.websocket-api:${websocketVersion}")

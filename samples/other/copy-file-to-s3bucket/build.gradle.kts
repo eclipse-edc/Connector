@@ -20,8 +20,8 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":extensions:aws:s3:provision"))
-    implementation(project(":extensions:aws:s3:s3-schema"))
+    implementation(project(":extensions:aws:s3:writer"))
+    implementation(project(":extensions:inline-data-transfer:inline-data-transfer-core"))
 
 
     implementation(platform("software.amazon.awssdk:bom:${awsVersion}"))

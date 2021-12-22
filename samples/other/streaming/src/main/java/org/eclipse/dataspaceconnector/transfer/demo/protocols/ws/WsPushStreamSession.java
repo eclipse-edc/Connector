@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.PublishMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.UnSubscribeMessage;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.StreamSession;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamSession;
 import org.eclipse.jetty.util.component.LifeCycle;
 
 import java.io.IOException;

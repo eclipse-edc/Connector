@@ -14,16 +14,20 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
+import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.fixture.AbstractDemoTransferTest;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamContext;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisher;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamContext;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
@@ -61,7 +65,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
      * @param monitor        the injected runtime monitor
      */
     @Test
-    void verifyWsPushStreamFlow(TransferProcessManager processManager, TopicManager topicManager, StreamPublisherRegistry registry, Monitor monitor) throws InterruptedException {
+    void verifyWsPushStreamFlow(TransferProcessManager processManager, TopicManager topicManager, DataOperatorRegistry registry, Monitor monitor, Vault vault, OkHttpClient httpClient, TypeManager typeManager) throws InterruptedException {
         var receiveLatch = new CountDownLatch(1);
         var requestLatch = new CountDownLatch(1);
 
@@ -71,7 +75,9 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
             receiveLatch.countDown();
         });
 
-        registry.register(new TestStreamPublisher(requestLatch));
+        var streamPublisher = new TestStreamPublisher(requestLatch);
+        streamPublisher.initialize(new PushStreamContext(vault, httpClient, typeManager.getMapper(), monitor));
+        registry.registerStreamPublisher(streamPublisher);
 
         var asset = Asset.Builder.newInstance().id("test123").build();
 
@@ -98,7 +104,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
      * @param monitor        the injected runtime monitor
      */
     @Test
-    void verifyHttpPushStreamFlow(TransferProcessManager processManager, TopicManager topicManager, StreamPublisherRegistry registry, Monitor monitor) throws InterruptedException {
+    void verifyHttpPushStreamFlow(TransferProcessManager processManager, TopicManager topicManager, DataOperatorRegistry registry, Monitor monitor, Vault vault, OkHttpClient httpClient, TypeManager typeManager) throws InterruptedException {
         var receiveLatch = new CountDownLatch(1);
         var requestLatch = new CountDownLatch(1);
 
@@ -108,7 +114,9 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
             receiveLatch.countDown();
         });
 
-        registry.register(new TestStreamPublisher(requestLatch));
+        var streamPublisher = new TestStreamPublisher(requestLatch);
+        streamPublisher.initialize(new PushStreamContext(vault, httpClient, typeManager.getMapper(), monitor));
+        registry.registerStreamPublisher(streamPublisher);
 
         var asset = Asset.Builder.newInstance().id("test123").build();
 
@@ -127,7 +135,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
         assertThat(receiveLatch.await(1, MINUTES)).isTrue();
     }
 
-    private static class TestStreamPublisher implements StreamPublisher {
+    private static class TestStreamPublisher implements DataStreamPublisher {
         private final CountDownLatch requestLatch;
         private StreamContext context;
 
@@ -146,7 +154,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
         }
 
         @Override
-        public void notifyPublisher(DataRequest dataRequest) {
+        public Result<Void> notifyPublisher(DataRequest dataRequest) {
             var dataAddress = dataRequest.getDataDestination();
             var uriProperty = dataAddress.getProperty(ENDPOINT_ADDRESS);
             var destinationName = dataAddress.getProperty(DESTINATION_NAME);
@@ -156,6 +164,8 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
                 session.publish("test".getBytes());
             }
             requestLatch.countDown();
+
+            return Result.success();
         }
     }
 }

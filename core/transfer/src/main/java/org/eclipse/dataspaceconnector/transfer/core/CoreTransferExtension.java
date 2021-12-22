@@ -41,6 +41,8 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.DefaultProxyEntryHa
 import org.eclipse.dataspaceconnector.transfer.core.transfer.DelegatingTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.SyncTransferProcessManager;
+import org.eclipse.dataspaceconnector.transfer.inline.core.DataOperatorRegistryImpl;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
 import java.util.Set;
 
@@ -97,6 +99,9 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var statusCheckerRegistry = new StatusCheckerRegistryImpl();
         context.registerService(StatusCheckerRegistry.class, statusCheckerRegistry);
+
+        var dataOperatorRegistry = new DataOperatorRegistryImpl();
+        context.registerService(DataOperatorRegistry.class, dataOperatorRegistry);
 
         var vault = context.getService(Vault.class);
 
