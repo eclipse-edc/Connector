@@ -68,7 +68,7 @@ public class S3ProvisionPipeline {
     /**
      * Performs a non-blocking provisioning operation.
      */
-    public CompletableFuture<Pair<Role, Credentials>> provision(S3BucketResourceDefinition resourceDefinition) {
+    public CompletableFuture<S3ProvisionResponse> provision(S3BucketResourceDefinition resourceDefinition) {
         var s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, resourceDefinition.getRegionId());
         var iamClient = clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId());
         var stsClient = clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId());
@@ -125,7 +125,7 @@ public class S3ProvisionPipeline {
         });
     }
 
-    private CompletableFuture<Pair<Role, Credentials>> assumeRole(StsAsyncClient stsClient, Role role) {
+    private CompletableFuture<S3ProvisionResponse> assumeRole(StsAsyncClient stsClient, Role role) {
         return Failsafe.with(retryPolicy).getStageAsync(() -> {
             monitor.debug("S3ProvisionPipeline: attempting to assume the role");
             AssumeRoleRequest roleRequest = AssumeRoleRequest.builder()
@@ -135,7 +135,7 @@ public class S3ProvisionPipeline {
                     .build();
 
             return stsClient.assumeRole(roleRequest)
-                    .thenApply(response -> Pair.of(role, response.credentials()));
+                    .thenApply(response -> new S3ProvisionResponse(role, response.credentials()));
         });
     }
 

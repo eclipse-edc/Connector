@@ -69,7 +69,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
                 .monitor(monitor)
                 .build()
                 .provision(resourceDefinition)
-                .thenApply(result -> provisionSuccedeed(resourceDefinition, result.left(), result.right()))
+                .thenApply(result -> provisionSuccedeed(resourceDefinition, result.getRole(), result.getCredentials()))
                 .exceptionally(throwable -> provisionFailed(resourceDefinition, throwable));
     }
 
