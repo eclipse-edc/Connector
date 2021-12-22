@@ -43,14 +43,26 @@ public class ProvisionManagerImpl implements ProvisionManager {
     @Override
     public List<CompletableFuture<ProvisionResponse>> provision(TransferProcess process) {
         return process.getResourceManifest().getDefinitions().stream()
-                .map(definition -> getProvisioner(definition).provision(definition))
+                .map(definition -> {
+                    try {
+                        return getProvisioner(definition).provision(definition);
+                    } catch (Exception e) {
+                        return CompletableFuture.<ProvisionResponse>failedFuture(e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
     @Override
     public List<CompletableFuture<DeprovisionResponse>> deprovision(TransferProcess process) {
         return process.getProvisionedResourceSet().getResources().stream()
-                .map(definition -> getProvisioner(definition).deprovision(definition))
+                .map(definition -> {
+                    try {
+                        return getProvisioner(definition).deprovision(definition);
+                    } catch (Exception e) {
+                        return CompletableFuture.<DeprovisionResponse>failedFuture(e);
+                    }
+                })
                 .collect(Collectors.toList());
     }
 
