@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.provision.aws.s3;
 
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.DeprovisionResponse;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
@@ -28,14 +29,12 @@ import static java.util.stream.Collectors.joining;
 public class S3DeprovisionPipeline {
 
     private final RetryPolicy<Object> retryPolicy;
-    private final S3AsyncClient s3Client;
-    private final IamAsyncClient iamClient;
+    private final ClientProvider clientProvider;
     private final Monitor monitor;
 
-    public S3DeprovisionPipeline(RetryPolicy<Object> retryPolicy, S3AsyncClient s3Client, IamAsyncClient iamClient, Monitor monitor) {
+    public S3DeprovisionPipeline(RetryPolicy<Object> retryPolicy, ClientProvider clientProvider, Monitor monitor) {
         this.retryPolicy = retryPolicy;
-        this.s3Client = s3Client;
-        this.iamClient = iamClient;
+        this.clientProvider = clientProvider;
         this.monitor = monitor;
     }
 
@@ -43,10 +42,14 @@ public class S3DeprovisionPipeline {
      * Performs a non-blocking deprovisioning operation.
      */
     public CompletableFuture<?> deprovision(S3BucketProvisionedResource resource) {
+        var s3Client = clientProvider.clientFor(S3AsyncClient.class, resource.getRegion());
+        var iamClient = clientProvider.clientFor(IamAsyncClient.class, resource.getRegion());
+
         String bucketName = resource.getBucketName();
         String role = resource.getRole();
 
         var listObjectsRequest = ListObjectsV2Request.builder().bucket(bucketName).build();
+        monitor.debug("S3DeprovisionPipeline: list objects");
         return s3Client.listObjectsV2(listObjectsRequest)
                 .thenCompose(listObjectsResponse -> deleteObjects(s3Client, bucketName, listObjectsResponse))
                 .thenCompose(deleteObjectsResponse -> deleteBucket(s3Client, bucketName))
@@ -57,21 +60,21 @@ public class S3DeprovisionPipeline {
 
     private CompletableFuture<DeleteRoleResponse> deleteRole(IamAsyncClient iamClient, String role) {
         return Failsafe.with(retryPolicy).getStageAsync(() -> {
-            monitor.info("S3 Deprovisioning: delete role");
+            monitor.debug("S3DeprovisionPipeline: delete role");
             return iamClient.deleteRole(DeleteRoleRequest.builder().roleName(role).build());
         });
     }
 
     private CompletableFuture<DeleteRolePolicyResponse> deleteRolePolicy(IamAsyncClient iamClient, String role) {
         return Failsafe.with(retryPolicy).getStageAsync(() -> {
-            monitor.info("S3 Deprovisioning: deleting inline policies for Role " + role);
+            monitor.debug("S3DeprovisionPipeline: deleting inline policies for Role " + role);
             return iamClient.deleteRolePolicy(DeleteRolePolicyRequest.builder().roleName(role).policyName(role).build());
         });
     }
 
     private CompletableFuture<DeleteBucketResponse> deleteBucket(S3AsyncClient s3Client, String bucketName) {
         return Failsafe.with(retryPolicy).getStageAsync(() -> {
-            monitor.info("S3 Deprovisioning: delete bucket");
+            monitor.debug("S3DeprovisionPipeline: delete bucket");
             return s3Client.deleteBucket(DeleteBucketRequest.builder().bucket(bucketName).build());
         });
     }
@@ -84,15 +87,14 @@ public class S3DeprovisionPipeline {
         var deleteRequest = DeleteObjectsRequest.builder()
                 .bucket(bucketName).delete(Delete.builder().objects(identifiers).build())
                 .build();
-        monitor.info("S3 Deprovisioning: delete bucket contents: " + identifiers.stream().map(ObjectIdentifier::key).collect(joining(", ")));
+        monitor.debug("S3DeprovisionPipeline: delete bucket contents: " + identifiers.stream().map(ObjectIdentifier::key).collect(joining(", ")));
         return s3Client.deleteObjects(deleteRequest);
     }
 
     static class Builder {
         private final RetryPolicy<Object> retryPolicy;
-        private S3AsyncClient s3AsyncClient;
-        private IamAsyncClient iamClient;
         private Monitor monitor;
+        private ClientProvider clientProvider;
 
         private Builder(RetryPolicy<Object> retryPolicy) {
             this.retryPolicy = retryPolicy;
@@ -102,27 +104,21 @@ public class S3DeprovisionPipeline {
             return new Builder(policy);
         }
 
-        public Builder s3Client(S3AsyncClient s3AsyncClient) {
-            this.s3AsyncClient = s3AsyncClient;
-            return this;
-        }
-
-        public Builder iamClient(IamAsyncClient iamClient) {
-            this.iamClient = iamClient;
-            return this;
-        }
-
         public Builder monitor(Monitor monitor) {
             this.monitor = monitor;
             return this;
         }
 
+        public Builder clientProvider(ClientProvider clientProvider) {
+            this.clientProvider = clientProvider;
+            return this;
+        }
+
         public S3DeprovisionPipeline build() {
             Objects.requireNonNull(retryPolicy);
-            Objects.requireNonNull(s3AsyncClient);
-            Objects.requireNonNull(iamClient);
+            Objects.requireNonNull(clientProvider);
             Objects.requireNonNull(monitor);
-            return new S3DeprovisionPipeline(retryPolicy, s3AsyncClient, iamClient, monitor);
+            return new S3DeprovisionPipeline(retryPolicy, clientProvider, monitor);
         }
     }
 }

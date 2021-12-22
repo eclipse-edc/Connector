@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.provision.aws.s3;
 
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import software.amazon.awssdk.services.iam.IamAsyncClient;
 import software.amazon.awssdk.services.iam.model.CreateRoleRequest;
@@ -52,18 +53,14 @@ public class S3ProvisionPipeline {
             "}";
 
     private final RetryPolicy<Object> retryPolicy;
-    private final S3AsyncClient s3AsyncClient;
-    private final IamAsyncClient iamClient;
-    private final StsAsyncClient stsClient;
+    private final ClientProvider clientProvider;
     private final Monitor monitor;
     private final int roleMaxSessionDuration;
 
-    private S3ProvisionPipeline(RetryPolicy<Object> retryPolicy, S3AsyncClient s3AsyncClient, IamAsyncClient iamClient,
-                                StsAsyncClient stsClient, Monitor monitor, int roleMaxSessionDuration) {
+    private S3ProvisionPipeline(RetryPolicy<Object> retryPolicy, ClientProvider clientProvider,
+                                Monitor monitor, int roleMaxSessionDuration) {
         this.retryPolicy = retryPolicy;
-        this.s3AsyncClient = s3AsyncClient;
-        this.iamClient = iamClient;
-        this.stsClient = stsClient;
+        this.clientProvider = clientProvider;
         this.monitor = monitor;
         this.roleMaxSessionDuration = roleMaxSessionDuration;
     }
@@ -72,11 +69,16 @@ public class S3ProvisionPipeline {
      * Performs a non-blocking provisioning operation.
      */
     public CompletableFuture<Pair<Role, Credentials>> provision(S3BucketResourceDefinition resourceDefinition) {
+        var s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, resourceDefinition.getRegionId());
+        var iamClient = clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId());
+        var stsClient = clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId());
+
         var request = CreateBucketRequest.builder()
                 .bucket(resourceDefinition.getBucketName())
                 .createBucketConfiguration(CreateBucketConfiguration.builder().build())
                 .build();
 
+        monitor.debug("S3ProvisionPipeline: create bucket " + resourceDefinition.getBucketName());
         return s3AsyncClient.createBucket(request)
                 .thenCompose(r -> getUser(iamClient))
                 .thenCompose(response -> createRole(iamClient, resourceDefinition, response))
@@ -139,11 +141,9 @@ public class S3ProvisionPipeline {
 
     static class Builder {
         private final RetryPolicy<Object> retryPolicy;
-        private S3AsyncClient s3AsyncClient;
-        private IamAsyncClient iamClient;
-        private StsAsyncClient stsClient;
         private int roleMaxSessionDuration;
         private Monitor monitor;
+        private ClientProvider clientProvider;
 
         private Builder(RetryPolicy<Object> retryPolicy) {
             this.retryPolicy = retryPolicy;
@@ -151,21 +151,6 @@ public class S3ProvisionPipeline {
 
         public static Builder newInstance(RetryPolicy<Object> policy) {
             return new Builder(policy);
-        }
-
-        public Builder s3Client(S3AsyncClient s3AsyncClient) {
-            this.s3AsyncClient = s3AsyncClient;
-            return this;
-        }
-
-        public Builder iamClient(IamAsyncClient iamClient) {
-            this.iamClient = iamClient;
-            return this;
-        }
-
-        public Builder stsClient(StsAsyncClient stsClient) {
-            this.stsClient = stsClient;
-            return this;
         }
 
         public Builder roleMaxSessionDuration(int roleMaxSessionDuration) {
@@ -178,13 +163,16 @@ public class S3ProvisionPipeline {
             return this;
         }
 
+        public Builder clientProvider(ClientProvider clientProvider) {
+            this.clientProvider = clientProvider;
+            return this;
+        }
+
         public S3ProvisionPipeline build() {
             Objects.requireNonNull(retryPolicy);
-            Objects.requireNonNull(s3AsyncClient);
-            Objects.requireNonNull(iamClient);
-            Objects.requireNonNull(stsClient);
+            Objects.requireNonNull(clientProvider);
             Objects.requireNonNull(monitor);
-            return new S3ProvisionPipeline(retryPolicy, s3AsyncClient, iamClient, stsClient, monitor, roleMaxSessionDuration);
+            return new S3ProvisionPipeline(retryPolicy, clientProvider, monitor, roleMaxSessionDuration);
         }
     }
 

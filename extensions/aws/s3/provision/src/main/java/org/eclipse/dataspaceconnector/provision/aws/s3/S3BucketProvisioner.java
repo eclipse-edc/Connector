@@ -63,14 +63,8 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
 
     @Override
     public CompletableFuture<ProvisionResponse> provision(S3BucketResourceDefinition resourceDefinition) {
-        var s3AsyncClient = clientProvider.clientFor(S3AsyncClient.class, resourceDefinition.getRegionId());
-        var iamClient = clientProvider.clientFor(IamAsyncClient.class, resourceDefinition.getRegionId());
-        var stsClient = clientProvider.clientFor(StsAsyncClient.class, resourceDefinition.getRegionId());
-
         return S3ProvisionPipeline.Builder.newInstance(retryPolicy)
-                .s3Client(s3AsyncClient)
-                .iamClient(iamClient)
-                .stsClient(stsClient)
+                .clientProvider(clientProvider)
                 .roleMaxSessionDuration(configuration.getRoleMaxSessionDuration())
                 .monitor(monitor)
                 .build()
@@ -81,14 +75,8 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
 
     @Override
     public CompletableFuture<DeprovisionResponse> deprovision(S3BucketProvisionedResource resource) {
-        var s3Client = clientProvider.clientFor(S3AsyncClient.class, resource.getRegion());
-        var iamClient = clientProvider.clientFor(IamAsyncClient.class, resource.getRegion());
-
-        monitor.info("S3 Deprovisioning: list bucket contents");
-
         return S3DeprovisionPipeline.Builder.newInstance(retryPolicy)
-                .s3Client(s3Client)
-                .iamClient(iamClient)
+                .clientProvider(clientProvider)
                 .monitor(monitor)
                 .build()
                 .deprovision(resource)
@@ -96,7 +84,6 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     }
 
     private ProvisionResponse provisionSuccedeed(S3BucketResourceDefinition resourceDefinition, Role role, Credentials credentials) {
-        monitor.debug("S3ProvisionPipeline: STS credentials obtained, continuing...");
         var resource = S3BucketProvisionedResource.Builder.newInstance()
                 .id(resourceDefinition.getBucketName())
                 .resourceDefinitionId(resourceDefinition.getId())
@@ -108,7 +95,7 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
 
         var secretToken = new AwsTemporarySecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());
 
-        monitor.debug("Bucket request submitted: " + resourceDefinition.getBucketName());
+        monitor.debug("S3BucketProvisioner: Bucket request submitted: " + resourceDefinition.getBucketName());
         return ProvisionResponse.Builder.newInstance().resource(resource).secretToken(secretToken).build();
     }
 
