@@ -17,7 +17,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
@@ -53,7 +52,9 @@ class ProvisionManagerImplTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0)).succeedsWithin(1, SECONDS)
-                .extracting(r -> r.getResource().getResourceName())
+                .extracting(ProvisionResponse::getResource)
+                .extracting(ProvisionedDataDestinationResource.class::cast)
+                .extracting(ProvisionedDataDestinationResource::getResourceName)
                 .isEqualTo("test-resource");
     }
 

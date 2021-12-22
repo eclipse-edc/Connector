@@ -162,10 +162,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         return Result.success(TransferProcessStates.from(process.getState()));
     }
 
-    public ProvisionContext createProvisionContext() {
-        return new ProvisionContextImpl(this::onResource, this::onProvision, this::onDeprovisionComplete);
-    }
-
     void onDeprovisionComplete(ProvisionedDataDestinationResource resource, Throwable deprovisionError) {
         if (deprovisionError != null) {
             monitor.severe("Deprovisioning error: ", deprovisionError);
@@ -184,37 +180,43 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         }
     }
 
-    void onProvision(ProvisionedDataDestinationResource destinationResource, SecretToken secretToken) {
+    void onProvisionComplete(ProvisionedResource destinationResource, SecretToken secretToken) {
         var processId = destinationResource.getTransferProcessId();
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
-            processNotFound(destinationResource);
+            monitor.severe(format("Error received when provisioning resource %s Process id not found for: %s",
+                    destinationResource.getResourceDefinitionId(), destinationResource.getTransferProcessId()));
             return;
         }
 
-        if (!destinationResource.isError()) {
-            transferProcess.getDataRequest().updateDestination(destinationResource.createDataDestination());
+        if (destinationResource instanceof ProvisionedDataDestinationResource) {
+            var dataDestinationResource = (ProvisionedDataDestinationResource) destinationResource;
+            if (!destinationResource.isError()) {
+                transferProcess.getDataRequest().updateDestination(dataDestinationResource.createDataDestination());
+            }
+
+            if (secretToken != null) {
+                String keyName = dataDestinationResource.getResourceName();
+                vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                transferProcess.getDataRequest().getDataDestination().setKeyName(keyName);
+            }
         }
 
-        if (secretToken != null) {
-            String keyName = destinationResource.getResourceName();
-            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-            transferProcess.getDataRequest().getDataDestination().setKeyName(keyName);
+        transferProcess.addProvisionedResource(destinationResource);
 
-        }
-
-        updateProcessWithProvisionedResource(destinationResource, transferProcess);
-    }
-
-    void onResource(ProvisionedResource provisionedResource) {
-        var processId = provisionedResource.getTransferProcessId();
-        var transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            processNotFound(provisionedResource);
+        if (destinationResource.isError()) {
+            var processId1 = transferProcess.getId();
+            var resourceId = destinationResource.getResourceDefinitionId();
+            monitor.severe(format("Error provisioning resource %s for process %s: %s", resourceId, processId1, destinationResource.getErrorMessage()));
+            transferProcessStore.update(transferProcess);
             return;
         }
 
-        updateProcessWithProvisionedResource(provisionedResource, transferProcess);
+        if (TransferProcessStates.ERROR.code() != transferProcess.getState() && transferProcess.provisioningComplete()) {
+            // TODO If all resources provisioned, delete scratch data
+            transferProcess.transitionProvisioned();
+        }
+        transferProcessStore.update(transferProcess);
     }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
@@ -587,5 +589,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             return manager;
         }
     }
+
 
 }
