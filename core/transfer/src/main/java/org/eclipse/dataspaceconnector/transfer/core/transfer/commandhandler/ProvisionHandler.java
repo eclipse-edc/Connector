@@ -68,7 +68,6 @@ public class ProvisionHandler implements TransferProcessCommandHandler<Provision
                             monitor.severe("Error provisioning resource", throwable);
                         }
                     }));
-
         }
 
         transferProcessStore.update(process);
@@ -76,8 +75,7 @@ public class ProvisionHandler implements TransferProcessCommandHandler<Provision
         return new TransferProcessCommandResult(nextCommand, listener -> listener::provisioned);
     }
 
-
-    void onProvisionComplete(ProvisionedDataDestinationResource destinationResource, SecretToken secretToken) {
+    void onProvisionComplete(ProvisionedResource destinationResource, SecretToken secretToken) {
         var processId = destinationResource.getTransferProcessId();
         var transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
@@ -86,16 +84,19 @@ public class ProvisionHandler implements TransferProcessCommandHandler<Provision
             return;
         }
 
-        if (!destinationResource.isError()) {
-            transferProcess.getDataRequest().updateDestination(destinationResource.createDataDestination());
+        if (destinationResource instanceof ProvisionedDataDestinationResource) {
+            var dataDestinationResource = (ProvisionedDataDestinationResource) destinationResource;
+            if (!destinationResource.isError()) {
+                transferProcess.getDataRequest().updateDestination(dataDestinationResource.createDataDestination());
+            }
+
+            if (secretToken != null) {
+                String keyName = dataDestinationResource.getResourceName();
+                vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
+                transferProcess.getDataRequest().getDataDestination().setKeyName(keyName);
+            }
         }
 
-        if (secretToken != null) {
-            String keyName = destinationResource.getResourceName();
-            vault.storeSecret(keyName, typeManager.writeValueAsString(secretToken));
-            transferProcess.getDataRequest().getDataDestination().setKeyName(keyName);
-
-        }
 
         transferProcess.addProvisionedResource(destinationResource);
 
