@@ -115,7 +115,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         commandHandlers.add(new RequireAckHandler(transferProcessStore));
         commandHandlers.add(new InitiateDataFlowConsumerHandler(transferProcessStore, monitor));
         commandHandlers.add(new PrepareDeprovisionHandler(transferProcessStore));
-        commandHandlers.add(new DeprovisionHandler(transferProcessStore, provisionManager, monitor));
+        commandHandlers.add(new DeprovisionHandler(transferProcessStore, provisionManager, monitor, commandQueue));
         commandHandlers.add(new EndHandler(transferProcessStore));
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
