@@ -22,7 +22,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class CosmosContractNegotiationStoreTest {
-    private static final String PARTITION_KEY = "negotiationPartition1";
+    private static final String PARTITION_KEY = "test-connector";
     private CosmosContractNegotiationStore store;
     private CosmosDbApi cosmosDbApi;
 

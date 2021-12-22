@@ -30,12 +30,14 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
     private final String connectorId;
+    private final String partitionKey;
 
     public CosmosContractNegotiationStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String connectorId) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
         this.connectorId = connectorId;
+        partitionKey = connectorId;
     }
 
     @Override
@@ -75,7 +77,7 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
                 negotiation.transitionRequested();
             }
         }
-        cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation));
+        cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation, partitionKey));
     }
 
     @Override
@@ -86,7 +88,6 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
 
-        var partitionKey = "negotiationPartition1"; //TODO: make this configurable!!!
         String rawJson = cosmosDbApi.invokeStoredProcedure("nextForState", partitionKey, state, max, connectorId);
         var typeRef = new TypeReference<List<Object>>() {
         };

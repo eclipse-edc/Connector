@@ -24,6 +24,7 @@ import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunc
 class ContractNegotiationDocumentSerializationTest {
 
     private TypeManager typeManager;
+    private final String partitionKey = "test-connector-partition";
 
 
     @BeforeEach
@@ -37,21 +38,21 @@ class ContractNegotiationDocumentSerializationTest {
         var def = generateNegotiation();
         var pk = def.getState();
 
-        var document = new ContractNegotiationDocument(def);
+        var document = new ContractNegotiationDocument(def, partitionKey);
 
         String s = typeManager.writeValueAsString(document);
 
         assertThat(s).isNotNull()
                 .contains("wrappedInstance")
                 .contains("\"id\":\"" + def.getId() + "\"")
-                .contains("\"partitionKey\":\"negotiationPartition1\"");
+                .contains("\"partitionKey\":\"" + partitionKey + "\"");
     }
 
     @Test
     void testDeserialization() {
         var def = generateNegotiation();
 
-        var document = new ContractNegotiationDocument(def);
+        var document = new ContractNegotiationDocument(def, partitionKey);
         String json = typeManager.writeValueAsString(document);
 
         var transferProcessDeserialized = typeManager.readValue(json, ContractNegotiationDocument.class);

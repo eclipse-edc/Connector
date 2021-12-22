@@ -52,7 +52,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     private static final String CONTAINER_PREFIX = "ContractNegotiationStore-";
     private static CosmosContainer container;
     private static CosmosDatabase database;
-    private final String partitionKey = "negotiationPartition1";
+    private final String partitionKey = CONNECTOR_ID;
     private TypeManager typeManager;
     private CosmosContractNegotiationStore store;
 
@@ -174,7 +174,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     @Test
     void save_exists_shouldUpdate() {
         var negotiation = generateNegotiation();
-        container.createItem(new ContractNegotiationDocument(negotiation));
+        container.createItem(new ContractNegotiationDocument(negotiation, partitionKey));
 
         assertThat(container.readAllItems(new PartitionKey(partitionKey), Object.class)).hasSize(1);
 
@@ -196,7 +196,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        container.createItem(new ContractNegotiationDocument(n));
+        container.createItem(new ContractNegotiationDocument(n, partitionKey));
 
         var result = store.nextForState(state.code(), 10);
         assertThat(result).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
@@ -209,7 +209,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         var preparedNegotiations = IntStream.range(0, numElements)
                 .mapToObj(i -> generateNegotiation(state))
-                .peek(n -> container.createItem(new ContractNegotiationDocument(n)))
+                .peek(n -> container.createItem(new ContractNegotiationDocument(n, partitionKey)))
                 .collect(Collectors.toList());
 
         var result = store.nextForState(state.code(), 4);
@@ -222,7 +222,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_noResult() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        container.createItem(new ContractNegotiationDocument(n));
+        container.createItem(new ContractNegotiationDocument(n, partitionKey));
 
         var result = store.nextForState(ContractNegotiationStates.PROVIDER_OFFERING.code(), 10);
         assertThat(result).isNotNull().isEmpty();
@@ -232,15 +232,15 @@ class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_onlyReturnsFreeItems() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n1 = generateNegotiation(state);
-        var doc1 = new ContractNegotiationDocument(n1);
+        var doc1 = new ContractNegotiationDocument(n1, partitionKey);
         container.createItem(doc1);
 
         var n2 = generateNegotiation(state);
-        var doc2 = new ContractNegotiationDocument(n2);
+        var doc2 = new ContractNegotiationDocument(n2, partitionKey);
         container.createItem(doc2);
 
         var n3 = generateNegotiation(state);
-        var doc3 = new ContractNegotiationDocument(n3);
+        var doc3 = new ContractNegotiationDocument(n3, partitionKey);
         doc3.acquireLease("another-connector");
         container.createItem(doc3);
 
@@ -255,7 +255,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_leasedByAnother() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        var doc = new ContractNegotiationDocument(n);
+        var doc = new ContractNegotiationDocument(n, partitionKey);
         doc.acquireLease("another-connector");
         container.createItem(doc);
 
@@ -267,7 +267,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_leasedBySelf() {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        var doc = new ContractNegotiationDocument(n);
+        var doc = new ContractNegotiationDocument(n, partitionKey);
         container.createItem(doc);
 
         // let's verify that the first invocation correctly sets the lease
@@ -287,7 +287,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     void nextForState_leaseByAnotherExpired() throws InterruptedException {
         var state = ContractNegotiationStates.CONFIRMED;
         var n = generateNegotiation(state);
-        var doc = new ContractNegotiationDocument(n);
+        var doc = new ContractNegotiationDocument(n, partitionKey);
         doc.acquireLease("another-connector", Duration.ofMillis(10));
         container.createItem(doc);
 

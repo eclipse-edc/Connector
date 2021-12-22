@@ -132,7 +132,7 @@ class CosmosAssetIndexIntegrationTest {
         container.createItem(new AssetDocument(asset2, TEST_PARTITION_KEY, dataAddress));
 
         AssetSelectorExpression expression = AssetSelectorExpression.Builder.newInstance()
-                .whenEquals(Asset.PROPERTY_ID, "'456'")
+                .whenEquals(Asset.PROPERTY_ID, "456")
                 .build();
 
         List<Asset> assets = assetIndex.queryAssets(expression).collect(Collectors.toList());
