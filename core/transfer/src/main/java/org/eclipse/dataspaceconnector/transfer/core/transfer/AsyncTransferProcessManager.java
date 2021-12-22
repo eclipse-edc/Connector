@@ -300,23 +300,18 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             transferProcessStore.update(process);
             invokeForEach(l -> l.deprovisioning(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            var responses = provisionManager.deprovision(process).stream()
-                    .map(future -> {
-                        return future.whenComplete((response, throwable) -> {
+            provisionManager.deprovision(process)
+                    .forEach(future -> {
+                        future.whenComplete((response, throwable) -> {
                             if (response != null) {
                                 onDeprovisionComplete(response.getResource(), null);
                             } else {
-                                monitor.severe("Deprovisioning error: ", throwable);
+                                monitor.severe("Error during deprovisioning", throwable);
+                                process.transitionError("Error during deprovisioning: " + throwable.getLocalizedMessage());
+                                transferProcessStore.update(process);
                             }
                         });
-                    })
-                    .map(CompletableFuture::join)
-                    .collect(Collectors.toList());
-
-            if (responses.stream().anyMatch(response -> response.getStatus() != ResponseStatus.OK)) {
-                process.transitionError("Error during deprovisioning");
-                transferProcessStore.update(process);
-            }
+                    });
         }
 
         return processesDeprovisioning.size();
@@ -423,7 +418,9 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                         if (result != null) {
                             onProvisionComplete(result.getResource(), result.getSecretToken());
                         } else {
-                            monitor.severe("Error while provisioning a resource", throwable);
+                            monitor.severe("Error during provisioning", throwable);
+                            process.transitionError("Error during provisioning: " + throwable.getLocalizedMessage());
+                            transferProcessStore.update(process);
                         }
                     });
                 });
