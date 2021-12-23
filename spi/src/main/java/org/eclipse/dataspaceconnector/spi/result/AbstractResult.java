@@ -26,6 +26,7 @@ public abstract class AbstractResult<T, F extends Failure> {
         return failure;
     }
 
+    //will cause problems during JSON serialization if failure is null
     @JsonIgnore
     public List<String> getFailureMessages() {
         Objects.requireNonNull(failure);

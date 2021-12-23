@@ -10,6 +10,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -27,6 +29,20 @@ public class ControlApiServiceExtension implements ServiceExtension {
     public static final String EDC_API_CONTROL_AUTH_APIKEY_VALUE = "edc.api.control.auth.apikey.value";
 
     private Monitor monitor;
+
+    /*
+     * Produces twelve characters long sequence in the ascii range of '!' (dec 33) to '~' (dec 126).
+     *
+     * @return sequence
+     */
+    private static String generateRandomString() {
+        StringBuilder stringBuilder = new SecureRandom().ints('!', ((int) '~' + 1))
+                .limit(12).collect(
+                        StringBuilder::new,
+                        StringBuilder::appendCodePoint,
+                        StringBuilder::append);
+        return stringBuilder.toString();
+    }
 
     @Override
     public String name() {
@@ -62,6 +78,12 @@ public class ControlApiServiceExtension implements ServiceExtension {
                 AuthenticationContainerRequestContextPredicate.INSTANCE);
 
         webService.registerController(httpApiKeyAuthContainerRequestFilter);
+
+        // contribute to the liveness probe
+        var hcs = serviceExtensionContext.getService(HealthCheckService.class, true);
+        if (hcs != null) {
+            hcs.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("Control API").build());
+        }
     }
 
     private String resolveApiKeyHeaderName(@NotNull ServiceExtensionContext context) {
@@ -80,20 +102,6 @@ public class ControlApiServiceExtension implements ServiceExtension {
             monitor.warning(String.format("Settings: No setting found for key '%s'. Using random value '%s'", EDC_API_CONTROL_AUTH_APIKEY_VALUE, value));
         }
         return value;
-    }
-
-    /*
-     * Produces twelve characters long sequence in the ascii range of '!' (dec 33) to '~' (dec 126).
-     *
-     * @return sequence
-     */
-    private static String generateRandomString() {
-        StringBuilder stringBuilder = new SecureRandom().ints('!', ((int) '~' + 1))
-                .limit(12).collect(
-                        StringBuilder::new,
-                        StringBuilder::appendCodePoint,
-                        StringBuilder::append);
-        return stringBuilder.toString();
     }
 
     private enum AuthenticationContainerRequestContextPredicate implements Predicate<ContainerRequestContext> {

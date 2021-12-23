@@ -22,6 +22,8 @@ plugins {
 dependencies {
     api(project(":spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
+    testImplementation("org.awaitility:awaitility:4.1.1")
+
 }
 
 publishing {

@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 import java.util.Set;
 
@@ -53,6 +54,8 @@ public class CosmosAssetIndexExtension implements ServiceExtension {
         context.registerService(AssetIndex.class, assetIndex);
         context.registerService(AssetLoader.class, assetIndex);
         context.registerService(DataAddressResolver.class, assetIndex);
+
+        context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
 
         context.getTypeManager().registerTypes(AssetDocument.class);
     }

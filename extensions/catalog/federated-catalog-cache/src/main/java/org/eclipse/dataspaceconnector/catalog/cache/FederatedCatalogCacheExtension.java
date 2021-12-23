@@ -28,6 +28,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
@@ -79,6 +81,12 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         monitor = context.getMonitor();
         var catalogController = new CatalogController(monitor, queryEngine);
         webService.registerController(catalogController);
+
+        // contribute to the liveness probe
+        var hcs = context.getService(HealthCheckService.class, true);
+        if (hcs != null) {
+            hcs.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("FCC Query API").build());
+        }
 
 
         // CRAWLER SUBSYSTEM

@@ -23,6 +23,9 @@ val jupiterVersion: String by project
 dependencies {
     implementation(project(":core"))
     implementation(project(":data-protocols:ids"))
+    implementation(project(":extensions:api:control"))
+    implementation(project(":extensions:api:observability"))
+
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
@@ -30,7 +33,7 @@ dependencies {
     implementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))
-    implementation(project(":core:contract"))
+
 }
 
 application {
