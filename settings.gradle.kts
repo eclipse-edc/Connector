@@ -20,11 +20,8 @@ include(":common:util")
 
 // EDC core modules
 include(":core")
-include(":core:bootstrap")
 include(":core:policy:policy-engine")
 include(":core:policy:policy-evaluator")
-include(":core:protocol:web")
-include(":core:schema")
 include(":core:transfer")
 include(":core:contract")
 include(":core:base")

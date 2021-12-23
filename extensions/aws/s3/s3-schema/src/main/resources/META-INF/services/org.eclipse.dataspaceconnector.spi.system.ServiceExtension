@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.schema.s3.BucketSchemaExtension
+org.eclipse.dataspaceconnector.core.schema.s3.BucketSchemaExtension

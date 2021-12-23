@@ -20,7 +20,7 @@ val storageBlobVersion: String by project
 
 dependencies {
     api(project(":spi"))
-    api(project(":core:schema"))
+    api(project(":core"))
     api(project(":extensions:aws:s3:provision"))
     api(project(":extensions:inline-data-transfer:inline-data-transfer-spi"))
 }

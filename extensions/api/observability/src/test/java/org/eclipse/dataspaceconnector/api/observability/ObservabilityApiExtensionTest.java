@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.api.observability;
 
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.system.health.LivenessProvider;
@@ -26,7 +27,10 @@ class ObservabilityApiExtensionTest {
 
     @Test
     void requires() {
-        assertThat(extension.requires()).containsExactlyInAnyOrder("edc:webservice", HealthCheckService.FEATURE);
+        assertThat(extension.requires()).isEmpty();
+        var requires = extension.getClass().getAnnotation(Requires.class);
+        assertThat(requires).isNotNull();
+        assertThat(requires.value()).containsExactlyInAnyOrder(WebService.class, HealthCheckService.class);
     }
 
     @Test

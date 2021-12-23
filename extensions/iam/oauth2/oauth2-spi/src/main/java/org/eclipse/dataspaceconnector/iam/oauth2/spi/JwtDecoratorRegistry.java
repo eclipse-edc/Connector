@@ -14,8 +14,11 @@
 
 package org.eclipse.dataspaceconnector.iam.oauth2.spi;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
+
 import java.util.Collection;
 
+@Feature(JwtDecoratorRegistry.FEATURE)
 public interface JwtDecoratorRegistry {
     String FEATURE = "edc:iam:oauth2:jwtdecorator-registry";
 

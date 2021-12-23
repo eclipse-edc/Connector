@@ -27,9 +27,7 @@ dependencies {
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":core:protocol:web"))
-    testImplementation(project(":core:transfer"))
-    testImplementation(project(":core:contract"))
+    testImplementation(project(":core:"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     testImplementation(project(":extensions:in-memory:policy-registry-memory"))

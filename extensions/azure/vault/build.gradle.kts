@@ -21,7 +21,7 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":core:bootstrap"))
+    implementation(project(":core:base"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-security-keyvault-secrets:4.2.3")
     implementation("com.azure:azure-identity:1.2.0")

@@ -15,11 +15,13 @@
 package org.eclipse.dataspaceconnector.spi.iam;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 /**
  * Obtains client security tokens from an identity provider.
  * Providers may implement different authorization protocols such as OAuth2.
  */
+@Feature(IdentityService.FEATURE)
 public interface IdentityService {
 
     String FEATURE = "edc:iam";

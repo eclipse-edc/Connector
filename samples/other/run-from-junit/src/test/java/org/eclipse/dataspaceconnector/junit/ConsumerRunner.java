@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.junit;
 
+import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;

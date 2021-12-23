@@ -1,11 +1,11 @@
 package org.eclipse.dataspaceconnector.demo.runtime;
 
+import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
+import org.eclipse.dataspaceconnector.core.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
-import org.eclipse.dataspaceconnector.system.runtime.BaseRuntime;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

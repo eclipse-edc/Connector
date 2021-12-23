@@ -3,18 +3,12 @@ package org.eclipse.dataspaceconnector.samples.identity.registrationservice.api;
 import org.eclipse.dataspaceconnector.iam.did.spi.store.DidStore;
 import org.eclipse.dataspaceconnector.spi.iam.RegistrationService;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.util.Set;
-
+@Requires(DidStore.class)
 public class RegistrationServiceApiExtension implements ServiceExtension {
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:did-documentstore");
-    }
-
 
     @Override
     public void initialize(ServiceExtensionContext context) {

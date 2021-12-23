@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.store;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -24,9 +25,11 @@ import java.util.Set;
 /**
  * Manages persistent storage of {@link TransferProcess} state.
  */
+@Feature(TransferProcessStore.FEATURE)
 public interface TransferProcessStore {
 
-    String FEATURE = "dataspaceconnector:transferprocessstore";
+    @Deprecated
+    String FEATURE = "edc:core:transfer:transferprocessstore";
 
     TransferProcess find(String id);
 

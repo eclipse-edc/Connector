@@ -17,22 +17,16 @@ package org.eclipse.dataspaceconnector.metadata.memory;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.util.Set;
-
+@Provides({ AssetIndex.class, DataAddressResolver.class, AssetLoader.class })
 public class InMemoryAssetIndexExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "In-Memory Asset Index";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(AssetIndex.FEATURE, DataAddressResolver.FEATURE, AssetLoader.FEATURE);
     }
 
     @Override

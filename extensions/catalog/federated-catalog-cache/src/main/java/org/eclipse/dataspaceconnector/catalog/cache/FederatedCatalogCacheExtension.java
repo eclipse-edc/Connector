@@ -23,9 +23,12 @@ import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.spi.features.RetryPolicyFeature;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
@@ -35,7 +38,6 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +46,8 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
+@Requires({ FederatedCacheNodeDirectory.class, FederatedCacheStore.class, RetryPolicyFeature.class })
+@Provides({ Crawler.class, LoaderManager.class, QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     public static final int DEFAULT_NUM_CRAWLERS = 1;
     private static final int DEFAULT_QUEUE_LENGTH = 50;
@@ -54,18 +58,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private PartitionConfiguration partitionManagerConfig;
     private Monitor monitor;
     private ArrayBlockingQueue<UpdateResponse> updateResponseQueue;
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(Crawler.FEATURE, LoaderManager.FEATURE, QueryEngine.FEATURE,
-                NodeQueryAdapterRegistry.FEATURE, CacheQueryAdapterRegistry.FEATURE);
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:retry-policy", FederatedCacheNodeDirectory.FEATURE,
-                "edc:webservice", FederatedCacheStore.FEATURE);
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

@@ -18,30 +18,26 @@ import de.fraunhofer.iais.eis.DescriptionRequestMessageImpl;
 import de.fraunhofer.iais.eis.DescriptionResponseMessageImpl;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
+import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 /**
  * Implements the IDS Controller REST API for catalog services.
  */
+@Requires({ PolicyRegistry.class, IdsCoreFeature.class })
 public class IdsCatalogApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
 
     @Override
     public String name() {
         return "IDS Catalog API";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:ids:core", PolicyRegistry.FEATURE);
     }
 
     @Override

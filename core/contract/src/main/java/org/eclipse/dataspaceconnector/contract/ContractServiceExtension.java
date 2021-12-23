@@ -22,6 +22,7 @@ import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceIm
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
+import org.eclipse.dataspaceconnector.core.CoreExtension;
 import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
@@ -38,35 +39,27 @@ import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
-import java.util.Set;
-
+@Provides({ ContractNegotiationManager.class })
+@Requires({ AssetIndex.class, ContractDefinitionStore.class })
+@CoreExtension
 public class ContractServiceExtension implements ServiceExtension {
 
+    private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
     private Monitor monitor;
     private ServiceExtensionContext context;
     private ContractDefinitionServiceImpl definitionService;
-
-    private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
 
     @Override
     public String name() {
         return "Core Contract Service";
-    }
-
-    @Override
-    public final Set<String> provides() {
-        return Set.of(ContractNegotiationManager.FEATURE);
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
     }
 
     @Override

@@ -17,33 +17,26 @@ package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.spi.features.RetryPolicyFeature;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.transfer.store.cosmos.model.TransferProcessDocument;
 
-import java.util.Set;
-
 /**
  * Provides an in-memory implementation of the {@link org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore} for testing.
  */
+@Provides(TransferProcessStore.class)
+@Requires(RetryPolicyFeature.class)
 public class CosmosTransferProcessStoreExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "Cosmos Transfer Process Store";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(TransferProcessStore.FEATURE);
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("dataspaceconnector:blobstoreapi", "edc:retry-policy");
     }
 
     @Override

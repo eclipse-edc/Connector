@@ -14,16 +14,17 @@
 
 package org.eclipse.dataspaceconnector.ids.policy;
 
+import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 /**
  * Registers test policy functions.
  */
+@Requires(IdsCoreFeature.class)
 public class IdsPolicyExtension implements ServiceExtension {
 
     public static String ABS_SPATIAL_POSITION = "ids:absoluteSpatialPosition";
@@ -32,11 +33,6 @@ public class IdsPolicyExtension implements ServiceExtension {
     @Override
     public String name() {
         return "IDS Policy";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:ids:core");
     }
 
     @Override

@@ -1,11 +1,13 @@
 package org.eclipse.dataspaceconnector.spi.asset;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 /**
  * Resolves a {@link DataAddress} that is associated with an Asset.
  */
 @FunctionalInterface
+@Feature(DataAddressResolver.FEATURE)
 public interface DataAddressResolver {
     String FEATURE = "edc:asset:dataaddress-resolver";
 

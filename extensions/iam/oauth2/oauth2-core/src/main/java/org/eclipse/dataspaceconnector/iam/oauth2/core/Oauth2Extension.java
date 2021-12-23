@@ -24,18 +24,21 @@ import org.eclipse.dataspaceconnector.iam.oauth2.core.impl.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.impl.Oauth2ServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecorator;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
+import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2Service;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.features.HttpClientFeature;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPrivateKey;
-import java.util.Set;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -44,6 +47,8 @@ import java.util.function.Supplier;
 /**
  * Provides OAuth2 client credentials flow support.
  */
+@Provides({ IdentityService.class, Oauth2Service.class, JwtDecoratorRegistry.class })
+@Requires(HttpClientFeature.class)
 public class Oauth2Extension implements ServiceExtension {
 
     private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
@@ -75,19 +80,29 @@ public class Oauth2Extension implements ServiceExtension {
 
     private ScheduledExecutorService executorService;
 
+    private static Supplier<JWSSigner> createRsaPrivateKeySupplier(Oauth2Configuration configuration) {
+        return () -> {
+            var pkId = configuration.getPrivateKeyAlias();
+            var pk = configuration.getPrivateKeyResolver().resolvePrivateKey(pkId, RSAPrivateKey.class);
+            return pk == null ? null : new RSASSASigner(pk);
+        };
+    }
+
+    private static byte[] getEncodedClientCertificate(Oauth2Configuration configuration) {
+        X509Certificate certificate = configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias());
+        if (certificate == null) {
+            throw new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias());
+        }
+        try {
+            return certificate.getEncoded();
+        } catch (CertificateEncodingException e) {
+            throw new EdcException("Failed to encode certificate: " + e);
+        }
+    }
+
     @Override
     public String name() {
         return "OAuth2";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(IdentityService.FEATURE, "oauth2", JwtDecoratorRegistry.FEATURE);
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("dataspaceconnector:http-client");
     }
 
     @Override
@@ -114,23 +129,18 @@ public class Oauth2Extension implements ServiceExtension {
         context.registerService(IdentityService.class, oauth2Service);
     }
 
-    private static Supplier<JWSSigner> createRsaPrivateKeySupplier(Oauth2Configuration configuration) {
-        return () -> {
-            var pkId = configuration.getPrivateKeyAlias();
-            var pk = configuration.getPrivateKeyResolver().resolvePrivateKey(pkId, RSAPrivateKey.class);
-            return pk == null ? null : new RSASSASigner(pk);
-        };
+    @Override
+    public void start() {
+        // refresh the provider keys at start, then schedule a refresh on a periodic basis according to the configured interval
+        providerKeyResolver.refreshKeys();
+        executorService = Executors.newSingleThreadScheduledExecutor();
+        executorService.scheduleWithFixedDelay(() -> providerKeyResolver.refreshKeys(), keyRefreshInterval, keyRefreshInterval, TimeUnit.MINUTES);
     }
 
-    private static byte[] getEncodedClientCertificate(Oauth2Configuration configuration) {
-        X509Certificate certificate = configuration.getCertificateResolver().resolveCertificate(configuration.getPublicCertificateAlias());
-        if (certificate == null) {
-            throw new EdcException("Public certificate not found: " + configuration.getPublicCertificateAlias());
-        }
-        try {
-            return certificate.getEncoded();
-        } catch (CertificateEncodingException e) {
-            throw new EdcException("Failed to encode certificate: " + e);
+    @Override
+    public void shutdown() {
+        if (executorService != null) {
+            executorService.shutdownNow();
         }
     }
 
@@ -151,20 +161,5 @@ public class Oauth2Extension implements ServiceExtension {
                 .clientId(clientId)
                 .privateKeyResolver(privateKeyResolver)
                 .certificateResolver(certificateResolver).build();
-    }
-
-    @Override
-    public void start() {
-        // refresh the provider keys at start, then schedule a refresh on a periodic basis according to the configured interval
-        providerKeyResolver.refreshKeys();
-        executorService = Executors.newSingleThreadScheduledExecutor();
-        executorService.scheduleWithFixedDelay(() -> providerKeyResolver.refreshKeys(), keyRefreshInterval, keyRefreshInterval, TimeUnit.MINUTES);
-    }
-
-    @Override
-    public void shutdown() {
-        if (executorService != null) {
-            executorService.shutdownNow();
-        }
     }
 }

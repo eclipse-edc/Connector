@@ -36,6 +36,9 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.Reso
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
+import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
+import org.eclipse.dataspaceconnector.ids.spi.features.IdsMultipartEndpointFeature;
+import org.eclipse.dataspaceconnector.ids.spi.features.IdsTransformFeature;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -43,7 +46,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -52,6 +54,8 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -61,11 +65,12 @@ import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * ServiceExtension providing IDS multipart related API controllers
  */
+@Requires({ AssetIndex.class, IdentityService.class, IdsCoreFeature.class, IdsTransformFeature.class, ContractNegotiationStore.class, })
+@Provides(IdsMultipartEndpointFeature.class)
 public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -79,20 +84,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         return "IDS Multipart API";
     }
 
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:ids:api:multipart:endpoint:v1");
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(IdentityService.FEATURE,
-                "edc:ids:core",
-                AssetIndex.FEATURE,
-                ContractNegotiationStore.FEATURE,
-                "edc:ids:transform:v1",
-                ContractNegotiationManager.FEATURE);
-    }
 
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {

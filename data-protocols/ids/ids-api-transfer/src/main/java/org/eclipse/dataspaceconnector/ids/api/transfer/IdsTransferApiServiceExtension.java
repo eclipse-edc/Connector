@@ -15,30 +15,26 @@
 package org.eclipse.dataspaceconnector.ids.api.transfer;
 
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
+import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 
-import java.util.Set;
-
 /**
  * Implements the IDS Controller REST API for data transfer services.
  */
+@Requires({ PolicyRegistry.class, IdsCoreFeature.class })
 public class IdsTransferApiServiceExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "IDS Transfer API";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:ids:core", PolicyRegistry.FEATURE);
     }
 
     @Override

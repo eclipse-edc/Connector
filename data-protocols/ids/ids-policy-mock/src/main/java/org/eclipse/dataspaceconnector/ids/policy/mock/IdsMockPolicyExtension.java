@@ -14,27 +14,23 @@
 
 package org.eclipse.dataspaceconnector.ids.policy.mock;
 
+import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions.ABS_SPATIAL_POSITION;
 
 /**
  * Registers test policy functions.
  */
+@Requires(IdsCoreFeature.class)
 public class IdsMockPolicyExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "IDS Mock Policy";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:ids:core");
     }
 
     @Override

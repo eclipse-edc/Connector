@@ -10,6 +10,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.Negotiat
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -24,8 +25,8 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 
+@Requires({ ContractDefinitionStore.class, AssetLoader.class })
 class ClientControlCatalogApiControllerTestServiceExtension implements ServiceExtension {
 
     private AssetLoader assetLoader;
@@ -34,16 +35,6 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
     @Override
     public String name() {
         return "EDC Control API Test";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(ContractDefinitionStore.FEATURE, AssetLoader.FEATURE);
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of();
     }
 
     @Override

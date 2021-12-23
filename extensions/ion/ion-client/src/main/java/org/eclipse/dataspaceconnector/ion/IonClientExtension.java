@@ -15,11 +15,13 @@ package org.eclipse.dataspaceconnector.ion;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.util.Set;
-
+@Provides(IonClient.class)
+@Requires(DidResolverRegistry.class)
 public class IonClientExtension implements ServiceExtension {
 
     private static final String ION_NODE_URL_SETTING = "edc:ion:node:url";
@@ -28,16 +30,6 @@ public class IonClientExtension implements ServiceExtension {
     @Override
     public String name() {
         return "ION Client";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(DidResolverRegistry.FEATURE);
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(IonClient.FEATURE);
     }
 
     @Override

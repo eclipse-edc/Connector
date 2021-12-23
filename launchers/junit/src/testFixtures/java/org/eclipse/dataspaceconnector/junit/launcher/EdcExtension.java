@@ -15,17 +15,17 @@
 package org.eclipse.dataspaceconnector.junit.launcher;
 
 import okhttp3.Interceptor;
-import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.core.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
+import org.eclipse.dataspaceconnector.core.system.ExtensionLoader;
+import org.eclipse.dataspaceconnector.core.system.ServiceLocator;
+import org.eclipse.dataspaceconnector.core.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.SystemExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
-import org.eclipse.dataspaceconnector.system.ExtensionLoader;
-import org.eclipse.dataspaceconnector.system.ServiceLocator;
-import org.eclipse.dataspaceconnector.system.ServiceLocatorImpl;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;

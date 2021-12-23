@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.functions.core;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
@@ -36,6 +37,7 @@ import static java.util.Collections.emptySet;
 /**
  * Bootstraps the transfer functions extension.
  */
+@Provides(TransferFunction.class)
 public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -58,10 +60,6 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
         return "Transfer Functions Core";
     }
 
-    @Override
-    public Set<String> provides() {
-        return Set.of("dataspaceconnector:transfer-function");
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

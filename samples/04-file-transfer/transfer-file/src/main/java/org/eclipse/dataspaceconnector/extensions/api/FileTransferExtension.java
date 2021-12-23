@@ -21,10 +21,10 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
@@ -36,18 +36,12 @@ import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowControl
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
 import java.nio.file.Path;
-import java.util.Set;
 
+@Requires({ AssetIndex.class, PolicyRegistry.class, DataAddressResolver.class })
 public class FileTransferExtension implements ServiceExtension {
 
     public static final String USE_POLICY = "use-eu";
     private static final String EDC_ASSET_PATH = "edc.samples.04.asset.path";
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:webservice", PolicyRegistry.FEATURE,
-                DataAddressResolver.FEATURE, AssetIndex.FEATURE, ContractNegotiationManager.FEATURE);
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

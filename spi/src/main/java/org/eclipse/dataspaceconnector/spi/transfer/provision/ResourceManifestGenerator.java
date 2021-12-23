@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.policy.model.AtomicConstraintFunction;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Prohibition;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 
@@ -26,6 +27,7 @@ import java.util.Map;
 /**
  * Generates resource manifests for data transfer requests. Implementations are responsible for enforcing policy contraints associated with transfer requests.
  */
+@Feature("edc:core:transfer:provision:resourcemanifest-generator")
 public interface ResourceManifestGenerator {
 
     void registerConsumerGenerator(ResourceDefinitionGenerator generator);

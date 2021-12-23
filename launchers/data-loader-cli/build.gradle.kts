@@ -21,7 +21,7 @@ plugins {
 val jupiterVersion: String by project
 
 dependencies {
-    implementation(project(":core:bootstrap"))
+    implementation(project(":core:base"))
     implementation(project(":extensions:dataloading:dataloading-asset"))
     implementation(project(":extensions:dataloading:dataloading-contractdef"))
 

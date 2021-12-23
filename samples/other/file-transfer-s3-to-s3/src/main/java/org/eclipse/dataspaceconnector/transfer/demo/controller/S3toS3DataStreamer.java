@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.controller;
 
+import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.provision.aws.AwsTemporarySecretToken;
-import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -61,8 +61,8 @@ public class S3toS3DataStreamer implements DataStreamPublisher {
     public Result<Void> notifyPublisher(DataRequest dataRequest) {
         var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
 
-        final String sourceKey = source.getKeyName();
-        final String sourceBucketName = source.getProperty(S3BucketSchema.BUCKET_NAME);
+        String sourceKey = source.getKeyName();
+        String sourceBucketName = source.getProperty(S3BucketSchema.BUCKET_NAME);
 
         var destinationKey = dataRequest.getDataDestination().getKeyName();
         var awsSecret = vault.resolveSecret(destinationKey);
@@ -84,7 +84,7 @@ public class S3toS3DataStreamer implements DataStreamPublisher {
             try {
                 monitor.debug("Data request: begin transfer...");
 
-                final CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
+                CopyObjectRequest copyObjectRequest = CopyObjectRequest.builder()
                         .copySource(sourceBucketName + "/" + sourceKey)
                         .destinationBucket(destinationBucketName)
                         .destinationKey(destinationKey)

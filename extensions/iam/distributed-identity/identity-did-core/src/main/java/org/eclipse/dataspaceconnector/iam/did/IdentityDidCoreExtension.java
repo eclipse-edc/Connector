@@ -31,30 +31,23 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-import java.util.Set;
 import java.util.function.Supplier;
 
 
+@Requires({ IdentityHubStore.class, DidResolverRegistry.class })
+@Provides({ IdentityHub.class, IdentityHubClient.class })
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "Identity Did Core";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(IdentityHub.FEATURE, IdentityHubClient.FEATURE, DidResolverRegistry.FEATURE);
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(IdentityHubStore.FEATURE);
     }
 
     @Override

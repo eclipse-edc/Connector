@@ -20,25 +20,20 @@ import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-import java.util.Set;
-
 /**
  * Provides a persistent implementation of the {@link FederatedCacheNodeDirectory} using CosmosDB.
  */
+@Provides(FederatedCacheNodeDirectory.class)
 public class CosmosFederatedCacheNodeDirectoryExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "CosmosDB Federated Cache Node Directory";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(FederatedCacheNodeDirectory.FEATURE);
     }
 
     @Override

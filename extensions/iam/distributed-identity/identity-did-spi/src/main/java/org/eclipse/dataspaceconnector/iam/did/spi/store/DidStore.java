@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.store;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.document.DidDocument;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -9,6 +10,7 @@ import java.util.List;
 /**
  * Persists {@link DidDocument}s.
  */
+@Feature(DidStore.FEATURE)
 public interface DidStore {
 
     String FEATURE = "edc:did-documentstore";

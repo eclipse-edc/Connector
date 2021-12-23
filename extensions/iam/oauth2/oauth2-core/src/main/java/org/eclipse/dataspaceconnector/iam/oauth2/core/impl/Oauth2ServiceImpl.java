@@ -35,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,6 +54,7 @@ import java.util.stream.Collectors;
 /**
  * Implements the OAuth2 client credentials flow and bearer token validation.
  */
+@Feature("oauth2")
 public class Oauth2ServiceImpl implements IdentityService {
 
     private static final String GRANT_TYPE = "client_credentials";
@@ -81,7 +83,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     public Oauth2ServiceImpl(Oauth2Configuration configuration, Supplier<JWSSigner> signerProvider, OkHttpClient client, JwtDecoratorRegistry jwtDecoratorRegistry, TypeManager typeManager, ValidationRule... additionalValidationRules) {
         this.configuration = configuration;
         this.typeManager = typeManager;
-        this.httpClient = client;
+        httpClient = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
 
         List<ValidationRule> rules = new ArrayList<>();

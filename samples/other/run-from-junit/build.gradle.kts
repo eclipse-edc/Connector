@@ -20,9 +20,7 @@ val storageBlobVersion: String by project;
 val jupiterVersion: String by project
 
 dependencies {
-    api(project(":core:bootstrap"))
-    api(project(":core:contract"))
-    api(project(":core:transfer"))
+    api(project(":core"))
     api(project(":extensions:in-memory:assetindex-memory"))
     api(project(":extensions:in-memory:transfer-store-memory"))
     api(project(":extensions:in-memory:negotiation-store-memory"))

@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
+import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
@@ -40,10 +41,13 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.features.HttpClientFeature;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -51,11 +55,12 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Implements the IDS Controller REST API.
  */
+@Provides({ ContractNegotiationManager.class, IdsCoreFeature.class })
+@Requires({ IdentityService.class, TransferProcessStore.class, HttpClientFeature.class, HttpClientFeature.class })
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -71,16 +76,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     @Override
     public String name() {
         return "IDS Core";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:ids:core");
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(IdentityService.FEATURE, ContractNegotiationManager.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
     }
 
     @Override

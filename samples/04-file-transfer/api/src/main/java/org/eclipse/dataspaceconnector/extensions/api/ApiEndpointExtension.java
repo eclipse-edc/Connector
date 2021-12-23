@@ -20,18 +20,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 
-import java.util.Set;
-
 public class ApiEndpointExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "API Endpoint";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:webservice");
     }
 
     @Override

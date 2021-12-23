@@ -17,13 +17,14 @@ import com.azure.core.credential.AzureKeyCredential;
 import com.azure.messaging.eventgrid.EventGridPublisherClientBuilder;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 
 import java.util.Objects;
-import java.util.Set;
 
+@Requires(TransferProcessObservable.class)
 public class AzureEventExtension implements ServiceExtension {
 
     private Monitor monitor;
@@ -31,11 +32,6 @@ public class AzureEventExtension implements ServiceExtension {
     @Override
     public String name() {
         return "Azure Events";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("dataspaceconnector:transfer-process-observable");
     }
 
     @Override
