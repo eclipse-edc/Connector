@@ -7,6 +7,7 @@ val rsApi: String by project
 
 
 dependencies {
+    implementation(project(":core:base"))
     implementation(project(":extensions:azure:events-config"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
 

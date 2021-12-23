@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.aws.testfixtures.AbstractS3Test;
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;

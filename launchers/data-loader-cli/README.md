@@ -99,11 +99,11 @@ implementation(project(":extensions:dataloading:dataloading-contractdef"))
 
 ...
 
-implementation(project(":extensions:azure:assetindex-cosmos"))
+implementation(project(":extensions:azure:cosmos:assetindex-cosmos"))
 
 ...
 
-implementation(project(":extensions:azure:contract-definition-store-cosmos"))
+implementation(project(":extensions:azure:cosmos:contract-definition-store-cosmos"))
 ```
 
 When both stores are present during the boot process, a

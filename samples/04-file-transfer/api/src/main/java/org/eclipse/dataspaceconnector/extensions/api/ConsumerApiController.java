@@ -27,9 +27,9 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 import java.util.Objects;
@@ -37,8 +37,8 @@ import java.util.UUID;
 
 import static java.lang.String.format;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
 public class ConsumerApiController {
 
@@ -109,7 +109,7 @@ public class ConsumerApiController {
                 .build();
 
         var result = processManager.initiateConsumerRequest(dataRequest);
-        
+
         return result.failed() ? Response.status(400).build() : Response.ok(result.getContent()).build();
     }
 }

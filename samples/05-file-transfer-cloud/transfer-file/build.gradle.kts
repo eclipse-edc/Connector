@@ -21,7 +21,7 @@ val rsApi: String by project
 dependencies {
     api(project(":spi"))
 
-    implementation(project(":extensions:azure:blob:blob-data-operator"))
+    implementation(project(":extensions:azure:blobstorage:blob-data-operator"))
     implementation(project(":extensions:aws:s3:s3-data-operator"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:inline-data-transfer:inline-data-transfer-core"))

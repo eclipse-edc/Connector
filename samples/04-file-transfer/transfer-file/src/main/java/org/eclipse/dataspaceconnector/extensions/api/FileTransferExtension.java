@@ -28,9 +28,9 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 

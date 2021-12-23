@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.inline.spi;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
 import java.io.ByteArrayInputStream;
 

@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.provision.aws.s3;
 
 import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import software.amazon.awssdk.regions.Region;

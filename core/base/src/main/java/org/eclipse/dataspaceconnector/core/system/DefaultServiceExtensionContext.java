@@ -20,8 +20,12 @@ import org.eclipse.dataspaceconnector.core.util.TopologicalSort;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
+import org.eclipse.dataspaceconnector.spi.system.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
+import org.eclipse.dataspaceconnector.spi.system.FieldInjectionPoint;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
+import org.eclipse.dataspaceconnector.spi.system.InjectionPoint;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -246,7 +250,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private Set<InjectionPoint<ServiceExtension>> getInjectedFields(ServiceExtension ext) {
         // initialize with legacy list
 
-        var injectFields = Arrays.stream(ext.getClass().getDeclaredFields()).filter(f -> f.getAnnotation(Inject.class) != null).map(f -> new FieldInjectionPoint<>(ext, f, getFeatureValue(f.getType())));
+        var injectFields = Arrays.stream(ext.getClass().getDeclaredFields())
+                .filter(f -> f.getAnnotation(Inject.class) != null)
+                .map(f -> new FieldInjectionPoint<>(ext, f, getFeatureValue(f.getType())));
 
         return injectFields.collect(Collectors.toSet());
     }

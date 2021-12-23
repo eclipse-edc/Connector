@@ -17,7 +17,7 @@ package org.eclipse.dataspaceconnector.ids.spi.spec.extension;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -49,12 +49,12 @@ public class ArtifactRequestMessagePayload {
         private DataAddress dataDestination;
         private String secret;
 
+        private Builder() {
+        }
+
         @JsonCreator()
         public static Builder newInstance() {
             return new Builder();
-        }
-
-        private Builder() {
         }
 
         public Builder dataDestination(DataAddress dataDestination) {

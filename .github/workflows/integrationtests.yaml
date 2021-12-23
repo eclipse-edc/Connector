@@ -30,37 +30,37 @@ jobs:
       - name: Object Storage StatusChecker Test
         env:
           RUN_INTEGRATION_TEST: true
-        run: ./gradlew extensions:azure:blob:provision:check
+        run: ./gradlew extensions:azure:blobstorage:provision:check
 
       - name: CosmosDB Transfer Process Store Test
         env:
           RUN_INTEGRATION_TEST: true
           COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
-        run: ./gradlew extensions:azure:transfer-process-store-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:check
 
       - name: Cosmos-based Asset Index test
         env:
           RUN_INTEGRATION_TEST: true
           COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
-        run: ./gradlew extensions:azure:assetindex-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:assetindex-cosmos:check
 
       - name: Cosmos-based FCN Directory test
         env:
           RUN_INTEGRATION_TEST: true
           COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
-        run: ./gradlew extensions:azure:fcc-node-directory-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:transfer-process-store-cosmos:check
 
       - name: Cosmos-based ContractDefinitionStore Test
         env:
           RUN_INTEGRATION_TEST: true
           COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
-        run: ./gradlew extensions:azure:contract-definition-store-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:contract-definition-store-cosmos:check
 
       - name: Cosmos-based ContractNegotiationStore Test
         env:
           RUN_INTEGRATION_TEST: true
           COSMOS_KEY: ${{ secrets.COSMOS_KEY }}
-        run: ./gradlew extensions:azure:contract-negotiation-store-cosmos:check
+        run: ./gradlew extensions:azure:cosmos:contract-negotiation-store-cosmos:check
 
   Aws-Integration-Test:
     runs-on: ubuntu-latest
@@ -69,7 +69,7 @@ jobs:
       minio:
         image: bitnami/minio:latest
         ports:
-         - 9000:9000
+          - 9000:9000
         env:
           MINIO_ACCESS_KEY: root
           MINIO_SECRET_KEY: password
