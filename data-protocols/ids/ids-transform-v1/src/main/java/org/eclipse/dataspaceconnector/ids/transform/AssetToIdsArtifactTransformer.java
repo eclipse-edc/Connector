@@ -84,7 +84,8 @@ public class AssetToIdsArtifactTransformer implements IdsTypeTransformer<Asset, 
                 context.reportProblem(String.format("Asset property %s expected to be of type %s", TransformKeys.KEY_ASSET_BYTE_SIZE, BigInteger.class.getName()));
             }
         }
-
-        return artifactBuilder.build();
+        Artifact artifact = artifactBuilder.build();
+        object.getProperties().forEach(artifact::setProperty);
+        return artifact;
     }
 }

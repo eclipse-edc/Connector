@@ -22,6 +22,7 @@ import de.fraunhofer.iais.eis.DynamicAttributeToken;
 import de.fraunhofer.iais.eis.Message;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceCatalog;
+import de.fraunhofer.iais.eis.ResourceCatalogBuilder;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.transform.IdsProtocol;
@@ -34,12 +35,14 @@ import org.eclipse.dataspaceconnector.spi.types.domain.catalog.CatalogRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * IdsMultipartSender implementation for connector catalog requests. Sends IDS DescriptionRequestMessages and
@@ -84,44 +87,23 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
     }
 
     @Override
-    protected Catalog getResponseContent(IdsMultipartParts parts) throws Exception {
-        ObjectMapper objectMapper = getObjectMapper();
-
+    protected Catalog getResponseContent(IdsMultipartParts parts) {
         if (parts.getPayload() == null) {
             throw new EdcException("Payload was null but connector self-description was expected");
         }
 
-        BaseConnector baseConnector;
-        try {
-            baseConnector = objectMapper.readValue(parts.getPayload().readAllBytes(), BaseConnector.class);
-        } catch (IOException exception) {
-            throw new EdcException(String.format("Could not deserialize connector self-description: %s", exception.getMessage()));
+        BaseConnector baseConnector = getBaseConnector(getObjectMapper(), parts);
+        if (baseConnector.getResourceCatalog() == null || baseConnector.getResourceCatalog().isEmpty()) {
+            throw new EdcException("Resource catalog is null in connector self-description, should not happen");
         }
 
-        ResourceCatalog resourceCatalog = null;
-        if (baseConnector.getResourceCatalog() != null) {
-            var iterator = baseConnector.getResourceCatalog().iterator();
-            if (iterator.hasNext()) {
-                resourceCatalog = iterator.next();
-            }
+        // If there is no resource catalog in connector self-description, we initialize a new empty resource catalog.
+        ResourceCatalog resourceCatalog = baseConnector.getResourceCatalog().stream()
+                .findFirst()
+                .orElse(new ResourceCatalogBuilder().build());
 
-            if (resourceCatalog != null) {
-                if (resourceCatalog.getOfferedResource() == null || resourceCatalog.getOfferedResource().isEmpty()) {
-                    for (Map.Entry<String, Object> entry : resourceCatalog.getProperties().entrySet()) {
-                        if ("ids:offeredResource".equals(entry.getKey())) {
-                            JsonNode node = objectMapper.convertValue(entry.getValue(), JsonNode.class);
-                            List<Resource> offeredResources = new LinkedList<>();
-                            for (JsonNode objNode : node.get("objectList")) {
-                                Map<String, Object> resource = new HashMap<>();
-                                resource.put("@type", "ids:Resource");
-                                resource.putAll(objectMapper.convertValue(objNode, Map.class));
-                                offeredResources.add(objectMapper.convertValue(resource, Resource.class));
-                            }
-                            resourceCatalog.setOfferedResource(offeredResources);
-                        }
-                    }
-                }
-            }
+        if (catalogDoesNotContainAnyOfferResource(resourceCatalog)) {
+            createOfferResourcesFromProperties(resourceCatalog, getObjectMapper());
         }
 
         Result<Catalog> transformResult = getTransformerRegistry().transform(resourceCatalog, Catalog.class);
@@ -131,5 +113,36 @@ public class MultipartCatalogDescriptionRequestSender extends IdsMultipartSender
         }
 
         return transformResult.getContent();
+    }
+
+    private static void createOfferResourcesFromProperties(ResourceCatalog catalog, ObjectMapper mapper) {
+        if (catalog.getProperties() != null) {
+            for (Map.Entry<String, Object> entry : catalog.getProperties().entrySet()) {
+                if ("ids:offeredResource".equals(entry.getKey())) {
+                    JsonNode node = mapper.convertValue(entry.getValue(), JsonNode.class);
+                    List<Resource> offeredResources = new LinkedList<>();
+                    for (JsonNode objNode : node.get("objectList")) {
+                        Map<String, Object> resource = new HashMap<>();
+                        resource.put("@type", "ids:Resource");
+                        resource.putAll(mapper.convertValue(objNode, Map.class));
+                        offeredResources.add(mapper.convertValue(resource, Resource.class));
+                    }
+                    catalog.setOfferedResource(offeredResources);
+                }
+            }
+        }
+    }
+
+    private static boolean catalogDoesNotContainAnyOfferResource(ResourceCatalog catalog) {
+        return catalog.getOfferedResource() == null || catalog.getOfferedResource().isEmpty();
+    }
+
+    private static BaseConnector getBaseConnector(ObjectMapper mapper, IdsMultipartParts parts) {
+        try {
+            InputStream payload = Objects.requireNonNull(parts.getPayload());
+            return mapper.readValue(payload.readAllBytes(), BaseConnector.class);
+        } catch (IOException exception) {
+            throw new EdcException(String.format("Could not deserialize connector self-description: %s", exception.getMessage()));
+        }
     }
 }
