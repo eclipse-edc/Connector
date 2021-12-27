@@ -45,8 +45,8 @@ import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMes
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notAuthorized;
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.notFound;
 
-@Consumes({ MediaType.MULTIPART_FORM_DATA })
-@Produces({ MediaType.MULTIPART_FORM_DATA })
+@Consumes({MediaType.MULTIPART_FORM_DATA})
+@Produces({MediaType.MULTIPART_FORM_DATA})
 @Path(MultipartController.PATH)
 public class MultipartController {
     public static final String PATH = "/ids/multipart";
@@ -58,11 +58,10 @@ public class MultipartController {
     private final ObjectMapper objectMapper;
     private final IdentityService identityService;
 
-    public MultipartController(
-            @NotNull String connectorId,
-            @NotNull ObjectMapper objectMapper,
-            @NotNull IdentityService identityService,
-            @NotNull List<Handler> multipartHandlers) {
+    public MultipartController(@NotNull String connectorId,
+                               @NotNull ObjectMapper objectMapper,
+                               @NotNull IdentityService identityService,
+                               @NotNull List<Handler> multipartHandlers) {
         this.connectorId = Objects.requireNonNull(connectorId);
         this.objectMapper = Objects.requireNonNull(objectMapper);
         this.identityService = Objects.requireNonNull(identityService);
@@ -70,9 +69,8 @@ public class MultipartController {
     }
 
     @POST
-    public Response request(
-            @FormDataParam(HEADER) InputStream headerInputStream,
-            @FormDataParam(PAYLOAD) String payload) {
+    public Response request(@FormDataParam(HEADER) InputStream headerInputStream,
+                            @FormDataParam(PAYLOAD) String payload) {
         if (headerInputStream == null) {
             return Response.ok(
                     createFormDataMultiPart(
@@ -83,37 +81,27 @@ public class MultipartController {
         try {
             header = objectMapper.readValue(headerInputStream, Message.class);
         } catch (IOException e) {
-            return Response.ok(
-                    createFormDataMultiPart(
-                            malformedMessage(null, connectorId))).build();
+            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
         }
 
         if (header == null) {
-            return Response.ok(
-                    createFormDataMultiPart(
-                            malformedMessage(null, connectorId))).build();
+            return Response.ok(createFormDataMultiPart(malformedMessage(null, connectorId))).build();
         }
 
 
         DynamicAttributeToken dynamicAttributeToken = header.getSecurityToken();
         if (dynamicAttributeToken == null || dynamicAttributeToken.getTokenValue() == null) {
-            return Response.ok(
-                    createFormDataMultiPart(
-                            notAuthenticated(header, connectorId))).build();
+            return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
         }
 
         var verificationResult = identityService.verifyJwtToken(
                 dynamicAttributeToken.getTokenValue(), null);
         if (verificationResult == null) {
-            return Response.ok(
-                    createFormDataMultiPart(
-                            notAuthenticated(header, connectorId))).build();
+            return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
         }
 
         if (verificationResult.failed()) {
-            return Response.ok(
-                    createFormDataMultiPart(
-                            notAuthorized(header, connectorId))).build();
+            return Response.ok(createFormDataMultiPart(notAuthorized(header, connectorId))).build();
         }
 
         MultipartRequest multipartRequest = MultipartRequest.Builder.newInstance()
@@ -122,22 +110,20 @@ public class MultipartController {
                 .verificationResult(verificationResult)
                 .build();
 
-        Handler handler = getRequestHandler(multipartRequest);
+        Handler handler = multipartHandlers.stream()
+                .filter(h -> h.canHandle(multipartRequest))
+                .findFirst()
+                .orElse(null);
         if (handler == null) {
-            return Response.ok(
-                    createFormDataMultiPart(
-                            messageTypeNotSupported(header, connectorId))).build();
+            return Response.ok(createFormDataMultiPart(messageTypeNotSupported(header, connectorId))).build();
         }
 
         MultipartResponse multipartResponse = handler.handleRequest(multipartRequest, verificationResult);
         if (multipartResponse != null) {
-            return Response.ok(
-                    createFormDataMultiPart(multipartResponse)).build();
+            return Response.ok(createFormDataMultiPart(multipartResponse)).build();
         }
 
-        return Response.ok(
-                createFormDataMultiPart(
-                        notFound(header, connectorId))).build();
+        return Response.ok(createFormDataMultiPart(notFound(header, connectorId))).build();
     }
 
     private FormDataMultiPart createFormDataMultiPart(MultipartResponse multipartResponse) {
@@ -159,16 +145,6 @@ public class MultipartController {
         }
 
         return multiPart;
-    }
-
-    private Handler getRequestHandler(MultipartRequest multipartRequest) {
-        for (Handler multipartHandler : multipartHandlers) {
-            if (multipartHandler.canHandle(multipartRequest)) {
-                return multipartHandler;
-            }
-        }
-
-        return null;
     }
 
     private byte[] toJson(Object object) {

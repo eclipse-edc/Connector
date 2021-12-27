@@ -19,16 +19,16 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigInteger;
 import java.net.URI;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -51,24 +51,39 @@ class AssetToIdsArtifactTransformerTest {
     }
 
     @Test
+    void transformAssetWithProperties() {
+        var id = "test-id";
+        var asset = Asset.Builder.newInstance().id(id)
+                .name("test-name")
+                .version("1.0")
+                .property("somekey", "somevalue")
+                .build();
+
+        var idsAsset = transformer.transform(asset, context);
+        assertThat(idsAsset).isNotNull();
+
+        assertThat(idsAsset.getProperties())
+                .isNotNull()
+                .containsEntry("somekey", "somevalue");
+    }
+
+    @Test
     void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> transformer.transform(null, null));
     }
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(Asset.Builder.newInstance().build(), null);
-        });
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> transformer.transform(Asset.Builder.newInstance().build(), null));
     }
 
     @Test
     void testReturnsNull() {
         var result = transformer.transform(null, context);
 
-        Assertions.assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
@@ -80,8 +95,8 @@ class AssetToIdsArtifactTransformerTest {
 
         var result = transformer.transform(asset, context);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(ASSET_ID_URI, result.getId());
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(ASSET_ID_URI);
         verify(context).transform(eq(id), eq(URI.class));
     }
 
@@ -95,10 +110,11 @@ class AssetToIdsArtifactTransformerTest {
 
         var result = transformer.transform(asset, context);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(ASSET_ID_URI, result.getId());
-        Assertions.assertEquals(ASSET_FILENAME, result.getFileName());
-        Assertions.assertEquals(ASSET_BYTESIZE, result.getByteSize());
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(ASSET_ID_URI);
+        assertThat(result.getFileName()).isEqualTo(ASSET_FILENAME);
+        assertThat(result.getByteSize()).isEqualTo(ASSET_BYTESIZE);
+
         verify(context).transform(eq(id), eq(URI.class));
     }
 

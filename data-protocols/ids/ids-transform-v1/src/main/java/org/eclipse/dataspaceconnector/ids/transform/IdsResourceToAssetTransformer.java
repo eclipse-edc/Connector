@@ -27,7 +27,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Iterator;
 import java.util.Objects;
 
 /**
@@ -64,26 +63,41 @@ public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resourc
 
         var assetBuilder = Asset.Builder.newInstance().id(idsId.getValue());
 
-        Iterator<Representation> representationIterator;
-        if ((object.getRepresentation() != null) && (representationIterator = object.getRepresentation().iterator()).hasNext()) {
-            var representation = representationIterator.next();
-
+        var representation = getRepresentationFromResource(object);
+        if (representation != null) {
             if (representation.getMediaType() != null) {
                 assetBuilder.property(TransformKeys.KEY_ASSET_FILE_EXTENSION, representation.getMediaType().getFilenameExtension());
             }
 
-            Iterator<RepresentationInstance> representationInstanceIterator;
-            if ((representation.getInstance() != null) && (representationInstanceIterator = representation.getInstance().iterator()).hasNext()) {
-                // if there is only one artifact we can take some properties from there
-                var representationInstance = representationInstanceIterator.next();
-                if (representationInstance instanceof Artifact) {
-                    var artifact = (Artifact) representation.getInstance().get(0);
-                    assetBuilder.property(TransformKeys.KEY_ASSET_FILE_NAME, artifact.getFileName());
-                    assetBuilder.property(TransformKeys.KEY_ASSET_BYTE_SIZE, artifact.getByteSize());
+            var representationInstance = getInstanceFromRepresentation(representation);
+            if (representationInstance instanceof Artifact) {
+                var artifact = (Artifact) representation.getInstance().get(0);
+                assetBuilder.property(TransformKeys.KEY_ASSET_FILE_NAME, artifact.getFileName());
+                assetBuilder.property(TransformKeys.KEY_ASSET_BYTE_SIZE, artifact.getByteSize());
+                if (artifact.getProperties() != null) {
+                    artifact.getProperties().forEach(assetBuilder::property);
                 }
             }
         }
 
         return assetBuilder.build();
+    }
+
+    private static @Nullable Representation getRepresentationFromResource(Resource resource) {
+        if (resource.getRepresentation() == null) {
+            return null;
+        }
+        return resource.getRepresentation().stream()
+                .findFirst()
+                .orElse(null);
+    }
+
+    private static @Nullable RepresentationInstance getInstanceFromRepresentation(Representation representation) {
+        if (representation.getInstance() == null) {
+            return null;
+        }
+        return representation.getInstance().stream()
+                .findFirst()
+                .orElse(null);
     }
 }

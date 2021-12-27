@@ -52,12 +52,9 @@ public class RemoteMessageDispatcherRegistryImpl implements RemoteMessageDispatc
     @Nullable
     private RemoteMessageDispatcher getDispatcher(@Nullable String protocol) {
         if (protocol == null) {
-            if (dispatchers.isEmpty()) {
-                return null;
-            }
-            return dispatchers.values().iterator().next();
+            return dispatchers.values().stream().findFirst()
+                    .orElse(null);
         }
         return dispatchers.get(protocol);
     }
-
 }
