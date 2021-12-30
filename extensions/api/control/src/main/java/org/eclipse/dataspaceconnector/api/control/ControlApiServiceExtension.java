@@ -7,6 +7,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
@@ -17,6 +18,7 @@ import org.jetbrains.annotations.NotNull;
 import java.security.SecureRandom;
 import java.util.function.Predicate;
 
+@Requires(ContractNegotiationStore.class)
 public class ControlApiServiceExtension implements ServiceExtension {
 
     @EdcSetting
