@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.cache;
 
 import kotlin.NotImplementedError;
-import org.eclipse.dataspaceconnector.ids.spi.features.IdsTransformFeature;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -40,7 +39,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
-@Provides({ RemoteMessageDispatcherRegistry.class, AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, IdsTransformFeature.class, ContractNegotiationManager.class })
+@Provides({ RemoteMessageDispatcherRegistry.class, AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class })
 public class FccTestExtension implements ServiceExtension {
 
     @Override

@@ -15,9 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
-import org.eclipse.dataspaceconnector.ids.spi.features.IdsTransformFeature;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -25,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import java.util.Arrays;
 
 @Requires(IdsCoreFeature.class)
-@Provides(IdsTransformFeature.class)
 public class IdsTransformServiceExtension implements ServiceExtension {
 
     @Override

@@ -37,8 +37,6 @@ import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
-import org.eclipse.dataspaceconnector.ids.spi.features.IdsMultipartEndpointFeature;
-import org.eclipse.dataspaceconnector.ids.spi.features.IdsTransformFeature;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
@@ -54,7 +52,6 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -69,8 +66,7 @@ import java.util.Objects;
 /**
  * ServiceExtension providing IDS multipart related API controllers
  */
-@Requires({ AssetIndex.class, IdentityService.class, IdsCoreFeature.class, IdsTransformFeature.class, ContractNegotiationStore.class, })
-@Provides(IdsMultipartEndpointFeature.class)
+@Requires({ AssetIndex.class, IdentityService.class, IdsCoreFeature.class, ContractNegotiationStore.class, })
 public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     @EdcSetting
