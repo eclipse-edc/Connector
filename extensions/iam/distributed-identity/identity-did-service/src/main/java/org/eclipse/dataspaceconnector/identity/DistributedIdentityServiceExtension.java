@@ -8,8 +8,8 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -20,8 +20,12 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.DID_URL_SETTING;
 
 @Provides(IdentityService.class)
-@Requires({ DidResolverRegistry.class, CredentialsVerifier.class })
 public class DistributedIdentityServiceExtension implements ServiceExtension {
+
+    @Inject
+    private DidResolverRegistry resolverRegistry;
+    @Inject
+    private CredentialsVerifier credentialsVerifier;
 
     @Override
     public String name() {
@@ -31,8 +35,6 @@ public class DistributedIdentityServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var vcProvider = createSupplier(context);
-        var resolverRegistry = context.getService(DidResolverRegistry.class);
-        var credentialsVerifier = context.getService(CredentialsVerifier.class);
         var identityService = new DistributedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
         context.registerService(IdentityService.class, identityService);
     }

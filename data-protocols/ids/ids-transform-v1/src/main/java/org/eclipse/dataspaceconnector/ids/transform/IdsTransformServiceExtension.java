@@ -14,16 +14,24 @@
 
 package org.eclipse.dataspaceconnector.ids.transform;
 
-import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Arrays;
 
-@Requires(IdsCoreFeature.class)
 public class IdsTransformServiceExtension implements ServiceExtension {
+
+    @Inject
+    private TransformerRegistry registry;
+
+    public IdsTransformServiceExtension(TransformerRegistry registry) {
+        this.registry = registry;
+    }
+
+    public IdsTransformServiceExtension() {
+    }
 
     @Override
     public String name() {
@@ -36,7 +44,6 @@ public class IdsTransformServiceExtension implements ServiceExtension {
     }
 
     private void registerTransformers(ServiceExtensionContext serviceExtensionContext) {
-        var registry = serviceExtensionContext.getService(TransformerRegistry.class);
 
         Arrays.asList(
                 new ActionToIdsActionTransformer(),

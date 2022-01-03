@@ -29,7 +29,6 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.Multip
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
@@ -37,7 +36,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +44,6 @@ import org.jetbrains.annotations.NotNull;
 import java.text.SimpleDateFormat;
 import java.util.Objects;
 
-@Requires({ IdentityService.class, IdsCoreFeature.class })
 public class IdsMultipartDispatcherServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -53,6 +51,15 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
     private Monitor monitor;
+    @Inject
+    private OkHttpClient httpClient;
+    @Inject
+    private IdentityService identityService;
+    @Inject
+    private TransformerRegistry transformerRegistry;
+
+    public IdsMultipartDispatcherServiceExtension() {
+    }
 
     @Override
     public String name() {
@@ -65,9 +72,6 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         monitor = context.getMonitor();
 
         var connectorId = resolveConnectorId(context);
-        var httpClient = context.getService(OkHttpClient.class);
-        var identityService = context.getService(IdentityService.class);
-        var vault = context.getService(Vault.class);
 
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
         //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
@@ -82,11 +86,9 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         // load ids webhook address
         var idsWebhookAddress = context.getSetting("ids.webhook.address", null);
 
-        // create & register sender and dispatcher
-        var transformerRegistry = context.getService(TransformerRegistry.class);
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, vault, identityService, transformerRegistry));
+        multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, context.getService(Vault.class), identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartDescriptionRequestSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry));
         multipartDispatcher.register(new MultipartContractOfferSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));
         multipartDispatcher.register(new MultipartContractAgreementSender(connectorId, httpClient, objectMapper, monitor, identityService, transformerRegistry, idsWebhookAddress));

@@ -63,7 +63,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
-@Provides({ AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class })
+@Provides({ AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class,
+        ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class, ContractOfferService.class, ContractValidationService.class })
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 

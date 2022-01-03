@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEven
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.quartz.JobDataMap;
@@ -37,7 +37,6 @@ import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
 import static org.quartz.TriggerBuilder.newTrigger;
 
-@Requires({ DidStore.class, DidResolverRegistry.class })
 public class CrawlerExtension implements ServiceExtension {
 
     @EdcSetting
@@ -48,6 +47,10 @@ public class CrawlerExtension implements ServiceExtension {
     private static final String ION_CRAWLER_TYPE_SETTING = "edc.ion.crawler.did-type";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
+    @Inject
+    private DidStore didStore;
+    @Inject
+    private DidResolverRegistry resolverRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -86,8 +89,6 @@ public class CrawlerExtension implements ServiceExtension {
     }
 
     private void scheduleCrawler(int intervalMinutes, ServiceExtensionContext context) throws SchedulerException {
-        var didStore = context.getService(DidStore.class);
-        var resolverRegistry = context.getService(DidResolverRegistry.class);
 
         var publisher = new CrawlerEventPublisher(context.getService(Vault.class), new AzureEventGridConfig(context));
 

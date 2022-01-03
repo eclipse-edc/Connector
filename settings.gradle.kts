@@ -29,8 +29,6 @@ include(":core:base")
 // modules that provide implementations for data ingress/egress
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
 include(":data-protocols:ids:ids-api-multipart-dispatcher-v1")
-include(":data-protocols:ids:ids-api-catalog")
-include(":data-protocols:ids:ids-api-transfer")
 include(":data-protocols:ids:ids-core")
 include(":data-protocols:ids:ids-policy-mock")
 include(":data-protocols:ids:ids-spi")

@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.ServiceLoader;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
+
 public class ExtensionLoader {
 
     private ExtensionLoader() {
@@ -39,18 +41,28 @@ public class ExtensionLoader {
     /**
      * Convenience method for loading service extensions.
      */
-    public static void bootServiceExtensions(List<ServiceExtension> serviceExtensions, ServiceExtensionContext context) {
+    public static void bootServiceExtensions(List<InjectionContainer<ServiceExtension>> containers, ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        serviceExtensions.forEach(extension -> {
-            extension.initialize(context);
-            monitor.info("Initialized " + extension.name());
+        containers.forEach(container -> {
+            getInjector().inject(container, context);
+            container.getInjectionTarget().initialize(context);
+            //todo: add verification here, that every @Provides corresponds to a .registerService call
+            var result = container.validate(context);
+            if (!result.succeeded()) {
+                monitor.warning(format("There were missing service registrations in extension %s: %s", container.getInjectionTarget().getClass(), String.join(", ", result.getFailureMessages())));
+            }
+            monitor.info("Initialized " + container.getInjectionTarget().name());
         });
 
-        serviceExtensions.forEach(extension -> {
-            extension.start();
-            monitor.info("Started " + extension.name());
+        containers.forEach(extension -> {
+            extension.getInjectionTarget().start();
+            monitor.info("Started " + extension.getInjectionTarget().name());
         });
+    }
+
+    private static Injector getInjector() {
+        return new InjectorImpl();
     }
 
     /**

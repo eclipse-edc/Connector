@@ -17,11 +17,8 @@ package org.eclipse.dataspaceconnector.core.system;
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.core.system.health.HealthCheckServiceImpl;
-import org.eclipse.dataspaceconnector.spi.features.HttpClientFeature;
-import org.eclipse.dataspaceconnector.spi.features.RetryPolicyFeature;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.junit.jupiter.api.Test;
@@ -45,16 +42,8 @@ class CoreServicesExtensionTest {
     void provides() {
 
         var provides = extension.getClass().getAnnotation(Provides.class).value();
-        assertThat(provides).containsExactlyInAnyOrder(HttpClientFeature.class, RetryPolicyFeature.class, HealthCheckService.class);
-        assertThat(extension.provides()).isEmpty();
+        assertThat(provides).containsExactlyInAnyOrder(RetryPolicy.class, HealthCheckService.class, OkHttpClient.class);
     }
-
-    @Test
-    void requires() {
-        assertThat(extension.getClass().getAnnotation(Requires.class)).isNull();
-        assertThat(extension.requires()).isEmpty();
-    }
-
 
     @Test
     void initialize() {

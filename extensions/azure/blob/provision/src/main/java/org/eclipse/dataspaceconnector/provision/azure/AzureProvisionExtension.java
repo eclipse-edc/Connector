@@ -24,10 +24,8 @@ import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageDefiniti
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageProvisioner;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.features.RetryPolicyFeature;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
@@ -39,7 +37,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
  * Provides data transfer {@link org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner}s backed by Azure services.
  */
 @Provides(BlobStoreApi.class)
-@Requires(RetryPolicyFeature.class)
 public class AzureProvisionExtension implements ServiceExtension {
 
     @EdcSetting

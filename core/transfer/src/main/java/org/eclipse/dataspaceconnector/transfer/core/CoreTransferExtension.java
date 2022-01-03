@@ -19,8 +19,8 @@ import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -34,7 +34,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
 import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusChecker;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
@@ -52,14 +51,14 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Requires(TransferProcessStore.class)
-@Provides({ StatusChecker.class, RemoteMessageDispatcherRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
-        TransferProcessObservable.class, DataProxyManager.class, ProxyEntryHandlerRegistry.class })
+@Provides({ StatusCheckerRegistry.class, RemoteMessageDispatcherRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
+        TransferProcessObservable.class, DataProxyManager.class, ProxyEntryHandlerRegistry.class, DataOperatorRegistry.class, DataFlowManager.class })
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
     private ProvisionManagerImpl provisionManager;
     private DelegatingTransferProcessManager processManager;
+    @Inject
     private TransferProcessStore transferProcessStore;
     private AsyncTransferProcessManager asyncMgr;
 
@@ -102,7 +101,6 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(DataProxyManager.class, dataProxyRegistry);
 
 
-        transferProcessStore = context.getService(TransferProcessStore.class);
         asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)

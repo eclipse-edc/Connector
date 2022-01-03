@@ -14,34 +14,11 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
-import java.util.Collections;
-import java.util.Set;
-
 /**
  * Contributes services used by the runtime.
  * Service extensions are started after system boostrap.
  */
 public interface ServiceExtension extends SystemExtension {
-
-    /**
-     * Returns the list of features provided by this extension.
-     *
-     * @deprecated use the {@link Provides} and the {@link Feature} annotation
-     */
-    @Deprecated
-    default Set<String> provides() {
-        return Collections.emptySet();
-    }
-
-    /**
-     * Returns the features this extension depends on.
-     *
-     * @deprecated use the {@link Requires} and the {@link Feature} annotation
-     */
-    @Deprecated
-    default Set<String> requires() {
-        return Collections.emptySet();
-    }
 
     /**
      * Initializes the extension.

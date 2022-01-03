@@ -14,9 +14,8 @@
 
 package org.eclipse.dataspaceconnector.ids.policy.mock;
 
-import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -25,8 +24,10 @@ import static org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyExpressions
 /**
  * Registers test policy functions.
  */
-@Requires(IdsCoreFeature.class)
 public class IdsMockPolicyExtension implements ServiceExtension {
+
+    @Inject
+    private IdsPolicyService policyService;
 
     @Override
     public String name() {
@@ -35,7 +36,6 @@ public class IdsMockPolicyExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var policyService = context.getService(IdsPolicyService.class);
 
         // handle region restriction
         policyService.registerRequestPermissionFunction(ABS_SPATIAL_POSITION, (operator, rightValue, permission, policyContext) -> rightValue != null && rightValue.equals(policyContext.getClaimToken().getClaims().get("region")));

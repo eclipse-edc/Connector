@@ -1,6 +1,8 @@
 package org.eclipse.dataspaceconnector.catalog.cache;
 
 import kotlin.NotImplementedError;
+import org.eclipse.dataspaceconnector.catalog.directory.InMemoryNodeDirectory;
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -39,7 +41,7 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
-@Provides({ RemoteMessageDispatcherRegistry.class, AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class })
+@Provides({ RemoteMessageDispatcherRegistry.class, AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class, FederatedCacheNodeDirectory.class })
 public class FccTestExtension implements ServiceExtension {
 
     @Override
@@ -50,6 +52,7 @@ public class FccTestExtension implements ServiceExtension {
         context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
         context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
         context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
+        context.registerService(FederatedCacheNodeDirectory.class, new InMemoryNodeDirectory());
     }
 
     private static class FakeAssetIndex implements AssetIndex {

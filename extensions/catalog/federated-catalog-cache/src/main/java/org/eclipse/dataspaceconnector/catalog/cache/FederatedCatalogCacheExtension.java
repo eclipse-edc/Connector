@@ -23,12 +23,11 @@ import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
-import org.eclipse.dataspaceconnector.spi.features.RetryPolicyFeature;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
@@ -46,7 +45,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
-@Requires({ FederatedCacheNodeDirectory.class, FederatedCacheStore.class, RetryPolicyFeature.class })
 @Provides({ Crawler.class, LoaderManager.class, QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     public static final int DEFAULT_NUM_CRAWLERS = 1;
@@ -58,6 +56,14 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private PartitionConfiguration partitionManagerConfig;
     private Monitor monitor;
     private ArrayBlockingQueue<UpdateResponse> updateResponseQueue;
+    @Inject
+    private FederatedCacheStore store;
+    @Inject
+    private WebService webService;
+    @Inject
+    private HealthCheckService healthCheckService;
+    @Inject
+    private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -65,9 +71,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         var queryAdapterRegistry = new CacheQueryAdapterRegistryImpl();
         context.registerService(CacheQueryAdapterRegistry.class, queryAdapterRegistry);
 
-        var store = context.getService(FederatedCacheStore.class);
         queryAdapterRegistry.register(new DefaultCacheQueryAdapter(store));
-        var webService = context.getService(WebService.class);
         var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
         context.registerService(QueryEngine.class, queryEngine);
         monitor = context.getMonitor();
@@ -75,15 +79,13 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         webService.registerController(catalogController);
 
         // contribute to the liveness probe
-        var hcs = context.getService(HealthCheckService.class, true);
-        if (hcs != null) {
-            hcs.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("FCC Query API").build());
+        if (healthCheckService != null) {
+            healthCheckService.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("FCC Query API").build());
         }
 
 
         // CRAWLER SUBSYSTEM
         var nodeQueryAdapterRegistry = new NodeQueryAdapterRegistryImpl();
-        var dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class);
 
         // catalog queries via IDS multipart are supported by default
         nodeQueryAdapterRegistry.register("ids-multipart", new IdsMultipartNodeQueryAdapter(context.getConnectorId(), dispatcherRegistry));
