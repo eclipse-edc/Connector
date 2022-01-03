@@ -18,9 +18,8 @@ import org.eclipse.dataspaceconnector.core.BaseExtension;
 import org.eclipse.dataspaceconnector.core.util.CyclicDependencyException;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.Feature;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -30,7 +29,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -65,7 +63,7 @@ class DefaultServiceExtensionContextTest {
         var list = context.loadServiceExtensions();
 
         assertThat(list).hasSize(2);
-        assertThat(list).contains(service1);
+        assertThat(list).extracting(InjectionContainer::getInjectionTarget).contains(service1);
         verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
@@ -81,20 +79,21 @@ class DefaultServiceExtensionContextTest {
 
         var list = context.loadServiceExtensions();
         assertThat(list).hasSize(3);
-        assertThat(list).containsExactlyInAnyOrder(service1, service2, coreExtension);
+        assertThat(list).extracting(InjectionContainer::getInjectionTarget).containsExactlyInAnyOrder(service1, service2, coreExtension);
         verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("A DEFAULT service extension depends on a PRIMORDIAL one")
     void loadServiceExtensions_withBackwardsDependency() {
-        var depending = new DependingService();
-        var coreService = new SomeService();
+        var depending = new DependingExtension();
+        var someExtension = new SomeExtension();
+        var providing = new ProvidingExtension();
 
-        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, coreService, coreExtension));
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(providing, depending, someExtension, coreExtension));
 
         var services = context.loadServiceExtensions();
-        assertThat(services).containsExactly(coreExtension, coreService, depending);
+        assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(coreExtension, providing, depending, someExtension);
         verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
@@ -102,9 +101,9 @@ class DefaultServiceExtensionContextTest {
     @Test
     @DisplayName("A service extension has a dependency on another one of the same loading stage")
     void loadServiceExtensions_withEqualDependency() {
-        var depending = new DependingService() {
+        var depending = new DependingExtension() {
         };
-        var coreService = new SomeService() {
+        var coreService = new SomeExtension() {
         };
 
         var thirdService = new ServiceExtension() {
@@ -113,35 +112,15 @@ class DefaultServiceExtensionContextTest {
         when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, thirdService, coreService, coreExtension));
 
         var services = context.loadServiceExtensions();
-        assertThat(services).containsExactlyInAnyOrder(coreService, depending, thirdService, coreExtension);
+        assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactlyInAnyOrder(coreService, depending, thirdService, coreExtension);
         verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("Two service extensions have a circular dependency")
     void loadServiceExtensions_withCircularDependency() {
-        var s1 = new ServiceExtension() {
-            @Override
-            public Set<String> provides() {
-                return Set.of("providedFeature");
-            }
-
-            @Override
-            public Set<String> requires() {
-                return Set.of("requiredFeature");
-            }
-        };
-        var s2 = new ServiceExtension() {
-            @Override
-            public Set<String> provides() {
-                return Set.of("requiredFeature");
-            }
-
-            @Override
-            public Set<String> requires() {
-                return Set.of("providedFeature");
-            }
-        };
+        var s1 = new TestProvidingExtension2();
+        var s2 = new TestProvidingExtension();
 
         when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(s1, s2, coreExtension));
 
@@ -152,56 +131,34 @@ class DefaultServiceExtensionContextTest {
     @Test
     @DisplayName("A service extension has an unsatisfied dependency")
     void loadServiceExtensions_dependencyNotSatisfied() {
-        var depending = new DependingService() {
-            @Override
-            public Set<String> requires() {
-                return Set.of("no-one-provides-this");
-            }
-        };
-        var coreService = new SomeService() {
-            @Override
-            public Set<String> provides() {
-                return Set.of("no-one-cares-about-this");
-            }
-        };
+        var depending = new DependingExtension();
+        var someExtension = new SomeExtension();
 
-        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, coreService, coreExtension));
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, someExtension, coreExtension));
 
-        assertThatThrownBy(() -> context.loadServiceExtensions())
-                .isInstanceOf(EdcException.class)
-                .hasMessageContaining("Extension feature \"no-one-provides-this\" required by")
-                .hasMessageEndingWith("not found");
+        assertThatThrownBy(() -> context.loadServiceExtensions()).isInstanceOf(EdcException.class).hasMessageContaining("The following injected fields were not provided:\nField \"someService\" of type ");
         verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("Services extensions are sorted by dependency order")
     void loadServiceExtensions_dependenciesAreSorted() {
-        var depending = new DependingService() {
-            @Override
-            public Set<String> requires() {
-                return Set.of("the-other");
-            }
-        };
-        var testService = new SomeService() {
-            @Override
-            public Set<String> provides() {
-                return Set.of("the-other");
-            }
-        };
+        var depending = new DependingExtension();
+        var providingExtension = new ProvidingExtension();
 
-        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, testService, coreExtension));
+
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, providingExtension, coreExtension));
 
         var services = context.loadServiceExtensions();
-        assertThat(services).containsExactly(coreExtension, testService, depending);
+        assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(coreExtension, providingExtension, depending);
         verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
     @Test
     @DisplayName("Should throw exception when no core dependency found")
     void noCoreDependency_shouldThrowException() {
-        var depending = new DependingService();
-        var coreService = new SomeService();
+        var depending = new DependingExtension();
+        var coreService = new SomeExtension();
 
         when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, coreService));
 
@@ -209,57 +166,40 @@ class DefaultServiceExtensionContextTest {
 
     }
 
-    @Test
-    @DisplayName("Expands into child features if only a parent feature is required")
-    void verifyExpandParentFeature() {
-        var childService = new SomeChildService();
-        var childService2 = new SomeOtherChildService();
-        //the depending service requires the "core" feature, but the child services provide a
-        //nested feature, "core:child:service" and "core:child"service:2"
-
-        var dependingService = new DependingService();
-
-        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(childService, coreExtension, childService2, dependingService));
-
-        var services = context.loadServiceExtensions();
-
-        assertThat(services).containsExactly(coreExtension, childService, childService2, dependingService);
-
-        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
-    }
-
     @SafeVarargs
     private <T> List<T> mutableListOf(T... elements) {
         return new ArrayList<>(List.of(elements));
     }
 
-    @Feature("core")
-    private interface CoreFeature {
+    private static class DependingExtension implements ServiceExtension {
+        @Inject
+        private SomeObject someService;
     }
 
-    @Feature("core:child:service")
-    private interface ChildFeature {
+    private static class SomeExtension implements ServiceExtension {
     }
 
-    @Feature("core:child:service:2")
-    private interface ChildFeature2 {
+    @Provides({ SomeObject.class })
+    private static class ProvidingExtension implements ServiceExtension {
     }
 
-    @Requires(CoreFeature.class)
-    private static class DependingService implements ServiceExtension {
-
+    @Provides({ SomeObject.class })
+    private static class TestProvidingExtension implements ServiceExtension {
+        @Inject
+        AnotherObject obj;
     }
 
-    @Provides(CoreFeature.class)
-    private static class SomeService implements ServiceExtension {
+    @Provides({ AnotherObject.class })
+    private static class TestProvidingExtension2 implements ServiceExtension {
+        @Inject
+        SomeObject obj;
     }
 
-    @Provides(ChildFeature.class)
-    private static class SomeChildService implements ServiceExtension {
+
+    private static class SomeObject {
     }
 
-    @Provides(ChildFeature2.class)
-    private static class SomeOtherChildService implements ServiceExtension {
+    private static class AnotherObject {
     }
 
     @BaseExtension

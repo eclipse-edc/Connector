@@ -21,8 +21,8 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -37,8 +37,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-
-import static java.lang.String.format;
 
 /**
  * Base service extension context.
@@ -133,13 +131,13 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    public List<ServiceExtension> loadServiceExtensions() {
+    public List<InjectionContainer<ServiceExtension>> loadServiceExtensions() {
         List<ServiceExtension> serviceExtensions = loadExtensions(ServiceExtension.class, true);
 
         //the first sort is only to verify that there are no "upward" dependencies from PRIMORDIAL -> DEFAULT
-        sortExtensions(serviceExtensions);
+        var sips = sortExtensions(serviceExtensions);
 
-        return Collections.unmodifiableList(serviceExtensions);
+        return Collections.unmodifiableList(sips);
     }
 
     @Override
@@ -162,7 +160,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
     }
 
-    private void sortExtensions(List<ServiceExtension> loadedExtensions) {
+    private List<InjectionContainer<ServiceExtension>> sortExtensions(List<ServiceExtension> loadedExtensions) {
         Map<String, List<ServiceExtension>> dependencyMap = new HashMap<>();
         var allProvided = loadedExtensions.stream().flatMap(se -> getProvidedFeatures(se).stream()).collect(Collectors.toSet());
 
@@ -171,18 +169,36 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         // add all provided features to the dependency map
         loadedExtensions.forEach(ext -> getProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
 
-        TopologicalSort<ServiceExtension> sort = new TopologicalSort<>();
+        var sort = new TopologicalSort<ServiceExtension>();
 
-        // check if all required dependencies are satisfied, throw exception otherwise
-        loadedExtensions.forEach(ext -> getRequiredFeatures(ext, allProvided).forEach(feature -> {
-            List<ServiceExtension> dependencies = dependencyMap.get(feature);
-            if (dependencies == null) {
-                throw new EdcException(format("Extension feature \"%s\" required by %s was not found", feature, ext.getClass().getName()));
-            } else {
-                dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
-            }
-        }));
+        var unsatisfiedInjectionPoints = new ArrayList<InjectionPoint<ServiceExtension>>();
+
+        // check if all required dependencies are satisfied, collect missing ones and throw exception otherwise
+        var injectionPoints = loadedExtensions.stream().flatMap(ext -> {
+            var injectedFields = getRequiredFeatures(ext, allProvided);
+
+            injectedFields.forEach(injectionPoint -> {
+                List<ServiceExtension> dependencies = dependencyMap.get(injectionPoint.getFeatureName());
+                if (dependencies == null) {
+                    unsatisfiedInjectionPoints.add(injectionPoint);
+                } else {
+                    dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
+                }
+            });
+            return injectedFields.stream();
+        }).collect(Collectors.toList());
+
+        if (!unsatisfiedInjectionPoints.isEmpty()) {
+            var string = "The following injected fields were not provided:\n";
+            string += unsatisfiedInjectionPoints.stream().map(InjectionPoint::toString).collect(Collectors.joining("\n"));
+            throw new EdcInjectionException(string);
+        }
+
         sort.sort(loadedExtensions);
+
+        // todo: should the list of InjectionContainers be generated directly by the flatmap?
+        // convert the sorted list of extensions into an equally sorted list of InjectionContainers
+        return loadedExtensions.stream().map(se -> new InjectionContainer<>(se, injectionPoints.stream().filter(ip -> ip.getInstance() == se).collect(Collectors.toSet()))).collect(Collectors.toList());
     }
 
     /**
@@ -206,26 +222,12 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     /**
      * Obtains all features a specific extension provides as strings
      */
-    private Set<String> getRequiredFeatures(ServiceExtension ext, Set<String> allFeatures) {
+    private Set<InjectionPoint<ServiceExtension>> getRequiredFeatures(ServiceExtension ext, Set<String> allFeatures) {
         // initialize with legacy list
-        var allRequired = new HashSet<>(ext.requires());
 
-        var requiresAnnotation = ext.getClass().getAnnotation(Requires.class);
-        if (requiresAnnotation != null) {
+        var injectFields = Arrays.stream(ext.getClass().getDeclaredFields()).filter(f -> f.getAnnotation(Inject.class) != null).map(f -> new FieldInjectionPoint<>(ext, f, getFeatureValue(f.getType())));
 
-            // all feature classes NOT annotate with @Feature will be listed under the "false" key
-            var stream = Arrays.stream(requiresAnnotation.value());
-            Map<Boolean, List<Class<?>>> requiredFeatureIsAnnotated = stream.collect(Collectors.partitioningBy(x -> x.getAnnotation(Feature.class) != null));
-
-            if (!requiredFeatureIsAnnotated.get(false).isEmpty()) {
-                throw new EdcException("One or more @Require'd features are not annotated with \"@Feature\": " + requiredFeatureIsAnnotated.get(false).stream().map(Class::getName).collect(Collectors.joining(",")));
-            }
-
-            var annotatedProvides = requiredFeatureIsAnnotated.get(true).stream().map(this::getFeatureValue).flatMap(feature -> expand(feature, allFeatures).stream()).collect(Collectors.toList());
-            allRequired.addAll(annotatedProvides);
-        }
-
-        return allRequired;
+        return injectFields.collect(Collectors.toSet());
     }
 
     /**
@@ -244,27 +246,22 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
      * Obtains all features a specific extension requires as strings
      */
     private Set<String> getProvidedFeatures(ServiceExtension ext) {
-        var allProvides = new HashSet<>(ext.provides());
+        var allProvides = new HashSet<String>();
 
         var providesAnnotation = ext.getClass().getAnnotation(Provides.class);
         if (providesAnnotation != null) {
-
-            // all feature classes NOT annotate with @Feature will be listed under the "false" key
-            var stream = Arrays.stream(providesAnnotation.value());
-            Map<Boolean, List<Class<?>>> providedFeatureIsAnnotated = stream.collect(Collectors.partitioningBy(x -> x.getAnnotation(Feature.class) != null));
-
-            if (!providedFeatureIsAnnotated.get(false).isEmpty()) {
-                throw new EdcException("One or more @Provide'd features are not annotated with \"@Feature\": " + providedFeatureIsAnnotated.get(false).stream().map(Class::getName).collect(Collectors.joining(",")));
-            }
-
-            var annotatedProvides = providedFeatureIsAnnotated.get(true).stream().map(this::getFeatureValue).collect(Collectors.toSet());
-            allProvides.addAll(annotatedProvides);
+            var featureStrings = Arrays.stream(providesAnnotation.value()).map(this::getFeatureValue).collect(Collectors.toSet());
+            allProvides.addAll(featureStrings);
         }
         return allProvides;
     }
 
     private String getFeatureValue(Class<?> featureClass) {
-        return featureClass.getAnnotation(Feature.class).value();
+        var annotation = featureClass.getAnnotation(Feature.class);
+        if (annotation == null) {
+            return featureClass.getName();
+        }
+        return annotation.value();
     }
 
 

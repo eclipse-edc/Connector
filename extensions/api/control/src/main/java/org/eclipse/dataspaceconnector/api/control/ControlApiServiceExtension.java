@@ -7,7 +7,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNeg
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
@@ -18,7 +18,6 @@ import org.jetbrains.annotations.NotNull;
 import java.security.SecureRandom;
 import java.util.function.Predicate;
 
-@Requires(ContractNegotiationStore.class)
 public class ControlApiServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -29,6 +28,16 @@ public class ControlApiServiceExtension implements ServiceExtension {
     public static final String EDC_API_CONTROL_AUTH_APIKEY_VALUE = "edc.api.control.auth.apikey.value";
 
     private Monitor monitor;
+    @Inject
+    private WebService webService;
+    @Inject
+    private TransferProcessManager transferProcessManager;
+    @Inject
+    private RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry;
+    @Inject
+    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
 
     /*
      * Produces twelve characters long sequence in the ascii range of '!' (dec 33) to '~' (dec 126).
@@ -36,11 +45,7 @@ public class ControlApiServiceExtension implements ServiceExtension {
      * @return sequence
      */
     private static String generateRandomString() {
-        StringBuilder stringBuilder = new SecureRandom().ints('!', ((int) '~' + 1))
-                .limit(12).collect(
-                        StringBuilder::new,
-                        StringBuilder::appendCodePoint,
-                        StringBuilder::append);
+        StringBuilder stringBuilder = new SecureRandom().ints('!', ((int) '~' + 1)).limit(12).collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append);
         return stringBuilder.toString();
     }
 
@@ -53,12 +58,6 @@ public class ControlApiServiceExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
         monitor = serviceExtensionContext.getMonitor();
 
-        WebService webService = serviceExtensionContext.getService(WebService.class);
-        TransferProcessManager transferProcessManager = serviceExtensionContext.getService(TransferProcessManager.class);
-        RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry = serviceExtensionContext.getService(RemoteMessageDispatcherRegistry.class);
-
-        ConsumerContractNegotiationManager consumerNegotiationManager = serviceExtensionContext.getService(ConsumerContractNegotiationManager.class);
-        ContractNegotiationStore contractNegotiationStore = serviceExtensionContext.getService(ContractNegotiationStore.class);
 
         webService.registerController(new ClientController(transferProcessManager, consumerNegotiationManager, contractNegotiationStore));
         webService.registerController(new ClientControlCatalogApiController(remoteMessageDispatcherRegistry));
@@ -66,9 +65,7 @@ public class ControlApiServiceExtension implements ServiceExtension {
         /*
          * Registers a API-Key authentication filter
          */
-        HttpApiKeyAuthContainerRequestFilter httpApiKeyAuthContainerRequestFilter = new HttpApiKeyAuthContainerRequestFilter(
-                resolveApiKeyHeaderName(serviceExtensionContext),
-                resolveApiKeyHeaderValue(serviceExtensionContext),
+        HttpApiKeyAuthContainerRequestFilter httpApiKeyAuthContainerRequestFilter = new HttpApiKeyAuthContainerRequestFilter(resolveApiKeyHeaderName(serviceExtensionContext), resolveApiKeyHeaderValue(serviceExtensionContext),
                 AuthenticationContainerRequestContextPredicate.INSTANCE);
 
         webService.registerController(httpApiKeyAuthContainerRequestFilter);

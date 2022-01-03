@@ -14,9 +14,11 @@
 
 package org.eclipse.dataspaceconnector.transfer.inline.spi;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.Nullable;
 
+@Feature("edc:core:transfer:inline:dataoperatorregistry")
 public interface DataOperatorRegistry {
     void registerStreamPublisher(DataStreamPublisher streamer);
 

@@ -14,21 +14,21 @@
 
 package org.eclipse.dataspaceconnector.ids.policy;
 
-import org.eclipse.dataspaceconnector.ids.spi.features.IdsCoreFeature;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 /**
  * Registers test policy functions.
  */
-@Requires(IdsCoreFeature.class)
 public class IdsPolicyExtension implements ServiceExtension {
 
     public static String ABS_SPATIAL_POSITION = "ids:absoluteSpatialPosition";
     public static String PARTNER_LEVEL = "ids:partnerLevel";
+    @Inject
+    private PolicyEngine policyEngine;
 
     @Override
     public String name() {
@@ -37,7 +37,6 @@ public class IdsPolicyExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var policyEngine = context.getService(PolicyEngine.class);
 
         policyEngine.registerFunction(Permission.class, ABS_SPATIAL_POSITION, new AbsSpatialPositionConstraintFunction());
         policyEngine.registerFunction(Permission.class, PARTNER_LEVEL, new PartnerLevelConstraintFunction());

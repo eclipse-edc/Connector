@@ -21,8 +21,6 @@ import org.eclipse.dataspaceconnector.core.system.health.HealthCheckServiceConfi
 import org.eclipse.dataspaceconnector.core.system.health.HealthCheckServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.features.HttpClientFeature;
-import org.eclipse.dataspaceconnector.spi.features.RetryPolicyFeature;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -40,7 +38,7 @@ import java.util.Base64;
 import java.util.concurrent.TimeUnit;
 
 @BaseExtension
-@Provides({ HttpClientFeature.class, RetryPolicyFeature.class, HealthCheckService.class })
+@Provides({ RetryPolicy.class, HealthCheckService.class, OkHttpClient.class })
 public class CoreServicesExtension implements ServiceExtension {
 
     @EdcSetting

@@ -47,8 +47,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WebSocketFactor
 import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
-import java.util.Set;
-
 /**
  * An extension that demonstrates data transfers and supports three flow types:
  * (1) Object storage
@@ -71,11 +69,6 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
     PubSubHttpEndpoint httpEndpoint;
 
     private Monitor monitor;
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("demo-protocols");
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

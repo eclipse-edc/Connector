@@ -3,6 +3,7 @@ package org.eclipse.dataspaceconnector.core.system.runtime;
 import org.eclipse.dataspaceconnector.core.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.core.system.ExtensionLoader;
+import org.eclipse.dataspaceconnector.core.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -13,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
@@ -60,8 +62,9 @@ public class BaseRuntime {
         var name = getRuntimeName(context);
         try {
             initializeVault(context);
-            List<ServiceExtension> serviceExtensions = createExtensions(context);
-            java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions, monitor)));
+            List<InjectionContainer<ServiceExtension>> serviceExtensions = createExtensions(context);
+            var seList = serviceExtensions.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList());
+            java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(seList, monitor)));
             bootExtensions(context, serviceExtensions);
             var hc = context.getService(HealthCheckService.class);
             hc.addStartupStatusProvider(this::getStartupStatus);
@@ -106,7 +109,7 @@ public class BaseRuntime {
      * @param context           The {@code ServiceExtensionContext} that is used in this runtime.
      * @param serviceExtensions a list of extensions
      */
-    protected void bootExtensions(ServiceExtensionContext context, List<ServiceExtension> serviceExtensions) {
+    protected void bootExtensions(ServiceExtensionContext context, List<InjectionContainer<ServiceExtension>> serviceExtensions) {
         ExtensionLoader.bootServiceExtensions(serviceExtensions, context);
     }
 
@@ -117,8 +120,7 @@ public class BaseRuntime {
      * @param context A context to which all the service extensions should be registered
      * @return a list of {@code ServiceExtension}s
      */
-    @NotNull
-    protected List<ServiceExtension> createExtensions(ServiceExtensionContext context) {
+    protected List<InjectionContainer<ServiceExtension>> createExtensions(ServiceExtensionContext context) {
         return context.loadServiceExtensions();
     }
 

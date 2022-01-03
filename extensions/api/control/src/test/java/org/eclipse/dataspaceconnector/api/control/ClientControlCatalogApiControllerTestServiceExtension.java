@@ -10,7 +10,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.Negotiat
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -26,10 +26,11 @@ import org.jetbrains.annotations.Nullable;
 import java.util.HashMap;
 import java.util.List;
 
-@Requires({ ContractDefinitionStore.class, AssetLoader.class })
 class ClientControlCatalogApiControllerTestServiceExtension implements ServiceExtension {
 
+    @Inject
     private AssetLoader assetLoader;
+    @Inject
     private ContractDefinitionStore contractDefinitionStore;
 
     @Override

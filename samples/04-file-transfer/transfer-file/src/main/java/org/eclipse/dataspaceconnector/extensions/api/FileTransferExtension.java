@@ -18,13 +18,12 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
@@ -37,19 +36,26 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
 import java.nio.file.Path;
 
-@Requires({ AssetIndex.class, PolicyRegistry.class, DataAddressResolver.class })
 public class FileTransferExtension implements ServiceExtension {
 
     public static final String USE_POLICY = "use-eu";
     private static final String EDC_ASSET_PATH = "edc.samples.04.asset.path";
+    @Inject
+    private DataFlowManager dataFlowMgr;
+    @Inject
+    private DataAddressResolver dataAddressResolver;
+    @Inject
+    private DataOperatorRegistry dataOperatorRegistry;
+    @Inject
+    private ContractDefinitionStore contractStore;
+    @Inject
+    private AssetLoader loader;
+    @Inject
+    private PolicyRegistry policyRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var vault = context.getService(Vault.class);
-        var dataFlowMgr = context.getService(DataFlowManager.class);
-        var dataAddressResolver = context.getService(DataAddressResolver.class);
-
-        var dataOperatorRegistry = context.getService(DataOperatorRegistry.class);
         dataOperatorRegistry.registerStreamPublisher(new FileTransferDataStreamPublisher(context.getMonitor(), dataAddressResolver));
 
         DataFlowController dataFlowController = new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver);
@@ -64,7 +70,7 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private Policy savePolicies(ServiceExtensionContext context) {
-        PolicyRegistry policyRegistry = context.getService(PolicyRegistry.class);
+        policyRegistry = context.getService(PolicyRegistry.class);
 
         var usePermission = Permission.Builder.newInstance()
                 .action(Action.Builder.newInstance().type("idsc:USE").build())
@@ -80,7 +86,6 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
-        AssetLoader loader = context.getService(AssetLoader.class);
         String assetPathSetting = context.getSetting(EDC_ASSET_PATH, "/tmp/provider/test-document.txt");
         Path assetPath = Path.of(assetPathSetting);
 
@@ -97,7 +102,6 @@ public class FileTransferExtension implements ServiceExtension {
     }
 
     private void registerContractDefinition(ServiceExtensionContext context, Policy policy) {
-        ContractDefinitionStore contractStore = context.getService(ContractDefinitionStore.class);
 
         ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")

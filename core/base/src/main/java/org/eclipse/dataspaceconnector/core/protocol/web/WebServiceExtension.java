@@ -30,7 +30,7 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
  * TODO create keystore to support HTTPS
  */
 @BaseExtension
-@Provides(WebService.class)
+@Provides({ WebService.class, JettyService.class })
 public class WebServiceExtension implements ServiceExtension {
     private JettyService jettyService;
     private JerseyRestService jerseyRestService;

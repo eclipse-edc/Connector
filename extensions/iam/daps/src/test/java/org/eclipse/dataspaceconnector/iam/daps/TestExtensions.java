@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.iam.daps;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.spi.features.HttpClientFeature;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -26,7 +25,7 @@ public class TestExtensions {
         return new MockHttpExtension(client);
     }
 
-    @Provides(HttpClientFeature.class)
+    @Provides(OkHttpClient.class)
     private static class MockHttpExtension implements ServiceExtension {
         private final OkHttpClient client;
 

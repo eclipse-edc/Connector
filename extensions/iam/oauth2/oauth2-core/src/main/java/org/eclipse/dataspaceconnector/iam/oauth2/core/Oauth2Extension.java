@@ -27,12 +27,11 @@ import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2Service;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.features.HttpClientFeature;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
@@ -48,7 +47,6 @@ import java.util.function.Supplier;
  * Provides OAuth2 client credentials flow support.
  */
 @Provides({ IdentityService.class, Oauth2Service.class, JwtDecoratorRegistry.class })
-@Requires(HttpClientFeature.class)
 public class Oauth2Extension implements ServiceExtension {
 
     private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
@@ -79,6 +77,8 @@ public class Oauth2Extension implements ServiceExtension {
     private long keyRefreshInterval;
 
     private ScheduledExecutorService executorService;
+    @Inject
+    private OkHttpClient okHttpClient;
 
     private static Supplier<JWSSigner> createRsaPrivateKeySupplier(Oauth2Configuration configuration) {
         return () -> {
@@ -107,11 +107,10 @@ public class Oauth2Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        var client = context.getService(OkHttpClient.class);
 
         // setup the provider key resolver, which will be scheduled for refresh at runtime start
         String jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
-        providerKeyResolver = new IdentityProviderKeyResolver(jwksUrl, context.getMonitor(), client, context.getTypeManager());
+        providerKeyResolver = new IdentityProviderKeyResolver(jwksUrl, context.getMonitor(), okHttpClient, context.getTypeManager());
         keyRefreshInterval = Integer.parseInt(context.getSetting(PROVIDER_JWKS_REFRESH, "5"));
 
         Oauth2Configuration configuration = createConfig(context);
@@ -124,7 +123,7 @@ public class Oauth2Extension implements ServiceExtension {
 
         // for now, lets assume we have RSA Private keys
         Supplier<JWSSigner> pkSuppplier = createRsaPrivateKeySupplier(configuration);
-        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration, pkSuppplier, client, jwtDecoratorRegistry, context.getTypeManager());
+        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration, pkSuppplier, okHttpClient, jwtDecoratorRegistry, context.getTypeManager());
 
         context.registerService(IdentityService.class, oauth2Service);
     }

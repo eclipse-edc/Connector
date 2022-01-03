@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -68,7 +67,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
-@Provides({ AssetIndex.class, ContractDefinitionStore.class, IdentityService.class, TransferProcessStore.class, ContractNegotiationManager.class })
+@Provides({ AssetIndex.class, ContractDefinitionStore.class, IdentityService.class, TransferProcessStore.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class,
+        ContractOfferService.class, ContractValidationService.class })
 class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 

@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryI
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -39,14 +38,14 @@ import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
-import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
-@Provides({ ContractNegotiationManager.class })
-@Requires({ AssetIndex.class, ContractDefinitionStore.class })
+@Provides({ ContractOfferService.class, PolicyEngine.class, ParticipantAgentService.class, RemoteMessageDispatcherRegistry.class, ContractValidationService.class,
+        ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class })
 @CoreExtension
 public class ContractServiceExtension implements ServiceExtension {
 
@@ -56,6 +55,10 @@ public class ContractServiceExtension implements ServiceExtension {
     private ContractDefinitionServiceImpl definitionService;
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
+    @Inject
+    private AssetIndex assetIndex;
+    @Inject
+    private ContractDefinitionStore contractDefinitionStore;
 
     @Override
     public String name() {
@@ -91,13 +94,11 @@ public class ContractServiceExtension implements ServiceExtension {
     }
 
     private void registerServices(ServiceExtensionContext context) {
-        var assetIndex = context.getService(AssetIndex.class, true);
         if (assetIndex == null) {
             monitor.warning("No AssetIndex registered. Register one to create Contract Offers.");
             assetIndex = new NullAssetIndex();
         }
 
-        var store = context.getService(ContractDefinitionStore.class);
 
         var agentService = new ParticipantAgentServiceImpl();
         context.registerService(ParticipantAgentService.class, agentService);
@@ -105,7 +106,7 @@ public class ContractServiceExtension implements ServiceExtension {
         var policyEngine = new PolicyEngineImpl();
         context.registerService(PolicyEngine.class, policyEngine);
 
-        definitionService = new ContractDefinitionServiceImpl(monitor, store, policyEngine);
+        definitionService = new ContractDefinitionServiceImpl(monitor, contractDefinitionStore, policyEngine);
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
         context.registerService(ContractDefinitionService.class, definitionService);
 
