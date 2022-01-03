@@ -25,8 +25,8 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
     }
 
     @Override
-    public void save(ContractOffer asset) {
-        cache.put(asset.getId(), asset);
+    public void save(ContractOffer contractOffer) {
+        cache.put(contractOffer.getAsset().getId(), contractOffer);
     }
 
     @Override
@@ -35,5 +35,4 @@ public class InMemoryFederatedCacheStore implements FederatedCacheStore {
         var rootPredicate = query.stream().map(converter::convert).reduce(x -> true, Predicate::and);
         return cache.values().stream().filter(rootPredicate).collect(Collectors.toList());
     }
-
 }
