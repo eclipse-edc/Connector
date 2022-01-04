@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -19,6 +20,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -192,7 +194,15 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     private String buildJwt() {
         try {
-            JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
+            JWSHeader.Builder headerBuilder;
+            if (tokenSigner instanceof ECDSASigner) {
+                //supports ECDSA private key
+                headerBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256);
+            } else {
+                //default: RSA private key
+                headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
+            }
+
             var claimsSet = new JWTClaimsSet.Builder();
             jwtDecoratorRegistry.getAll().forEach(d -> d.decorate(headerBuilder, claimsSet));
             var jwt = new SignedJWT(headerBuilder.build(), claimsSet.build());
