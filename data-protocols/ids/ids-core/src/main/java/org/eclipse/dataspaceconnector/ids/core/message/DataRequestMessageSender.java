@@ -31,7 +31,6 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -40,6 +39,7 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
 
 /**
@@ -85,6 +85,9 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
         var connectorId = dataRequest.getConnectorId();
 
         var tokenResult = identityService.obtainClientCredentials(connectorId);
+        if (tokenResult.failed()) {
+            return failedFuture(new EdcException("Failed to obtain client credentials: " + String.join(", ", tokenResult.getFailureMessages())));
+        }
 
         DynamicAttributeToken token = new DynamicAttributeTokenBuilder()
                 ._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getContent().getToken())
