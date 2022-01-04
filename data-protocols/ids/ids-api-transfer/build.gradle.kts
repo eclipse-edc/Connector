@@ -12,6 +12,10 @@
  *
  */
 
+val infoModelVersion: String by project
+val rsApi: String by project
+val jerseyVersion: String by project
+
 plugins {
     `java-library`
 }
@@ -20,19 +24,18 @@ plugins {
 dependencies {
     api(project(":spi"))
     api(project(":data-protocols:ids:ids-spi"))
-    api(project(":data-protocols:ids:ids-core"))
-    api(project(":data-protocols:ids:ids-api-transfer"))
-    api(project(":data-protocols:ids:ids-api-catalog"))
-    api(project(":data-protocols:ids:ids-policy-mock"))
-    api(project(":data-protocols:ids:ids-transform-v1"))
-    api(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
-    api(project(":data-protocols:ids:ids-api-multipart-dispatcher-v1"))
+
+    api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
+
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
+    testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("ids") {
-            artifactId = "ids"
+        create<MavenPublication>("ids-api-transfer") {
+            artifactId = "ids-api-transfer"
             from(components["java"])
         }
     }
