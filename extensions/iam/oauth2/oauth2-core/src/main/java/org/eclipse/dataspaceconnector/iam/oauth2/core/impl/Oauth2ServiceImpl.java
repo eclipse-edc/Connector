@@ -81,7 +81,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     public Oauth2ServiceImpl(Oauth2Configuration configuration, Supplier<JWSSigner> signerProvider, OkHttpClient client, JwtDecoratorRegistry jwtDecoratorRegistry, TypeManager typeManager, ValidationRule... additionalValidationRules) {
         this.configuration = configuration;
         this.typeManager = typeManager;
-        this.httpClient = client;
+        httpClient = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
 
         List<ValidationRule> rules = new ArrayList<>();

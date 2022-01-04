@@ -20,7 +20,7 @@ val storageBlobVersion: String by project
 
 dependencies {
     api(project(":spi"))
-    api(project(":core:schema"))
+    api(project(":core"))
 
 }
 

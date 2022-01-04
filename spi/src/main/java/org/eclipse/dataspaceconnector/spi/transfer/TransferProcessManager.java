@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.transfer;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
@@ -23,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
  * <br/>
  * The {@link DataRequest#isSync()} flag indicates whether a data request should be processed synchronously or asynchronously.
  */
+@Feature("edc:core:transfer:transferprocessmanager")
 public interface TransferProcessManager {
 
     /**

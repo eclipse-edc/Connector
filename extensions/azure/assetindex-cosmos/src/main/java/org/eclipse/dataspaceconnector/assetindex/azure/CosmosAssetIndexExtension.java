@@ -21,27 +21,21 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-import java.util.Set;
-
 /**
  * Provides a persistent implementation of the {@link org.eclipse.dataspaceconnector.spi.asset.AssetIndex} using CosmosDB.
  */
+@Provides({ AssetIndex.class, DataAddressResolver.class, AssetLoader.class })
 public class CosmosAssetIndexExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "CosmosDB Asset Index";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(AssetIndex.FEATURE, AssetLoader.FEATURE, DataAddressResolver.FEATURE);
     }
 
     @Override

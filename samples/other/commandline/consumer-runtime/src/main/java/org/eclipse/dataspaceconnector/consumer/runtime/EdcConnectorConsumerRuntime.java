@@ -14,18 +14,20 @@
 
 package org.eclipse.dataspaceconnector.consumer.runtime;
 
-import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.core.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
+import org.eclipse.dataspaceconnector.core.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.system.ExtensionLoader.bootServiceExtensions;
-import static org.eclipse.dataspaceconnector.system.ExtensionLoader.loadMonitor;
-import static org.eclipse.dataspaceconnector.system.ExtensionLoader.loadVault;
+import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.bootServiceExtensions;
+import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.loadMonitor;
+import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.loadVault;
 
 public class EdcConnectorConsumerRuntime {
     private Monitor monitor;
@@ -45,9 +47,10 @@ public class EdcConnectorConsumerRuntime {
         try {
             loadVault(context);
 
-            serviceExtensions = context.loadServiceExtensions();
+            var serviceInjectionPoints = context.loadServiceExtensions();
+            serviceExtensions = serviceInjectionPoints.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList());
 
-            bootServiceExtensions(serviceExtensions, context);
+            bootServiceExtensions(serviceInjectionPoints, context);
             monitor.debug("Consumer runtime started");
         } catch (Exception e) {
             monitor.severe("Error booting runtime", e);   // do not stop the process as the consumer may be embedded

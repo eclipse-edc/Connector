@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.asset;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
  * to an {@link Asset} by its corresponding asset id. Therefore, it is absolutely crucial that assets are not removed from the {@link AssetIndex} as long as data transfers or contracts (agreements and offers) exists for them.
  * Additionally, as an {@link Asset} may be referenced by a contract, the content of an {@link Asset} and its corresponding data must not change in ways, that violates an existing contract.
  */
+@Feature(AssetIndex.FEATURE)
 public interface AssetIndex {
 
     String FEATURE = "edc:asset:assetindex";

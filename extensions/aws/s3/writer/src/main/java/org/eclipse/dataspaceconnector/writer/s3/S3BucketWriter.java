@@ -2,8 +2,8 @@ package org.eclipse.dataspaceconnector.writer.s3;
 
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.provision.aws.AwsTemporarySecretToken;
-import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -29,6 +29,17 @@ public class S3BucketWriter implements DataWriter {
         this.monitor = monitor;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
+    }
+
+    private static StaticCredentialsProvider buildCredentialsProvider(AwsTemporarySecretToken awsSecretToken) {
+        return StaticCredentialsProvider.create(AwsSessionCredentials.create(awsSecretToken.getAccessKeyId(), awsSecretToken.getSecretAccessKey(), awsSecretToken.getSessionToken()));
+    }
+
+    private static PutObjectRequest createRequest(String bucketName, String objectKey) {
+        return PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
     }
 
     @Override
@@ -57,17 +68,6 @@ public class S3BucketWriter implements DataWriter {
             monitor.severe("Data request: transfer failed!");
             return Result.failure("Data transfer failed");
         }
-    }
-
-    private static StaticCredentialsProvider buildCredentialsProvider(AwsTemporarySecretToken awsSecretToken) {
-        return StaticCredentialsProvider.create(AwsSessionCredentials.create(awsSecretToken.getAccessKeyId(), awsSecretToken.getSecretAccessKey(), awsSecretToken.getSessionToken()));
-    }
-
-    private static PutObjectRequest createRequest(String bucketName, String objectKey) {
-        return PutObjectRequest.builder()
-                .bucket(bucketName)
-                .key(objectKey)
-                .build();
     }
 }
 

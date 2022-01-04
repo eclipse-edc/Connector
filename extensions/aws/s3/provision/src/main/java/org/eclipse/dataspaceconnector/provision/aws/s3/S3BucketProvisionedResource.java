@@ -20,7 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
+import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 

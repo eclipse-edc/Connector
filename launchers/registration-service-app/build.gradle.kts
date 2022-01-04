@@ -20,9 +20,8 @@ plugins {
 
 
 dependencies {
-    implementation(project(":core:bootstrap"))
+    implementation(project(":core"))
     implementation(project(":common:util"))
-    implementation(project(":core:protocol:web"))
 //    implementation(project(":extensions:azure:events"))
     implementation(project(":extensions:iam:distributed-identity:registration-service"))
     implementation(project(":extensions:iam:distributed-identity:registration-service-api"))

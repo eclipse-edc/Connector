@@ -30,7 +30,7 @@ dependencies {
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
 
     testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(project(":core:protocol:web"))
+    testImplementation(project(":core:base"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }

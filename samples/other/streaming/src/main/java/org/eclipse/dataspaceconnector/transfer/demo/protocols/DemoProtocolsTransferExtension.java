@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.core.protocol.web.transport.JettyService;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -45,9 +46,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.PubSubServerEnd
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WebSocketFactory;
 import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
-import org.eclipse.dataspaceconnector.web.transport.JettyService;
-
-import java.util.Set;
 
 /**
  * An extension that demonstrates data transfers and supports three flow types:
@@ -71,11 +69,6 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
     PubSubHttpEndpoint httpEndpoint;
 
     private Monitor monitor;
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("demo-protocols");
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

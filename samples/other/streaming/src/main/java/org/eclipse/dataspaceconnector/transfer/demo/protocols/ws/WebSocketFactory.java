@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.demo.protocols.ws;
 
 import jakarta.websocket.server.ServerEndpoint;
 import jakarta.websocket.server.ServerEndpointConfig;
-import org.eclipse.dataspaceconnector.web.transport.JettyService;
+import org.eclipse.dataspaceconnector.core.protocol.web.transport.JettyService;
 import org.eclipse.jetty.websocket.jakarta.server.config.JakartaWebSocketServletContainerInitializer;
 import org.jetbrains.annotations.NotNull;
 

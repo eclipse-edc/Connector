@@ -1,6 +1,8 @@
 package org.eclipse.dataspaceconnector.catalog.cache;
 
 import kotlin.NotImplementedError;
+import org.eclipse.dataspaceconnector.catalog.directory.InMemoryNodeDirectory;
+import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheNodeDirectory;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
@@ -8,12 +10,15 @@ import org.eclipse.dataspaceconnector.policy.model.PolicyType;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -36,18 +41,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
+@Provides({ RemoteMessageDispatcherRegistry.class, AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class, FederatedCacheNodeDirectory.class })
 public class FccTestExtension implements ServiceExtension {
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE, "dataspaceconnector:dispatcher", "edc:ids:transform:v1");
-    }
-
-    @Override
-    public LoadPhase phase() {
-        //this is necessary because the CoreServicesExtension requires the TransferProcessStore and it is loaded in the PRIMORDIAL phase
-        return LoadPhase.PRIMORDIAL;
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -57,6 +52,7 @@ public class FccTestExtension implements ServiceExtension {
         context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
         context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
         context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
+        context.registerService(FederatedCacheNodeDirectory.class, new InMemoryNodeDirectory());
     }
 
     private static class FakeAssetIndex implements AssetIndex {

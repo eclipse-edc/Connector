@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.reader.azure.blob;
 
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
-import org.eclipse.dataspaceconnector.schema.azure.AzureBlobStoreSchema;
+import org.eclipse.dataspaceconnector.core.schema.azure.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataReader;

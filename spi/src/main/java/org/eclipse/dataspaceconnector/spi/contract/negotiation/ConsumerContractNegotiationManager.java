@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 
 /**
  * Manages contract negotiations on the consumer participant.
- *
+ * <p>
  * All operations are idempotent.
  */
 public interface ConsumerContractNegotiationManager extends ContractNegotiationManager {

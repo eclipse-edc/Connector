@@ -15,11 +15,11 @@
 package org.eclipse.dataspaceconnector.policy.registry.memory;
 
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.util.Set;
-
+@Provides(PolicyRegistry.class)
 public class InMemoryPolicyRegistryExtension implements ServiceExtension {
 
     @Override
@@ -27,10 +27,6 @@ public class InMemoryPolicyRegistryExtension implements ServiceExtension {
         return "In-Memory Policy Registry";
     }
 
-    @Override
-    public Set<String> provides() {
-        return Set.of(PolicyRegistry.FEATURE);
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

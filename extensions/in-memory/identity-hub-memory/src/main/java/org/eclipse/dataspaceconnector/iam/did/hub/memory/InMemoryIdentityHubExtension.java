@@ -14,22 +14,17 @@
 package org.eclipse.dataspaceconnector.iam.did.hub.memory;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.util.Set;
 
-
+@Provides(IdentityHubStore.class)
 public class InMemoryIdentityHubExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "In-Memory Identity Hub";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(IdentityHubStore.FEATURE);
     }
 
     @Override

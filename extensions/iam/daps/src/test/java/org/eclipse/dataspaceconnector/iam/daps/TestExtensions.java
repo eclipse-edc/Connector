@@ -15,26 +15,27 @@
 package org.eclipse.dataspaceconnector.iam.daps;
 
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.system.CoreServicesExtension;
-
-import java.util.Set;
 
 public class TestExtensions {
 
     public static ServiceExtension mockHttpClient(OkHttpClient client) {
-        return new ServiceExtension() {
-            @Override
-            public Set<String> provides() {
-                return Set.of(CoreServicesExtension.FEATURE_HTTP_CLIENT);
-            }
-
-            @Override
-            public void initialize(ServiceExtensionContext context) {
-                context.registerService(OkHttpClient.class, client);
-            }
-        };
+        return new MockHttpExtension(client);
     }
 
+    @Provides(OkHttpClient.class)
+    private static class MockHttpExtension implements ServiceExtension {
+        private final OkHttpClient client;
+
+        public MockHttpExtension(OkHttpClient client) {
+            this.client = client;
+        }
+
+        @Override
+        public void initialize(ServiceExtensionContext context) {
+            context.registerService(OkHttpClient.class, client);
+        }
+    }
 }

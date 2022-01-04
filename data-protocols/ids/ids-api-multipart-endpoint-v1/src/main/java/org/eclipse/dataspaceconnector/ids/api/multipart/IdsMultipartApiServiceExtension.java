@@ -43,7 +43,6 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -52,6 +51,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -61,7 +61,6 @@ import java.text.SimpleDateFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * ServiceExtension providing IDS multipart related API controllers
@@ -73,26 +72,36 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
     private Monitor monitor;
+    @Inject
+    private WebService webService;
+    @Inject
+    private IdentityService identityService;
+    @Inject
+    private CatalogService dataCatalogService;
+    @Inject
+    private ConnectorService connectorService;
+    @Inject
+    private AssetIndex assetIndex;
+    @Inject
+    private TransformerRegistry transformerRegistry;
+    @Inject
+    private ContractOfferService contractOfferService;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
+    @Inject
+    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    @Inject
+    private ProviderContractNegotiationManager providerNegotiationManager;
+    @Inject
+    private TransferProcessManager transferProcessManager;
+    @Inject
+    private ContractValidationService contractValidationService;
 
     @Override
     public String name() {
         return "IDS Multipart API";
     }
 
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:ids:api:multipart:endpoint:v1");
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(IdentityService.FEATURE,
-                "edc:ids:core",
-                AssetIndex.FEATURE,
-                ContractNegotiationStore.FEATURE,
-                "edc:ids:transform:v1",
-                ContractNegotiationManager.FEATURE);
-    }
 
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
@@ -102,14 +111,6 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     }
 
     private void registerControllers(ServiceExtensionContext serviceExtensionContext) {
-        WebService webService = serviceExtensionContext.getService(WebService.class);
-        IdentityService identityService = serviceExtensionContext.getService(IdentityService.class);
-        CatalogService dataCatalogService = serviceExtensionContext.getService(CatalogService.class);
-        ConnectorService connectorService = serviceExtensionContext.getService(ConnectorService.class);
-        AssetIndex assetIndex = serviceExtensionContext.getService(AssetIndex.class);
-        TransformerRegistry transformerRegistry = serviceExtensionContext.getService(TransformerRegistry.class);
-        ContractOfferService contractOfferService = serviceExtensionContext.getService(ContractOfferService.class);
-        ContractNegotiationStore contractNegotiationStore = serviceExtensionContext.getService(ContractNegotiationStore.class);
 
         String connectorId = resolveConnectorId(serviceExtensionContext);
 
@@ -145,15 +146,11 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         List<Handler> handlers = new LinkedList<>();
         handlers.add(descriptionHandler);
 
-        TransferProcessManager transferProcessManager = serviceExtensionContext.getService(TransferProcessManager.class);
-        ContractValidationService contractValidationService = serviceExtensionContext.getService(ContractValidationService.class);
         Vault vault = serviceExtensionContext.getService(Vault.class);
         ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
-        var providerNegotiationManager = serviceExtensionContext.getService(ProviderContractNegotiationManager.class);
-        var consumerNegotiationManager = serviceExtensionContext.getService(ConsumerContractNegotiationManager.class);
         handlers.add(new ContractRequestHandler(monitor, connectorId, objectMapper, providerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractAgreementHandler(monitor, connectorId, objectMapper, consumerNegotiationManager, transformerRegistry, assetIndex));
         handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));

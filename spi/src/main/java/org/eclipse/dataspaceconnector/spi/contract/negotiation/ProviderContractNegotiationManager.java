@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 
 /**
  * Manages contract negotiations on the provider.
- *
+ * <p>
  * All operations are idempotent.
  */
 public interface ProviderContractNegotiationManager extends ContractNegotiationManager {

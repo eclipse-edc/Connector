@@ -58,8 +58,6 @@ import java.util.stream.Stream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 
 class IdsTransformServiceExtensionTest {
 
@@ -67,6 +65,26 @@ class IdsTransformServiceExtensionTest {
     private IdsTransformServiceExtension idsTransformServiceExtension;
 
     private ServiceExtensionContext serviceExtensionContext;
+
+    @BeforeEach
+    void setUp() {
+        knownConvertibles = new HashMap<>();
+
+        var transformerRegistry = new TestTransformerRegistry(knownConvertibles);
+        idsTransformServiceExtension = new IdsTransformServiceExtension(transformerRegistry);
+        serviceExtensionContext = mock(ServiceExtensionContext.class);
+
+    }
+
+    @ParameterizedTest(name = "[{index}] can transform {0} to {1}")
+    @ArgumentsSource(VerifyRequiredTransformerRegisteredArgumentsProvider.class)
+    void verifyRequiredTransformerRegistered(Class<?> inputType, Class<?> outputType) {
+        idsTransformServiceExtension.initialize(serviceExtensionContext);
+
+        assertThat(knownConvertibles).containsKey(inputType);
+        assertThat(knownConvertibles).extracting((m) -> m.get(inputType)).isNotNull();
+        assertThat(knownConvertibles.get(inputType)).contains(outputType);
+    }
 
     static class VerifyRequiredTransformerRegisteredArgumentsProvider implements ArgumentsProvider {
         @Override
@@ -104,28 +122,6 @@ class IdsTransformServiceExtensionTest {
                     Arguments.arguments(URI.class, IdsId.class)
             );
         }
-    }
-
-    @BeforeEach
-    void setUp() {
-        idsTransformServiceExtension = new IdsTransformServiceExtension();
-        knownConvertibles = new HashMap<>();
-
-        var transformerRegistry = new TestTransformerRegistry(knownConvertibles);
-        serviceExtensionContext = mock(ServiceExtensionContext.class);
-
-        when(serviceExtensionContext.getService(TransformerRegistry.class)).thenReturn(transformerRegistry);
-    }
-
-    @ParameterizedTest(name = "[{index}] can transform {0} to {1}")
-    @ArgumentsSource(VerifyRequiredTransformerRegisteredArgumentsProvider.class)
-    void verifyRequiredTransformerRegistered(Class<?> inputType, Class<?> outputType) {
-        idsTransformServiceExtension.initialize(serviceExtensionContext);
-
-        assertThat(knownConvertibles).containsKey(inputType);
-        assertThat(knownConvertibles).extracting((m) -> m.get(inputType)).isNotNull();
-        assertThat(knownConvertibles.get(inputType)).contains(outputType);
-        verify(serviceExtensionContext).getService(TransformerRegistry.class);
     }
 
     private static class TestTransformerRegistry implements TransformerRegistry {

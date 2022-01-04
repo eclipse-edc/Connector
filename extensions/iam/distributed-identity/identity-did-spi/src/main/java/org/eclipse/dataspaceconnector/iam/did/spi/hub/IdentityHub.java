@@ -14,10 +14,12 @@
 package org.eclipse.dataspaceconnector.iam.did.spi.hub;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.message.Commit;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 /**
  * Implements a Distributed Identity Foundation Identity Hub as described by {@code https://identity.foundation/identity-hub/spec/}.
  */
+@Feature(IdentityHub.FEATURE)
 public interface IdentityHub {
 
     String FEATURE = "edc:identity:hub";
