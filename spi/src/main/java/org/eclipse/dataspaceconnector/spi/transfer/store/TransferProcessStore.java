@@ -27,8 +27,6 @@ import java.util.Set;
  */
 @Feature(TransferProcessStore.FEATURE)
 public interface TransferProcessStore {
-
-    @Deprecated
     String FEATURE = "edc:core:transfer:transferprocessstore";
 
     TransferProcess find(String id);

@@ -58,9 +58,6 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     @Inject
     private TransformerRegistry transformerRegistry;
 
-    public IdsMultipartDispatcherServiceExtension() {
-    }
-
     @Override
     public String name() {
         return "IDS Multipart Dispatcher API";

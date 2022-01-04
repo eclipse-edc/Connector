@@ -24,7 +24,6 @@ import org.eclipse.dataspaceconnector.iam.oauth2.core.impl.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.impl.Oauth2ServiceImpl;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecorator;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.Oauth2Service;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -46,7 +45,7 @@ import java.util.function.Supplier;
 /**
  * Provides OAuth2 client credentials flow support.
  */
-@Provides({ IdentityService.class, Oauth2Service.class, JwtDecoratorRegistry.class })
+@Provides({ IdentityService.class, JwtDecoratorRegistry.class })
 public class Oauth2Extension implements ServiceExtension {
 
     private static final long TOKEN_EXPIRATION = TimeUnit.MINUTES.toSeconds(5);
