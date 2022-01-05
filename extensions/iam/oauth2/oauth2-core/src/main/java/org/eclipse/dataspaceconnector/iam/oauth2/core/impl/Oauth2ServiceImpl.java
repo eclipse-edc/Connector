@@ -67,7 +67,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     private final List<ValidationRule> validationRules;
     private final JWSSigner tokenSigner;
     private final JwtDecoratorRegistry jwtDecoratorRegistry;
-    private final JWSHeader.Builder jwsHeaderBuilder;
+    private final JWSAlgorithm jwsAlgorithm;
 
     /**
      * Creates a new instance of the OAuth2 Service
@@ -94,10 +94,10 @@ public class Oauth2ServiceImpl implements IdentityService {
 
         if (tokenSigner instanceof ECDSASigner) {
             //supports ECDSA private key
-            jwsHeaderBuilder = new JWSHeader.Builder(JWSAlgorithm.ES256);
+            jwsAlgorithm = JWSAlgorithm.ES256;
         } else {
             //default: RSA private key
-            jwsHeaderBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
+            jwsAlgorithm = JWSAlgorithm.RS256;
         }
     }
 
@@ -198,6 +198,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     private String buildJwt() {
         try {
+            var jwsHeaderBuilder = new JWSHeader.Builder(jwsAlgorithm);
             var claimsSet = new JWTClaimsSet.Builder();
             jwtDecoratorRegistry.getAll().forEach(d -> d.decorate(jwsHeaderBuilder, claimsSet));
             var jwt = new SignedJWT(jwsHeaderBuilder.build(), claimsSet.build());
