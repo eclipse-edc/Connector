@@ -83,7 +83,7 @@ public class Oauth2Extension implements ServiceExtension {
     @Inject
     private OkHttpClient okHttpClient;
 
-    private static JWSSigner createPrivateKeySupplier(Oauth2Configuration configuration) {
+    private static JWSSigner createTokenSigner(Oauth2Configuration configuration) {
         var pkId = configuration.getPrivateKeyAlias();
         var pk = configuration.getPrivateKeyResolver().resolvePrivateKey(pkId, PrivateKey.class);
 
@@ -136,8 +136,8 @@ public class Oauth2Extension implements ServiceExtension {
         context.registerService(JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 
         // supports RSA and EC private keys
-        JWSSigner pkSuppplier = createPrivateKeySupplier(configuration);
-        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration, pkSuppplier, okHttpClient, jwtDecoratorRegistry, context.getTypeManager());
+        JWSSigner tokenSigner = createTokenSigner(configuration);
+        IdentityService oauth2Service = new Oauth2ServiceImpl(configuration, tokenSigner, okHttpClient, jwtDecoratorRegistry, context.getTypeManager());
 
         context.registerService(IdentityService.class, oauth2Service);
     }
