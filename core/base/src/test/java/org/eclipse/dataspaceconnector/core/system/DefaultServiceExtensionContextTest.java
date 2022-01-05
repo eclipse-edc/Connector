@@ -195,7 +195,7 @@ class DefaultServiceExtensionContextTest {
     @Test
     @DisplayName("Mixed requirement features work")
     void loadServiceExtensions_withMixedInjectAndAnnotation() {
-        var providingExtension = new ProvidingExtension();// provides SomeObject
+        var providingExtension = new ProvidingExtension(); // provides SomeObject
         var anotherProvidingExt = new AnotherProvidingExtension(); //provides AnotherObject
         var mixedAnnotation = new MixedAnnotation();
 
