@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -19,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.InputStream;
 import java.security.KeyStore;
+import java.security.PrivateKey;
 import java.security.interfaces.RSAPrivateKey;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -31,6 +33,11 @@ class FsRsaPrivateKeyResolverTest {
 
     @Test
     public void verifyResolution() {
+        assertNotNull(keyResolver.resolvePrivateKey("testkey", PrivateKey.class));
+    }
+
+    @Test
+    public void verifyResolution_Rsa() {
         assertNotNull(keyResolver.resolvePrivateKey("testkey", RSAPrivateKey.class));
     }
 
