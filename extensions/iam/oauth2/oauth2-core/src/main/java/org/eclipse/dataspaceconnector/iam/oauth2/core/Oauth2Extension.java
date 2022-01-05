@@ -44,7 +44,6 @@ import java.security.interfaces.ECPrivateKey;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Supplier;
 
 /**
  * Provides OAuth2 client credentials flow support.
@@ -84,26 +83,23 @@ public class Oauth2Extension implements ServiceExtension {
     @Inject
     private OkHttpClient okHttpClient;
 
-    private static Supplier<JWSSigner> createPrivateKeySupplier(Oauth2Configuration configuration) {
-        return () -> {
-            var pkId = configuration.getPrivateKeyAlias();
-            var pk = configuration.getPrivateKeyResolver().resolvePrivateKey(pkId, PrivateKey.class);
+    private static JWSSigner createPrivateKeySupplier(Oauth2Configuration configuration) {
+        var pkId = configuration.getPrivateKeyAlias();
+        var pk = configuration.getPrivateKeyResolver().resolvePrivateKey(pkId, PrivateKey.class);
 
-            JWSSigner signer = null;
-            if (pk != null && "EC".equals(pk.getAlgorithm())) {
-                //supports ECDSA private key
-                try {
-                    signer = new ECDSASigner((ECPrivateKey) pk);
-                } catch (JOSEException e) {
-                    throw new EdcException("Failed to load JWSSigner for EC private key: " + e);
-                }
-            } else if (pk != null) {
-                //default: RSA private key
-                signer = new RSASSASigner(pk);
+        if (pk == null) {
+            throw new EdcException("Failed to resolve private key, required for JWSSigner.");
+        } else if ("EC".equals(pk.getAlgorithm())) {
+            //supports ECDSA private key
+            try {
+                return new ECDSASigner((ECPrivateKey) pk);
+            } catch (JOSEException e) {
+                throw new EdcException("Failed to load JWSSigner for EC private key: " + e);
             }
-
-            return signer;
-        };
+        } else {
+            //default: RSA private key
+            return new RSASSASigner(pk);
+        }
     }
 
     private static byte[] getEncodedClientCertificate(Oauth2Configuration configuration) {
@@ -140,7 +136,7 @@ public class Oauth2Extension implements ServiceExtension {
         context.registerService(JwtDecoratorRegistry.class, jwtDecoratorRegistry);
 
         // supports RSA and EC private keys
-        Supplier<JWSSigner> pkSuppplier = createPrivateKeySupplier(configuration);
+        JWSSigner pkSuppplier = createPrivateKeySupplier(configuration);
         IdentityService oauth2Service = new Oauth2ServiceImpl(configuration, pkSuppplier, okHttpClient, jwtDecoratorRegistry, context.getTypeManager());
 
         context.registerService(IdentityService.class, oauth2Service);
