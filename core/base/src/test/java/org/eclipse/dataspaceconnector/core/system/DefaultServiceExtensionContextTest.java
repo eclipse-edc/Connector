@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -166,6 +167,57 @@ class DefaultServiceExtensionContextTest {
 
     }
 
+    @Test
+    @DisplayName("Requires annotation influences ordering")
+    void loadServiceExtensions_withAnnotation() {
+        var depending = new DependingExtension();
+        var providingExtension = new ProvidingExtension();
+        var annotatedExtension = new AnnotatedExtension();
+
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(depending, annotatedExtension, providingExtension, coreExtension));
+
+        var services = context.loadServiceExtensions();
+        assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(coreExtension, providingExtension, depending, annotatedExtension);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Requires annotation not satisfied")
+    void loadServiceExtensions_withAnnotation_notSatisfied() {
+        var annotatedExtension = new AnnotatedExtension();
+
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(annotatedExtension, coreExtension));
+
+        assertThatThrownBy(() -> context.loadServiceExtensions()).isNotInstanceOf(EdcInjectionException.class).isInstanceOf(EdcException.class);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Mixed requirement features work")
+    void loadServiceExtensions_withMixedInjectAndAnnotation() {
+        var providingExtension = new ProvidingExtension(); // provides SomeObject
+        var anotherProvidingExt = new AnotherProvidingExtension(); //provides AnotherObject
+        var mixedAnnotation = new MixedAnnotation();
+
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(mixedAnnotation, providingExtension, coreExtension, anotherProvidingExt));
+
+        var services = context.loadServiceExtensions();
+        assertThat(services).extracting(InjectionContainer::getInjectionTarget).containsExactly(coreExtension, providingExtension, anotherProvidingExt, mixedAnnotation);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
+    }
+
+    @Test
+    @DisplayName("Mixed requirement features introducing circular dependency")
+    void loadServiceExtensions_withMixedInjectAndAnnotation_withCircDependency() {
+        var s1 = new TestProvidingExtension3();
+        var s2 = new TestProvidingExtension();
+
+        when(serviceLocatorMock.loadImplementors(eq(ServiceExtension.class), anyBoolean())).thenReturn(mutableListOf(s1, s2, coreExtension));
+
+        assertThatThrownBy(() -> context.loadServiceExtensions()).isInstanceOf(CyclicDependencyException.class);
+        verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
+    }
+
     @SafeVarargs
     private <T> List<T> mutableListOf(T... elements) {
         return new ArrayList<>(List.of(elements));
@@ -183,6 +235,10 @@ class DefaultServiceExtensionContextTest {
     private static class ProvidingExtension implements ServiceExtension {
     }
 
+    @Provides(AnotherObject.class)
+    private static class AnotherProvidingExtension implements ServiceExtension {
+    }
+
     @Provides({ SomeObject.class })
     private static class TestProvidingExtension implements ServiceExtension {
         @Inject
@@ -195,6 +251,20 @@ class DefaultServiceExtensionContextTest {
         SomeObject obj;
     }
 
+    @Provides({ AnotherObject.class })
+    @Requires({ SomeObject.class })
+    private static class TestProvidingExtension3 implements ServiceExtension {
+    }
+
+    @Requires(SomeObject.class)
+    private static class AnnotatedExtension implements ServiceExtension {
+    }
+
+    @Requires(SomeObject.class)
+    private static class MixedAnnotation implements ServiceExtension {
+        @Inject
+        private AnotherObject obj;
+    }
 
     private static class SomeObject {
     }

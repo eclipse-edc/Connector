@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -37,6 +38,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Base service extension context.
@@ -162,31 +164,22 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     private List<InjectionContainer<ServiceExtension>> sortExtensions(List<ServiceExtension> loadedExtensions) {
         Map<String, List<ServiceExtension>> dependencyMap = new HashMap<>();
-        var allProvided = loadedExtensions.stream().flatMap(se -> getProvidedFeatures(se).stream()).collect(Collectors.toSet());
-
         addDefaultExtensions(loadedExtensions);
 
         // add all provided features to the dependency map
         loadedExtensions.forEach(ext -> getProvidedFeatures(ext).forEach(feature -> dependencyMap.computeIfAbsent(feature, k -> new ArrayList<>()).add(ext)));
-
         var sort = new TopologicalSort<ServiceExtension>();
 
+        // check if all injected fields are satisfied, collect missing ones and throw exception otherwise
         var unsatisfiedInjectionPoints = new ArrayList<InjectionPoint<ServiceExtension>>();
-
-        // check if all required dependencies are satisfied, collect missing ones and throw exception otherwise
-        var injectionPoints = loadedExtensions.stream().flatMap(ext -> {
-            var injectedFields = getRequiredFeatures(ext, allProvided);
-
-            injectedFields.forEach(injectionPoint -> {
-                List<ServiceExtension> dependencies = dependencyMap.get(injectionPoint.getFeatureName());
-                if (dependencies == null) {
-                    unsatisfiedInjectionPoints.add(injectionPoint);
-                } else {
-                    dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
-                }
-            });
-            return injectedFields.stream();
-        }).collect(Collectors.toList());
+        var injectionPoints = loadedExtensions.stream().flatMap(ext -> getInjectedFields(ext).stream().peek(injectionPoint -> {
+            List<ServiceExtension> dependencies = dependencyMap.get(injectionPoint.getFeatureName());
+            if (dependencies == null) {
+                unsatisfiedInjectionPoints.add(injectionPoint);
+            } else {
+                dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
+            }
+        })).collect(Collectors.toList());
 
         if (!unsatisfiedInjectionPoints.isEmpty()) {
             var string = "The following injected fields were not provided:\n";
@@ -194,11 +187,39 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
             throw new EdcInjectionException(string);
         }
 
+        //check that all the @Required features are there
+        var unsatisfiedRequirements = new ArrayList<String>();
+        loadedExtensions.forEach(ext -> {
+            var features = getRequiredFeatures(ext.getClass());
+            features.forEach(feature -> {
+                var dependencies = dependencyMap.get(feature);
+                if (dependencies == null) {
+                    unsatisfiedRequirements.add(feature);
+                } else {
+                    dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
+                }
+            });
+        });
+
+        if (!unsatisfiedRequirements.isEmpty()) {
+            var string = String.format("The following @Require'd features were not provided: [%s]", String.join(", ", unsatisfiedRequirements));
+            throw new EdcException(string);
+        }
+
         sort.sort(loadedExtensions);
 
         // todo: should the list of InjectionContainers be generated directly by the flatmap?
         // convert the sorted list of extensions into an equally sorted list of InjectionContainers
         return loadedExtensions.stream().map(se -> new InjectionContainer<>(se, injectionPoints.stream().filter(ip -> ip.getInstance() == se).collect(Collectors.toSet()))).collect(Collectors.toList());
+    }
+
+    private Set<String> getRequiredFeatures(Class<?> clazz) {
+        var requiresAnnotation = clazz.getAnnotation(Requires.class);
+        if (requiresAnnotation != null) {
+            var features = requiresAnnotation.value();
+            return Stream.of(features).map(this::getFeatureValue).collect(Collectors.toSet());
+        }
+        return Collections.emptySet();
     }
 
     /**
@@ -222,7 +243,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     /**
      * Obtains all features a specific extension provides as strings
      */
-    private Set<InjectionPoint<ServiceExtension>> getRequiredFeatures(ServiceExtension ext, Set<String> allFeatures) {
+    private Set<InjectionPoint<ServiceExtension>> getInjectedFields(ServiceExtension ext) {
         // initialize with legacy list
 
         var injectFields = Arrays.stream(ext.getClass().getDeclaredFields()).filter(f -> f.getAnnotation(Inject.class) != null).map(f -> new FieldInjectionPoint<>(ext, f, getFeatureValue(f.getType())));
