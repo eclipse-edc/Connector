@@ -191,16 +191,14 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         var unsatisfiedRequirements = new ArrayList<String>();
         loadedExtensions.forEach(ext -> {
             var features = getRequiredFeatures(ext.getClass());
-            if (features != null) {
-                features.forEach(feature -> {
-                    var dependencies = dependencyMap.get(feature);
-                    if (dependencies == null) {
-                        unsatisfiedRequirements.add(feature);
-                    } else {
-                        dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
-                    }
-                });
-            }
+            features.forEach(feature -> {
+                var dependencies = dependencyMap.get(feature);
+                if (dependencies == null) {
+                    unsatisfiedRequirements.add(feature);
+                } else {
+                    dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
+                }
+            });
         });
 
         if (!unsatisfiedRequirements.isEmpty()) {
