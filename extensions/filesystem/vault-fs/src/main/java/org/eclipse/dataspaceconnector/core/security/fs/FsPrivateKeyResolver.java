@@ -30,7 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Resolves a RSA or EC private key from a JKS keystore.
+ * Resolves an RSA or EC private key from a JKS keystore.
  */
 public class FsPrivateKeyResolver implements PrivateKeyResolver {
     private final Map<String, PrivateKey> privateKeyCache = new HashMap<>();
