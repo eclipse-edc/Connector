@@ -2,5 +2,8 @@
 # https://help.github.com/articles/dealing-with-line-endings/
 #
 # These are explicitly windows files and should use crlf
-*.bat           text eol=crlf
 
+# https://code.visualstudio.com/docs/remote/troubleshooting#_resolving-git-line-ending-issues-in-containers-resulting-in-many-modified-files
+* text=auto eol=lf
+*.{cmd,[cC][mM][dD]} text eol=crlf
+*.{bat,[bB][aA][tT]} text eol=crlf
