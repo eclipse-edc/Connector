@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.reader.azure.blob;
+package org.eclipse.dataspaceconnector.azure.blob.operator;
 
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
 import org.eclipse.dataspaceconnector.core.schema.azure.AzureBlobStoreSchema;

@@ -60,10 +60,16 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private FederatedCacheStore store;
     @Inject
     private WebService webService;
-    @Inject
+    @Inject(required = false)
     private HealthCheckService healthCheckService;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    // protocol registry - must be supplied by another extension
+    // get all known nodes from node directory - must be supplied by another extension
+    @Inject
+    private FederatedCacheNodeDirectory directory;
+    @Inject
+    private RetryPolicy<Object> retryPolicy;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -83,7 +89,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
             healthCheckService.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("FCC Query API").build());
         }
 
-
         // CRAWLER SUBSYSTEM
         var nodeQueryAdapterRegistry = new NodeQueryAdapterRegistryImpl();
 
@@ -92,13 +97,10 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         context.registerService(NodeQueryAdapterRegistry.class, nodeQueryAdapterRegistry);
 
         updateResponseQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_LENGTH);
-
         //todo: maybe get this from a database or somewhere else?
         partitionManagerConfig = new PartitionConfiguration(context);
-
         // lets create a simple partition manager
-        partitionManager = createPartitionManager(context, updateResponseQueue);
-
+        partitionManager = createPartitionManager(context, updateResponseQueue, nodeQueryAdapterRegistry);
         // and a loader manager
         loaderManager = createLoaderManager(store);
 
@@ -130,13 +132,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     }
 
     @NotNull
-    private PartitionManager createPartitionManager(ServiceExtensionContext context, ArrayBlockingQueue<UpdateResponse> updateResponseQueue) {
-
-        // protocol registry - must be supplied by another extension
-        var protocolAdapterRegistry = context.getService(NodeQueryAdapterRegistry.class);
-
-        // get all known nodes from node directory - must be supplied by another extension
-        var directory = context.getService(FederatedCacheNodeDirectory.class);
+    private PartitionManager createPartitionManager(ServiceExtensionContext context, ArrayBlockingQueue<UpdateResponse> updateResponseQueue, NodeQueryAdapterRegistry protocolAdapterRegistry) {
 
         // use all nodes EXCEPT self
         Supplier<List<WorkItem>> nodes = () -> directory.getAll().stream()
@@ -157,7 +153,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     }
 
     private Crawler createCrawler(WorkItemQueue workItems, ServiceExtensionContext context, NodeQueryAdapterRegistry protocolAdapters, ArrayBlockingQueue<UpdateResponse> updateQueue) {
-        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         return CrawlerImpl.Builder.newInstance()
                 .monitor(context.getMonitor())
                 .retryPolicy(retryPolicy)

@@ -27,8 +27,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("s3-writer") {
-            artifactId = "s3-writer"
+        create<MavenPublication>("s3-operator") {
+            artifactId = "s3-operator"
             from(components["java"])
         }
     }

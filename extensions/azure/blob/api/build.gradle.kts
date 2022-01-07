@@ -23,7 +23,7 @@ val jupiterVersion: String by project
 
 dependencies {
     api(project(":spi"))
-    implementation("com.azure:azure-storage-blob:${storageBlobVersion}")
+    api("com.azure:azure-storage-blob:${storageBlobVersion}")
 
 
     testFixturesImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")

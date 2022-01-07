@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi"))
     api(project(":extensions:azure:blob:api"))
+    api(project(":extensions:azure:blob:blob-data-operator"))
     api(project(":extensions:azure:blob:blob-schema"))
     api(project(":extensions:azure:blob:provision"))
 }

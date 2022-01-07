@@ -22,13 +22,14 @@ dependencies {
     api(project(":spi"))
     api(project(":extensions:inline-data-transfer:inline-data-transfer-spi"))
     api(project(":extensions:azure:blob:api"))
+    api(project(":extensions:azure:blob:provision"))
     implementation(project(":extensions:azure:blob:blob-schema"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("blob-reader") {
-            artifactId = "blob-reader"
+        create<MavenPublication>("blob-operator") {
+            artifactId = "blob-operator"
             from(components["java"])
         }
     }

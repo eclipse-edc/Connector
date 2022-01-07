@@ -1,4 +1,5 @@
-package org.eclipse.dataspaceconnector.writer.s3;
+package org.eclipse.dataspaceconnector.aws.s3.operator;
+
 
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
