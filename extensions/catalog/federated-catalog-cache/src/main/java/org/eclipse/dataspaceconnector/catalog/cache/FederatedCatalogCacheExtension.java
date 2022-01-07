@@ -64,6 +64,12 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private HealthCheckService healthCheckService;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    @Inject
+    private NodeQueryAdapterRegistry protocolAdapterRegistry;
+    @Inject
+    private FederatedCacheNodeDirectory directory;
+    @Inject
+    private RetryPolicy<Object> retryPolicy;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -131,13 +137,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
 
     @NotNull
     private PartitionManager createPartitionManager(ServiceExtensionContext context, ArrayBlockingQueue<UpdateResponse> updateResponseQueue) {
-
-        // protocol registry - must be supplied by another extension
-        var protocolAdapterRegistry = context.getService(NodeQueryAdapterRegistry.class);
-
-        // get all known nodes from node directory - must be supplied by another extension
-        var directory = context.getService(FederatedCacheNodeDirectory.class);
-
         // use all nodes EXCEPT self
         Supplier<List<WorkItem>> nodes = () -> directory.getAll().stream()
                 .filter(node -> !node.getName().equals(context.getConnectorId()))
@@ -157,7 +156,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     }
 
     private Crawler createCrawler(WorkItemQueue workItems, ServiceExtensionContext context, NodeQueryAdapterRegistry protocolAdapters, ArrayBlockingQueue<UpdateResponse> updateQueue) {
-        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         return CrawlerImpl.Builder.newInstance()
                 .monitor(context.getMonitor())
                 .retryPolicy(retryPolicy)
