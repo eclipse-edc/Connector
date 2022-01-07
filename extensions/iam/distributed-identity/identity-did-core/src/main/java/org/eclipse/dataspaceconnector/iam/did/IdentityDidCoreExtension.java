@@ -41,7 +41,7 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import java.util.function.Supplier;
 
 
-@Provides({ IdentityHub.class, IdentityHubClient.class })
+@Provides({ IdentityHub.class, IdentityHubClient.class, DidResolverRegistry.class, DidPublicKeyResolver.class })
 public class IdentityDidCoreExtension implements ServiceExtension {
 
     @Inject
