@@ -12,7 +12,7 @@
 '
 '
 
-@startuml Pull
+@startuml
 
 skinParam NoteBackgroundColor WhiteSmoke
 skinParam NoteFontColor Black
@@ -22,24 +22,19 @@ skinParam AgentBackgroundColor White
 skinParam AgentBorderColor SkyBlue
 skinparam shadowing false
 
-!define ConsumerColor f8f2ff
-!define ProviderColor d9edff
-!define WarningColor Business
-!define LeadColor Technology
-
-!define StateColor #White
-
-start
-StateColor:INITIAL;
-StateColor:PROVISIONING;
-StateColor:PROVISIONED;
-StateColor:REQUESTED;
-StateColor:REQUESTED_ACK;
-StateColor:IN_PROGRESS | STREAMING;
-StateColor:COMPLETED;
-StateColor:DEPROVISIONING;
-StateColor:DEPROVISIONED;
-StateColor:ENDED;
-end
+(*) --> INITIAL
+--> PROVISIONING
+--> PROVISIONED
+if "" then
+    --> [consumer] REQUESTED
+    --> REQUESTED ACK
+    --> IN PROGRESS | STREAMING
+else
+    --> [provider] IN PROGRESS | STREAMING
+--> COMPLETED
+--> DEPROVISIONING
+--> DEPROVISIONED
+--> ENDED
+--> (*)
 
 @enduml
