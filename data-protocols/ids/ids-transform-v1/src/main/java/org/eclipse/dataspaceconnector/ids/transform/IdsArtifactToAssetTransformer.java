@@ -57,6 +57,9 @@ public class IdsArtifactToAssetTransformer implements IdsTypeTransformer<Artifac
                 .id(idsId.getValue())
                 .property(TransformKeys.KEY_ASSET_BYTE_SIZE, object.getByteSize())
                 .property(TransformKeys.KEY_ASSET_FILE_NAME, object.getFileName());
+        if (object.getProperties() != null) {
+            object.getProperties().forEach(assetBuilder::property);
+        }
 
         return assetBuilder.build();
     }

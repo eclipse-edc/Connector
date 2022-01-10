@@ -19,12 +19,9 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":core:bootstrap"))
+    api(project(":core:base"))
     api(project(":core:contract"))
-    api(project(":core:policy:policy-engine"))
-    api(project(":core:policy:policy-model"))
-    api(project(":core:schema"))
-    api(project(":core:protocol:web"))
+    api(project(":core:policy"))
     api(project(":core:transfer"))
 }
 

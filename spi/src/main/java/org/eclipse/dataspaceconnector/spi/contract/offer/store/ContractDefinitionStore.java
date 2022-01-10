@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.offer.store;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,9 +22,10 @@ import java.util.Collection;
 /**
  * Persists {@link ContractDefinition}s.
  */
+@Feature(ContractDefinitionStore.FEATURE)
 public interface ContractDefinitionStore {
 
-    String FEATURE = "edc:contractdefinition:store";
+    String FEATURE = "edc:core:contract:contractdefinition:store";
 
     /**
      * Returns all the definitions in the store.

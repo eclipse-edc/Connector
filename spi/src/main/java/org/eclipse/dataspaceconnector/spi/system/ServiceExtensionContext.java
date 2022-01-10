@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
+import org.eclipse.dataspaceconnector.core.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Contract;
@@ -75,7 +76,7 @@ public interface ServiceExtensionContext {
     /**
      * Loads and orders the service extensions.
      */
-    List<ServiceExtension> loadServiceExtensions();
+    List<InjectionContainer<ServiceExtension>> loadServiceExtensions();
 
     /**
      * Loads multiple extensions, raising an exception if at least one is not found.

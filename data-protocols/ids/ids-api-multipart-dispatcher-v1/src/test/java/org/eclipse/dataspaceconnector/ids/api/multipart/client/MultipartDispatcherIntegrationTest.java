@@ -74,16 +74,6 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     private TransformerRegistry transformerRegistry;
     private IdsMultipartRemoteMessageDispatcher multipartDispatcher;
 
-    @Override
-    protected Map<String, String> getSystemProperties() {
-        return new HashMap<>() {
-            {
-                put("web.http.port", String.valueOf(getPort()));
-                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
-            }
-        };
-    }
-
     @BeforeEach
     void init() {
         Monitor monitor = mock(Monitor.class);
@@ -158,7 +148,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractId(contractAgreement.getId())
                 .assetId(asset.getId())
-                .dataDestination(DataAddress.Builder.newInstance().build())
+                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
         var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
@@ -272,6 +262,17 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessage.class);
         assertThat(result.getPayload()).isNull();
+    }
+
+    @Override
+    protected Map<String, String> getSystemProperties() {
+        return new HashMap<>() {
+            {
+                put("web.http.port", String.valueOf(getPort()));
+                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
+                put("ids.webhook.address", "http://webhook");
+            }
+        };
     }
 
     private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {

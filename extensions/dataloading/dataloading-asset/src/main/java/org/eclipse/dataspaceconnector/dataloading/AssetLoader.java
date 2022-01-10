@@ -13,9 +13,11 @@
  */
 package org.eclipse.dataspaceconnector.dataloading;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
+@Feature(AssetLoader.FEATURE)
 public interface AssetLoader extends DataSink<AssetEntry> {
     String FEATURE = "edc:asset:assetindex:loader";
 

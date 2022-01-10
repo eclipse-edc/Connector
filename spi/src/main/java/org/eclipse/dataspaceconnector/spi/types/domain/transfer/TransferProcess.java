@@ -168,10 +168,10 @@ public class TransferProcess {
     public void transitionInProgress() {
         if (type == Type.CONSUMER) {
             // the consumer must first transition to the request/ack states before in progress
-            transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED_ACK);
+            transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED, TransferProcessStates.REQUESTED_ACK);
         } else {
             // the provider transitions from provisioned to in progress directly
-            transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.PROVISIONED);
+            transition(TransferProcessStates.IN_PROGRESS, TransferProcessStates.REQUESTED, TransferProcessStates.PROVISIONED);
         }
     }
 

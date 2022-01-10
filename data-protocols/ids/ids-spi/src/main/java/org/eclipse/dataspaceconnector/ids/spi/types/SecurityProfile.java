@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Daimler TSS GmbH - Initial API and Implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -40,9 +41,9 @@ public enum SecurityProfile {
 
         throw new IllegalArgumentException(
                 String.format(
-                        "IDS Settings: Invalid security profile '%s'. Valid profiles: [%s]",
+                        "IDS Settings: Invalid security profile value '%s'. Valid security profile values: [%s]",
                         value,
-                        Arrays.stream(SecurityProfile.values()).map(Enum::toString).collect(Collectors.joining(", "))
+                        Arrays.stream(SecurityProfile.values()).map(it -> it.value).collect(Collectors.joining(", "))
                 )
         );
     }

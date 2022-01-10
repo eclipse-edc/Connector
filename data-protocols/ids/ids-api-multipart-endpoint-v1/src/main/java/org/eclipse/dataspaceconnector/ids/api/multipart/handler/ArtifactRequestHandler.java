@@ -39,6 +39,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -121,6 +122,12 @@ public class ArtifactRequestHandler implements Handler {
 
         DataAddress dataAddress = artifactRequestMessagePayload.getDataDestination();
 
+
+        var props = new HashMap<String, String>();
+        if (artifactRequestMessage.getProperties() != null) {
+            artifactRequestMessage.getProperties().forEach((k, v) -> props.put(k, v.toString()));
+        }
+
         DataRequest dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol(Protocols.IDS_MULTIPART)
@@ -128,17 +135,19 @@ public class ArtifactRequestHandler implements Handler {
                 .connectorId(connectorId)
                 .assetId(artifactIdsId.getValue())
                 .contractId(contractIdsId.getValue())
+                .properties(props)
                 .connectorAddress(artifactRequestMessage.getSenderAgent().toString() + "/api/ids/multipart") // TODO Is this correct?
                 .build();
 
-        transferProcessManager.initiateProviderRequest(dataRequest);
+        var result = transferProcessManager.initiateProviderRequest(dataRequest);
 
         if (artifactRequestMessagePayload.getSecret() != null) {
             vault.storeSecret(dataAddress.getKeyName(), artifactRequestMessagePayload.getSecret());
         }
 
         return MultipartResponse.Builder.newInstance()
-                .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, artifactRequestMessage)) // TODO Change this response so that it matches our UML pictures
+                .header(ResponseMessageUtil.createRequestInProcessMessage(connectorId, artifactRequestMessage))
+                .payload(result.getData())
                 .build();
     }
 

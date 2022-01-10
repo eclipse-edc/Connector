@@ -7,7 +7,6 @@ This launcher includes all extensions that are required for an IDS Dataspace Con
 ### Core
 
 - core:bootstrap
-- core:protocol:web
 - core:transfer
 - core:contract
 

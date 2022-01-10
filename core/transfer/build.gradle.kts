@@ -20,9 +20,9 @@ plugins {
 dependencies {
     api(project(":spi"))
     implementation(project(":core:base"))
+    implementation(project(":extensions:inline-data-transfer:inline-data-transfer-core"))
 
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
-
 }
 
 

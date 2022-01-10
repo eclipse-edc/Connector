@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
@@ -23,6 +24,7 @@ import java.util.Collection;
  * A registry of known policies.
  */
 @Deprecated
+@Feature(PolicyRegistry.FEATURE)
 public interface PolicyRegistry {
 
     String FEATURE = "edc:policy:registry";

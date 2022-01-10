@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.provision.aws;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.provision.aws.provider.SdkClientProvider;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisionedResource;
@@ -22,10 +23,10 @@ import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisioner;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketResourceDefinition;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3ResourceDefinitionConsumerGenerator;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3StatusChecker;
-import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
@@ -36,11 +37,10 @@ import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
-import java.util.Set;
-
 /**
  * Provides data transfer {@link org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner}s backed by AWS services.
  */
+@Provides(ClientProvider.class)
 public class AwsProvisionExtension implements ServiceExtension {
     @EdcSetting
     private static final String AWS_ACCESS_KEY = "edc.aws.access.key";
@@ -66,7 +66,7 @@ public class AwsProvisionExtension implements ServiceExtension {
         clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(createCredentialsProvider(context)).build();
         context.registerService(ClientProvider.class, clientProvider);
 
-        @SuppressWarnings("unchecked") var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
+        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         var s3BucketProvisioner = new S3BucketProvisioner(clientProvider, 3600, monitor, retryPolicy);
         provisionManager.register(s3BucketProvisioner);
 
@@ -78,16 +78,6 @@ public class AwsProvisionExtension implements ServiceExtension {
         statusCheckerReg.register(S3BucketSchema.TYPE, new S3StatusChecker(clientProvider, retryPolicy));
 
         registerTypes(context.getTypeManager());
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:retry-policy", "dataspaceconnector:statuschecker");
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("dataspaceconnector:clientprovider");
     }
 
     @Override

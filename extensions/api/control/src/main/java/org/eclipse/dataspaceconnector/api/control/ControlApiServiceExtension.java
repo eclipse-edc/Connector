@@ -3,18 +3,19 @@ package org.eclipse.dataspaceconnector.api.control;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.SecureRandom;
-import java.util.Set;
 import java.util.function.Predicate;
 
 public class ControlApiServiceExtension implements ServiceExtension {
@@ -27,6 +28,26 @@ public class ControlApiServiceExtension implements ServiceExtension {
     public static final String EDC_API_CONTROL_AUTH_APIKEY_VALUE = "edc.api.control.auth.apikey.value";
 
     private Monitor monitor;
+    @Inject
+    private WebService webService;
+    @Inject
+    private TransferProcessManager transferProcessManager;
+    @Inject
+    private RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry;
+    @Inject
+    private ConsumerContractNegotiationManager consumerNegotiationManager;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
+
+    /*
+     * Produces twelve characters long sequence in the ascii range of '!' (dec 33) to '~' (dec 126).
+     *
+     * @return sequence
+     */
+    private static String generateRandomString() {
+        StringBuilder stringBuilder = new SecureRandom().ints('!', ((int) '~' + 1)).limit(12).collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append);
+        return stringBuilder.toString();
+    }
 
     @Override
     public String name() {
@@ -34,21 +55,9 @@ public class ControlApiServiceExtension implements ServiceExtension {
     }
 
     @Override
-    public Set<String> requires() {
-        return Set.of("edc:webservice", "dataspaceconnector:transfer-process-manager",
-                "dataspaceconnector:dispatcher", ContractNegotiationManager.FEATURE);
-    }
-
-    @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
         monitor = serviceExtensionContext.getMonitor();
 
-        WebService webService = serviceExtensionContext.getService(WebService.class);
-        TransferProcessManager transferProcessManager = serviceExtensionContext.getService(TransferProcessManager.class);
-        RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry = serviceExtensionContext.getService(RemoteMessageDispatcherRegistry.class);
-
-        ConsumerContractNegotiationManager consumerNegotiationManager = serviceExtensionContext.getService(ConsumerContractNegotiationManager.class);
-        ContractNegotiationStore contractNegotiationStore = serviceExtensionContext.getService(ContractNegotiationStore.class);
 
         webService.registerController(new ClientController(transferProcessManager, consumerNegotiationManager, contractNegotiationStore));
         webService.registerController(new ClientControlCatalogApiController(remoteMessageDispatcherRegistry));
@@ -56,12 +65,16 @@ public class ControlApiServiceExtension implements ServiceExtension {
         /*
          * Registers a API-Key authentication filter
          */
-        HttpApiKeyAuthContainerRequestFilter httpApiKeyAuthContainerRequestFilter = new HttpApiKeyAuthContainerRequestFilter(
-                resolveApiKeyHeaderName(serviceExtensionContext),
-                resolveApiKeyHeaderValue(serviceExtensionContext),
+        HttpApiKeyAuthContainerRequestFilter httpApiKeyAuthContainerRequestFilter = new HttpApiKeyAuthContainerRequestFilter(resolveApiKeyHeaderName(serviceExtensionContext), resolveApiKeyHeaderValue(serviceExtensionContext),
                 AuthenticationContainerRequestContextPredicate.INSTANCE);
 
         webService.registerController(httpApiKeyAuthContainerRequestFilter);
+
+        // contribute to the liveness probe
+        var hcs = serviceExtensionContext.getService(HealthCheckService.class, true);
+        if (hcs != null) {
+            hcs.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("Control API").build());
+        }
     }
 
     private String resolveApiKeyHeaderName(@NotNull ServiceExtensionContext context) {
@@ -80,20 +93,6 @@ public class ControlApiServiceExtension implements ServiceExtension {
             monitor.warning(String.format("Settings: No setting found for key '%s'. Using random value '%s'", EDC_API_CONTROL_AUTH_APIKEY_VALUE, value));
         }
         return value;
-    }
-
-    /*
-     * Produces twelve characters long sequence in the ascii range of '!' (dec 33) to '~' (dec 126).
-     *
-     * @return sequence
-     */
-    private static String generateRandomString() {
-        StringBuilder stringBuilder = new SecureRandom().ints('!', ((int) '~' + 1))
-                .limit(12).collect(
-                        StringBuilder::new,
-                        StringBuilder::appendCodePoint,
-                        StringBuilder::append);
-        return stringBuilder.toString();
     }
 
     private enum AuthenticationContainerRequestContextPredicate implements Predicate<ContainerRequestContext> {

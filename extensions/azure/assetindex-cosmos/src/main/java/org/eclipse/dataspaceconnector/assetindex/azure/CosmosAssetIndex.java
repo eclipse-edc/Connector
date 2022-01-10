@@ -72,7 +72,11 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
 
     @Override
     public Stream<Asset> queryAssets(List<Criterion> criteria) {
-        return null;
+
+        SqlQuerySpec query = queryBuilder.from(criteria);
+        var response = with(retryPolicy).get(() -> assetDb.queryItems(query));
+        return response.map(this::convertObject)
+                .map(AssetDocument::getWrappedAsset);
     }
 
     @Override

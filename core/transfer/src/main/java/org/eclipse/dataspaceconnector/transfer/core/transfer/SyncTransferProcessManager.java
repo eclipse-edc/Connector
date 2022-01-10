@@ -1,6 +1,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
@@ -67,6 +68,8 @@ public class SyncTransferProcessManager implements TransferProcessManager {
                 return TransferInitiateResult.error(dataRequest.getId(), ResponseStatus.FATAL_ERROR, transferProcess.getErrorDetail());
             }
 
+            // we expect "result" to have a string field named "payload"
+            // and we convert that into a ProxyEntry
             var proxyEntry = convert(result);
 
             // if there is one or more handlers for this particular transfer type, return the result of these handlers, otherwise return the
@@ -98,8 +101,36 @@ public class SyncTransferProcessManager implements TransferProcessManager {
         return TransferInitiateResult.error(process.getId(), ResponseStatus.FATAL_ERROR);
     }
 
+    @Override
+    public void transitionRequestAck(String processId) {
+
+    }
+
+    @Override
+    public void transitionProvisioned(String processId) {
+
+    }
+
+    @Override
+    public void transitionError(String processId, String detail) {
+
+    }
+
+    @Override
+    public Result<TransferProcessStates> deprovision(String processId) {
+        return null;
+    }
+
     private ProxyEntry convert(Object result) {
-        return typeManager.readValue(typeManager.writeValueAsString(result), ProxyEntry.class);
+        try {
+            var payloadField = result.getClass().getDeclaredField("payload");
+            payloadField.setAccessible(true);
+            var payload = payloadField.get(result).toString();
+
+            return typeManager.readValue(payload, ProxyEntry.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return ProxyEntry.Builder.newInstance().build();
+        }
     }
 
     private boolean isRetryable(Throwable ex) {

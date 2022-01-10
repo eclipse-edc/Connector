@@ -22,7 +22,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 
 import java.util.Objects;
-import java.util.Set;
 
 public class AzureEventExtension implements ServiceExtension {
 
@@ -31,11 +30,6 @@ public class AzureEventExtension implements ServiceExtension {
     @Override
     public String name() {
         return "Azure Events";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("dataspaceconnector:transfer-process-observable");
     }
 
     @Override

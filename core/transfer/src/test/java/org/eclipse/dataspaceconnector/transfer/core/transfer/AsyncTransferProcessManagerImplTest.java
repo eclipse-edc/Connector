@@ -27,8 +27,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Collections;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.isA;
+import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -43,6 +48,7 @@ class AsyncTransferProcessManagerImplTest {
     @BeforeEach
     void setup() {
         store = mock(TransferProcessStore.class);
+        when(store.nextForState(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
         manager = AsyncTransferProcessManager.Builder.newInstance()
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
@@ -60,19 +66,18 @@ class AsyncTransferProcessManagerImplTest {
      */
     @Test
     void verifyIdempotency() {
-        when(store.processIdForTransferId("1"))
-                .thenReturn(null); // first invoke returns null as there is no store process
+        doReturn(null, "2")
+                .when(store)
+                .processIdForTransferId("1");
 
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
         manager.initiateProviderRequest(dataRequest);
-
-        when(store.processIdForTransferId("1"))
-                .thenReturn("2");
 
         // repeat request
         manager.initiateProviderRequest(dataRequest);
         manager.stop();
         verify(store, times(1)).create(isA(TransferProcess.class));
+        verify(store, times(2)).processIdForTransferId(anyString());
     }
 
     @Test

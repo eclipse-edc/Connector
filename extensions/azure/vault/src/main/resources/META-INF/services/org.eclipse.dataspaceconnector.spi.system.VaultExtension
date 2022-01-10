@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.security.azure.AzureVaultExtension
+org.eclipse.dataspaceconnector.core.security.azure.AzureVaultExtension

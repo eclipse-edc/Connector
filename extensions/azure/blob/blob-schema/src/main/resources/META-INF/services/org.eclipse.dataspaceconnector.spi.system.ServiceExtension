@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.schema.azure.BlobStorageSchemaExtension
+org.eclipse.dataspaceconnector.core.schema.azure.BlobStorageSchemaExtension

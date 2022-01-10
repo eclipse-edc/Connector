@@ -4,9 +4,7 @@ package org.eclipse.dataspaceconnector.catalog.spi.model;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.eclipse.dataspaceconnector.catalog.spi.NodeQueryAdapter;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-
-import java.util.Collection;
+import org.eclipse.dataspaceconnector.spi.types.domain.catalog.Catalog;
 
 /**
  * {@link NodeQueryAdapter}s return {@code UpdateResponse} objects after a
@@ -18,20 +16,20 @@ import java.util.Collection;
  */
 public class UpdateResponse {
     private String source;
-    private Collection<Asset> assetNames;
+    private Catalog catalog;
 
     @JsonCreator
-    public UpdateResponse(@JsonProperty("source") String source, @JsonProperty("assets") Collection<Asset> assetNames) {
+    public UpdateResponse(@JsonProperty("source") String source, @JsonProperty("catalog") Catalog assetNames) {
         this.source = source;
-        this.assetNames = assetNames;
+        catalog = assetNames;
     }
 
     public UpdateResponse() {
 
     }
 
-    public Collection<Asset> getAssetNames() {
-        return assetNames;
+    public Catalog getCatalog() {
+        return catalog;
     }
 
     public String getSource() {

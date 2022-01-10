@@ -94,7 +94,7 @@ public class ArtifactRequestControllerTest {
 
         DataRequest dataRequest = requestCapture.getValue();
         assertThat(dataRequest.getAssetId()).isEqualTo(assetId);
-        assertThat(dataRequest.getProperties()).isEqualTo(requestProperties);
+        assertThat(dataRequest.getProperties()).containsAllEntriesOf(requestProperties);
         assertThat(dataRequest.getProtocol()).isEqualTo(IDS_REST);
         assertThat(dataRequest.getDataDestination().getKeyName()).isEqualTo(secretName);
         assertThat(dataRequest.getDataDestination().getType()).isEqualTo(type);

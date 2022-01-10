@@ -20,11 +20,12 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-import java.util.Set;
-
+@Provides(ContractNegotiationStore.class)
 public class CosmosContractNegotiationStoreExtension implements ServiceExtension {
 
     @Override
@@ -32,10 +33,6 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
         return "CosmosDB ContractNegotiation Store";
     }
 
-    @Override
-    public Set<String> provides() {
-        return Set.of(ContractNegotiationStore.FEATURE);
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -47,6 +44,9 @@ public class CosmosContractNegotiationStoreExtension implements ServiceExtension
         context.registerService(ContractNegotiationStore.class, store);
 
         context.getTypeManager().registerTypes(ContractNegotiationDocument.class);
+
+        context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
+
     }
 
 }

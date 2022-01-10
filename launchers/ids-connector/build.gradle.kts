@@ -21,12 +21,7 @@ plugins {
 val jupiterVersion: String by project
 
 dependencies {
-    api(project(":core:bootstrap"))
-
-    implementation(project(":core:protocol:web"))
-
-    implementation(project(":core:transfer"))
-    implementation(project(":core:contract"))
+    api(project(":core"))
 
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:in-memory:policy-registry-memory"))
@@ -47,7 +42,7 @@ dependencies {
 
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
+    mainClassName = "org.eclipse.dataspaceconnector.core.system.runtime.BaseRuntime"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

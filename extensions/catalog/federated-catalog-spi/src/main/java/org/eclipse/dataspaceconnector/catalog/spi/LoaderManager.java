@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.catalog.spi;
 
 
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.BlockingQueue;
  * If for example a Queue is used to receive {@link org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse} objects,
  * the LoaderManager's job is to coordinate all its {@link Loader}s and forward that batch to them.
  */
+@Feature(LoaderManager.FEATURE)
 public interface LoaderManager {
 
     String FEATURE = "edc:catalog:cache:loadermanager";

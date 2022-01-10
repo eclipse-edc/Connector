@@ -15,24 +15,19 @@
 package org.eclipse.dataspaceconnector.iam.mock;
 
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 /**
  * An IAM provider mock used for testing.
  */
+@Provides(IdentityService.class)
 public class IamMockExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "Mock IAM";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(IdentityService.FEATURE);
     }
 
     @Override

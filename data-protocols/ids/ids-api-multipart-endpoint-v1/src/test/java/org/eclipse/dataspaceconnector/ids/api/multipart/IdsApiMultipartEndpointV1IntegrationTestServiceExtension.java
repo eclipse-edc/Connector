@@ -38,6 +38,7 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -56,6 +57,7 @@ import org.jetbrains.annotations.Nullable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -65,6 +67,8 @@ import java.util.stream.Stream;
 
 import static java.util.Collections.emptyList;
 
+@Provides({ AssetIndex.class, ContractDefinitionStore.class, IdentityService.class, TransferProcessStore.class, ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class,
+        ContractOfferService.class, ContractValidationService.class })
 class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 
@@ -72,15 +76,25 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         this.assets = Objects.requireNonNull(assets);
     }
 
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", "dataspaceconnector:transferprocessstore", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
-    }
-
-    @Override
-    public LoadPhase phase() {
-        //this is necessary because the CoreServicesExtension requires the TransferProcessStore and it is loaded in the PRIMORDIAL phase
-        return LoadPhase.PRIMORDIAL;
+    private static ContractNegotiation fakeContractNegotiation() {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
+                .counterPartyId("test-counterparty-1")
+                .counterPartyAddress("test-counterparty-address")
+                .protocol("test-protocol")
+                .stateCount(1)
+                .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
+                        .providerAgentId("provider")
+                        .consumerAgentId("consumer")
+                        .asset(Asset.Builder.newInstance().build())
+                        .policy(Policy.Builder.newInstance().build())
+                        .contractSigningDate(LocalDate.MIN.toEpochDay())
+                        .contractStartDate(LocalDate.MIN.toEpochDay())
+                        .contractEndDate(LocalDate.MAX.toEpochDay())
+                        .id("1:2").build())
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .build();
     }
 
     @Override
@@ -278,13 +292,13 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
-            return false;
+        public boolean validate(ClaimToken token, ContractAgreement agreement) {
+            return true;
         }
 
         @Override
-        public boolean validate(ClaimToken token, ContractAgreement agreement) {
-            return true;
+        public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
+            return false;
         }
     }
 
@@ -317,7 +331,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
 
         @Override
         public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
-            return null;
+            return Collections.emptyList();
         }
     }
 
@@ -365,26 +379,5 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
-    }
-
-    private static ContractNegotiation fakeContractNegotiation() {
-        return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .correlationId(UUID.randomUUID().toString())
-                .counterPartyId("test-counterparty-1")
-                .counterPartyAddress("test-counterparty-address")
-                .protocol("test-protocol")
-                .stateCount(1)
-                .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
-                        .providerAgentId("provider")
-                        .consumerAgentId("consumer")
-                        .asset(Asset.Builder.newInstance().build())
-                        .policy(Policy.Builder.newInstance().build())
-                        .contractSigningDate(LocalDate.MIN.toEpochDay())
-                        .contractStartDate(LocalDate.MIN.toEpochDay())
-                        .contractEndDate(LocalDate.MAX.toEpochDay())
-                        .id("1:2").build())
-                .state(ContractNegotiationStates.CONFIRMED.code())
-                .build();
     }
 }

@@ -14,12 +14,14 @@
 
 package org.eclipse.dataspaceconnector.spi.schema;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.schema.Schema;
 
 import java.util.Collection;
 
+@Feature(SchemaRegistry.FEATURE)
 public interface SchemaRegistry {
-    String FEATURE = "schema-registry";
+    String FEATURE = "edc:core:base:schema-registry";
 
     void register(Schema schema);
 

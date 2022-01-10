@@ -34,7 +34,7 @@ public class SingletonVaultExtension implements VaultExtension {
     }
 
     @Override
-    public void intializeVault(ServiceExtensionContext context) {
+    public void initializeVault(ServiceExtensionContext context) {
         String secret = context.getSetting(CREDS, "default-secret");
 
         vault = new SingletonVault(secret);

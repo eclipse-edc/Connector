@@ -19,10 +19,9 @@ import okhttp3.dnsoverhttps.DnsOverHttps;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.iam.did.web.resolution.WebDidResolver;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 import static java.util.Objects.requireNonNull;
 import static org.eclipse.dataspaceconnector.iam.did.web.ConfigurationKeys.DNS_OVER_HTTPS;
@@ -32,14 +31,12 @@ import static org.eclipse.dataspaceconnector.iam.did.web.ConfigurationKeys.DNS_O
  */
 public class WebDidExtension implements ServiceExtension {
 
+    @Inject
+    private DidResolverRegistry resolverRegistry;
+
     @Override
     public String name() {
         return "Web DID";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(DidResolverRegistry.FEATURE);
     }
 
     @Override
@@ -51,7 +48,6 @@ public class WebDidExtension implements ServiceExtension {
 
         var resolver = new WebDidResolver(httpClient, mapper, monitor);
 
-        var resolverRegistry = context.getService(DidResolverRegistry.class);
         resolverRegistry.register(resolver);
     }
 

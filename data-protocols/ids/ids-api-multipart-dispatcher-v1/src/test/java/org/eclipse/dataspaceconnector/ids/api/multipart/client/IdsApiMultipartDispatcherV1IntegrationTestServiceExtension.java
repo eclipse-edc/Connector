@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -36,6 +37,7 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -62,26 +64,14 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+@Provides({ AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class,
+        ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class, ContractOfferService.class, ContractValidationService.class, ContractNegotiationStore.class })
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
     private final IdentityService identityService;
 
     public IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(
             @NotNull IdentityService identityService) {
         this.identityService = Objects.requireNonNull(identityService);
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract",
-                ContractNegotiationStore.FEATURE,
-                TransferProcessStore.FEATURE, "dataspaceconnector:dispatcher", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
-    }
-
-    @Override
-    public LoadPhase phase() {
-        // this is necessary for now because the CoreServicesExtension is PRIMORDIAL.
-        // FIXME: remove once the loadphases get abandoned altogether.
-        return LoadPhase.PRIMORDIAL;
     }
 
     @Override
@@ -99,7 +89,6 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
     }
 
     private static class FakeAssetIndex implements AssetIndex {
-
 
         @Override
         public Stream<Asset> queryAssets(AssetSelectorExpression expression) {

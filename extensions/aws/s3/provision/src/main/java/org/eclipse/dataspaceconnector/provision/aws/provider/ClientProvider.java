@@ -14,11 +14,13 @@
 
 package org.eclipse.dataspaceconnector.provision.aws.provider;
 
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 import software.amazon.awssdk.core.SdkClient;
 
 /**
  * Provides reusable S3 clients that are configured to connect to specific regions and endpoints.
  */
+@Feature("edc:aws:clientprovider")
 public interface ClientProvider {
 
     /**

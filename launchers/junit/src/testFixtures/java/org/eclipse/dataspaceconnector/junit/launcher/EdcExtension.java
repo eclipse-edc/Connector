@@ -15,17 +15,18 @@
 package org.eclipse.dataspaceconnector.junit.launcher;
 
 import okhttp3.Interceptor;
-import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.core.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
+import org.eclipse.dataspaceconnector.core.system.ExtensionLoader;
+import org.eclipse.dataspaceconnector.core.system.InjectionContainer;
+import org.eclipse.dataspaceconnector.core.system.ServiceLocator;
+import org.eclipse.dataspaceconnector.core.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.SystemExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
-import org.eclipse.dataspaceconnector.system.ExtensionLoader;
-import org.eclipse.dataspaceconnector.system.ServiceLocator;
-import org.eclipse.dataspaceconnector.system.ServiceLocatorImpl;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.extension.ParameterResolver;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
@@ -88,9 +90,10 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
                 ExtensionLoader.loadVault(context);
             }
 
-            runningServiceExtensions = context.loadServiceExtensions();
+            var serviceInjectionPoints = context.loadServiceExtensions();
+            runningServiceExtensions = serviceInjectionPoints.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList());
 
-            ExtensionLoader.bootServiceExtensions(runningServiceExtensions, context);
+            ExtensionLoader.bootServiceExtensions(serviceInjectionPoints, context);
         } catch (Exception e) {
             throw new EdcException(e);
         }

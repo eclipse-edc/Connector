@@ -13,6 +13,7 @@
  */
 
 val rsApi: String by project
+val mockitoVersion: String by project
 
 plugins {
     `java-library`
@@ -20,7 +21,7 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":core:bootstrap"))
+    implementation(project(":core:base"))
     implementation(project(":common:util"))
     implementation("com.azure:azure-security-keyvault-secrets:4.2.3")
     implementation("com.azure:azure-identity:1.2.0")
@@ -31,7 +32,7 @@ dependencies {
     testImplementation("com.azure:azure-identity:1.2.5")
     testImplementation("com.azure.resourcemanager:azure-resourcemanager-keyvault:2.2.0")
     testImplementation(testFixtures(project(":common:util")))
-
+    testImplementation("org.mockito:mockito-inline:${mockitoVersion}")
 }
 
 

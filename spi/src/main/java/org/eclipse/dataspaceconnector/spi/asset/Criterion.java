@@ -32,7 +32,7 @@ public class Criterion {
         //for json serialization
     }
 
-    public Criterion(String left, String op, String right) {
+    public Criterion(Object left, String op, Object right) {
         operandLeft = Objects.requireNonNull(left);
         operator = Objects.requireNonNull(op);
         operandRight = right; // null may be allowed, for example when the operator is unary, like NOT_NULL

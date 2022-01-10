@@ -26,6 +26,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.catalog.cache.TestUtil.createWorkItem;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -37,7 +38,7 @@ import static org.mockito.Mockito.when;
 
 class CrawlerImplTest {
     public static final int QUEUE_CAPACITY = 3;
-    public static final int JOIN_WAIT_TIME = 100;
+    public static final int JOIN_WAIT_TIME = 1000;
     public static final int WORK_QUEUE_POLL_TIMEOUT = 500;
     private CrawlerImpl crawler;
     private NodeQueryAdapter protocolAdapterMock;
@@ -136,9 +137,7 @@ class CrawlerImplTest {
     @Test
     @DisplayName("Should not insert when Queue is at capacity")
     void shouldLogError_whenQueueFull() throws InterruptedException {
-        queue.add(new UpdateResponse());
-        queue.add(new UpdateResponse());
-        queue.add(new UpdateResponse()); //queue is full now
+        range(0, QUEUE_CAPACITY).forEach(i -> queue.add(new UpdateResponse())); //queue is full now
 
         var l = new CountDownLatch(1);
         when(protocolAdapterMock.sendRequest(isA(UpdateRequest.class))).thenAnswer(i -> {
@@ -147,6 +146,7 @@ class CrawlerImplTest {
         });
 
         workQueue.put(createWorkItem());
+
         executorService.submit(crawler);
 
         assertThat(l.await(JOIN_WAIT_TIME, TimeUnit.MILLISECONDS)).isTrue();

@@ -15,10 +15,12 @@
 package org.eclipse.dataspaceconnector.common.azure;
 
 import com.azure.storage.blob.models.BlobItem;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 
+@Feature("edc:persistence:blobstore")
 public interface BlobStoreApi {
 
     void createContainer(String accountName, String containerName);

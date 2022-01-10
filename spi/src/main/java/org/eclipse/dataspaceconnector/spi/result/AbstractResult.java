@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.spi.result;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -25,6 +26,8 @@ public abstract class AbstractResult<T, F extends Failure> {
         return failure;
     }
 
+    //will cause problems during JSON serialization if failure is null
+    @JsonIgnore
     public List<String> getFailureMessages() {
         Objects.requireNonNull(failure);
         return failure.getMessages();

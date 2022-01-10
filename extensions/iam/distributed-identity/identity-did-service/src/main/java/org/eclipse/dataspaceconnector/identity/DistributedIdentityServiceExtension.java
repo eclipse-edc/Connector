@@ -8,17 +8,24 @@ import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Map;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.DID_URL_SETTING;
 
+@Provides(IdentityService.class)
 public class DistributedIdentityServiceExtension implements ServiceExtension {
+
+    @Inject
+    private DidResolverRegistry resolverRegistry;
+    @Inject
+    private CredentialsVerifier credentialsVerifier;
 
     @Override
     public String name() {
@@ -26,22 +33,15 @@ public class DistributedIdentityServiceExtension implements ServiceExtension {
     }
 
     @Override
-    public Set<String> provides() {
-        return Set.of(IdentityService.FEATURE);
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(DidResolverRegistry.FEATURE, CredentialsVerifier.FEATURE);
-    }
-
-    @Override
     public void initialize(ServiceExtensionContext context) {
         var vcProvider = createSupplier(context);
-        var resolverRegistry = context.getService(DidResolverRegistry.class);
-        var credentialsVerifier = context.getService(CredentialsVerifier.class);
         var identityService = new DistributedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
         context.registerService(IdentityService.class, identityService);
+    }
+
+    @Override
+    public void start() {
+        ServiceExtension.super.start();
     }
 
     Supplier<SignedJWT> createSupplier(ServiceExtensionContext context) {
@@ -60,10 +60,5 @@ public class DistributedIdentityServiceExtension implements ServiceExtension {
             // the Issuer claim must contain the DID URL
             return VerifiableCredentialFactory.create(privateKeyString, Map.of(VerifiableCredentialFactory.OWNER_CLAIM, connectorName), didUrl);
         };
-    }
-
-    @Override
-    public void start() {
-        ServiceExtension.super.start();
     }
 }

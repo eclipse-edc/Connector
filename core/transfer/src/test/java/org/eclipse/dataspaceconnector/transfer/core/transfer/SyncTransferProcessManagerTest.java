@@ -1,5 +1,8 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.transfer.ResponseFailure;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
@@ -48,11 +51,11 @@ class SyncTransferProcessManagerTest {
     }
 
     @Test
-    void initiateConsumerRequest() {
+    void initiateConsumerRequest() throws JsonProcessingException {
         var tpCapture = ArgumentCaptor.forClass(TransferProcess.class);
         doNothing().when(transferProcessStore).create(tpCapture.capture());
         when(transferProcessStore.find(anyString())).thenAnswer(i -> tpCapture.getValue()); //short-wire it
-        when(messageDispatcherRegistry.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(createProxyEntry()));
+        when(messageDispatcherRegistry.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(createObjectWithPayload()));
         DataRequest request = createRequest();
 
         var result = syncTransferProcessManager.initiateConsumerRequest(request);
@@ -86,7 +89,7 @@ class SyncTransferProcessManagerTest {
             tp.transitionError("test error");
             return tp;
         }); //short-wire it
-        when(messageDispatcherRegistry.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(createProxyEntry()));
+        when(messageDispatcherRegistry.send(any(), any(), any())).thenReturn(CompletableFuture.completedFuture(createObjectWithPayload()));
 
         DataRequest request = createRequest();
 
@@ -150,6 +153,18 @@ class SyncTransferProcessManagerTest {
     @NotNull
     private ProxyEntry createProxyEntry() {
         return ProxyEntry.Builder.newInstance().type(TEST_TYPE).build();
+    }
+
+    //creates an anonymous object that has a String field named "payload", which is
+    //what the Sync TPM expects
+    private Object createObjectWithPayload() {
+        try {
+            return new Object() {
+                private final String payload = new ObjectMapper().writeValueAsString(createProxyEntry());
+            };
+        } catch (JsonProcessingException ex) {
+            throw new EdcException(ex);
+        }
     }
 
 }
