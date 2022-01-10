@@ -85,7 +85,6 @@ For this chapter the file transfer extension (`CloudTransferExtension.java`) has
 notable are these changes:
 
 - the extension now creates different catalog entries
-- the flow controller (`BlobToS3DataFlowController.java`) is more powerful
 - there are additional dependencies that take care of provisioning S3 buckets and reading blobs from Azure
 
 Currently, we have implementations to _provision_ S3 buckets and Azure Storage accounts, but this example only contains

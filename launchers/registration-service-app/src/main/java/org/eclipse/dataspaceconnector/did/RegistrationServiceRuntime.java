@@ -14,18 +14,20 @@
 
 package org.eclipse.dataspaceconnector.did;
 
-import org.eclipse.dataspaceconnector.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.core.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
+import org.eclipse.dataspaceconnector.core.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
-import org.eclipse.dataspaceconnector.system.DefaultServiceExtensionContext;
 
 import java.util.List;
 import java.util.ListIterator;
+import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.system.ExtensionLoader.bootServiceExtensions;
-import static org.eclipse.dataspaceconnector.system.ExtensionLoader.loadMonitor;
-import static org.eclipse.dataspaceconnector.system.ExtensionLoader.loadVault;
+import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.bootServiceExtensions;
+import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.loadMonitor;
+import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.loadVault;
 
 public class RegistrationServiceRuntime {
 
@@ -38,8 +40,8 @@ public class RegistrationServiceRuntime {
 
         try {
             loadVault(context);
-            List<ServiceExtension> serviceExtensions = context.loadServiceExtensions();
-            Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions, monitor)));
+            List<InjectionContainer<ServiceExtension>> serviceExtensions = context.loadServiceExtensions();
+            Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(serviceExtensions.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList()), monitor)));
             bootServiceExtensions(serviceExtensions, context);
         } catch (Exception e) {
             monitor.severe("Error booting runtime", e);

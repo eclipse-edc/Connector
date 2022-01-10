@@ -19,6 +19,7 @@ import com.azure.cosmos.models.SqlQuerySpec;
 import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -100,6 +101,26 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
+    public void saveItems(Collection<CosmosDocument<?>> definitions) {
+        definitions.forEach(this::saveItem);
+    }
+
+    @Override
+    public void deleteItem(String id) {
+
+        // we need to query the item first, because delete-by-id requires a partition key, which we might not have available here
+        var item = queryItemById(id);
+        if (item == null) {
+            throw new NotFoundException("An object with the ID " + id + " could not be found!");
+        }
+        try {
+            container.deleteItem(item, itemRequestOptions).getItem();
+        } catch (CosmosException e) {
+            throw new EdcException(e);
+        }
+    }
+
+    @Override
     public @Nullable Object queryItemById(String id) {
         var query = new SqlQuerySpec("SELECT * FROM c WHERE c.id = @id", new SqlParameter("@id", id));
 
@@ -164,26 +185,6 @@ public class CosmosDbApiImpl implements CosmosDbApi {
     }
 
     @Override
-    public void deleteItem(String id) {
-
-        // we need to query the item first, because delete-by-id requires a partition key, which we might not have available here
-        var item = queryItemById(id);
-        if (item == null) {
-            throw new NotFoundException("An object with the ID " + id + " could not be found!");
-        }
-        try {
-            container.deleteItem(item, itemRequestOptions).getItem();
-        } catch (CosmosException e) {
-            throw new EdcException(e);
-        }
-    }
-
-    @Override
-    public void saveItems(Collection<CosmosDocument<?>> definitions) {
-        definitions.forEach(this::saveItem);
-    }
-
-    @Override
     public String invokeStoredProcedure(String procedureName, String partitionKey, Object... args) {
         var sproc = getStoredProcedure(procedureName);
 
@@ -195,6 +196,17 @@ public class CosmosDbApiImpl implements CosmosDbApi {
 
         handleResponse(response.getStatusCode(), "Failed to invoke stored procedure: " + procedureName);
         return response.getResponseAsString();
+    }
+
+    @Override
+    public HealthCheckResult get() {
+
+        var response = container.read();
+        var success = response.getStatusCode() >= 200 && response.getStatusCode() < 300;
+        return HealthCheckResult.Builder.newInstance()
+                .component("CosmosDB " + container.getId())
+                .success(success)
+                .build();
     }
 
     private CosmosStoredProcedure getStoredProcedure(String sprocName) {

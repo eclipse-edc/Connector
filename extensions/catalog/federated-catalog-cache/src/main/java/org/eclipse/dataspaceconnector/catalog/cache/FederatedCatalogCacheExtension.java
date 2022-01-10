@@ -8,6 +8,7 @@ import org.eclipse.dataspaceconnector.catalog.cache.loader.LoaderManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.DefaultCacheQueryAdapter;
+import org.eclipse.dataspaceconnector.catalog.cache.query.IdsMultipartNodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
 import org.eclipse.dataspaceconnector.catalog.spi.Crawler;
@@ -22,16 +23,20 @@ import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItem;
 import org.eclipse.dataspaceconnector.catalog.spi.WorkItemQueue;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
-import java.util.Set;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -40,6 +45,7 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 
+@Provides({ Crawler.class, LoaderManager.class, QueryEngine.class, NodeQueryAdapterRegistry.class, CacheQueryAdapterRegistry.class })
 public class FederatedCatalogCacheExtension implements ServiceExtension {
     public static final int DEFAULT_NUM_CRAWLERS = 1;
     private static final int DEFAULT_QUEUE_LENGTH = 50;
@@ -50,18 +56,20 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     private PartitionConfiguration partitionManagerConfig;
     private Monitor monitor;
     private ArrayBlockingQueue<UpdateResponse> updateResponseQueue;
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(Crawler.FEATURE, LoaderManager.FEATURE, QueryEngine.FEATURE,
-                NodeQueryAdapterRegistry.FEATURE, CacheQueryAdapterRegistry.FEATURE);
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:retry-policy", FederatedCacheNodeDirectory.FEATURE,
-                "edc:webservice", FederatedCacheStore.FEATURE);
-    }
+    @Inject
+    private FederatedCacheStore store;
+    @Inject
+    private WebService webService;
+    @Inject(required = false)
+    private HealthCheckService healthCheckService;
+    @Inject
+    private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    // protocol registry - must be supplied by another extension
+    // get all known nodes from node directory - must be supplied by another extension
+    @Inject
+    private FederatedCacheNodeDirectory directory;
+    @Inject
+    private RetryPolicy<Object> retryPolicy;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -69,27 +77,30 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         var queryAdapterRegistry = new CacheQueryAdapterRegistryImpl();
         context.registerService(CacheQueryAdapterRegistry.class, queryAdapterRegistry);
 
-        var store = context.getService(FederatedCacheStore.class);
         queryAdapterRegistry.register(new DefaultCacheQueryAdapter(store));
-        var webService = context.getService(WebService.class);
         var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
         context.registerService(QueryEngine.class, queryEngine);
         monitor = context.getMonitor();
         var catalogController = new CatalogController(monitor, queryEngine);
         webService.registerController(catalogController);
 
+        // contribute to the liveness probe
+        if (healthCheckService != null) {
+            healthCheckService.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("FCC Query API").build());
+        }
 
         // CRAWLER SUBSYSTEM
-        context.registerService(NodeQueryAdapterRegistry.class, new NodeQueryAdapterRegistryImpl());
+        var nodeQueryAdapterRegistry = new NodeQueryAdapterRegistryImpl();
+
+        // catalog queries via IDS multipart are supported by default
+        nodeQueryAdapterRegistry.register("ids-multipart", new IdsMultipartNodeQueryAdapter(context.getConnectorId(), dispatcherRegistry));
+        context.registerService(NodeQueryAdapterRegistry.class, nodeQueryAdapterRegistry);
 
         updateResponseQueue = new ArrayBlockingQueue<>(DEFAULT_QUEUE_LENGTH);
-
         //todo: maybe get this from a database or somewhere else?
         partitionManagerConfig = new PartitionConfiguration(context);
-
         // lets create a simple partition manager
-        partitionManager = createPartitionManager(context, updateResponseQueue);
-
+        partitionManager = createPartitionManager(context, updateResponseQueue, nodeQueryAdapterRegistry);
         // and a loader manager
         loaderManager = createLoaderManager(store);
 
@@ -121,13 +132,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     }
 
     @NotNull
-    private PartitionManager createPartitionManager(ServiceExtensionContext context, ArrayBlockingQueue<UpdateResponse> updateResponseQueue) {
-
-        // protocol registry - must be supplied by another extension
-        var protocolAdapterRegistry = context.getService(NodeQueryAdapterRegistry.class);
-
-        // get all known nodes from node directory - must be supplied by another extension
-        var directory = context.getService(FederatedCacheNodeDirectory.class);
+    private PartitionManager createPartitionManager(ServiceExtensionContext context, ArrayBlockingQueue<UpdateResponse> updateResponseQueue, NodeQueryAdapterRegistry protocolAdapterRegistry) {
 
         // use all nodes EXCEPT self
         Supplier<List<WorkItem>> nodes = () -> directory.getAll().stream()
@@ -148,7 +153,6 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     }
 
     private Crawler createCrawler(WorkItemQueue workItems, ServiceExtensionContext context, NodeQueryAdapterRegistry protocolAdapters, ArrayBlockingQueue<UpdateResponse> updateQueue) {
-        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         return CrawlerImpl.Builder.newInstance()
                 .monitor(context.getMonitor())
                 .retryPolicy(retryPolicy)

@@ -31,7 +31,7 @@ dependencies {
 
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
 
-    api(project(":core:policy:policy-model"))
+    api(project(":core:policy:policy-evaluator"))
 
     testImplementation(testFixtures(project(":common:util")))
 }

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class CosmosContractNegotiationStoreTest {
+    private static final String PARTITION_KEY = "test-connector";
     private CosmosContractNegotiationStore store;
     private CosmosDbApi cosmosDbApi;
 
@@ -94,13 +95,13 @@ class CosmosContractNegotiationStoreTest {
     @Test
     void nextForState() {
         var state = ContractNegotiationStates.CONFIRMED;
-        when(cosmosDbApi.invokeStoredProcedure("nextForState", String.valueOf(state.code()), state.code(), 100, "test-connector"))
+        when(cosmosDbApi.invokeStoredProcedure("nextForState", PARTITION_KEY, state.code(), 100, "test-connector"))
                 .thenReturn("[]");
 
         var result = store.nextForState(state.code(), 100);
 
         assertThat(result).isEmpty();
-        verify(cosmosDbApi).invokeStoredProcedure("nextForState", String.valueOf(state.code()), state.code(), 100, "test-connector");
+        verify(cosmosDbApi).invokeStoredProcedure("nextForState", PARTITION_KEY, state.code(), 100, "test-connector");
         verifyNoMoreInteractions(cosmosDbApi);
     }
 }

@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,8 +38,10 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import static java.util.Map.entry;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.ids.spi.Protocols.IDS_REST;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -53,31 +55,26 @@ class DataRequestMessageSenderTest {
     private final String connectorId = faker.internet().url();
     private final String processId = faker.internet().uuid();
     private final ObjectMapper mapper = new ObjectMapper();
-
+    private final OkHttpClient httpClient = mock(OkHttpClient.class);
+    private final IdentityService identityService = mock(IdentityService.class);
 
     private DataRequestMessageSender sender;
-    private OkHttpClient httpClient;
 
     @BeforeEach
     public void setUp() {
-        httpClient = mock(OkHttpClient.class);
-
-        IdentityService identityService = mock(IdentityService.class);
-        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(faker.lorem().characters()).build();
-        Result<TokenRepresentation> tokenResult = Result.success(tokenRepresentation);
-        when(identityService.obtainClientCredentials(connectorId)).thenReturn(tokenResult);
-        sender = new DataRequestMessageSender(connectorId, identityService, mock(TransferProcessStore.class), mock(Vault.class), httpClient, mapper, mock(Monitor.class));
+        sender = new DataRequestMessageSender(connectorId, identityService, mock(Vault.class), httpClient, mapper, mock(Monitor.class), mock(TransferProcessManager.class));
     }
 
     @Test
     public void initiateIdsMessage() throws IOException {
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance().token(faker.lorem().characters()).build();
+        when(identityService.obtainClientCredentials(connectorId)).thenReturn(Result.success(tokenRepresentation));
         DataRequest dataRequest = createDataRequest();
         DataAddress dataDestination = dataRequest.getDataDestination();
 
         var requestCapture = ArgumentCaptor.forClass(Request.class);
         when(httpClient.newCall(requestCapture.capture())).thenReturn(mock(Call.class));
 
-        // invoke
         sender.send(dataRequest, () -> processId);
 
         var artifactMessageRequest = getArtifactMessageRequest(requestCapture.getValue());
@@ -88,6 +85,15 @@ class DataRequestMessageSenderTest {
         assertThat((Map<String, Object>) properties.get(DESTINATION_KEY)).contains(entry("keyName", dataDestination.getKeyName()), entry("type", dataDestination.getType()));
         assertThat(properties.get(PROPERTIES_KEY)).isEqualTo(dataRequest.getProperties());
         verify(httpClient).newCall(requestCapture.capture());
+    }
+
+    @Test
+    void should_return_failed_future_if_client_credentials_retrieval_fails() {
+        when(identityService.obtainClientCredentials(any())).thenReturn(Result.failure("error"));
+
+        var result = sender.send(createDataRequest(), () -> processId);
+
+        assertThat(result).failsWithin(1, MILLISECONDS);
     }
 
     private DataRequest createDataRequest() {

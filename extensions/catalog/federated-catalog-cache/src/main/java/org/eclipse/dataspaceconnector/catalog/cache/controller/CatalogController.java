@@ -11,7 +11,7 @@ import org.eclipse.dataspaceconnector.catalog.spi.QueryEngine;
 import org.eclipse.dataspaceconnector.catalog.spi.QueryResponse;
 import org.eclipse.dataspaceconnector.catalog.spi.model.FederatedCatalogCacheQuery;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.util.Collection;
 
@@ -30,7 +30,7 @@ public class CatalogController {
 
     @POST
     @Path("catalog")
-    public Collection<Asset> getCatalog(FederatedCatalogCacheQuery federatedCatalogCacheQuery) {
+    public Collection<ContractOffer> getCatalog(FederatedCatalogCacheQuery federatedCatalogCacheQuery) {
         monitor.info("Received a catalog request");
         var queryResponse = queryEngine.getCatalog(federatedCatalogCacheQuery);
         // query not possible
@@ -41,6 +41,6 @@ public class CatalogController {
             throw new QueryException(queryResponse.getErrors());
         }
 
-        return queryResponse.getAssets();
+        return queryResponse.getOffers();
     }
 }

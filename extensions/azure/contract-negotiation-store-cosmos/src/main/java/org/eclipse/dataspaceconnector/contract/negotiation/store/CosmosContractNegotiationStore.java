@@ -11,6 +11,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,12 +30,14 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     private final TypeManager typeManager;
     private final RetryPolicy<Object> retryPolicy;
     private final String connectorId;
+    private final String partitionKey;
 
     public CosmosContractNegotiationStore(CosmosDbApi cosmosDbApi, TypeManager typeManager, RetryPolicy<Object> retryPolicy, String connectorId) {
         this.cosmosDbApi = cosmosDbApi;
         this.typeManager = typeManager;
         this.retryPolicy = retryPolicy;
         this.connectorId = connectorId;
+        partitionKey = connectorId;
     }
 
     @Override
@@ -67,7 +70,14 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
 
     @Override
     public void save(ContractNegotiation negotiation) {
-        cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation));
+        if (ContractNegotiationStates.UNSAVED.code() == negotiation.getState()) {
+            if (ContractNegotiation.Type.CONSUMER.equals(negotiation.getType())) {
+                negotiation.transitionRequesting();
+            } else {
+                negotiation.transitionRequested();
+            }
+        }
+        cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation, partitionKey));
     }
 
     @Override
@@ -78,7 +88,6 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
     @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
 
-        var partitionKey = String.valueOf(state);
         String rawJson = cosmosDbApi.invokeStoredProcedure("nextForState", partitionKey, state, max, connectorId);
         var typeRef = new TypeReference<List<Object>>() {
         };

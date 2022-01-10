@@ -22,8 +22,6 @@ import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceBuilder;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -32,9 +30,11 @@ import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 
-public class IdsResourceToAssetTransformerTest {
+class IdsResourceToAssetTransformerTest {
     private static final String ASSET_ID = "1";
     private static final URI RESOURCE_ID = URI.create("urn:resource:1");
     private static final String ASSET_FILENAME = "test_filename";
@@ -51,47 +51,56 @@ public class IdsResourceToAssetTransformerTest {
     @BeforeEach
     void setUp() {
         transformer = new IdsResourceToAssetTransformer();
-        Artifact artifact = new ArtifactBuilder()._byteSize_(ASSET_BYTESIZE)._fileName_(ASSET_FILENAME).build();
+        Artifact artifact = new ArtifactBuilder()
+                ._byteSize_(ASSET_BYTESIZE)
+                ._fileName_(ASSET_FILENAME)
+                .build();
+
+        artifact.setProperty("key1", "val1");
+        artifact.setProperty("key2", "val2");
 
         var representation = new RepresentationBuilder()
                 ._instance_(new ArrayList<>(Collections.singletonList(artifact)))
                 ._mediaType_(new CustomMediaTypeBuilder()._filenameExtension_(ASSET_FILE_EXTENSION).build())
                 .build();
 
-        resource = new ResourceBuilder(RESOURCE_ID)._representation_(new ArrayList<>(Collections.singletonList(representation))).build();
+        resource = new ResourceBuilder(RESOURCE_ID)
+                ._representation_(new ArrayList<>(Collections.singletonList(representation)))
+                .build();
         context = mock(TransformerContext.class);
     }
 
     @Test
     void testThrowsNullPointerExceptionForAll() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(null, null);
-        });
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> transformer.transform(null, null));
     }
 
     @Test
     void testThrowsNullPointerExceptionForContext() {
-        Assertions.assertThrows(NullPointerException.class, () -> {
-            transformer.transform(resource, null);
-        });
+        assertThatExceptionOfType(NullPointerException.class)
+                .isThrownBy(() -> transformer.transform(resource, null));
     }
 
     @Test
     void testReturnsNull() {
         var result = transformer.transform(null, context);
 
-        Assertions.assertNull(result);
+        assertThat(result).isNull();
     }
 
     @Test
     void testSuccessfulMap() {
         var result = transformer.transform(resource, context);
 
-        Assertions.assertNotNull(result);
-        Assertions.assertEquals(ASSET_ID, result.getId());
-        Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_BYTE_SIZE), ASSET_BYTESIZE);
-        Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_FILE_NAME), ASSET_FILENAME);
-        Assertions.assertEquals(result.getProperties().get(TransformKeys.KEY_ASSET_FILE_EXTENSION), ASSET_FILE_EXTENSION);
-    }
+        assertThat(result).isNotNull();
+        assertThat(result.getId()).isEqualTo(ASSET_ID);
 
+        assertThat(result.getProperties()).isNotNull()
+                .containsEntry(TransformKeys.KEY_ASSET_BYTE_SIZE, ASSET_BYTESIZE)
+                .containsEntry(TransformKeys.KEY_ASSET_FILE_NAME, ASSET_FILENAME)
+                .containsEntry(TransformKeys.KEY_ASSET_FILE_EXTENSION, ASSET_FILE_EXTENSION)
+                .containsEntry("key1", "val1")
+                .containsEntry("key2", "val2");
+    }
 }

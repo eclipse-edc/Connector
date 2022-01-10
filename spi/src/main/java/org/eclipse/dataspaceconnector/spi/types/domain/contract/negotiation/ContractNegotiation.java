@@ -34,7 +34,7 @@ import static java.util.stream.Collectors.joining;
 
 /**
  * Represents a contract negotiation.
- *
+ * <p>
  * Note: This class implements the negotiation process that is started by a consumer. For some use
  * cases, it may be interesting to initiate the contract negotiation as a provider.
  *
@@ -46,23 +46,16 @@ import static java.util.stream.Collectors.joining;
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
 public class ContractNegotiation {
-    public enum Type {
-        CONSUMER, PROVIDER
-    }
-
     private String id;
     private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
-
     private Type type = Type.CONSUMER;
-
     private int state;
     private int stateCount;
     private long stateTimestamp;
     private String errorDetail;
-
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
 
@@ -186,7 +179,7 @@ public class ContractNegotiation {
      * @param agreement the agreement.
      */
     public void setContractAgreement(ContractAgreement agreement) {
-        this.contractAgreement = agreement;
+        contractAgreement = agreement;
     }
 
     /**
@@ -196,7 +189,7 @@ public class ContractNegotiation {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.UNSAVED);
+        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.REQUESTING, ContractNegotiationStates.UNSAVED);
     }
 
     /**
@@ -206,7 +199,7 @@ public class ContractNegotiation {
         if (Type.PROVIDER == type) {
             transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.UNSAVED);
         } else {
-            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
+            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
         }
     }
 
@@ -227,9 +220,9 @@ public class ContractNegotiation {
      */
     public void transitionOffered() {
         if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERING);
+            transition(ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.CONSUMER_OFFERING);
         } else {
-            transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
+            transition(ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERED, ContractNegotiationStates.PROVIDER_OFFERING);
         }
     }
 
@@ -240,7 +233,7 @@ public class ContractNegotiation {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVING state");
         }
-        transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
+        transition(ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.CONSUMER_OFFERED, ContractNegotiationStates.REQUESTED);
     }
 
     /**
@@ -250,7 +243,7 @@ public class ContractNegotiation {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no CONSUMER_APPROVED state");
         }
-        transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.PROVIDER_OFFERED);
+        transition(ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.CONSUMER_APPROVING, ContractNegotiationStates.PROVIDER_OFFERED);
     }
 
     /**
@@ -298,16 +291,6 @@ public class ContractNegotiation {
 
     }
 
-    private void checkState(int... legalStates) {
-        for (var legalState : legalStates) {
-            if (state == legalState) {
-                return;
-            }
-        }
-        var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
-        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", this.state, values));
-    }
-
     /**
      * Transition to state ERROR.
      *
@@ -349,22 +332,6 @@ public class ContractNegotiation {
         stateTimestamp = Instant.now().toEpochMilli();
     }
 
-    /**
-     * Transition to a given end state from an allowed number of previous states. Increases the
-     * state count if transitioned to the same state and updates the state timestamp.
-     *
-     * @param end The desired state.
-     * @param starts The allowed previous states.
-     */
-    private void transition(ContractNegotiationStates end, ContractNegotiationStates... starts) {
-        if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
-            throw new IllegalStateException(format("Cannot transition from state %s to %s", ContractNegotiationStates.from(state), ContractNegotiationStates.from(end.code())));
-        }
-        stateCount = state == end.code() ? stateCount + 1 : 1;
-        state = end.code();
-        updateStateTimestamp();
-    }
-
     @Override
     public int hashCode() {
         return Objects.hash(id, correlationId, counterPartyId, protocol, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
@@ -382,6 +349,36 @@ public class ContractNegotiation {
         return state == that.state && stateCount == that.stateCount && stateTimestamp == that.stateTimestamp && Objects.equals(id, that.id) &&
                 Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) && Objects.equals(protocol, that.protocol) &&
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
+    }
+
+    private void checkState(int... legalStates) {
+        for (var legalState : legalStates) {
+            if (state == legalState) {
+                return;
+            }
+        }
+        var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
+        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", state, values));
+    }
+
+    /**
+     * Transition to a given end state from an allowed number of previous states. Increases the
+     * state count if transitioned to the same state and updates the state timestamp.
+     *
+     * @param end    The desired state.
+     * @param starts The allowed previous states.
+     */
+    private void transition(ContractNegotiationStates end, ContractNegotiationStates... starts) {
+        if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
+            throw new IllegalStateException(format("Cannot transition from state %s to %s", ContractNegotiationStates.from(state), ContractNegotiationStates.from(end.code())));
+        }
+        stateCount = state == end.code() ? stateCount + 1 : 1;
+        state = end.code();
+        updateStateTimestamp();
+    }
+
+    public enum Type {
+        CONSUMER, PROVIDER
     }
 
     /**

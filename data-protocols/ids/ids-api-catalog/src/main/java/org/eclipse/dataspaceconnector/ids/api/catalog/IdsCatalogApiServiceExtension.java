@@ -23,26 +23,33 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 /**
  * Implements the IDS Controller REST API for catalog services.
  */
 public class IdsCatalogApiServiceExtension implements ServiceExtension {
     private Monitor monitor;
+    @Inject
+    private IdsDescriptorService descriptorService;
+    @Inject
+    private AssetIndex assetIndex;
+    @Inject
+    private DapsService dapsService;
+    @Inject
+    private PolicyRegistry policyRegistry;
+    @Inject
+    private IdsPolicyService policyService;
+    @Inject
+    private WebService webService;
 
     @Override
     public String name() {
         return "IDS Catalog API";
     }
 
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:ids:core", PolicyRegistry.FEATURE);
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -59,15 +66,7 @@ public class IdsCatalogApiServiceExtension implements ServiceExtension {
     }
 
     private void registerControllers(ServiceExtensionContext context) {
-        var webService = context.getService(WebService.class);
-        var descriptorService = context.getService(IdsDescriptorService.class);
-        var assetIndex = context.getService(AssetIndex.class);
-
-        var dapsService = context.getService(DapsService.class);
-        var policyRegistry = context.getService(PolicyRegistry.class);
-        var policyService = context.getService(IdsPolicyService.class);
         var queryEngine = new QueryEngineImpl(policyRegistry, policyService, assetIndex, monitor);
-
 
         webService.registerController(new DescriptionRequestController(descriptorService));
         webService.registerController(new CatalogQueryController(queryEngine, dapsService));

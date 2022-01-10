@@ -23,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferQuery;
@@ -35,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -61,6 +63,8 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
+@Provides({ AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class,
+        ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class, ContractOfferService.class, ContractValidationService.class })
 class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements ServiceExtension {
     private final List<Asset> assets;
 
@@ -71,16 +75,25 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         this.identityService = identityService;
     }
 
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:iam", "edc:core:contract", TransferProcessStore.FEATURE, "dataspaceconnector:dispatcher", AssetIndex.FEATURE, ContractDefinitionStore.FEATURE);
-    }
-
-    @Override
-    public LoadPhase phase() {
-        // this is necessary for now because the CoreServicesExtension is PRIMORDIAL.
-        // FIXME: remove once the loadphases get abandoned altogether.
-        return LoadPhase.PRIMORDIAL;
+    private static ContractNegotiation fakeContractNegotiation() {
+        return ContractNegotiation.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .correlationId(UUID.randomUUID().toString())
+                .counterPartyId("test-counterparty-1")
+                .counterPartyAddress("test-counterparty-address")
+                .protocol("test-protocol")
+                .stateCount(1)
+                .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
+                        .providerAgentId("provider")
+                        .consumerAgentId("consumer")
+                        .asset(Asset.Builder.newInstance().build())
+                        .policy(Policy.Builder.newInstance().build())
+                        .contractSigningDate(LocalDate.MIN.toEpochDay())
+                        .contractStartDate(LocalDate.MIN.toEpochDay())
+                        .contractEndDate(LocalDate.MAX.toEpochDay())
+                        .id("1:2").build())
+                .state(ContractNegotiationStates.CONFIRMED.code())
+                .build();
     }
 
     @Override
@@ -335,26 +348,5 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
-    }
-
-    private static ContractNegotiation fakeContractNegotiation() {
-        return ContractNegotiation.Builder.newInstance()
-                .id(UUID.randomUUID().toString())
-                .correlationId(UUID.randomUUID().toString())
-                .counterPartyId("test-counterparty-1")
-                .counterPartyAddress("test-counterparty-address")
-                .protocol("test-protocol")
-                .stateCount(1)
-                .contractAgreement(ContractAgreement.Builder.newInstance().id("1")
-                        .providerAgentId("provider")
-                        .consumerAgentId("consumer")
-                        .asset(Asset.Builder.newInstance().build())
-                        .policy(Policy.Builder.newInstance().build())
-                        .contractSigningDate(LocalDate.MIN.toEpochDay())
-                        .contractStartDate(LocalDate.MIN.toEpochDay())
-                        .contractEndDate(LocalDate.MAX.toEpochDay())
-                        .id("1:2").build())
-                .state(ContractNegotiationStates.CONFIRMED.code())
-                .build();
     }
 }

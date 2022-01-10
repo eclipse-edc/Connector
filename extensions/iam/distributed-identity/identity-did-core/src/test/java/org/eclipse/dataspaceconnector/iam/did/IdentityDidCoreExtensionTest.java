@@ -14,6 +14,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,23 +30,24 @@ class IdentityDidCoreExtensionTest {
 
     private IdentityDidCoreExtension extension;
     private ServiceExtensionContext contextMock;
+    private WebService webserviceMock;
 
     @BeforeEach
     void setUp() {
-        extension = new IdentityDidCoreExtension();
+        var hubStore = mock(IdentityHubStore.class);
+        webserviceMock = mock(WebService.class);
+        extension = new IdentityDidCoreExtension(hubStore, webserviceMock);
         contextMock = mock(ServiceExtensionContext.class);
     }
 
     @Test
     void verifyCorrectInitialization_withPkResolverPresent() {
-        when(contextMock.getService(IdentityHubStore.class)).thenReturn(mock(IdentityHubStore.class));
         when(contextMock.getTypeManager()).thenReturn(new TypeManager());
         when(contextMock.getService(PrivateKeyResolver.class)).thenReturn(mock(PrivateKeyResolver.class));
         when(contextMock.getConnectorId()).thenReturn("test-connector");
-        WebService webserviceMock = mock(WebService.class);
-        when(contextMock.getService(WebService.class)).thenReturn(webserviceMock);
         when(contextMock.getService(OkHttpClient.class)).thenReturn(mock(OkHttpClient.class));
         when(contextMock.getMonitor()).thenReturn(mock(Monitor.class));
+        when(contextMock.getService(HealthCheckService.class, true)).thenReturn(mock(HealthCheckService.class));
 
         extension.initialize(contextMock);
 

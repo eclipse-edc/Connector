@@ -33,6 +33,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
 
@@ -69,6 +70,9 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
         var connectorId = queryRequest.getConnectorId();
 
         var tokenResult = identityService.obtainClientCredentials(connectorId);
+        if (tokenResult.failed()) {
+            return failedFuture(new EdcException("Failed to obtain client credentials: " + String.join(", ", tokenResult.getFailureMessages())));
+        }
 
         DynamicAttributeToken token = new DynamicAttributeTokenBuilder()._tokenFormat_(TokenFormat.JWT)
                 ._tokenValue_(tokenResult.getContent().getToken()).build();
@@ -82,7 +86,6 @@ public class QueryMessageSender implements IdsMessageSender<QueryRequest, List<S
                 .build();
         queryMessage.setProperty("query", queryRequest.getQuery());
         queryMessage.setProperty("queryLanguage", queryRequest.getQueryLanguage());
-        var processId = context.getProcessId();
 
         var requestBody = writeJson(queryMessage, mapper);
 

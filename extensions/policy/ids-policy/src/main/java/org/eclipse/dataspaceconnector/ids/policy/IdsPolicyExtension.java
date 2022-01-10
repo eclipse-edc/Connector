@@ -16,10 +16,9 @@ package org.eclipse.dataspaceconnector.ids.policy;
 
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyEngine;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 /**
  * Registers test policy functions.
@@ -28,6 +27,8 @@ public class IdsPolicyExtension implements ServiceExtension {
 
     public static String ABS_SPATIAL_POSITION = "ids:absoluteSpatialPosition";
     public static String PARTNER_LEVEL = "ids:partnerLevel";
+    @Inject
+    private PolicyEngine policyEngine;
 
     @Override
     public String name() {
@@ -35,13 +36,7 @@ public class IdsPolicyExtension implements ServiceExtension {
     }
 
     @Override
-    public Set<String> requires() {
-        return Set.of("edc:ids:core");
-    }
-
-    @Override
     public void initialize(ServiceExtensionContext context) {
-        var policyEngine = context.getService(PolicyEngine.class);
 
         policyEngine.registerFunction(Permission.class, ABS_SPATIAL_POSITION, new AbsSpatialPositionConstraintFunction());
         policyEngine.registerFunction(Permission.class, PARTNER_LEVEL, new PartnerLevelConstraintFunction());

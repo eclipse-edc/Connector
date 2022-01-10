@@ -15,15 +15,17 @@ package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 /**
  * Manages contract negotiations on a consumer or provider. Subtypes define consumer- and provider-specific operations.
- *
+ * <p>
  * All operations are idempotent.
  */
+@Feature(ContractNegotiationManager.FEATURE)
 public interface ContractNegotiationManager {
 
-    String FEATURE = "edc:core:contract";
+    String FEATURE = "edc:core:contract:contractnegotiation:manager";
 
     /**
      * A negotiation was declined by the counter-party represented by the claim token.

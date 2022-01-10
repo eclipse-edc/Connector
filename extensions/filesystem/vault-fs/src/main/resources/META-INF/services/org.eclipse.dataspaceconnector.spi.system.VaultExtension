@@ -12,4 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.security.fs.FsVaultExtension
+org.eclipse.dataspaceconnector.core.security.fs.FsVaultExtension

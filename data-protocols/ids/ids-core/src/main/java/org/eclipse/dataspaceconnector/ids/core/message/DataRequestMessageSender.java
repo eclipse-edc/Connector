@@ -25,13 +25,13 @@ import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
@@ -39,6 +39,7 @@ import java.net.URI;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.eclipse.dataspaceconnector.ids.core.message.MessageFunctions.writeJson;
 
 /**
@@ -48,27 +49,27 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
     private static final String JSON = "application/json";
     private static final String VERSION = "1.0";
     private final Monitor monitor;
+    private final TransferProcessManager transferProcessManager;
     private final URI connectorId;
     private final IdentityService identityService;
-    private final TransferProcessStore transferProcessStore;
     private final Vault vault;
     private final OkHttpClient httpClient;
     private final ObjectMapper mapper;
 
     public DataRequestMessageSender(String connectorId,
                                     IdentityService identityService,
-                                    TransferProcessStore transferProcessStore,
                                     Vault vault,
                                     OkHttpClient httpClient,
                                     ObjectMapper mapper,
-                                    Monitor monitor) {
+                                    Monitor monitor,
+                                    TransferProcessManager transferProcessManager) {
         this.connectorId = URI.create(connectorId);
         this.identityService = identityService;
-        this.transferProcessStore = transferProcessStore;
         this.vault = vault;
         this.httpClient = httpClient;
         this.mapper = mapper;
         this.monitor = monitor;
+        this.transferProcessManager = transferProcessManager;
     }
 
     @Override
@@ -84,6 +85,9 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
         var connectorId = dataRequest.getConnectorId();
 
         var tokenResult = identityService.obtainClientCredentials(connectorId);
+        if (tokenResult.failed()) {
+            return failedFuture(new EdcException("Failed to obtain client credentials: " + String.join(", ", tokenResult.getFailureMessages())));
+        }
 
         DynamicAttributeToken token = new DynamicAttributeTokenBuilder()
                 ._tokenFormat_(TokenFormat.JWT)._tokenValue_(tokenResult.getContent().getToken())
@@ -118,7 +122,8 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
         var connectorAddress = dataRequest.getConnectorAddress();
         HttpUrl baseUrl = HttpUrl.parse(connectorAddress);
         if (baseUrl == null) {
-            return transitionToErrorState("Invalid connector address: " + connectorAddress, context);
+            transferProcessManager.transitionError(context.getProcessId(), "Invalid connector address: " + connectorAddress);
+            return CompletableFuture.completedFuture(null);
         }
 
         HttpUrl connectorEndpoint = baseUrl.newBuilder().addPathSegment("api").addPathSegment("ids").addPathSegment("request").build();
@@ -129,15 +134,15 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
 
         httpClient.newCall(request).enqueue(new FutureCallback<>(future, r -> {
             try (r) {
-                TransferProcess transferProcess = transferProcessStore.find(processId);
+                // TODO: future is not always completed, this
                 if (r.isSuccessful()) {
                     monitor.debug("Request approved and acknowledged for process: " + processId);
-                    transferProcess.transitionRequestAck();
+                    transferProcessManager.transitionRequestAck(processId);
                     Object dataObject = extractArtifactResponse(r);
                     future.complete(dataObject);
-
                 } else if (r.code() == 500) {
-                    transferProcess.transitionProvisioned();  // force retry
+                    transferProcessManager.transitionProvisioned(processId);
+                    future.completeExceptionally(new EdcException("Received InternalServerError " + r.message()));
                 } else {
                     if (r.code() == 403) {
                         // forbidden
@@ -149,9 +154,10 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
                             String.format("IDS Rejection: '%s', code %s", rejectionMsg.getRejectionReason().name(), r.code()) :
                             "General error, HTTP response code: " + r.code();
                     monitor.info(message);
-                    transferProcess.transitionError(message);
+                    transferProcessManager.transitionError(processId, "General error, HTTP response code: " + r.code());
+                    future.completeExceptionally(new EdcException("Received Error " + r.code() + " " + message));
                 }
-                transferProcessStore.update(transferProcess);
+
                 return null;
             }
         }));
@@ -176,16 +182,6 @@ public class DataRequestMessageSender implements IdsMessageSender<DataRequest, O
             monitor.severe("Could not read body of response", e);
             return null;
         }
-    }
-
-    @NotNull
-    private CompletableFuture<Object> transitionToErrorState(String error, MessageContext context) {
-        TransferProcess transferProcess = transferProcessStore.find(context.getProcessId());
-        transferProcess.transitionError(error);
-        transferProcessStore.update(transferProcess);
-        CompletableFuture<Object> future = new CompletableFuture<>();
-        future.complete(null);
-        return future;
     }
 
 }

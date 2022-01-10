@@ -15,8 +15,9 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.core.protocol.web.transport.JettyService;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -30,9 +31,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGen
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.dispatcher.LoopbackDispatcher;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.http.PubSubHttpEndpoint;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.object.DemoObjectStorage;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.object.ObjectStorageFlowController;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.object.ObjectStorageMessage;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.StreamPublisherRegistry;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.ConnectMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.DataMessage;
@@ -41,15 +40,12 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.SubscribeMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.message.UnSubscribeMessage;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.DemoTopicManager;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.PushStreamFlowController;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.PushStreamProvisioner;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.PushStreamResourceGenerator;
-import org.eclipse.dataspaceconnector.transfer.demo.protocols.stream.StreamPublisherRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.PubSubServerEndpoint;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WebSocketFactory;
-import org.eclipse.dataspaceconnector.web.transport.JettyService;
-
-import java.util.Set;
+import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
+import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
 /**
  * An extension that demonstrates data transfers and supports three flow types:
@@ -73,11 +69,6 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
     PubSubHttpEndpoint httpEndpoint;
 
     private Monitor monitor;
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("demo-protocols");
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -108,7 +99,7 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
 
         registerProvisioners(topicManager, context);
 
-        registerFlowControllers(context, objectMapper);
+        registerFlowControllers(context);
 
         registerTypes(objectMapper);
     }
@@ -146,21 +137,17 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
         provisionManager.register(new PushStreamProvisioner(topicManager));
     }
 
-    private void registerFlowControllers(ServiceExtensionContext context, ObjectMapper objectMapper) {
+    private void registerFlowControllers(ServiceExtensionContext context) {
         var dataFlowMgr = context.getService(DataFlowManager.class);
 
-        var objectStorageFlowController = new ObjectStorageFlowController(objectMapper, monitor);
-        dataFlowMgr.register(objectStorageFlowController);
-
         var vault = context.getService(Vault.class);
-        var httpClient = context.getService(OkHttpClient.class);
+        var dataAddressResolver = context.getService(DataAddressResolver.class);
 
-        var publisherRegistry = new StreamPublisherRegistryImpl(vault, httpClient, objectMapper, monitor);
-        context.registerService(StreamPublisherRegistry.class, publisherRegistry);
+        var dataOperatorRegistry = context.getService(DataOperatorRegistry.class);
+        context.registerService(DataOperatorRegistry.class, dataOperatorRegistry);
 
-        var pushStreamFlowController = new PushStreamFlowController(publisherRegistry);
-        dataFlowMgr.register(pushStreamFlowController);
-
+        var flowController = new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver);
+        dataFlowMgr.register(flowController);
     }
 
     private void registerTypes(ObjectMapper objectMapper) {

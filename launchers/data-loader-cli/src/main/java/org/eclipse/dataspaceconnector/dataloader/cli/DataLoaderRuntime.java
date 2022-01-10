@@ -13,10 +13,10 @@
  */
 package org.eclipse.dataspaceconnector.dataloader.cli;
 
+import org.eclipse.dataspaceconnector.core.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.system.runtime.BaseRuntime;
 import picocli.CommandLine;
 
 public class DataLoaderRuntime extends BaseRuntime {

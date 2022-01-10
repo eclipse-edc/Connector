@@ -94,7 +94,7 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         var artifactId = artifactTransformationResult.getContent();
         var contractId = contractTransformationResult.getContent();
 
-        return new ArtifactRequestMessageBuilder()
+        var message = new ArtifactRequestMessageBuilder()
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
@@ -104,6 +104,8 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
                 ._requestedArtifact_(artifactId)
                 ._transferContract_(contractId)
                 .build();
+        request.getProperties().forEach((k, v) -> message.setProperty(k, v));
+        return message;
     }
 
     @Override

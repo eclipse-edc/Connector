@@ -49,6 +49,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         this.assetIndex = Objects.requireNonNull(assetIndex);
     }
 
+    @Override
     @NotNull
     public Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {
         var agent = agentService.createFor(token);

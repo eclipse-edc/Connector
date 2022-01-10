@@ -14,35 +14,11 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
-import java.util.Collections;
-import java.util.Set;
-
 /**
  * Contributes services used by the runtime.
  * Service extensions are started after system boostrap.
  */
 public interface ServiceExtension extends SystemExtension {
-
-    /**
-     * Returns the list of features provided by this extension.
-     */
-    default Set<String> provides() {
-        return Collections.emptySet();
-    }
-
-    /**
-     * Returns the features this extension depends on. Dependencies must be in the same {@link LoadPhase} and will be ordered on runtime boot.
-     */
-    default Set<String> requires() {
-        return Collections.emptySet();
-    }
-
-    /**
-     * Returns the load phase for the extension.
-     */
-    default LoadPhase phase() {
-        return LoadPhase.DEFAULT;
-    }
 
     /**
      * Initializes the extension.
@@ -62,11 +38,4 @@ public interface ServiceExtension extends SystemExtension {
     default void shutdown() {
     }
 
-    /**
-     * Defines the load sequence for extensions.
-     */
-    enum LoadPhase {
-        PRIMORDIAL,
-        DEFAULT
-    }
 }

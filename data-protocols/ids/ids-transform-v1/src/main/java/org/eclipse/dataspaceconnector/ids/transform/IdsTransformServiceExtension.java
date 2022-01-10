@@ -15,28 +15,27 @@
 package org.eclipse.dataspaceconnector.ids.transform;
 
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 import java.util.Arrays;
-import java.util.Set;
 
 public class IdsTransformServiceExtension implements ServiceExtension {
+
+    @Inject
+    private TransformerRegistry registry;
+
+    public IdsTransformServiceExtension(TransformerRegistry registry) {
+        this.registry = registry;
+    }
+
+    public IdsTransformServiceExtension() {
+    }
 
     @Override
     public String name() {
         return "IDS Transform Extension";
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:ids:core");
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:ids:transform:v1");
     }
 
     @Override
@@ -45,7 +44,6 @@ public class IdsTransformServiceExtension implements ServiceExtension {
     }
 
     private void registerTransformers(ServiceExtensionContext serviceExtensionContext) {
-        var registry = serviceExtensionContext.getService(TransformerRegistry.class);
 
         Arrays.asList(
                 new ActionToIdsActionTransformer(),

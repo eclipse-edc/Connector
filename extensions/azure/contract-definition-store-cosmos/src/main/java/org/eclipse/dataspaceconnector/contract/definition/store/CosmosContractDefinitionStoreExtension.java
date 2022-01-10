@@ -20,23 +20,18 @@ import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
-import java.util.Set;
-
+@Provides({ ContractDefinitionStore.class, ContractDefinitionLoader.class })
 public class CosmosContractDefinitionStoreExtension implements ServiceExtension {
 
     @Override
     public String name() {
         return "CosmosDB ContractDefinition Store";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(ContractDefinitionStore.FEATURE, ContractDefinitionLoader.FEATURE);
     }
 
     @Override
@@ -52,6 +47,9 @@ public class CosmosContractDefinitionStoreExtension implements ServiceExtension 
         context.registerService(ContractDefinitionLoader.class, loader);
 
         context.getTypeManager().registerTypes(ContractDefinitionDocument.class);
+
+        context.getService(HealthCheckService.class).addReadinessProvider(() -> cosmosDbApi.get().forComponent(name()));
+
     }
 
 }

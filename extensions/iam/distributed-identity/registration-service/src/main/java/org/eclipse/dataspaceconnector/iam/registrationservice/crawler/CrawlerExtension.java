@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.iam.registrationservice.events.CrawlerEven
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.quartz.JobDataMap;
@@ -31,7 +32,6 @@ import org.quartz.Trigger;
 import org.quartz.impl.StdSchedulerFactory;
 
 import java.util.Map;
-import java.util.Set;
 
 import static org.quartz.JobBuilder.newJob;
 import static org.quartz.SimpleScheduleBuilder.simpleSchedule;
@@ -47,17 +47,10 @@ public class CrawlerExtension implements ServiceExtension {
     private static final String ION_CRAWLER_TYPE_SETTING = "edc.ion.crawler.did-type";
     private ServiceExtensionContext context;
     private Scheduler quartzScheduler;
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:registration-service");
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(DidStore.FEATURE, DidResolverRegistry.FEATURE);
-    }
-
+    @Inject
+    private DidStore didStore;
+    @Inject
+    private DidResolverRegistry resolverRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -96,8 +89,6 @@ public class CrawlerExtension implements ServiceExtension {
     }
 
     private void scheduleCrawler(int intervalMinutes, ServiceExtensionContext context) throws SchedulerException {
-        var didStore = context.getService(DidStore.class);
-        var resolverRegistry = context.getService(DidResolverRegistry.class);
 
         var publisher = new CrawlerEventPublisher(context.getService(Vault.class), new AzureEventGridConfig(context));
 

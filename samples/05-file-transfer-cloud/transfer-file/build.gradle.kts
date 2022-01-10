@@ -14,7 +14,6 @@
 
 plugins {
     `java-library`
-    id("application")
 }
 
 val rsApi: String by project
@@ -22,9 +21,10 @@ val rsApi: String by project
 dependencies {
     api(project(":spi"))
 
-    api(project(":extensions:aws:s3:provision"))
-    implementation(project(":extensions:azure:blob:api"))
+    implementation(project(":extensions:azure:blob:blob-data-operator"))
+    implementation(project(":extensions:aws:s3:s3-data-operator"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
+    implementation(project(":extensions:inline-data-transfer:inline-data-transfer-core"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

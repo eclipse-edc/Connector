@@ -19,15 +19,15 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":extensions:aws:aws-test"))
     api(project(":extensions:aws:s3:provision"))
+    api(project(":extensions:aws:s3:s3-data-operator"))
     api(project(":extensions:aws:s3:s3-schema"))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("aws") {
-            artifactId = "aws"
+        create<MavenPublication>("aws-s3") {
+            artifactId = "aws-s3"
             from(components["java"])
         }
     }

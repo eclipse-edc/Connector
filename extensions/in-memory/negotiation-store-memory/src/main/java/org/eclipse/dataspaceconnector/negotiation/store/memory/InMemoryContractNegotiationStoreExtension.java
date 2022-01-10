@@ -15,15 +15,14 @@
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-
-import java.util.Set;
 
 /**
  * Provides an in-memory implementation of the {@link ContractNegotiationStore} for testing.
  */
+@Provides(ContractNegotiationStore.class)
 public class InMemoryContractNegotiationStoreExtension implements ServiceExtension {
 
     @Override
@@ -34,11 +33,6 @@ public class InMemoryContractNegotiationStoreExtension implements ServiceExtensi
     @Override
     public void initialize(ServiceExtensionContext context) {
         context.registerService(ContractNegotiationStore.class, new InMemoryContractNegotiationStore());
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(ContractNegotiationStore.FEATURE);
     }
 
 }

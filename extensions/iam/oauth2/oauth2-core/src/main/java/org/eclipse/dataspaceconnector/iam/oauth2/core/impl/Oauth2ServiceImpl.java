@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -19,6 +20,7 @@ import com.nimbusds.jose.JWSAlgorithm;
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.JWSSigner;
 import com.nimbusds.jose.JWSVerifier;
+import com.nimbusds.jose.crypto.ECDSASigner;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
 import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
@@ -47,7 +49,6 @@ import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 /**
@@ -66,32 +67,37 @@ public class Oauth2ServiceImpl implements IdentityService {
     private final List<ValidationRule> validationRules;
     private final JWSSigner tokenSigner;
     private final JwtDecoratorRegistry jwtDecoratorRegistry;
+    private final JWSAlgorithm jwsAlgorithm;
 
     /**
      * Creates a new instance of the OAuth2 Service
      *
      * @param configuration             The configuration
-     * @param signerProvider            A {@link Supplier} which is used to get a {@link JWSSigner} instance.
+     * @param tokenSigner               A {@link JWSSigner} instance.
      * @param client                    Http client
      * @param jwtDecoratorRegistry      Registry containing the decorator for build the JWT
      * @param typeManager               Type manager
      * @param additionalValidationRules An optional list of {@link ValidationRule} that are evaluated <em>after</em> the
      *                                  standard OAuth2 validation
      */
-    public Oauth2ServiceImpl(Oauth2Configuration configuration, Supplier<JWSSigner> signerProvider, OkHttpClient client, JwtDecoratorRegistry jwtDecoratorRegistry, TypeManager typeManager, ValidationRule... additionalValidationRules) {
+    public Oauth2ServiceImpl(Oauth2Configuration configuration, JWSSigner tokenSigner, OkHttpClient client, JwtDecoratorRegistry jwtDecoratorRegistry, TypeManager typeManager, ValidationRule... additionalValidationRules) {
         this.configuration = configuration;
         this.typeManager = typeManager;
-        this.httpClient = client;
+        httpClient = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
+        this.tokenSigner = tokenSigner;
 
         List<ValidationRule> rules = new ArrayList<>();
         rules.add(new Oauth2ValidationRule()); //OAuth2 validation must ALWAYS be done
         rules.addAll(List.of(additionalValidationRules));
         validationRules = Collections.unmodifiableList(rules);
 
-        tokenSigner = signerProvider.get();
-        if (tokenSigner == null) {
-            throw new EdcException("Could not resolve private key");
+        if (tokenSigner instanceof ECDSASigner) {
+            //supports ECDSA private key
+            jwsAlgorithm = JWSAlgorithm.ES256;
+        } else {
+            //default: RSA private key
+            jwsAlgorithm = JWSAlgorithm.RS256;
         }
     }
 
@@ -192,10 +198,10 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     private String buildJwt() {
         try {
-            JWSHeader.Builder headerBuilder = new JWSHeader.Builder(JWSAlgorithm.RS256);
+            var jwsHeaderBuilder = new JWSHeader.Builder(jwsAlgorithm);
             var claimsSet = new JWTClaimsSet.Builder();
-            jwtDecoratorRegistry.getAll().forEach(d -> d.decorate(headerBuilder, claimsSet));
-            var jwt = new SignedJWT(headerBuilder.build(), claimsSet.build());
+            jwtDecoratorRegistry.getAll().forEach(d -> d.decorate(jwsHeaderBuilder, claimsSet));
+            var jwt = new SignedJWT(jwsHeaderBuilder.build(), claimsSet.build());
             jwt.sign(tokenSigner);
             return jwt.serialize();
         } catch (JOSEException e) {
