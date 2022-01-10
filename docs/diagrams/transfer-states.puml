@@ -26,13 +26,13 @@ skinparam shadowing false
 --> PROVISIONING
 --> PROVISIONED
 if "" then
-    --> [require (consumer)] REQUESTED
+    --> [consumer] REQUESTED
     --> REQUESTED ACK
     --> IN PROGRESS | STREAMING
 else
-    --> [initiate data flow (provider)] IN PROGRESS | STREAMING
+    --> [provider] IN PROGRESS | STREAMING
 --> COMPLETED
---> DEPOROVISIONING
+--> DEPROVISIONING
 --> DEPROVISIONED
 --> ENDED
 --> (*)
