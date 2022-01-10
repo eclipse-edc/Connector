@@ -23,8 +23,6 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -56,7 +54,6 @@ public class RepresentationDescriptionRequestHandlerTest {
     private AssetIndex assetIndex;
     private Representation representation;
 
-    @SuppressWarnings({ "rawtypes", "unchecked" })
     @BeforeEach
     public void setup() throws URISyntaxException {
         monitor = mock(Monitor.class);
@@ -75,7 +72,6 @@ public class RepresentationDescriptionRequestHandlerTest {
     }
 
     @Test
-    @SuppressWarnings("ConstantConditions")
     public void testConstructorArgumentsNotNullable() {
         assertThrows(NullPointerException.class,
                 () -> new RepresentationDescriptionRequestHandler(null, CONNECTOR_ID, assetIndex, transformerRegistry));

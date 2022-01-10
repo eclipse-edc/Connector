@@ -2,8 +2,11 @@ package org.eclipse.dataspaceconnector.core.system;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
+import org.eclipse.dataspaceconnector.spi.system.FieldInjectionPoint;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.AfterEach;
@@ -52,7 +55,7 @@ class InjectorTest {
     @DisplayName("Testing ServiceExtension with no injection points")
     void templateWithNoInjectionPoints() {
         var serviceExtension = new EmptyTestExtension();
-        var template = new InjectionContainer(serviceExtension, Collections.emptySet());
+        var template = new InjectionContainer<>(serviceExtension, Collections.emptySet());
 
         injector.inject(template, context);
 
@@ -64,7 +67,7 @@ class InjectorTest {
     void allInjectionPointsSatisfied() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer(serviceExtension, Set.of(new FieldInjectionPoint(serviceExtension, field, "edc:test:feature:someobject")));
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, "edc:test:feature:someobject")));
         when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(new SomeObject());
 
         injector.inject(template, context);
@@ -78,7 +81,7 @@ class InjectorTest {
     void notAllInjectionPointsSatisfied_shouldThrowException() throws NoSuchFieldException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var template = new InjectionContainer(serviceExtension, Set.of(new FieldInjectionPoint(serviceExtension, field, "edc:test:feature:someobject")));
+        var template = new InjectionContainer<>(serviceExtension, Set.of(new FieldInjectionPoint<>(serviceExtension, field, "edc:test:feature:someobject")));
         var rootCauseException = new EdcException("Service not found");
         when(context.getService(SomeObject.class, false)).thenThrow(rootCauseException);
 
@@ -95,8 +98,8 @@ class InjectorTest {
     void cannotSetInjectionPoint_shouldThrowException() throws NoSuchFieldException, IllegalAccessException {
         var serviceExtension = new TestServiceExtension();
         var field = serviceExtension.getClass().getDeclaredField("someObject");
-        var injectionPoint = spy(new FieldInjectionPoint(serviceExtension, field, "edc:test:feature:someobject"));
-        var template = new InjectionContainer(serviceExtension, Set.of(injectionPoint));
+        var injectionPoint = spy(new FieldInjectionPoint<>(serviceExtension, field, "edc:test:feature:someobject"));
+        var template = new InjectionContainer<>(serviceExtension, Set.of(injectionPoint));
 
         var value = new SomeObject();
         when(context.getService(eq(SomeObject.class), anyBoolean())).thenReturn(value);

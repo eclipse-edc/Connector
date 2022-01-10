@@ -28,7 +28,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDe
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.Collections.emptyMap;

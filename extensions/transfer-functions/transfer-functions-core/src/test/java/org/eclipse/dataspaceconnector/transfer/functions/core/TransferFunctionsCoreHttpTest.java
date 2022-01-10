@@ -19,8 +19,8 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
 import org.junit.jupiter.api.AfterEach;
@@ -45,7 +45,7 @@ public class TransferFunctionsCoreHttpTest {
     @Test
     void verifyHttpFlowControllerInvoked(TransferProcessManager processManager, TransferFunctionInterceptorRegistry registry) throws InterruptedException {
 
-        final var latch = new CountDownLatch(1);
+        var latch = new CountDownLatch(1);
 
         registry.registerHttpInterceptor(chain -> {
             latch.countDown();

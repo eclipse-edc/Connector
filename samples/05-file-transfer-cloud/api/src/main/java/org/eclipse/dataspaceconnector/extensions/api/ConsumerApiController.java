@@ -10,7 +10,6 @@ import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
-import org.eclipse.dataspaceconnector.common.collection.CollectionUtil;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -20,8 +19,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 
 import java.util.UUID;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/")
 public class ConsumerApiController {
 

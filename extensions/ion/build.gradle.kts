@@ -20,6 +20,7 @@ plugins {
 dependencies {
     api(project(":spi"))
     api(project(":extensions:ion:ion-core"))
+    api(project(":extensions:ion:ion-client"))
 }
 
 publishing {

@@ -24,6 +24,9 @@ val servletApi: String by project
 val rsApi: String by project
 val jettyVersion: String by project
 val jerseyVersion: String by project
+val okHttpVersion: String by project
+val jodahFailsafeVersion: String by project
+
 
 dependencies {
     api(project(":spi"))
@@ -39,6 +42,10 @@ dependencies {
 
     implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
     implementation("jakarta.websocket:jakarta.websocket-api:2.0.0")
+
+    api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+    api("net.jodah:failsafe:${jodahFailsafeVersion}")
+
 
     testImplementation("org.awaitility:awaitility:4.1.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")

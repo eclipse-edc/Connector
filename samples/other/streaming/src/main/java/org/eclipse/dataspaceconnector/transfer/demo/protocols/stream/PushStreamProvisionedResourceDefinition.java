@@ -18,7 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.DemoProtocols;
@@ -46,11 +46,6 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
     }
 
     @Override
-    public String getResourceName() {
-        return getDestinationName();
-    }
-
-    @Override
     public DataAddress createDataDestination() {
         return DataAddress.Builder.newInstance()
                 .type(DemoProtocols.PUSH_STREAM_WS)
@@ -58,6 +53,11 @@ public class PushStreamProvisionedResourceDefinition extends ProvisionedDataDest
                 .property(DemoProtocols.ENDPOINT_ADDRESS, endpointAddress)
                 .property(DemoProtocols.DESTINATION_NAME, destinationName)
                 .build();
+    }
+
+    @Override
+    public String getResourceName() {
+        return getDestinationName();
     }
 
     @JsonPOJOBuilder(withPrefix = "")

@@ -1,6 +1,8 @@
 package org.eclipse.dataspaceconnector.core.system;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.system.EdcInjectionException;
+import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 final class InjectorImpl implements Injector {
