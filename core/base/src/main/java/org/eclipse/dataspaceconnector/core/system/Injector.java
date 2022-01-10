@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.core.system;
 
+import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 

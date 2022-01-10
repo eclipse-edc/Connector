@@ -16,9 +16,13 @@ plugins {
     `java-library`
 }
 
+val okHttpVersion: String by project
+
 
 dependencies {
     api(project(":spi"))
+    api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+
 }
 
 publishing {

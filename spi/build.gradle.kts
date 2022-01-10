@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2021 Microsoft Corporation
+ *  Copyright (c) 2020, 2021 Microsoft Corporation
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -12,28 +12,16 @@
  *
  */
 
-val jacksonVersion: String by project
-val okHttpVersion: String by project
-val jodahFailsafeVersion: String by project
-
-
 plugins {
     `java-library`
-    `maven-publish`
 }
 
+
 dependencies {
-    api("com.fasterxml.jackson.core:jackson-core:${jacksonVersion}")
-    api("com.fasterxml.jackson.core:jackson-annotations:${jacksonVersion}")
-    api("com.fasterxml.jackson.core:jackson-databind:${jacksonVersion}")
-    api("com.fasterxml.jackson.datatype:jackson-datatype-jsr310:${jacksonVersion}")
-    api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-
-    api("net.jodah:failsafe:${jodahFailsafeVersion}")
-
-    api(project(":core:policy:policy-evaluator"))
-
-    testImplementation(testFixtures(project(":common:util")))
+    api(project(":spi:core-spi"))
+    api(project(":spi:transfer-spi"))
+    api(project(":spi:contract-spi"))
+    api(project(":spi:catalog-spi"))
 }
 
 publishing {

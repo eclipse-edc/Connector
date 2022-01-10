@@ -5,6 +5,7 @@ plugins {
 val rsApi: String by project
 
 dependencies {
+    api(project(":core:base"))
     api(project(":extensions:iam:distributed-identity:identity-did-spi"))
     implementation(project(":extensions:iam:distributed-identity:identity-did-crypto"))
 

@@ -1,10 +1,11 @@
 package org.eclipse.dataspaceconnector.core.system.runtime;
 
+
 import org.eclipse.dataspaceconnector.core.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.core.system.ExtensionLoader;
-import org.eclipse.dataspaceconnector.core.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;

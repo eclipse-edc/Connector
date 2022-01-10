@@ -25,9 +25,9 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 import java.util.List;
@@ -41,14 +41,11 @@ import java.util.concurrent.ExecutionException;
 @Path("/transfer")
 public class ClientApiController {
 
+    private static final String PREFIX = "http://";
     private final RemoteMessageDispatcherRegistry dispatcherRegistry;
-
     private final TransferProcessManager processManager;
-
     private final Monitor monitor;
-
     private final String destinationRegion;
-
     private final String destinationBucket;
 
     public ClientApiController(
@@ -74,7 +71,7 @@ public class ClientApiController {
                     .query("select *")
                     .protocol("ids-rest").build();
 
-            @SuppressWarnings({ "unchecked", "rawtypes" }) CompletableFuture<List<String>> future
+            CompletableFuture<List<String>> future
                     = (CompletableFuture) dispatcherRegistry.send(List.class, query, () -> null);
 
             var artifacts = future.get();
@@ -110,12 +107,12 @@ public class ClientApiController {
     }
 
     private DataRequest createRequest(
-            final String connector,
-            final String id,
-            final Asset asset,
-            final String destinationBucket,
-            final String destinationName,
-            final String destinationRegion
+            String connector,
+            String id,
+            Asset asset,
+            String destinationBucket,
+            String destinationName,
+            String destinationRegion
     ) {
 
         return DataRequest.Builder.newInstance()
@@ -132,8 +129,6 @@ public class ClientApiController {
                         .build())
                 .build();
     }
-
-    private static final String PREFIX = "http://";
 
     private String composeConnectorAddress(String connector) {
         return PREFIX + connector;

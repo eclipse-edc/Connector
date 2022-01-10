@@ -20,8 +20,8 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.Collections;
 import java.util.List;
@@ -46,11 +46,6 @@ public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, Ass
         this.predicateFactory = predicateFactory;
         //fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
-    }
-
-    @Override
-    public Stream<Asset> queryAssets(List<Criterion> criteria) {
-        return queryAssets(AssetSelectorExpression.Builder.newInstance().criteria(criteria).build());
     }
 
     @Override
@@ -81,6 +76,11 @@ public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, Ass
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    @Override
+    public Stream<Asset> queryAssets(List<Criterion> criteria) {
+        return queryAssets(AssetSelectorExpression.Builder.newInstance().criteria(criteria).build());
     }
 
     @Override
