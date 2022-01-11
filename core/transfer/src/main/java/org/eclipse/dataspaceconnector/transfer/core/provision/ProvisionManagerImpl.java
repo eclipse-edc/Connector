@@ -15,10 +15,11 @@
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -26,19 +27,21 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.BiConsumer;
+import java.util.function.Function;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-/**
- * Default provision manager.
- */
+import static java.lang.String.format;
+import static java.util.concurrent.CompletableFuture.failedFuture;
+
 public class ProvisionManagerImpl implements ProvisionManager {
     private final List<Provisioner<?, ?>> provisioners = new ArrayList<>();
+    private final Monitor monitor;
 
-    public ProvisionManagerImpl() {
-    }
-
-    public void start(ProvisionContext provisionContext) {
-        provisioners.forEach(provisioner -> provisioner.initialize(provisionContext));
+    public ProvisionManagerImpl(Monitor monitor) {
+        this.monitor = monitor;
     }
 
     @Override
@@ -47,52 +50,73 @@ public class ProvisionManagerImpl implements ProvisionManager {
     }
 
     @Override
-    public void provision(TransferProcess process) {
-        for (ResourceDefinition definition : process.getResourceManifest().getDefinitions()) {
-            Provisioner<ResourceDefinition, ?> chosenProvisioner = getProvisioner(definition);
-            var status = chosenProvisioner.provision(definition);
-        }
+    public CompletableFuture<List<ProvisionResponse>> provision(TransferProcess process) {
+        return process.getResourceManifest().getDefinitions().stream()
+                .map(definition -> provision(definition).whenComplete(logOnError(definition)))
+                .collect(asyncAllOf());
     }
 
     @Override
-    public List<ResponseStatus> deprovision(TransferProcess process) {
+    public CompletableFuture<List<DeprovisionResponse>> deprovision(TransferProcess process) {
         return process.getProvisionedResourceSet().getResources().stream()
-                .map(definition -> {
-                    Provisioner<?, ProvisionedResource> chosenProvisioner = getProvisioner(definition);
-                    return chosenProvisioner.deprovision(definition);
-                })
-                .collect(Collectors.toList());
+                .map(definition -> deprovision(definition).whenComplete(logOnError(definition)))
+                .collect(asyncAllOf());
     }
 
     @NotNull
-    private Provisioner<ResourceDefinition, ?> getProvisioner(ResourceDefinition definition) {
-        Provisioner<ResourceDefinition, ?> provisioner = null;
-        for (Provisioner<?, ?> candidate : provisioners) {
-            if (candidate.canProvision(definition)) {
-                provisioner = (Provisioner<ResourceDefinition, ?>) candidate;
-                break;
-            }
+    private CompletableFuture<ProvisionResponse> provision(ResourceDefinition definition) {
+        try {
+            return provisioners.stream()
+                        .filter(it -> it.canProvision(definition))
+                        .findFirst()
+                        .map(it -> (Provisioner<ResourceDefinition, ?>) it)
+                        .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()))
+                        .provision(definition);
+        } catch (Exception e) {
+            return failedFuture(e);
         }
-        if (provisioner == null) {
-            throw new EdcException("Unknown provision type" + definition.getClass().getName());
-        }
-        return provisioner;
     }
 
     @NotNull
-    private Provisioner<?, ProvisionedResource> getProvisioner(ProvisionedResource provisionedResource) {
-        Provisioner<?, ProvisionedResource> provisioner = null;
-        for (Provisioner<?, ?> candidate : provisioners) {
-            if (candidate.canDeprovision(provisionedResource)) {
-                provisioner = (Provisioner<?, ProvisionedResource>) candidate;
-                break;
-            }
+    private CompletableFuture<DeprovisionResponse> deprovision(ProvisionedResource definition) {
+        try {
+            return provisioners.stream()
+                    .filter(it -> it.canDeprovision(definition))
+                    .findFirst()
+                    .map(it -> (Provisioner<?, ProvisionedResource>) it)
+                    .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()))
+                    .deprovision(definition);
+        } catch (Exception e) {
+            return failedFuture(e);
         }
-        if (provisioner == null) {
-            throw new EdcException("Unknown provision type" + provisionedResource.getClass().getName());
-        }
-        return provisioner;
     }
 
+    @NotNull
+    private BiConsumer<ProvisionResponse, Throwable> logOnError(ResourceDefinition definition) {
+        return (result, throwable) -> {
+            if (throwable != null) {
+                monitor.severe(format("Error provisioning resource %s for process %s: %s", definition.getId(), definition.getTransferProcessId(), throwable.getMessage()));
+            }
+        };
+    }
+
+    @NotNull
+    private BiConsumer<DeprovisionResponse, Throwable> logOnError(ProvisionedResource resource) {
+        return (result, throwable) -> {
+            if (throwable != null) {
+                monitor.severe(format("Error deprovisioning resource %s for process %s: %s", resource.getId(), resource.getTransferProcessId(), throwable.getMessage()));
+            }
+        };
+    }
+
+    private <X, T extends CompletableFuture<X>> Collector<T, ?, CompletableFuture<List<X>>> asyncAllOf() {
+        Function<List<T>, CompletableFuture<List<X>>> finisher = list -> CompletableFuture
+                .allOf(list.toArray(CompletableFuture[]::new))
+                .thenApply(v -> list.stream().map(CompletableFuture::join).collect(Collectors.toList()));
+
+        return Collectors.collectingAndThen(Collectors.toList(), finisher);
+    }
 
 }
+
+

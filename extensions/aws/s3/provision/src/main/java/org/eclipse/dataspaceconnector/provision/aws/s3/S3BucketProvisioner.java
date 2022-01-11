@@ -15,42 +15,37 @@
 package org.eclipse.dataspaceconnector.provision.aws.s3;
 
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.provision.aws.AwsTemporarySecretToken;
 import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
+import software.amazon.awssdk.awscore.exception.AwsServiceException;
+import software.amazon.awssdk.services.iam.model.Role;
+import software.amazon.awssdk.services.sts.model.Credentials;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Asynchronously provisions S3 buckets.
  */
 public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefinition, S3BucketProvisionedResource> {
+
     private final ClientProvider clientProvider;
-    private final int sessionDuration;
     private final Monitor monitor;
     private final RetryPolicy<Object> retryPolicy;
-    private ProvisionContext context;
+    private final S3BucketProvisionerConfiguration configuration;
 
-    /**
-     * Ctor.
-     *
-     * @param clientProvider  the provider for SDK clients
-     * @param sessionDuration role duration in seconds
-     * @param monitor         the monitor
-     * @param retryPolicy     the retry policy
-     */
-    public S3BucketProvisioner(ClientProvider clientProvider, int sessionDuration, Monitor monitor, RetryPolicy<Object> retryPolicy) {
+    public S3BucketProvisioner(ClientProvider clientProvider, Monitor monitor, RetryPolicy<Object> retryPolicy, S3BucketProvisionerConfiguration configuration) {
         this.clientProvider = clientProvider;
-        this.sessionDuration = sessionDuration;
         this.monitor = monitor;
-        this.retryPolicy = retryPolicy;
-    }
-
-    @Override
-    public void initialize(ProvisionContext context) {
-        this.context = context;
+        this.configuration = configuration;
+        this.retryPolicy = retryPolicy.copy()
+                .withMaxRetries(configuration.getMaxRetries())
+                .handle(AwsServiceException.class);
     }
 
     @Override
@@ -64,24 +59,40 @@ public class S3BucketProvisioner implements Provisioner<S3BucketResourceDefiniti
     }
 
     @Override
-    public ResponseStatus provision(S3BucketResourceDefinition resourceDefinition) {
-        S3ProvisionPipeline.Builder builder = S3ProvisionPipeline.Builder.newInstance(retryPolicy);
-        S3ProvisionPipeline pipeline = builder.resourceDefinition(resourceDefinition).clientProvider(clientProvider).sessionDuration(sessionDuration).context(context).monitor(monitor).build();
-
-        pipeline.provision();
-
-        monitor.debug("Bucket request submitted: " + resourceDefinition.getBucketName());
-        return ResponseStatus.OK;
+    public CompletableFuture<ProvisionResponse> provision(S3BucketResourceDefinition resourceDefinition) {
+        return S3ProvisionPipeline.Builder.newInstance(retryPolicy)
+                .clientProvider(clientProvider)
+                .roleMaxSessionDuration(configuration.getRoleMaxSessionDuration())
+                .monitor(monitor)
+                .build()
+                .provision(resourceDefinition)
+                .thenApply(result -> provisionSuccedeed(resourceDefinition, result.getRole(), result.getCredentials()));
     }
 
     @Override
-    public ResponseStatus deprovision(S3BucketProvisionedResource provisionedResource) {
-        S3DeprovisionPipeline pipeline = S3DeprovisionPipeline.Builder.newInstance().clientProvider(clientProvider)
-                .retryPolicy(retryPolicy)
+    public CompletableFuture<DeprovisionResponse> deprovision(S3BucketProvisionedResource resource) {
+        return S3DeprovisionPipeline.Builder.newInstance(retryPolicy)
+                .clientProvider(clientProvider)
                 .monitor(monitor)
-                .resource().build();
-        pipeline.deprovision(provisionedResource, throwable -> context.deprovisioned(provisionedResource, throwable));
-        return ResponseStatus.OK;
+                .build()
+                .deprovision(resource)
+                .thenApply(ignore -> DeprovisionResponse.Builder.newInstance().resource(resource).build());
+    }
+
+    private ProvisionResponse provisionSuccedeed(S3BucketResourceDefinition resourceDefinition, Role role, Credentials credentials) {
+        var resource = S3BucketProvisionedResource.Builder.newInstance()
+                .id(resourceDefinition.getBucketName())
+                .resourceDefinitionId(resourceDefinition.getId())
+                .region(resourceDefinition.getRegionId())
+                .bucketName(resourceDefinition.getBucketName())
+                .role(role.roleName())
+                .transferProcessId(resourceDefinition.getTransferProcessId())
+                .build();
+
+        var secretToken = new AwsTemporarySecretToken(credentials.accessKeyId(), credentials.secretAccessKey(), credentials.sessionToken(), credentials.expiration().toEpochMilli());
+
+        monitor.debug("S3BucketProvisioner: Bucket request submitted: " + resourceDefinition.getBucketName());
+        return ProvisionResponse.Builder.newInstance().resource(resource).secretToken(secretToken).build();
     }
 
 }

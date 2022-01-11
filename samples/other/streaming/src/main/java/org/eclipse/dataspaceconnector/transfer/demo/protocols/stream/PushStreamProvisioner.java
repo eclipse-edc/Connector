@@ -14,14 +14,15 @@
 
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
-import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.SecretToken;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.ProtocolsSecretToken;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
  * Provisions a topic that receives data from a provider runtime.
@@ -29,15 +30,8 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicMa
 public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefinition, PushStreamProvisionedResourceDefinition> {
     private final TopicManager topicManager;
 
-    private ProvisionContext context;
-
     public PushStreamProvisioner(TopicManager topicManager) {
         this.topicManager = topicManager;
-    }
-
-    @Override
-    public void initialize(ProvisionContext context) {
-        this.context = context;
     }
 
     @Override
@@ -51,27 +45,27 @@ public class PushStreamProvisioner implements Provisioner<PushStreamResourceDefi
     }
 
     @Override
-    public ResponseStatus provision(PushStreamResourceDefinition resourceDefinition) {
-        topicManager.provision(resourceDefinition.getTopicName()).whenComplete((destination, e) -> {
-            var transferProcessId = resourceDefinition.getTransferProcessId();
-            var provisionedResource = PushStreamProvisionedResourceDefinition.Builder.newInstance()
-                    .id(destination.getDestinationName())
-                    .transferProcessId(transferProcessId)
-                    .resourceDefinitionId(resourceDefinition.getId())
-                    .endpointAddress(resourceDefinition.getEndpointAddress())
-                    .destinationName(destination.getDestinationName())
-                    .build();
-            SecretToken secretToken = new ProtocolsSecretToken(destination.getAccessToken());
+    public CompletableFuture<ProvisionResponse> provision(PushStreamResourceDefinition resourceDefinition) {
+        return topicManager.provision(resourceDefinition.getTopicName())
+                .thenApply(destination -> {
+                    var resource = PushStreamProvisionedResourceDefinition.Builder.newInstance()
+                            .id(destination.getDestinationName())
+                            .transferProcessId(resourceDefinition.getTransferProcessId())
+                            .resourceDefinitionId(resourceDefinition.getId())
+                            .endpointAddress(resourceDefinition.getEndpointAddress())
+                            .destinationName(destination.getDestinationName())
+                            .build();
 
-            context.callback(provisionedResource, secretToken);
-        });
-        return ResponseStatus.OK;
+                    var secretToken = new ProtocolsSecretToken(destination.getAccessToken());
+
+                    return ProvisionResponse.Builder.newInstance().resource(resource).secretToken(secretToken).build();
+                });
     }
 
     @Override
-    public ResponseStatus deprovision(PushStreamProvisionedResourceDefinition provisionedResource) {
+    public CompletableFuture<DeprovisionResponse> deprovision(PushStreamProvisionedResourceDefinition provisionedResource) {
         // FIXME
         // topicManager.deprovision(provisionedResource);
-        return ResponseStatus.OK;
+        return CompletableFuture.completedFuture(DeprovisionResponse.Builder.newInstance().resource(provisionedResource).build());
     }
 }

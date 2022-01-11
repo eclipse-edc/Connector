@@ -20,9 +20,11 @@ import org.eclipse.dataspaceconnector.provision.aws.provider.ClientProvider;
 import org.eclipse.dataspaceconnector.provision.aws.provider.SdkClientProvider;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisionedResource;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisioner;
+import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketProvisionerConfiguration;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3BucketResourceDefinition;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3ResourceDefinitionConsumerGenerator;
 import org.eclipse.dataspaceconnector.provision.aws.s3.S3StatusChecker;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -37,6 +39,8 @@ import org.jetbrains.annotations.NotNull;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
 
+import static java.lang.String.format;
+
 /**
  * Provides data transfer {@link org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner}s backed by AWS services.
  */
@@ -47,6 +51,12 @@ public class AwsProvisionExtension implements ServiceExtension {
 
     @EdcSetting
     private static final String AWS_SECRET_KEY = "edc.aws.secret.access.key";
+
+    @EdcSetting
+    private static final String PROVISION_MAX_RETRY = "edc.aws.provision.retry.retries.max";
+
+    @EdcSetting
+    private static final String PROVISION_MAX_ROLE_SESSION_DURATION = "edc.aws.provision.role.duration.session.max";
 
     private Monitor monitor;
     private SdkClientProvider clientProvider;
@@ -66,8 +76,12 @@ public class AwsProvisionExtension implements ServiceExtension {
         clientProvider = SdkClientProvider.Builder.newInstance().credentialsProvider(createCredentialsProvider(context)).build();
         context.registerService(ClientProvider.class, clientProvider);
 
-        var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
-        var s3BucketProvisioner = new S3BucketProvisioner(clientProvider, 3600, monitor, retryPolicy);
+        @SuppressWarnings("unchecked") var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
+
+        int maxRetries = getIntSetting(context, PROVISION_MAX_RETRY, 10);
+        int roleMaxSessionDuration = getIntSetting(context, PROVISION_MAX_ROLE_SESSION_DURATION, 3600);
+        var provisionerConfiguration = new S3BucketProvisionerConfiguration(maxRetries, roleMaxSessionDuration);
+        var s3BucketProvisioner = new S3BucketProvisioner(clientProvider, monitor, retryPolicy, provisionerConfiguration);
         provisionManager.register(s3BucketProvisioner);
 
         // register the generator
@@ -78,6 +92,15 @@ public class AwsProvisionExtension implements ServiceExtension {
         statusCheckerReg.register(S3BucketSchema.TYPE, new S3StatusChecker(clientProvider, retryPolicy));
 
         registerTypes(context.getTypeManager());
+    }
+
+    private int getIntSetting(ServiceExtensionContext context, String key, int defaultValue) {
+        String value = context.getSetting(key, Integer.toString(defaultValue));
+        try {
+            return Integer.parseInt(value);
+        } catch (NumberFormatException e) {
+            throw new EdcException(format("Cannot parse setting %s with value %s as int", key, value));
+        }
     }
 
     @Override
