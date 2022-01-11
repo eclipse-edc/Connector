@@ -23,8 +23,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transfer-spi") {
-            artifactId = "transfer-spi"
+        create<MavenPublication>("contract-spi") {
+            artifactId = "contract-spi"
             from(components["java"])
         }
     }
