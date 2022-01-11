@@ -195,7 +195,7 @@ public class TransferProcess {
     }
 
     public void transitionDeprovisioned() {
-        transition(TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONED);
+        transition(TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONING_REQ, TransferProcessStates.DEPROVISIONED);
     }
 
     /**

@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.ids.spi;
 
 public interface Protocols {
 
-    String IDS_REST = "ids-rest";
     String IDS_MULTIPART = "ids-multipart";
 
 }
