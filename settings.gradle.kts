@@ -102,6 +102,9 @@ include(":extensions:transaction:transaction-spi")
 include(":extensions:transaction:transaction-datasource-spi")
 include(":extensions:transaction:transaction-atomikos")
 include(":extensions:transaction:transaction-local")
+include(":extensions:data-plane:data-plane-spi")
+include(":extensions:data-plane:data-plane-framework")
+include(":extensions:data-plane:data-plane-http")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
