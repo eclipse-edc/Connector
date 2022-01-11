@@ -13,7 +13,7 @@ reading the source file from and writing the destination file to disk, we
 
 Before we get into the nitty-gritty of cloud-based data transfers, we need to set up cloud resources. While we could do
 that manually clicking through the Azure and AWS portals, there are simply more elegant solutions around. We use
-Hashicorp Terraform for deployment and maintainance.
+Hashicorp Terraform for deployment and maintenance.
 
 > You will need an active Azure Subscription and an AWS Account with root-user/admin access! Both platforms offer free tiers, so no immediate cost incurs.
 
@@ -133,15 +133,63 @@ it's generally advisable to do it.
 
 The requesting of data offers and data transfer can also be initiated using IDS multipart.
 
-Request Data Offers from the provider by running
+#### 1. Request Data Offers
+
+To request data offers from the provider run
 
 ```bash
 curl -X GET -H 'X-Api-Key: password' http://localhost:9191/api/control/catalog?provider=http://localhost:8181/api/ids/multipart
 ```
 
-To transfer data from the provider create a `request.json` file with the following content
+#### 2. Negotiate Contract
 
-```json
+To negotiate a contract copy one of the contract offers into the statement below and execute it. At the time of writing
+it is only possible to negotiate an _unchanged_ contract, so counter offers are not supported.
+
+```bash
+curl --location --request POST 'http://localhost:9191/api/control/negotiation' \
+--header 'X-API-Key: password' \
+--header 'Content-Type: application/json' \
+--data-raw '{
+  "type": "INITIAL",
+  "protocol": "ids-multipart",
+  "connectorId": "1",
+  "connectorAddress": "http://localhost:8181/api/ids/multipart",
+  "correlationId": null,
+  "contractOffer": { <Copy one of the contract offer from Step 2> },
+  "asset": "1",
+  "provider": "https://provider.com",
+  "consumer": "https://consumer.com",
+  "offerStart": null,
+  "offerEnd": null,
+  "contractStart": null,
+  "contractEnd": null
+}'
+```
+
+The EDC will answer with the contract negotiation id. This id will be used in step 4.
+
+#### 3. Get Contract Agreement Id
+
+To get the contract agreement id insert the negotiation id into the following statement end execute it.
+
+```bash
+curl --location --request GET 'http://localhost:9191/api/control/agreement/<NegotiationId>' \
+--header 'X-API-Key: password'
+```
+
+The EDC will answer with the serialized contract negotiation. After the negotiation is done the serialized contract
+negotiation will contain an agreement with id, that is required in the next step. This may take a few seconds.
+
+#### 4. Transfer Data
+
+To transfer data from the insert the contract agreement id from step 3 and execute the statement below.
+
+```bash
+curl --location --request POST 'http://localhost:9191/api/control/transfer' \
+--header 'X-API-Key: password' \
+--header 'Content-Type: application/json' \
+--data-raw '
 {
   "edctype": "dataspaceconnector:datarequest",
   "id": null,
@@ -150,7 +198,7 @@ To transfer data from the provider create a `request.json` file with the followi
   "protocol": "ids-multipart",
   "connectorId": "consumer",
   "assetId": "1",
-  "contractId": "1",
+  "contractId": "<ContractAgreementId>",
   "dataDestination": {
     "properties": {
       "region": "us-east-1"
@@ -163,75 +211,5 @@ To transfer data from the provider create a `request.json` file with the followi
     "isFinite": true
   },
   "destinationType": "AmazonS3"
-}
-```
-
-And then call the control endpoint for data transfer
-
-```bash
-curl -X POST -H 'X-Api-Key: password' -H "Content-Type: application/json" -d @request.json http://localhost:9191/api/control/transfer
-```
-
-ContractOfferRequest
-
-```json
-{
-  "type": "INITIAL",
-  "protocol": "ids-multipart",
-  "connectorId": "1",
-  "connectorAddress": "http://localhost:8181/api/ids/multipart",
-  "correlationId": null,
-  "contractOffer": {
-    "id": "urn:contractoffer:1",
-    "policy": {
-      "uid": "7185d17a-44d9-4fc6-b5c1-8643526b1fec",
-      "permissions": [
-        {
-          "edctype": "dataspaceconnector:permission",
-          "uid": null,
-          "target": "1",
-          "action": {
-            "type": "USE",
-            "includedIn": null,
-            "constraint": null
-          },
-          "assignee": null,
-          "assigner": null,
-          "constraints": [],
-          "duties": []
-        }
-      ],
-      "prohibitions": [],
-      "obligations": [],
-      "extensibleProperties": {},
-      "inheritsFrom": null,
-      "assigner": null,
-      "assignee": null,
-      "target": null,
-      "@type": {
-        "@policytype": "set"
-      }
-    },
-    "asset": {
-      "properties": {
-        "ids:byteSize": null,
-        "asset:prop:id": "1",
-        "ids:fileName": null
-      }
-    },
-    "provider": null,
-    "consumer": null,
-    "offerStart": null,
-    "offerEnd": null,
-    "contractStart": null,
-    "contractEnd": null
-  },
-  "asset": "1",
-  "provider": "https://provider.com",
-  "consumer": "https://consumer.com",
-  "offerStart": null,
-  "offerEnd": null,
-  "contractStart": null,
-  "contractEnd": null
-}
+}'
 ```

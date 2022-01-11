@@ -6,6 +6,7 @@ import org.eclipse.dataspaceconnector.aws.s3.operator.S3BucketWriter;
 import org.eclipse.dataspaceconnector.azure.blob.operator.BlobStoreReader;
 import org.eclipse.dataspaceconnector.azure.blob.operator.BlobStoreWriter;
 import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
+import org.eclipse.dataspaceconnector.common.azure.BlobStoreApiImpl;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.AtomicConstraint;
