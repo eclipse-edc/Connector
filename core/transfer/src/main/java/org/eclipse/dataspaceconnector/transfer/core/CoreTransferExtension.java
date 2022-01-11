@@ -51,8 +51,8 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Provides({ StatusCheckerRegistry.class, RemoteMessageDispatcherRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
-        TransferProcessObservable.class, DataProxyManager.class, ProxyEntryHandlerRegistry.class, DataOperatorRegistry.class, DataFlowManager.class })
+@Provides({StatusCheckerRegistry.class, RemoteMessageDispatcherRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
+        TransferProcessObservable.class, DataProxyManager.class, ProxyEntryHandlerRegistry.class, DataOperatorRegistry.class, DataFlowManager.class})
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
@@ -76,8 +76,11 @@ public class CoreTransferExtension implements ServiceExtension {
         var dataFlowManager = new DataFlowManagerImpl();
         context.registerService(DataFlowManager.class, dataFlowManager);
 
-        var dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
-        context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
+        RemoteMessageDispatcherRegistry dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class, true);
+        if (dispatcherRegistry == null) {
+            dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
+            context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
+        }
 
         var manifestGenerator = new ResourceManifestGeneratorImpl();
         context.registerService(ResourceManifestGenerator.class, manifestGenerator);
