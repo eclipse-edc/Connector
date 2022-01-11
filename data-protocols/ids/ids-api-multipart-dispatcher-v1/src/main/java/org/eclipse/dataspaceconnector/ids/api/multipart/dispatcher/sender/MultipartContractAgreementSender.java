@@ -73,10 +73,6 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
 
     @Override
     protected Message buildMessageHeader(ContractAgreementRequest request, DynamicAttributeToken token) throws Exception {
-        if (idsWebhookAddress == null || idsWebhookAddress.isBlank()) {
-            throw new EdcException("No valid value found for attribute ids.webhook.address");
-        }
-
         var id = request.getContractAgreement().getId();
         var idsId = IdsId.Builder.newInstance().type(IdsType.CONTRACT_AGREEMENT).value(id).build();
         var idUriResult = transformerRegistry.transform(idsId, URI.class);

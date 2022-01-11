@@ -72,10 +72,6 @@ public class MultipartContractOfferSender extends IdsMultipartSender<ContractOff
 
     @Override
     protected Message buildMessageHeader(ContractOfferRequest request, DynamicAttributeToken token) {
-        if (idsWebhookAddress == null || idsWebhookAddress.isBlank()) {
-            throw new EdcException("No valid value found for attribute ids.webhook.address");
-        }
-
         if (request.getType() == ContractOfferRequest.Type.INITIAL) {
             var message = new ContractRequestMessageBuilder()
                     ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)

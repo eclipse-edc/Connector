@@ -23,6 +23,7 @@ class ClientControlCatalogApiControllerTest extends AbstractClientControlCatalog
             {
                 put("web.http.port", String.valueOf(getPort()));
                 put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
+                put("ids.webhook.address", "http://localhost:8181");
                 put(EDC_API_CONTROL_AUTH_APIKEY_KEY, API_KEY_HEADER);
                 put(EDC_API_CONTROL_AUTH_APIKEY_VALUE, API_KEY);
             }
