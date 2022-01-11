@@ -14,9 +14,11 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.spi.command.Command;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
@@ -40,10 +42,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Consumer;
 
 import static java.lang.String.format;
@@ -53,9 +55,7 @@ import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
@@ -92,6 +92,8 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TypeManager typeManager;
+    private CommandQueue commandQueue;
+    private CommandRunner commandRunner;
 
 
     private AsyncTransferProcessManager() {
@@ -123,43 +125,8 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     @Override
-    public void transitionRequestAck(String processId) {
-        TransferProcess transferProcess = transferProcessStore.find(processId);
-        transferProcess.transitionRequestAck();
-        transferProcessStore.update(transferProcess);
-    }
-
-    @Override
-    public void transitionProvisioned(String processId) {
-        TransferProcess transferProcess = transferProcessStore.find(processId);
-        transferProcess.transitionProvisioned();
-        transferProcessStore.update(transferProcess);
-    }
-
-    @Override
-    public void transitionError(String processId, String detail) {
-        TransferProcess transferProcess = transferProcessStore.find(processId);
-        transferProcess.transitionError(detail);
-        transferProcessStore.update(transferProcess);
-    }
-
-    @Override
-    public Result<TransferProcessStates> deprovision(String processId) {
-        var process = transferProcessStore.find(processId);
-        if (process == null) {
-            return Result.failure("not found");
-        }
-
-        if (Set.of(DEPROVISIONED.code(), DEPROVISIONING_REQ.code(), DEPROVISIONING.code(), ENDED.code()).contains(process.getState())) {
-            monitor.info("Request already deprovisioning or deprovisioned.");
-        } else {
-            monitor.info("starting to deprovision data request " + processId);
-            process.transitionCompleted();
-            process.transitionDeprovisionRequested();
-            transferProcessStore.update(process);
-        }
-
-        return Result.success(TransferProcessStates.from(process.getState()));
+    public void enqueueCommand(Command command) {
+        commandQueue.enqueue(command);
     }
 
     void onProvisionComplete(String processId, List<ProvisionResponse> responses) {
@@ -222,6 +189,12 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         transferProcessStore.update(transferProcess);
     }
 
+    private void transitionRequestAck(String processId) {
+        TransferProcess transferProcess = transferProcessStore.find(processId);
+        transferProcess.transitionRequestAck();
+        transferProcessStore.update(transferProcess);
+    }
+
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
@@ -255,7 +228,9 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
                 int deprovisioned = checkDeprovisioned();
 
-                if (provisioning + provisioned + sent + finished + deprovisioning + deprovisioned == 0) {
+                int commandsProcessed = processCommandQueue();
+
+                if (provisioning + provisioned + sent + finished + deprovisioning + deprovisioned + commandsProcessed == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
                 waitStrategy.success();
@@ -276,6 +251,29 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 }
             }
         }
+    }
+
+    private int processCommandQueue() {
+        var batchSize = 5;
+        var commands = commandQueue.dequeue(batchSize);
+        AtomicInteger successCount = new AtomicInteger(); //needs to be an atomic because lambda.
+
+        commands.forEach(command -> {
+            var commandResult = commandRunner.runCommand(command);
+            if (commandResult.failed()) {
+                //re-queue if possible
+                if (command.canRetry()) {
+                    monitor.warning(format("Could not process command [%s], will retry. error: %s", command.getClass(), commandResult.getFailureMessages()));
+                    commandQueue.enqueue(command);
+                } else {
+                    monitor.severe(format("Command [%s] has exceeded its retry limit, will discard now", command.getClass()));
+                }
+            } else {
+                monitor.debug(format("Successfully processed command [%s]", command.getClass()));
+                successCount.getAndIncrement();
+            }
+        });
+        return successCount.get();
     }
 
     private int checkDeprovisioned() {
@@ -554,12 +552,24 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             return this;
         }
 
+        public Builder commandQueue(CommandQueue queue) {
+            manager.commandQueue = queue;
+            return this;
+        }
+
+        public Builder commandRunner(CommandRunner runner) {
+            manager.commandRunner = runner;
+            return this;
+        }
+
         public AsyncTransferProcessManager build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
             Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             Objects.requireNonNull(manager.monitor, "monitor");
+            Objects.requireNonNull(manager.commandQueue, "commandQueue cannot be null");
+            Objects.requireNonNull(manager.commandRunner, "commandRunner cannot be null");
             Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
             return manager;
         }

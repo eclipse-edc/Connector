@@ -11,11 +11,11 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.transfer.core.commandqueue.commands.DeprovisionRequest;
 
 import java.util.UUID;
 
@@ -75,12 +75,15 @@ public class ConsumerApiController {
     @Path("datarequest/{id}")
     public Response deprovisionRequest(@PathParam("id") String requestId) {
         try {
-            Result<TransferProcessStates> result = processManager.deprovision(requestId);
-            if (result.succeeded()) {
-                return Response.ok(TransferProcessStates.from(result.getContent().code()).toString()).build();
-            } else {
-                return Response.status(Response.Status.NOT_FOUND).build();
+            var deprovisionRequest = new DeprovisionRequest(requestId);
+            try {
+                processManager.enqueueCommand(deprovisionRequest);
+                return Response.ok().build();
+            } catch (RuntimeException ex) {
+                return Response.status(Response.Status.BAD_REQUEST).build();
+
             }
+
         } catch (IllegalStateException ex) {
             monitor.severe(ex.getMessage());
             return Response.status(400).entity("The process must be in one of these states: " +

@@ -24,6 +24,8 @@ val rsApi: String by project
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":samples:04.2-modify-transferprocess:watchdog"))
+    implementation(project(":samples:04.2-modify-transferprocess:simulator"))
 
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
@@ -39,7 +41,7 @@ dependencies {
 
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":samples:04-file-transfer:api"))
+
 }
 
 application {

@@ -14,10 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer;
 
-import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
 /**
  * Manages data transfer processes. Currently synchronous and asynchronous data transfers are supported.
@@ -37,16 +36,9 @@ public interface TransferProcessManager {
      */
     TransferInitiateResult initiateProviderRequest(DataRequest dataRequest);
 
-    // TODO: will be substituted by the upcoming command queue introduction
-    void transitionRequestAck(String processId);
-
-    // TODO: will be substituted by the upcoming command queue introduction
-    void transitionProvisioned(String processId);
-
-    // TODO: will be substituted by the upcoming command queue introduction
-    void transitionError(String processId, String detail);
-
-    // TODO: will be substituted by the upcoming command queue introduction
-    Result<TransferProcessStates> deprovision(String processId);
+    /**
+     * Adds a single Command to the queue which is processed sequentially.
+     */
+    void enqueueCommand(Command command);
 
 }
