@@ -6,12 +6,12 @@ val rsApi: String by project
 
 dependencies {
     api(project(":core:base"))
-    api(project(":extensions:iam:distributed-identity:identity-did-spi"))
-    implementation(project(":extensions:iam:distributed-identity:identity-did-crypto"))
+    api(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
+    implementation(project(":extensions:iam:decentralized-identifier:identity-did-crypto"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    testImplementation(testFixtures(project(":extensions:iam:distributed-identity:identity-common-test")))
+    testImplementation(testFixtures(project(":extensions:iam:decentralized-identifier:identity-common-test")))
 }
 
 publishing {

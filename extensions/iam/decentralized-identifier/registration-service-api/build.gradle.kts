@@ -6,7 +6,7 @@ val rsApi: String by project
 
 dependencies {
     implementation(project(":common:util"))
-    api(project(":extensions:iam:distributed-identity:identity-did-spi"))
+    api(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

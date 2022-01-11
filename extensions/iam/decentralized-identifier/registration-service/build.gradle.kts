@@ -9,7 +9,7 @@ val rsApi: String by project
 dependencies {
     implementation(project(":core:base"))
     implementation(project(":extensions:azure:events-config"))
-    implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
+    implementation(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
 
     // third party
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

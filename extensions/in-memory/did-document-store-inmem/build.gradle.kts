@@ -6,7 +6,7 @@ val jwtVersion: String by project
 
 
 dependencies {
-    implementation(project(":extensions:iam:distributed-identity:identity-did-spi"))
+    implementation(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
 }
 
 publishing {

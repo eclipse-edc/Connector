@@ -4,7 +4,7 @@ plugins {
 
 
 dependencies {
-    api(project(":extensions:iam:distributed-identity:identity-did-spi"))
+    api(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
 }
 
 publishing {

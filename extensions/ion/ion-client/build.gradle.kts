@@ -12,7 +12,7 @@ dependencies {
 
     implementation("org.bouncycastle:bcprov-jdk15on:1.69") // for argon2id
 
-    testImplementation(project(":extensions:iam:distributed-identity:identity-did-crypto")) // for the KeyPairFactory
+    testImplementation(project(":extensions:iam:decentralized-identifier:identity-did-crypto")) // for the KeyPairFactory
 }
 
 publishing {

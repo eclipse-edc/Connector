@@ -28,7 +28,7 @@ implementations) are likely to change in the future and without notice.
 
 ## Verification process
 
-The following sequence has to be performed wenever a request is received:
+The following sequence has to be performed whenever a request is received:
 
 C ... Consumer, P ... Provider
 
@@ -45,9 +45,9 @@ C ... Consumer, P ... Provider
 
 ## General notes and restrictions
 
-- The Verifier (or Attestator) in this demo is just another Key Pair
+- The Verifier (or Attestor) in this demo is just another Key Pair
 - DIDs are generated and anchored once during initial setup, it does **not** happen during deployment
-- The will be one set of object data per hub and one hub per connector (so no filtering at this time)
+- This will be one set of object data per hub and one hub per connector (so no filtering at this time)
 - The hub runs in its separate runtime and exposes a simple GET API
 
 This module is currently under development and will someday contain a Java-port of

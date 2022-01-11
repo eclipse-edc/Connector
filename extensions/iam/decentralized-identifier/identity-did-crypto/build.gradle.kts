@@ -3,7 +3,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":extensions:iam:distributed-identity:identity-did-spi"))
+    api(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
 
     implementation("org.bouncycastle:bcpkix-jdk15on:1.56")
 }
