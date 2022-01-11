@@ -22,8 +22,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("catalog-spi") {
-            artifactId = "catalog-spi"
+        create<MavenPublication>("federated-catalog-spi") {
+            artifactId = "federated-catalog-spi"
             from(components["java"])
         }
     }
