@@ -28,7 +28,6 @@ import org.mockito.invocation.InvocationOnMock;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
@@ -77,8 +76,7 @@ class DataSourceToDataSinkTests {
                 .monitor(monitor)
                 .build();
 
-        assertThat(dataSink.transfer(dataSource)).succeedsWithin(500, TimeUnit.MILLISECONDS)
-                .satisfies(transferResult -> assertThat(transferResult.succeeded()).isTrue());
+        assertThat(dataSink.transfer(dataSource).get().succeeded()).isTrue();
 
         verify(interceptor, times(2)).intercept(isA(Interceptor.Chain.class));
     }

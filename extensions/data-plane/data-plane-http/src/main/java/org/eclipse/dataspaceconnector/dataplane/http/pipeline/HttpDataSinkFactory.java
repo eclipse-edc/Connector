@@ -23,8 +23,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.concurrent.ExecutorService;
 
-import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.AUTHENTICATION_CODE;
-import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.ENDPOINT;
 
 /**
@@ -33,13 +31,11 @@ import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchem
 public class HttpDataSinkFactory implements DataSinkFactory {
     private final OkHttpClient httpClient;
     private final ExecutorService executorService;
-    private final int partitionSize;
     private final Monitor monitor;
 
-    public HttpDataSinkFactory(OkHttpClient httpClient, ExecutorService executorService, int partitionSize, Monitor monitor) {
+    public HttpDataSinkFactory(OkHttpClient httpClient, ExecutorService executorService, Monitor monitor) {
         this.httpClient = httpClient;
         this.executorService = executorService;
-        this.partitionSize = partitionSize;
         this.monitor = monitor;
     }
 
@@ -50,21 +46,16 @@ public class HttpDataSinkFactory implements DataSinkFactory {
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        var dataAddress = request.getDestinationDataAddress();
-        var requestId = request.getId();
+        var dataAddress = request.getSourceDataAddress();
         var endpoint = dataAddress.getProperty(ENDPOINT);
+        var requestId = request.getId();
         if (endpoint == null) {
             throw new EdcException("HTTP data destination endpoint not provided for request: " + requestId);
         }
-        var authKey = dataAddress.getProperty(AUTHENTICATION_KEY);
-        var authCode = dataAddress.getProperty(AUTHENTICATION_CODE);
 
         return HttpDataSink.Builder.newInstance()
                 .endpoint(endpoint)
                 .requestId(requestId)
-                .partitionSize(partitionSize)
-                .authKey(authKey)
-                .authCode(authCode)
                 .httpClient(httpClient)
                 .executorService(executorService)
                 .monitor(monitor)

@@ -53,7 +53,7 @@ public class DataPlaneHttpExtension implements ServiceExtension {
         @SuppressWarnings("unchecked") var sourceFactory = new HttpDataSourceFactory(httpClient, retryPolicy, monitor);
         pipelineService.registerFactory(sourceFactory);
 
-        var sinkFactory = new HttpDataSinkFactory(httpClient, executorService, 5, monitor);
+        var sinkFactory = new HttpDataSinkFactory(httpClient, executorService, monitor);
         pipelineService.registerFactory(sinkFactory);
     }
 }

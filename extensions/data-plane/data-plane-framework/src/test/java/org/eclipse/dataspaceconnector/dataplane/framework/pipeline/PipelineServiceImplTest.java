@@ -5,9 +5,10 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,13 +34,14 @@ class PipelineServiceImplTest {
         when(sourceFactory.createSource(isA(DataFlowRequest.class))).thenReturn(source);
         when(sinkFactory.canHandle(isA(DataFlowRequest.class))).thenReturn(true);
         when(sinkFactory.createSink(isA(DataFlowRequest.class))).thenReturn(sink);
-        when(sink.transfer(eq(source))).thenReturn(completedFuture(TransferResult.success()));
+        when(sink.transfer(eq(source))).thenReturn(completedFuture(Result.success()));
 
         var request = DataFlowRequest.Builder.newInstance()
                 .id("1")
                 .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .transferType(TransferType.Builder.transferType().contentType("application/octet-stream").build())
+                .sourceDataAddress(DataAddress.Builder.newInstance().build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().build())
                 .build();
 
         service.registerFactory(sourceFactory);

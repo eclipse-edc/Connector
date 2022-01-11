@@ -12,12 +12,15 @@
  *
  */
 
+val mockitoVersion: String by project
+
 plugins {
     `java-library`
 }
 
 dependencies {
-    api(project(":extensions:data-plane:data-plane-spi"))
+    api(project(":spi"))
+    implementation(project(":extensions:data-plane:data-plane-spi"))
 }
 
 

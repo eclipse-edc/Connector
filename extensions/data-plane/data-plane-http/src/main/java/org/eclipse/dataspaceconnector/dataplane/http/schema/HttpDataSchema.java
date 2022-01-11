@@ -15,6 +15,8 @@ package org.eclipse.dataspaceconnector.dataplane.http.schema;
 
 /**
  * Defines the data address attributes used by the HTTP data plane extension.
+ *
+ * TODO discuss whether we need the Schema package at the SPI level anymore or this can be replaced by an annotation.
  */
 public interface HttpDataSchema {
 
@@ -32,16 +34,4 @@ public interface HttpDataSchema {
      * The name associated with the HTTP data, typically a filename.
      */
     String NAME = "name";
-
-    /**
-     * The destination authentication key property name (optional).
-     */
-    String AUTHENTICATION_KEY = "authKey";
-
-    /**
-     * The destination authentication code property name (optional).
-     */
-    String AUTHENTICATION_CODE = "authCode";
-
-
 }

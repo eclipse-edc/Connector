@@ -39,9 +39,7 @@ public class StreamingRequestBody extends RequestBody {
 
     @Override
     public void writeTo(BufferedSink sink) throws IOException {
-        try (var stream = sink.outputStream()) {
-            part.openStream().transferTo(stream);
-        }
+        part.openStream().transferTo(sink.outputStream());
     }
 
 }

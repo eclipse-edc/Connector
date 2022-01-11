@@ -14,16 +14,12 @@
 package org.eclipse.dataspaceconnector.dataplane.framework.manager;
 
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
-import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -58,31 +54,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     }
 
     public void stop() {
-        active.set(false);
-        if (executorService != null) {
-            executorService.shutdown();
-        }
-    }
-
-    public void forceStop() {
-        active.set(false);
-        if (executorService != null) {
-            executorService.shutdownNow();
-        }
+        executorService.shutdownNow();
     }
 
     public void initiateTransfer(DataFlowRequest dataRequest) {
         queue.add(dataRequest);
-    }
-
-    @Override
-    public CompletableFuture<TransferResult> transfer(DataSource source, DataFlowRequest request) {
-        return pipelineService.transfer(source, request);
-    }
-
-    @Override
-    public CompletableFuture<TransferResult> transfer(DataSink sink, DataFlowRequest request) {
-        return pipelineService.transfer(sink, request);
     }
 
     private void run() {
@@ -93,11 +69,8 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                 if (request == null) {
                     continue;
                 }
-                final var polledRequest = request;
                 pipelineService.transfer(request).whenComplete((result, exception) -> {
-                    if (polledRequest.isTrackable()) {
-                        // TODO persist result
-                    }
+                    // TODO persist result
                 });
             } catch (InterruptedException e) {
                 Thread.interrupted();
