@@ -31,7 +31,8 @@ class DataAddressTest {
     void verifyDeserialization() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
 
-        DataAddress dataAddress = DataAddress.Builder.newInstance().type("test")
+        DataAddress dataAddress = DataAddress.Builder.newInstance()
+                .type("test")
                 .keyName("somekey")
                 .property("foo", "bar").build();
         StringWriter writer = new StringWriter();
@@ -46,12 +47,17 @@ class DataAddressTest {
     }
 
     @Test
-    void verifyThrowsException() {
-
-        assertThatThrownBy(() -> DataAddress.Builder.newInstance()
-                .keyName("somekey")
-                .property("foo", "bar").build()).isInstanceOf(NullPointerException.class).hasMessageContaining("type");
+    void verifyNoTypeThrowsException() {
+        assertThatThrownBy(() -> DataAddress.Builder.newInstance().keyName("somekey").property("foo", "bar").build())
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("DataAddress builder missing Type property.");
     }
 
+    @Test
+    void verifyNullKeyThrowsException() {
+        assertThatThrownBy(() -> DataAddress.Builder.newInstance().type("sometype").keyName("somekey").property(null, "bar").build())
+                .isInstanceOf(NullPointerException.class)
+                .hasMessageContaining("Property key null.");
+    }
 
 }

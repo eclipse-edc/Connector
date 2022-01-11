@@ -95,9 +95,8 @@ public class InMemoryAssetLoaderLoaderTest {
 
     private DataAddress createDataAddress(Asset asset) {
         return DataAddress.Builder.newInstance()
-                .type("test-asset")
+                .type(asset.getContentType())
                 .keyName("test-keyname")
-                .properties(flatten(asset))
                 .build();
     }
 

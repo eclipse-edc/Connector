@@ -49,9 +49,8 @@ class InMemoryDataAddressResolverTest {
 
     private DataAddress createDataAddress(Asset asset) {
         return DataAddress.Builder.newInstance()
-                .type("test-asset")
                 .keyName("test-keyname")
-                .properties(flatten(asset))
+                .type(asset.getContentType())
                 .build();
     }
 

@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.types.domain;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.jetbrains.annotations.NotNull;
@@ -40,9 +41,10 @@ public class DataAddress {
         return properties.get(TYPE);
     }
 
+    @JsonIgnore
     public void setType(String type) {
         Objects.requireNonNull(type);
-        properties.replace(TYPE, type);
+        properties.put(TYPE, type);
     }
 
     public String getProperty(String key) {
@@ -57,9 +59,10 @@ public class DataAddress {
         return properties.get(KEYNAME);
     }
 
+    @JsonIgnore
     public void setKeyName(String keyName) {
         Objects.requireNonNull(keyName);
-        properties.replace(KEYNAME, keyName);
+        properties.put(KEYNAME, keyName);
     }
 
     @JsonPOJOBuilder(withPrefix = "")
@@ -81,28 +84,29 @@ public class DataAddress {
         }
 
         public Builder property(String key, String value) {
-            Objects.requireNonNull(value);
+            Objects.requireNonNull(key, "Property key null.");
             address.properties.put(key, value);
             return this;
         }
 
-        public Builder properties(Map<String, ?> properties) {
+        public Builder properties(Map<String, String> properties) {
             // ArtifactRequestMessageImpl#urifyObjects (line 176): this "feature" converts every string starting with
             // 'http' to become a URI.
             // Thus, sometimes the <String, String> map can contain ... you guessed it ... URIs :(
-            properties.forEach((k, v) -> address.properties.put(k, v.toString()));
+            properties.forEach((key, value) -> {
+                Objects.requireNonNull(key, "Property key null.");
+                address.properties.put(key, value);
+            });
             return this;
         }
 
         public Builder keyName(String keyName) {
-            address.getProperties().put(KEYNAME, keyName);
+            address.getProperties().put(KEYNAME, Objects.requireNonNull(keyName));
             return this;
         }
 
         public DataAddress build() {
-            if (!address.getProperties().isEmpty()) {
-                Objects.requireNonNull(address.getType(), "type");
-            }
+            Objects.requireNonNull(address.getType(), "DataAddress builder missing Type property.");
             return address;
         }
     }
