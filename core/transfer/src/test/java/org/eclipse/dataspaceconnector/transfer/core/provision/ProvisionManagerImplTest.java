@@ -17,8 +17,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
+import static java.util.concurrent.CompletableFuture.failedFuture;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.isA;
@@ -37,7 +39,7 @@ class ProvisionManagerImplTest {
     }
 
     @Test
-    void provision_transfer_process() {
+    void provision_should_provision_all_the_transfer_process_definitions() {
         when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
         var provisionResponse = ProvisionResponse.Builder.newInstance()
                 .resource(new TestProvisionedDataDestinationResource("test-resource"))
@@ -60,7 +62,7 @@ class ProvisionManagerImplTest {
     }
 
     @Test
-    void should_handle_provisioner_exception() {
+    void provision_should_fail_when_provisioner_throws_exception() {
         when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
         when(provisioner.provision(isA(TestResourceDefinition.class))).thenThrow(new EdcException("error"));
         TransferProcess transferProcess = TransferProcess.Builder.newInstance()
@@ -71,11 +73,32 @@ class ProvisionManagerImplTest {
 
         var result = provisionManager.provision(transferProcess);
 
-        assertThat(result).failsWithin(1, SECONDS);
+        assertThat(result).failsWithin(1, SECONDS)
+                .withThrowableOfType(ExecutionException.class)
+                .withRootCauseInstanceOf(EdcException.class)
+                .withMessageContaining("error");
     }
 
     @Test
-    void deprovision_transfer_process_returns_response_list() {
+    void provision_should_fail_when_provisioner_fails() {
+        when(provisioner.canProvision(isA(TestResourceDefinition.class))).thenReturn(true);
+        when(provisioner.provision(isA(TestResourceDefinition.class))).thenReturn(failedFuture(new EdcException("error")));
+        TransferProcess transferProcess = TransferProcess.Builder.newInstance()
+                .id("id")
+                .state(TransferProcessStates.REQUESTED.code())
+                .resourceManifest(ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build())
+                .build();
+
+        var result = provisionManager.provision(transferProcess);
+
+        assertThat(result).failsWithin(1, SECONDS)
+                .withThrowableOfType(ExecutionException.class)
+                .withRootCauseInstanceOf(EdcException.class)
+                .withMessageContaining("error");
+    }
+
+    @Test
+    void deprovision_should_deprovision_all_the_transfer_process_provisioned_resources() {
         var deprovisionResponse = DeprovisionResponse.Builder.newInstance()
                 .resource(new TestProvisionedDataDestinationResource("test-resource"))
                 .build();
@@ -98,7 +121,7 @@ class ProvisionManagerImplTest {
     }
 
     @Test
-    void should_handle_deprovision_exception() {
+    void deprovision_should_fail_when_provisioner_throws_exception() {
         when(provisioner.canDeprovision(isA(ProvisionedResource.class))).thenReturn(true);
         when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenThrow(new EdcException("error"));
         TransferProcess transferProcess = TransferProcess.Builder.newInstance()
@@ -109,7 +132,28 @@ class ProvisionManagerImplTest {
 
         var result = provisionManager.deprovision(transferProcess);
 
-        assertThat(result).failsWithin(1, SECONDS);
+        assertThat(result).failsWithin(1, SECONDS)
+                .withThrowableOfType(ExecutionException.class)
+                .withRootCauseInstanceOf(EdcException.class)
+                .withMessageContaining("error");
+    }
+
+    @Test
+    void deprovision_should_fail_when_provisioner_fails() {
+        when(provisioner.canDeprovision(isA(ProvisionedResource.class))).thenReturn(true);
+        when(provisioner.deprovision(isA(TestProvisionedResource.class))).thenReturn(failedFuture(new EdcException("error")));
+        TransferProcess transferProcess = TransferProcess.Builder.newInstance()
+                .id("id")
+                .state(TransferProcessStates.REQUESTED.code())
+                .provisionedResourceSet(ProvisionedResourceSet.Builder.newInstance().resources(List.of(new TestProvisionedResource())).build())
+                .build();
+
+        var result = provisionManager.deprovision(transferProcess);
+
+        assertThat(result).failsWithin(1, SECONDS)
+                .withThrowableOfType(ExecutionException.class)
+                .withRootCauseInstanceOf(EdcException.class)
+                .withMessageContaining("error");
     }
 
     private static class TestProvisionedResource extends ProvisionedResource {}
