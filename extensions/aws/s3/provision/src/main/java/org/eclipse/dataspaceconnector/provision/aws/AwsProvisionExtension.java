@@ -47,16 +47,16 @@ import static java.lang.String.format;
 @Provides(ClientProvider.class)
 public class AwsProvisionExtension implements ServiceExtension {
     @EdcSetting
-    public static final String AWS_ACCESS_KEY = "edc.aws.access.key";
+    private static final String AWS_ACCESS_KEY = "edc.aws.access.key";
 
     @EdcSetting
-    public static final String AWS_SECRET_KEY = "edc.aws.secret.access.key";
+    private static final String AWS_SECRET_KEY = "edc.aws.secret.access.key";
 
     @EdcSetting
-    public static final String PROVISION_MAX_RETRY = "edc.aws.provision.retry.retries.max";
+    private static final String PROVISION_MAX_RETRY = "edc.aws.provision.retry.retries.max";
 
     @EdcSetting
-    public static final String PROVISION_MAX_ROLE_SESSION_DURATION = "edc.aws.provision.role.duration.session.max";
+    private static final String PROVISION_MAX_ROLE_SESSION_DURATION = "edc.aws.provision.role.duration.session.max";
 
     private Monitor monitor;
     private SdkClientProvider clientProvider;

@@ -56,6 +56,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ENDED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
 
@@ -168,6 +169,11 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             return;
         }
 
+        if (transferProcess.getState() == ERROR.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed"));
+            return;
+        }
+
         responses.stream()
                 .map(response -> {
                     var destinationResource = response.getResource();
@@ -190,7 +196,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                 })
                 .forEach(transferProcess::addProvisionedResource);
 
-        if (TransferProcessStates.ERROR.code() != transferProcess.getState() && transferProcess.provisioningComplete()) {
+        if (transferProcess.provisioningComplete()) {
             transferProcess.transitionProvisioned();
         }
 
@@ -203,6 +209,11 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         TransferProcess transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
+            return;
+        }
+
+        if (transferProcess.getState() == ERROR.code()) {
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be completed"));
             return;
         }
 
