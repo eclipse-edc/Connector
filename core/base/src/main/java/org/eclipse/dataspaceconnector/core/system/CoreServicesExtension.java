@@ -29,7 +29,7 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
-import java.security.interfaces.RSAPrivateKey;
+import java.security.PrivateKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
@@ -58,6 +58,7 @@ public class CoreServicesExtension implements ServiceExtension {
     public static final String READINESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.readiness-period";
     @EdcSetting
     public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
+
     private static final String DEFAULT_DURATION = "60";
     private static final String DEFAULT_TP_SIZE = "3";
     private HealthCheckServiceImpl healthCheckService;
@@ -96,16 +97,15 @@ public class CoreServicesExtension implements ServiceExtension {
 
     private void registerParser(ServiceExtensionContext context) {
         var resolver = context.getService(PrivateKeyResolver.class);
-        resolver.addParser(RSAPrivateKey.class, encoded -> {
+        resolver.addParser(PrivateKey.class, encoded -> {
             try {
                 KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                return (RSAPrivateKey) keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(encoded.getBytes())));
+                return keyFactory.generatePrivate(new PKCS8EncodedKeySpec(Base64.getDecoder().decode(encoded.getBytes())));
             } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
                 throw new EdcException(e);
             }
         });
     }
-
 
     private void addRetryPolicy(ServiceExtensionContext context) {
 
