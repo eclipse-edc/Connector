@@ -36,17 +36,11 @@ public final class AssetSelectorExpression {
      * Constant to select the entire {@link AssetIndex} content. Depending on the implementation,
      * this could take a long time!
      */
-    public static final AssetSelectorExpression SELECT_ALL = new AssetSelectorExpression("*", "=", "*");
+    public static final AssetSelectorExpression SELECT_ALL = new AssetSelectorExpression();
     private List<Criterion> criteria;
 
     private AssetSelectorExpression() {
         criteria = new ArrayList<>();
-    }
-
-
-    private AssetSelectorExpression(String l, String op, String r) {
-        criteria = new ArrayList<>();
-        criteria.add(new Criterion(l, op, r));
     }
 
     public List<Criterion> getCriteria() {

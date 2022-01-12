@@ -51,10 +51,6 @@ public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, Ass
     @Override
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
-        // do not return anything if expression is empty
-        if (expression.getCriteria().isEmpty()) {
-            return Stream.empty();
-        }
 
         // select everything ONLY if the special constant is used
         if (expression == AssetSelectorExpression.SELECT_ALL) {
