@@ -53,7 +53,7 @@ asset.
 @Override
 public void initialize(ServiceExtensionContext context){
         // ...
-        var policy=savePolicies(context);
+        var policy=createPolicy();
 
         registerDataEntries(context);
         registerContractDefinition(context,policy);

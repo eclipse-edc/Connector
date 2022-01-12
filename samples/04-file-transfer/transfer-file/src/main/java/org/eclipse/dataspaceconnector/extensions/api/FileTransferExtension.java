@@ -58,7 +58,7 @@ public class FileTransferExtension implements ServiceExtension {
         DataFlowController dataFlowController = new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver);
         dataFlowMgr.register(dataFlowController);
 
-        var policy = savePolicies();
+        var policy = createPolicy();
 
         registerDataEntries(context);
         registerContractDefinition(context, policy);
@@ -66,7 +66,7 @@ public class FileTransferExtension implements ServiceExtension {
         context.getMonitor().info("File Transfer Extension initialized!");
     }
 
-    private Policy savePolicies() {
+    private Policy createPolicy() {
 
         var usePermission = Permission.Builder.newInstance()
                 .action(Action.Builder.newInstance().type("idsc:USE").build())
