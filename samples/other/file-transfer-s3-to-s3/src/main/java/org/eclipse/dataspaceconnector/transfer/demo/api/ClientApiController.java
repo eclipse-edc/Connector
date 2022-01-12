@@ -88,13 +88,18 @@ public class ClientApiController {
             String destinationRegion
     ) {
 
+        // For now this will always throw an exception because IDS REST is not supported.
+        // The strange 'if' is necessary, because otherwise we'd have to delete all the code after the exception to avoid
+        // compiler errors ("unreachable code"), which I didn't want to do.
+        // TODO: either support IDS Multipart or delete this module.
+
         if (1 == 1) {
             throw new NotSupportedException("IDS REST is not supported anymore. Please adapt the code to use IDS Multipart!");
         }
 
         return DataRequest.Builder.newInstance()
                 .id(id)
-                //.protocol(Protocols.IDS_REST)
+                //.protocol(Protocols.IDS_REST) //change to Protocols.IDS_MULTIPART
                 .assetId(asset.getId())
                 .connectorId(connector)
                 .connectorAddress(composeConnectorAddress(connector))
