@@ -20,7 +20,7 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.DID_URL_SETTING;
 
 @Provides(IdentityService.class)
-public class DistributedIdentityServiceExtension implements ServiceExtension {
+public class DecentralizedIdentifierServiceExtension implements ServiceExtension {
 
     @Inject
     private DidResolverRegistry resolverRegistry;
@@ -35,7 +35,7 @@ public class DistributedIdentityServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var vcProvider = createSupplier(context);
-        var identityService = new DistributedIdentityService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
+        var identityService = new DecentralizedIdentifierService(vcProvider, resolverRegistry, credentialsVerifier, context.getMonitor());
         context.registerService(IdentityService.class, identityService);
     }
 

@@ -37,13 +37,13 @@ import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
-public class DistributedIdentityService implements IdentityService {
+public class DecentralizedIdentifierService implements IdentityService {
     private final Supplier<SignedJWT> verifiableCredentialProvider;
     private final DidResolverRegistry resolverRegistry;
     private final CredentialsVerifier credentialsVerifier;
     private final Monitor monitor;
 
-    public DistributedIdentityService(Supplier<SignedJWT> vcProvider, DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor) {
+    public DecentralizedIdentifierService(Supplier<SignedJWT> vcProvider, DidResolverRegistry resolverRegistry, CredentialsVerifier credentialsVerifier, Monitor monitor) {
         verifiableCredentialProvider = vcProvider;
         this.resolverRegistry = resolverRegistry;
         this.credentialsVerifier = credentialsVerifier;

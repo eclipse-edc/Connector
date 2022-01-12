@@ -50,12 +50,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * Test the {@link DistributedIdentityService} with different key algorithms.
+ * Test the {@link DecentralizedIdentifierService} with different key algorithms.
  * See {@link WithP256} and {@link WithSecp256k1} for concrete impls.
  */
 
-abstract class DistributedIdentityServiceTest {
-    private DistributedIdentityService identityService;
+abstract class DecentralizedIdentifierServiceTest {
+    private DecentralizedIdentifierService identityService;
     private PrivateKeyWrapper privateKey;
     private PublicKeyWrapper publicKey;
 
@@ -112,7 +112,7 @@ abstract class DistributedIdentityServiceTest {
         DidResolverRegistry didResolver = new TestResolverRegistry(hubUrlDid, keyPair);
 
         CredentialsVerifier verifier = (document, url) -> Result.success(Map.of("region", "eu"));
-        identityService = new DistributedIdentityService(() -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer"), didResolver, verifier, new Monitor() {
+        identityService = new DecentralizedIdentifierService(() -> VerifiableCredentialFactory.create(privateKey, Map.of("region", "us"), "test-issuer"), didResolver, verifier, new Monitor() {
         });
 
     }
@@ -132,7 +132,7 @@ abstract class DistributedIdentityServiceTest {
         return new EcPrivateKeyWrapper((ECKey) privateKey);
     }
 
-    public static class WithSecp256k1 extends DistributedIdentityServiceTest {
+    public static class WithSecp256k1 extends DecentralizedIdentifierServiceTest {
 
         @Override
         protected @NotNull JWK getKeyPair() {
@@ -145,7 +145,7 @@ abstract class DistributedIdentityServiceTest {
         }
     }
 
-    public static class WithP256 extends DistributedIdentityServiceTest {
+    public static class WithP256 extends DecentralizedIdentifierServiceTest {
         @Override
         protected @NotNull JWK getKeyPair() {
             return KeyPairFactory.generateKeyPairP256();

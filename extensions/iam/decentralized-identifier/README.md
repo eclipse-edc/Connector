@@ -1,11 +1,11 @@
 ## Folder structure
 
-These extensions contain modules that implement the "Distributed Identity" use case. In particular:
+These extensions contain modules that implement the "Decentralized Identifier" use case. In particular:
 
 - `identity-did-spi`: contains extension points for the distributed identity subsystem
 - `identity-did-crypto`: contains the cryptographic utilities
 - `identity-did-core`: contains core services, including the `IdentityHub` and `DidResolverRegistry`
-- `identity-did-service`: contains the `DistributedIdentityService`, which is an implementation of the `IdentityService`
+- `identity-did-service`: contains the `DecentralizedIdentifierService`, which is an implementation of the `IdentityService`
   interface.
 - `identity-did-web`: contains support for resolving Web DIDs. 
 - `registration-service`: contains a periodic job that crawls the ION network for DIDs of a particular type
