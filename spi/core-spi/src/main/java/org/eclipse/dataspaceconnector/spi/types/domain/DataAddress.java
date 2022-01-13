@@ -90,9 +90,6 @@ public class DataAddress {
         }
 
         public Builder properties(Map<String, String> properties) {
-            // ArtifactRequestMessageImpl#urifyObjects (line 176): this "feature" converts every string starting with
-            // 'http' to become a URI.
-            // Thus, sometimes the <String, String> map can contain ... you guessed it ... URIs :(
             properties.forEach((key, value) -> {
                 Objects.requireNonNull(key, "Property key null.");
                 address.properties.put(key, value);
