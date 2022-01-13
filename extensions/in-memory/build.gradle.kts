@@ -25,7 +25,6 @@ dependencies {
     api(project(":extensions:in-memory:fcc-node-directory-memory"))
     api(project(":extensions:in-memory:identity-hub-memory"))
     api(project(":extensions:in-memory:negotiation-store-memory"))
-    api(project(":extensions:in-memory:policy-registry-memory"))
     api(project(":extensions:in-memory:transfer-store-memory"))
 }
 

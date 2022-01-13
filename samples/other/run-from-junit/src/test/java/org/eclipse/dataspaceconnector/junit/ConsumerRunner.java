@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.junit;
 
 import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
+import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -67,7 +68,7 @@ public class ConsumerRunner {
                 .connectorId(PROVIDER_CONNECTOR)
                 .queryLanguage("dataspaceconnector")
                 .query("select *")
-                .protocol("ids-rest").build();
+                .protocol(Protocols.IDS_MULTIPART).build();
 
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
@@ -123,7 +124,7 @@ public class ConsumerRunner {
                 .connectorId(PROVIDER_CONNECTOR)
                 .queryLanguage("dataspaceconnector")
                 .query("select *")
-                .protocol("ids-rest").build();
+                .protocol(Protocols.IDS_MULTIPART).build();
 
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
@@ -174,7 +175,7 @@ public class ConsumerRunner {
                 .connectorId(PROVIDER_CONNECTOR)
                 .queryLanguage("dataspaceconnector")
                 .query("select *")
-                .protocol("ids-rest").build();
+                .protocol(Protocols.IDS_MULTIPART).build();
 
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
@@ -236,7 +237,7 @@ public class ConsumerRunner {
     private DataRequest createRequestAws(String id, Asset asset) {
         return DataRequest.Builder.newInstance()
                 .id(id)
-                .protocol("ids-rest")
+                .protocol(Protocols.IDS_MULTIPART)
                 .assetId(asset.getId())
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)
@@ -246,7 +247,7 @@ public class ConsumerRunner {
     private DataRequest createRequestAzure(String id, Asset asset) {
         return DataRequest.Builder.newInstance()
                 .id(id)
-                .protocol("ids-rest")
+                .protocol(Protocols.IDS_MULTIPART)
                 .assetId(asset.getId())
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)

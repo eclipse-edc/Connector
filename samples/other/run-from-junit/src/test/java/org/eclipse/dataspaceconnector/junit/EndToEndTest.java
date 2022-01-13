@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.junit;
 
 import org.eclipse.dataspaceconnector.core.security.NullVaultExtension;
+import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
@@ -59,7 +60,7 @@ public class EndToEndTest {
 
         RemoteMessageDispatcher dispatcher = mock(RemoteMessageDispatcher.class);
 
-        when(dispatcher.protocol()).thenReturn("ids-rest");
+        when(dispatcher.protocol()).thenReturn(Protocols.IDS_MULTIPART);
 
         when(dispatcher.send(notNull(), isA(RemoteMessage.class), isA(MessageContext.class))).thenAnswer(i -> {
             latch.countDown();
@@ -72,7 +73,7 @@ public class EndToEndTest {
         var connectorId = "https://test";
 
         var entry = Asset.Builder.newInstance().id(artifactId).build();
-        var request = DataRequest.Builder.newInstance().protocol("ids-rest").assetId(entry.getId())
+        var request = DataRequest.Builder.newInstance().protocol(Protocols.IDS_MULTIPART).assetId(entry.getId())
                 .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").build();
 
         processManager.initiateConsumerRequest(request);
@@ -100,7 +101,7 @@ public class EndToEndTest {
         var connectorId = "https://test";
 
         var asset = Asset.Builder.newInstance().id(artifactId).build();
-        var request = DataRequest.Builder.newInstance().protocol("ids-rest").assetId(asset.getId())
+        var request = DataRequest.Builder.newInstance().protocol(Protocols.IDS_MULTIPART).assetId(asset.getId())
                 .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").id(UUID.randomUUID().toString()).build();
 
         processManager.initiateProviderRequest(request);

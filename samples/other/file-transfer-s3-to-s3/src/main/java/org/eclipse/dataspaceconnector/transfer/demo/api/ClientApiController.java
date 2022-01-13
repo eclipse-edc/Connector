@@ -15,10 +15,9 @@
 package org.eclipse.dataspaceconnector.transfer.demo.api;
 
 import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.GET;
+import jakarta.ws.rs.NotSupportedException;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -27,14 +26,10 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
-import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -58,28 +53,6 @@ public class ClientApiController {
         this.monitor = monitor;
         this.destinationRegion = destinationRegion;
         this.destinationBucket = destinationBucket;
-    }
-
-    @GET
-    @Path("artifacts/{connector}")
-    public Response getArtifacts(@PathParam("connector") String connector) {
-        try {
-            var query = QueryRequest.Builder.newInstance()
-                    .connectorAddress(composeConnectorAddress(connector))
-                    .connectorId(connector)
-                    .queryLanguage("dataspaceconnector")
-                    .query("select *")
-                    .protocol("ids-rest").build();
-
-            CompletableFuture<List<String>> future
-                    = (CompletableFuture) dispatcherRegistry.send(List.class, query, () -> null);
-
-            var artifacts = future.get();
-            return Response.ok().entity(artifacts).build();
-        } catch (InterruptedException | ExecutionException e) {
-            monitor.severe("Error serving request", e);
-            return Response.serverError().build();
-        }
     }
 
     @POST
@@ -115,9 +88,18 @@ public class ClientApiController {
             String destinationRegion
     ) {
 
+        // For now this will always throw an exception because IDS REST is not supported.
+        // The strange 'if' is necessary, because otherwise we'd have to delete all the code after the exception to avoid
+        // compiler errors ("unreachable code"), which I didn't want to do.
+        // TODO: either support IDS Multipart or delete this module.
+
+        if (1 == 1) {
+            throw new NotSupportedException("IDS REST is not supported anymore. Please adapt the code to use IDS Multipart!");
+        }
+
         return DataRequest.Builder.newInstance()
                 .id(id)
-                .protocol("ids-rest")
+                //.protocol(Protocols.IDS_REST) //change to Protocols.IDS_MULTIPART
                 .assetId(asset.getId())
                 .connectorId(connector)
                 .connectorAddress(composeConnectorAddress(connector))

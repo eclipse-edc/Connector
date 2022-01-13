@@ -17,9 +17,6 @@ package org.eclipse.dataspaceconnector.ids.core;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.ids.core.daps.DapsServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
-import org.eclipse.dataspaceconnector.ids.core.message.DataRequestMessageSender;
-import org.eclipse.dataspaceconnector.ids.core.message.IdsRestRemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.ids.core.message.QueryMessageSender;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsPolicyServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
@@ -40,14 +37,11 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -131,25 +125,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
         var policyService = new IdsPolicyServiceImpl();
         context.registerService(IdsPolicyService.class, policyService);
 
-        assembleIdsDispatcher(connectorId, context, identityService);
-    }
-
-    /**
-     * Assembles the IDS remote message dispatcher and its senders.
-     */
-    private void assembleIdsDispatcher(String connectorId, ServiceExtensionContext context, IdentityService identityService) {
-        var processManager = context.getService(TransferProcessManager.class);
-
-        var mapper = context.getTypeManager().getMapper();
-
-        var monitor = context.getMonitor();
-
-        var restDispatcher = new IdsRestRemoteMessageDispatcher();
-        restDispatcher.register(new QueryMessageSender(connectorId, identityService, okHttpClient, mapper, monitor));
-        restDispatcher.register(new DataRequestMessageSender(connectorId, identityService, context.getService(Vault.class), okHttpClient, mapper, monitor, processManager));
-
-        var registry = context.getService(RemoteMessageDispatcherRegistry.class);
-        registry.register(restDispatcher);
     }
 
     private TransformerRegistry createTransformerRegistry() {

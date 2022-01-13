@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
-import org.eclipse.dataspaceconnector.spi.policy.PolicyRegistry;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -50,8 +49,6 @@ public class FileTransferExtension implements ServiceExtension {
     private ContractDefinitionStore contractStore;
     @Inject
     private AssetLoader loader;
-    @Inject
-    private PolicyRegistry policyRegistry;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -61,7 +58,7 @@ public class FileTransferExtension implements ServiceExtension {
         DataFlowController dataFlowController = new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver);
         dataFlowMgr.register(dataFlowController);
 
-        var policy = savePolicies(context);
+        var policy = createPolicy();
 
         registerDataEntries(context);
         registerContractDefinition(context, policy);
@@ -69,20 +66,17 @@ public class FileTransferExtension implements ServiceExtension {
         context.getMonitor().info("File Transfer Extension initialized!");
     }
 
-    private Policy savePolicies(ServiceExtensionContext context) {
-        policyRegistry = context.getService(PolicyRegistry.class);
+    private Policy createPolicy() {
 
         var usePermission = Permission.Builder.newInstance()
                 .action(Action.Builder.newInstance().type("idsc:USE").build())
                 .build();
-        var usePolicy = Policy.Builder.newInstance()
+
+        return Policy.Builder.newInstance()
                 .id(USE_POLICY)
                 .permission(usePermission)
                 .target("test-document")
                 .build();
-        policyRegistry.registerPolicy(usePolicy);
-
-        return usePolicy;
     }
 
     private void registerDataEntries(ServiceExtensionContext context) {
