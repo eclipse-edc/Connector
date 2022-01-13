@@ -50,6 +50,10 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     public static final String EDC_IDS_ID = "edc.ids.id";
     public static final String DEFAULT_EDC_IDS_ID = "urn:connector:edc";
 
+    @EdcSetting
+    public static final String IDS_WEBOHOOK_ADDRESS = "ids.webhook.address";
+    public static final String DEFAULT_IDS_WEBOHOOK_ADDRESS = "http://localhost";
+
     private Monitor monitor;
     @Inject
     private OkHttpClient httpClient;
@@ -80,9 +84,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
-        // load ids webhook address
-        var idsWebhookAddress = context.getSetting("ids.webhook.address", null);
-
+        String idsWebhookAddress = getSetting(context, IDS_WEBOHOOK_ADDRESS, DEFAULT_IDS_WEBOHOOK_ADDRESS);
 
         var multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
         multipartDispatcher.register(new MultipartArtifactRequestSender(connectorId, httpClient, objectMapper, monitor, context.getService(Vault.class), identityService, transformerRegistry));
@@ -99,13 +101,7 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
     private String resolveConnectorId(@NotNull ServiceExtensionContext context) {
         Objects.requireNonNull(context);
 
-        String value = context.getSetting(EDC_IDS_ID, null);
-
-        if (value == null) {
-            String message = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
-            monitor.warning(String.format(message, EDC_IDS_ID, DEFAULT_EDC_IDS_ID));
-            value = DEFAULT_EDC_IDS_ID;
-        }
+        String value = getSetting(context, EDC_IDS_ID, DEFAULT_EDC_IDS_ID);
 
         try {
             // Hint: use stringified uri to keep uri path and query
@@ -119,6 +115,19 @@ public class IdsMultipartDispatcherServiceExtension implements ServiceExtension 
         }
 
         return value;
+    }
+
+    @NotNull
+    private String getSetting(@NotNull ServiceExtensionContext context, String key, String defaultValue) {
+        String value = context.getSetting(key, null);
+
+        if (value == null) {
+            String message = "IDS Settings: No setting found for key '%s'. Using default value '%s'";
+            monitor.warning(String.format(message, key, defaultValue));
+            return defaultValue;
+        } else {
+            return value;
+        }
     }
 
 }
