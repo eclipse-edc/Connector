@@ -13,11 +13,8 @@ An _extension_ typically consists of two things:
 Therefore we require an extension class, which we'll name `HealthEndpointExtension`:
 
 ```java
+@Requires({ WebService.class })
 public class HealthEndpointExtension implements ServiceExtension {
-    @Override
-    public Set<String> requires() {
-        return Set.of("edc:webservice");
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {
@@ -27,8 +24,8 @@ public class HealthEndpointExtension implements ServiceExtension {
 }
 ```
 
-The `requires()` method indicates that there is a dependency onto the `"edc:webservice"` feature, which is offered by
-the `WebServiceExtension.java` located in the `:core:base` module.
+The `@Requires` annotation indicates that the extension needs a service that is registered by another extension, in 
+this case an implementation of `WebService.class`.
 
 The `ServiceExtensionContext` serves as registry for all resolvable services, somewhat comparable to the "module"
 concept in DI frameworks like Google Guice. From it, we obtain an instance of the `WebService` interface, where we can
@@ -67,10 +64,10 @@ java -jar samples/02-health-endpoint/build/libs/connector-health.jar
 we can issue a GET request to `http://localhost:8181/api/health` and receive the aforementioned string as a result.
 
 It is worth noting that by default the webserver listens on port `8181`, which is defined
-in [`JettyService.java`](../../core/protocol/web/src/main/java/org/eclipse/dataspaceconnector/web/transport/JettyService.java)
+in [`JettyService.java`](../../extensions/jetty/src/main/java/org/eclipse/dataspaceconnector/extension/jetty/JettyService.java)
 and can be configured using the `web.http.port` property (more on that in the next chapter). You will need to configure
 this whenever you have two connectors running on the same machine.
 
 Also, the default path is `/api/*`, which is defined
-in [`JerseyRestService.java`](../../core/protocol/web/src/main/java/org/eclipse/dataspaceconnector/web/rest/JerseyRestService.java)
+in [`JerseyRestService.java`](../../extensions/jetty/src/main/java/org/eclipse/dataspaceconnector/extension/jetty/JerseyRestService.java)
 .

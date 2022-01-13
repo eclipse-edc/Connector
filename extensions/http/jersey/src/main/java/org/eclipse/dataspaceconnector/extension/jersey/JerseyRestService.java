@@ -12,9 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.protocol.web.rest;
+package org.eclipse.dataspaceconnector.extension.jersey;
 
-import org.eclipse.dataspaceconnector.core.protocol.web.transport.JettyService;
+import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
@@ -22,13 +22,13 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.glassfish.hk2.utilities.binding.AbstractBinder;
 import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
-import org.glassfish.jersey.server.ServerProperties;
 import org.glassfish.jersey.servlet.ServletContainer;
 
 import java.util.HashSet;
 import java.util.Set;
 
 import static java.util.stream.Collectors.toSet;
+import static org.glassfish.jersey.server.ServerProperties.WADL_FEATURE_DISABLE;
 
 public class JerseyRestService implements WebService {
     private static final String API_PATH = "/api/*";
@@ -54,25 +54,23 @@ public class JerseyRestService implements WebService {
 
     public void start() {
         try {
-            // Create a Jersey JAX-RS Application
-            ResourceConfig resourceConfig = new ResourceConfig();
+            var resourceConfig = new ResourceConfig();
 
             // Disable WADL as it is not used and emits a warning message about JAXB (which is also not used)
-            resourceConfig.property(ServerProperties.WADL_FEATURE_DISABLE, Boolean.TRUE);
+            resourceConfig.property(WADL_FEATURE_DISABLE, Boolean.TRUE);
 
             // Register controller (JAX-RS resources) with Jersey. Instances instead of classes are used so extensions may inject them with dependencies and manage their lifecycle.
             // In order to use instances with Jersey, the controller types must be registered along with an {@link AbstractBinder} that maps those types to the instances.
             resourceConfig.registerClasses(controllers.stream().map(Object::getClass).collect(toSet()));
             resourceConfig.registerInstances(new Binder());
-
             resourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
+
             if (corsConfiguration.isCorsEnabled()) {
                 resourceConfig.register(new CorsFilter(corsConfiguration));
             }
             resourceConfig.register(MultiPartFeature.class);
 
-            // Register the Jersey container with Jetty
-            ServletContainer servletContainer = new ServletContainer(resourceConfig);
+            var servletContainer = new ServletContainer(resourceConfig);
             jettyService.registerServlet("/", API_PATH, servletContainer);
 
             monitor.info("Registered Web API context at: " + API_PATH);

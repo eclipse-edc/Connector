@@ -15,13 +15,14 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.core.protocol.web.transport.JettyService;
+import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -55,6 +56,7 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
  * Integration testing
  * The JUnit test for this class demonstrates how to perform extension integration testing using and embedded runtime.
  */
+@Requires({ WebService.class, JettyService.class })
 public class DemoProtocolsTransferExtension implements ServiceExtension {
     @EdcSetting
     private static final String WS_PUBSUB_ENDPOINT = "edc.demo.protocol.ws.pubsub";

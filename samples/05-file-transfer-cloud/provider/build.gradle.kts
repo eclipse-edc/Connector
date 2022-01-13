@@ -32,6 +32,7 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:azure:vault"))
+    implementation(project(":extensions:http"))
 
     implementation(project(":data-protocols:ids"))
     implementation(project(":data-protocols:ids:ids-policy-mock"))

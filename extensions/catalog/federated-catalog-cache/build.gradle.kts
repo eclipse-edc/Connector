@@ -23,6 +23,7 @@ dependencies {
     api(project(":extensions:catalog:federated-catalog-spi"))
     implementation(project(":core:base"))
     implementation(project(":common:util"))
+    implementation(project(":extensions:http"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 

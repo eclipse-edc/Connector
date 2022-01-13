@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.core.protocol.web.rest;
+package org.eclipse.dataspaceconnector.extension.jersey;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerResponseContext;

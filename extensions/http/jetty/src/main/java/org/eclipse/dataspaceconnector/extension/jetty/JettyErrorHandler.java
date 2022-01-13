@@ -12,8 +12,9 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.protocol.web.transport;
+package org.eclipse.dataspaceconnector.extension.jetty;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.eclipse.jetty.server.handler.ErrorHandler;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ import java.io.Writer;
 class JettyErrorHandler extends ErrorHandler {
 
     @Override
-    protected void handleErrorPage(jakarta.servlet.http.HttpServletRequest request, Writer writer, int code, String message) throws IOException {
+    protected void handleErrorPage(HttpServletRequest request, Writer writer, int code, String message) throws IOException {
         writer.write("{ error: '" + code + "'}");
     }
 

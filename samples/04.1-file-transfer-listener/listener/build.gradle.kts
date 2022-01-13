@@ -19,4 +19,5 @@ plugins {
 
 dependencies {
     api(project(":spi"))
+    implementation(project(":extensions:http"))
 }
