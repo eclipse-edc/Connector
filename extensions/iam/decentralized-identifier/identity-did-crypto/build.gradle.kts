@@ -2,15 +2,16 @@ plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
+
+    implementation("org.bouncycastle:bcpkix-jdk15on:1.56")
 }
 
 publishing {
     publications {
-        create<MavenPublication>("identity-hub-memory") {
-            artifactId = "identity-hub-memory"
+        create<MavenPublication>("identity-did-crypto") {
+            artifactId = "identity-did-crypto"
             from(components["java"])
         }
     }
