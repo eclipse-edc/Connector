@@ -49,6 +49,8 @@ import java.net.http.HttpHeaders;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
+import static java.util.concurrent.CompletableFuture.failedFuture;
+
 /**
  * Abstract class for sending IDS multipart messages.
  *
@@ -100,20 +102,23 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
 
         // Get Dynamic Attribute Token
         var tokenResult = identityService.obtainClientCredentials(recipientConnectorId);
+        if (tokenResult.failed()) {
+            String message = "Failed to obtain token: " + String.join(",", tokenResult.getFailureMessages());
+            monitor.severe(message);
+            return failedFuture(new EdcException(message));
+        }
+
         var token = new DynamicAttributeTokenBuilder()
                 ._tokenFormat_(TokenFormat.JWT)
                 ._tokenValue_(tokenResult.getContent().getToken())
                 .build();
 
-        // Initialize future
-        CompletableFuture<R> future = new CompletableFuture<>();
 
         // Get recipient address
         var connectorAddress = retrieveRemoteConnectorAddress(request);
         var requestUrl = HttpUrl.parse(connectorAddress);
         if (requestUrl == null) {
-            future.completeExceptionally(new IllegalArgumentException("Connector address not specified"));
-            return future;
+            return failedFuture(new IllegalArgumentException("Connector address not specified"));
         }
 
         // Build IDS message header
@@ -121,8 +126,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         try {
             message = buildMessageHeader(request, token); // TODO set idsWebhookAddress globally?
         } catch (Exception e) {
-            future.completeExceptionally(e);
-            return future;
+            return failedFuture(e);
         }
 
         // Build multipart header part
@@ -136,8 +140,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                     objectMapper.writeValueAsString(message),
                     okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
         } catch (IOException exception) {
-            future.completeExceptionally(exception);
-            return future;
+            return failedFuture(exception);
         }
 
         var headerPart = MultipartBody.Part.create(headerPartHeaders, headerRequestBody);
@@ -147,8 +150,7 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
         try {
             payload = buildMessagePayload(request);
         } catch (Exception e) {
-            future.completeExceptionally(e);
-            return future;
+            return failedFuture(e);
         }
 
         // Build multipart payload part
@@ -183,6 +185,8 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 .build();
 
         // Execute call
+        CompletableFuture<R> future = new CompletableFuture<>();
+
         httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, r -> {
             try (r) {
                 if (r.isSuccessful()) {
