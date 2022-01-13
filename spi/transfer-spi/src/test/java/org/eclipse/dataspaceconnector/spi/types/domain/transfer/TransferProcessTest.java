@@ -21,6 +21,9 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -133,6 +136,14 @@ class TransferProcessTest {
         resourceSet.addResource(TestProvisionedResource.Builder.newInstance().id("p1").resourceDefinitionId("r1").transferProcessId("123").build());
 
         assertTrue(process.provisioningComplete());
+    }
 
+    @Test
+    void should_pass_from_deprovisioning_request_to_deprovisioning() {
+        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(DEPROVISIONING_REQ.code()).build();
+
+        process.transitionDeprovisioning();
+
+        assertThat(process.getState()).isEqualTo(DEPROVISIONING.code());
     }
 }
