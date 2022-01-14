@@ -45,8 +45,7 @@ dependencies {
 }
 
 application {
-    @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.dataloader.cli.DataLoaderRuntime"
+    mainClass.set("org.eclipse.dataspaceconnector.dataloader.cli.DataLoaderRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
