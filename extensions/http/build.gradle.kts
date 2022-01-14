@@ -12,13 +12,21 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.protocol.web.transport;
+plugins {
+    `java-library`
+}
 
-/**
- * Provides config values to the Jetty service.
- */
-@FunctionalInterface
-public interface JettyConfiguration {
 
-    String getSetting(String setting, String defaultValue);
+dependencies {
+    api(project(":extensions:http:jersey"))
+    api(project(":extensions:http:jetty"))
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("http") {
+            artifactId = "http"
+            from(components["java"])
+        }
+    }
 }

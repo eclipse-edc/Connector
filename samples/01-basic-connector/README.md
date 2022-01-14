@@ -34,24 +34,25 @@ installation._
 If everything works as intended you should see command-line output similar to this:
 
 ```bash
-INFO 2021-12-01T11:43:03.912706069 Secrets vault not configured. Defaulting to null vault.
-INFO 2021-12-01T11:43:04.056438198 Initialized Core Services extension.
-INFO 2021-12-01T11:43:04.05703093 Initialized Schema Registry
-INFO 2021-12-01T11:43:04.078382201 Initialized Web extension
-INFO 2021-12-01T11:43:04.081509795 Initialized Core Transfer extension
-INFO 2021-12-01T11:43:04.082133289 Initialized In-Memory Transfer Process Store extension
-INFO 2021-12-01T11:43:04.082889602 Initialized In-Memory Asset Index extension
-INFO 2021-12-01T11:43:04.083409126 Initialized In-Memory Contract Negotiation Store extension
-INFO 2021-12-01T11:43:04.092667818 Initialized Core Contract Service Extension
-INFO 2021-12-01T11:43:04.122422102 Registered Web API context at: /api/*
-INFO 2021-12-01T11:43:04.143321284 HTTP listening on 8181
-INFO 2021-12-01T11:43:04.38748779 Started Web extension
-INFO 2021-12-01T11:43:04.389002651 Started Core Transfer extension
-INFO 2021-12-01T11:43:04.389110926 Started Initialized In-Memory Transfer Process Store extension
-INFO 2021-12-01T11:43:04.389227079 Started In-Memory Asset Index extension
-INFO 2021-12-01T11:43:04.389345155 Started Initialized In-Memory Contract Negotiation Store extension
-INFO 2021-12-01T11:43:04.390347726 Started Core Contract Service Extension
-INFO 2021-12-01T11:43:04.390636036 edc-527dc74a-761b-4207-98f6-e31845454e28 ready
+INFO 2022-01-13T13:43:57.677973407 Secrets vault not configured. Defaulting to null vault.
+INFO 2022-01-13T13:43:57.680158117 Initialized Null Vault
+INFO 2022-01-13T13:43:57.851181615 Initialized Core Services
+INFO 2022-01-13T13:43:57.852046576 Initialized Schema Registry
+INFO 2022-01-13T13:43:57.853010987 Initialized In-Memory Transfer Process Store
+INFO 2022-01-13T13:43:57.856956651 Initialized Core Transfer
+INFO 2022-01-13T13:43:57.857664924 Initialized In-Memory Asset Index
+INFO 2022-01-13T13:43:57.857957714 Initialized In-Memory Contract Definition Store
+INFO 2022-01-13T13:43:57.860738605 Initialized Core Contract Service
+INFO 2022-01-13T13:43:57.861390422 Initialized In-Memory Contract Negotiation Store
+INFO 2022-01-13T13:43:57.862002044 Started Core Services
+INFO 2022-01-13T13:43:57.862247712 Started Schema Registry
+INFO 2022-01-13T13:43:57.862782289 Started In-Memory Transfer Process Store
+INFO 2022-01-13T13:43:57.8635804 Started Core Transfer
+INFO 2022-01-13T13:43:57.86371948 Started In-Memory Asset Index
+INFO 2022-01-13T13:43:57.863838751 Started In-Memory Contract Definition Store
+INFO 2022-01-13T13:43:57.86497334 Started Core Contract Service
+INFO 2022-01-13T13:43:57.865146132 Started In-Memory Contract Negotiation Store
+INFO 2022-01-13T13:43:57.866073376 edc-e796b518-35f0-4c45-a333-79ca20a6be06 ready
 ```
 
 This basic connector - while perfectly fine - does not offer any outward-facing API, nor does it provide any

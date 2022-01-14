@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.protocol.web.rest;
+package org.eclipse.dataspaceconnector.extension.jersey;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.ws.rs.ext.ContextResolver;

@@ -12,14 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.protocol.web.transport;
+package org.eclipse.dataspaceconnector.extension.jetty;
 
 import jakarta.servlet.Servlet;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.jetty.server.Connector;
-import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.HttpConfiguration;
 import org.eclipse.jetty.server.HttpConnectionFactory;
 import org.eclipse.jetty.server.Server;
@@ -30,17 +27,18 @@ import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.servlet.Source;
 import org.eclipse.jetty.util.ssl.SslContextFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyStore;
 import java.util.HashMap;
 import java.util.Map;
 
+import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
+
 /**
  * Provides HTTP(S) support using Jetty.
  */
 public class JettyService {
-    @EdcSetting
-    private static final String HTTP_PORT = "web.http.port";
 
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private final JettyConfiguration configuration;
@@ -58,43 +56,24 @@ public class JettyService {
         this.keyStore = keyStore;
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
-        ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
-        handler.setContextPath("/");
-        handlers.put("/", handler);
+        handlers.put("/", new ServletContextHandler(null, "/", NO_SESSIONS));
     }
 
     public void start() {
-        var port = configuration.getSetting(HTTP_PORT, "8181");
-
         try {
+            var port = configuration.getHttpPort();
+            server = new Server();
+
             if (keyStore != null) {
-                server = new Server();
-                var storePassword = configuration.getSetting("keystore.password", "password");
-                var managerPassword = configuration.getSetting("keymanager.password", "password");
-
-                SslContextFactory.Server contextFactory = new SslContextFactory.Server();
-                contextFactory.setKeyStore(keyStore);
-                contextFactory.setKeyStorePassword(storePassword);
-                contextFactory.setKeyManagerPassword(managerPassword);
-
-                HttpConfiguration https = new HttpConfiguration();
-                SslConnectionFactory connectionFactory = new SslConnectionFactory(contextFactory, "http/1.1");
-                ServerConnector sslConnector = new ServerConnector(server, connectionFactory, new HttpConnectionFactory(https));
-                sslConnector.setPort(Integer.parseInt(port));
-                server.setConnectors(new Connector[]{ sslConnector });
+                server.addConnector(httpsServerConnector(port));
                 monitor.info("HTTPS listening on " + port);
             } else {
-                server = new Server(Integer.parseInt(port));
-                ServerConnector connector = new ServerConnector(server, new HttpConnectionFactory(new HttpConfiguration()));
-                connector.setPort(Integer.parseInt(port));
-                server.setConnectors(new Connector[]{ connector });
+                server.addConnector(httpServerConnector(port));
                 monitor.info("HTTP listening on " + port);
             }
 
             server.setErrorHandler(new JettyErrorHandler());
-            ContextHandlerCollection contexts = new ContextHandlerCollection();
-            contexts.setHandlers(handlers.values().toArray(new Handler[0]));
-            server.setHandler(contexts);
+            server.setHandler(new ContextHandlerCollection(handlers.values().toArray(ServletContextHandler[]::new)));
 
             server.start();
         } catch (Exception e) {
@@ -104,11 +83,10 @@ public class JettyService {
     }
 
     public void shutdown() {
-        if (server == null) {
-            return;
-        }
         try {
-            server.stop();
+            if (server != null) {
+                server.stop();
+            }
         } catch (Exception e) {
             throw new EdcException("Error shutting down Jetty service", e);
         }
@@ -133,9 +111,39 @@ public class JettyService {
         handlers.put(handler.getContextPath(), handler);
     }
 
+
+    @NotNull
+    private ServerConnector httpsServerConnector(int port) {
+        var storePassword = configuration.getKeystorePassword();
+        var managerPassword = configuration.getKeymanagerPassword();
+
+        var contextFactory = new SslContextFactory.Server();
+        contextFactory.setKeyStore(keyStore);
+        contextFactory.setKeyStorePassword(storePassword);
+        contextFactory.setKeyManagerPassword(managerPassword);
+
+        var sslConnectionFactory = new SslConnectionFactory(contextFactory, "http/1.1");
+        var sslConnector = new ServerConnector(server, httpConnectionFactory(), sslConnectionFactory);
+        sslConnector.setPort(port);
+        return sslConnector;
+    }
+
+    @NotNull
+    private ServerConnector httpServerConnector(int port) {
+        ServerConnector connector = new ServerConnector(server, httpConnectionFactory());
+        connector.setPort(port);
+        return connector;
+    }
+
+    @NotNull
+    private HttpConnectionFactory httpConnectionFactory() {
+        HttpConfiguration https = new HttpConfiguration();
+        return new HttpConnectionFactory(https);
+    }
+
     private ServletContextHandler getOrCreate(String contextPath) {
         return handlers.computeIfAbsent(contextPath, k -> {
-            ServletContextHandler handler = new ServletContextHandler(ServletContextHandler.NO_SESSIONS);
+            ServletContextHandler handler = new ServletContextHandler(NO_SESSIONS);
             handler.setContextPath(contextPath);
             return handler;
         });

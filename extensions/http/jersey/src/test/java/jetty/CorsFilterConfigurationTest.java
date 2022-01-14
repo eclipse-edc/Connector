@@ -1,5 +1,6 @@
-package org.eclipse.dataspaceconnector.core.protocol.web.rest;
+package jetty;
 
+import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;

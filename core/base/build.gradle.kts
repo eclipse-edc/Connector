@@ -22,8 +22,6 @@ val slf4jVersion: String by project
 val infoModelVersion: String by project
 val servletApi: String by project
 val rsApi: String by project
-val jettyVersion: String by project
-val jerseyVersion: String by project
 val okHttpVersion: String by project
 val jodahFailsafeVersion: String by project
 
@@ -32,20 +30,8 @@ dependencies {
     api(project(":spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
 
-    implementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
-    implementation("org.glassfish.jersey.containers:jersey-container-servlet-core:${jerseyVersion}")
-    implementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
-    implementation("org.glassfish.jersey.media:jersey-media-json-jackson:${jerseyVersion}")
-    implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
-    implementation("org.glassfish.jersey.inject:jersey-hk2:${jerseyVersion}")
-    implementation("org.glassfish.jersey.containers:jersey-container-servlet:${jerseyVersion}")
-
-    implementation("org.eclipse.jetty.websocket:websocket-jakarta-server:${jettyVersion}")
-    implementation("jakarta.websocket:jakarta.websocket-api:2.0.0")
-
     api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
-
 
     testImplementation("org.awaitility:awaitility:4.1.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")

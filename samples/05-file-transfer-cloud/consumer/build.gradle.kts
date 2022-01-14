@@ -31,6 +31,7 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
+    implementation(project(":extensions:http"))
 
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:azure:vault"))

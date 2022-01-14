@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.core.protocol.web.rest;
+package org.eclipse.dataspaceconnector.extension.jersey;
 
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
