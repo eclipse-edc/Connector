@@ -35,7 +35,6 @@ dependencies {
     implementation(project(":extensions:http"))
 
     implementation(project(":data-protocols:ids"))
-    implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:05-file-transfer-cloud:transfer-file"))
     implementation(project(":samples:05-file-transfer-cloud:data-seeder"))

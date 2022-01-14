@@ -30,7 +30,6 @@ include(":core:base")
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
 include(":data-protocols:ids:ids-api-multipart-dispatcher-v1")
 include(":data-protocols:ids:ids-core")
-include(":data-protocols:ids:ids-policy-mock")
 include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
 
