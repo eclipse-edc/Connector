@@ -67,7 +67,7 @@ public class CloudTransferExtension implements ServiceExtension {
                 .build();
 
         String assetId = "test-document";
-        Asset asset = Asset.Builder.newInstance().id(assetId).policyId(USE_EU_POLICY).build();
+        Asset asset = Asset.Builder.newInstance().id(assetId).build();
 
         assetIndex.accept(asset, dataAddress);
     }

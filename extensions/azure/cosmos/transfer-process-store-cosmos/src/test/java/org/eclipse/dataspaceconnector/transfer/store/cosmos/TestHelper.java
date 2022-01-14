@@ -35,7 +35,7 @@ public class TestHelper {
                         .type("Test Address Type")
                         .keyName("Test Key Name")
                         .build())
-                .assetId(Asset.Builder.newInstance().id("asset-id").policyId("test-policyId").build().getId())
+                .assetId(Asset.Builder.newInstance().id("asset-id").build().getId())
                 .processId("test-process-id")
                 .build();
     }

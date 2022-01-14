@@ -103,7 +103,6 @@ public class CosmosAssetQueryBuilder {
             // need to add ticks if right-operand is a string type
             if (isEqualsOperator &&
                     CollectionUtil.isAnyOf(s,
-                            Asset.PROPERTY_POLICY_ID,
                             Asset.PROPERTY_ID, Asset.PROPERTY_CONTENT_TYPE,
                             Asset.PROPERTY_NAME, Asset.PROPERTY_VERSION)) {
                 var or = criterion.getOperandRight().toString();
