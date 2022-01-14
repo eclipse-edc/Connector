@@ -33,8 +33,7 @@ dependencies {
 }
 
 application {
-    @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.did.RegistrationServiceRuntime"
+    mainClass.set("org.eclipse.dataspaceconnector.did.RegistrationServiceRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
