@@ -48,6 +48,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -93,10 +94,8 @@ public class Oauth2ServiceImpl implements IdentityService {
         validationRules = Collections.unmodifiableList(rules);
 
         if (tokenSigner instanceof ECDSASigner) {
-            //supports ECDSA private key
             jwsAlgorithm = JWSAlgorithm.ES256;
         } else {
-            //default: RSA private key
             jwsAlgorithm = JWSAlgorithm.RS256;
         }
     }
@@ -139,7 +138,7 @@ public class Oauth2ServiceImpl implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(String token, String audience) {
+    public Result<ClaimToken> verifyJwtToken(String token) {
         try {
             var signedJwt = SignedJWT.parse(token);
 
@@ -152,31 +151,26 @@ public class Oauth2ServiceImpl implements IdentityService {
             if (!signedJwt.verify(verifier)) {
                 return Result.failure("Token verification not successful");
             }
+
             var claimsSet = signedJwt.getJWTClaimsSet();
 
-            // now we get the results of all the single rules, lets collate them into one
             var errors = validationRules.stream()
-                    .map(r -> r.checkRule(claimsSet, audience))
+                    .map(r -> r.checkRule(claimsSet, configuration.getProviderAudience()))
                     .filter(Result::failed)
                     .map(Result::getFailureMessages)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toList());
 
-            // return instantly if there are errors present
             if (!errors.isEmpty()) {
                 return Result.failure(errors);
             }
 
-            // build claim tokens
             var tokenBuilder = ClaimToken.Builder.newInstance();
-            claimsSet.getClaims().forEach((k, v) -> {
-                var claimValue = Objects.toString(v);
-                if (claimValue == null) {
-                    // only support strings
-                    return;
-                }
-                tokenBuilder.claim(k, claimValue);
-            });
+            claimsSet.getClaims().entrySet().stream()
+                            .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
+                            .filter(entry -> entry.getValue() != null)
+                            .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
+
             return Result.success(tokenBuilder.build());
 
         } catch (JOSEException e) {

@@ -75,7 +75,7 @@ class DapsIntegrationTest {
 
         assertThat(tokenResult.succeeded()).isTrue();
 
-        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent().getToken(), AUDIENCE_IDS_CONNECTORS_ALL);
+        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent().getToken());
 
         assertThat(verificationResult.succeeded()).isTrue();
     }

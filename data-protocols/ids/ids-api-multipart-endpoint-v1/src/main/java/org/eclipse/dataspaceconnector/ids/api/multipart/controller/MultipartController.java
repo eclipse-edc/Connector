@@ -94,8 +94,7 @@ public class MultipartController {
             return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
         }
 
-        var verificationResult = identityService.verifyJwtToken(
-                dynamicAttributeToken.getTokenValue(), null);
+        var verificationResult = identityService.verifyJwtToken(dynamicAttributeToken.getTokenValue());
         if (verificationResult == null) {
             return Response.ok(createFormDataMultiPart(notAuthenticated(header, connectorId))).build();
         }

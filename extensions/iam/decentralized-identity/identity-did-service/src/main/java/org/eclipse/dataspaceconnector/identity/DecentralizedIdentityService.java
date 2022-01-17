@@ -61,7 +61,7 @@ public class DecentralizedIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(String token, String audience) {
+    public Result<ClaimToken> verifyJwtToken(String token) {
         try {
             var jwt = SignedJWT.parse(token);
             monitor.debug("Starting verification...");

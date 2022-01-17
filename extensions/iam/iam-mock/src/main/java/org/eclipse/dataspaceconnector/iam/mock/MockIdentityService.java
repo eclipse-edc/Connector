@@ -38,7 +38,7 @@ public class MockIdentityService implements IdentityService {
     }
 
     @Override
-    public Result<ClaimToken> verifyJwtToken(String token, String audience) {
+    public Result<ClaimToken> verifyJwtToken(String token) {
         switch (token) {
             case "mock-eu":
                 return Result.success(ClaimToken.Builder.newInstance().claim("region", "eu").build());
