@@ -116,10 +116,8 @@ include(":samples:other:dataseed:dataseed-azure")
 include(":samples:other:dataseed:dataseed-policy")
 include(":samples:other:run-from-junit")
 include(":samples:other:streaming")
-include(":samples:other:file-transfer-s3-to-s3")
 include(":samples:other:custom-runtime")
 
-// all implementations during/regarding the GaiaX Hackathon should go here:
 
 
 // extension points for a connector
