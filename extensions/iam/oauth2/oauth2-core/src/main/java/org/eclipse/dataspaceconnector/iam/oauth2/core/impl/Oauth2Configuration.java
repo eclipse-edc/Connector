@@ -18,69 +18,75 @@ import org.eclipse.dataspaceconnector.iam.oauth2.spi.PublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 
-import java.util.Arrays;
-import java.util.EnumMap;
-import java.util.Map;
-import java.util.Objects;
-
 /**
  * Configuration values and dependencies for {@link Oauth2ServiceImpl}.
  */
 public class Oauth2Configuration {
 
-    enum Config {
-        TOKEN_URL,
-        CLIENT_ID,
-        PRIVATE_KEY_ALIAS,
-        PUBLIC_CERTIFICATE_ALIAS,
-        PROVIDER_AUDIENCE,
-        PRIVATE_KEY_RESOLVER,
-        CERTIFICATE_RESOLVER,
-        IDENTITY_PROVIDER_KEY_RESOLVER
-    }
+    private final String tokenUrl;
+    private final String clientId;
+    private final PrivateKeyResolver privateKeyResolver;
+    private final CertificateResolver certificateResolver;
+    private final PublicKeyResolver identityProviderKeyResolver;
+    private final String privateKeyAlias;
+    private final String publicCertificateAlias;
+    private final String providerAudience;
 
-    private final Map<Config, Object> configs;
+    public Oauth2Configuration(String tokenUrl, String clientId, PrivateKeyResolver privateKeyResolver,
+                               CertificateResolver certificateResolver, PublicKeyResolver identityProviderKeyResolver,
+                               String privateKeyAlias, String publicCertificateAlias, String providerAudience) {
 
-    private Oauth2Configuration(Map<Config, Object> configs) {
-        // check that all configs have been provided
-        Arrays.stream(Config.values()).forEach(config -> Objects.requireNonNull(configs.get(config), "Missing Oauth2 config: " + config));
-        this.configs = configs;
+        this.tokenUrl = tokenUrl;
+        this.clientId = clientId;
+        this.privateKeyResolver = privateKeyResolver;
+        this.certificateResolver = certificateResolver;
+        this.identityProviderKeyResolver = identityProviderKeyResolver;
+        this.privateKeyAlias = privateKeyAlias;
+        this.publicCertificateAlias = publicCertificateAlias;
+        this.providerAudience = providerAudience;
     }
 
     public String getTokenUrl() {
-        return (String) configs.get(Config.TOKEN_URL);
+        return tokenUrl;
     }
 
     public String getClientId() {
-        return (String) configs.get(Config.CLIENT_ID);
+        return clientId;
     }
 
     public String getPrivateKeyAlias() {
-        return (String) configs.get(Config.PRIVATE_KEY_ALIAS);
+        return privateKeyAlias;
     }
 
     public String getPublicCertificateAlias() {
-        return (String) configs.get(Config.PUBLIC_CERTIFICATE_ALIAS);
+        return publicCertificateAlias;
     }
 
     public String getProviderAudience() {
-        return (String) configs.get(Config.PROVIDER_AUDIENCE);
+        return providerAudience;
     }
 
     public PrivateKeyResolver getPrivateKeyResolver() {
-        return (PrivateKeyResolver) configs.get(Config.PRIVATE_KEY_RESOLVER);
+        return privateKeyResolver;
     }
 
     public CertificateResolver getCertificateResolver() {
-        return (CertificateResolver) configs.get(Config.CERTIFICATE_RESOLVER);
+        return certificateResolver;
     }
 
     public PublicKeyResolver getIdentityProviderKeyResolver() {
-        return (PublicKeyResolver) configs.get(Config.IDENTITY_PROVIDER_KEY_RESOLVER);
+        return identityProviderKeyResolver;
     }
 
     public static class Builder {
-        private final Map<Config, Object> configs = new EnumMap<>(Config.class);
+        private String tokenUrl;
+        private String clientId;
+        private PrivateKeyResolver privateKeyResolver;
+        private CertificateResolver certificateResolver;
+        private PublicKeyResolver identityProviderKeyResolver;
+        private String privateKeyAlias;
+        private String publicCertificateAlias;
+        private String providerAudience;
 
         private Builder() {
         }
@@ -90,53 +96,54 @@ public class Oauth2Configuration {
         }
 
         public Builder tokenUrl(String url) {
-            configs.put(Config.TOKEN_URL, url);
+            this.tokenUrl = url;
             return this;
         }
 
         public Builder clientId(String clientId) {
-            configs.put(Config.CLIENT_ID, clientId);
+            this.clientId = clientId;
             return this;
         }
 
-        public Builder privateKeyResolver(PrivateKeyResolver resolver) {
-            configs.put(Config.PRIVATE_KEY_RESOLVER, resolver);
+        public Builder privateKeyResolver(PrivateKeyResolver privateKeyResolver) {
+            this.privateKeyResolver = privateKeyResolver;
             return this;
         }
 
         /**
          * Resolves this runtime's certificate containing its public key.
          */
-        public Builder certificateResolver(CertificateResolver resolver) {
-            configs.put(Config.CERTIFICATE_RESOLVER, resolver);
+        public Builder certificateResolver(CertificateResolver certificateResolver) {
+            this.certificateResolver = certificateResolver;
             return this;
         }
 
         /**
          * Resolves the certificate containing the identity provider's public key.
          */
-        public Builder identityProviderKeyResolver(PublicKeyResolver resolver) {
-            configs.put(Config.IDENTITY_PROVIDER_KEY_RESOLVER, resolver);
+        public Builder identityProviderKeyResolver(PublicKeyResolver identityProviderKeyResolver) {
+            this.identityProviderKeyResolver = identityProviderKeyResolver;
             return this;
         }
 
-        public Builder privateKeyAlias(String alias) {
-            configs.put(Config.PRIVATE_KEY_ALIAS, alias);
+        public Builder privateKeyAlias(String privateKeyAlias) {
+            this.privateKeyAlias = privateKeyAlias;
             return this;
         }
 
-        public Builder publicCertificateAlias(String alias) {
-            configs.put(Config.PUBLIC_CERTIFICATE_ALIAS, alias);
+        public Builder publicCertificateAlias(String publicCertificateAlias) {
+            this.publicCertificateAlias = publicCertificateAlias;
             return this;
         }
 
-        public Builder providerAudience(String audience) {
-            configs.put(Config.PROVIDER_AUDIENCE, audience);
+        public Builder providerAudience(String providerAudience) {
+            this.providerAudience = providerAudience;
             return this;
         }
 
         public Oauth2Configuration build() {
-            return new Oauth2Configuration(configs);
+            return new Oauth2Configuration(tokenUrl, clientId, privateKeyResolver, certificateResolver,
+                    identityProviderKeyResolver, privateKeyAlias, publicCertificateAlias, providerAudience);
         }
     }
 }
