@@ -24,7 +24,7 @@ public class ObservabilityApiExtension implements ServiceExtension {
 
     @Override
     public String name() {
-        return "EDC Control API";
+        return "Observability API";
     }
 
     @Override
