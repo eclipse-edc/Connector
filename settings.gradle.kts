@@ -129,6 +129,8 @@ include(":spi:transfer-spi")
 include(":spi:contract-spi")
 include(":spi:catalog-spi")
 
+//include(":openapi")
+
 // numbered samples for the onboarding experience
 include(":samples:01-basic-connector")
 include(":samples:02-health-endpoint")

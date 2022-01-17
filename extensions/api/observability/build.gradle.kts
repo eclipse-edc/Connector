@@ -19,6 +19,7 @@ val jerseyVersion: String by project
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
@@ -29,8 +30,6 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     testImplementation(testFixtures(project(":launchers:junit")))
-
-
 }
 
 publishing {
