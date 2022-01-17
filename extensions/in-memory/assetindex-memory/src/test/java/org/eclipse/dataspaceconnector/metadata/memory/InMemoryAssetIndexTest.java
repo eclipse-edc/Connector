@@ -1,8 +1,5 @@
 package org.eclipse.dataspaceconnector.metadata.memory;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
@@ -203,17 +200,5 @@ class InMemoryAssetIndexTest {
                 .keyName("test-keyname")
                 .type(asset.getContentType())
                 .build();
-    }
-
-    private Map<String, ?> flatten(Object object) {
-
-        try {
-            var om = new ObjectMapper();
-            om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            var json = om.writeValueAsString(object);
-            return om.readValue(json, Map.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
