@@ -9,9 +9,9 @@ repositories {
     mavenCentral()
 }
 dependencies {
-    api(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
+    api(project(":extensions:iam:decentralized-identity:identity-did-spi"))
 
-    api(project(":extensions:iam:decentralized-identifier:identity-did-spi"))
+    api(project(":extensions:iam:decentralized-identity:identity-did-spi"))
 
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 

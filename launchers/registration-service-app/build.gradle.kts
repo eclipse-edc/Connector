@@ -23,8 +23,8 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":common:util"))
 //    implementation(project(":extensions:azure:events"))
-    implementation(project(":extensions:iam:decentralized-identifier:registration-service"))
-    implementation(project(":extensions:iam:decentralized-identifier:registration-service-api"))
+    implementation(project(":extensions:iam:decentralized-identity:registration-service"))
+    implementation(project(":extensions:iam:decentralized-identity:registration-service-api"))
     implementation(project(":extensions:in-memory:did-document-store-inmem"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
