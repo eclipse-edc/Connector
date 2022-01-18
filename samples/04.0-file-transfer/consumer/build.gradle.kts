@@ -27,24 +27,27 @@ dependencies {
 
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
+    implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
     implementation(project(":extensions:in-memory:contractdefinition-store-memory"))
-    implementation(project(":extensions:http"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:iam:iam-mock"))
 
+    implementation(project(":extensions:api:control"))
+
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":samples:04-file-transfer:transfer-file"))
+    implementation(project(":samples:04.0-file-transfer:api"))
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.core.system.runtime.BaseRuntime")
+    @Suppress("DEPRECATION")
+    mainClassName = "org.eclipse.dataspaceconnector.core.system.runtime.BaseRuntime"
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
-    archiveFileName.set("provider.jar")
+    archiveFileName.set("consumer.jar")
 }
