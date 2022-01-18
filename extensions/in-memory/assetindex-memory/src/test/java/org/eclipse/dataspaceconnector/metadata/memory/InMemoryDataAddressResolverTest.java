@@ -44,7 +44,7 @@ class InMemoryDataAddressResolverTest {
     }
 
     private Asset createAsset(String name, String id) {
-        return Asset.Builder.newInstance().id(id).name(name).version("1").build();
+        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType("type").build();
     }
 
     private DataAddress createDataAddress(Asset asset) {
