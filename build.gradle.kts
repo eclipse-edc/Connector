@@ -30,6 +30,7 @@ val javaVersion: String by project
 val jupiterVersion: String by project
 val mockitoVersion: String by project
 val rsApi: String by project
+val swaggerJaxrs2Version: String by project
 
 val groupId: String = "org.eclipse.dataspaceconnector"
 var edcVersion: String = "0.0.1-SNAPSHOT"
@@ -114,13 +115,13 @@ allprojects {
 
     pluginManager.withPlugin("io.swagger.core.v3.swagger-gradle-plugin") {
 
-        dependencies{
+        dependencies {
             // this is used to scan the classpath and generate an openapi yaml file
-            implementation("io.swagger.core.v3:swagger-jaxrs2-jakarta:2.1.12")
+            implementation("io.swagger.core.v3:swagger-jaxrs2-jakarta:${swaggerJaxrs2Version}")
             implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
         }
 // this is used to scan the classpath and generate an openapi yaml file
-        tasks.withType<io.swagger.v3.plugins.gradle.tasks.ResolveTask>{
+        tasks.withType<io.swagger.v3.plugins.gradle.tasks.ResolveTask> {
             outputFileName = project.name
             outputFormat = io.swagger.v3.plugins.gradle.tasks.ResolveTask.Format.YAML
             prettyPrint = true
