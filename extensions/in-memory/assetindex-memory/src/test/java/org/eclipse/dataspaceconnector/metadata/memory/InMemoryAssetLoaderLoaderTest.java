@@ -33,7 +33,7 @@ public class InMemoryAssetLoaderLoaderTest {
 
     @Test
     void accept_illegalParams() {
-        var dataAddress = DataAddress.Builder.newInstance().build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
         assertThatThrownBy(() -> assetLoader.accept(null, dataAddress)).isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> assetLoader.accept(createAsset("testasset", "testid"), null)).isInstanceOf(NullPointerException.class);
     }

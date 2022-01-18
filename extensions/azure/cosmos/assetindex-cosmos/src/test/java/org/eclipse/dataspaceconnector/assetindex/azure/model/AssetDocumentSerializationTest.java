@@ -46,7 +46,7 @@ class AssetDocumentSerializationTest {
     void testSerialization() {
         var asset = createAsset();
 
-        var document = new AssetDocument(asset, "partitionkey-test", DataAddress.Builder.newInstance().build());
+        var document = new AssetDocument(asset, "partitionkey-test", DataAddress.Builder.newInstance().type("type").build());
 
         String s = typeManager.writeValueAsString(document);
 
