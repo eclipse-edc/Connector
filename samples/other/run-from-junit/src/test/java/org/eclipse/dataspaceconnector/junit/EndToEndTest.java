@@ -128,7 +128,7 @@ public class EndToEndTest {
                 }
 
                 @Override
-                public Result<ClaimToken> verifyJwtToken(String token, String audience) {
+                public Result<ClaimToken> verifyJwtToken(String token) {
                     return Result.success(ClaimToken.Builder.newInstance().build());
                 }
             });

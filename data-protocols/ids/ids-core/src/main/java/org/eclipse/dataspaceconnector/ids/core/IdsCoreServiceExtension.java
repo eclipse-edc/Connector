@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.ids.core;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.core.daps.DapsServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.policy.IdsPolicyServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
@@ -26,7 +25,6 @@ import org.eclipse.dataspaceconnector.ids.core.version.ConnectorVersionProviderI
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
 import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
@@ -50,7 +48,7 @@ import java.util.List;
  * Implements the IDS Controller REST API.
  */
 @Provides({ ConnectorVersionProvider.class, CatalogService.class, ConnectorService.class,
-        IdsPolicyService.class, DapsService.class, IdsDescriptorService.class, CatalogService.class, ConnectorService.class, TransformerRegistry.class })
+        IdsPolicyService.class, IdsDescriptorService.class, CatalogService.class, ConnectorService.class, TransformerRegistry.class })
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -117,10 +115,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private void registerOther(ServiceExtensionContext context) {
         var descriptorService = new IdsDescriptorServiceImpl();
         context.registerService(IdsDescriptorService.class, descriptorService);
-
-        var connectorId = context.getConnectorId();
-        var dapsService = new DapsServiceImpl(connectorId, identityService);
-        context.registerService(DapsService.class, dapsService);
 
         var policyService = new IdsPolicyServiceImpl();
         context.registerService(IdsPolicyService.class, policyService);
