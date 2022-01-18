@@ -15,7 +15,6 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.Disabled;
@@ -38,10 +37,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 any(ContractOffer.class))).thenReturn(true);
-
-        // Create signaling stores for provider and consumer
-        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
-        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+        
+        // Create and register listeners for provider and consumer
+        providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -84,10 +83,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         ContractOffer offer = getContractOffer();
 
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
-
-        // Create signaling stores for provider and consumer
-        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
-        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+    
+        // Create and register listeners for provider and consumer
+        providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -133,10 +132,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 any(ContractOffer.class))).thenReturn(false);
-
-        // Create signaling stores for provider and consumer
-        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
-        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+    
+        // Create and register listeners for provider and consumer
+        providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -186,10 +185,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 eq(counterOffer))).thenReturn(true);
-
-        // Create signaling stores for provider and consumer
-        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
-        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+    
+        // Create and register listeners for provider and consumer
+        providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -245,10 +244,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
         when(validationService.validate(token, initialOffer)).thenReturn(Result.success(null));
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
-
-        // Create signaling stores for provider and consumer
-        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
-        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+    
+        // Create and register listeners for provider and consumer
+        providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -315,11 +314,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Mock validation of agreement on consumer side
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 eq(consumerCounterOffer))).thenReturn(true);
-
-
-        // Create signaling stores for provider and consumer
-        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
-        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.CONFIRMED);
+        
+        // Create and register listeners for provider and consumer
+        providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -387,11 +385,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
 
         //Mock validation of second counter offer on provider side => decline
         when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
-
-
-        // Create signaling stores for provider and consumer
-        providerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
-        consumerStore = new SignalingInMemoryContractNegotiationStore(countDownLatch, ContractNegotiationStates.DECLINED);
+        
+        // Create and register listeners for provider and consumer
+        providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
