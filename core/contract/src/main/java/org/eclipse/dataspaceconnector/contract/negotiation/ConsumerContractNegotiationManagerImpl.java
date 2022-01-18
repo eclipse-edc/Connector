@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
@@ -42,7 +41,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Consumer;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
@@ -486,15 +484,6 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
                 }
             }
         }
-    }
-    
-    /**
-     * Invokes a given action on all registered {@link ContractNegotiationListener}s.
-     *
-     * @param action the action to invoke.
-     */
-    private void invokeForEach(Consumer<ContractNegotiationListener> action) {
-        getListeners().forEach(action);
     }
 
     /**

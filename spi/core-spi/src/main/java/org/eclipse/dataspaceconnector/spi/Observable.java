@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - extended method implementation
  *
  */
 
@@ -17,6 +18,7 @@ package org.eclipse.dataspaceconnector.spi;
 
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.function.Consumer;
 
 public abstract class Observable<T> {
 
@@ -39,5 +41,14 @@ public abstract class Observable<T> {
 
     public void unregisterListener(T listener) {
         listeners.remove(listener);
+    }
+    
+    /**
+     * Invokes a given action on all registered listeners.
+     *
+     * @param action the action to invoke.
+     */
+    protected void invokeForEach(Consumer<T> action) {
+        getListeners().forEach(action);
     }
 }
