@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationListener;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
@@ -38,6 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
@@ -50,7 +53,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
  */
-public class ProviderContractNegotiationManagerImpl implements ProviderContractNegotiationManager {
+public class ProviderContractNegotiationManagerImpl extends ContractNegotiationObservable implements ProviderContractNegotiationManager {
 
     private final AtomicBoolean active = new AtomicBoolean();
 
@@ -107,6 +110,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
         negotiation.transitionDeclined();
         negotiationStore.save(negotiation);
+        invokeForEach(l -> l.declined(negotiation));
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -137,6 +141,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .build();
 
         negotiationStore.save(negotiation);
+        invokeForEach(l -> l.requested(negotiation));
+        
         monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -190,13 +196,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             //    negotiation.addContractOffer(result.getCounterOffer());
             //    monitor.debug("[Provider] Contract offer received. A counter offer is available.");
             //    negotiation.transitionOffering();
+            //    negotiationStore.save(negotiation);
+            //    invokeForEach(l -> l.providerOffering(negotiation));
             //} else {
             monitor.debug("[Provider] Contract offer received. Will be rejected.");
             negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
             negotiation.transitionDeclining();
-            //}
-
             negotiationStore.save(negotiation);
+            invokeForEach(l -> l.declining(negotiation));
+            //}
+            
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return NegotiationResult.success(negotiation);
@@ -206,6 +215,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         // negotiation.addContractOffer(result.getValidatedOffer()); TODO
         negotiation.transitionConfirming();
         negotiationStore.save(negotiation);
+        invokeForEach(l -> l.confirming(negotiation));
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -232,6 +242,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         monitor.debug("[Provider] Contract offer has been approved by consumer.");
         negotiation.transitionConfirming();
         negotiationStore.save(negotiation);
+        invokeForEach(l -> l.confirming(negotiation));
         monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return NegotiationResult.success(negotiation);
@@ -300,11 +311,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                         if (throwable == null) {
                             negotiation.transitionOffered();
                             negotiationStore.save(negotiation);
+                            invokeForEach(l -> l.providerOffered(negotiation));
                             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                         } else {
                             negotiation.transitionOffering();
                             negotiationStore.save(negotiation);
+                            invokeForEach(l -> l.providerOffering(negotiation));
                             String message = format("[Provider] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                                     currentOffer.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
                             monitor.debug(message, throwable);
@@ -340,11 +353,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                         if (throwable == null) {
                             negotiation.transitionDeclined();
                             negotiationStore.save(negotiation);
+                            invokeForEach(l -> l.declined(negotiation));
                             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                         } else {
                             negotiation.transitionDeclining();
                             negotiationStore.save(negotiation);
+                            invokeForEach(l -> l.declining(negotiation));
                             String message = format("[Provider] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
                                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
                             monitor.debug(message, throwable);
@@ -409,11 +424,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                             negotiation.setContractAgreement(agreement);
                             negotiation.transitionConfirmed();
                             negotiationStore.save(negotiation);
+                            invokeForEach(l -> l.confirmed(negotiation));
                             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                         } else {
                             negotiation.transitionConfirming();
                             negotiationStore.save(negotiation);
+                            invokeForEach(l -> l.confirming(negotiation));
                             String message = format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
                                     agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
                             monitor.debug(message, throwable);
@@ -422,6 +439,15 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
 
         return confirmingNegotiations.size();
+    }
+    
+    /**
+     * Invokes a given action on all registered {@link ContractNegotiationListener}s.
+     *
+     * @param action the action to invoke.
+     */
+    private void invokeForEach(Consumer<ContractNegotiationListener> action) {
+        getListeners().forEach(action);
     }
 
     /**

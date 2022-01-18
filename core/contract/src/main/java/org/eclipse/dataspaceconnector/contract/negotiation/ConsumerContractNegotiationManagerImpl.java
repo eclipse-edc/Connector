@@ -16,6 +16,8 @@ package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationListener;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -40,6 +42,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Consumer;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
@@ -59,7 +62,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  * - ConsumerContractNegotiationManager & ProviderContractNegotiationManager: add start and stop methods, builder
  * - method call in CoreTransferExtension
  */
-public class ConsumerContractNegotiationManagerImpl implements ConsumerContractNegotiationManager {
+public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationObservable implements ConsumerContractNegotiationManager {
     private final AtomicBoolean active = new AtomicBoolean();
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
@@ -109,6 +112,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
         negotiationStore.save(negotiation);
+        invokeForEach(l -> l.requesting(negotiation));
 
         monitor.debug(String.format("[Consumer] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
@@ -150,19 +154,24 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             //    negotiation.addContractOffer(result.getCounterOffer());
             //    monitor.debug("[Consumer] Contract offer received. A counter offer is available.");
             //    negotiation.transitionOffering();
+            //    negotiationStore.save(negotiation);
+            //    invokeForEach(l -> l.consumerOffering(negotiation));
             //} else {
             // If no counter offer available + validation result invalid, decline negotiation.
             monitor.debug("[Consumer] Contract offer received. Will be rejected.");
             negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
             negotiation.transitionDeclining();
+            negotiationStore.save(negotiation);
+            invokeForEach(l -> l.declining(negotiation));
             //}
         } else {
             // Offer has been approved.
             monitor.debug("[Consumer] Contract offer received. Will be approved.");
             negotiation.transitionApproving();
+            negotiationStore.save(negotiation);
+            invokeForEach(l -> l.consumerApproving(negotiation));
         }
-
-        negotiationStore.save(negotiation);
+        
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -203,6 +212,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
             negotiation.transitionDeclining();
             negotiationStore.save(negotiation);
+            invokeForEach(l -> l.declining(negotiation));
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return NegotiationResult.success(negotiation);
@@ -213,6 +223,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         monitor.debug("[Consumer] Contract agreement received. Validation successful.");
         negotiation.transitionConfirmed();
         negotiationStore.save(negotiation);
+        invokeForEach(l -> l.confirmed(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -238,6 +249,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         monitor.debug("[Consumer] Contract rejection received. Abort negotiation process");
         negotiation.transitionDeclined();
         negotiationStore.save(negotiation);
+        invokeForEach(l -> l.declined(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return NegotiationResult.success(negotiation);
@@ -282,11 +294,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                         if (throwable == null) {
                             process.transitionRequested();
                             negotiationStore.save(process);
+                            invokeForEach(l -> l.requested(process));
                             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState())));
                         } else {
                             process.transitionRequesting();
                             negotiationStore.save(process);
+                            invokeForEach(l -> l.requesting(process));
                             String message = format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                                     offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState()));
                             monitor.debug(message, throwable);
@@ -314,11 +328,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                         if (throwable == null) {
                             process.transitionOffered();
                             negotiationStore.save(process);
+                            invokeForEach(l -> l.consumerOffered(process));
                             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState())));
                         } else {
                             process.transitionOffering();
                             negotiationStore.save(process);
+                            invokeForEach(l -> l.consumerOffering(process));
                             String message = format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                                     offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState()));
                             monitor.debug(message, throwable);
@@ -376,11 +392,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                         if (throwable == null) {
                             process.transitionApproved();
                             negotiationStore.save(process);
+                            invokeForEach(l -> l.consumerApproved(process));
                             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState())));
                         } else {
                             process.transitionApproving();
                             negotiationStore.save(process);
+                            invokeForEach(l -> l.consumerApproving(process));
                             String message = format("[Consumer] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
                                     agreement.getId(), process.getId(), ContractNegotiationStates.from(process.getState()));
                             monitor.debug(message, throwable);
@@ -418,11 +436,13 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                         if (throwable == null) {
                             process.transitionDeclined();
                             negotiationStore.save(process);
+                            invokeForEach(l -> l.declined(process));
                             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState())));
                         } else {
                             process.transitionDeclining();
                             negotiationStore.save(process);
+                            invokeForEach(l -> l.declining(process));
                             String message = format("[Consumer] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState()));
                             monitor.debug(message, throwable);
@@ -466,6 +486,15 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 }
             }
         }
+    }
+    
+    /**
+     * Invokes a given action on all registered {@link ContractNegotiationListener}s.
+     *
+     * @param action the action to invoke.
+     */
+    private void invokeForEach(Consumer<ContractNegotiationListener> action) {
+        getListeners().forEach(action);
     }
 
     /**
