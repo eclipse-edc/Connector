@@ -42,7 +42,7 @@ public class HttpDataSource implements DataSource {
     private Monitor monitor;
 
     @Override
-    public Stream<Part> openStream() {
+    public Stream<Part> openPartStream() {
         return Stream.of(getPart());
     }
 

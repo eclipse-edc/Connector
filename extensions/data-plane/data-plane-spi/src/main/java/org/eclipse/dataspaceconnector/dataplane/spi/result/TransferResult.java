@@ -13,26 +13,27 @@
  */
 package org.eclipse.dataspaceconnector.dataplane.spi.result;
 
-import org.eclipse.dataspaceconnector.spi.response.ResponseFailure;
-import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
+import org.eclipse.dataspaceconnector.spi.transfer.ResponseFailure;
+import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 
 import java.util.List;
 
 /**
  * The result of a transfer operation.
  */
-public class TransferResult extends AbstractResult<Void, ResponseFailure> {
+public class TransferResult extends AbstractResult<String, ResponseFailure> {
 
     public static TransferResult success() {
-        return new TransferResult(null);
+        return new TransferResult(null, null);
     }
 
     public static TransferResult failure(ResponseStatus status, String error) {
-        return new TransferResult(new ResponseFailure(status, List.of(error)));
+        return new TransferResult(null, new ResponseFailure(status, List.of(error)));
     }
 
-    protected TransferResult(ResponseFailure failure) {
-        super(null, failure);
+    protected TransferResult(String content, ResponseFailure failure) {
+        super(content, failure);
     }
+
 }

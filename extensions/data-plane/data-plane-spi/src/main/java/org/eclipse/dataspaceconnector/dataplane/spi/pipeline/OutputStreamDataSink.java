@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Sends data to an output stream. The transfer is done asynchronously using the supplied executor service.
@@ -42,8 +42,8 @@ public class OutputStreamDataSink implements DataSink {
 
     @Override
     public CompletableFuture<TransferResult> transfer(DataSource source) {
-        try (var partStream = source.openPartStream()) {
-            var futures = partStream.map(part -> supplyAsync(() -> transferData(part), executorService)).collect(toList());
+        try {
+            var futures = source.openPartStream().map(part -> supplyAsync(() -> transferData(part), executorService)).collect(toList());
             return allOf(futures.toArray(CompletableFuture[]::new)).thenApply((s) -> {
                 if (futures.stream().anyMatch(future -> future.getNow(null).failed())) {
                     return TransferResult.failure(ERROR_RETRY, "Error transferring data");
@@ -57,8 +57,8 @@ public class OutputStreamDataSink implements DataSink {
     }
 
     private Result<Void> transferData(DataSource.Part part) {
-        try (var source = part.openStream()) {
-            source.transferTo(stream);
+        try {
+            part.openStream().transferTo(stream);
             return Result.success();
         } catch (Exception e) {
             monitor.severe("Error writing data", e);

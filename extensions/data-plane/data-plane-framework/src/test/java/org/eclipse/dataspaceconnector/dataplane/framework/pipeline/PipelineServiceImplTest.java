@@ -5,7 +5,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
-import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
@@ -34,7 +34,7 @@ class PipelineServiceImplTest {
         when(sourceFactory.createSource(isA(DataFlowRequest.class))).thenReturn(source);
         when(sinkFactory.canHandle(isA(DataFlowRequest.class))).thenReturn(true);
         when(sinkFactory.createSink(isA(DataFlowRequest.class))).thenReturn(sink);
-        when(sink.transfer(eq(source))).thenReturn(completedFuture(Result.success()));
+        when(sink.transfer(eq(source))).thenReturn(completedFuture(TransferResult.success()));
 
         var request = DataFlowRequest.Builder.newInstance()
                 .id("1")
