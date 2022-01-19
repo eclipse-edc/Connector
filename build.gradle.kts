@@ -186,7 +186,6 @@ openApiMerger {
             }
         }
     }
-
 }
 
 val test by tasks.getting(Test::class) {
