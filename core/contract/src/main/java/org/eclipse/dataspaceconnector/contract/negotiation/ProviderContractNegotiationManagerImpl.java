@@ -43,6 +43,9 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
 
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
@@ -278,7 +281,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @return the number of processed ContractNegotiations.
      */
     private int checkProviderOffering() {
-        var offeringNegotiations = negotiationStore.nextForState(ContractNegotiationStates.PROVIDER_OFFERING.code(), batchSize);
+        var offeringNegotiations = negotiationStore.nextForState(PROVIDER_OFFERING.code(), batchSize);
 
         for (var negotiation : offeringNegotiations) {
             var currentOffer = negotiation.getLastContractOffer();
@@ -292,20 +295,19 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .build();
 
             //TODO protocol-independent response type?
-            var response = dispatcherRegistry.send(Object.class, contractOfferRequest, () -> null);
-
-            if (response.isCompletedExceptionally()) {
-                negotiation.transitionOffering();
-                negotiationStore.save(negotiation);
-                monitor.debug(format("[Provider] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
-                        currentOffer.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-                continue;
-            }
-
-            negotiation.transitionOffered();
-            negotiationStore.save(negotiation);
-            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            dispatcherRegistry.send(Object.class, contractOfferRequest, () -> null)
+                    .whenComplete((response, throwable) -> {
+                        if (throwable == null) {
+                            negotiation.transitionOffered();
+                            negotiationStore.save(negotiation);
+                            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+                                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+                        } else {
+                            String message = format("[Provider] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
+                                    currentOffer.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
+                            monitor.debug(message, throwable);
+                        }
+                    });
         }
 
         return offeringNegotiations.size();
@@ -319,7 +321,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @return the number of processed ContractNegotiations.
      */
     private int checkDeclining() {
-        var decliningNegotiations = negotiationStore.nextForState(ContractNegotiationStates.DECLINING.code(), batchSize);
+        var decliningNegotiations = negotiationStore.nextForState(DECLINING.code(), batchSize);
 
         for (var negotiation : decliningNegotiations) {
             ContractRejection rejection = ContractRejection.Builder.newInstance()
@@ -331,19 +333,19 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .build();
 
             //TODO protocol-independent response type?
-            var response = dispatcherRegistry.send(Object.class, rejection, () -> null);
-            if (response.isCompletedExceptionally()) {
-                negotiation.transitionDeclining();
-                negotiationStore.save(negotiation);
-                monitor.debug(format("[Provider] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
-                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-                continue;
-            }
-
-            negotiation.transitionDeclined();
-            negotiationStore.save(negotiation);
-            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            dispatcherRegistry.send(Object.class, rejection, () -> null)
+                    .whenComplete((response, throwable) -> {
+                        if (throwable == null) {
+                            negotiation.transitionDeclined();
+                            negotiationStore.save(negotiation);
+                            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+                                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+                        } else {
+                            String message = format("[Provider] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
+                                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
+                            monitor.debug(message, throwable);
+                        }
+                    });
         }
 
         return decliningNegotiations.size();
@@ -357,12 +359,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @return the number of processed ContractNegotiations.
      */
     private int checkConfirming() {
-        var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
+        var confirmingNegotiations = negotiationStore.nextForState(CONFIRMING.code(), batchSize);
 
         for (var negotiation : confirmingNegotiations) {
-            var agreement = negotiation.getContractAgreement(); // TODO build agreement
+            var retrievedAgreement = negotiation.getContractAgreement();
 
-            if (agreement == null) {
+            ContractAgreement agreement;
+            if (retrievedAgreement == null) {
                 var lastOffer = negotiation.getLastContractOffer();
 
                 var contractIdTokens = parseContractId(lastOffer.getId());
@@ -383,6 +386,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                         .policy(lastOffer.getPolicy())
                         .asset(lastOffer.getAsset())
                         .build();
+            } else {
+                agreement = retrievedAgreement;
             }
 
             ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
@@ -394,21 +399,20 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     .build();
 
             //TODO protocol-independent response type?
-            var response = dispatcherRegistry.send(Object.class, request, () -> null);
-
-            if (response.isCompletedExceptionally()) {
-                negotiation.transitionConfirming();
-                negotiationStore.save(negotiation);
-                monitor.debug(format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
-                        agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-                continue;
-            }
-
-            negotiation.setContractAgreement(agreement);
-            negotiation.transitionConfirmed();
-            negotiationStore.save(negotiation);
-            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            dispatcherRegistry.send(Object.class, request, () -> null)
+                    .whenComplete((response, throwable) -> {
+                        if (throwable == null) {
+                            negotiation.setContractAgreement(agreement);
+                            negotiation.transitionConfirmed();
+                            negotiationStore.save(negotiation);
+                            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+                                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+                        } else {
+                            String message = format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
+                                    agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
+                            monitor.debug(message, throwable);
+                        }
+                    });
         }
 
         return confirmingNegotiations.size();
