@@ -281,10 +281,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                     .whenComplete((response, throwable) -> {
                         if (throwable == null) {
                             process.transitionRequested();
+                            negotiationStore.save(process);
                             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState())));
-                            negotiationStore.save(process);
                         } else {
+                            process.transitionRequesting();
+                            negotiationStore.save(process);
                             String message = format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                                     offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState()));
                             monitor.debug(message, throwable);
@@ -311,10 +313,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                     .whenComplete((response, throwable) -> {
                         if (throwable == null) {
                             process.transitionOffered();
+                            negotiationStore.save(process);
                             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState())));
-                            negotiationStore.save(process);
                         } else {
+                            process.transitionOffering();
+                            negotiationStore.save(process);
                             String message = format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                                     offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState()));
                             monitor.debug(message, throwable);
@@ -371,10 +375,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                     .whenComplete((response, throwable) -> {
                         if (throwable == null) {
                             process.transitionApproved();
+                            negotiationStore.save(process);
                             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState())));
-                            negotiationStore.save(process);
                         } else {
+                            process.transitionApproving();
+                            negotiationStore.save(process);
                             String message = format("[Consumer] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
                                     agreement.getId(), process.getId(), ContractNegotiationStates.from(process.getState()));
                             monitor.debug(message, throwable);
@@ -411,16 +417,17 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                     .whenComplete((response, throwable) -> {
                         if (throwable == null) {
                             process.transitionDeclined();
+                            negotiationStore.save(process);
                             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState())));
-                            negotiationStore.save(process);
                         } else {
+                            process.transitionDeclining();
+                            negotiationStore.save(process);
                             String message = format("[Consumer] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
                                     process.getId(), ContractNegotiationStates.from(process.getState()));
                             monitor.debug(message, throwable);
                         }
                     });
-
         }
 
         return processes.size();

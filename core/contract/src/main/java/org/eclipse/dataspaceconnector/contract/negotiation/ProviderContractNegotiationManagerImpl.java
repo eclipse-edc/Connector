@@ -303,6 +303,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                         } else {
+                            negotiation.transitionOffering();
+                            negotiationStore.save(negotiation);
                             String message = format("[Provider] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
                                     currentOffer.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
                             monitor.debug(message, throwable);
@@ -341,6 +343,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                         } else {
+                            negotiation.transitionDeclining();
+                            negotiationStore.save(negotiation);
                             String message = format("[Provider] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
                                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
                             monitor.debug(message, throwable);
@@ -408,6 +412,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
                         } else {
+                            negotiation.transitionConfirming();
+                            negotiationStore.save(negotiation);
                             String message = format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
                                     agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
                             monitor.debug(message, throwable);
