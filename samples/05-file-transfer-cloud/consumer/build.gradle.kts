@@ -35,7 +35,6 @@ dependencies {
 
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:azure:vault"))
-    implementation(project(":extensions:aws:s3:provision"))
 
     implementation(project(":extensions:api:control"))
 
