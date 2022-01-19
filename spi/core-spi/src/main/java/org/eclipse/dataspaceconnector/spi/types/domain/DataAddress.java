@@ -90,10 +90,7 @@ public class DataAddress {
         }
 
         public Builder properties(Map<String, String> properties) {
-            properties.forEach((key, value) -> {
-                Objects.requireNonNull(key, "Property key null.");
-                address.properties.put(key, value);
-            });
+            properties.forEach(this::property);
             return this;
         }
 

@@ -99,17 +99,4 @@ public class InMemoryAssetLoaderLoaderTest {
                 .keyName("test-keyname")
                 .build();
     }
-
-
-    private Map<String, ?> flatten(Object object) {
-
-        try {
-            var om = new ObjectMapper();
-            om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            var json = om.writeValueAsString(object);
-            return om.readValue(json, Map.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
 }
