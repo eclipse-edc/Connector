@@ -22,9 +22,7 @@ val jupiterVersion: String by project
 
 dependencies {
     implementation(project(":core:base"))
-    implementation(project(":extensions:dataloading:dataloading-spi"))
-    implementation(project(":extensions:dataloading:dataloading-asset"))
-    implementation(project(":extensions:dataloading:dataloading-contractdef"))
+    implementation(project(":extensions:dataloading"))
 
     // the following lines enable the CosmosDB-based AssetIndex
     implementation(project(":extensions:azure:cosmos:assetindex-cosmos"))

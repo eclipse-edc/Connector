@@ -94,8 +94,7 @@ If either one is missing, the application is shut down. This launcher's `build.g
 to the dataloading modules - the CosmosDB implementation of the `AssetIndex` as well as the `ContractDefinitionStore`:
 
 ```gradle
-implementation(project(":extensions:dataloading:dataloading-spi"))
-implementation(project(":extensions:dataloading:dataloading-contractdef"))
+implementation(project(":extensions:dataloading"))
 
 ...
 

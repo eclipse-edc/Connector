@@ -19,8 +19,6 @@ plugins {
 //This file serves as BOM for the dataloader
 dependencies {
     api(project(":spi"))
-    api(project(":extensions:dataloading:dataloading-contractdef"))
-    api(project(":extensions:dataloading:dataloading-spi"))
     implementation(project(":common:util"))
 }
 
