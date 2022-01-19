@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 
 public class InlineDataFlowController implements DataFlowController {
     private final Vault vault;
@@ -58,7 +59,7 @@ public class InlineDataFlowController implements DataFlowController {
         var destSecretName = dataRequest.getDataDestination().getKeyName();
         if (destSecretName == null) {
             monitor.severe(format("No credentials found for %s, will not copy!", destinationType));
-            return new DataFlowInitiateResult(ResponseStatus.ERROR_RETRY, "Did not find credentials for data destination.");
+            return DataFlowInitiateResult.failure(ERROR_RETRY, "Did not find credentials for data destination.");
         }
 
         var secret = vault.resolveSecret(destSecretName);
@@ -68,7 +69,7 @@ public class InlineDataFlowController implements DataFlowController {
         if (streamer != null) {
             Result<Void> copyResult = streamer.notifyPublisher(dataRequest);
             if (copyResult.failed()) {
-                return new DataFlowInitiateResult(ResponseStatus.ERROR_RETRY, "Failed to copy data from source to destination: " + copyResult.getFailure().getMessages());
+                return DataFlowInitiateResult.failure(ERROR_RETRY, "Failed to copy data from source to destination: " + copyResult.getFailure().getMessages());
             }
         } else {
             // if no copier found for this source/destination pair, then use inline read and write
@@ -77,11 +78,11 @@ public class InlineDataFlowController implements DataFlowController {
 
             var readResult = reader.read(source);
             if (readResult.failed()) {
-                return new DataFlowInitiateResult(ResponseStatus.ERROR_RETRY, "Failed to read data from source: " + readResult.getFailure().getMessages());
+                return DataFlowInitiateResult.failure(ERROR_RETRY, "Failed to read data from source: " + readResult.getFailure().getMessages());
             }
             var writeResult = writer.write(dataRequest.getDataDestination(), dataRequest.getAssetId(), readResult.getContent(), secret);
             if (writeResult.failed()) {
-                return new DataFlowInitiateResult(ResponseStatus.ERROR_RETRY, "Failed to write data to destination: " + writeResult.getFailure().getMessages());
+                return DataFlowInitiateResult.failure(ERROR_RETRY, "Failed to write data to destination: " + writeResult.getFailure().getMessages());
             }
         }
 

@@ -439,52 +439,60 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
             if (CONSUMER == process.getType()) {
-                process.transitionRequested();
-                transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
-                invokeForEach(l -> l.requested(process));
-                dispatcherRegistry.send(Object.class, dataRequest, process::getId)
-                        .thenApply(o -> {
-                            transitionRequestAck(process.getId());
-                            transferProcessStore.update(process);
-                            return o;
-                        })
-                        .whenComplete((o, throwable) -> {
-                            if (o != null) {
-                                monitor.info("Object received: " + o);
-                                if (dataRequest.getTransferType().isFinite()) {
-                                    process.transitionInProgress();
-                                } else {
-                                    process.transitionStreaming();
-                                }
-                                transferProcessStore.update(process);
-                            }
-                        });
+                sendConsumerRequest(process, dataRequest);
             } else {
-                var response = dataFlowManager.initiate(dataRequest);
-                if (response.succeeded()) {
-                    if (process.getDataRequest().getTransferType().isFinite()) {
-                        process.transitionInProgress();
-                    } else {
-                        process.transitionStreaming();
-                    }
-                    transferProcessStore.update(process);
-                    invokeForEach(l -> l.inProgress(process));
-                } else {
-                    if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
-                        monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
-                        process.transitionProvisioned();
-                        transferProcessStore.update(process);
-                        invokeForEach(l -> l.provisioned(process));
-                    } else {
-                        monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
-                        process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
-                        transferProcessStore.update(process);
-                        invokeForEach(l -> l.error(process));
-                    }
-                }
+                processProviderRequest(process, dataRequest);
             }
         }
         return processes.size();
+    }
+
+    private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
+        var response = dataFlowManager.initiate(dataRequest);
+        if (response.succeeded()) {
+            if (process.getDataRequest().getTransferType().isFinite()) {
+                process.transitionInProgress();
+            } else {
+                process.transitionStreaming();
+            }
+            transferProcessStore.update(process);
+            invokeForEach(l -> l.inProgress(process));
+        } else {
+            if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
+                monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
+                process.transitionProvisioned();
+                transferProcessStore.update(process);
+                invokeForEach(l -> l.provisioned(process));
+            } else {
+                monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
+                process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
+                transferProcessStore.update(process);
+                invokeForEach(l -> l.error(process));
+            }
+        }
+    }
+
+    private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
+        process.transitionRequested();
+        transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
+        invokeForEach(l -> l.requested(process));
+        dispatcherRegistry.send(Object.class, dataRequest, process::getId)
+                .thenApply(o -> {
+                    transitionRequestAck(process.getId());
+                    transferProcessStore.update(process);
+                    return o;
+                })
+                .whenComplete((o, throwable) -> {
+                    if (o != null) {
+                        monitor.info("Object received: " + o);
+                        if (dataRequest.getTransferType().isFinite()) {
+                            process.transitionInProgress();
+                        } else {
+                            process.transitionStreaming();
+                        }
+                        transferProcessStore.update(process);
+                    }
+                });
     }
 
     private void invokeForEach(Consumer<TransferProcessListener> action) {

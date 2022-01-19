@@ -33,14 +33,6 @@ public class DataFlowInitiateResult extends AbstractResult<String, ResponseFailu
         return new DataFlowInitiateResult(null, new ResponseFailure(status, List.of(error)));
     }
 
-    public DataFlowInitiateResult(String content) {
-        super(content, null);
-    }
-
-    public DataFlowInitiateResult(ResponseStatus status, String error) {
-        super(null, new ResponseFailure(status, List.of(error)));
-    }
-
     private DataFlowInitiateResult(String content, ResponseFailure failure) {
         super(content, failure);
     }
