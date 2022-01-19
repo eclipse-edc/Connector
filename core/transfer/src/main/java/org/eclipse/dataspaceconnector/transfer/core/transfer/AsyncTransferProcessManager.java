@@ -475,7 +475,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                         process.transitionProvisioned();
                         transferProcessStore.update(process);
                         invokeForEach(l -> l.provisioned(process));
-                    } else { //ERROR_FATAL
+                    } else {
                         monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
                         process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
                         transferProcessStore.update(process);
