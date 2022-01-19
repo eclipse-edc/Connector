@@ -17,8 +17,8 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
+import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +28,7 @@ import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Writes data in a streaming fashion to an HTTP endpoint.
@@ -40,38 +41,38 @@ public class HttpDataSink implements DataSink {
     private Monitor monitor;
 
     @Override
-    public CompletableFuture<Result<Void>> transfer(DataSource source) {
+    public CompletableFuture<TransferResult> transfer(DataSource source) {
         try {
-            var futures = source.openStream().map(part -> supplyAsync(() -> postData(part), executorService)).collect(toList());
+            var futures = source.openPartStream().map(part -> supplyAsync(() -> postData(part), executorService)).collect(toList());
             return allOf(futures.toArray(CompletableFuture[]::new)).thenApply((s) -> {
                 if (futures.stream().anyMatch(future -> future.getNow(null).failed())) {
-                    return Result.failure("Error transferring data");
+                    return TransferResult.failure(ERROR_RETRY, "Error transferring data");
                 }
-                return Result.success();
+                return TransferResult.success();
             });
         } catch (Exception e) {
             monitor.severe("Error processing data transfer request: " + requestId, e);
-            return CompletableFuture.completedFuture(Result.failure("Error processing data transfer request"));
+            return CompletableFuture.completedFuture(TransferResult.failure(ERROR_RETRY, "Error processing data transfer request"));
         }
     }
 
     /**
      * Retrieves the part from the source endpoint using an HTTP GET.
      */
-    private Result<Void> postData(DataSource.Part part) {
+    private TransferResult postData(DataSource.Part part) {
         var requestBody = new StreamingRequestBody(part);
 
         var request = new Request.Builder().url(endpoint + "/" + part.name()).post(requestBody).build();
 
         try (var response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
-                return Result.success();
+                return TransferResult.success();
             }
             monitor.severe(format("Error received writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request));
         } catch (Exception e) {
             monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request), e);
         }
-        return Result.failure("Error writing data");
+        return TransferResult.failure(ERROR_RETRY, "Error writing data");
     }
 
     private HttpDataSink() {
