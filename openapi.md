@@ -71,4 +71,11 @@ responsible for serving web content.
 Furthermore, **no** client code is auto-generated, as this will be highly dependent on the frameworks used 
 on the client side. 
 
-A pointer on how to expose the YAML file and the Swagger UI using Jetty can be found [here](https://anirtek.github.io/java/jetty/swagger/openapi/2021/06/12/Hooking-up-OpenAPI-with-Jetty.html)
+A pointer on how to expose the YAML file and the Swagger UI using Jetty can be found [here](https://anirtek.github.io/java/jetty/swagger/openapi/2021/06/12/Hooking-up-OpenAPI-with-Jetty.html).
+
+To just take a quick look at the generated API documentation with Swagger UI, you can run it in a Docker container:
+
+```shell
+docker run -p 80:8080 -e SWAGGER_JSON=/openapi.yaml -v $(pwd)resources/openapi/openapi.yaml:/openapi.yaml swaggerapi/swagger-ui
+```
+
