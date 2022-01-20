@@ -78,6 +78,7 @@ public class TransferProcess {
     private DataRequest dataRequest;
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet;
+    private int stateTimeoutThreshold = 10000; // TODO: default value 10 seconds is enough?
 
     private TransferProcess() {
     }
@@ -272,8 +273,15 @@ public class TransferProcess {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
         }
         stateCount = state == end.code() ? stateCount + 1 : 1;
-        state = end.code();
-        updateStateTimestamp();
+        if (stateCount > 5) {
+            transitionError("TransferProcess transitioned more than 5 times to state " + state);
+        } else if (Instant.now().toEpochMilli() > stateTimestamp + stateTimeoutThreshold) {
+            transitionError("TransferProcess timeout threshold exceeded more than 5 times to state %s");
+        } else {
+            state = end.code();
+            updateStateTimestamp();
+        }
+
     }
 
     public enum Type {
@@ -339,6 +347,11 @@ public class TransferProcess {
             return this;
         }
 
+        public Builder stateTimeoutThreshold(int stateTimeoutThreshold) {
+            process.stateTimeoutThreshold = stateTimeoutThreshold;
+            return this;
+        }
+
         public TransferProcess build() {
             Objects.requireNonNull(process.id, "id");
             if (process.state == TransferProcessStates.UNSAVED.code() && process.stateTimestamp == 0) {
@@ -357,6 +370,5 @@ public class TransferProcess {
             }
             return process;
         }
-
     }
 }

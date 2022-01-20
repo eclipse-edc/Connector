@@ -19,11 +19,19 @@ import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.util.List;
 import java.util.UUID;
 
+import static java.util.stream.IntStream.range;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -33,34 +41,36 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class TransferProcessTest {
 
     @Test
-    void verifyDeserialization() throws IOException {
+    void should_serialize_and_deserialize_correctly() throws IOException {
         ObjectMapper mapper = new ObjectMapper();
-
         TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
+
         StringWriter writer = new StringWriter();
         mapper.writeValue(writer, process);
-
         TransferProcess deserialized = mapper.readValue(writer.toString(), TransferProcess.class);
 
         assertEquals(process, deserialized);
     }
 
     @Test
-    void verifyCopy() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).state(TransferProcessStates.COMPLETED.code()).stateCount(1).stateTimestamp(1).build();
+    void should_be_copied() {
+        TransferProcess process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).type(PROVIDER).state(COMPLETED.code()).stateCount(1).stateTimestamp(1)
+                .build();
+
         TransferProcess copy = process.copy();
 
         assertEquals(process.getState(), copy.getState());
         assertEquals(process.getType(), copy.getType());
         assertEquals(process.getStateCount(), copy.getStateCount());
         assertEquals(process.getStateTimestamp(), copy.getStateTimestamp());
-
         assertEquals(process, copy);
     }
 
     @Test
-    void verifyConsumerTransitions() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.CONSUMER).build();
+    void should_transit_to_all_the_states_for_consumer_type() {
+        TransferProcess process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).type(CONSUMER).build();
 
         // test illegal transition
         assertThrows(IllegalStateException.class, () -> process.transitionProvisioning(ResourceManifest.Builder.newInstance().build()));
@@ -87,8 +97,8 @@ class TransferProcessTest {
     }
 
     @Test
-    void verifyProviderTransitions() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(TransferProcess.Type.PROVIDER).build();
+    void should_transit_to_all_the_states_for_provider_type() {
+        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).type(PROVIDER).build();
 
         process.transitionInitial();
 
@@ -105,7 +115,7 @@ class TransferProcessTest {
     }
 
     @Test
-    void verifyTransitionRollback() {
+    void should_rollback_state() {
         TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).build();
         process.transitionInitial();
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
@@ -117,33 +127,62 @@ class TransferProcessTest {
     }
 
     @Test
-    void verifyProvisioningComplete() {
-        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+    void provisioning_should_complete_when_every_definition_has_its_own_resource() {
+        ResourceManifest manifest = ResourceManifest.Builder.newInstance()
+                .definitions(List.of(TestResourceDefinition.Builder.newInstance().id("r1").build()))
+                .build();
 
-        ResourceManifest manifest = ResourceManifest.Builder.newInstance().build();
-        manifest.addDefinition(TestResourceDefinition.Builder.newInstance().id("r1").build());
-
-        TransferProcess process = builder.resourceManifest(manifest).build();
+        TransferProcess process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .resourceManifest(manifest)
+                .build();
 
         assertFalse(process.provisioningComplete());
 
         ProvisionedResourceSet resourceSet = ProvisionedResourceSet.Builder.newInstance().build();
 
-        process =  process.toBuilder().provisionedResourceSet(resourceSet).build();
+        TransferProcess provisionedProcess = process.toBuilder().provisionedResourceSet(resourceSet).build();
 
-        assertFalse(process.provisioningComplete());
+        assertFalse(provisionedProcess.provisioningComplete());
 
         resourceSet.addResource(TestProvisionedResource.Builder.newInstance().id("p1").resourceDefinitionId("r1").transferProcessId("123").build());
 
-        assertTrue(process.provisioningComplete());
+        assertTrue(provisionedProcess.provisioningComplete());
     }
 
     @Test
     void should_pass_from_deprovisioning_request_to_deprovisioning() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(DEPROVISIONING_REQ.code()).build();
+        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(UNSAVED.code()).build();
 
         process.transitionDeprovisioning();
 
         assertThat(process.getState()).isEqualTo(DEPROVISIONING.code());
+    }
+
+    @Test
+    void should_transition_to_error_after_5_transitions_on_the_same_state() {
+        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(INITIAL.code()).build();
+        ResourceManifest resourceManifest = ResourceManifest.Builder.newInstance().build();
+        range(0, 5).forEach(i -> process.transitionProvisioning(resourceManifest));
+
+        process.transitionProvisioning(resourceManifest);
+
+        assertThat(process.getState()).isEqualTo(TransferProcessStates.ERROR.code());
+        assertThat(process.getErrorDetail()).isNotBlank();
+    }
+
+    @Test
+    void should_transition_to_error_after_the_state_timeout_threshold_is_crossed() {
+        ResourceManifest resourceManifest = ResourceManifest.Builder.newInstance().build();
+        TransferProcess process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .state(PROVISIONING.code())
+                .stateTimeoutThreshold(1)
+                .build();
+
+        process.transitionProvisioning(resourceManifest);
+
+        assertThat(process.getState()).isEqualTo(TransferProcessStates.ERROR.code());
+        assertThat(process.getErrorDetail()).isNotBlank();
     }
 }
