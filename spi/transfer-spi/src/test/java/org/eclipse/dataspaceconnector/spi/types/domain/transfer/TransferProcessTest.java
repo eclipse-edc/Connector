@@ -152,7 +152,8 @@ class TransferProcessTest {
 
     @Test
     void should_pass_from_deprovisioning_request_to_deprovisioning() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(UNSAVED.code()).build();
+        TransferProcess process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).state(DEPROVISIONING_REQ.code()).build();
 
         process.transitionDeprovisioning();
 

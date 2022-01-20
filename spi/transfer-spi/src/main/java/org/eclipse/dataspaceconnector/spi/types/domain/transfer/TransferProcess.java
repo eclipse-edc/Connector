@@ -272,16 +272,20 @@ public class TransferProcess {
         if (Arrays.stream(starts).noneMatch(s -> s.code() == state)) {
             throw new IllegalStateException(format("Cannot transition from state %s to %s", TransferProcessStates.from(state), TransferProcessStates.from(end.code())));
         }
-        stateCount = state == end.code() ? stateCount + 1 : 1;
-        if (stateCount > 5) {
-            transitionError("TransferProcess transitioned more than 5 times to state " + state);
-        } else if (Instant.now().toEpochMilli() > stateTimestamp + stateTimeoutThreshold) {
-            transitionError("TransferProcess timeout threshold exceeded more than 5 times to state %s");
+
+        if (state == end.code()) {
+            stateCount++;
+            if (stateCount > 5) {
+                transitionError("TransferProcess transitioned more than 5 times to state " + state);
+            } else if (Instant.now().toEpochMilli() > stateTimestamp + stateTimeoutThreshold) {
+                transitionError("TransferProcess timeout threshold exceeded more than 5 times to state %s");
+            }
         } else {
+            stateCount = 1;
             state = end.code();
-            updateStateTimestamp();
         }
 
+        updateStateTimestamp();
     }
 
     public enum Type {
