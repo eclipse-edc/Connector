@@ -34,4 +34,16 @@ public interface HttpDataSchema {
      * The name associated with the HTTP data, typically a filename.
      */
     String NAME = "name";
+
+    /**
+     * The destination authentication key property name (optional).
+     */
+    String AUTHENTICATION_KEY = "authKey";
+
+    /**
+     * The destination authentication code property name (optional).
+     */
+    String AUTHENTICATION_CODE = "authCode";
+
+
 }
