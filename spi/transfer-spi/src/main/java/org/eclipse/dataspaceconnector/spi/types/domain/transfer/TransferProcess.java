@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
@@ -78,7 +79,8 @@ public class TransferProcess {
     private DataRequest dataRequest;
     private ResourceManifest resourceManifest;
     private ProvisionedResourceSet provisionedResourceSet;
-    private int stateTimeoutThreshold = 10000; // TODO: default value 10 seconds is enough?
+    private int stateTimeoutThreshold = 10000;
+    private int stateCountThreshold = 5;
 
     private TransferProcess() {
     }
@@ -275,7 +277,7 @@ public class TransferProcess {
 
         if (state == end.code()) {
             stateCount++;
-            if (stateCount > 5) {
+            if (stateCount > stateCountThreshold) {
                 transitionError("TransferProcess transitioned more than 5 times to state " + state);
             } else if (Instant.now().toEpochMilli() > stateTimestamp + stateTimeoutThreshold) {
                 transitionError("TransferProcess timeout threshold exceeded more than 5 times to state %s");
@@ -353,6 +355,11 @@ public class TransferProcess {
 
         public Builder stateTimeoutThreshold(int stateTimeoutThreshold) {
             process.stateTimeoutThreshold = stateTimeoutThreshold;
+            return this;
+        }
+
+        public Builder stateCountThreshold(int stateCountThreshold) {
+            process.stateCountThreshold = stateCountThreshold;
             return this;
         }
 

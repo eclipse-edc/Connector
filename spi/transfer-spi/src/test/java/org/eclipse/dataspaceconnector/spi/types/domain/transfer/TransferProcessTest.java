@@ -161,10 +161,12 @@ class TransferProcessTest {
     }
 
     @Test
-    void should_transition_to_error_after_5_transitions_on_the_same_state() {
-        TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(INITIAL.code()).build();
+    void should_transition_to_error_after_state_count_threshold_is_crossed() {
+        int stateCountThreshold = 3;
+        TransferProcess process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).state(INITIAL.code()).stateCountThreshold(stateCountThreshold).build();
         ResourceManifest resourceManifest = ResourceManifest.Builder.newInstance().build();
-        range(0, 5).forEach(i -> process.transitionProvisioning(resourceManifest));
+        range(0, stateCountThreshold).forEach(i -> process.transitionProvisioning(resourceManifest));
 
         process.transitionProvisioning(resourceManifest);
 
