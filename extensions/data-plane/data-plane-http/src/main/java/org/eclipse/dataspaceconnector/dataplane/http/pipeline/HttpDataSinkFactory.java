@@ -23,6 +23,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.concurrent.ExecutorService;
 
+import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.AUTHENTICATION_CODE;
+import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.ENDPOINT;
 
 /**
@@ -47,15 +49,19 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     @Override
     public DataSink createSink(DataFlowRequest request) {
         var dataAddress = request.getDestinationDataAddress();
-        var endpoint = dataAddress.getProperty(ENDPOINT);
         var requestId = request.getId();
+        var endpoint = dataAddress.getProperty(ENDPOINT);
         if (endpoint == null) {
             throw new EdcException("HTTP data destination endpoint not provided for request: " + requestId);
         }
+        var authKey = dataAddress.getProperty(AUTHENTICATION_KEY);
+        var authCode = dataAddress.getProperty(AUTHENTICATION_CODE);
 
         return HttpDataSink.Builder.newInstance()
                 .endpoint(endpoint)
                 .requestId(requestId)
+                .authKey(authKey)
+                .authCode(authCode)
                 .httpClient(httpClient)
                 .executorService(executorService)
                 .monitor(monitor)
