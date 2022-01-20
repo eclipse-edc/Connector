@@ -19,11 +19,12 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult.failure;
 import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.FATAL_ERROR;
 
 /**
@@ -39,20 +40,23 @@ public class DataFlowManagerImpl implements DataFlowManager {
 
     @Override
     public @NotNull DataFlowInitiateResult initiate(DataRequest dataRequest) {
-        DataFlowController executor = getExecutor(dataRequest);
-        if (executor == null) {
-            return DataFlowInitiateResult.failure(FATAL_ERROR, "Unable to process data request. No data flow controller found: " + dataRequest.getId());
+        try {
+            return controllers.stream()
+                    .filter(controller -> controller.canHandle(dataRequest))
+                    .findFirst()
+                    .map(controller -> controller.initiateFlow(dataRequest))
+                    .orElseGet(() -> failure(FATAL_ERROR, controllerNotFounda(dataRequest.getId())));
+        } catch (Exception e) {
+            return failure(FATAL_ERROR, runtimeException(dataRequest.getId(), e.getLocalizedMessage()));
         }
-        return executor.initiateFlow(dataRequest);
     }
 
-    @Nullable
-    private DataFlowController getExecutor(DataRequest dataRequest) {
-        for (DataFlowController manager : controllers) {
-            if (manager.canHandle(dataRequest)) {
-                return manager;
-            }
-        }
-        return null;
+    private String runtimeException(String id, String message) {
+        return format("Unable to process data request %s. Data flow controller throws an exception: %s", id, message);
     }
+
+    private String controllerNotFounda(String id) {
+        return format("Unable to process data request %s. No data flow controller found", id);
+    }
+
 }
