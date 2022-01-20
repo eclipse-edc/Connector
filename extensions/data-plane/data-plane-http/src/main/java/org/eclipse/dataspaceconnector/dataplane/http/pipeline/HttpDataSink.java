@@ -34,6 +34,8 @@ import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatu
  * Writes data in a streaming fashion to an HTTP endpoint.
  */
 public class HttpDataSink implements DataSink {
+    private String authKey;
+    private String authCode;
     private String endpoint;
     private String requestId;
     private OkHttpClient httpClient;
@@ -62,8 +64,12 @@ public class HttpDataSink implements DataSink {
     private TransferResult postData(DataSource.Part part) {
         var requestBody = new StreamingRequestBody(part);
 
-        var request = new Request.Builder().url(endpoint + "/" + part.name()).post(requestBody).build();
+        var requestBuilder = new Request.Builder();
+        if (authKey != null) {
+            requestBuilder.header(authKey, authCode);
+        }
 
+        var request = requestBuilder.url(endpoint + "/" + part.name()).post(requestBody).build();
         try (var response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful()) {
                 return TransferResult.success();
@@ -95,6 +101,16 @@ public class HttpDataSink implements DataSink {
             return this;
         }
 
+        public Builder authKey(String authKey) {
+            sink.authKey = authKey;
+            return this;
+        }
+
+        public Builder authCode(String authCode) {
+            sink.authCode = authCode;
+            return this;
+        }
+
         public Builder httpClient(OkHttpClient httpClient) {
             sink.httpClient = httpClient;
             return this;
@@ -115,6 +131,12 @@ public class HttpDataSink implements DataSink {
             Objects.requireNonNull(sink.requestId, "requestId");
             Objects.requireNonNull(sink.httpClient, "httpClient");
             Objects.requireNonNull(sink.executorService, "executorService");
+            if (sink.authKey != null && sink.authCode == null) {
+                throw new IllegalStateException("An authKey was set but authCode was null");
+            }
+            if (sink.authCode != null && sink.authKey == null) {
+                throw new IllegalStateException("An authCode was set but authKey was null");
+            }
             return sink;
         }
 
