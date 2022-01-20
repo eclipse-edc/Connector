@@ -1,0 +1,20 @@
+name: Generate OpenApi Spec
+
+on: [ push, pull_request ]
+
+jobs:
+  GenerateOAS:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+
+      - name: Generate YAML spec
+        env:
+          INTEGRATION_TEST: false
+        run: |
+          ./gradlew clean resolve
+          ./gradlew mergeOpenApiFiles

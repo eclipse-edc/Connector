@@ -63,6 +63,10 @@ More information about the extension concept can be found here [TBW].
 
 More information about shadowJar can be found [here](https://github.com/johnrengelman/shadow).
 
+## Generate the OpenApi specification
+
+Please refer to [this document](./openapi.md).
+
 # Directory structure
 
 ### `spi`
