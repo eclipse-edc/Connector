@@ -15,8 +15,6 @@ package org.eclipse.dataspaceconnector.dataplane.http.schema;
 
 /**
  * Defines the data address attributes used by the HTTP data plane extension.
- *
- * TODO discuss whether we need the Schema package at the SPI level anymore or this can be replaced by an annotation.
  */
 public interface HttpDataSchema {
 
