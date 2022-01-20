@@ -46,7 +46,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
 
     @Override
     public DataSink createSink(DataFlowRequest request) {
-        var dataAddress = request.getSourceDataAddress();
+        var dataAddress = request.getDestinationDataAddress();
         var endpoint = dataAddress.getProperty(ENDPOINT);
         var requestId = request.getId();
         if (endpoint == null) {
