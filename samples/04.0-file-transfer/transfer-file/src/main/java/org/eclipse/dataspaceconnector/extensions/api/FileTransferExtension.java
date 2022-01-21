@@ -90,7 +90,7 @@ public class FileTransferExtension implements ServiceExtension {
                 .build();
 
         String assetId = "test-document";
-        Asset asset = Asset.Builder.newInstance().id(assetId).policyId(USE_POLICY).build();
+        Asset asset = Asset.Builder.newInstance().id(assetId).build();
 
         loader.accept(asset, dataAddress);
     }

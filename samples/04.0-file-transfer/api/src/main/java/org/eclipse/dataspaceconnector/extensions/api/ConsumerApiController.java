@@ -102,6 +102,7 @@ public class ConsumerApiController {
                 .connectorId("consumer")
                 .assetId(filename)
                 .dataDestination(DataAddress.Builder.newInstance()
+                        .keyName("keyName")
                         .type("File") //the provider uses this to select the correct DataFlowController
                         .property("path", destinationPath) //where we want the file to be stored
                         .build())
