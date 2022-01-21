@@ -85,7 +85,7 @@ public class ConsoleMonitor implements Monitor {
     public enum Level {
         SEVERE(3), WARNING(2), INFO(1), DEBUG(0);
 
-        int value;
+        private final int value;
 
         Level(int value) {
             this.value = value;

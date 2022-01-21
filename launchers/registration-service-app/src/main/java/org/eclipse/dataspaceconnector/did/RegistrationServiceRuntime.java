@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.did;
 
-import org.eclipse.dataspaceconnector.core.monitor.MonitorProvider;
-import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
+import org.eclipse.dataspaceconnector.boot.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -25,9 +25,9 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.bootServiceExtensions;
-import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.loadMonitor;
-import static org.eclipse.dataspaceconnector.core.system.ExtensionLoader.loadVault;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.bootServiceExtensions;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMonitor;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadVault;
 
 public class RegistrationServiceRuntime {
 

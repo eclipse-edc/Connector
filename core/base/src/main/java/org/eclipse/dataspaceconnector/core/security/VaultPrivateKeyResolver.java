@@ -14,7 +14,6 @@ import java.util.function.Function;
 
 public class VaultPrivateKeyResolver implements PrivateKeyResolver {
 
-
     private final Vault vault;
     private final List<KeyParser<?>> parsers;
 

@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.dataloader.cli;
 
-import org.eclipse.dataspaceconnector.core.system.runtime.BaseRuntime;
+import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.dataloading.ContractDefinitionLoader;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;

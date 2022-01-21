@@ -15,11 +15,11 @@
 package org.eclipse.dataspaceconnector.junit.launcher;
 
 import okhttp3.Interceptor;
-import org.eclipse.dataspaceconnector.core.monitor.MonitorProvider;
-import org.eclipse.dataspaceconnector.core.system.DefaultServiceExtensionContext;
-import org.eclipse.dataspaceconnector.core.system.ExtensionLoader;
-import org.eclipse.dataspaceconnector.core.system.ServiceLocator;
-import org.eclipse.dataspaceconnector.core.system.ServiceLocatorImpl;
+import org.eclipse.dataspaceconnector.boot.monitor.MonitorProvider;
+import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext;
+import org.eclipse.dataspaceconnector.boot.system.ExtensionLoader;
+import org.eclipse.dataspaceconnector.boot.system.ServiceLocator;
+import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -39,6 +39,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMonitor;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
@@ -76,7 +77,7 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
     public void beforeTestExecution(ExtensionContext extensionContext) {
         var typeManager = new TypeManager();
 
-        monitor = ExtensionLoader.loadMonitor();
+        monitor = loadMonitor();
 
         MonitorProvider.setInstance(monitor);
 

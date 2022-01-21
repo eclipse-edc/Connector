@@ -25,6 +25,7 @@ include(":core:policy:policy-evaluator")
 include(":core:transfer")
 include(":core:contract")
 include(":core:base")
+include(":core:boot")
 
 // modules that provide implementations for data ingress/egress
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
