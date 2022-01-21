@@ -19,7 +19,7 @@ package org.eclipse.dataspaceconnector.spi.transaction.local;
 public interface LocalTransactionResource {
 
     /**
-     * Signals a transaction has stared.
+     * Signals a transaction has started.
      */
     void start();
 
