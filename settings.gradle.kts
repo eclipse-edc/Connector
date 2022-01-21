@@ -102,7 +102,6 @@ include(":extensions:transaction:transaction-spi")
 include(":extensions:transaction:transaction-local-spi")
 include(":extensions:transaction:transaction-local-core")
 include(":extensions:transaction:transaction-datasource-spi")
-include(":extensions:transaction:transaction-datasource-core")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")

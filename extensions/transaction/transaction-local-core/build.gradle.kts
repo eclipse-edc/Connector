@@ -20,8 +20,7 @@ plugins {
 dependencies {
     api(project(":spi:core-spi"))
     api(project(":extensions:transaction:transaction-local-spi"))
-
-//    implementation("jakarta.transaction:jakarta.transaction-api:2.0.0")
+    api(project(":extensions:transaction:transaction-datasource-spi"))
 
     testImplementation("org.assertj:assertj-core:3.21.0")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.1")

@@ -11,9 +11,10 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.transaction.datasource;
+package org.eclipse.dataspaceconnector.transaction.local;
 
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
+import org.eclipse.dataspaceconnector.spi.transaction.local.LocalTransactionContextManager;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
@@ -24,14 +25,22 @@ import javax.sql.DataSource;
 /**
  * Default {@link DataSourceRegistry} implementation. This implementation is used to register both local and XA data sources so that they can be resolved by extensions.
  */
-public class DataSourceRegistryImpl implements DataSourceRegistry {
+public class LocalDataSourceRegistry implements DataSourceRegistry {
+    private LocalTransactionContextManager manager;
+
     private Map<String, DataSource> dataSources = new HashMap<>();
+
+    public LocalDataSourceRegistry(LocalTransactionContextManager manager) {
+        this.manager = manager;
+    }
 
     @Override
     public void register(String name, DataSource dataSource) {
         Objects.requireNonNull(name, "name");
         Objects.requireNonNull(dataSource, "dataSource");
-        dataSources.put(name, dataSource);
+        var wrapper = new DataSourceResource(dataSource);
+        dataSources.put(name, wrapper);
+        manager.registerResource(wrapper);
     }
 
     @Override

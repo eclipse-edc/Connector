@@ -11,29 +11,30 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.transaction.datasource;
+package org.eclipse.dataspaceconnector.transaction.local;
 
+import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
+import org.eclipse.dataspaceconnector.spi.transaction.local.LocalTransactionContextManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import javax.sql.DataSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry.DEFAULT_DATASOURCE;
 import static org.mockito.Mockito.mock;
 
-class DataSourceRegistryImplTest {
-    private DataSourceRegistryImpl registry;
+class LocalDataSourceRegistryTest {
+    private LocalDataSourceRegistry registry;
 
     @Test
     void verifyRegisterAndResolve() {
-        registry.register(DEFAULT_DATASOURCE, mock(DataSource.class));
-        assertThat(registry.resolve(DEFAULT_DATASOURCE)).isNotNull();
+        registry.register(DataSourceRegistry.DEFAULT_DATASOURCE, mock(DataSource.class));
+        assertThat(registry.resolve(DataSourceRegistry.DEFAULT_DATASOURCE)).isNotNull();
         assertThat(registry.resolve("foo")).isNull();
     }
 
     @BeforeEach
     void setUp() {
-        registry = new DataSourceRegistryImpl();
+        registry = new LocalDataSourceRegistry(mock(LocalTransactionContextManager.class));
     }
 }
