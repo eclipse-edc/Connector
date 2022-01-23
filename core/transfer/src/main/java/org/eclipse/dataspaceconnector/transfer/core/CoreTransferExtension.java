@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.transfer.core;
 
 import org.eclipse.dataspaceconnector.core.CoreExtension;
 import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
-import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -55,8 +54,8 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
  * Provides core data transfer services to the system.
  */
 @CoreExtension
-@Provides({ StatusCheckerRegistry.class, RemoteMessageDispatcherRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
-        TransferProcessObservable.class, DataProxyManager.class, ProxyEntryHandlerRegistry.class, DataOperatorRegistry.class, DataFlowManager.class })
+@Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class,
+        TransferProcessObservable.class, DataProxyManager.class, ProxyEntryHandlerRegistry.class, DataOperatorRegistry.class, DataFlowManager.class})
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
@@ -65,6 +64,8 @@ public class CoreTransferExtension implements ServiceExtension {
     private TransferProcessStore transferProcessStore;
     @Inject
     private CommandHandlerRegistry registry;
+    @Inject
+    private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
     @Override
     public String name() {
@@ -81,12 +82,6 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var dataFlowManager = new DataFlowManagerImpl();
         context.registerService(DataFlowManager.class, dataFlowManager);
-
-        RemoteMessageDispatcherRegistry dispatcherRegistry = context.getService(RemoteMessageDispatcherRegistry.class, true);
-        if (dispatcherRegistry == null) {
-            dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
-            context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
-        }
 
         var manifestGenerator = new ResourceManifestGeneratorImpl();
         context.registerService(ResourceManifestGenerator.class, manifestGenerator);
