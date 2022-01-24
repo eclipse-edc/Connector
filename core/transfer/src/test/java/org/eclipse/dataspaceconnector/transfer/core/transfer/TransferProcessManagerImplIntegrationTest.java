@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
+import org.eclipse.dataspaceconnector.transfer.core.TransferProcessConfiguration;
 import org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStore;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -68,6 +69,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
                 .dataProxyManager(mock(DataProxyManager.class))
                 .proxyEntryHandlerRegistry(new ProxyEntryHandlerRegistryImpl())
+                .configuration(new TransferProcessConfiguration(10000, 5))
                 .build();
 
         transferProcessManager.start(store);

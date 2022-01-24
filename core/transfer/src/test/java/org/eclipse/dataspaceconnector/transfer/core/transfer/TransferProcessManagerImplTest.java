@@ -41,6 +41,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
+import org.eclipse.dataspaceconnector.transfer.core.TransferProcessConfiguration;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -110,6 +111,7 @@ class TransferProcessManagerImplTest {
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .dataProxyManager(dataProxyManager)
                 .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
+                .configuration(new TransferProcessConfiguration(10000, 5))
                 .build();
     }
 
@@ -289,13 +291,11 @@ class TransferProcessManagerImplTest {
 
         var cdl = new CountDownLatch(1);
 
-        when(store.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process));
-
-        store.update(process);
+        when(store.nextForState(eq(IN_PROGRESS.code()), anyInt())).thenReturn(List.of(process), emptyList());
         doAnswer(i -> {
             cdl.countDown();
             return null;
-        }).when(store).update(process);
+        }).when(store).update(any());
 
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((i, l) -> true);
 

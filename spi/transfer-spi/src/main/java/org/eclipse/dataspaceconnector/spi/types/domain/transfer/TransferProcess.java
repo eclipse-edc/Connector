@@ -278,9 +278,9 @@ public class TransferProcess {
         if (state == end.code()) {
             stateCount++;
             if (stateCount > stateCountThreshold) {
-                transitionError("TransferProcess transitioned more than 5 times to state " + state);
+                transitionError(format("TransferProcess transitioned more than 5 times to state %s", state));
             } else if (Instant.now().toEpochMilli() > stateTimestamp + stateTimeoutThreshold) {
-                transitionError("TransferProcess timeout threshold exceeded more than 5 times to state %s");
+                transitionError(format("TransferProcess timeout threshold exceeded %s milliseconds", stateTimeoutThreshold));
             }
         } else {
             stateCount = 1;

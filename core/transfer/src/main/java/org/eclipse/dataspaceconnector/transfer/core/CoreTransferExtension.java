@@ -16,6 +16,8 @@ package org.eclipse.dataspaceconnector.transfer.core;
 
 import org.eclipse.dataspaceconnector.core.CoreExtension;
 import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -48,6 +50,8 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessMana
 import org.eclipse.dataspaceconnector.transfer.inline.core.DataOperatorRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
+import static java.lang.String.format;
+
 /**
  * Provides core data transfer services to the system.
  */
@@ -56,6 +60,12 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
         TransferProcessObservable.class, DataProxyManager.class, ProxyEntryHandlerRegistry.class, DataOperatorRegistry.class, DataFlowManager.class })
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
+
+    @EdcSetting
+    private static String EDC_TRANSFERPROCESS_THRESHOLD_STATE_COUNT = "edc.transferprocess.threshold.state.count";
+
+    @EdcSetting
+    private static String EDC_TRANSFERPROCESS_THRESHOLD_STATE_TIMEOUT = "edc.transferprocess.threshold.state.timeout";
 
     @Inject
     private TransferProcessStore transferProcessStore;
@@ -105,6 +115,12 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
 
         CommandQueue commandQueue = new BoundedCommandQueue(10);
+
+        var configuration = new TransferProcessConfiguration(
+                intSetting(context, EDC_TRANSFERPROCESS_THRESHOLD_STATE_COUNT, 5),
+                intSetting(context, EDC_TRANSFERPROCESS_THRESHOLD_STATE_TIMEOUT, 10000)
+        );
+
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
@@ -119,10 +135,21 @@ public class CoreTransferExtension implements ServiceExtension {
                 .commandRunner(new CommandRunner(registry, monitor))
                 .dataProxyManager(dataProxyManager)
                 .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
+                .configuration(configuration)
                 .build();
 
         context.registerService(TransferProcessManager.class, processManager);
         context.registerService(TransferProcessObservable.class, processManager);
+
+    }
+
+    private int intSetting(ServiceExtensionContext context, String key, int defaultValue) {
+        String setting = context.getSetting(key, String.valueOf(defaultValue));
+        try {
+            return Integer.parseInt(setting);
+        } catch (Exception e) {
+            throw new EdcException(format("Invalid value for setting %s: %s", key, setting));
+        }
 
     }
 

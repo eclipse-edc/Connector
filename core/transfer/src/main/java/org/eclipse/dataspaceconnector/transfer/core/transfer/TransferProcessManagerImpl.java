@@ -42,6 +42,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.transfer.core.TransferProcessConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
@@ -104,6 +105,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private CommandRunner commandRunner;
     private DataProxyManager dataProxyManager;
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
+    private TransferProcessConfiguration configuration;
 
 
     private TransferProcessManagerImpl() {
@@ -241,7 +243,13 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             return TransferInitiateResult.success(processId);
         }
         var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
+        var process = TransferProcess.Builder.newInstance()
+                .id(id)
+                .dataRequest(dataRequest)
+                .stateTimeoutThreshold(configuration.getStateTimeoutThreshold())
+                .stateCountThreshold(configuration.getStateCountThreshold())
+                .type(type)
+                .build();
         if (process.getState() == TransferProcessStates.UNSAVED.code()) {
             process.transitionInitial();
         }
@@ -681,6 +689,11 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             return this;
         }
 
+        public Builder configuration(TransferProcessConfiguration configuration) {
+            manager.configuration = configuration;
+            return this;
+        }
+
         public TransferProcessManagerImpl build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
@@ -689,9 +702,10 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.commandQueue, "commandQueue cannot be null");
             Objects.requireNonNull(manager.commandRunner, "commandRunner cannot be null");
-            Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
             Objects.requireNonNull(manager.dataProxyManager, "DataProxyManager cannot be null!");
             Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
+            Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null");
+            Objects.requireNonNull(manager.configuration, "Configuration cannot be null");
             return manager;
         }
     }
