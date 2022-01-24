@@ -130,7 +130,7 @@ As the provider connector is the one performing the file transfer after the file
 needs the `transfer-file` extension provided in this sample.
 
 ```kotlin
-implementation(project(":samples:04-file-transfer:transfer-file"))
+implementation(project(":samples:04.0-file-transfer:transfer-file"))
 ```
 
 We also need to adjust the provider's `config.properties`. The property `edc.samples.04.asset.path`
@@ -147,7 +147,7 @@ While the consumer does not need the `transfer-file` module, it does indeed need
 REST API:
 
 ```kotlin
-implementation(project(":samples:04-file-transfer:api"))
+implementation(project(":samples:04.0-file-transfer:api"))
 ```
 
 It is good practice to explicitly configure the consumer's API port in `consumer/config.properties` like we learned in
@@ -165,11 +165,11 @@ The first step to running this sample is building and starting both the provider
 done the same way as in the previous samples.
 
 ```bash
-./gradlew samples:04-file-transfer:consumer:build
-java -Dedc.fs.config=samples/04-file-transfer/consumer/config.properties -jar samples/04-file-transfer/consumer/build/libs/consumer.jar
+./gradlew samples:04.0-file-transfer:consumer:build
+java -Dedc.fs.config=samples/04.0-file-transfer/consumer/config.properties -jar samples/04.0-file-transfer/consumer/build/libs/consumer.jar
 # in another terminal window:
-./gradlew samples:04-file-transfer:provider:build
-java -Dedc.fs.config=samples/04-file-transfer/provider/config.properties -jar samples/04-file-transfer/provider/build/libs/provider.jar
+./gradlew samples:04.0-file-transfer:provider:build
+java -Dedc.fs.config=samples/04.0-file-transfer/provider/config.properties -jar samples/04.0-file-transfer/provider/build/libs/provider.jar
 ````
 
 Assuming you didn't change the ports in config files, the consumer will listen on port `9191`
@@ -199,7 +199,7 @@ and can be used as is. In a real scenario, a potential consumer would first need
 provider's offers in order to get the provider's contract offer.
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/ids/multipart"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/ids/multipart"
 ```
 
 In the response we'll get a UUID that we can use to get the contract agreement negotiated between provider and consumer.
