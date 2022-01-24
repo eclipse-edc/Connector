@@ -19,7 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi:core-spi"))
-    api(project(":extensions:transaction:transaction-local-spi"))
+    api(project(":extensions:transaction:transaction-spi"))
     api(project(":extensions:transaction:transaction-datasource-spi"))
 
     testImplementation("org.assertj:assertj-core:3.21.0")
@@ -30,8 +30,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("transaction-local-core") {
-            artifactId = "transaction-local-core"
+        create<MavenPublication>("transaction-local") {
+            artifactId = "transaction-local"
             from(components["java"])
         }
     }
