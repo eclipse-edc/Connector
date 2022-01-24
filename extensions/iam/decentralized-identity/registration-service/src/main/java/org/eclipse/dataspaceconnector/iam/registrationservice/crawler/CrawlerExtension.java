@@ -65,7 +65,7 @@ public class CrawlerExtension implements ServiceExtension {
             quartzScheduler = StdSchedulerFactory.getDefaultScheduler();
             quartzScheduler.start();
 
-            var minutes = Integer.parseInt(context.getSetting(CRAWLER_INTERVAL_MIN_SETTING, "30"));
+            var minutes = context.getSetting(CRAWLER_INTERVAL_MIN_SETTING, 30);
 
             scheduleCrawler(minutes, context);
             context.getMonitor().info("ION Crawler Extension started");

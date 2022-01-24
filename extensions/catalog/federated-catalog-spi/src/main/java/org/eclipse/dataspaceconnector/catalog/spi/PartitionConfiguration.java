@@ -27,25 +27,23 @@ public class PartitionConfiguration {
     }
 
     public int getWorkItemQueueSize(int defaultValue) {
-        return Integer.parseInt(context.getSetting(PART_WORK_ITEM_QUEUE_SIZE_SETTING, String.valueOf(defaultValue)));
+        return context.getSetting(PART_WORK_ITEM_QUEUE_SIZE_SETTING, defaultValue);
     }
-
 
     public int getNumCrawlers(int defaultValue) {
-        return Integer.parseInt(context.getSetting(PART_NUM_CRAWLER_SETTING, String.valueOf(defaultValue)));
+        return context.getSetting(PART_NUM_CRAWLER_SETTING, defaultValue);
     }
 
-
     public int getLoaderBatchSize(int defaultValue) {
-        return Integer.parseInt(context.getSetting(PART_LOADER_BATCH_SIZE_SETTING, String.valueOf(defaultValue)));
+        return context.getSetting(PART_LOADER_BATCH_SIZE_SETTING, defaultValue);
     }
 
     public long getLoaderRetryTimeout(int defaultValue) {
-        return Integer.parseInt(context.getSetting(PART_LOADER_RETRY_TIMEOUT, String.valueOf(defaultValue)));
+        return context.getSetting(PART_LOADER_RETRY_TIMEOUT, defaultValue);
     }
 
     public ExecutionPlan getExecutionPlan() {
-        var minutes = Integer.parseInt(context.getSetting(PART_EXECUTION_PLAN_PERIOD_MINUTES, "10"));
+        var minutes = context.getSetting(PART_EXECUTION_PLAN_PERIOD_MINUTES, 10);
         var setting = context.getSetting(PART_EXECUTION_PLAN_DELAY_SECONDS, null);
         int initialDelaySeconds;
         if ("random".equals(setting) || setting == null) {

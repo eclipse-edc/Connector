@@ -277,6 +277,30 @@ class DefaultServiceExtensionContextTest {
         verify(serviceLocatorMock).loadImplementors(eq(ServiceExtension.class), anyBoolean());
     }
 
+    @Test
+    void get_setting_returns_the_setting_from_the_configuration_extension() {
+        var configuration = mock(ConfigurationExtension.class);
+        when(configuration.getSetting("key")).thenReturn("value");
+        when(serviceLocatorMock.loadImplementors(ConfigurationExtension.class, false)).thenReturn(List.of(configuration));
+        context.initialize();
+
+        var setting = context.getSetting("key", "default");
+
+        assertThat(setting).isEqualTo("value");
+    }
+
+    @Test
+    void get_setting_returns_default_value_if_setting_is_not_found() {
+        var configuration = mock(ConfigurationExtension.class);
+        when(configuration.getSetting("key")).thenReturn(null);
+        when(serviceLocatorMock.loadImplementors(ConfigurationExtension.class, false)).thenReturn(List.of(configuration));
+        context.initialize();
+
+        var setting = context.getSetting("key", "default");
+
+        assertThat(setting).isEqualTo("default");
+    }
+
     @SafeVarargs
     private <T> List<T> mutableListOf(T... elements) {
         return new ArrayList<>(List.of(elements));

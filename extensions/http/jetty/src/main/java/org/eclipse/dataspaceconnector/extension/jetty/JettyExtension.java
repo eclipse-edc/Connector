@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.extension.jetty;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -30,22 +29,13 @@ public class JettyExtension implements ServiceExtension {
         var monitor = context.getMonitor();
 
         var configuration = new JettyConfiguration(
-                getPort(context),
+                context.getSetting(HTTP_PORT, 8181),
                 context.getSetting(KEYSTORE_PASSWORD, "password"),
                 context.getSetting(KEYMANAGER_PASSWORD, "password")
         );
 
         jettyService = new JettyService(configuration, monitor);
         context.registerService(JettyService.class, jettyService);
-    }
-
-    private int getPort(ServiceExtensionContext context) {
-        String portSetting = context.getSetting(HTTP_PORT, "8181");
-        try {
-            return Integer.parseInt(portSetting);
-        } catch (NumberFormatException e) {
-            throw new EdcException(format("Port %s is not a valid number", portSetting));
-        }
     }
 
     @Override
