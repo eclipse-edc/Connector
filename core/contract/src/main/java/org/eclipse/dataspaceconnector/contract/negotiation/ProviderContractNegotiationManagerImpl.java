@@ -32,6 +32,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.Objects;
@@ -39,6 +40,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
@@ -132,11 +134,10 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
                 .counterPartyId(request.getConnectorId())
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
-                .state(0)
-                .stateCount(0)
-                .stateTimestamp(Instant.now().toEpochMilli())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
+
+        negotiation.transitionRequested();
 
         negotiationStore.save(negotiation);
         invokeForEach(l -> l.requested(negotiation));
@@ -409,26 +410,37 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
 
             //TODO protocol-independent response type?
             dispatcherRegistry.send(Object.class, request, () -> null)
-                    .whenComplete((response, throwable) -> {
-                        if (throwable == null) {
-                            negotiation.setContractAgreement(agreement);
-                            negotiation.transitionConfirmed();
-                            negotiationStore.save(negotiation);
-                            invokeForEach(l -> l.confirmed(negotiation));
-                            monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                                    negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-                        } else {
-                            negotiation.transitionConfirming();
-                            negotiationStore.save(negotiation);
-                            invokeForEach(l -> l.confirming(negotiation));
-                            String message = format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
-                                    agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
-                            monitor.debug(message, throwable);
-                        }
-                    });
+                    .whenComplete(onAgreementSent(negotiation.getId(), agreement));
         }
 
         return confirmingNegotiations.size();
+    }
+
+    @NotNull
+    private BiConsumer<Object, Throwable> onAgreementSent(String id, ContractAgreement agreement) {
+        return (response, throwable) -> {
+            ContractNegotiation negotiation = negotiationStore.find(id);
+            if (negotiation == null) {
+                monitor.severe(String.format("[Provider] ContractNegotiation %s not found.", id));
+                return;
+            }
+
+            if (throwable == null) {
+                negotiation.setContractAgreement(agreement);
+                negotiation.transitionConfirmed();
+                negotiationStore.save(negotiation);
+                invokeForEach(l -> l.confirmed(negotiation));
+                monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            } else {
+                negotiation.transitionConfirming();
+                negotiationStore.save(negotiation);
+                invokeForEach(l -> l.confirming(negotiation));
+                String message = format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
+                        agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
+                monitor.debug(message, throwable);
+            }
+        };
     }
 
     /**

@@ -32,8 +32,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
+import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
 import java.time.LocalDate;
 import java.util.Objects;
 import java.util.UUID;
@@ -41,6 +41,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
@@ -49,7 +50,7 @@ import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.N
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
 
 /**
  * Implementation of the {@link ConsumerContractNegotiationManager}.
@@ -103,12 +104,10 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
                 .counterPartyAddress(contractOffer.getConnectorAddress())
-                .state(0)
-                .stateCount(0)
-                .stateTimestamp(Instant.now().toEpochMilli())
                 .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
+        negotiation.transitionInitial();
         negotiationStore.save(negotiation);
         invokeForEach(l -> l.requesting(negotiation));
 
@@ -267,37 +266,52 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
     }
 
     /**
-     * Processes {@link ContractNegotiation}s in state REQUESTING. Tries to send the current
-     * offer to the respective provider. If this succeeds, the ContractNegotiation is transitioned
-     * to state REQUESTED. Else, it is transitioned to REQUESTING for a retry.
+     * Processes {@link ContractNegotiation}s in state INITIAL. Tries to send the current
+     * offer to the respective provider and transition ContractNegotiation to REQUESTING.
+     * If this succeeds, the ContractNegotiation is transitioned to state REQUESTED.
+     * Else, it is transitioned to INITIAL for a retry.
      *
      * @return the number of processed ContractNegotiations.
      */
     private int sendContractOffers() {
-        var processes = negotiationStore.nextForState(REQUESTING.code(), batchSize);
+        var negotiations = negotiationStore.nextForState(INITIAL.code(), batchSize);
 
-        for (ContractNegotiation process : processes) {
-            var offer = process.getLastContractOffer();
-            sendOffer(offer, process, ContractOfferRequest.Type.INITIAL)
-                    .whenComplete((response, throwable) -> {
-                        if (throwable == null) {
-                            process.transitionRequested();
-                            negotiationStore.save(process);
-                            invokeForEach(l -> l.requested(process));
-                            monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
-                                    process.getId(), ContractNegotiationStates.from(process.getState())));
-                        } else {
-                            process.transitionRequesting();
-                            negotiationStore.save(process);
-                            invokeForEach(l -> l.requesting(process));
-                            String message = format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
-                                    offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState()));
-                            monitor.debug(message, throwable);
-                        }
-                    });
+        for (ContractNegotiation negotiation : negotiations) {
+            var offer = negotiation.getLastContractOffer();
+            negotiation.transitionRequesting();
+            negotiationStore.save(negotiation);
+
+            sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL)
+                    .whenComplete(onOfferSent(negotiation.getId(), offer));
         }
 
-        return processes.size();
+        return negotiations.size();
+    }
+
+    @NotNull
+    private BiConsumer<Object, Throwable> onOfferSent(String id, ContractOffer offer) {
+        return (response, throwable) -> {
+            ContractNegotiation negotiation = negotiationStore.find(id);
+            if (negotiation == null) {
+                monitor.severe(String.format("[Consumer] ContractNegotiation %s not found.", id));
+                return;
+            }
+
+            if (throwable == null) {
+                negotiation.transitionRequested();
+                negotiationStore.save(negotiation);
+                invokeForEach(l -> l.requested(negotiation));
+                monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
+                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            } else {
+                negotiation.transitionInitial();
+                negotiationStore.save(negotiation);
+                invokeForEach(l -> l.requesting(negotiation));
+                String message = format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
+                        offer.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
+                monitor.debug(message, throwable);
+            }
+        };
     }
 
     /**
@@ -409,8 +423,6 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
         var processes = negotiationStore.nextForState(DECLINING.code(), batchSize);
 
         for (ContractNegotiation process : processes) {
-            var offer = process.getLastContractOffer();
-
             var rejection = ContractRejection.Builder.newInstance()
                     .protocol(process.getProtocol())
                     .connectorId(process.getCounterPartyId())

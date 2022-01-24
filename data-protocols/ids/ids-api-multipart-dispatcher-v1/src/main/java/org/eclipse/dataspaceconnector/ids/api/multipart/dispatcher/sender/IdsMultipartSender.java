@@ -189,8 +189,8 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
 
         httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, r -> {
             try (r) {
+                monitor.debug("Response received from connector. Status " + r.code());
                 if (r.isSuccessful()) {
-                    monitor.debug("Response received from connector");
                     try (var body = r.body()) {
                         if (body == null) {
                             future.completeExceptionally(new EdcException("Received an empty body response from connector"));

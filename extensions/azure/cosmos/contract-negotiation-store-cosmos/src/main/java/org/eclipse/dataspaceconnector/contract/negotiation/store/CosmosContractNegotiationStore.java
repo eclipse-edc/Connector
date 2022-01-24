@@ -70,13 +70,6 @@ public class CosmosContractNegotiationStore implements ContractNegotiationStore 
 
     @Override
     public void save(ContractNegotiation negotiation) {
-        if (ContractNegotiationStates.UNSAVED.code() == negotiation.getState()) {
-            if (ContractNegotiation.Type.CONSUMER.equals(negotiation.getType())) {
-                negotiation.transitionRequesting();
-            } else {
-                negotiation.transitionRequested();
-            }
-        }
         cosmosDbApi.saveItem(new ContractNegotiationDocument(negotiation, partitionKey));
     }
 

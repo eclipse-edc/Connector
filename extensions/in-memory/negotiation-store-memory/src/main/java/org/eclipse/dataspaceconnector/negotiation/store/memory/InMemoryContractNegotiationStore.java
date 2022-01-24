@@ -68,14 +68,6 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     @Override
     public void save(ContractNegotiation negotiation) {
         writeLock(() -> {
-            if (ContractNegotiationStates.UNSAVED.code() == negotiation.getState()) {
-                if (ContractNegotiation.Type.CONSUMER.equals(negotiation.getType())) {
-                    negotiation.transitionRequesting();
-                } else {
-                    negotiation.transitionRequested();
-                }
-            }
-
             negotiation.updateStateTimestamp();
             delete(negotiation.getId());
             ContractNegotiation internalCopy = negotiation.copy();

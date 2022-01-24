@@ -31,6 +31,10 @@ import java.util.Objects;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.UNSAVED;
 
 /**
  * Represents a contract negotiation.
@@ -52,7 +56,7 @@ public class ContractNegotiation {
     private String counterPartyAddress;
     private String protocol;
     private Type type = Type.CONSUMER;
-    private int state;
+    private int state = UNSAVED.code();
     private int stateCount;
     private long stateTimestamp;
     private String errorDetail;
@@ -183,13 +187,20 @@ public class ContractNegotiation {
     }
 
     /**
+     * Transition to state INITIAL.
+     */
+    public void transitionInitial() {
+        transition(INITIAL, REQUESTING, UNSAVED);
+    }
+
+    /**
      * Transition to state REQUESTING (type consumer only).
      */
     public void transitionRequesting() {
         if (Type.PROVIDER == type) {
             throw new IllegalStateException("Provider processes have no REQUESTING state");
         }
-        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.REQUESTING, ContractNegotiationStates.UNSAVED);
+        transition(ContractNegotiationStates.REQUESTING, ContractNegotiationStates.REQUESTING, INITIAL);
     }
 
     /**
@@ -197,7 +208,7 @@ public class ContractNegotiation {
      */
     public void transitionRequested() {
         if (Type.PROVIDER == type) {
-            transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.UNSAVED);
+            transition(ContractNegotiationStates.REQUESTED, UNSAVED);
         } else {
             transition(ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.REQUESTING);
         }
@@ -284,7 +295,7 @@ public class ContractNegotiation {
      */
     public void transitionConfirmed() {
         if (Type.CONSUMER == type) {
-            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED);
+            transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONSUMER_APPROVED, ContractNegotiationStates.REQUESTED, ContractNegotiationStates.CONSUMER_OFFERED, CONFIRMED);
         } else {
             transition(ContractNegotiationStates.CONFIRMED, ContractNegotiationStates.CONFIRMING);
         }
