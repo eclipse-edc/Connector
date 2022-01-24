@@ -48,25 +48,29 @@ public class LocalTransactionContext implements TransactionContext, LocalTransac
                 resources.forEach(LocalTransactionResource::start);
                 startedTransaction = true;
                 transactions.set(transaction);
-
             }
             block.execute();
         } catch (Exception e) {
+            assert transaction != null;
             transaction.setRollbackOnly();
         } finally {
             if (startedTransaction) {
                 if (transaction.isRollbackOnly()) {
-                    try {
-                        resources.forEach(LocalTransactionResource::rollback);
-                    } catch (Exception e) {
-                        monitor.severe("Error rolling back resource", e);
-                    }
+                    resources.forEach(localTransactionResource -> {
+                        try {
+                            localTransactionResource.rollback();
+                        } catch (Exception e) {
+                            monitor.severe("Error rolling back resource", e);
+                        }
+                    });
                 } else {
-                    try {
-                        resources.forEach(LocalTransactionResource::commit);
-                    } catch (Exception e) {
-                        monitor.severe("Error committing resource", e);
-                    }
+                    resources.forEach(localTransactionResource -> {
+                        try {
+                            localTransactionResource.commit();
+                        } catch (Exception e) {
+                            monitor.severe("Error committing resource", e);
+                        }
+                    });
                 }
                 transactions.remove();
             }

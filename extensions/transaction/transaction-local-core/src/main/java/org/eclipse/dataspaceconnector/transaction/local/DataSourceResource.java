@@ -48,8 +48,11 @@ public class DataSourceResource implements LocalTransactionResource, DataSource 
                 // no resource used, ignore
                 return;
             }
-            connection.getWrappedConnection().commit();
-            connection.getWrappedConnection().close();
+            try {
+                connection.getWrappedConnection().commit();
+            } finally {
+                connection.getWrappedConnection().close();
+            }
         } catch (SQLException e) {
             throw new EdcException(e);
         } finally {
@@ -65,8 +68,11 @@ public class DataSourceResource implements LocalTransactionResource, DataSource 
                 // no resource used, ignore
                 return;
             }
-            connection.getWrappedConnection().rollback();
-            connection.close();
+            try {
+                connection.getWrappedConnection().rollback();
+            } finally {
+                connection.getWrappedConnection().close();
+            }
         } catch (SQLException e) {
             throw new EdcException(e);
         } finally {
@@ -79,8 +85,9 @@ public class DataSourceResource implements LocalTransactionResource, DataSource 
         try {
             var connection = enlistedConnections.get();
             if (connection == null) {
-                connection = new ConnectionWrapper(delegate.getConnection());
-                connection.setAutoCommit(false);
+                var delegate = this.delegate.getConnection();
+                delegate.setAutoCommit(false);
+                connection = new ConnectionWrapper(delegate);
                 enlistedConnections.set(connection);
             }
             return connection;
