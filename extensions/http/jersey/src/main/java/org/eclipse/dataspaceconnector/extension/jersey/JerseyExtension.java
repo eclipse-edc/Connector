@@ -1,15 +1,15 @@
 package org.eclipse.dataspaceconnector.extension.jersey;
 
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
-import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.web.WebService;
 
-@Provides({ WebService.class })
-@Requires({ JettyService.class })
+@Provides({WebService.class})
+@Requires({JettyService.class})
 public class JerseyExtension implements ServiceExtension {
     private JerseyRestService jerseyRestService;
 

@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
  * A system responsible for publishing data to a stream destination.
  */
 public interface DataStreamPublisher {
-    
+
     /**
      * Initializes the publisher with a context for creating stream sessions.
      *

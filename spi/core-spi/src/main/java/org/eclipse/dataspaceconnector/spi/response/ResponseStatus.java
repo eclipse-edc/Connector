@@ -12,19 +12,24 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.protocol.web;
-
-import org.eclipse.dataspaceconnector.spi.system.Feature;
+package org.eclipse.dataspaceconnector.spi.response;
 
 /**
- * Manages the runtime web (HTTP) service.
+ * An operation response status.
  */
-@Feature("edc:core:base:webservice")
-public interface WebService {
+public enum ResponseStatus {
+    /**
+     * The operation completed successfully.
+     */
+    OK,
 
     /**
-     * Registers a JAX-RS resource instance, or controller. Extensions may contribute bespoke APIs to the runtime.
+     * The operation errored and should be retried.
      */
-    void registerController(Object controller);
+    ERROR_RETRY,
 
+    /**
+     * The operation errored and should not be retried.
+     */
+    FATAL_ERROR
 }
