@@ -97,6 +97,10 @@ include(":extensions:http:jersey")
 include(":extensions:http:jetty")
 include(":extensions:inline-data-transfer:inline-data-transfer-core")
 include(":extensions:inline-data-transfer:inline-data-transfer-spi")
+include(":extensions:transaction")
+include(":extensions:transaction:transaction-spi")
+include(":extensions:transaction:transaction-local")
+include(":extensions:transaction:transaction-datasource-spi")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
