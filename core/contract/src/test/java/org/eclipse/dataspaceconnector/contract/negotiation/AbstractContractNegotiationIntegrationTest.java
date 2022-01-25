@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationListener;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -81,6 +82,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
                 .build();
+        providerStore = new InMemoryContractNegotiationStore();
 
         // Create the consumer contract negotiation manager
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
@@ -89,29 +91,44 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
                 .build();
-
+        consumerStore = new InMemoryContractNegotiationStore();
+        
         countDownLatch = new CountDownLatch(2);
     }
-
+    
     /**
-     * Implementation of the InMemoryContractNegotiationStore that signals the CountDownLatch
-     * when a certain state has been reached.
+     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
+     * confirmed state has been reached.
      */
-    protected class SignalingInMemoryContractNegotiationStore extends InMemoryContractNegotiationStore {
-        private CountDownLatch countDownLatch;
-        private ContractNegotiationStates desiredEndState;
-
-        public SignalingInMemoryContractNegotiationStore(CountDownLatch countDownLatch, ContractNegotiationStates desiredEndState) {
+    protected class ConfirmedContractNegotiationListener implements ContractNegotiationListener {
+        
+        private final CountDownLatch countDownLatch;
+        
+        public ConfirmedContractNegotiationListener(CountDownLatch countDownLatch) {
             this.countDownLatch = countDownLatch;
-            this.desiredEndState = desiredEndState;
         }
-
+        
         @Override
-        public void save(ContractNegotiation negotiation) {
-            super.save(negotiation);
-            if (desiredEndState.code() == negotiation.getState()) {
-                countDownLatch.countDown();
-            }
+        public void confirmed(ContractNegotiation negotiation) {
+            countDownLatch.countDown();
+        }
+    }
+    
+    /**
+     * Implementation of the ContractNegotiationListener that signals a CountDownLatch when the
+     * declined state has been reached.
+     */
+    protected class DeclinedContractNegotiationListener implements ContractNegotiationListener {
+        
+        private final CountDownLatch countDownLatch;
+        
+        public DeclinedContractNegotiationListener(CountDownLatch countDownLatch) {
+            this.countDownLatch = countDownLatch;
+        }
+        
+        @Override
+        public void declined(ContractNegotiation negotiation) {
+            countDownLatch.countDown();
         }
     }
 

@@ -21,7 +21,6 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
@@ -46,7 +45,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.function.Consumer;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
@@ -493,10 +491,6 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
                         transferProcessStore.update(process);
                     }
                 });
-    }
-
-    private void invokeForEach(Consumer<TransferProcessListener> action) {
-        getListeners().forEach(action);
     }
 
     public static class Builder {
