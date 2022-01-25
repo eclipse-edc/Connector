@@ -3,8 +3,8 @@ package org.eclipse.dataspaceconnector.aws.s3.operator;
 
 import net.jodah.failsafe.Failsafe;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.core.schema.s3.S3BucketSchema;
-import org.eclipse.dataspaceconnector.provision.aws.AwsTemporarySecretToken;
+import org.eclipse.dataspaceconnector.aws.s3.core.AwsTemporarySecretToken;
+import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -45,7 +45,7 @@ public class S3BucketWriter implements DataWriter {
 
     @Override
     public boolean canHandle(String type) {
-        return "AmazonS3".equals(type);
+        return S3BucketSchema.TYPE.equals(type);
     }
 
     @Override

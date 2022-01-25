@@ -26,7 +26,7 @@ dependencies {
     api(project(":extensions:in-memory:negotiation-store-memory"))
     api(project(":extensions:in-memory:contractdefinition-store-memory"))
 
-    api(project(":extensions:aws:s3:provision"))
+    api(project(":extensions:aws:s3:s3-provision"))
 
     api(project(":data-protocols:ids:ids-core"))
 

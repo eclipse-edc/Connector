@@ -21,9 +21,9 @@ val storageBlobVersion: String by project
 dependencies {
     api(project(":spi"))
     api(project(":extensions:inline-data-transfer:inline-data-transfer-spi"))
-    api(project(":extensions:azure:blobstorage:api"))
-    api(project(":extensions:azure:blobstorage:provision"))
-    implementation(project(":extensions:azure:blobstorage:blob-schema"))
+    api(project(":extensions:azure:blobstorage:blob-api"))
+
+    implementation(project(":extensions:azure:blobstorage:blob-core"))
 }
 
 publishing {

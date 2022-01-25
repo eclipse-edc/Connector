@@ -12,5 +12,4 @@
 #
 #
 
-org.eclipse.dataspaceconnector.core.schema.SchemaExtension
 org.eclipse.dataspaceconnector.core.system.CoreServicesExtension
