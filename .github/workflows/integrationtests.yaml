@@ -30,7 +30,7 @@ jobs:
       - name: Object Storage StatusChecker Test
         env:
           RUN_INTEGRATION_TEST: true
-        run: ./gradlew extensions:azure:blobstorage:provision:check
+        run: ./gradlew extensions:azure:blobstorage:blob-provision:check
 
       - name: CosmosDB Transfer Process Store Test
         env:
@@ -86,7 +86,7 @@ jobs:
           RUN_INTEGRATION_TEST: true
           S3_ACCESS_KEY_ID: root
           S3_SECRET_ACCESS_KEY: password
-        run: ./gradlew extensions:aws:s3:provision:check
+        run: ./gradlew extensions:aws:s3:s3-provision:check
 
   Daps-Integration-Test:
     runs-on: ubuntu-latest
