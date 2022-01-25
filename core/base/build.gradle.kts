@@ -18,17 +18,12 @@ plugins {
 }
 
 val jupiterVersion: String by project
-val slf4jVersion: String by project
-val infoModelVersion: String by project
-val servletApi: String by project
-val rsApi: String by project
 val okHttpVersion: String by project
 val jodahFailsafeVersion: String by project
 
 
 dependencies {
     api(project(":spi"))
-    api("org.slf4j:slf4j-api:${slf4jVersion}")
 
     api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("net.jodah:failsafe:${jodahFailsafeVersion}")

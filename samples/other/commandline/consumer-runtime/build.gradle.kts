@@ -20,7 +20,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:base"))
+    api(project(":core:boot"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:${jupiterVersion}")

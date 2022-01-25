@@ -21,7 +21,7 @@ plugins {
 val jupiterVersion: String by project
 
 dependencies {
-    api(project(":core:base"))
+    api(project(":core:boot"))
     implementation(project(":data-protocols:ids"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
