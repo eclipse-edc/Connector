@@ -27,20 +27,20 @@ import static java.lang.String.format;
  */
 public class Setters {
 
-    public static void setMandatory(String key, String name, Consumer<String> setter, Map<String, String> properties) {
+    public static void setMandatory(String key, String name, Consumer<String> setter, Map<String, Object> properties) {
         var value = properties.get(key);
         if (value == null) {
-            throw new EdcException(format("Data source key %s not set for: %s", key, name));
+            throw new EdcException(format("Data source key %s not set for %s", key, name));
         }
-        setter.accept(value);
+        setter.accept(value.toString());
     }
 
-    public static void setIfProvided(String key, Consumer<String> setter, Map<String, String> properties) {
+    public static void setIfProvided(String key, Consumer<String> setter, Map<String, Object> properties) {
         var value = properties.get(key);
         if (value == null) {
             return;
         }
-        setter.accept(value);
+        setter.accept(value.toString());
     }
 
     public static void setIfProvided(String key, Consumer<String> setter, ServiceExtensionContext context) {
@@ -55,8 +55,11 @@ public class Setters {
         setIfProvidedInt(key, name, setter, () -> context.getSetting(key, null));
     }
 
-    public static void setIfProvidedInt(String key, String name, Consumer<Integer> setter, Map<String, String> properties) {
-        setIfProvidedInt(key, name, setter, () -> properties.get(key));
+    public static void setIfProvidedInt(String key, String name, Consumer<Integer> setter, Map<String, Object> properties) {
+        setIfProvidedInt(key, name, setter, () -> {
+            var rawProperty = properties.get(key);
+            return rawProperty == null ? null : rawProperty.toString();
+        });
     }
 
     public static void setIfProvidedInt(String key, String name, Consumer<Integer> setter, Supplier<String> supplier) {

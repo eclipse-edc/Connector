@@ -18,7 +18,6 @@ import com.atomikos.jdbc.AtomikosNonXADataSourceBean;
 import com.atomikos.jdbc.internal.AbstractDataSourceBean;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
-import org.jetbrains.annotations.Nullable;
 
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -33,7 +32,7 @@ public class AtomikosDataSourceRegistry implements DataSourceRegistry {
     private Map<String, DataSource> dataSources = new HashMap<>();
 
     @Override
-    public @Nullable DataSource resolve(String name) {
+    public DataSource resolve(String name) {
         return dataSources.get(name);
     }
 

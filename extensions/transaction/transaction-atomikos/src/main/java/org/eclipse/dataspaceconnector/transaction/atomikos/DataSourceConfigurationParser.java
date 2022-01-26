@@ -47,7 +47,7 @@ import static org.eclipse.dataspaceconnector.transaction.atomikos.Setters.setMan
  */
 public class DataSourceConfigurationParser {
 
-    public static List<DataSourceConfiguration> parseDataSourceConfigurations(Map<String, Map<String, String>> configurations) {
+    public static List<DataSourceConfiguration> parseDataSourceConfigurations(Map<String, Map<String, Object>> configurations) {
         var dataSourceConfigurations = new ArrayList<DataSourceConfiguration>();
         configurations.forEach((dsName, properties) -> {
             var builder = DataSourceConfiguration.Builder.newInstance();
@@ -69,7 +69,8 @@ public class DataSourceConfigurationParser {
             setIfProvided(QUERY, builder::query, properties);
 
             var driverProperties = properties.entrySet().stream()
-                    .filter(e -> e.getKey().startsWith(DRIVER_PROPERTIES + ".")).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                    .filter(e -> e.getKey().startsWith(DRIVER_PROPERTIES + "."))
+                    .collect(Collectors.toMap(Map.Entry::getKey, stringObjectEntry -> stringObjectEntry.getValue().toString()));
             builder.properties(driverProperties);
 
             dataSourceConfigurations.add(builder.build());

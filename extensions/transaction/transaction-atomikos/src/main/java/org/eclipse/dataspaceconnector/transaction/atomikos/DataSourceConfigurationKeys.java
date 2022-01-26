@@ -27,7 +27,7 @@ public interface DataSourceConfigurationKeys {
     String URL = "url";
 
     @EdcSetting
-    String DS_TYPE = "data.source.type";
+    String DS_TYPE = "type";
 
     @EdcSetting
     String USERNAME = "username";

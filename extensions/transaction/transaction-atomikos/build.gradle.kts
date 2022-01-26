@@ -16,17 +16,21 @@ plugins {
     `java-library`
 }
 
+val atomikosVersion: String by project
+val h2Version: String by project
+val jtaVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
     api(project(":extensions:transaction:transaction-spi"))
     api(project(":extensions:transaction:transaction-datasource-spi"))
 
-    implementation("javax.transaction:javax.transaction-api:1.3")
-    implementation("com.atomikos:transactions-jta:5.0.8")
-    implementation("com.atomikos:transactions-jdbc:5.0.8")
+    implementation(project(":common:util"))
+    implementation("javax.transaction:javax.transaction-api:${jtaVersion}")
+    implementation("com.atomikos:transactions-jta:${atomikosVersion}")
+    implementation("com.atomikos:transactions-jdbc:${atomikosVersion}")
 
-    testImplementation("com.h2database:h2:2.1.210")
+    testImplementation("com.h2database:h2:${h2Version}")
 }
 
 publishing {

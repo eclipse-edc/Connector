@@ -40,7 +40,7 @@ class DataSourceConfigurationParserTest {
 
     @Test
     void verifyCreation() {
-        var defaultProperties = new HashMap<String, String>();
+        var defaultProperties = new HashMap<String, Object>();
         defaultProperties.put(DRIVER_CLASS, "com.Driver");
         defaultProperties.put(URL, "jdbc://foo.com");
         defaultProperties.put(DS_TYPE, "xa");
@@ -57,7 +57,9 @@ class DataSourceConfigurationParserTest {
         defaultProperties.put(QUERY, "SELECT");
         defaultProperties.put(DRIVER_PROPERTIES + ".custom", "customvalue");
 
-        var fooProperties = Map.of(DRIVER_CLASS, "com.Driver", URL, "jdbc://foo.com");
+        var fooProperties = new HashMap<String, Object>();
+        fooProperties.put(DRIVER_CLASS, "com.Driver");
+        fooProperties.put(URL, "jdbc://foo.com");
 
         var parsedConfigurations = DataSourceConfigurationParser.parseDataSourceConfigurations(Map.of("default", defaultProperties, "minimal", fooProperties));
 

@@ -19,8 +19,7 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Map;
-
+import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.hierarchical;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfigurationParser.parseDataSourceConfigurations;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.Setters.setIfProvided;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.Setters.setIfProvidedInt;
@@ -35,6 +34,7 @@ import static org.eclipse.dataspaceconnector.transaction.atomikos.TransactionMan
  * Provides an implementation of a {@link DataSourceRegistry} and a {@link TransactionContext} backed by Atomikos.
  */
 public class AtomikosTransactionExtension implements ServiceExtension {
+    static final String EDC_DATASOURCE_PREFIX = "edc.datasource";
     private AtomikosTransactionPlatform transactionPlatform;
     private AtomikosTransactionContext transactionContext;
 
@@ -45,12 +45,16 @@ public class AtomikosTransactionExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
+        // initialize the core platform services but do not start recovery and {@link #start} in order to allow transactional resources
+        // in other extensions to register themselves.
         var tmConfiguration = getTransactionManagerConfiguration(context);
         transactionPlatform = new AtomikosTransactionPlatform(tmConfiguration);
         transactionContext = new AtomikosTransactionContext(context.getMonitor());
         context.registerService(TransactionContext.class, transactionContext);
 
-        var dsConfigurations = parseDataSourceConfigurations(Map.of());
+        var configMap = hierarchical(context.getSettings(EDC_DATASOURCE_PREFIX));
+
+        var dsConfigurations = parseDataSourceConfigurations(configMap);
         var dataSourceRegistry = new AtomikosDataSourceRegistry();
         dsConfigurations.forEach(dataSourceRegistry::initialize);
 
