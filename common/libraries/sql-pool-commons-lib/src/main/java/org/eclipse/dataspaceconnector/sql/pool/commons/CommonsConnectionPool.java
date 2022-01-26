@@ -20,7 +20,6 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
-import org.eclipse.dataspaceconnector.sql.connection.ConnectionFactory;
 import org.eclipse.dataspaceconnector.sql.pool.ConnectionPool;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,16 +27,17 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Objects;
+import javax.sql.DataSource;
 
 public final class CommonsConnectionPool implements ConnectionPool, AutoCloseable {
     private final GenericObjectPool<Connection> connectionObjectPool;
 
-    public CommonsConnectionPool(ConnectionFactory connectionFactory, CommonsConnectionPoolConfig commonsConnectionPoolConfig) {
-        Objects.requireNonNull(connectionFactory, "connectionFactory");
+    public CommonsConnectionPool(DataSource dataSource, CommonsConnectionPoolConfig commonsConnectionPoolConfig) {
+        Objects.requireNonNull(dataSource, "connectionFactory");
         Objects.requireNonNull(commonsConnectionPoolConfig, "commonsConnectionPoolConfig");
 
         this.connectionObjectPool = new GenericObjectPool<>(
-                new PooledConnectionObjectFactory(connectionFactory, commonsConnectionPoolConfig.getTestQuery()),
+                new PooledConnectionObjectFactory(dataSource, commonsConnectionPoolConfig.getTestQuery()),
                 getGenericObjectPoolConfig(commonsConnectionPoolConfig));
     }
 
@@ -84,16 +84,16 @@ public final class CommonsConnectionPool implements ConnectionPool, AutoCloseabl
 
     private static class PooledConnectionObjectFactory extends BasePooledObjectFactory<Connection> {
         private final String testQuery;
-        private final ConnectionFactory connectionFactory;
+        private final DataSource dataSource;
 
-        public PooledConnectionObjectFactory(@NotNull ConnectionFactory connectionFactory, @NotNull String testQuery) {
-            this.connectionFactory = Objects.requireNonNull(connectionFactory);
+        public PooledConnectionObjectFactory(@NotNull DataSource dataSource, @NotNull String testQuery) {
+            this.dataSource = Objects.requireNonNull(dataSource);
             this.testQuery = Objects.requireNonNull(testQuery);
         }
 
         @Override
         public Connection create() throws SQLException {
-            return connectionFactory.create();
+            return dataSource.getConnection();
         }
 
         @Override

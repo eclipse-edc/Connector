@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.sql.connection;
+package org.eclipse.dataspaceconnector.sql;
 
 import java.sql.Connection;
 import java.sql.SQLException;
