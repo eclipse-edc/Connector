@@ -13,11 +13,11 @@ services:
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
       edc.api.control.auth.apikey.value: password
       ids.webhook.address: http://consumerO:8181
-    ports:
-      - 9191:9191
     volumes:
-      - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04.3-file-transfer/consumer/build/libs/consumer.jar
+      - ../../:/app
+    ports:
+      - 9191:8181
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
 
   providerO:
     image: openjdk:11-jre-slim-buster
@@ -30,11 +30,11 @@ services:
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
       edc.samples.04.asset.path: /tmp
       ids.webhook.address: http://providerO:8181
+    volumes:
+      - ../../:/app
     ports:
       - 8181:8181
-    volumes:
-      - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04.3-file-transfer/provider/build/libs/provider.jar
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
 
   jaeger:
     image: jaegertracing/all-in-one
