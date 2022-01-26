@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
+import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -83,7 +84,18 @@ class DapsIntegrationTest {
     @BeforeEach
     protected void before(EdcExtension extension) {
         KeyStore clientKeystore = readKeystoreFromResources("keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
-        extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) configuration::get);
+        extension.registerSystemExtension(ConfigurationExtension.class, new ConfigurationExtension() {
+            @Override
+            public @Nullable String getSetting(String key) {
+                return configuration.get(key);
+            }
+
+            @Override
+            public Map<String, String> getSettingsWithPrefix(String prefix) {
+                throw new UnsupportedOperationException();
+            }
+
+        });
         extension.registerServiceMock(Vault.class, new MockVault());
         extension.registerServiceMock(PrivateKeyResolver.class, new FsPrivateKeyResolver(CLIENT_KEYSTORE_PASSWORD, clientKeystore));
         extension.registerServiceMock(CertificateResolver.class, new FsCertificateResolver(clientKeystore));

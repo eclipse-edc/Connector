@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.boot.util.CyclicDependencyException;
 import org.eclipse.dataspaceconnector.core.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
@@ -32,6 +33,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -53,6 +55,61 @@ class DefaultServiceExtensionContextTest {
         Monitor monitor = mock(Monitor.class);
         serviceLocatorMock = mock(ServiceLocator.class);
         context = new DefaultServiceExtensionContext(typeManager, monitor, serviceLocatorMock);
+    }
+
+    @Test
+    void getSettingsWithPrefix_onlyFromConfig() {
+        var prefix = "edc.test";
+
+        var configExtMock = mock(ConfigurationExtension.class);
+        when(configExtMock.getSettingsWithPrefix(prefix)).thenReturn(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        when(serviceLocatorMock.loadImplementors(eq(ConfigurationExtension.class), anyBoolean())).thenReturn(List.of(configExtMock));
+        context.initialize();
+
+        var settings = context.getSettings(prefix);
+
+        assertThat(settings).containsExactlyInAnyOrderEntriesOf(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+    }
+
+    @Test
+    void getSettingsWithPrefix_withOtherProperties() {
+        var prefix = "edc.test";
+
+        var configExtMock = mock(ConfigurationExtension.class);
+        when(configExtMock.getSettingsWithPrefix(prefix)).thenReturn(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        when(serviceLocatorMock.loadImplementors(eq(ConfigurationExtension.class), anyBoolean())).thenReturn(List.of(configExtMock));
+        context.initialize();
+
+        System.setProperty("edc.test.entry3", "foo");
+
+        var settings = context.getSettings(prefix);
+        try {
+            assertThat(settings).containsExactlyInAnyOrderEntriesOf(Map.of("edc.test.entry1", "value1",
+                    "edc.test.entry2", "value2",
+                    "edc.test.entry3", "foo"));
+        } finally {
+            System.clearProperty("edc.test.entry3");
+        }
+    }
+
+    @Test
+    void getSettingsWithPrefix_withOtherPropertiesOverlapping() {
+        var prefix = "edc.test";
+
+        var configExtMock = mock(ConfigurationExtension.class);
+        when(configExtMock.getSettingsWithPrefix(prefix)).thenReturn(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        when(serviceLocatorMock.loadImplementors(eq(ConfigurationExtension.class), anyBoolean())).thenReturn(List.of(configExtMock));
+        context.initialize();
+
+        System.setProperty("edc.test.entry2", "foo");
+
+        var settings = context.getSettings(prefix);
+        try {
+            assertThat(settings).containsExactlyInAnyOrderEntriesOf(Map.of("edc.test.entry1", "value1",
+                    "edc.test.entry2", "foo"));
+        } finally {
+            System.clearProperty("edc.test.entry2");
+        }
     }
 
     @Test
