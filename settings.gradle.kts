@@ -145,3 +145,5 @@ include(":samples:05-file-transfer-cloud:transfer-file")
 
 include(":samples:04.1-file-transfer-listener:consumer")
 include(":samples:04.1-file-transfer-listener:listener")
+
+include(":samples:04.3-open-telemetry:consumer")
