@@ -1,4 +1,4 @@
-# Modify a transferprocess
+# Modify a TransferProcess
 
 In the last samples (`04.0` and `04.1`) we saw how data can be transferred easily, what a `TransferProcess` is and how
 to react to it easily through the listener. This sample will show how `TransferProcess` objects can be modified
