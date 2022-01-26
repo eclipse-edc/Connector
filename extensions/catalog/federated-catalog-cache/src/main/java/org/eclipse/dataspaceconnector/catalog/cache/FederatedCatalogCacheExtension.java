@@ -6,8 +6,8 @@ import org.eclipse.dataspaceconnector.catalog.cache.crawler.CrawlerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.crawler.NodeQueryAdapterRegistryImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.loader.LoaderManagerImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.management.PartitionManagerImpl;
+import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterImpl;
 import org.eclipse.dataspaceconnector.catalog.cache.query.CacheQueryAdapterRegistryImpl;
-import org.eclipse.dataspaceconnector.catalog.cache.query.DefaultCacheQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.IdsMultipartNodeQueryAdapter;
 import org.eclipse.dataspaceconnector.catalog.cache.query.QueryEngineImpl;
 import org.eclipse.dataspaceconnector.catalog.spi.CacheQueryAdapterRegistry;
@@ -77,7 +77,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
         var queryAdapterRegistry = new CacheQueryAdapterRegistryImpl();
         context.registerService(CacheQueryAdapterRegistry.class, queryAdapterRegistry);
 
-        queryAdapterRegistry.register(new DefaultCacheQueryAdapter(store));
+        queryAdapterRegistry.register(new CacheQueryAdapterImpl(store));
         var queryEngine = new QueryEngineImpl(queryAdapterRegistry);
         context.registerService(QueryEngine.class, queryEngine);
         monitor = context.getMonitor();
@@ -124,7 +124,7 @@ public class FederatedCatalogCacheExtension implements ServiceExtension {
     @NotNull
     private LoaderManager createLoaderManager(FederatedCacheStore store) {
         return LoaderManagerImpl.Builder.newInstance()
-                .loaders(List.of(new DefaultLoader(store)))
+                .loaders(List.of(new LoaderImpl(store)))
                 .batchSize(partitionManagerConfig.getLoaderBatchSize(DEFAULT_BATCH_SIZE))
                 .waitStrategy(() -> partitionManagerConfig.getLoaderRetryTimeout(DEFAULT_RETRY_TIMEOUT_MILLIS))
                 .monitor(monitor)

@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 public class BlobStoreApiImpl implements BlobStoreApi {
 
     private final Vault vault;
-    private String blobstoreEndpoint;
+    private final String blobstoreEndpoint;
     private final Map<String, BlobServiceClient> cache = new HashMap<>();
 
     public BlobStoreApiImpl(Vault vault, String blobstoreEndpoint) {

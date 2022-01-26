@@ -20,11 +20,11 @@ class IonClientImplTest {
     private static final String DID_URL_TO_RESOLVE = "did:ion:EiDfkaPHt8Yojnh15O7egrj5pA9tTefh_SYtbhF1-XyAeA";
 
 
-    private DefaultIonClient client;
+    private IonClientImpl client;
 
     @BeforeEach
     void setup() {
-        client = new DefaultIonClient(new ObjectMapper());
+        client = new IonClientImpl(new ObjectMapper());
     }
 
     @Test

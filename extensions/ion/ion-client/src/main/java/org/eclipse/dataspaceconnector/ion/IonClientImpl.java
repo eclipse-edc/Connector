@@ -28,7 +28,7 @@ import java.util.Objects;
 /**
  * Standard implementation of the {@link IonClient} interface that can resolve DIDs from ION and submit anchor requests to id.
  */
-public class DefaultIonClient implements IonClient {
+public class IonClientImpl implements IonClient {
     private static final String DID_METHOD = "ion";
 
     private static final String DEFAULT_RESOLUTION_ENDPOINT = "https://beta.discover.did.microsoft.com/1.0";
@@ -37,11 +37,11 @@ public class DefaultIonClient implements IonClient {
     private final String resolutionEndpoint;
     private final ObjectMapper typeManager;
 
-    public DefaultIonClient(ObjectMapper typeManager) {
+    public IonClientImpl(ObjectMapper typeManager) {
         this(DEFAULT_RESOLUTION_ENDPOINT, typeManager);
     }
 
-    public DefaultIonClient(String resolutionEndpoint, ObjectMapper typeManager) {
+    public IonClientImpl(String resolutionEndpoint, ObjectMapper typeManager) {
         this.resolutionEndpoint = resolutionEndpoint;
         this.typeManager = typeManager;
     }

@@ -12,7 +12,7 @@
 1. Do not throw checked exceptions; use unchecked exceptions. If an unchecked exception type needs to be defined, inherit from EdcException.
 2. Do not throw exceptions to signal a validation error; report the error (preferably collated) and return an error response.
 3. Throw an unchecked exception if something unexpected happens (e.g. a backing store connection is down after a number of retries). Note that validation errors are expected.
-   For example, see `VerificationResult.java`. 
+   For example, see `Result.java`. 
 4. Only throw an exception when there is no remediation possible, i.e. the exception is fatal. Do not throw an exception if an operation can be retried.  
 
 ## III. Simplicity
@@ -50,3 +50,7 @@
 
 ### X. Objects Serialization/Deserialization
 1. `TypeManager` is the component responsible for json ser/des, you can also use the `ObjectMapper` inside it, but there should be no other `ObjectMapper` instance.
+
+### XI. Class Naming
+1. A single implementor of an interface should be named `<interface name>Impl`.
+2. An implementor who are meant to be the default implementation for an interface but other are/can be defined used instead.
