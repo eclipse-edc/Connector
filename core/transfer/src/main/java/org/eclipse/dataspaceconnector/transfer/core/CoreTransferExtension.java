@@ -43,8 +43,8 @@ import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerIm
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ProxyEntryHandlerRegistryImpl;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.DefaultTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.inline.core.DataOperatorRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
@@ -64,7 +64,7 @@ public class CoreTransferExtension implements ServiceExtension {
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
-    private DefaultTransferProcessManager processManager;
+    private TransferProcessManagerImpl processManager;
 
     @Override
     public String name() {
@@ -105,7 +105,7 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
 
         CommandQueue commandQueue = new BoundedCommandQueue(10);
-        processManager = DefaultTransferProcessManager.Builder.newInstance()
+        processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)

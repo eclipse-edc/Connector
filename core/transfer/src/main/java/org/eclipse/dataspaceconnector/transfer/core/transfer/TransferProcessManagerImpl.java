@@ -58,8 +58,10 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.COMPLETED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ERROR;
@@ -83,7 +85,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link TransferWaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
-public class DefaultTransferProcessManager extends TransferProcessObservable implements TransferProcessManager {
+public class TransferProcessManagerImpl extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
@@ -104,7 +106,7 @@ public class DefaultTransferProcessManager extends TransferProcessObservable imp
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
 
 
-    private DefaultTransferProcessManager() {
+    private TransferProcessManagerImpl() {
 
     }
 
@@ -159,74 +161,6 @@ public class DefaultTransferProcessManager extends TransferProcessObservable imp
         } else {
             return initiateRequest(PROVIDER, dataRequest);
         }
-    }
-
-    @NotNull
-    private TransferInitiateResult initiateProviderSyncRequest(DataRequest dataRequest) {
-        //create a transfer process in the COMPLETED state
-        var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(PROVIDER).build();
-        if (process.getState() == TransferProcessStates.UNSAVED.code()) {
-            process.transitionInitial();
-        }
-        transferProcessStore.create(process);
-
-        var dataProxy = dataProxyManager.getProxy(dataRequest);
-        if (dataProxy != null) {
-            var proxyData = dataProxy.getData(dataRequest);
-            return TransferInitiateResult.success(process.getId(), proxyData);
-        }
-        return TransferInitiateResult.error(process.getId(), ResponseStatus.FATAL_ERROR);
-    }
-
-    @NotNull
-    private TransferInitiateResult initiateConsumerSyncRequest(DataRequest dataRequest) {
-        var id = UUID.randomUUID().toString();
-        var transferProcess = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(CONSUMER).build();
-        if (transferProcess.getState() == TransferProcessStates.UNSAVED.code()) {
-            transferProcess.transitionInitial();
-        }
-        transferProcessStore.create(transferProcess);
-
-        var future = dispatcherRegistry.send(Object.class, dataRequest, transferProcess::getId);
-        try {
-            var result = future.join();
-            // reload from store, could have been modified
-            transferProcess = transferProcessStore.find(transferProcess.getId());
-
-            if (transferProcess.getState() == TransferProcessStates.ERROR.code()) {
-                return TransferInitiateResult.error(dataRequest.getId(), ResponseStatus.FATAL_ERROR, transferProcess.getErrorDetail());
-            }
-
-            // we expect "result" to have a string field named "payload"
-            // and we convert that into a ProxyEntry
-            var proxyEntry = convert(result);
-
-            // if there is one or more handlers for this particular transfer type, return the result of these handlers, otherwise return the
-            // raw proxy object
-            var handler = Optional.ofNullable(proxyEntryHandlers.get(proxyEntry.getType()));
-            var proxyConversionResult = handler.map(peh -> peh.accept(dataRequest, proxyEntry)).orElse(proxyEntry);
-            return TransferInitiateResult.success(dataRequest.getId(), proxyConversionResult);
-        } catch (Exception ex) {
-            var status = isRetryable(ex.getCause()) ? ResponseStatus.ERROR_RETRY : ResponseStatus.FATAL_ERROR;
-            return TransferInitiateResult.error(dataRequest.getId(), status, ex.getMessage());
-        }
-    }
-
-    private ProxyEntry convert(Object result) {
-        try {
-            var payloadField = result.getClass().getDeclaredField("payload");
-            payloadField.setAccessible(true);
-            var payload = payloadField.get(result).toString();
-
-            return typeManager.readValue(payload, ProxyEntry.class);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            return ProxyEntry.Builder.newInstance().build();
-        }
-    }
-
-    private boolean isRetryable(Throwable ex) {
-        return ex instanceof ConnectException; //we might need to add more retryable exceptions
     }
 
     @Override
@@ -314,6 +248,72 @@ public class DefaultTransferProcessManager extends TransferProcessObservable imp
         transferProcessStore.create(process);
         invokeForEach(l -> l.created(process));
         return TransferInitiateResult.success(process.getId());
+    }
+
+    @NotNull
+    private TransferInitiateResult initiateProviderSyncRequest(DataRequest dataRequest) {
+        var process = createCompletedTransferProcess(dataRequest, PROVIDER);
+
+        transferProcessStore.create(process);
+
+        var dataProxy = dataProxyManager.getProxy(dataRequest);
+        if (dataProxy == null) {
+            return TransferInitiateResult.error(process.getId(), FATAL_ERROR, "There is not DataProxy for destination " + dataRequest.getDestinationType());
+        } else {
+            var proxyData = dataProxy.getData(dataRequest);
+            return TransferInitiateResult.success(process.getId(), proxyData);
+        }
+    }
+
+    @NotNull
+    private TransferInitiateResult initiateConsumerSyncRequest(DataRequest dataRequest) {
+        TransferProcess transferProcess = createCompletedTransferProcess(dataRequest, CONSUMER);
+
+        transferProcessStore.create(transferProcess);
+
+        var proxyConversion = dispatcherRegistry.send(Object.class, dataRequest, transferProcess::getId)
+                .thenApply(this::extractPayloadAsProxyEntry)
+                .thenApply(proxyEntry -> {
+                    String type = proxyEntry.getType();
+                    return Optional.ofNullable(proxyEntryHandlers.get(type))
+                                    .map(handler -> handler.accept(dataRequest, proxyEntry))
+                                    .orElse(proxyEntry);
+                });
+
+        try {
+            var result = proxyConversion.join();
+            return TransferInitiateResult.success(dataRequest.getId(), result);
+        } catch (Exception e) {
+            var status = isRetryable(e.getCause()) ? ResponseStatus.ERROR_RETRY : FATAL_ERROR;
+            return TransferInitiateResult.error(dataRequest.getId(), status, e.getMessage());
+        }
+    }
+
+    private TransferProcess createCompletedTransferProcess(DataRequest dataRequest, TransferProcess.Type type) {
+        var id = UUID.randomUUID().toString();
+
+        return TransferProcess.Builder.newInstance()
+                .id(id)
+                .dataRequest(dataRequest)
+                .state(COMPLETED.code())
+                .type(type)
+                .build();
+    }
+
+    private ProxyEntry extractPayloadAsProxyEntry(Object result) {
+        try {
+            var payloadField = result.getClass().getDeclaredField("payload");
+            payloadField.setAccessible(true);
+            var payload = payloadField.get(result).toString();
+
+            return typeManager.readValue(payload, ProxyEntry.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return ProxyEntry.Builder.newInstance().build();
+        }
+    }
+
+    private boolean isRetryable(Throwable ex) {
+        return ex instanceof ConnectException; //we might need to add more retryable exceptions
     }
 
     private void run() {
@@ -489,7 +489,7 @@ public class DefaultTransferProcessManager extends TransferProcessObservable imp
 
     private void transitionToCompleted(TransferProcess process) {
         process.transitionCompleted();
-        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
+        monitor.debug("Process " + process.getId() + " is now " + COMPLETED);
         transferProcessStore.update(process);
         invokeForEach(listener -> listener.completed(process));
     }
@@ -601,10 +601,10 @@ public class DefaultTransferProcessManager extends TransferProcessObservable imp
     }
 
     public static class Builder {
-        private final DefaultTransferProcessManager manager;
+        private final TransferProcessManagerImpl manager;
 
         private Builder() {
-            manager = new DefaultTransferProcessManager();
+            manager = new TransferProcessManagerImpl();
         }
 
         public static Builder newInstance() {
@@ -681,7 +681,7 @@ public class DefaultTransferProcessManager extends TransferProcessObservable imp
             return this;
         }
 
-        public DefaultTransferProcessManager build() {
+        public TransferProcessManagerImpl build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
             Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");

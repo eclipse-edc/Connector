@@ -3,7 +3,6 @@ package org.eclipse.dataspaceconnector.transfer.core.provision;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
@@ -12,6 +11,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResou
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -158,22 +158,4 @@ class ProvisionManagerImplTest {
 
     private static class TestProvisionedResource extends ProvisionedResource {}
 
-    private static class TestProvisionedDataDestinationResource extends ProvisionedDataDestinationResource {
-        private final String resourceName;
-
-        protected TestProvisionedDataDestinationResource(String resourceName) {
-            super();
-            this.resourceName = resourceName;
-        }
-
-        @Override
-        public DataAddress createDataDestination() {
-            return null;
-        }
-
-        @Override
-        public String getResourceName() {
-            return resourceName;
-        }
-    }
 }
