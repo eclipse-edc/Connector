@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.sql.postgresql;
 
-import org.eclipse.dataspaceconnector.sql.connection.ConnectionFactory;
+import org.eclipse.dataspaceconnector.sql.ConnectionFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.sql.Connection;

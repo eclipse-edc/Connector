@@ -21,7 +21,7 @@ to retrieve a `java.sql.Connection`.
 
 ## Usage
 
-### 1. Get a `java.sqlConnection`
+### 1. Get a `java.sql.Connection`
 
 The connection may be created by any arbitrary java library or by another EDC library, that implements
 the `ConnectionPool` or `ConnectionFactory`.
