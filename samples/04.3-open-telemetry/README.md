@@ -46,7 +46,7 @@ Build, run the consumer, provider and Jaeger:
 
 ```bash
 ./gradlew samples:04.3-open-telemetry:consumer:build samples:04-file-transfer:provider:build
-docker-compose --profile all -f samples/04.3-open-telemetry/docker-compose.yaml up
+docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up
 ````
 
 Assuming you didn't change the config files, the consumer will listen on port `9191` and the provider will listen on port `8181`. Open another terminal window (or any REST client of your choice) and execute the following REST request:
