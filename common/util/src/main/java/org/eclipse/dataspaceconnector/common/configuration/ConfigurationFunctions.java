@@ -56,9 +56,6 @@ public class ConfigurationFunctions {
         return hierarchical(properties, autoRoot(properties.keySet()));
     }
 
-    private static String autoRoot(Set<String> keySet) {
-        return StringUtils.getCommonPrefix(new ArrayList<>(keySet));
-    }
 
     /**
      * Takes a list of flat properties and converts them into a hierarchical map of entries starting from a given root.
@@ -97,13 +94,11 @@ public class ConfigurationFunctions {
             if (k.contains(".")) {
                 var group = k.split("\\.")[0];
                 var key = k.replace(group + ".", "");
-                if (groupedList.containsKey(group)) {
-                    groupedList.get(group).put(key, v);
-                } else {
-                    var m = new HashMap<String, Object>();
-                    m.put(key, v);
-                    groupedList.put(group, m);
-                }
+
+                var m = groupedList.computeIfAbsent(group, s -> new HashMap<>());
+
+                groupedList.get(group).put(key, v);
+                m.put(key, v);
             } else {
                 var m = groupedList.computeIfAbsent(root, s -> new HashMap<>());
                 m.put(k, v);
@@ -111,5 +106,9 @@ public class ConfigurationFunctions {
         });
 
         return groupedList;
+    }
+
+    private static String autoRoot(Set<String> keySet) {
+        return StringUtils.getCommonPrefix(new ArrayList<>(keySet));
     }
 }
