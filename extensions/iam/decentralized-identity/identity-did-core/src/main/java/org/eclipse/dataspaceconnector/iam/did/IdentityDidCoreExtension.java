@@ -20,7 +20,7 @@ import org.eclipse.dataspaceconnector.iam.did.crypto.key.EcPrivateKeyWrapper;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolution.DefaultDidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.resolution.DidResolverRegistryImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
@@ -70,7 +70,7 @@ public class IdentityDidCoreExtension implements ServiceExtension {
         var resolverRegistry = new DidResolverRegistryImpl();
         context.registerService(DidResolverRegistry.class, resolverRegistry);
 
-        var publicKeyResolver = new DefaultDidPublicKeyResolver(resolverRegistry);
+        var publicKeyResolver = new DidPublicKeyResolverImpl(resolverRegistry);
         context.registerService(DidPublicKeyResolver.class, publicKeyResolver);
 
         var privateKeyResolver = context.getService(PrivateKeyResolver.class);

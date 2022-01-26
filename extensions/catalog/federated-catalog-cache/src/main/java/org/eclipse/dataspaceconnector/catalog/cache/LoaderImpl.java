@@ -6,10 +6,10 @@ import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
 
 import java.util.Collection;
 
-public class DefaultLoader implements Loader {
+public class LoaderImpl implements Loader {
     private final FederatedCacheStore store;
 
-    public DefaultLoader(FederatedCacheStore store) {
+    public LoaderImpl(FederatedCacheStore store) {
         this.store = store;
     }
 

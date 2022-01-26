@@ -5,5 +5,5 @@ import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandler
 
 import java.util.concurrent.ConcurrentHashMap;
 
-public class DefaultProxyEntryHandlerRegistry extends ConcurrentHashMap<String, ProxyEntryHandler> implements ProxyEntryHandlerRegistry {
+public class ProxyEntryHandlerRegistryImpl extends ConcurrentHashMap<String, ProxyEntryHandler> implements ProxyEntryHandlerRegistry {
 }

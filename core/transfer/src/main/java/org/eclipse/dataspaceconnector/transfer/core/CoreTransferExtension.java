@@ -43,8 +43,8 @@ import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerIm
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.AsyncTransferProcessManager;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.DefaultProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.DelegatingTransferProcessManager;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.ProxyEntryHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.SyncTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.inline.core.DataOperatorRegistryImpl;
@@ -117,7 +117,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .commandRunner(new CommandRunner(registry, monitor))
                 .build();
 
-        var proxyEntryHandlerRegistry = new DefaultProxyEntryHandlerRegistry();
+        var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
         context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
 
         var syncMgr = new SyncTransferProcessManager(dataProxyRegistry, transferProcessStore, dispatcherRegistry, proxyEntryHandlerRegistry, typeManager);

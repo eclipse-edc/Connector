@@ -23,11 +23,11 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.stream.Stream;
 
-public class DefaultCacheQueryAdapter implements CacheQueryAdapter {
+public class CacheQueryAdapterImpl implements CacheQueryAdapter {
 
     private final FederatedCacheStore store;
 
-    public DefaultCacheQueryAdapter(FederatedCacheStore store) {
+    public CacheQueryAdapterImpl(FederatedCacheStore store) {
         this.store = store;
     }
 

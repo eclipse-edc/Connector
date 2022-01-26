@@ -23,10 +23,10 @@ import java.util.stream.Collectors;
 
 import static org.eclipse.dataspaceconnector.iam.did.spi.document.DidConstants.ALLOWED_VERIFICATION_TYPES;
 
-public class DefaultDidPublicKeyResolver implements DidPublicKeyResolver {
+public class DidPublicKeyResolverImpl implements DidPublicKeyResolver {
     private final DidResolverRegistry resolverRegistry;
 
-    public DefaultDidPublicKeyResolver(DidResolverRegistry resolverRegistry) {
+    public DidPublicKeyResolverImpl(DidResolverRegistry resolverRegistry) {
         this.resolverRegistry = resolverRegistry;
     }
 

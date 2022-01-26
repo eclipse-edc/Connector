@@ -4,7 +4,7 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubClientImpl;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubController;
 import org.eclipse.dataspaceconnector.iam.did.hub.IdentityHubImpl;
-import org.eclipse.dataspaceconnector.iam.did.resolution.DefaultDidPublicKeyResolver;
+import org.eclipse.dataspaceconnector.iam.did.resolution.DidPublicKeyResolverImpl;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHub;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubClient;
 import org.eclipse.dataspaceconnector.iam.did.spi.hub.IdentityHubStore;
@@ -52,7 +52,7 @@ class IdentityDidCoreExtensionTest {
         extension.initialize(contextMock);
 
         verify(contextMock).registerService(eq(DidResolverRegistry.class), isA(DidResolverRegistry.class));
-        verify(contextMock).registerService(eq(DidPublicKeyResolver.class), isA(DefaultDidPublicKeyResolver.class));
+        verify(contextMock).registerService(eq(DidPublicKeyResolver.class), isA(DidPublicKeyResolverImpl.class));
         verify(contextMock).registerService(eq(IdentityHub.class), isA(IdentityHubImpl.class));
         verify(contextMock).registerService(eq(IdentityHubClient.class), isA(IdentityHubClientImpl.class));
         verify(webserviceMock).registerController(isA(IdentityHubController.class));
