@@ -16,6 +16,10 @@ package org.eclipse.dataspaceconnector.common.string;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 
 class StringUtilsTest {
@@ -68,5 +72,14 @@ class StringUtilsTest {
         assertThat(StringUtils.toString(23)).isEqualTo("23");
         assertThat(StringUtils.toString(null)).isEqualTo(null);
         assertThat(StringUtils.toString(new Object())).contains("java.lang.Object@");
+    }
+
+    @Test
+    void commonPrefix() {
+        assertThat(StringUtils.getCommonPrefix(new ArrayList<>(List.of("abc.def", "abc-def", "abd+cef")))).isEqualTo("ab");
+        assertThat(StringUtils.getCommonPrefix(new ArrayList<>(List.of("abc.def", "", "abd+cef")))).isEqualTo("");
+        assertThat(StringUtils.getCommonPrefix(new ArrayList<>(List.of("AB-de", "abc-def", "abd+cef")))).isEqualTo("");
+        assertThat(StringUtils.getCommonPrefix(new ArrayList<>(List.of("abcd")))).isEqualTo("abcd");
+        assertThat(StringUtils.getCommonPrefix(Collections.emptyList())).isEqualTo("");
     }
 }

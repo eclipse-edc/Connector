@@ -107,6 +107,25 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
+    public Map<String, Object> getSettings(String prefix) {
+
+        Map<String, String> settings = Map.of();
+        for (var ext : configurationExtensions) {
+            settings = ext.getSettingsWithPrefix(prefix);
+        }
+        var sysProps = getSysPropsStartingWith(prefix);
+        var envProps = getEnvPropsStartingWith(prefix);
+
+        var all = new HashMap<String, Object>();
+        all.putAll(settings);
+        all.putAll(sysProps);
+        all.putAll(envProps);
+
+
+        return all;
+    }
+
+    @Override
     public <T> boolean hasService(Class<T> type) {
         return services.containsKey(type);
     }
@@ -164,6 +183,16 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
             monitor.info("Initialized " + ext.name());
         });
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
+    }
+
+    private Map<String, Object> getSysPropsStartingWith(String prefix) {
+        return System.getProperties().entrySet().stream().filter(e -> e.getKey().toString().startsWith(prefix))
+                .collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
+    }
+
+    private Map<String, String> getEnvPropsStartingWith(String prefix) {
+        return System.getenv().entrySet().stream().filter(e -> e.getKey().startsWith(prefix))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private List<InjectionContainer<ServiceExtension>> sortExtensions(List<ServiceExtension> loadedExtensions) {

@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Context provided to extensions when they are initialized.
@@ -46,6 +47,11 @@ public interface ServiceExtensionContext {
      * Returns the configuration value, or the default value if not found.
      */
     String getSetting(String setting, String defaultValue);
+
+    /**
+     * Gets all properties that start with a particular prefix and returns them as a map.
+     */
+    Map<String, Object> getSettings(String prefix);
 
     /**
      * Returns true if the service type is registered.

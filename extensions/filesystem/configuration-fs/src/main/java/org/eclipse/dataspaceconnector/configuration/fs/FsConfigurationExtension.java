@@ -28,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
@@ -83,5 +84,12 @@ public class FsConfigurationExtension implements ConfigurationExtension {
     @Override
     public @Nullable String getSetting(String key) {
         return propertyCache.get(key);
+    }
+
+    @Override
+    public Map<String, String> getSettingsWithPrefix(String prefix) {
+        return propertyCache.entrySet().stream().filter(entry -> entry.getKey().startsWith(prefix))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
     }
 }
