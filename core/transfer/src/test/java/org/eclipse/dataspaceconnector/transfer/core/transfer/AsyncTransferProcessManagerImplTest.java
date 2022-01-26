@@ -44,7 +44,7 @@ import static org.mockito.Mockito.when;
 
 class AsyncTransferProcessManagerImplTest {
 
-    private AsyncTransferProcessManager manager;
+    private DefaultTransferProcessManager manager;
     private TransferProcessStore store;
 
     @BeforeEach
@@ -52,7 +52,7 @@ class AsyncTransferProcessManagerImplTest {
         store = mock(TransferProcessStore.class);
         when(store.nextForState(anyInt(), anyInt())).thenReturn(Collections.emptyList());
 
-        manager = AsyncTransferProcessManager.Builder.newInstance()
+        manager = DefaultTransferProcessManager.Builder.newInstance()
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .provisionManager(mock(ProvisionManager.class))
                 .dataFlowManager(mock(DataFlowManager.class))

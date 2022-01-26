@@ -29,6 +29,10 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntry;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandler;
+import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -38,9 +42,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.jetbrains.annotations.NotNull;
 
+import java.net.ConnectException;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -75,7 +83,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link TransferWaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
-public class AsyncTransferProcessManager extends TransferProcessObservable implements TransferProcessManager {
+public class DefaultTransferProcessManager extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
@@ -92,9 +100,11 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     private TypeManager typeManager;
     private CommandQueue commandQueue;
     private CommandRunner commandRunner;
+    private DataProxyManager dataProxyManager;
+    private ProxyEntryHandlerRegistry proxyEntryHandlers;
 
 
-    private AsyncTransferProcessManager() {
+    private DefaultTransferProcessManager() {
 
     }
 
@@ -112,14 +122,111 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         }
     }
 
+    /**
+     * Initiate a consumer request TransferProcess.
+     *
+     * If the request is sync, instead of inserting a {@link TransferProcess} into - and having it traverse through -
+     * it returns immediately (= "synchronously"). The {@link TransferProcess} is created in the
+     * {@link TransferProcessStates#COMPLETED} state.
+     * <p>
+     * There is a set of {@link ProxyEntryHandler} instances, that receive the resulting {@link ProxyEntry} object.
+     * If a {@link ProxyEntryHandler} is registered, the {@link ProxyEntry} is forwarded to it, and if no {@link ProxyEntryHandler}
+     * is registered, the {@link ProxyEntry} object is returned.
+     */
     @Override
     public TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest) {
-        return initiateRequest(CONSUMER, dataRequest);
+        if (dataRequest.isSync()) {
+            return initiateConsumerSyncRequest(dataRequest);
+        } else {
+            return initiateRequest(CONSUMER, dataRequest);
+        }
     }
 
+    /**
+     * Initiate a provider request TransferProcess.
+     *
+     * If the request is sync, instead of inserting a {@link TransferProcess} into - and having it traverse through -
+     * it returns immediately (= "synchronously"). The {@link TransferProcess} is created in the
+     * {@link TransferProcessStates#COMPLETED} state.
+     * <p>
+     * The {@link DataProxyManager} checks if a {@link org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxy}
+     * is registered for a particular request and if so, calls it.
+     */
     @Override
     public TransferInitiateResult initiateProviderRequest(DataRequest dataRequest) {
-        return initiateRequest(PROVIDER, dataRequest);
+        if (dataRequest.isSync()) {
+            return initiateProviderSyncRequest(dataRequest);
+        } else {
+            return initiateRequest(PROVIDER, dataRequest);
+        }
+    }
+
+    @NotNull
+    private TransferInitiateResult initiateProviderSyncRequest(DataRequest dataRequest) {
+        //create a transfer process in the COMPLETED state
+        var id = randomUUID().toString();
+        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(PROVIDER).build();
+        if (process.getState() == TransferProcessStates.UNSAVED.code()) {
+            process.transitionInitial();
+        }
+        transferProcessStore.create(process);
+
+        var dataProxy = dataProxyManager.getProxy(dataRequest);
+        if (dataProxy != null) {
+            var proxyData = dataProxy.getData(dataRequest);
+            return TransferInitiateResult.success(process.getId(), proxyData);
+        }
+        return TransferInitiateResult.error(process.getId(), ResponseStatus.FATAL_ERROR);
+    }
+
+    @NotNull
+    private TransferInitiateResult initiateConsumerSyncRequest(DataRequest dataRequest) {
+        var id = UUID.randomUUID().toString();
+        var transferProcess = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).state(TransferProcessStates.COMPLETED.code()).type(CONSUMER).build();
+        if (transferProcess.getState() == TransferProcessStates.UNSAVED.code()) {
+            transferProcess.transitionInitial();
+        }
+        transferProcessStore.create(transferProcess);
+
+        var future = dispatcherRegistry.send(Object.class, dataRequest, transferProcess::getId);
+        try {
+            var result = future.join();
+            // reload from store, could have been modified
+            transferProcess = transferProcessStore.find(transferProcess.getId());
+
+            if (transferProcess.getState() == TransferProcessStates.ERROR.code()) {
+                return TransferInitiateResult.error(dataRequest.getId(), ResponseStatus.FATAL_ERROR, transferProcess.getErrorDetail());
+            }
+
+            // we expect "result" to have a string field named "payload"
+            // and we convert that into a ProxyEntry
+            var proxyEntry = convert(result);
+
+            // if there is one or more handlers for this particular transfer type, return the result of these handlers, otherwise return the
+            // raw proxy object
+            var handler = Optional.ofNullable(proxyEntryHandlers.get(proxyEntry.getType()));
+            var proxyConversionResult = handler.map(peh -> peh.accept(dataRequest, proxyEntry)).orElse(proxyEntry);
+            return TransferInitiateResult.success(dataRequest.getId(), proxyConversionResult);
+        } catch (Exception ex) {
+            var status = isRetryable(ex.getCause()) ? ResponseStatus.ERROR_RETRY : ResponseStatus.FATAL_ERROR;
+            return TransferInitiateResult.error(dataRequest.getId(), status, ex.getMessage());
+        }
+    }
+
+    private ProxyEntry convert(Object result) {
+        try {
+            var payloadField = result.getClass().getDeclaredField("payload");
+            payloadField.setAccessible(true);
+            var payload = payloadField.get(result).toString();
+
+            return typeManager.readValue(payload, ProxyEntry.class);
+        } catch (NoSuchFieldException | IllegalAccessException e) {
+            return ProxyEntry.Builder.newInstance().build();
+        }
+    }
+
+    private boolean isRetryable(Throwable ex) {
+        return ex instanceof ConnectException; //we might need to add more retryable exceptions
     }
 
     @Override
@@ -494,10 +601,10 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     public static class Builder {
-        private final AsyncTransferProcessManager manager;
+        private final DefaultTransferProcessManager manager;
 
         private Builder() {
-            manager = new AsyncTransferProcessManager();
+            manager = new DefaultTransferProcessManager();
         }
 
         public static Builder newInstance() {
@@ -564,7 +671,17 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             return this;
         }
 
-        public AsyncTransferProcessManager build() {
+        public Builder dataProxyManager(DataProxyManager dataProxyManager) {
+            manager.dataProxyManager = dataProxyManager;
+            return this;
+        }
+
+        public Builder proxyEntryHandlerRegistry(ProxyEntryHandlerRegistry proxyEntryHandlerRegistry) {
+            manager.proxyEntryHandlers = proxyEntryHandlerRegistry;
+            return this;
+        }
+
+        public DefaultTransferProcessManager build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
             Objects.requireNonNull(manager.dataFlowManager, "dataFlowManager");
@@ -573,6 +690,8 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             Objects.requireNonNull(manager.commandQueue, "commandQueue cannot be null");
             Objects.requireNonNull(manager.commandRunner, "commandRunner cannot be null");
             Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
+            Objects.requireNonNull(manager.dataProxyManager, "DataProxyManager cannot be null!");
+            Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
             return manager;
         }
     }

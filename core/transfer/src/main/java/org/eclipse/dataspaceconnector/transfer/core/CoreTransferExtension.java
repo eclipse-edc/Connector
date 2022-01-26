@@ -42,11 +42,9 @@ import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.AsyncTransferProcessManager;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.DelegatingTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.ProxyEntryHandlerRegistryImpl;
+import org.eclipse.dataspaceconnector.transfer.core.transfer.DefaultTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.SyncTransferProcessManager;
 import org.eclipse.dataspaceconnector.transfer.inline.core.DataOperatorRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 
@@ -59,13 +57,14 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
-    private DelegatingTransferProcessManager processManager;
     @Inject
     private TransferProcessStore transferProcessStore;
     @Inject
     private CommandHandlerRegistry registry;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
+
+    private DefaultTransferProcessManager processManager;
 
     @Override
     public String name() {
@@ -99,11 +98,14 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var waitStrategy = context.hasService(TransferWaitStrategy.class) ? context.getService(TransferWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
 
-        var dataProxyRegistry = new DataProxyManagerImpl();
-        context.registerService(DataProxyManager.class, dataProxyRegistry);
+        var dataProxyManager = new DataProxyManagerImpl();
+        context.registerService(DataProxyManager.class, dataProxyManager);
+
+        var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
+        context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
 
         CommandQueue commandQueue = new BoundedCommandQueue(10);
-        var asyncMgr = AsyncTransferProcessManager.Builder.newInstance()
+        processManager = DefaultTransferProcessManager.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
                 .dataFlowManager(dataFlowManager)
@@ -115,17 +117,12 @@ public class CoreTransferExtension implements ServiceExtension {
                 .typeManager(typeManager)
                 .commandQueue(commandQueue)
                 .commandRunner(new CommandRunner(registry, monitor))
+                .dataProxyManager(dataProxyManager)
+                .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
                 .build();
 
-        var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
-        context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
-
-        var syncMgr = new SyncTransferProcessManager(dataProxyRegistry, transferProcessStore, dispatcherRegistry, proxyEntryHandlerRegistry, typeManager);
-
-        processManager = new DelegatingTransferProcessManager(asyncMgr, syncMgr);
-
         context.registerService(TransferProcessManager.class, processManager);
-        context.registerService(TransferProcessObservable.class, asyncMgr);
+        context.registerService(TransferProcessObservable.class, processManager);
 
     }
 
