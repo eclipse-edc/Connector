@@ -14,16 +14,6 @@
 
 package org.eclipse.dataspaceconnector.common.configuration;
 
-import org.eclipse.dataspaceconnector.common.string.StringUtils;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
-
 /**
  * Common configuration functions used by extensions.
  */
@@ -43,72 +33,4 @@ public class ConfigurationFunctions {
         return value != null ? value : defaultValue;
     }
 
-    /**
-     * Takes a list of flat properties and converts them into a hierarchical map of entries. The root node is determined automatically
-     * by computing the largest common prefix
-     *
-     * @param properties A flat map of properties
-     * @return A "map of maps", each of which containing the sub-properties of one node.
-     * @see ConfigurationFunctions#hierarchical(Map, String)
-     * @see StringUtils#getCommonPrefix(List)
-     */
-    public static Map<String, Map<String, Object>> hierarchical(Map<String, Object> properties) {
-        return hierarchical(properties, autoRoot(properties.keySet()));
-    }
-
-
-    /**
-     * Takes a list of flat properties and converts them into a hierarchical map of entries starting from a given root.
-     * Ideally, the root should be the common property key prefix. For example lets assume we have those properties:
-     * <pre>
-     * {@code
-     * edc.datasource.default.user=user1
-     * edc.datasource.default.password=user1
-     * edc.datasource.another.user=user2
-     * edc.datasource.another.password=password2
-     * }
-     * </pre>
-     * <p>
-     * This would give the following results:
-     * {@code
-     * hierarchical(props, "edc.datasource") returns "default" -> {"user" -> "user1", "password"->"password1"}
-     * "another" -> {"user" -> "user2", "password"->"password2"}
-     * }
-     * <p>
-     * This could be used to dynamically configure a multiple of something, e.g. datasources.
-     *
-     * @param properties a flat map of properties
-     * @param root       The common prefix that is used as starting point
-     * @return A "map of maps", each of which containing the sub-properties of one node.
-     */
-    public static Map<String, Map<String, Object>> hierarchical(Map<String, Object> properties, String root) {
-        Objects.requireNonNull(properties, "properties");
-        if (root != null) {
-            properties = properties.entrySet().stream()
-                    .filter(e -> e.getKey().startsWith(root))
-                    .collect(Collectors.toMap(s -> s.getKey().replace(root + ".", ""), Map.Entry::getValue));
-
-        }
-        Map<String, Map<String, Object>> groupedList = new HashMap<>();
-        properties.forEach((k, v) -> {
-            if (k.contains(".")) {
-                var group = k.split("\\.")[0];
-                var key = k.replace(group + ".", "");
-
-                var m = groupedList.computeIfAbsent(group, s -> new HashMap<>());
-
-                groupedList.get(group).put(key, v);
-                m.put(key, v);
-            } else {
-                var m = groupedList.computeIfAbsent(root, s -> new HashMap<>());
-                m.put(k, v);
-            }
-        });
-
-        return groupedList;
-    }
-
-    private static String autoRoot(Set<String> keySet) {
-        return StringUtils.getCommonPrefix(new ArrayList<>(keySet));
-    }
 }

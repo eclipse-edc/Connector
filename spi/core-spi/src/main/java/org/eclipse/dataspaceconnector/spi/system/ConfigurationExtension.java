@@ -14,26 +14,15 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
-import org.jetbrains.annotations.Nullable;
-
-import java.util.Map;
-
 /**
  * Contributes configuration to a runtime. Multiple configuration extensions may be loaded in a runtime.
  */
 public interface ConfigurationExtension extends BootExtension {
 
     /**
-     * Returns the configuration setting for the key or null if not found.
-     */
-    @Nullable
-    String getSetting(String key);
-
-    /**
-     * Gets all configuration settings that start with a certain prefix (= filtering).
+     * Gets the configuration starting from the root
      *
-     * @param prefix the prefix
-     * @return A map that contains all config entries that start with the prefix.
+     * @return A config object
      */
-    Map<String, String> getSettingsWithPrefix(String prefix);
+    Config getConfig();
 }
