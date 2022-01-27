@@ -18,7 +18,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -108,7 +107,6 @@ class DataPlaneManagerImplTest {
         return DataFlowRequest.Builder.newInstance()
                 .id("1")
                 .processId("1")
-                .transferType(TransferType.Builder.transferType().contentType("application/octet-stream").build())
                 .sourceDataAddress(DataAddress.Builder.newInstance().build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().build())
                 .build();

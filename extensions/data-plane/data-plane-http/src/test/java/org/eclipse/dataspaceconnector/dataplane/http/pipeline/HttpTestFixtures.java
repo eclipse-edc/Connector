@@ -19,7 +19,6 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 
 import static okhttp3.Protocol.HTTP_2;
 
@@ -29,7 +28,6 @@ public class HttpTestFixtures {
         return DataFlowRequest.Builder.newInstance()
                 .id("1")
                 .processId("1")
-                .transferType(TransferType.Builder.transferType().contentType("application/octet-stream").build())
                 .sourceDataAddress(DataAddress.Builder.newInstance().type(type).build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().build());
     }
