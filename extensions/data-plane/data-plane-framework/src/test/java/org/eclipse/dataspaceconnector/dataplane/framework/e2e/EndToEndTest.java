@@ -30,9 +30,6 @@ import java.util.concurrent.Executors;
 
 import static org.mockito.Mockito.mock;
 
-/**
- *
- */
 public class EndToEndTest {
 
     @Test
