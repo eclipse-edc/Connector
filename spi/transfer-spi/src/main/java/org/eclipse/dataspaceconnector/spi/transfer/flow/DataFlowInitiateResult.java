@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.flow;
 
+import org.eclipse.dataspaceconnector.spi.response.ResponseFailure;
+import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
-import org.eclipse.dataspaceconnector.spi.transfer.ResponseFailure;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 
 import java.util.List;
 

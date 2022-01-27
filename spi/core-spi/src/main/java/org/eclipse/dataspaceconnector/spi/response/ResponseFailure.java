@@ -1,7 +1,6 @@
-package org.eclipse.dataspaceconnector.spi.transfer;
+package org.eclipse.dataspaceconnector.spi.response;
 
 import org.eclipse.dataspaceconnector.spi.result.Failure;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 
 import java.util.List;
 

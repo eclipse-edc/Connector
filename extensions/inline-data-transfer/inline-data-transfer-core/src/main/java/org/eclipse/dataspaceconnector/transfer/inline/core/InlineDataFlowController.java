@@ -20,14 +20,13 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 
 public class InlineDataFlowController implements DataFlowController {
     private final Vault vault;

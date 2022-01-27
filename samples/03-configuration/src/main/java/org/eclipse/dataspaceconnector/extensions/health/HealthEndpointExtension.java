@@ -1,11 +1,11 @@
 package org.eclipse.dataspaceconnector.extensions.health;
 
-import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.web.WebService;
 
-@Requires({ WebService.class })
+@Requires({WebService.class})
 public class HealthEndpointExtension implements ServiceExtension {
     private static final String LOG_PREFIX_SETTING = "edc.samples.03.logprefix";
 

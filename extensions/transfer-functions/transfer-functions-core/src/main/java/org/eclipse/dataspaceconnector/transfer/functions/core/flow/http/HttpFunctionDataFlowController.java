@@ -28,12 +28,12 @@ import java.io.IOException;
 import java.util.Set;
 import java.util.function.Supplier;
 
-import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
-import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Connects with an HTTP(S) endpoint to initiate and manage a data transfer.
- *
+ * <p>
  * Endpoints must be idempotent. The endpoint should return HTTP code 200 to indicate the request was received. If the endpoint returns an HTTP code of 500 to 504, the request
  * will be retried; otherwise the request will be placed in the fatal error state.
  */

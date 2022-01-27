@@ -19,8 +19,8 @@ import org.eclipse.dataspaceconnector.transfer.core.commandqueue.commands.Deprov
 
 import java.util.UUID;
 
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 @Path("/")
 public class ConsumerApiController {
 

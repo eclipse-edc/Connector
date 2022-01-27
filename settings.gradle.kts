@@ -129,6 +129,7 @@ include(":spi:core-spi")
 include(":spi:transfer-spi")
 include(":spi:contract-spi")
 include(":spi:catalog-spi")
+include(":spi:protocol-spi")
 
 //include(":openapi")
 

@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.flow;
 
+import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,9 +31,9 @@ public interface DataFlowController {
     /**
      * Initiate a data flow.
      * <p>Implementations should not throw exceptions. If an unexpected exception occurs and the flow should be re-attempted,
-     * set {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#ERROR_RETRY} in the response.
+     * set {@link ResponseStatus#ERROR_RETRY} in the response.
      * If an exception occurs and re-tries should not be re-attempted, set
-     * {@link org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus#FATAL_ERROR} in the response. </p>
+     * {@link ResponseStatus#FATAL_ERROR} in the response. </p>
      */
     @NotNull
     DataFlowInitiateResult initiateFlow(DataRequest dataRequest);
