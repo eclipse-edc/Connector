@@ -16,11 +16,15 @@ Let's run the consumer, the provider and Jaeger:
 docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up
 ```
 
-Once the consumer and provider are up, we can start a contract negotiation. Then get the contract agreement between the consumer and the provider.
+Once the consumer and provider are up, we can start a contract negotiation:
 
 ```bash
 NEGOTIATION_ID=$(curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/ids/multipart")
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/${NEGOTIATION_ID}"
 ```
 
+This causes an HTTP request sent from the consumer to the provider connector, followed by another message from the provider to the consumer connector.
+
 You can access the jaeger UI on your browser on `http://localhost:16686`.
+In the search tool, we can select the service `consumer` and click on  `Find traces`.
+A trace represent an event, and is composed of spans.
+If you click on one trace you can see more details about the spans composing the trace.
