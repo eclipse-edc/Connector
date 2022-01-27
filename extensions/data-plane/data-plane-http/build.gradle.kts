@@ -21,6 +21,7 @@ plugins {
 
 dependencies {
     api(project(":extensions:data-plane:data-plane-spi"))
+    implementation(project(":common:util"))
     implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
 }

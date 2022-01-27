@@ -33,11 +33,13 @@ import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchem
 public class HttpDataSinkFactory implements DataSinkFactory {
     private final OkHttpClient httpClient;
     private final ExecutorService executorService;
+    private final int partitionSize;
     private final Monitor monitor;
 
-    public HttpDataSinkFactory(OkHttpClient httpClient, ExecutorService executorService, Monitor monitor) {
+    public HttpDataSinkFactory(OkHttpClient httpClient, ExecutorService executorService, int partitionSize, Monitor monitor) {
         this.httpClient = httpClient;
         this.executorService = executorService;
+        this.partitionSize = partitionSize;
         this.monitor = monitor;
     }
 
@@ -60,6 +62,7 @@ public class HttpDataSinkFactory implements DataSinkFactory {
         return HttpDataSink.Builder.newInstance()
                 .endpoint(endpoint)
                 .requestId(requestId)
+                .partitionSize(partitionSize)
                 .authKey(authKey)
                 .authCode(authCode)
                 .httpClient(httpClient)
