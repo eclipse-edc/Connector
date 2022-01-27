@@ -3,7 +3,7 @@ version: "3.8"
 services:
 
   consumerO:
-    image: openjdk:11-jre-slim-buster
+    image: openjdk:11-jre-buster
     environment:
       OTEL_SERVICE_NAME: consumer
       OTEL_TRACES_EXPORTER: jaeger

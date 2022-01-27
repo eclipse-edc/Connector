@@ -35,6 +35,8 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:iam:iam-mock"))
 
+    implementation(project(":extensions:api:control"))
+
     implementation(project(":data-protocols:ids"))
 
     implementation(project(":samples:04-file-transfer:api"))
@@ -45,7 +47,7 @@ application {
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
-    exclude("**/pom.properties", "**/pom.xml")
+    exclude("**/pom.properties", "**/pom.xm")
     mergeServiceFiles()
     archiveFileName.set("consumer.jar")
 }
