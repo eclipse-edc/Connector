@@ -101,8 +101,7 @@ public class DataFlowRequest implements Polymorphic {
 
         public Builder destinationType(String type) {
             if (request.destinationDataAddress == null) {
-                request.destinationDataAddress = DataAddress.Builder.newInstance()
-                        .type(type).build();
+                request.destinationDataAddress = DataAddress.Builder.newInstance().type(type).build();
             } else {
                 request.destinationDataAddress.setType(type);
             }
@@ -131,9 +130,5 @@ public class DataFlowRequest implements Polymorphic {
             return request;
         }
 
-        public Builder dataAddress(DataAddress dataAddress) {
-            request.destinationDataAddress = dataAddress;
-            return this;
-        }
     }
 }
