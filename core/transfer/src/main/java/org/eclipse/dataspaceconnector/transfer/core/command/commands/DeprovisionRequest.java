@@ -11,9 +11,9 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.transfer.core.commandqueue.commands;
+package org.eclipse.dataspaceconnector.transfer.core.command.commands;
 
-import org.eclipse.dataspaceconnector.transfer.core.commandqueue.handlers.DeprovisionRequestHandler;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionRequestHandler;
 
 /**
  * Issues a request to start deprovisioning a transfer process by setting its state to
