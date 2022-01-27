@@ -50,7 +50,7 @@ public class HttpDataFlowController implements DataFlowController {
     private Monitor monitor;
     private DataAddressResolver addressResolver;
 
-    public HttpDataFlowController(HttpDataFlowConfiguration configuration, DataAddressResolver addressResolver) {
+    public HttpDataFlowController(HttpDataFlowConfiguration configuration) {
         this.transferEndpoint = configuration.getTransferEndpoint();
         this.protocols = configuration.getProtocols();
         this.clientSupplier = configuration.getClientSupplier();

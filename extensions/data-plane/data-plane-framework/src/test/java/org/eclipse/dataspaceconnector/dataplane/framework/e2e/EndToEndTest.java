@@ -30,6 +30,9 @@ import java.util.concurrent.Executors;
 
 import static org.mockito.Mockito.mock;
 
+/**
+ *
+ */
 public class EndToEndTest {
 
     @Test
@@ -45,12 +48,12 @@ public class EndToEndTest {
                 .pipelineService(pipelineService)
                 .build();
         manager.start();
-        manager.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("bytes".getBytes())), createRequest("1").build()).get();
+        manager.transfer(new InputStreamDataSource("test",new ByteArrayInputStream("bytes".getBytes())), createRequest("1").build()).get();
     }
 
     private static class FixedEndpoint implements DataSinkFactory {
-        private final ByteArrayOutputStream stream;
-        private final OutputStreamDataSink sink;
+        private ByteArrayOutputStream stream;
+        private OutputStreamDataSink sink;
 
         public FixedEndpoint(Monitor monitor) {
             stream = new ByteArrayOutputStream();
@@ -77,7 +80,7 @@ public class EndToEndTest {
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type(type).build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().type(type).build());
+                .destinationDataAddress(DataAddress.Builder.newInstance().build());
     }
 
 }
