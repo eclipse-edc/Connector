@@ -17,6 +17,10 @@ import okhttp3.MediaType;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -35,6 +39,9 @@ import java.util.concurrent.TimeUnit;
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transfer.functions.core.TransferFunctionsCoreServiceExtension.ENABLED_PROTOCOLS_KEY;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 /**
  * Verifies the HTTP flow controller works.
@@ -78,6 +85,8 @@ public class TransferFunctionsCoreHttpTest {
 
         // register a wait strategy of 1ms to speed up the interval between transfer manager iterations
         extension.registerServiceMock(TransferWaitStrategy.class, () -> 1);
+
+        extension.registerSystemExtension(ServiceExtension.class, new MockServiceExtension());
     }
 
     @AfterEach
@@ -85,4 +94,15 @@ public class TransferFunctionsCoreHttpTest {
         System.clearProperty(ENABLED_PROTOCOLS_KEY);
     }
 
+    @Provides({DataAddressResolver.class})
+    private static class MockServiceExtension implements ServiceExtension {
+
+        // TODO remove this when https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/569 is resolved
+        @Override
+        public void initialize(ServiceExtensionContext context) {
+            var addressResolver = mock(DataAddressResolver.class);
+            when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("test").build());
+            context.registerService(DataAddressResolver.class, addressResolver);
+        }
+    }
 }

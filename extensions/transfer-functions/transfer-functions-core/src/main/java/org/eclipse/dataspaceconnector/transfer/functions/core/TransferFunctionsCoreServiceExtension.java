@@ -15,7 +15,9 @@ package org.eclipse.dataspaceconnector.transfer.functions.core;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -52,7 +54,11 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     private static final String DEFAULT_LOCAL_TRANSFER_URL = "http://localhost:9090/transfer";
     private static final String DEFAULT_LOCAL_CHECK_URL = "http://localhost:9090/checker";
 
-    private Monitor monitor;
+    protected Monitor monitor;
+
+    @Inject
+    protected DataAddressResolver addressResolver;
+
     private Set<String> protocols;
 
     @Override
@@ -64,7 +70,6 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
-
         protocols = getSupportedProtocols(context);
 
         initializeHttpFunctions(context);
@@ -86,7 +91,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
                 .monitor(monitor)
                 .build();
 
-        var flowController = new HttpDataFlowController(configuration);
+        var flowController = new HttpDataFlowController(configuration, addressResolver);
         var flowManager = context.getService(DataFlowManager.class);
         flowManager.register(flowController);
 

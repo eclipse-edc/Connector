@@ -17,15 +17,18 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Supplier;
 
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
@@ -45,13 +48,15 @@ public class HttpDataFlowController implements DataFlowController {
     private Supplier<OkHttpClient> clientSupplier;
     private TypeManager typeManager;
     private Monitor monitor;
+    private DataAddressResolver addressResolver;
 
-    public HttpDataFlowController(HttpDataFlowConfiguration configuration) {
+    public HttpDataFlowController(HttpDataFlowConfiguration configuration, DataAddressResolver addressResolver) {
         this.transferEndpoint = configuration.getTransferEndpoint();
         this.protocols = configuration.getProtocols();
         this.clientSupplier = configuration.getClientSupplier();
         this.typeManager = configuration.getTypeManager();
         this.monitor = configuration.getMonitor();
+        this.addressResolver = addressResolver;
     }
 
     @Override
@@ -61,7 +66,8 @@ public class HttpDataFlowController implements DataFlowController {
 
     @Override
     public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
-        var requestBody = RequestBody.create(typeManager.writeValueAsString(dataRequest), JSON);
+        var dataFlowRequest = createRequest(dataRequest);
+        var requestBody = RequestBody.create(typeManager.writeValueAsString(dataFlowRequest), JSON);
         var request = new Request.Builder().url(transferEndpoint).post(requestBody).build();
         try (var response = clientSupplier.get().newCall(request).execute()) {
             if (response.code() == 200) {
@@ -77,5 +83,16 @@ public class HttpDataFlowController implements DataFlowController {
             monitor.severe("Error invoking transfer function", e);
             return DataFlowInitiateResult.failure(ERROR_RETRY, e.getMessage());
         }
+    }
+
+    private DataFlowRequest createRequest(DataRequest dataRequest) {
+        var sourceAddress = addressResolver.resolveForAsset(dataRequest.getAssetId());
+        return DataFlowRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString())
+                .processId(dataRequest.getProcessId())
+                .sourceDataAddress(sourceAddress)
+                .destinationType(dataRequest.getDestinationType())
+                .destinationDataAddress(dataRequest.getDataDestination())
+                .build();
     }
 }

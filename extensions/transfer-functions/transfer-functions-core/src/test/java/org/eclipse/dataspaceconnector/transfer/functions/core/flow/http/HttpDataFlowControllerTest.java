@@ -18,6 +18,7 @@ import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -25,12 +26,16 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.UUID;
+
 import static okhttp3.Protocol.HTTP_1_1;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 
 class HttpDataFlowControllerTest {
@@ -46,7 +51,9 @@ class HttpDataFlowControllerTest {
                 .monitor(mock(Monitor.class))
                 .typeManager(typeManager)
                 .build();
-        flowController = new HttpDataFlowController(configuration);
+        var addressResolver = mock(DataAddressResolver.class);
+        when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("test").build());
+        flowController = new HttpDataFlowController(configuration, addressResolver);
     }
 
     @Test
@@ -59,7 +66,7 @@ class HttpDataFlowControllerTest {
 
         httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
+        var dataRequest = createDataRequest();
 
         assertThat(flowController.initiateFlow(dataRequest).succeeded()).isTrue();
     }
@@ -74,7 +81,7 @@ class HttpDataFlowControllerTest {
 
         httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
+        var dataRequest = createDataRequest();
 
         assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getFailure().status());
     }
@@ -89,9 +96,16 @@ class HttpDataFlowControllerTest {
 
         httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
+        var dataRequest = createDataRequest();
 
         assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).getFailure().status());
+    }
+
+    private DataRequest createDataRequest() {
+        return DataRequest.Builder.newInstance()
+                .dataDestination(DataAddress.Builder.newInstance().type("test").build())
+                .processId(UUID.randomUUID().toString())
+                .build();
     }
 
 }
