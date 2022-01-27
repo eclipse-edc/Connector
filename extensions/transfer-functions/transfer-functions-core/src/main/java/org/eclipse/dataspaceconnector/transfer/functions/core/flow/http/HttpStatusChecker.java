@@ -36,7 +36,7 @@ public class HttpStatusChecker implements StatusChecker {
     private TypeManager typeManager;
     private Monitor monitor;
 
-    public HttpStatusChecker(HttpFunctionConfiguration configuration) {
+    public HttpStatusChecker(HttpDataFlowConfiguration configuration) {
         this.checkEndpoint = configuration.getCheckEndpoint();
         this.clientSupplier = configuration.getClientSupplier();
         this.typeManager = configuration.getTypeManager();

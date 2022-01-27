@@ -42,7 +42,7 @@ class HttpStatusCheckerTest {
     @BeforeEach
     void setUp() {
         typeManager = new TypeManager();
-        var configuration = HttpFunctionConfiguration.Builder.newInstance()
+        var configuration = HttpDataFlowConfiguration.Builder.newInstance()
                 .checkEndpoint("https://localhost:9090/check")
                 .clientSupplier(() -> httpClient)
                 .monitor(mock(Monitor.class))

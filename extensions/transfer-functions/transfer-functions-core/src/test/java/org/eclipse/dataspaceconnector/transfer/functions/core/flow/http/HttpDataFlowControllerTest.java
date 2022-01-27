@@ -33,20 +33,20 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 
-class HttpFunctionDataFlowControllerTest {
-    private HttpFunctionDataFlowController flowController;
+class HttpDataFlowControllerTest {
+    private HttpDataFlowController flowController;
     private OkHttpClient httpClient;
 
     @BeforeEach
     void setUp() {
         var typeManager = new TypeManager();
-        var configuration = HttpFunctionConfiguration.Builder.newInstance()
+        var configuration = HttpDataFlowConfiguration.Builder.newInstance()
                 .transferEndpoint("https://localhost:9090/check")
                 .clientSupplier(() -> httpClient)
                 .monitor(mock(Monitor.class))
                 .typeManager(typeManager)
                 .build();
-        flowController = new HttpFunctionDataFlowController(configuration);
+        flowController = new HttpDataFlowController(configuration);
     }
 
     @Test
