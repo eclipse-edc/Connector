@@ -8,7 +8,6 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -39,7 +38,6 @@ class PipelineServiceImplTest {
         var request = DataFlowRequest.Builder.newInstance()
                 .id("1")
                 .processId("1")
-                .transferType(TransferType.Builder.transferType().contentType("application/octet-stream").build())
                 .sourceDataAddress(DataAddress.Builder.newInstance().build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().build())
                 .build();

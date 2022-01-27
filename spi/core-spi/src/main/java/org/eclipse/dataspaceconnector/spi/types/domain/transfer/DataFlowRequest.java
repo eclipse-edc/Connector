@@ -20,7 +20,6 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.Polymorphic;
-import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 
 import java.util.Map;
 import java.util.Objects;
@@ -30,20 +29,16 @@ import java.util.Objects;
  */
 @JsonTypeName("dataspaceconnector:dataflowrequest")
 @JsonDeserialize(builder = DataFlowRequest.Builder.class)
-public class DataFlowRequest implements RemoteMessage, Polymorphic {
+public class DataFlowRequest implements Polymorphic {
     private String id;
     private String processId;
-    private String protocol;
 
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
 
     private Map<String, String> properties = Map.of();
 
-    private TransferType transferType;
-
     private DataFlowRequest() {
-        transferType = new TransferType();
     }
 
     /**
@@ -59,15 +54,6 @@ public class DataFlowRequest implements RemoteMessage, Polymorphic {
     public String getProcessId() {
         return processId;
     }
-
-    /**
-     * The protocol over which the data request is sent to the provider connector.
-     */
-    @Override
-    public String getProtocol() {
-        return protocol;
-    }
-
 
     /**
      * The source address of the data.
@@ -90,10 +76,6 @@ public class DataFlowRequest implements RemoteMessage, Polymorphic {
         return properties;
     }
 
-    public TransferType getTransferType() {
-        return transferType;
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
     public static class Builder {
         private final DataFlowRequest request;
@@ -114,11 +96,6 @@ public class DataFlowRequest implements RemoteMessage, Polymorphic {
 
         public Builder processId(String id) {
             request.processId = id;
-            return this;
-        }
-
-        public Builder protocol(String protocol) {
-            request.protocol = protocol;
             return this;
         }
 
@@ -151,19 +128,12 @@ public class DataFlowRequest implements RemoteMessage, Polymorphic {
             Objects.requireNonNull(request.processId, "processId");
             Objects.requireNonNull(request.sourceDataAddress, "sourceDataAddress");
             Objects.requireNonNull(request.destinationDataAddress, "destinationDataAddress");
-            Objects.requireNonNull(request.transferType, "transferType");
             return request;
         }
 
-        private Builder dataAddress(DataAddress dataAddress) {
+        public Builder dataAddress(DataAddress dataAddress) {
             request.destinationDataAddress = dataAddress;
             return this;
         }
-
-        public Builder transferType(TransferType transferType) {
-            request.transferType = transferType;
-            return this;
-        }
-
     }
 }
