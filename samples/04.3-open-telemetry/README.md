@@ -25,14 +25,14 @@ docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up
 Once the consumer and provider are up, we can start a contract negotiation:
 
 ```bash
-NEGOTIATION_ID=$(curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/ids/multipart")
+curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/ids/multipart"
 ```
 
 This causes an HTTP request sent from the consumer to the provider connector, followed by another message from the provider to the consumer connector.
 
 You can access the jaeger UI on your browser on `http://localhost:16686`.
-In the search tool, we can select the service `consumer` and click on  `Find traces`.
-A trace represent an event, and is composed of spans.
+In the search tool, we can select the service `consumer` and click on `Find traces`.
+A trace represents an event, and is composed of spans.
 If you click on one trace you can see more details about the spans composing the trace.
 
-The open-telemetry agent dynamically injects bytecode to capture telemetry from a number of popular [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation). Okhttp and jetty are part of this list. We can observe spans related to okhttp and jetty as EDC uses both. Look at the `otel.library.name` tag of the different spans.
+Okhttp and jetty are part the [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation) that open telemetry can capture telemetry from. We can observe spans related to okhttp and jetty as EDC uses both. Look at the `otel.library.name` tag of the different spans.
