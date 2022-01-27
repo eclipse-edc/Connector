@@ -91,7 +91,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
                 .monitor(monitor)
                 .build();
 
-        var flowController = new HttpDataFlowController(configuration);
+        var flowController = new HttpDataFlowController(configuration, addressResolver);
         var flowManager = context.getService(DataFlowManager.class);
         flowManager.register(flowController);
 

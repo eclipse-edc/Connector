@@ -51,7 +51,9 @@ class HttpDataFlowControllerTest {
                 .monitor(mock(Monitor.class))
                 .typeManager(typeManager)
                 .build();
-        flowController = new HttpDataFlowController(configuration);
+        var addressResolver = mock(DataAddressResolver.class);
+        when(addressResolver.resolveForAsset(any())).thenReturn(DataAddress.Builder.newInstance().type("test").build());
+        flowController = new HttpDataFlowController(configuration, addressResolver);
     }
 
     @Test

@@ -32,7 +32,7 @@ public class HttpTestFixtures {
                 .destinationDataAddress(DataAddress.Builder.newInstance().build());
     }
 
-    public static Response.Builder createHttpResponse(){
+    public static Response.Builder createHttpResponse() {
         var body = ResponseBody.create("{}", MediaType.get("application/json"));
         var request = new Request.Builder().url("https://test.com").build();
         return new Response.Builder().code(200).body(body).request(request).protocol(HTTP_2).message("");
