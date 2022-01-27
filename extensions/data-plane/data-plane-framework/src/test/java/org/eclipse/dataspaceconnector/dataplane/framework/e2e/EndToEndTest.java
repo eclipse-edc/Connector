@@ -48,7 +48,7 @@ public class EndToEndTest {
                 .pipelineService(pipelineService)
                 .build();
         manager.start();
-        manager.transfer(new InputStreamDataSource("test",new ByteArrayInputStream("bytes".getBytes())), createRequest("1").build()).get();
+        manager.transfer(new InputStreamDataSource("test", new ByteArrayInputStream("bytes".getBytes())), createRequest("1").build()).get();
     }
 
     private static class FixedEndpoint implements DataSinkFactory {
