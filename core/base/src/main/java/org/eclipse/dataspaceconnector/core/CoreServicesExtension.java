@@ -44,13 +44,10 @@ public class CoreServicesExtension implements ServiceExtension {
 
     @EdcSetting
     public static final String MAX_RETRIES = "edc.core.retry.retries.max";
-
     @EdcSetting
     public static final String BACKOFF_MIN_MILLIS = "edc.core.retry.backoff.min";
-
     @EdcSetting
     public static final String BACKOFF_MAX_MILLIS = "edc.core.retry.backoff.max";
-
     @EdcSetting
     public static final String LIVENESS_PERIOD_SECONDS_SETTING = "edc.core.system.health.check.liveness-period";
     @EdcSetting
@@ -60,8 +57,8 @@ public class CoreServicesExtension implements ServiceExtension {
     @EdcSetting
     public static final String THREADPOOL_SIZE_SETTING = "edc.core.system.health.check.threadpool-size";
 
-    private static final String DEFAULT_DURATION = "60";
-    private static final String DEFAULT_TP_SIZE = "3";
+    private static final long DEFAULT_DURATION = 60;
+    private static final int DEFAULT_TP_SIZE = 3;
     private HealthCheckServiceImpl healthCheckService;
 
     @Override
@@ -94,11 +91,11 @@ public class CoreServicesExtension implements ServiceExtension {
     private HealthCheckServiceConfiguration getHealthCheckConfig(ServiceExtensionContext context) {
 
         return HealthCheckServiceConfiguration.Builder.newInstance()
-                .livenessPeriod(Duration.ofSeconds(Long.parseLong(context.getSetting(LIVENESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION))))
-                .startupStatusPeriod(Duration.ofSeconds(Long.parseLong(context.getSetting(STARTUP_PERIOD_SECONDS_SETTING, DEFAULT_DURATION))))
-                .readinessPeriod(Duration.ofSeconds(Long.parseLong(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION))))
-                .readinessPeriod(Duration.ofSeconds(Long.parseLong(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION))))
-                .threadPoolSize(Integer.parseInt(context.getSetting(THREADPOOL_SIZE_SETTING, DEFAULT_TP_SIZE)))
+                .livenessPeriod(Duration.ofSeconds(context.getSetting(LIVENESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
+                .startupStatusPeriod(Duration.ofSeconds(context.getSetting(STARTUP_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
+                .readinessPeriod(Duration.ofSeconds(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
+                .readinessPeriod(Duration.ofSeconds(context.getSetting(READINESS_PERIOD_SECONDS_SETTING, DEFAULT_DURATION)))
+                .threadPoolSize(context.getSetting(THREADPOOL_SIZE_SETTING, DEFAULT_TP_SIZE))
                 .build();
     }
 
@@ -116,9 +113,9 @@ public class CoreServicesExtension implements ServiceExtension {
 
     private void addRetryPolicy(ServiceExtensionContext context) {
 
-        var maxRetries = Integer.parseInt(context.getSetting(MAX_RETRIES, String.valueOf(5)));
-        var minBackoff = Integer.parseInt(context.getSetting(BACKOFF_MIN_MILLIS, String.valueOf(500)));
-        var maxBackoff = Integer.parseInt(context.getSetting(BACKOFF_MAX_MILLIS, String.valueOf(10_000)));
+        var maxRetries = context.getSetting(MAX_RETRIES, 5);
+        var minBackoff = context.getSetting(BACKOFF_MIN_MILLIS, 500);
+        var maxBackoff = context.getSetting(BACKOFF_MAX_MILLIS, 10_000);
 
         var retryPolicy = new RetryPolicy<>()
                 .withMaxRetries(maxRetries)
@@ -129,13 +126,10 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     private void addHttpClient(ServiceExtensionContext context) {
-        OkHttpClient.Builder builder = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS);
-        //        if (interceptors != null) {
-        //           for (Interceptor interceptor : interceptors) {
-        //                builder.addInterceptor(interceptor);
-        //            }
-        //        }
-        var client = builder.build();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
 
         context.registerService(OkHttpClient.class, client);
     }
