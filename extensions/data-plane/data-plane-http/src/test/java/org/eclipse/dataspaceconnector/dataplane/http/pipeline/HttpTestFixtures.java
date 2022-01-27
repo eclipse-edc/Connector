@@ -26,8 +26,7 @@ public class HttpTestFixtures {
 
     public static DataFlowRequest.Builder createRequest(String type) {
         return DataFlowRequest.Builder.newInstance()
-                .id("1")
-                .processId("1")
+                .id("1").processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type(type).build())
                 .destinationDataAddress(DataAddress.Builder.newInstance().build());
     }
