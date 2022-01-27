@@ -36,8 +36,6 @@ public class DataFlowRequest implements Polymorphic {
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
 
-    private boolean trackable;
-
     private Map<String, String> properties = Map.of();
 
     private DataFlowRequest() {
@@ -72,13 +70,6 @@ public class DataFlowRequest implements Polymorphic {
     }
 
     /**
-     * Returns true if the request must be tracked for delivery guarantees.
-     */
-    public boolean isTrackable() {
-        return trackable;
-    }
-
-    /**
      * Custom properties that are passed to the provider connector.
      */
     public Map<String, String> getProperties() {
@@ -110,7 +101,8 @@ public class DataFlowRequest implements Polymorphic {
 
         public Builder destinationType(String type) {
             if (request.destinationDataAddress == null) {
-                request.destinationDataAddress = DataAddress.Builder.newInstance().type(type).build();
+                request.destinationDataAddress = DataAddress.Builder.newInstance()
+                        .type(type).build();
             } else {
                 request.destinationDataAddress.setType(type);
             }
@@ -127,11 +119,6 @@ public class DataFlowRequest implements Polymorphic {
             return this;
         }
 
-        public Builder trackable(boolean value) {
-            request.trackable = value;
-            return this;
-        }
-
         public Builder properties(Map<String, String> value) {
             request.properties = value == null ? null : Map.copyOf(value);
             return this;
@@ -144,5 +131,9 @@ public class DataFlowRequest implements Polymorphic {
             return request;
         }
 
+        public Builder dataAddress(DataAddress dataAddress) {
+            request.destinationDataAddress = dataAddress;
+            return this;
+        }
     }
 }
