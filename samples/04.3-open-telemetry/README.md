@@ -1,10 +1,12 @@
-# Observe tracing of connectors with Jaeger
+# Observe tracing of connectors with Open Telemetry and Jaeger
 
-## Run the sample
+This sample shows how you can generate traces with Open Telemetry. And how you can observe them with Jaeger.
 
 We will run a consumer and a provider, and observe HTTP tracing between these 2 services with [Jaeger](https://www.jaegertracing.io/).
 [Jaeger](https://www.jaegertracing.io/) is an open source software for tracing transactions between services.
 We will use the open-telemetry java agent. The agent can dynamically inject bytecode to capture telemetry from a number of popular [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation).
+
+## Run the sample
 
 We will use docker compose to run the consumer, the provider and Jaeger.
 Let's have a look to the [docker-compose.yaml file](docker-compose.yaml). We created a consumer and a provider service.
