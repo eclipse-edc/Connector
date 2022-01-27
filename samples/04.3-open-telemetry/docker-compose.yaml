@@ -2,28 +2,28 @@ version: "3.8"
 
 services:
 
-  consumerO:
-    image: openjdk:11-jre-buster
+  consumer:
+    image: openjdk:11-jre-slim-buster
     environment:
       OTEL_SERVICE_NAME: consumer
       OTEL_TRACES_EXPORTER: jaeger
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
       edc.api.control.auth.apikey.value: password
-      ids.webhook.address: http://consumerO:8181
+      ids.webhook.address: http://consumer:8181
     volumes:
       - ../../:/app
     ports:
       - 9191:8181
     entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/samples/04.3-open-telemetry/logging.properties -jar /app/samples/04.3-open-telemetry/consumer/build/libs/consumer.jar
 
-  providerO:
+  provider:
     image: openjdk:11-jre-slim-buster
     environment:
       OTEL_SERVICE_NAME: provider
       OTEL_TRACES_EXPORTER: jaeger
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
       edc.samples.04.asset.path: /tmp
-      ids.webhook.address: http://providerO:8181
+      ids.webhook.address: http://provider:8181
     volumes:
       - ../../:/app
     ports:

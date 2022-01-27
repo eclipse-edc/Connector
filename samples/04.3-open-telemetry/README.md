@@ -47,31 +47,10 @@ Build, run the consumer, provider and Jaeger:
 ```bash
 ./gradlew samples:04.3-open-telemetry:consumer:build samples:04-file-transfer:provider:build
 docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up
-````
-
-Assuming you didn't change the config files, the consumer will listen on port `9191` and the provider will listen on port `8181`. Open another terminal window (or any REST client of your choice) and execute the following REST request:
-
-```bash
-curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/&destination=/path/on/yourmachine"
 ```
 
-> **Please adjust the `destination` to match your local dev machine!**
-
-- the last path item, `test-document`, matches the ID of the `Asset` that we created earlier in
-  `FileTransferExtension.java`, thus referencing the _data source_
-- the first query parameter (`connectorAddress`) is the address of the provider connector
-- the last query parameter (`destination`) indicates the desired _destination_ directory on you local machine.
-- `curl` will return the ID of the transfer process on the consumer connector.
-
-The consumer should spew out logs similar to:
-
 ```bash
-INFO 2021-09-07T17:24:42.128363 Received request for file test-document against provider http://localhost:8181/
-DEBUG 2021-09-07T17:24:42.592422 Request approved and acknowledged for process: 2b0a9ab8-78db-4753-8b95-77678cdd9fc8
-DEBUG 2021-09-07T17:24:47.425729 Process 2b0a9ab8-78db-4753-8b95-77678cdd9fc8 is now IN_PROGRESS
-DEBUG 2021-09-07T17:24:47.426115 Process 2b0a9ab8-78db-4753-8b95-77678cdd9fc8 is now COMPLETED
-DEBUG 2021-09-07T17:24:47.426531 Transfer listener successfully wrote file /path/on/yourmachine/marker.txt
-
+NEGOTIATION_ID=$(curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/ids/multipart")
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/${NEGOTIATION_ID}"
 ```
 
-then check `/path/on/yourmachine`, which should now contain a file named `marker.txt` in addition to the file named `test-document.txt`.
