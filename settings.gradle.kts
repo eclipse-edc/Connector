@@ -105,6 +105,7 @@ include(":extensions:transaction:transaction-local")
 include(":extensions:data-plane:data-plane-spi")
 include(":extensions:data-plane:data-plane-framework")
 include(":extensions:data-plane:data-plane-http")
+include(":extensions:data-plane:data-plane-api")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
@@ -113,6 +114,7 @@ include(":launchers:test")
 include(":launchers:ids-connector")
 include(":launchers:registration-service-app")
 include(":launchers:data-loader-cli")
+include(":launchers:data-plane-server")
 
 // modules for code samples
 include(":samples:other:commandline:consumer")

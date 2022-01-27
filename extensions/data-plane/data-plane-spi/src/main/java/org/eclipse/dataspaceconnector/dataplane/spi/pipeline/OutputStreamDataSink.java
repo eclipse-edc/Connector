@@ -24,7 +24,7 @@ import java.util.concurrent.ExecutorService;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Sends data to an output stream. The transfer is done asynchronously using the supplied executor service.

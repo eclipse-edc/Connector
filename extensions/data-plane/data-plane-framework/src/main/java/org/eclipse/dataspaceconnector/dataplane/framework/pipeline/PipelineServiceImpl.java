@@ -29,7 +29,7 @@ import java.util.concurrent.CompletableFuture;
 
 import static java.util.concurrent.CompletableFuture.completedFuture;
 import static org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult.failure;
-import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 
 /**
  * Default pipeline service implementation.

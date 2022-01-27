@@ -30,7 +30,7 @@ import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
  * Writes data in a streaming fashion to an HTTP endpoint.
