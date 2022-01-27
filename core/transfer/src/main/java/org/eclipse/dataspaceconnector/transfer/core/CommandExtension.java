@@ -20,9 +20,9 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.transfer.core.commandqueue.CommandHandlerRegistryImpl;
-import org.eclipse.dataspaceconnector.transfer.core.commandqueue.handlers.CancelTransferCommandHandler;
-import org.eclipse.dataspaceconnector.transfer.core.commandqueue.handlers.DeprovisionRequestHandler;
+import org.eclipse.dataspaceconnector.transfer.core.command.CommandHandlerRegistryImpl;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.CancelTransferCommandHandler;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionRequestHandler;
 
 /**
  * Registers command handlers that the core provides

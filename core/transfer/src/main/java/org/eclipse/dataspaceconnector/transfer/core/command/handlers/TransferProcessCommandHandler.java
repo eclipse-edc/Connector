@@ -11,13 +11,13 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.transfer.core.commandqueue.handlers;
+package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.transfer.core.commandqueue.commands.TransferProcessCommand;
+import org.eclipse.dataspaceconnector.transfer.core.command.commands.TransferProcessCommand;
 
 import static java.lang.String.format;
 

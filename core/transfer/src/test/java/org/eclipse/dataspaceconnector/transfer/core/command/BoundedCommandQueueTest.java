@@ -13,7 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.transfer.core.command;
 
-import org.eclipse.dataspaceconnector.transfer.core.commandqueue.BoundedCommandQueue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

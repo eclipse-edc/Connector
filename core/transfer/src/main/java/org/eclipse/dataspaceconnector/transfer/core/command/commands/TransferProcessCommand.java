@@ -11,16 +11,17 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.transfer.core.commandqueue.commands;
+package org.eclipse.dataspaceconnector.transfer.core.command.commands;
 
 import org.eclipse.dataspaceconnector.spi.command.Command;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.TransferProcessCommandHandler;
 
 /**
  * Specialization of the {@link Command} interface, that is useful in situations where
  * a single {@link org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess} is
  * operated on.
  *
- * @see org.eclipse.dataspaceconnector.transfer.core.commandqueue.handlers.TransferProcessCommandHandler
+ * @see TransferProcessCommandHandler
  */
 public class TransferProcessCommand extends Command {
     protected final String transferProcessId;

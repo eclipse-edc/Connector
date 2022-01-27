@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.transfer.core.commandqueue.commands;
+package org.eclipse.dataspaceconnector.transfer.core.command.commands;
 
 /**
  * Cancels a transfer process by sending it to the ERROR state
