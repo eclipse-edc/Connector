@@ -22,7 +22,6 @@ services:
       OTEL_SERVICE_NAME: provider
       OTEL_TRACES_EXPORTER: jaeger
       OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
-      edc.samples.04.asset.path: /tmp
       ids.webhook.address: http://provider:8181
     volumes:
       - ../../:/app
