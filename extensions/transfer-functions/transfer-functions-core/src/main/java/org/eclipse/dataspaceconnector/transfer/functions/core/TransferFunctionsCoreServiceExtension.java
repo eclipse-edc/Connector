@@ -21,8 +21,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
-import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionConfiguration;
-import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionDataFlowController;
+import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpDataFlowConfiguration;
+import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpStatusChecker;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -77,7 +77,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
         var typeManager = context.getTypeManager();
         var transferEndpoint = context.getSetting(TRANSFER_URL_KEY, DEFAULT_LOCAL_TRANSFER_URL);
         var checkEndpoint = context.getSetting(CHECK_URL_KEY, DEFAULT_LOCAL_CHECK_URL);
-        var configuration = HttpFunctionConfiguration.Builder.newInstance()
+        var configuration = HttpDataFlowConfiguration.Builder.newInstance()
                 .transferEndpoint(transferEndpoint)
                 .checkEndpoint(checkEndpoint)
                 .clientSupplier(httpClient::build)
@@ -86,7 +86,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
                 .monitor(monitor)
                 .build();
 
-        var flowController = new HttpFunctionDataFlowController(configuration);
+        var flowController = new HttpDataFlowController(configuration);
         var flowManager = context.getService(DataFlowManager.class);
         flowManager.register(flowController);
 

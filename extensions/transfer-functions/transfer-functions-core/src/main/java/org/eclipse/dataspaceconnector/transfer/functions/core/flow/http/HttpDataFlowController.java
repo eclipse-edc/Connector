@@ -37,7 +37,7 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_E
  * Endpoints must be idempotent. The endpoint should return HTTP code 200 to indicate the request was received. If the endpoint returns an HTTP code of 500 to 504, the request
  * will be retried; otherwise the request will be placed in the fatal error state.
  */
-public class HttpFunctionDataFlowController implements DataFlowController {
+public class HttpDataFlowController implements DataFlowController {
     private static final MediaType JSON = MediaType.get("application/json");
 
     private String transferEndpoint;
@@ -46,7 +46,7 @@ public class HttpFunctionDataFlowController implements DataFlowController {
     private TypeManager typeManager;
     private Monitor monitor;
 
-    public HttpFunctionDataFlowController(HttpFunctionConfiguration configuration) {
+    public HttpDataFlowController(HttpDataFlowConfiguration configuration) {
         this.transferEndpoint = configuration.getTransferEndpoint();
         this.protocols = configuration.getProtocols();
         this.clientSupplier = configuration.getClientSupplier();

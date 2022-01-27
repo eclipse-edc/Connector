@@ -23,7 +23,7 @@ import java.util.function.Supplier;
 /**
  * Configuration for the HTTP data flow controller and status checker.
  */
-public class HttpFunctionConfiguration {
+public class HttpDataFlowConfiguration {
     private String transferEndpoint;
     private String checkEndpoint;
     private Set<String> protocols;
@@ -55,11 +55,11 @@ public class HttpFunctionConfiguration {
         return typeManager;
     }
 
-    private HttpFunctionConfiguration() {
+    private HttpDataFlowConfiguration() {
     }
 
     public static class Builder {
-        private HttpFunctionConfiguration configuration;
+        private HttpDataFlowConfiguration configuration;
 
         public static Builder newInstance() {
             return new Builder();
@@ -95,12 +95,12 @@ public class HttpFunctionConfiguration {
             return this;
         }
 
-        public HttpFunctionConfiguration build() {
+        public HttpDataFlowConfiguration build() {
             return configuration;
         }
 
         private Builder() {
-            configuration = new HttpFunctionConfiguration();
+            configuration = new HttpDataFlowConfiguration();
         }
     }
 }
