@@ -34,6 +34,7 @@ public enum ContractNegotiationStates {
     DECLINING(900),
     DECLINED(1000),
     CONFIRMING(1100),
+    CONFIRMING_SENT(1150),
     CONFIRMED(1200),
     ERROR(-1);
 

@@ -47,6 +47,7 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
@@ -209,7 +210,10 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
         // Agreement has been approved.
         negotiation.setContractAgreement(agreement); // TODO persist unchecked agreement of provider?
         monitor.debug("[Consumer] Contract agreement received. Validation successful.");
-        negotiation.transitionConfirmed();
+        if (negotiation.getState() != CONFIRMED.code()) {
+            // TODO: otherwise will fail. But should do it, since it's already confirmed? A duplicated message received shouldn't be an issue
+            negotiation.transitionConfirmed();
+        }
         negotiationStore.save(negotiation);
         invokeForEach(l -> l.confirmed(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
