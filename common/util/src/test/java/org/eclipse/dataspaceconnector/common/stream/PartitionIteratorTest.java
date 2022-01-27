@@ -25,6 +25,9 @@ import static java.util.stream.StreamSupport.stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+/**
+ *
+ */
 class PartitionIteratorTest {
 
     @Test

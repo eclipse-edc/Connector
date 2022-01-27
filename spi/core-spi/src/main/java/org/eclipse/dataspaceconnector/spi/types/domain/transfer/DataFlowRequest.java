@@ -36,6 +36,8 @@ public class DataFlowRequest implements Polymorphic {
     private DataAddress sourceDataAddress;
     private DataAddress destinationDataAddress;
 
+    private boolean trackable;
+
     private Map<String, String> properties = Map.of();
 
     private DataFlowRequest() {
@@ -67,6 +69,13 @@ public class DataFlowRequest implements Polymorphic {
      */
     public DataAddress getDestinationDataAddress() {
         return destinationDataAddress;
+    }
+
+    /**
+     * Returns true if the request must be tracked for delivery guarantees.
+     */
+    public boolean isTrackable() {
+        return trackable;
     }
 
     /**
@@ -115,6 +124,11 @@ public class DataFlowRequest implements Polymorphic {
 
         public Builder destinationDataAddress(DataAddress destination) {
             request.destinationDataAddress = destination;
+            return this;
+        }
+
+        public Builder trackable(boolean value) {
+            request.trackable = value;
             return this;
         }
 

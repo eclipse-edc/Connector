@@ -15,11 +15,13 @@ package org.eclipse.dataspaceconnector.dataplane.http.pipeline;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.eclipse.dataspaceconnector.common.stream.PartitionIterator;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
@@ -38,14 +40,16 @@ public class HttpDataSink implements DataSink {
     private String authCode;
     private String endpoint;
     private String requestId;
+    private int partitionSize = 5;
     private OkHttpClient httpClient;
     private ExecutorService executorService;
     private Monitor monitor;
 
     @Override
     public CompletableFuture<TransferResult> transfer(DataSource source) {
-        try {
-            var futures = source.openPartStream().map(part -> supplyAsync(() -> postData(part), executorService)).collect(toList());
+        try (var partStream = source.openPartStream()) {
+            var partitioned = PartitionIterator.streamOf(partStream, partitionSize);
+            var futures = partitioned.map(parts -> supplyAsync(() -> postData(parts), executorService)).collect(toList());
             return allOf(futures.toArray(CompletableFuture[]::new)).thenApply((s) -> {
                 if (futures.stream().anyMatch(future -> future.getNow(null).failed())) {
                     return TransferResult.failure(ERROR_RETRY, "Error transferring data");
@@ -59,26 +63,29 @@ public class HttpDataSink implements DataSink {
     }
 
     /**
-     * Retrieves the part from the source endpoint using an HTTP GET.
+     * Retrieves the parts from the source endpoint using an HTTP GET.
      */
-    private TransferResult postData(DataSource.Part part) {
-        var requestBody = new StreamingRequestBody(part);
+    private TransferResult postData(List<DataSource.Part> parts) {
+        for (DataSource.Part part : parts) {
+            var requestBody = new StreamingRequestBody(part);
 
-        var requestBuilder = new Request.Builder();
-        if (authKey != null) {
-            requestBuilder.header(authKey, authCode);
-        }
-
-        var request = requestBuilder.url(endpoint + "/" + part.name()).post(requestBody).build();
-        try (var response = httpClient.newCall(request).execute()) {
-            if (response.isSuccessful()) {
-                return TransferResult.success();
+            var requestBuilder = new Request.Builder();
+            if (authKey != null) {
+                requestBuilder.header(authKey, authCode);
             }
-            monitor.severe(format("Error received writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request));
-        } catch (Exception e) {
-            monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request), e);
+
+            var request = requestBuilder.url(endpoint + "/" + part.name()).post(requestBody).build();
+            try (var response = httpClient.newCall(request).execute()) {
+                if (!response.isSuccessful()) {
+                    monitor.severe(format("Error received writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request));
+                    return TransferResult.failure(ERROR_RETRY, "Error writing data");
+                }
+            } catch (Exception e) {
+                monitor.severe(format("Error writing HTTP data %s to endpoint %s for request: %s", part.name(), endpoint, request), e);
+                return TransferResult.failure(ERROR_RETRY, "Error writing data");
+            }
         }
-        return TransferResult.failure(ERROR_RETRY, "Error writing data");
+        return TransferResult.success();
     }
 
     private HttpDataSink() {
@@ -98,6 +105,11 @@ public class HttpDataSink implements DataSink {
 
         public Builder requestId(String requestId) {
             sink.requestId = requestId;
+            return this;
+        }
+
+        public Builder partitionSize(int partitionSize) {
+            sink.partitionSize = partitionSize;
             return this;
         }
 
