@@ -1,14 +1,18 @@
-# Observe tracing of connectors with Open Telemetry and Jaeger
+# Visualize tracing of connectors with Open Telemetry and Jaeger
 
-This sample shows how you can generate traces with Open Telemetry. And how you can observe them with Jaeger.
+This sample shows how you can generate traces with Open Telemetry. And how you can collect and visualize them with Jaeger.
 
-We will run a consumer and a provider, and observe HTTP tracing between these 2 services with [Jaeger](https://www.jaegertracing.io/).
-[Jaeger](https://www.jaegertracing.io/) is an open source software for tracing transactions between services.
-We will use the open-telemetry java agent. The agent can dynamically inject bytecode to capture telemetry from a number of popular [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation).
+We will use the Open Telemetry java agent. It dynamically injects bytecode to capture telemetry from a number of popular [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation).
+In order to visualize and analyze the traces, we need to export them to a backend called an [exporter](https://opentelemetry.io/docs/instrumentation/js/exporters/).
+We will use an exporter called [Jaeger](https://www.jaegertracing.io/).
+
+## Prerequisites
+
+Download the [opentelemetry-javaagent.jar](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases) and place it in the project root folder.
 
 ## Run the sample
 
-We will use docker compose to run the consumer, the provider and Jaeger.
+We will use docker compose to run the consumer, the provider and a Jaeger backend.
 Let's have a look to the [docker-compose.yaml file](docker-compose.yaml). We created a consumer and a provider service.
 Have a look to the entrypoints of the provider and the consumer. You can see that we provide the open-telemetry java agent.
 Let's run the consumer, the provider and Jaeger:
