@@ -15,6 +15,7 @@ Download the [opentelemetry-javaagent.jar](https://github.com/open-telemetry/ope
 We will use docker compose to run the consumer, the provider and a Jaeger backend.
 Let's have a look to the [docker-compose.yaml file](docker-compose.yaml). We created a consumer and a provider service.
 Have a look to the entrypoints of the provider and the consumer. You can see that we provide the open-telemetry java agent.
+Have a look at the environment variables. We provide the [Jaeger exporter env var](https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#jaeger-exporter) needed by open telemetry.
 Let's run the consumer, the provider and Jaeger:
 
 ```bash
