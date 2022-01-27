@@ -58,7 +58,17 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
     }
 
     public void stop() {
-        executorService.shutdownNow();
+        active.set(false);
+        if (executorService != null) {
+            executorService.shutdown();
+        }
+    }
+
+    public void forceStop() {
+        active.set(false);
+        if (executorService != null) {
+            executorService.shutdownNow();
+        }
     }
 
     public void initiateTransfer(DataFlowRequest dataRequest) {

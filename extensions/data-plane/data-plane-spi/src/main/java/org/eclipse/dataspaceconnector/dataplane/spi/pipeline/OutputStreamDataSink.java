@@ -42,8 +42,8 @@ public class OutputStreamDataSink implements DataSink {
 
     @Override
     public CompletableFuture<TransferResult> transfer(DataSource source) {
-        try {
-            var futures = source.openPartStream().map(part -> supplyAsync(() -> transferData(part), executorService)).collect(toList());
+        try (var partStream = source.openPartStream()) {
+            var futures = partStream.map(part -> supplyAsync(() -> transferData(part), executorService)).collect(toList());
             return allOf(futures.toArray(CompletableFuture[]::new)).thenApply((s) -> {
                 if (futures.stream().anyMatch(future -> future.getNow(null).failed())) {
                     return TransferResult.failure(ERROR_RETRY, "Error transferring data");
@@ -57,8 +57,8 @@ public class OutputStreamDataSink implements DataSink {
     }
 
     private Result<Void> transferData(DataSource.Part part) {
-        try {
-            part.openStream().transferTo(stream);
+        try (var source = part.openStream()) {
+            source.transferTo(stream);
             return Result.success();
         } catch (Exception e) {
             monitor.severe("Error writing data", e);
