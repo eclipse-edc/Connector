@@ -35,9 +35,11 @@ dependencies {
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:iam:iam-mock"))
 
+    implementation(project(":extensions:api:control"))
+
     implementation(project(":data-protocols:ids"))
 
-    implementation(project(":samples:04.1-file-transfer-listener:api"))
+    implementation(project(":samples:04.0-file-transfer:api"))
     implementation(project(":samples:04.1-file-transfer-listener:listener"))
 }
 
