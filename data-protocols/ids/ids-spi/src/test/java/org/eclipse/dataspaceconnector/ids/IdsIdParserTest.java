@@ -2,7 +2,9 @@ package org.eclipse.dataspaceconnector.ids;
 
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
+import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtensionContext;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -15,11 +17,14 @@ import java.util.stream.Stream;
 class IdsIdParserTest {
     private static final String[] ILLEGAL_IDS = {
             null,
+            "urn:artifact",
+            "urn:artifact:",
             "urn:test:12345asdasd",
             "https://example.com"
     };
 
     private static final String[] LEGAL_IDS = {
+            "urn:artifact:1:e0002542-6a46-4896-804a-112e237df9ac",
             "urn:artifact:artifact_id12345",
             "urn:artifact:https://example.com/catalog1/artifact/abc",
             "urn:catalog:catalog_id12345",
@@ -48,6 +53,14 @@ class IdsIdParserTest {
     void parseLegal(String string) {
         IdsId result = IdsIdParser.parse(string);
         Assertions.assertNotNull(result);
+    }
+
+    @Test
+    void parseLegalContent() {
+        String id = "1:e0002542-6a46-4896-804a-112e237df9ac";
+        IdsId result = IdsIdParser.parse("urn:artifact:" + id);
+        Assertions.assertEquals(IdsType.ARTIFACT, result.getType());
+        Assertions.assertEquals(id, result.getValue());
     }
 
     @ParameterizedTest(name = "[index] parse illegal id '{0}'")
