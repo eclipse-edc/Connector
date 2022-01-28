@@ -17,16 +17,13 @@ package org.eclipse.dataspaceconnector.provision.azure;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureSasToken;
-import org.eclipse.dataspaceconnector.common.azure.BlobStoreApi;
-import org.eclipse.dataspaceconnector.common.azure.BlobStoreApiImpl;
+import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectContainerProvisionedResource;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectContainerStatusChecker;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageDefinitionConsumerGenerator;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageProvisioner;
 import org.eclipse.dataspaceconnector.provision.azure.blob.ObjectStorageResourceDefinition;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
@@ -37,11 +34,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 /**
  * Provides data transfer {@link org.eclipse.dataspaceconnector.spi.transfer.provision.Provisioner}s backed by Azure services.
  */
-@Provides(BlobStoreApi.class)
 public class AzureProvisionExtension implements ServiceExtension {
 
-    @EdcSetting
-    public static final String EDC_BLOBSTORE_ENDPOINT = "edc.blobstore.endpoint";
+    @Inject
+    private BlobStoreApi blobStoreApi;
 
     @Override
     public String name() {
@@ -53,10 +49,6 @@ public class AzureProvisionExtension implements ServiceExtension {
 
         var monitor = context.getMonitor();
         var provisionManager = context.getService(ProvisionManager.class);
-        var blobstoreEndpoint = context.getSetting(EDC_BLOBSTORE_ENDPOINT, null);
-
-        var blobStoreApi = new BlobStoreApiImpl(context.getService(Vault.class), blobstoreEndpoint);
-        context.registerService(BlobStoreApi.class, blobStoreApi);
 
         var retryPolicy = (RetryPolicy<Object>) context.getService(RetryPolicy.class);
         provisionManager.register(new ObjectStorageProvisioner(retryPolicy, monitor, blobStoreApi));

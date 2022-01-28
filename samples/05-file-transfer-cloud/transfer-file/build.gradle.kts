@@ -20,6 +20,7 @@ val rsApi: String by project
 
 dependencies {
     api(project(":spi"))
+    api(project(":extensions:azure:blobstorage:blob-core"))
 
     implementation(project(":extensions:azure:blobstorage:blob-data-operator"))
     implementation(project(":extensions:aws:s3:s3-data-operator"))
