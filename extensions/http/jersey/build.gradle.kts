@@ -20,7 +20,7 @@ val jerseyVersion: String by project
 val rsApi: String by project
 
 dependencies {
-    api(project(":spi:protocol-spi"))
+    api(project(":spi:web-spi"))
     api(project(":extensions:http:jetty"))
 
     implementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
