@@ -16,8 +16,12 @@ plugins {
     `java-library`
 }
 
+val storageBlobVersion: String by project
+
 dependencies {
     api(project(":spi"))
+
+    api("com.azure:azure-storage-blob:${storageBlobVersion}")
 }
 
 publishing {

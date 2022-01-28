@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.common.azure;
+package org.eclipse.dataspaceconnector.azure.blob.core.api;
 
 import com.azure.storage.blob.models.BlobItem;
 import org.eclipse.dataspaceconnector.spi.system.Feature;

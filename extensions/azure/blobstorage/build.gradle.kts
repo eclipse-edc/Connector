@@ -20,7 +20,6 @@ plugins {
 //this file serves as BOM for blobstorage
 dependencies {
     api(project(":spi"))
-    api(project(":extensions:azure:blobstorage:blob-api"))
     api(project(":extensions:azure:blobstorage:blob-data-operator"))
     api(project(":extensions:azure:blobstorage:blob-core"))
     api(project(":extensions:azure:blobstorage:blob-provision"))
