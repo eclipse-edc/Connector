@@ -48,17 +48,22 @@ Let's rebuild and run them both:
 ./gradlew samples:04.1-file-transfer-listener:consumer:build
 java -Dedc.fs.config=samples/04.1-file-transfer-listener/consumer/config.properties -jar samples/04.1-file-transfer-listener/consumer/build/libs/consumer.jar
 # in another terminal window:
-./gradlew samples:04-file-transfer:provider:build
-java -Dedc.fs.config=samples/04-file-transfer/provider/config.properties -jar samples/04-file-transfer/provider/build/libs/provider.jar
+./gradlew samples:04.0-file-transfer:provider:build
+java -Dedc.fs.config=samples/04.0-file-transfer/provider/config.properties -jar samples/04.0-file-transfer/provider/build/libs/provider.jar
 ````
 
-Assuming you didn't change the config files, the consumer will listen on port `9191` and the provider will listen on port `8181`. Open another terminal window (or any REST client of your choice) and execute the following REST request:
+Assuming you didn't change the config files, the consumer will listen on port `9191` and the provider will listen on port `8181`.
+Open another terminal window (or any REST client of your choice) and execute the following REST requests like in the previous sample:
 
 ```bash
-curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/&destination=/path/on/yourmachine"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/ids/multipart"
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{negotiation ID}"
+curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/api/ids/multipart/&destination=/path/on/yourmachine&contractId={agreement ID}"
 ```
 
-> **Please adjust the `destination` to match your local dev machine!**
+> **Replace `{negotiation ID}` in the second request with the UUID received as the response to the first request!**
+>
+> **Copy the contract agreement's ID from the second response, substitute it for `{agreement ID}` in the last request and adjust the `destination` to match your local dev machine!**
 
 - the last path item, `test-document`, matches the ID of the `Asset` that we created earlier in
   `FileTransferExtension.java`, thus referencing the _data source_
