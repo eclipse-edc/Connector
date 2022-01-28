@@ -20,11 +20,15 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessS
 import org.eclipse.dataspaceconnector.transfer.core.command.commands.CancelTransferCommand;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class CancelTransferCommandHandlerTest {
@@ -47,9 +51,30 @@ class CancelTransferCommandHandlerTest {
         when(storeMock.find(anyString())).thenReturn(tp);
         handler.handle(cmd);
 
-        assertThat(tp.getState()).isEqualTo(TransferProcessStates.ERROR.code());
-        assertThat(tp.getErrorDetail()).isEqualTo("Cancelled");
+        assertThat(tp.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
+        assertThat(tp.getErrorDetail()).isNull();
+
+        verify(storeMock).find(anyString());
+        verify(storeMock).update(tp);
+        verifyNoMoreInteractions(storeMock);
+
     }
+
+    @ParameterizedTest
+    //COMPLETED, ENDED, ERROR, CANCELLED -> values must be compile-time constant
+    @ValueSource(ints = { 800, 1100, -1, 1200 })
+    void handle_illegalState(int targetState) {
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState)
+                .type(TransferProcess.Type.CONSUMER).build();
+        var cmd = new CancelTransferCommand("test-id");
+
+        when(storeMock.find(anyString())).thenReturn(tp);
+        handler.handle(cmd);
+
+        verify(storeMock).find(anyString());
+        verifyNoMoreInteractions(storeMock);
+    }
+
 
     @Test
     void handle_notFound() {

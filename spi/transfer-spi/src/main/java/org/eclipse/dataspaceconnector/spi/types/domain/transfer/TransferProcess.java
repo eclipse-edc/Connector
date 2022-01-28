@@ -27,6 +27,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
+import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
@@ -205,6 +206,14 @@ public class TransferProcess {
 
     public void transitionDeprovisioned() {
         transition(TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONING_REQ, TransferProcessStates.DEPROVISIONED);
+    }
+
+    public void transitionCancelled() {
+        var allowedStartStates = Stream.of(TransferProcessStates.values()).collect(Collectors.toList());
+        allowedStartStates.remove(TransferProcessStates.ERROR);
+        allowedStartStates.remove(TransferProcessStates.ENDED);
+        allowedStartStates.remove(TransferProcessStates.COMPLETED);
+        transition(TransferProcessStates.CANCELLED, allowedStartStates.toArray(new TransferProcessStates[0]));
     }
 
     /**

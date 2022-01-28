@@ -33,6 +33,7 @@ public enum TransferProcessStates {
     DEPROVISIONING(900),
     DEPROVISIONED(1000),
     ENDED(1100),
+    CANCELLED(1200),
     ERROR(-1);
 
     private final int code;
