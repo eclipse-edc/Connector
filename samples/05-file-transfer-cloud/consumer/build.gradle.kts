@@ -33,6 +33,8 @@ dependencies {
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
     implementation(project(":extensions:http"))
 
+    implementation(project(":extensions:aws:s3:s3-provision"))
+
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:azure:vault"))
 
