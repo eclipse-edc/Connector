@@ -1,1 +1,342 @@
-[{"id":"ContractDefinition_0","accessPolicy":{"uid":"AP_0","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_0","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_1","accessPolicy":{"uid":"AP_1","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_1","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_2","accessPolicy":{"uid":"AP_2","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_2","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_3","accessPolicy":{"uid":"AP_3","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_3","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_4","accessPolicy":{"uid":"AP_4","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_4","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_5","accessPolicy":{"uid":"AP_5","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_5","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_6","accessPolicy":{"uid":"AP_6","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_6","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_7","accessPolicy":{"uid":"AP_7","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_7","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_8","accessPolicy":{"uid":"AP_8","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_8","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}},{"id":"ContractDefinition_9","accessPolicy":{"uid":"AP_9","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"contractPolicy":{"uid":"CP_9","permissions":[],"prohibitions":[],"obligations":[],"extensibleProperties":{},"inheritsFrom":null,"assigner":null,"assignee":null,"target":null,"@type":{"@policytype":"set"}},"selectorExpression":{"criteria":[{"left":"*","op":"=","right":"*"}]}}]
+[
+  {
+    "id": "ContractDefinition_0",
+    "accessPolicy": {
+      "uid": "AP_0",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_0",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_1",
+    "accessPolicy": {
+      "uid": "AP_1",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_1",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_2",
+    "accessPolicy": {
+      "uid": "AP_2",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_2",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_3",
+    "accessPolicy": {
+      "uid": "AP_3",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_3",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_4",
+    "accessPolicy": {
+      "uid": "AP_4",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_4",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_5",
+    "accessPolicy": {
+      "uid": "AP_5",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_5",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_6",
+    "accessPolicy": {
+      "uid": "AP_6",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_6",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_7",
+    "accessPolicy": {
+      "uid": "AP_7",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_7",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_8",
+    "accessPolicy": {
+      "uid": "AP_8",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_8",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  },
+  {
+    "id": "ContractDefinition_9",
+    "accessPolicy": {
+      "uid": "AP_9",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "contractPolicy": {
+      "uid": "CP_9",
+      "permissions": [],
+      "prohibitions": [],
+      "obligations": [],
+      "extensibleProperties": {},
+      "inheritsFrom": null,
+      "assigner": null,
+      "assignee": null,
+      "target": null,
+      "@type": {
+        "@policytype": "set"
+      }
+    },
+    "selectorExpression": {
+      "criteria": []
+    }
+  }
+]

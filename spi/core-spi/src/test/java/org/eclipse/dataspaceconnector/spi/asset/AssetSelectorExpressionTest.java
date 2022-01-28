@@ -30,9 +30,9 @@ class AssetSelectorExpressionTest {
         expression = AssetSelectorExpression.SELECT_ALL;
         var json = objectMapper.writeValueAsString(expression);
 
-        assertThat(json).isNotNull().contains("*");
-        var expr = objectMapper.readValue(json, AssetSelectorExpression.class);
-        assertThat(expr).isEqualTo(AssetSelectorExpression.SELECT_ALL);
+        assertThat(json).contains("[]");
+        var expression = objectMapper.readValue(json, AssetSelectorExpression.class);
+        assertThat(expression.getCriteria()).isEmpty();
     }
 
     @Test

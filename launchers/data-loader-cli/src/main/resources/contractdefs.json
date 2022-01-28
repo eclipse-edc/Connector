@@ -60,13 +60,7 @@
       }
     },
     "selectorExpression": {
-      "criteria": [
-        {
-          "left": "*",
-          "op": "=",
-          "right": "*"
-        }
-      ]
+      "criteria": []
     }
   },
   {
@@ -130,13 +124,7 @@
       }
     },
     "selectorExpression": {
-      "criteria": [
-        {
-          "left": "*",
-          "op": "=",
-          "right": "*"
-        }
-      ]
+      "criteria": []
     }
   }
 ]
