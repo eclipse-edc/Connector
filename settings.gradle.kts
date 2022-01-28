@@ -116,9 +116,10 @@ include(":extensions:data-plane:data-plane-http-proxy:data-plane-http-proxy-core
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
-include(":launchers:junit")
-include(":launchers:test")
+include(":launchers:data-loader-cli")
+include(":launchers:e2e-test")
 include(":launchers:ids-connector")
+include(":launchers:junit")
 include(":launchers:registration-service-app")
 include(":launchers:data-loader-cli")
 include(":launchers:data-plane-server")

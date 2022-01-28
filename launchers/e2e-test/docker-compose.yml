@@ -1,0 +1,16 @@
+version: '3.9'
+
+services:
+  consumer:
+    image: ids-connector
+    ports:
+      - "8181:8181"
+    volumes:
+      - ${PWD}/launchers/e2e-test/consumer.properties:/app/connector.properties
+
+  provider:
+    image: ids-connector
+    ports:
+      - "9191:8181"
+    volumes:
+      - ${PWD}/launchers/e2e-test/provider.properties:/app/connector.properties

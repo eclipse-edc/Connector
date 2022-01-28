@@ -6,6 +6,7 @@ on:
     - "Test Code (Style, Tests)"
     - "CodeQL"
     - "Integration Tests"
+    - "End To End Tests"
     branches: [main]
     types:
       - completed

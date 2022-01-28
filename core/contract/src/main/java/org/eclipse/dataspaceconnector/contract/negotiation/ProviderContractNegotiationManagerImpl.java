@@ -192,7 +192,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         negotiation.addContractOffer(offer); // TODO persist unchecked offer of consumer?
 
         if (result.failed()) {
-            monitor.debug("[Provider] Contract offer received. Will be rejected.");
+            monitor.debug("[Provider] Contract offer received. Will be rejected: " + result.getFailureMessages());
             negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
             negotiation.transitionDeclining();
             negotiationStore.save(negotiation);

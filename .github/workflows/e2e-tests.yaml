@@ -1,0 +1,27 @@
+name: End To End Tests
+
+on: [ push, pull_request ]
+
+jobs:
+
+  End-To-End-Tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: '11'
+
+      - name: Build test image
+        run: docker build -f launchers/e2e-test/Dockerfile -t ids-connector .
+
+      - name: Setup environment
+        run: docker-compose -f launchers/e2e-test/docker-compose.yml up -d
+
+      - name: Run tests
+        env:
+          RUN_INTEGRATION_TEST: true
+        run: ./gradlew clean launchers:e2e-test:check
