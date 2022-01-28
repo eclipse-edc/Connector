@@ -94,7 +94,7 @@ Exposing the `CommandQueue` would also expose its entire API including `peek()` 
 Also, most clients will already have a reference to the `TransferProcessManager`, so little change needs to be done. Instead simply
 do:
 ```java
-tpm.enqueueCommand(new CheckTimeoutCommand(3, TransferProcessStates.IN_PROGRESS, Duration.ofSeconds(10)));
+tpm.enqueueCommand(new CheckTransferProcessTimeoutCommand(3, TransferProcessStates.IN_PROGRESS, Duration.ofSeconds(10)));
 ```
 
 that will eventually get processed by the `TransferProcessManager`, resulting in log output similar to this: 
@@ -119,6 +119,6 @@ Modules:
 In order to run the sample, enter the following commands in a shell:
 
 ```bash
- ./gradlew samples:04.2-modify-transferprocess:provider:build
+./gradlew samples:04.2-modify-transferprocess:consumer:build
 java -Dedc.fs.config=samples/04.2-modify-transferprocess/consumer/config.properties -jar samples/04.2-modify-transferprocess/consumer/build/libs/consumer.jar
 ```
