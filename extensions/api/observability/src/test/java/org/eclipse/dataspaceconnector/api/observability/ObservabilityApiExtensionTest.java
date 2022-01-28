@@ -1,10 +1,10 @@
 package org.eclipse.dataspaceconnector.api.observability;
 
+import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
 import org.eclipse.dataspaceconnector.spi.system.health.LivenessProvider;
 import org.eclipse.dataspaceconnector.spi.system.health.ReadinessProvider;
-import org.eclipse.dataspaceconnector.spi.web.WebService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

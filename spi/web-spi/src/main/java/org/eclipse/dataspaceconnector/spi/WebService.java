@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.web;
+package org.eclipse.dataspaceconnector.spi;
 
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 

@@ -22,7 +22,7 @@ dependencies {
     api(project(":spi:transfer-spi"))
     api(project(":spi:contract-spi"))
     api(project(":spi:catalog-spi"))
-    api(project(":spi:protocol-spi"))
+    api(project(":spi:web-spi"))
 }
 
 publishing {
