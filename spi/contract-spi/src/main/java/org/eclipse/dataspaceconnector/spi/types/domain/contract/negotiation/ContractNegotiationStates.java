@@ -22,6 +22,7 @@ import java.util.Arrays;
 public enum ContractNegotiationStates {
 
     UNSAVED(0),
+    INITIAL(50),
     REQUESTING(100),
     REQUESTED(200),
     PROVIDER_OFFERING(300),
@@ -33,6 +34,7 @@ public enum ContractNegotiationStates {
     DECLINING(900),
     DECLINED(1000),
     CONFIRMING(1100),
+    CONFIRMING_SENT(1150),
     CONFIRMED(1200),
     ERROR(-1);
 

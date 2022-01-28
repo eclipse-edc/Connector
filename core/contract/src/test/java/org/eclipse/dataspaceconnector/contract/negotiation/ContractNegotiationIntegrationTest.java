@@ -23,6 +23,7 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -37,7 +38,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 any(ContractOffer.class))).thenReturn(true);
-        
+
         // Create and register listeners for provider and consumer
         providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
         consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
@@ -64,6 +65,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         var providerNegotiation = providerStore.findForCorrelationId(consumerNegotiationId);
 
         // Assert that provider and consumer have the same offers and agreement stored
+        assertThat(consumerNegotiation).isNotNull();
+        assertThat(consumerNegotiation.getState()).isEqualTo(CONFIRMED.code());
         assertThat(consumerNegotiation.getContractOffers()).hasSize(1);
         assertThat(consumerNegotiation.getContractOffers().size()).isEqualTo(providerNegotiation.getContractOffers().size());
         assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
@@ -185,7 +188,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 eq(counterOffer))).thenReturn(true);
-    
+
         // Create and register listeners for provider and consumer
         providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
         consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
@@ -314,7 +317,6 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Mock validation of agreement on consumer side
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 eq(consumerCounterOffer))).thenReturn(true);
-        
         // Create and register listeners for provider and consumer
         providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
         consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));

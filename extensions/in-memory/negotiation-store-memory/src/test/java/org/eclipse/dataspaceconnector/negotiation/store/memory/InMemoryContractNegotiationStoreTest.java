@@ -42,7 +42,8 @@ class InMemoryContractNegotiationStoreTest {
     @Test
     void verifyCreateUpdateDelete() {
         String id = UUID.randomUUID().toString();
-        ContractNegotiation negotiation = createProcess(id);
+        ContractNegotiation negotiation = createNegotiation(id);
+        negotiation.transitionInitial();
 
         store.save(negotiation);
 
@@ -53,15 +54,15 @@ class InMemoryContractNegotiationStoreTest {
 
         assertNotNull(store.findContractAgreement("agreementId"));
 
-        assertEquals(ContractNegotiationStates.REQUESTING.code(), found.getState());
+        assertEquals(ContractNegotiationStates.INITIAL.code(), found.getState());
 
-        negotiation.transitionRequested();
+        negotiation.transitionRequesting();
 
         store.save(negotiation);
 
         found = store.find(id);
         assertNotNull(found);
-        assertEquals(ContractNegotiationStates.REQUESTED.code(), found.getState());
+        assertEquals(ContractNegotiationStates.REQUESTING.code(), found.getState());
 
         store.delete(id);
         Assertions.assertNull(store.find(id));
@@ -72,9 +73,13 @@ class InMemoryContractNegotiationStoreTest {
     @Test
     void verifyNext() throws InterruptedException {
         String id1 = UUID.randomUUID().toString();
-        ContractNegotiation negotiation1 = createProcess(id1);
+        ContractNegotiation negotiation1 = createNegotiation(id1);
+        negotiation1.transitionInitial();
+        negotiation1.transitionRequesting();
         String id2 = UUID.randomUUID().toString();
-        ContractNegotiation negotiation2 = createProcess(id2);
+        ContractNegotiation negotiation2 = createNegotiation(id2);
+        negotiation2.transitionInitial();
+        negotiation2.transitionRequesting();
 
         store.save(negotiation1);
         store.save(negotiation2);
@@ -100,12 +105,14 @@ class InMemoryContractNegotiationStoreTest {
     @Test
     void verifyMultipleRequest() {
         String id1 = UUID.randomUUID().toString();
-        ContractNegotiation transferProcess1 = createProcess(id1);
-        store.save(transferProcess1);
+        ContractNegotiation negotiation1 = createNegotiation(id1);
+        negotiation1.transitionInitial();
+        store.save(negotiation1);
 
         String id2 = UUID.randomUUID().toString();
-        ContractNegotiation transferProcess2 = createProcess(id2);
-        store.save(transferProcess2);
+        ContractNegotiation negotiation2 = createNegotiation(id2);
+        negotiation2.transitionInitial();
+        store.save(negotiation2);
 
 
         ContractNegotiation found1 = store.find(id1);
@@ -114,7 +121,7 @@ class InMemoryContractNegotiationStoreTest {
         ContractNegotiation found2 = store.find(id2);
         assertNotNull(found2);
 
-        var found = store.nextForState(ContractNegotiationStates.REQUESTING.code(), 3);
+        var found = store.nextForState(ContractNegotiationStates.INITIAL.code(), 3);
         assertEquals(2, found.size());
 
     }
@@ -122,11 +129,12 @@ class InMemoryContractNegotiationStoreTest {
     @Test
     void verifyOrderingByTimestamp() {
         for (int i = 0; i < 100; i++) {
-            ContractNegotiation process = createProcess("test-process-" + i);
-            store.save(process);
+            ContractNegotiation negotiation = createNegotiation("test-negotiation-" + i);
+            negotiation.transitionInitial();
+            store.save(negotiation);
         }
 
-        List<ContractNegotiation> processes = store.nextForState(ContractNegotiationStates.REQUESTING.code(), 50);
+        List<ContractNegotiation> processes = store.nextForState(ContractNegotiationStates.INITIAL.code(), 50);
 
         assertThat(processes).hasSize(50);
         assertThat(processes).allMatch(p -> p.getStateTimestamp() > 0);
@@ -135,14 +143,15 @@ class InMemoryContractNegotiationStoreTest {
     @Test
     void verifyNextForState_avoidsStarvation() throws InterruptedException {
         for (int i = 0; i < 10; i++) {
-            ContractNegotiation process = createProcess("test-process-" + i);
-            store.save(process);
+            ContractNegotiation negotiation = createNegotiation("test-negotiation-" + i);
+            negotiation.transitionInitial();
+            store.save(negotiation);
         }
 
-        var list1 = store.nextForState(ContractNegotiationStates.REQUESTING.code(), 5);
+        var list1 = store.nextForState(ContractNegotiationStates.INITIAL.code(), 5);
         Thread.sleep(50); //simulate a short delay to generate different timestamps
         list1.forEach(tp -> store.save(tp));
-        var list2 = store.nextForState(ContractNegotiationStates.REQUESTING.code(), 5);
+        var list2 = store.nextForState(ContractNegotiationStates.INITIAL.code(), 5);
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
 
@@ -151,12 +160,10 @@ class InMemoryContractNegotiationStoreTest {
         store = new InMemoryContractNegotiationStore();
     }
 
-    private ContractNegotiation createProcess(String name) {
+    private ContractNegotiation createNegotiation(String name) {
         return ContractNegotiation.Builder.newInstance()
                 .type(ContractNegotiation.Type.CONSUMER)
                 .id(name)
-                .stateTimestamp(0)
-                .state(TransferProcessStates.UNSAVED.code())
                 .contractAgreement(createAgreement())
                 .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
                         .policy(Policy.Builder.newInstance().build()).build()))

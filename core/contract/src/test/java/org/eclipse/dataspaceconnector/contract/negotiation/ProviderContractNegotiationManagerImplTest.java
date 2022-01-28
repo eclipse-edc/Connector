@@ -62,9 +62,6 @@ class ProviderContractNegotiationManagerImplTest {
 
         doAnswer(invocation -> {
             var negotiation = invocation.getArgument(0, ContractNegotiation.class);
-            if (ContractNegotiationStates.UNSAVED.code() == negotiation.getState()) {
-                negotiation.transitionRequested();
-            }
             negotiations.put(negotiation.getId(), negotiation);
             return null;
         }).when(negotiationStore).save(any(ContractNegotiation.class));
