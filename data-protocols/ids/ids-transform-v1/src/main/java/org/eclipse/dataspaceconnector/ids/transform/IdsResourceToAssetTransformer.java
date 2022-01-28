@@ -63,6 +63,10 @@ public class IdsResourceToAssetTransformer implements IdsTypeTransformer<Resourc
 
         var assetBuilder = Asset.Builder.newInstance().id(idsId.getValue());
 
+        if (object.getDescription() != null && object.getDescription().size() > 0) {
+            assetBuilder.property(Asset.PROPERTY_DESCRIPTION, object.getDescription().get(0).getValue());
+        }
+
         var representation = getRepresentationFromResource(object);
         if (representation != null) {
             if (representation.getMediaType() != null) {
