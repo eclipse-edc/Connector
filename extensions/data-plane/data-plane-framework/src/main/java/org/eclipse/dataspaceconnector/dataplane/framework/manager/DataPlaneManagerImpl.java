@@ -93,8 +93,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
                 if (request == null) {
                     continue;
                 }
+                final var polledRequest = request;
                 pipelineService.transfer(request).whenComplete((result, exception) -> {
-                    // TODO persist result
+                    if (polledRequest.isTrackable()) {
+                        // TODO persist result
+                    }
                 });
             } catch (InterruptedException e) {
                 Thread.interrupted();
