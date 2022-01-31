@@ -1,7 +1,6 @@
 package org.eclipse.dataspaceconnector.core.config;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -134,7 +133,7 @@ class ConfigImplTest {
         var config1 = new ConfigImpl("", Map.of("key1", "value1", "key2", "value1"));
         var config2 = new ConfigImpl("", Map.of("key2", "value2", "key3", "value2"));
 
-        var union = config1.plus(config2);
+        var union = config1.merge(config2);
 
         assertThat(union.getString("key1")).isEqualTo("value1");
         assertThat(union.getString("key2")).isEqualTo("value2");
@@ -146,7 +145,7 @@ class ConfigImplTest {
         var config1 = new ConfigImpl("group", Map.of("group.key1", "value1"));
         var config2 = new ConfigImpl("another.group", Map.of("another.group.key2", "value2"));
 
-        var union = config1.plus(config2);
+        var union = config1.merge(config2);
 
         assertThat(config1.getString("key1")).isEqualTo("value1");
         assertThatThrownBy(() -> union.getString("key1")).isInstanceOf(EdcException.class);

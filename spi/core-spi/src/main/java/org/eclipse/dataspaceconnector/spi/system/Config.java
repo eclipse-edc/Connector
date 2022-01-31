@@ -87,13 +87,13 @@ public interface Config {
     Config getConfig(String path);
 
     /**
-     * Sums two Config objects returning a config that will own the union of the entries (in case of duplicates, other's one will subdue).
+     * Return a config that will own the union of the entries (in case of duplicates, other's one will subdue).
      * The root path will be reset.
      *
      * @param other another Config object
-     * @return a Config that's the sum of the current and the other
+     * @return a Config that's the merge of the current and the other
      */
-    Config plus(Config other);
+    Config merge(Config other);
 
     /**
      * Returns the config entries

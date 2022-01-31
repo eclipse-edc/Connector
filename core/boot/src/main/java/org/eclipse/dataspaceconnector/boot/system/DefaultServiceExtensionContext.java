@@ -240,13 +240,13 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         var config = configurationExtensions.stream()
                 .map(ConfigurationExtension::getConfig)
                 .filter(Objects::nonNull)
-                .reduce(Config::plus)
+                .reduce(Config::merge)
                 .orElse(ConfigFactory.empty());
 
         var systemPropertyConfig = ConfigFactory.fromProperties(System.getProperties());
         var environmentConfig = ConfigFactory.fromMap(System.getenv());
 
-        return config.plus(systemPropertyConfig).plus(environmentConfig);
+        return config.merge(systemPropertyConfig).merge(environmentConfig);
     }
 
     /**

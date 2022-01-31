@@ -14,12 +14,6 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
-
-import java.util.Map;
-
-import static java.lang.String.format;
-
 /**
  * Resolve config settings and parse them to different primitive types
  */

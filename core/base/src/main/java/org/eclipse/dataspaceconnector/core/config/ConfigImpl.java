@@ -107,7 +107,7 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public Config plus(Config other) {
+    public Config merge(Config other) {
         var all = new HashMap<String, String>();
         all.putAll(this.entries);
         all.putAll(other.getEntries());
