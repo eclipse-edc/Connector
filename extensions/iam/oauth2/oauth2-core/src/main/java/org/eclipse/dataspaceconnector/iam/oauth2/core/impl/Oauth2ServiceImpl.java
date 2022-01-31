@@ -89,7 +89,7 @@ public class Oauth2ServiceImpl implements IdentityService {
         this.tokenSigner = tokenSigner;
 
         List<ValidationRule> rules = new ArrayList<>();
-        rules.add(new Oauth2ValidationRule()); //OAuth2 validation must ALWAYS be done
+        rules.add(new Oauth2ValidationRule(this.configuration)); //OAuth2 validation must ALWAYS be done
         rules.addAll(List.of(additionalValidationRules));
         validationRules = Collections.unmodifiableList(rules);
 

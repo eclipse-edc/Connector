@@ -31,10 +31,12 @@ public class Oauth2Configuration {
     private final String privateKeyAlias;
     private final String publicCertificateAlias;
     private final String providerAudience;
+    private final int notBeforeValidationLeeway;
 
     public Oauth2Configuration(String tokenUrl, String clientId, PrivateKeyResolver privateKeyResolver,
                                CertificateResolver certificateResolver, PublicKeyResolver identityProviderKeyResolver,
-                               String privateKeyAlias, String publicCertificateAlias, String providerAudience) {
+                               String privateKeyAlias, String publicCertificateAlias, String providerAudience,
+                               int notBeforeValidationLeeway) {
 
         this.tokenUrl = tokenUrl;
         this.clientId = clientId;
@@ -44,6 +46,7 @@ public class Oauth2Configuration {
         this.privateKeyAlias = privateKeyAlias;
         this.publicCertificateAlias = publicCertificateAlias;
         this.providerAudience = providerAudience;
+        this.notBeforeValidationLeeway = notBeforeValidationLeeway;
     }
 
     public String getTokenUrl() {
@@ -78,6 +81,10 @@ public class Oauth2Configuration {
         return identityProviderKeyResolver;
     }
 
+    public int getNotBeforeValidationLeeway() {
+        return notBeforeValidationLeeway;
+    }
+
     public static class Builder {
         private String tokenUrl;
         private String clientId;
@@ -87,6 +94,7 @@ public class Oauth2Configuration {
         private String privateKeyAlias;
         private String publicCertificateAlias;
         private String providerAudience;
+        private int notBeforeValidationLeeway;
 
         private Builder() {
         }
@@ -141,9 +149,15 @@ public class Oauth2Configuration {
             return this;
         }
 
+        public Builder notBeforeValidationLeeway(int notBeforeValidationLeeway) {
+            this.notBeforeValidationLeeway = notBeforeValidationLeeway;
+            return this;
+        }
+
         public Oauth2Configuration build() {
             return new Oauth2Configuration(tokenUrl, clientId, privateKeyResolver, certificateResolver,
-                    identityProviderKeyResolver, privateKeyAlias, publicCertificateAlias, providerAudience);
+                    identityProviderKeyResolver, privateKeyAlias, publicCertificateAlias, providerAudience,
+                    notBeforeValidationLeeway);
         }
     }
 }

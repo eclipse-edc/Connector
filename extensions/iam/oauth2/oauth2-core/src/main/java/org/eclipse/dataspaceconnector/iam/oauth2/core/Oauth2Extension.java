@@ -75,6 +75,9 @@ public class Oauth2Extension implements ServiceExtension {
     @EdcSetting
     private static final String CLIENT_ID = "edc.oauth.client.id";
 
+    @EdcSetting
+    private static final String NOT_BEFORE_LEEWAY = "edc.oauth.validation.nbf.leeway";
+
     private IdentityProviderKeyResolver providerKeyResolver;
 
     private long keyRefreshInterval;
@@ -91,7 +94,6 @@ public class Oauth2Extension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        // setup the provider key resolver, which will be scheduled for refresh at runtime start
         var jwksUrl = context.getSetting(PROVIDER_JWKS_URL, "http://localhost/empty_jwks_url");
         providerKeyResolver = new IdentityProviderKeyResolver(jwksUrl, context.getMonitor(), okHttpClient, context.getTypeManager());
         keyRefreshInterval = context.getSetting(PROVIDER_JWKS_REFRESH, 5);
@@ -111,7 +113,6 @@ public class Oauth2Extension implements ServiceExtension {
 
     @Override
     public void start() {
-        // refresh the provider keys at start, then schedule a refresh on a periodic basis according to the configured interval
         providerKeyResolver.refreshKeys();
         executorService = Executors.newSingleThreadScheduledExecutor();
         executorService.scheduleWithFixedDelay(() -> providerKeyResolver.refreshKeys(), keyRefreshInterval, keyRefreshInterval, TimeUnit.MINUTES);
@@ -174,6 +175,7 @@ public class Oauth2Extension implements ServiceExtension {
                 .clientId(clientId)
                 .privateKeyResolver(privateKeyResolver)
                 .certificateResolver(certificateResolver)
+                .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 0))
                 .build();
     }
 

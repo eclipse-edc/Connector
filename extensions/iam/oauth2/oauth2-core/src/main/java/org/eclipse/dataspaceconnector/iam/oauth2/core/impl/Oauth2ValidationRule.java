@@ -10,11 +10,16 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
+
+import static java.time.ZoneOffset.UTC;
 
 class Oauth2ValidationRule implements ValidationRule {
 
-    private static Instant convertToUtcTime(Date date) {
-        return ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of("UTC")).toInstant();
+    private final Oauth2Configuration configuration;
+
+    public Oauth2ValidationRule(Oauth2Configuration configuration) {
+        this.configuration = configuration;
     }
 
     /**
@@ -25,7 +30,6 @@ class Oauth2ValidationRule implements ValidationRule {
         Instant nowUtc = Instant.now();
         List<String> errors = new ArrayList<>();
 
-        // check audiences
         List<String> audiences = toVerify.getAudience();
         if (audiences.isEmpty()) {
             errors.add("Missing audience in token claims");
@@ -33,15 +37,14 @@ class Oauth2ValidationRule implements ValidationRule {
             errors.add("Token audience did not match required audience: " + audience);
         }
 
-        // check not before
+        var leewayNow = nowUtc.plusSeconds(configuration.getNotBeforeValidationLeeway());
         var notBefore = toVerify.getNotBeforeTime();
         if (notBefore == null) {
             errors.add("Missing notBefore time in token claims");
-        } else if (nowUtc.isBefore(convertToUtcTime(notBefore))) {
+        } else if (leewayNow.isBefore(convertToUtcTime(notBefore))) {
             errors.add("Token is not valid yet");
         }
 
-        // check expiration time
         Date expires = toVerify.getExpirationTime();
         if (expires == null) {
             errors.add("Missing expiration time in token claims");
@@ -55,5 +58,9 @@ class Oauth2ValidationRule implements ValidationRule {
             return Result.failure(errors);
         }
 
+    }
+
+    private static Instant convertToUtcTime(Date date) {
+        return ZonedDateTime.ofInstant(date.toInstant(), UTC).toInstant();
     }
 }

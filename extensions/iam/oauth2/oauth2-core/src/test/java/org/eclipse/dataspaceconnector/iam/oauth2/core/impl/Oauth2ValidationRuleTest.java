@@ -13,8 +13,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 class Oauth2ValidationRuleTest {
 
     public static final String TEST_AUDIENCE = "test-audience";
+    private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private Oauth2ValidationRule rule;
-    private Instant now;
+
+    @BeforeEach
+    public void setUp() {
+        var configuration = Oauth2Configuration.Builder.newInstance().build();
+        rule = new Oauth2ValidationRule(configuration);
+    }
 
     @Test
     void validationKoBecauseNotBeforeTimeNotRespected() {
@@ -104,6 +110,23 @@ class Oauth2ValidationRuleTest {
     }
 
     @Test
+    void validationOkWhenLeewayOnNotBefore() {
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .audience("test-audience")
+                .notBeforeTime(Date.from(now.plusSeconds(20)))
+                .expirationTime(Date.from(now.plusSeconds(600)))
+                .build();
+        var configuration = Oauth2Configuration.Builder.newInstance()
+                .notBeforeValidationLeeway(20)
+                .build();
+        rule = new Oauth2ValidationRule(configuration);
+
+        var result = rule.checkRule(claims, TEST_AUDIENCE);
+
+        assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
     void validationOk() {
         JWTClaimsSet claims = new JWTClaimsSet.Builder()
                 .audience("test-audience")
@@ -114,11 +137,5 @@ class Oauth2ValidationRuleTest {
         var result = rule.checkRule(claims, TEST_AUDIENCE);
 
         assertThat(result.succeeded()).isTrue();
-    }
-
-    @BeforeEach
-    public void setUp() {
-        rule = new Oauth2ValidationRule();
-        now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     }
 }
