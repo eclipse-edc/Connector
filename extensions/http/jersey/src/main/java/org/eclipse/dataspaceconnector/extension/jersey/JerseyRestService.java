@@ -38,6 +38,7 @@ public class JerseyRestService implements WebService {
     private final Monitor monitor;
 
     private final Set<Object> controllers = new HashSet<>();
+    private final Set<Object> internalControllers = new HashSet<>();
     private final CorsFilterConfiguration corsConfiguration;
 
     public JerseyRestService(JettyService jettyService, TypeManager typeManager, CorsFilterConfiguration corsConfiguration, Monitor monitor) {
@@ -49,11 +50,18 @@ public class JerseyRestService implements WebService {
 
     @Override
     public void registerController(Object controller) {
-        controllers.add(controller);
+        if(controller instanceof ControllerAccessType) {
+            internalControllers.add(controller);
+        }
+        else {
+            controllers.add(controller);
+        }
     }
 
     public void start() {
         try {
+            //resource from where?
+            // External config
             var resourceConfig = new ResourceConfig();
 
             // Disable WADL as it is not used and emits a warning message about JAXB (which is also not used)
@@ -74,6 +82,25 @@ public class JerseyRestService implements WebService {
             jettyService.registerServlet("/", API_PATH, servletContainer);
 
             monitor.info("Registered Web API context at: " + API_PATH);
+
+            // Internal config
+            var internalResourceConfig = new ResourceConfig();
+            internalResourceConfig.property(WADL_FEATURE_DISABLE, Boolean.TRUE);
+
+            internalResourceConfig.registerClasses(internalControllers.stream().map(Object::getClass).collect(toSet()));
+            internalResourceConfig.registerInstances(new Binder());
+            internalResourceConfig.registerInstances(new TypeManagerContextResolver(typeManager));
+
+            if (corsConfiguration.isCorsEnabled()) {
+                internalResourceConfig.register(new CorsFilter(corsConfiguration));
+            }
+            internalResourceConfig.register(MultiPartFeature.class);
+
+            var internalServletContainer = new ServletContainer(internalResourceConfig);
+            jettyService.registerServlet("/", API_PATH, internalServletContainer);
+
+
+            monitor.info("Registered Internal API context at: " + API_PATH);
         } catch (Exception e) {
             throw new EdcException(e);
         }

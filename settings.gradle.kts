@@ -152,3 +152,7 @@ include(":samples:05-file-transfer-cloud:provider")
 include(":samples:05-file-transfer-cloud:api")
 include(":samples:05-file-transfer-cloud:data-seeder")
 include(":samples:05-file-transfer-cloud:transfer-file")
+include("core:web")
+findProject(":core:web")?.name = "coreweb"
+include("extensions:http:spi")
+findProject(":extensions:http:spi")?.name = "spi"

@@ -30,6 +30,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -41,18 +42,18 @@ import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
 public class JettyService {
 
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
-    private final JettyConfiguration configuration;
+    private final ArrayList<JettyConfiguration> configurations;
     private final Monitor monitor;
     private final KeyStore keyStore;
     private final Map<String, ServletContextHandler> handlers = new HashMap<>();
     private Server server;
 
-    public JettyService(JettyConfiguration configuration, Monitor monitor) {
-        this(configuration, null, monitor);
+    public JettyService(ArrayList<JettyConfiguration> configurations, Monitor monitor) {
+        this(configurations, null, monitor);
     }
 
-    public JettyService(JettyConfiguration configuration, KeyStore keyStore, Monitor monitor) {
-        this.configuration = configuration;
+    public JettyService(ArrayList<JettyConfiguration> configurations, KeyStore keyStore, Monitor monitor) {
+        this.configurations = configurations;
         this.keyStore = keyStore;
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
@@ -61,15 +62,17 @@ public class JettyService {
 
     public void start() {
         try {
-            var port = configuration.getHttpPort();
             server = new Server();
 
-            if (keyStore != null) {
-                server.addConnector(httpsServerConnector(port));
-                monitor.info("HTTPS listening on " + port);
-            } else {
-                server.addConnector(httpServerConnector(port));
-                monitor.info("HTTP listening on " + port);
+            for (JettyConfiguration configuration:
+                 configurations) {
+
+
+                if (keyStore != null) {
+                    server.addConnector(httpsServerConnector(configuration));
+                } else {
+                    server.addConnector(httpServerConnector(configuration));
+                }
             }
 
             server.setErrorHandler(new JettyErrorHandler());
@@ -113,7 +116,7 @@ public class JettyService {
 
 
     @NotNull
-    private ServerConnector httpsServerConnector(int port) {
+    private ServerConnector httpsServerConnector(JettyConfiguration configuration) {
         var storePassword = configuration.getKeystorePassword();
         var managerPassword = configuration.getKeymanagerPassword();
 
@@ -124,12 +127,15 @@ public class JettyService {
 
         var sslConnectionFactory = new SslConnectionFactory(contextFactory, "http/1.1");
         var sslConnector = new ServerConnector(server, httpConnectionFactory(), sslConnectionFactory);
+
+        var port = configuration.getHttpPort();
         sslConnector.setPort(port);
         return sslConnector;
     }
 
     @NotNull
-    private ServerConnector httpServerConnector(int port) {
+    private ServerConnector httpServerConnector(JettyConfiguration configuration) {
+        var port = configuration.getHttpPort();
         ServerConnector connector = new ServerConnector(server, httpConnectionFactory());
         connector.setPort(port);
         return connector;
