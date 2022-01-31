@@ -243,10 +243,10 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
                 .reduce(Config::merge)
                 .orElse(ConfigFactory.empty());
 
-        var systemPropertyConfig = ConfigFactory.fromProperties(System.getProperties());
         var environmentConfig = ConfigFactory.fromMap(System.getenv());
+        var systemPropertyConfig = ConfigFactory.fromProperties(System.getProperties());
 
-        return config.merge(systemPropertyConfig).merge(environmentConfig);
+        return config.merge(environmentConfig).merge(systemPropertyConfig);
     }
 
     /**
