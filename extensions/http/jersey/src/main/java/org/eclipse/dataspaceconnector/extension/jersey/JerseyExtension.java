@@ -24,7 +24,6 @@ public class JerseyExtension implements ServiceExtension {
         TypeManager typeManager = context.getTypeManager();
 
         var jettyService = context.getService(JettyService.class);
-        context.registerService(JettyService.class, jettyService);
 
         var corsConfiguration = CorsFilterConfiguration.from(context);
 
