@@ -23,4 +23,8 @@ public class AuthorizationFailedException extends EdcException {
     public AuthorizationFailedException() {
         super("Authorization not possible or failed");
     }
+
+    public AuthorizationFailedException(String message) {
+        super(message);
+    }
 }
