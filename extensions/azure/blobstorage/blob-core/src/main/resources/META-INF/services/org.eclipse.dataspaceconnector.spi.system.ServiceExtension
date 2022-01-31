@@ -12,5 +12,5 @@
 #
 #
 
-org.eclipse.dataspaceconnector.azure.blob.core.BlobStoreCoreExtension;
+org.eclipse.dataspaceconnector.azure.blob.core.BlobStoreCoreExtension
 
