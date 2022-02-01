@@ -15,7 +15,6 @@ package org.eclipse.dataspaceconnector.transaction.local;
 
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.spi.transaction.local.LocalTransactionContextManager;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +43,7 @@ public class LocalDataSourceRegistry implements DataSourceRegistry {
     }
 
     @Override
-    public @Nullable DataSource resolve(String name) {
+    public DataSource resolve(String name) {
         return dataSources.get(name);
     }
 }
