@@ -27,6 +27,9 @@ dependencies {
 
     api("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     api("net.jodah:failsafe:${jodahFailsafeVersion}")
+    api("io.opentelemetry:opentelemetry-api:1.10.0")
+    api("io.opentelemetry:opentelemetry-extension-annotations:1.10.0")
+
 
     testImplementation("org.awaitility:awaitility:4.1.1")
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")

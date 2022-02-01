@@ -14,6 +14,9 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
@@ -36,7 +39,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
-
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -56,6 +59,10 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  * Implementation of the {@link ProviderContractNegotiationManager}.
  */
 public class ProviderContractNegotiationManagerImpl extends ContractNegotiationObservable implements ProviderContractNegotiationManager {
+
+    // TODO: Follow https://opentelemetry.io/docs/instrumentation/java/manual_instrumentation/
+    private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+    private static ContractNegotiationTraceContextMapper traceContextMapper = new ContractNegotiationTraceContextMapper();
 
     private final AtomicBoolean active = new AtomicBoolean();
 
@@ -138,8 +145,12 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
                 .counterPartyId(request.getConnectorId())
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
+                .traceContext(new HashMap<>())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
+
+        monitor.debug("Injecting trace context into contract negotiation.");
+        openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
 
         negotiation.transitionRequested();
 
@@ -376,6 +387,10 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
         var confirmingNegotiations = negotiationStore.nextForState(CONFIRMING.code(), batchSize);
 
         for (var negotiation : confirmingNegotiations) {
+            monitor.debug("Extracting trace context from contract negotiation.");
+            Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+                    .extract(Context.current(), negotiation, traceContextMapper);
+            extractedContext.makeCurrent();
             negotiate(negotiation);
         }
 

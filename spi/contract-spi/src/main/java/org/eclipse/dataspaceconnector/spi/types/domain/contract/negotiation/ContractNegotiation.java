@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
@@ -61,6 +62,7 @@ public class ContractNegotiation {
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
+    private Map<String, String> traceContext;
     private Type type = Type.CONSUMER;
     private int state = UNSAVED.code();
     private int stateCount;
@@ -100,6 +102,10 @@ public class ContractNegotiation {
     @NotNull
     public String getProtocol() {
         return protocol;
+    }
+
+    public Map<String, String> getTraceContext() {
+        return traceContext;
     }
 
     /**
@@ -343,7 +349,8 @@ public class ContractNegotiation {
     public ContractNegotiation copy() {
         return ContractNegotiation.Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
                 .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
-                .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement).contractOffers(contractOffers).build();
+                .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement)
+                .contractOffers(contractOffers).traceContext(traceContext).build();
     }
 
     /**
@@ -355,7 +362,7 @@ public class ContractNegotiation {
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, correlationId, counterPartyId, protocol, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
+        return Objects.hash(id, correlationId, counterPartyId, protocol, traceContext, type, state, stateCount, stateTimestamp, contractAgreement, contractOffers);
     }
 
     @Override
@@ -368,7 +375,8 @@ public class ContractNegotiation {
         }
         ContractNegotiation that = (ContractNegotiation) o;
         return state == that.state && stateCount == that.stateCount && stateTimestamp == that.stateTimestamp && Objects.equals(id, that.id) &&
-                Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) && Objects.equals(protocol, that.protocol) &&
+                Objects.equals(correlationId, that.correlationId) && Objects.equals(counterPartyId, that.counterPartyId) &&
+                Objects.equals(protocol, that.protocol) && Objects.equals(traceContext, that.traceContext) &&
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
     }
 
@@ -476,6 +484,11 @@ public class ContractNegotiation {
 
         public Builder errorDetail(String errorDetail) {
             negotiation.errorDetail = errorDetail;
+            return this;
+        }
+
+        public Builder traceContext(Map<String, String> traceContext) {
+            negotiation.traceContext = traceContext;
             return this;
         }
 
