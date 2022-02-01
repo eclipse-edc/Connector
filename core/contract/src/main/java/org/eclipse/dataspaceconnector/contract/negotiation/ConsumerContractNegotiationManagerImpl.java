@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
@@ -255,6 +256,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      * @param process The contract negotiation.
      * @return The response to the sent message.
      */
+    @WithSpan(value = "sending negotiation offer")
     private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferRequest.Type type) {
         var request = ContractOfferRequest.Builder.newInstance()
                 .contractOffer(offer)
