@@ -175,7 +175,7 @@ public class Oauth2Extension implements ServiceExtension {
                 .clientId(clientId)
                 .privateKeyResolver(privateKeyResolver)
                 .certificateResolver(certificateResolver)
-                .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 0))
+                .notBeforeValidationLeeway(context.getSetting(NOT_BEFORE_LEEWAY, 10))
                 .build();
     }
 
