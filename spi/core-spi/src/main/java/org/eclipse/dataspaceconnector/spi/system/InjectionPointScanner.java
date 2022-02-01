@@ -15,7 +15,10 @@ public class InjectionPointScanner {
 
         return Arrays.stream(targetClass.getDeclaredFields())
                 .filter(f -> f.getAnnotation(Inject.class) != null)
-                .map(f -> new FieldInjectionPoint<>(instance, f, getFeatureValue(f.getType())))
+                .map(f -> {
+                    var isRequired = f.getAnnotation(Inject.class).required();
+                    return new FieldInjectionPoint<>(instance, f, getFeatureValue(f.getType()), isRequired);
+                })
                 .collect(Collectors.toSet());
     }
 
