@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.iam.oauth2.core.impl;
+package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
 import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jose.util.Base64URL;
@@ -23,7 +23,7 @@ import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
 
-import static org.eclipse.dataspaceconnector.iam.oauth2.core.impl.Fingerprint.sha1Base64Fingerprint;
+import static org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.Fingerprint.sha1Base64Fingerprint;
 
 public class DefaultJwtDecorator implements JwtDecorator {
 

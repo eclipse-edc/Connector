@@ -1,6 +1,7 @@
-package org.eclipse.dataspaceconnector.iam.oauth2.core.impl;
+package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

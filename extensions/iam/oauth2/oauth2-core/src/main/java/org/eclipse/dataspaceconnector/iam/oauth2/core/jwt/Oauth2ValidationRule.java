@@ -1,20 +1,19 @@
-package org.eclipse.dataspaceconnector.iam.oauth2.core.impl;
+package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 
 import static java.time.ZoneOffset.UTC;
 
-class Oauth2ValidationRule implements ValidationRule {
+public class Oauth2ValidationRule implements ValidationRule {
 
     private final Oauth2Configuration configuration;
 
