@@ -40,6 +40,7 @@ import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
  */
 public class JettyService {
 
+    public static final String DEFAULT_ROOT_PATH = "/api";
     private static final String LOG_ANNOUNCE = "org.eclipse.jetty.util.log.announce";
     private final JettyConfiguration configuration;
     private final Monitor monitor;
@@ -56,6 +57,9 @@ public class JettyService {
         this.keyStore = keyStore;
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
+        // for REST endpoints
+        handlers.put(DEFAULT_ROOT_PATH, new ServletContextHandler(null, DEFAULT_ROOT_PATH, NO_SESSIONS));
+        // for websocket endpoints
         handlers.put("/", new ServletContextHandler(null, "/", NO_SESSIONS));
     }
 
@@ -94,7 +98,7 @@ public class JettyService {
 
     public void registerServlet(String contextPath, String path, Servlet servlet) {
         ServletHolder servletHolder = new ServletHolder(Source.EMBEDDED);
-        servletHolder.setName("EDC");
+        servletHolder.setName("EDC-" + path); //must be unique
         servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
 

@@ -24,7 +24,13 @@ public interface WebService {
 
     /**
      * Registers a JAX-RS resource instance, or controller. Extensions may contribute bespoke APIs to the runtime.
+     *
+     * @deprecated Use {@link WebService#registerResource(Object)} instead, as it is actually a resource we're registering.
      */
+    @Deprecated
     void registerController(Object controller);
 
+    void registerResource(Object controller);
+
+    void registerResource(String contextPath, Object resource);
 }
