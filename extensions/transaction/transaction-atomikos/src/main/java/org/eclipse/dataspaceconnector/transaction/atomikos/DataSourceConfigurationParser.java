@@ -14,12 +14,12 @@
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
@@ -40,42 +40,40 @@ import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConf
 import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfigurationKeys.USERNAME;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.Setters.setIfProvided;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.Setters.setIfProvidedInt;
-import static org.eclipse.dataspaceconnector.transaction.atomikos.Setters.setMandatory;
 
 /**
  * Bootstraps the Atomikos {@link DataSourceRegistry}.
  */
 public class DataSourceConfigurationParser {
 
-    public static List<DataSourceConfiguration> parseDataSourceConfigurations(Map<String, Map<String, Object>> configurations) {
-        var dataSourceConfigurations = new ArrayList<DataSourceConfiguration>();
-        configurations.forEach((dsName, properties) -> {
-            var builder = DataSourceConfiguration.Builder.newInstance();
-            var keyName = "data source " + dsName;
-            builder.name(dsName);
-            setMandatory(DRIVER_CLASS, keyName, builder::driverClass, properties);
-            setMandatory(URL, keyName, builder::url, properties);
-            setIfProvided(DS_TYPE, value -> setDataSourceType(keyName, builder, value), properties);
-            setIfProvided(USERNAME, builder::username, properties);
-            setIfProvided(PASSWORD, builder::password, properties);
-            setIfProvidedInt(POOL_SIZE, keyName, builder::poolSize, properties);
-            setIfProvidedInt(MAX_POOL_SIZE, keyName, builder::maxPoolSize, properties);
-            setIfProvidedInt(MIN_POOL_SIZE, keyName, builder::minPoolSize, properties);
-            setIfProvidedInt(CONNECTION_TIMEOUT, keyName, builder::connectionTimeout, properties);
-            setIfProvidedInt(LOGIN_TIMEOUT, keyName, builder::loginTimeout, properties);
-            setIfProvidedInt(MAINTENANCE_INTERVAL, keyName, builder::maintenanceInterval, properties);
-            setIfProvidedInt(MAX_IDLE, keyName, builder::maxIdle, properties);
-            setIfProvidedInt(REAP, keyName, builder::reap, properties);
-            setIfProvided(QUERY, builder::query, properties);
+    public static List<DataSourceConfiguration> parseDataSourceConfigurations(Config parent) {
+        return parent.partition()
+                .map(config -> {
+                    var dsName = config.currentNode();
+                    var keyName = "data source " + dsName;
+                    var builder = DataSourceConfiguration.Builder.newInstance()
+                            .name(dsName)
+                            .driverClass(config.getString(DRIVER_CLASS))
+                            .url(config.getString(URL));
 
-            var driverProperties = properties.entrySet().stream()
-                    .filter(e -> e.getKey().startsWith(DRIVER_PROPERTIES + "."))
-                    .collect(Collectors.toMap(Map.Entry::getKey, stringObjectEntry -> stringObjectEntry.getValue().toString()));
-            builder.properties(driverProperties);
+                    setIfProvided(DS_TYPE, value -> setDataSourceType(keyName, builder, value), config);
+                    setIfProvided(USERNAME, builder::username, config);
+                    setIfProvided(PASSWORD, builder::password, config);
+                    setIfProvidedInt(POOL_SIZE, builder::poolSize, config);
+                    setIfProvidedInt(MAX_POOL_SIZE, builder::maxPoolSize, config);
+                    setIfProvidedInt(MIN_POOL_SIZE, builder::minPoolSize, config);
+                    setIfProvidedInt(CONNECTION_TIMEOUT, builder::connectionTimeout, config);
+                    setIfProvidedInt(LOGIN_TIMEOUT, builder::loginTimeout, config);
+                    setIfProvidedInt(MAINTENANCE_INTERVAL, builder::maintenanceInterval, config);
+                    setIfProvidedInt(MAX_IDLE, builder::maxIdle, config);
+                    setIfProvidedInt(REAP, builder::reap, config);
+                    setIfProvided(QUERY, builder::query, config);
 
-            dataSourceConfigurations.add(builder.build());
-        });
-        return dataSourceConfigurations;
+                    builder.properties(config.getRelativeEntries(DRIVER_PROPERTIES));
+
+                    return builder.build();
+                })
+                .collect(Collectors.toList());
     }
 
     private static void setDataSourceType(String dsName, DataSourceConfiguration.Builder builder, String value) {

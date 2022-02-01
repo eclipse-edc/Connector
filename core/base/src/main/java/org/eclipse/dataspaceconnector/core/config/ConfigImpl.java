@@ -20,6 +20,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -27,6 +28,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toMap;
@@ -107,6 +109,17 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public Map<String, String> getRelativeEntries(String basePath) {
+        return getRelativeEntries().entrySet().stream().filter(entry -> entry.getKey().startsWith(basePath)).collect(TO_MAP);
+    }
+
+    @Override
+    public String currentNode() {
+        var parts = rootPath.split("\\.");
+        return parts[parts.length - 1];
+    }
+
+    @Override
     public Config merge(Config other) {
         var all = new HashMap<String, String>();
         all.putAll(this.entries);
@@ -115,8 +128,12 @@ public class ConfigImpl implements Config {
         return new ConfigImpl("", Collections.unmodifiableMap(all));
     }
 
+    public Stream<Config> partition() {
+        return this.getRelativeEntries().keySet().stream().map(it -> it.split("\\.")[0]).distinct().map(group -> this.getConfig(group));
+    }
+
     private String removePrefix(String path, String rootPath) {
-        if (path.startsWith(rootPath)) {
+        if (!rootPath.isEmpty() && path.startsWith(rootPath)) {
             return path.substring(rootPath.length() + 1);
         } else {
             return path;

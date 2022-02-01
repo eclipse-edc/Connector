@@ -1,12 +1,15 @@
 package org.eclipse.dataspaceconnector.core.config;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
 import java.util.Map;
 
 import static java.util.Collections.emptyMap;
 import static java.util.Map.entry;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -200,4 +203,45 @@ class ConfigImplTest {
 
         assertThat(entries).containsExactly(entry("subgroup.key", "value"));
     }
+
+    @Test
+    void getRelativeEntriesAtRootShouldEqualToEntries() {
+        var config = new ConfigImpl("", Map.of("group.subgroup.key", "value"));
+
+        var entries = config.getRelativeEntries();
+
+        assertThat(entries).isEqualTo(config.getEntries());
+    }
+
+    @Test
+    void getRelativeEntriesWithSpecifiedBasePathFiltersOut() {
+        var config = new ConfigImpl("default", Map.of("default.properties.key", "value", "default.other", "anotherValue"));
+
+        var entries = config.getRelativeEntries("properties");
+
+        assertThat(entries).containsExactly(entry("properties.key", "value"));
+    }
+
+    @Test
+    void groupByPathShouldGiveListOfSubConfigs() {
+        var entries = Map.of("group.default.key", "defaultValue", "group.specific.key", "specificValue");
+        var config = new ConfigImpl("group", entries);
+
+        var configs = config.partition();
+
+        List<Config> configList = configs.collect(toList());
+        assertThat(configList).hasSize(2);
+        assertThat(configList.get(0).getString("key")).isEqualTo("defaultValue");
+        assertThat(configList.get(1).getString("key")).isEqualTo("specificValue");
+    }
+
+    @Test
+    void getCurrentNodeReturnsTheNameOfTheLastLevel() {
+        var config = new ConfigImpl("group.subgroup", emptyMap());
+
+        var node = config.currentNode();
+
+        assertThat(node).isEqualTo("subgroup");
+    }
+
 }

@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
+import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -20,7 +21,6 @@ import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.jetbrains.annotations.NotNull;
 
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.hierarchical;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfigurationParser.parseDataSourceConfigurations;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.Setters.setIfProvided;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.Setters.setIfProvidedInt;
@@ -54,9 +54,9 @@ public class AtomikosTransactionExtension implements ServiceExtension {
         transactionContext = new AtomikosTransactionContext(context.getMonitor());
         context.registerService(TransactionContext.class, transactionContext);
 
-        var configMap = hierarchical(context.getSettings(EDC_DATASOURCE_PREFIX));
+        var config = context.getConfig(EDC_DATASOURCE_PREFIX);
 
-        var dsConfigurations = parseDataSourceConfigurations(configMap);
+        var dsConfigurations = parseDataSourceConfigurations(config);
         var dataSourceRegistry = new AtomikosDataSourceRegistry();
         dsConfigurations.forEach(dataSourceRegistry::initialize);
 
@@ -81,13 +81,15 @@ public class AtomikosTransactionExtension implements ServiceExtension {
     private TransactionManagerConfiguration getTransactionManagerConfiguration(ServiceExtensionContext context) {
         var builder = TransactionManagerConfiguration.Builder.newInstance();
 
+        Config config = context.getConfig();
         var name = context.getConnectorId().replace(":", "_");
         builder.name(name);
-        setIfProvidedInt(CHECKPOINT_INTERVAL, "transaction manager", builder::checkPointInterval, context);
-        Setters.setIfProvidedInt(TIMEOUT, "transaction manager", builder::timeout, context);
-        setIfProvided(DATA_DIR, builder::dataDir, context);
-        setIfProvided(LOGGING, (val) -> builder.enableLogging(Boolean.parseBoolean(val)), context);
-        setIfProvided(THREADED2PC, (val) -> builder.singleThreaded2Pc(Boolean.parseBoolean(val)), context);
+
+        setIfProvidedInt(CHECKPOINT_INTERVAL, builder::checkPointInterval, config);
+        Setters.setIfProvidedInt(TIMEOUT, builder::timeout, config);
+        setIfProvided(DATA_DIR, builder::dataDir, config);
+        setIfProvided(LOGGING, (val) -> builder.enableLogging(Boolean.parseBoolean(val)), config);
+        setIfProvided(THREADED2PC, (val) -> builder.singleThreaded2Pc(Boolean.parseBoolean(val)), config);
 
         return builder.build();
     }

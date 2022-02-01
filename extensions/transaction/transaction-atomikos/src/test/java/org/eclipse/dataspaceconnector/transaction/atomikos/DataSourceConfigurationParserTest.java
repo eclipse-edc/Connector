@@ -13,10 +13,11 @@
  */
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
+import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
+import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfiguration.DataSourceType.XA;
@@ -40,28 +41,27 @@ class DataSourceConfigurationParserTest {
 
     @Test
     void verifyCreation() {
-        var defaultProperties = new HashMap<String, Object>();
-        defaultProperties.put(DRIVER_CLASS, "com.Driver");
-        defaultProperties.put(URL, "jdbc://foo.com");
-        defaultProperties.put(DS_TYPE, "xa");
-        defaultProperties.put(USERNAME, "username");
-        defaultProperties.put(PASSWORD, "password");
-        defaultProperties.put(POOL_SIZE, "1");
-        defaultProperties.put(MAX_POOL_SIZE, "1");
-        defaultProperties.put(MIN_POOL_SIZE, "1");
-        defaultProperties.put(CONNECTION_TIMEOUT, "1");
-        defaultProperties.put(LOGIN_TIMEOUT, "1");
-        defaultProperties.put(MAINTENANCE_INTERVAL, "1");
-        defaultProperties.put(MAX_IDLE, "1");
-        defaultProperties.put(REAP, "1");
-        defaultProperties.put(QUERY, "SELECT");
-        defaultProperties.put(DRIVER_PROPERTIES + ".custom", "customvalue");
+        var properties = new HashMap<String, String>();
+        properties.put("default." + DRIVER_CLASS, "com.Driver");
+        properties.put("default." + URL, "jdbc://foo.com");
+        properties.put("default." + DS_TYPE, "xa");
+        properties.put("default." + USERNAME, "username");
+        properties.put("default." + PASSWORD, "password");
+        properties.put("default." + POOL_SIZE, "1");
+        properties.put("default." + MAX_POOL_SIZE, "1");
+        properties.put("default." + MIN_POOL_SIZE, "1");
+        properties.put("default." + CONNECTION_TIMEOUT, "1");
+        properties.put("default." + LOGIN_TIMEOUT, "1");
+        properties.put("default." + MAINTENANCE_INTERVAL, "1");
+        properties.put("default." + MAX_IDLE, "1");
+        properties.put("default." + REAP, "1");
+        properties.put("default." + QUERY, "SELECT");
+        properties.put("default." + DRIVER_PROPERTIES + ".custom", "customvalue");
+        properties.put("minimal." + DRIVER_CLASS, "com.Driver");
+        properties.put("minimal." + URL, "jdbc://foo.com");
 
-        var fooProperties = new HashMap<String, Object>();
-        fooProperties.put(DRIVER_CLASS, "com.Driver");
-        fooProperties.put(URL, "jdbc://foo.com");
-
-        var parsedConfigurations = DataSourceConfigurationParser.parseDataSourceConfigurations(Map.of("default", defaultProperties, "minimal", fooProperties));
+        Config config = ConfigFactory.fromMap(properties);
+        var parsedConfigurations = DataSourceConfigurationParser.parseDataSourceConfigurations(config);
 
         assertThat(parsedConfigurations.size()).isEqualTo(2);
         @SuppressWarnings("OptionalGetWithoutIsPresent")

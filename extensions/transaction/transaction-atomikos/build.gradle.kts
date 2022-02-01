@@ -22,6 +22,7 @@ val jtaVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
+    api(project(":core:base"))
     api(project(":extensions:transaction:transaction-spi"))
     api(project(":extensions:transaction:transaction-datasource-spi"))
 

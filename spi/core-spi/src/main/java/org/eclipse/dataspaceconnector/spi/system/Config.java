@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.spi.system;
 
 import java.util.Map;
+import java.util.stream.Stream;
 
 /**
  * A Config facade that offers some utility functions to work with configuration settings based on the Java Properties format:
@@ -96,6 +97,13 @@ public interface Config {
     Config merge(Config other);
 
     /**
+     * Return a stream of configs partitioned by the current group level
+     *
+     * @return a stream of configs
+     */
+    Stream<Config> partition();
+
+    /**
      * Returns the config entries
      *
      * @return the config entries
@@ -116,4 +124,20 @@ public interface Config {
      * @return a map containing the config entries relative to the current root path
      */
     Map<String, String> getRelativeEntries();
+
+    /**
+     * Returns the config entries relative to the current root path filtering out properties that
+     * does not start with basePath.
+     *
+     * @return a map containing the config entries relative to the current root path filtered by basePath
+     */
+    Map<String, String> getRelativeEntries(String basePath);
+
+    /**
+     * Returns the name of the current node.
+     * e.g. for a Config with a rootPath equal to "group.subgroup" the current node is "subgroup"
+     *
+     * @return the name of the current node
+     */
+    String currentNode();
 }
