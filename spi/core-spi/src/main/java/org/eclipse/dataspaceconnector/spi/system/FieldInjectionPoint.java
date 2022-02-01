@@ -14,13 +14,18 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     private final T instance;
     private final Field injectedField;
     private final String featureString;
-    private boolean isRequired = true;
+    private final boolean isRequired;
 
     public FieldInjectionPoint(T instance, Field injectedField, String featureString) {
+        this(instance, injectedField, featureString, true);
+    }
+
+    public FieldInjectionPoint(T instance, Field injectedField, String featureString, boolean isRequired) {
         this.instance = instance;
         this.injectedField = injectedField;
         this.injectedField.setAccessible(true);
         this.featureString = featureString;
+        this.isRequired = isRequired;
     }
 
     @Override
@@ -41,10 +46,6 @@ public class FieldInjectionPoint<T> implements InjectionPoint<T> {
     @Override
     public boolean isRequired() {
         return isRequired;
-    }
-
-    public void setRequired(boolean required) {
-        isRequired = required;
     }
 
     @Override
