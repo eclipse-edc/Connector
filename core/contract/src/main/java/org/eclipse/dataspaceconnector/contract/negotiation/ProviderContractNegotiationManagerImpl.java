@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
@@ -35,6 +36,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
+
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -126,8 +128,10 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
      * @param request Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
+    @WithSpan(value = "negotiation requested")
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+        monitor.info("ContractNegotiation requested");
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
@@ -372,50 +376,55 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
         var confirmingNegotiations = negotiationStore.nextForState(CONFIRMING.code(), batchSize);
 
         for (var negotiation : confirmingNegotiations) {
-            var retrievedAgreement = negotiation.getContractAgreement();
-
-            ContractAgreement agreement;
-            if (retrievedAgreement == null) {
-                var lastOffer = negotiation.getLastContractOffer();
-
-                var contractIdTokens = parseContractId(lastOffer.getId());
-                if (contractIdTokens.length != 2) {
-                    monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
-                    continue;
-                }
-                var definitionId = contractIdTokens[DEFINITION_PART];
-
-                //TODO move to own service
-                agreement = ContractAgreement.Builder.newInstance()
-                        .id(ContractId.createContractId(definitionId))
-                        .contractEndDate(Instant.now().getEpochSecond() + 60 * 60 /* Five Minutes */) // TODO
-                        .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
-                        .contractStartDate(Instant.now().getEpochSecond())
-                        .providerAgentId(String.valueOf(lastOffer.getProvider()))
-                        .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
-                        .policy(lastOffer.getPolicy())
-                        .asset(lastOffer.getAsset())
-                        .build();
-            } else {
-                agreement = retrievedAgreement;
-            }
-
-            ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
-                    .protocol(negotiation.getProtocol())
-                    .connectorId(negotiation.getCounterPartyId())
-                    .connectorAddress(negotiation.getCounterPartyAddress())
-                    .contractAgreement(agreement)
-                    .correlationId(negotiation.getCorrelationId())
-                    .build();
-
-            //TODO protocol-independent response type?
-            negotiation.transitionConfirmingSent();
-            negotiationStore.save(negotiation);
-            dispatcherRegistry.send(Object.class, request, () -> null)
-                    .whenComplete(onAgreementSent(negotiation.getId(), agreement));
+            negotiate(negotiation);
         }
 
         return confirmingNegotiations.size();
+    }
+
+    @WithSpan(value = "processing negotiation offer")
+    private void negotiate(ContractNegotiation negotiation) {
+        var retrievedAgreement = negotiation.getContractAgreement();
+
+        ContractAgreement agreement;
+        if (retrievedAgreement == null) {
+            var lastOffer = negotiation.getLastContractOffer();
+
+            var contractIdTokens = parseContractId(lastOffer.getId());
+            if (contractIdTokens.length != 2) {
+                monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
+                return;
+            }
+            var definitionId = contractIdTokens[DEFINITION_PART];
+
+            //TODO move to own service
+            agreement = ContractAgreement.Builder.newInstance()
+                    .id(ContractId.createContractId(definitionId))
+                    .contractEndDate(Instant.now().getEpochSecond() + 60 * 60 /* Five Minutes */) // TODO
+                    .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
+                    .contractStartDate(Instant.now().getEpochSecond())
+                    .providerAgentId(String.valueOf(lastOffer.getProvider()))
+                    .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
+                    .policy(lastOffer.getPolicy())
+                    .asset(lastOffer.getAsset())
+                    .build();
+        } else {
+            agreement = retrievedAgreement;
+        }
+
+        ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
+                .protocol(negotiation.getProtocol())
+                .connectorId(negotiation.getCounterPartyId())
+                .connectorAddress(negotiation.getCounterPartyAddress())
+                .contractAgreement(agreement)
+                .correlationId(negotiation.getCorrelationId())
+                .build();
+
+        //TODO protocol-independent response type?
+        negotiation.transitionConfirmingSent();
+        negotiationStore.save(negotiation);
+        dispatcherRegistry.send(Object.class, request, () -> null)
+                .whenComplete(onAgreementSent(negotiation.getId(), agreement));
     }
 
     @NotNull
