@@ -73,7 +73,8 @@ class AssetToIdsResourceTransformerTest {
 
     @Test
     void testSuccessfulSimple() {
-        var asset = Asset.Builder.newInstance().id(RESOURCE_ID).build();
+        String description = "foo bar";
+        var asset = Asset.Builder.newInstance().id(RESOURCE_ID).description(description).build();
         var representation = new RepresentationBuilder().build();
         when(context.transform(any(Asset.class), eq(Representation.class))).thenReturn(representation);
 
@@ -86,6 +87,7 @@ class AssetToIdsResourceTransformerTest {
         assertEquals(RESOURCE_ID_URI, result.getId());
         assertEquals(1, result.getRepresentation().size());
         assertEquals(representation, result.getRepresentation().get(0));
+        assertEquals(description, result.getDescription().get(0).getValue());
         verify(context, times(2)).transform(any(), any());
     }
 

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.ids.transform;
 import de.fraunhofer.iais.eis.Representation;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceBuilder;
+import de.fraunhofer.iais.eis.util.TypedLiteral;
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.transform.IdsTypeTransformer;
@@ -63,6 +64,11 @@ public class AssetToIdsResourceTransformer implements IdsTypeTransformer<Asset, 
 
         ResourceBuilder resourceBuilder = new ResourceBuilder(uri);
         resourceBuilder._representation_(new ArrayList<>(Collections.singletonList(result)));
+
+        String description = object.getDescription();
+        if (description != null) {
+            resourceBuilder._description_(new TypedLiteral(description));
+        }
 
         return resourceBuilder.build();
     }
