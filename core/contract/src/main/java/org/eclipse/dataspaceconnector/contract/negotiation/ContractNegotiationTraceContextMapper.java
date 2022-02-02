@@ -19,7 +19,7 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 import io.opentelemetry.context.propagation.TextMapSetter;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
-public class ContractNegotiationTraceContextMapper implements TextMapGetter<ContractNegotiation>, TextMapSetter<ContractNegotiation> {
+public class ContractNegotiationTraceContextMapper implements TextMapGetter<ContractNegotiation>, TextMapSetter<ContractNegotiation.Builder> {
     @Override
     public String get(ContractNegotiation carrier, String key) {
         return carrier.getTraceContext().get(key);
@@ -31,7 +31,7 @@ public class ContractNegotiationTraceContextMapper implements TextMapGetter<Cont
     }
 
     @Override
-    public void set(ContractNegotiation carrier, String key, String value) {
-        carrier.getTraceContext().put(key, value);
+    public void set(ContractNegotiation.Builder carrier, String key, String value) {
+        carrier.traceContext(key, value);
     }
 }

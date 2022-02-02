@@ -39,7 +39,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Objects;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -139,18 +138,18 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
         monitor.info("ContractNegotiation requested");
-        var negotiation = ContractNegotiation.Builder.newInstance()
+        var contractNegotiationBuilder = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
                 .counterPartyId(request.getConnectorId())
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
-                .traceContext(new HashMap<>())
-                .type(ContractNegotiation.Type.PROVIDER)
-                .build();
+                .type(ContractNegotiation.Type.PROVIDER);
 
         monitor.debug("Injecting trace context into contract negotiation.");
-        openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
+        // This will update the traceContext of the ContractNegotiation in the builder.
+        openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), contractNegotiationBuilder, traceContextMapper);
+        var negotiation = contractNegotiationBuilder.build();
 
         negotiation.transitionRequested();
 
@@ -485,6 +484,11 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
 
         public Builder validationService(ContractValidationService validationService) {
             manager.validationService = validationService;
+            return this;
+        }
+
+        public Builder openTelemetry(OpenTelemetry openTelemetry) {
+            manager.openTelemetry = openTelemetry;
             return this;
         }
 

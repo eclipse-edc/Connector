@@ -24,11 +24,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.joining;
@@ -105,7 +101,7 @@ public class ContractNegotiation {
     }
 
     public Map<String, String> getTraceContext() {
-        return traceContext;
+        return Collections.unmodifiableMap(traceContext);
     }
 
     /**
@@ -347,10 +343,12 @@ public class ContractNegotiation {
      * @return The copy.
      */
     public ContractNegotiation copy() {
-        return ContractNegotiation.Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
+        var builder = ContractNegotiation.Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
                 .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
                 .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement)
-                .contractOffers(contractOffers).traceContext(traceContext).build();
+                .contractOffers(contractOffers);
+        traceContext.entrySet().forEach(entry -> builder.traceContext(entry.getKey(), entry.getValue()));
+        return builder.build();
     }
 
     /**
@@ -487,8 +485,8 @@ public class ContractNegotiation {
             return this;
         }
 
-        public Builder traceContext(Map<String, String> traceContext) {
-            negotiation.traceContext = traceContext;
+        public Builder traceContext(String key, String value) {
+            negotiation.traceContext.put(key, value);
             return this;
         }
 
