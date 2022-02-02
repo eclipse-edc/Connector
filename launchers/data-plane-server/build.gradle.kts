@@ -20,7 +20,7 @@ plugins {
 }
 
 dependencies {
-    implementation(project(":spi:protocol-spi"))
+    implementation(project(":spi:web-spi"))
     implementation(project(":extensions:data-plane:data-plane-spi"))
     implementation(project(":extensions:data-plane:data-plane-framework"))
     implementation(project(":extensions:data-plane:data-plane-http"))
