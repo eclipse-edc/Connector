@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
+import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -22,6 +23,7 @@ import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Map;
 
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -43,9 +45,9 @@ class AtomikosTransactionExtensionTest {
     void verifyEndToEndTransactions() {
         var extensionContext = mock(ServiceExtensionContext.class);
         when(extensionContext.getConnectorId()).thenReturn(randomUUID().toString());
-        when(extensionContext.getSetting(eq(TransactionManagerConfigurationKeys.LOGGING), isNull())).thenReturn("false");
+        when(extensionContext.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(TransactionManagerConfigurationKeys.LOGGING, "false")));
 
-        when(extensionContext.getSettings(isA(String.class))).thenAnswer(a -> createDataSourceConfig());
+        when(extensionContext.getConfig(isA(String.class))).thenAnswer(a -> createDataSourceConfig());
 
         var dsRegistry = new DataSourceRegistry[1];
         doAnswer(invocation -> {

@@ -14,9 +14,11 @@
 
 package org.eclipse.dataspaceconnector.configuration.fs;
 
+import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +43,7 @@ public class FsConfigurationExtension implements ConfigurationExtension {
     @EdcSetting
     private static final String CONFIG_LOCATION = propOrEnv("edc.fs.config", "dataspaceconnector-configuration.properties");
 
-    private final Map<String, String> propertyCache = new HashMap<>();
+    private Config config;
     private Path configFile;
 
     /**
@@ -73,23 +75,14 @@ public class FsConfigurationExtension implements ConfigurationExtension {
         try (InputStream is = Files.newInputStream(configPath)) {
             var properties = new Properties();
             properties.load(is);
-            for (String name : properties.stringPropertyNames()) {
-                propertyCache.put(name, properties.getProperty(name));
-            }
+            config = ConfigFactory.fromProperties(properties);
         } catch (IOException e) {
             throw new EdcException(e);
         }
     }
 
     @Override
-    public @Nullable String getSetting(String key) {
-        return propertyCache.get(key);
-    }
-
-    @Override
-    public Map<String, String> getSettingsWithPrefix(String prefix) {
-        return propertyCache.entrySet().stream().filter(entry -> entry.getKey().startsWith(prefix))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
+    public Config getConfig() {
+        return config;
     }
 }

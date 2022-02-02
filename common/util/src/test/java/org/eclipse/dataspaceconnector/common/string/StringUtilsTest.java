@@ -74,12 +74,4 @@ class StringUtilsTest {
         assertThat(StringUtils.toString(new Object())).contains("java.lang.Object@");
     }
 
-    @Test
-    void commonPrefix() {
-        assertThat(StringUtils.getCommonPrefix(new ArrayList<>(List.of("abc.def", "abc-def", "abd+cef")))).isEqualTo("ab");
-        assertThat(StringUtils.getCommonPrefix(new ArrayList<>(List.of("abc.def", "", "abd+cef")))).isEqualTo("");
-        assertThat(StringUtils.getCommonPrefix(new ArrayList<>(List.of("AB-de", "abc-def", "abd+cef")))).isEqualTo("");
-        assertThat(StringUtils.getCommonPrefix(new ArrayList<>(List.of("abcd")))).isEqualTo("abcd");
-        assertThat(StringUtils.getCommonPrefix(Collections.emptyList())).isEqualTo("");
-    }
 }
