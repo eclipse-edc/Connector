@@ -209,82 +209,35 @@ In the response we'll get a UUID that we can use to get the contract agreement n
 After calling the endpoint for initiating a contract negotiation, we get a UUID as the response. This UUID is the ID of
 the ongoing contract negotiation between consumer and provider. The negotiation sequence between provider and consumer
 is executed asynchronously in the background by a state machine. Once both provider and consumer either reach
-the `confirmed` or the  `declined`
-state, the negotiation is finished. We can now use the UUID to check the current status of the negotiation using an
-endpoint on the consumer side. As this end point is not part of this sample's API but of the actual control API, we need
-to authenticate ourselves to use this endpoint. For this, we use the `X-Api-Key` header with the same value that's set
-in our consumer's `config.properties`.
+the `confirmed` or the  `declined` state, the negotiation is finished. We can now use the UUID to check the
+current status of the negotiation using an endpoint on the consumer side. As this endpoint is not part of this
+sample's API but of the actual control API, we need to authenticate ourselves to use this endpoint. For this,
+we use the `X-Api-Key` header with the same value that's set in our consumer's `config.properties`.
 
 ```bash
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{UUID}"
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{UUID}/state"
 ```
 
-This will return a full description of the negotiation (see sample output below). When the state reads `1200` (=
-confirmed), this description will also contain a contract agreement. We can now use this agreement to request the file.
-So we copy and store the agreement's ID for the next step.
+This will return the current status of the negotiation and, if the negotiation has been completed successfully,
+the ID of a contract agreement. We can now use this agreement to request the file. So we copy and store the
+agreement ID for the next step.
 
 Sample output:
 
 ```json
 {
-  "id": <NEGOTIATION_UUID>,
-  "correlationId": null,
-  "counterPartyId": "consumer",
-  "counterPartyAddress": "http://localhost:8181/api/ids/multipart",
-  "protocol": "ids-multipart",
-  "type": "CONSUMER",
-  "state": 1200,
-  "stateCount": 1,
-  "stateTimestamp": 1639131245365,
-  "errorDetail": null,
-  "contractAgreement": {
-    "id": <AGREEMENT_ID>,
-    "providerAgentId": "null",
-    "consumerAgentId": "null",
-    "contractSigningDate": 0,
-    "contractStartDate": 0,
-    "contractEndDate": 0,
-    "asset": {
-      "properties": {
-        "asset:prop:id": "urn:artifact:test-document"
-      }
-    },
-    "policy": {
-      "uid": "be03b061-d9dc-4b85-a2a2-697ea6e7ca60",
-      "permissions": [
-        {
-          "edctype": "dataspaceconnector:permission",
-          "uid": null,
-          "target": "test-document",
-          "action": {
-            "type": "USE",
-            "includedIn": null,
-            "constraint": null
-          },
-          "assignee": null,
-          "assigner": null,
-          "constraints": [],
-          "duties": []
-        }
-      ],
-      "prohibitions": [],
-      "obligations": [],
-      "extensibleProperties": {},
-      "inheritsFrom": null,
-      "assigner": null,
-      "assignee": null,
-      "target": null,
-      "@type": {
-        "@policytype": "set"
-      }
-    }
-  },
-  "contractOffers": [
-    ...
-  ],
-  "lastContractOffer": {
-    ...
-  }
+  "status": "CONFIRMED",
+  "contractAgreementId": "<AGREEMENT_ID>"
+}
+```
+
+If you see an output similar to the following, the negotiation has not yet been completed. In this case,
+just wait for a moment and call the endpoint again.
+
+```json
+{
+    "status": "REQUESTED",
+    "contractAgreementId": null
 }
 ```
 
