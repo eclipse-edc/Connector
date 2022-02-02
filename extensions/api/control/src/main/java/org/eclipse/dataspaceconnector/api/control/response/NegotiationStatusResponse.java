@@ -43,6 +43,7 @@ public class NegotiationStatusResponse {
     
     /**
      * Constructs a NegotiationStatusResponse for a given ContractNegotiation.
+     *
      * @param negotiation the ContractNegotiation.
      */
     public NegotiationStatusResponse(ContractNegotiation negotiation) {
