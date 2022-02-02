@@ -487,11 +487,6 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
             return this;
         }
 
-        public Builder openTelemetry(OpenTelemetry openTelemetry) {
-            manager.openTelemetry = openTelemetry;
-            return this;
-        }
-
         public Builder monitor(Monitor monitor) {
             manager.monitor = monitor;
             return this;
