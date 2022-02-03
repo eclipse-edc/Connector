@@ -14,6 +14,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 public class HealthCheckServiceImpl implements HealthCheckService {
     private final List<LivenessProvider> livenessProviders;
@@ -25,8 +26,10 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     private final Map<StartupStatusProvider, HealthCheckResult> cachedStartupStatus;
 
     private final ScheduledExecutorService executor;
+    private final HealthCheckServiceConfiguration configuration;
 
     public HealthCheckServiceImpl(HealthCheckServiceConfiguration configuration) {
+        this.configuration = configuration;
         readinessProviders = new CopyOnWriteArrayList<>();
         livenessProviders = new CopyOnWriteArrayList<>();
         startupStatusProviders = new CopyOnWriteArrayList<>();
@@ -36,7 +39,6 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         cachedStartupStatus = new ConcurrentHashMap<>();
 
         executor = Executors.newScheduledThreadPool(configuration.getThreadPoolSize());
-        start(configuration);
     }
 
     @Override
@@ -69,14 +71,20 @@ public class HealthCheckServiceImpl implements HealthCheckService {
         return new HealthStatus(cachedStartupStatus.values());
     }
 
+    @Override
+    public void refresh() {
+        executor.execute(this::queryReadiness);
+        executor.execute(this::queryLiveness);
+        executor.execute(this::queryStartupStatus);
+    }
+
     public void stop() {
         if (!executor.isShutdown()) {
             executor.shutdownNow();
         }
     }
 
-
-    private void start(HealthCheckServiceConfiguration configuration) {
+    public void start() {
         //todo: maybe providers should provide their desired timeout instead of a global config?
         executor.scheduleAtFixedRate(this::queryReadiness, 0, configuration.getReadinessPeriod().toMillis(), TimeUnit.MILLISECONDS);
         executor.scheduleAtFixedRate(this::queryLiveness, 0, configuration.getLivenessPeriod().toMillis(), TimeUnit.MILLISECONDS);
@@ -84,33 +92,23 @@ public class HealthCheckServiceImpl implements HealthCheckService {
     }
 
     private void queryReadiness() {
-        readinessProviders.parallelStream().forEach(rp -> {
-            try {
-                cachedReadinessResults.put(rp, rp.get());
-            } catch (Exception ex) {
-                cachedReadinessResults.put(rp, HealthCheckResult.failed(ex.getMessage()));
-            }
-        });
+        readinessProviders.parallelStream().forEach(provider -> updateCache(provider, cachedReadinessResults));
     }
 
     private void queryLiveness() {
-        livenessProviders.parallelStream().forEach(rp -> {
-            try {
-                cachedLivenessResults.put(rp, rp.get());
-            } catch (Exception ex) {
-                cachedLivenessResults.put(rp, HealthCheckResult.failed(ex.getMessage()));
-            }
-        });
+        livenessProviders.parallelStream().forEach(provider -> updateCache(provider, cachedLivenessResults));
     }
 
     private void queryStartupStatus() {
-        startupStatusProviders.parallelStream().forEach(rp -> {
-            try {
-                cachedStartupStatus.put(rp, rp.get());
-            } catch (Exception ex) {
-                cachedStartupStatus.put(rp, HealthCheckResult.failed(ex.getMessage()));
-            }
-        });
+        startupStatusProviders.parallelStream().forEach(provider -> updateCache(provider, cachedStartupStatus));
+    }
+
+    private <T extends Supplier<HealthCheckResult>> void updateCache(T provider, Map<T, HealthCheckResult> cache) {
+        try {
+            cache.put(provider, provider.get());
+        } catch (Exception ex) {
+            cache.put(provider, HealthCheckResult.failed(ex.getMessage()));
+        }
     }
 
 }

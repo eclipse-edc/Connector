@@ -4,6 +4,7 @@ import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.LivenessProvider;
 import org.eclipse.dataspaceconnector.spi.system.health.ReadinessProvider;
 import org.eclipse.dataspaceconnector.spi.system.health.StartupStatusProvider;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -19,19 +20,25 @@ import static org.mockito.Mockito.when;
 
 class HealthCheckServiceImplTest {
 
+    private static final Duration PERIOD = Duration.ofMillis(500);
     private static final Duration POLL_INTERVAL = Duration.ofMillis(50);
     private static final Duration AWAIT_TIMEOUT = Duration.ofSeconds(5);
     private HealthCheckServiceImpl service;
 
     @BeforeEach
     void setup() {
-        var duration = Duration.ofMillis(500);
         var config = HealthCheckServiceConfiguration.Builder.newInstance()
-                .livenessPeriod(duration)
-                .readinessPeriod(duration)
-                .startupStatusPeriod(duration)
+                .livenessPeriod(PERIOD)
+                .readinessPeriod(PERIOD)
+                .startupStatusPeriod(PERIOD)
                 .build();
         service = new HealthCheckServiceImpl(config);
+        service.start();
+    }
+
+    @AfterEach
+    void tearDown() {
+        service.stop();
     }
 
     @Test
@@ -136,6 +143,25 @@ class HealthCheckServiceImplTest {
 
         await().pollInterval(POLL_INTERVAL)
                 .atMost(AWAIT_TIMEOUT)
+                .untilAsserted(() -> {
+                    assertThat(service.getStartupStatus().isHealthy()).isTrue();
+
+                    verify(provider, atLeastOnce()).get();
+                    verifyNoMoreInteractions(provider);
+                });
+
+    }
+
+    @Test
+    void cacheCanBeRefreshed() {
+        StartupStatusProvider provider = mock(StartupStatusProvider.class);
+        when(provider.get()).thenReturn(failedResult(), successResult());
+        service.addStartupStatusProvider(provider);
+
+        service.refresh();
+
+        await().pollInterval(POLL_INTERVAL)
+                .atMost(PERIOD.multipliedBy(2))
                 .untilAsserted(() -> {
                     assertThat(service.getStartupStatus().isHealthy()).isTrue();
 
