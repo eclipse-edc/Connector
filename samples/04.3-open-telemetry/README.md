@@ -40,8 +40,8 @@ Okhttp and jetty are part the [libraries and frameworks](https://github.com/open
 
 ## Use application insight instead of Jaeger
 
-If you want to use application insight instead of Jaeger, you can replace the open-telemetry java agent by the [applicationinsights agent](https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#download-the-jar-file). Download it and put it in the root folder.
-You need to specify the APPLICATIONINSIGHTS_CONNECTION_STRING and APPLICATIONINSIGHTS_ROLE_NAME env variables.
+If you want to use application insight instead of Jaeger, you can replace the open-telemetry java agent by the [applicationinsights agent](https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#download-the-jar-file). Download it and put it the root folder of this sample.
+You need to specify the `APPLICATIONINSIGHTS_CONNECTION_STRING` and `APPLICATIONINSIGHTS_ROLE_NAME` env variables.
 For example, the consumer would become:
 
 ```yaml
@@ -53,8 +53,8 @@ For example, the consumer would become:
       edc.api.control.auth.apikey.value: password
       ids.webhook.address: http://consumer:8181
     volumes:
-      - ../../:/app
+      - ../:/samples
     ports:
       - 9191:8181
-    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+    entrypoint: java -javaagent:/samples/04.3-open-telemetry/applicationinsights-agent-3.2.4.jar -jar /samples/04.0-file-transfer/consumer/build/libs/consumer.jar
 ```
