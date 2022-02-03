@@ -1,6 +1,5 @@
-package org.eclipse.dataspaceconnector.spi;
+package org.eclipse.dataspaceconnector.spi.system;
 
-import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.jetbrains.annotations.NotNull;
 
 /**

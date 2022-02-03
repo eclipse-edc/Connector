@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.spi;
 
+import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;

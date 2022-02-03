@@ -13,7 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
-import org.eclipse.dataspaceconnector.spi.Observable;
+import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 @Feature("edc:core:contract:contractnegotiation:observable")
