@@ -27,6 +27,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -63,7 +64,7 @@ public class ContractNegotiation {
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
-    private Map<String, String> traceContext;
+    private Map<String, String> traceContext = new HashMap<>();
     private Type type = Type.CONSUMER;
     private int state = UNSAVED.code();
     private int stateCount;
