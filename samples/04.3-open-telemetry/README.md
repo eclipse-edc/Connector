@@ -1,14 +1,14 @@
 # Visualize tracing of connectors with Open Telemetry and Jaeger
 
-This sample shows how you can generate traces with Open Telemetry and collect and visualize them with Jaeger.
+This sample builds on top of [sample 04.0-file-transfer](../04.0-file-transfer) to show how you can generate traces with Open Telemetry and collect and visualize them with Jaeger.
 
 We will use the Open Telemetry java agent. It dynamically injects bytecode to capture telemetry from several popular [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation).
-In order to visualize and analyze the traces, we need to export them to a backend called an [exporter](https://opentelemetry.io/docs/instrumentation/js/exporters/).
-We will use an exporter called [Jaeger](https://www.jaegertracing.io/).
+
+In order to visualize and analyze the traces, we need to use an [Open Telemetry exporter](https://opentelemetry.io/docs/instrumentation/js/exporters/) to export data into the  [Jaeger](https://www.jaegertracing.io/) tracing backend.
 
 ## Prerequisites
 
-Download the [opentelemetry-javaagent.jar](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases) and place it in the project root folder.
+Download the [opentelemetry-javaagent.jar](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases) and place it in the root folder of this sample.
 
 ## Run the sample
 
@@ -16,7 +16,7 @@ We will use docker-compose to run the consumer, the provider, and a Jaeger backe
 Let's have a look to the [docker-compose.yaml file](docker-compose.yaml). We created a consumer and a provider service.
 Have a look at the entry points of the provider and the consumer. You can see that we provide the open-telemetry java agent.
 Have a look at the environment variables. We provide the [Jaeger exporter env var](https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md#jaeger-exporter) needed by open telemetry.
-Let's run the consumer, the provider, and Jaeger:
+To run the consumer, the provider, and Jaeger execute the following commands in the project root folder.
 
 ```bash
 ./gradlew samples:04.0-file-transfer:consumer:build samples:04.0-file-transfer:provider:build
