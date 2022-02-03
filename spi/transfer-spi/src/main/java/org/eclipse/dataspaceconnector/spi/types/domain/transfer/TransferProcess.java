@@ -24,7 +24,9 @@ import org.jetbrains.annotations.Nullable;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
@@ -136,12 +138,19 @@ public class TransferProcess {
     }
 
     public boolean provisioningComplete() {
-        if (resourceManifest == null || provisionedResourceSet == null || resourceManifest.empty() || provisionedResourceSet.empty()) {
+        if (resourceManifest == null) {
             return false;
         }
 
-        Set<String> definitions = resourceManifest.getDefinitions().stream().map(ResourceDefinition::getId).collect(toSet());
-        Set<String> resources = provisionedResourceSet.getResources().stream().map(ProvisionedResource::getResourceDefinitionId).collect(toSet());
+        Set<String> definitions = resourceManifest.getDefinitions().stream()
+                .map(ResourceDefinition::getId)
+                .collect(toSet());
+
+        Set<String> resources = Optional.ofNullable(provisionedResourceSet).stream()
+                .flatMap(it -> it.getResources().stream())
+                .map(ProvisionedResource::getResourceDefinitionId)
+                .collect(toSet());
+
         return definitions.equals(resources);
     }
 

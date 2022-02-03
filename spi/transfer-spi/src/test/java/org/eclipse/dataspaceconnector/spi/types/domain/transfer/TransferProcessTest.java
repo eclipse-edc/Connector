@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.io.StringWriter;
 import java.util.UUID;
 
+import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
@@ -139,11 +140,36 @@ class TransferProcessTest {
     }
 
     @Test
-    void should_pass_from_deprovisioning_request_to_deprovisioning() {
+    void shouldPassFromDeprovisioningRequestToDeprovisioning() {
         TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(DEPROVISIONING_REQ.code()).build();
 
         process.transitionDeprovisioning();
 
         assertThat(process.getState()).isEqualTo(DEPROVISIONING.code());
+    }
+
+    @Test
+    void shouldConsideredProvisionedWhenThereAreNoDefinitionsAndNoProvisionedResource() {
+        var emptyManifest = ResourceManifest.Builder.newInstance().definitions(emptyList()).build();
+        var emptyResources = ProvisionedResourceSet.Builder.newInstance().resources(emptyList()).build();
+        TransferProcess process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).resourceManifest(emptyManifest).provisionedResourceSet(emptyResources)
+                .build();
+
+        var provisioningComplete = process.provisioningComplete();
+
+        assertThat(provisioningComplete).isTrue();
+    }
+
+    @Test
+    void shouldConsideredProvisionedWhenThereAreNoDefinitionsAndProvisionedResourceSetIsNull() {
+        var emptyManifest = ResourceManifest.Builder.newInstance().definitions(emptyList()).build();
+        TransferProcess process = TransferProcess.Builder.newInstance()
+                .id(UUID.randomUUID().toString()).resourceManifest(emptyManifest).provisionedResourceSet(null)
+                .build();
+
+        var provisioningComplete = process.provisioningComplete();
+
+        assertThat(provisioningComplete).isTrue();
     }
 }
