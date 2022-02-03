@@ -30,6 +30,7 @@ import org.eclipse.jetty.util.ssl.SslContextFactory;
 import org.jetbrains.annotations.NotNull;
 
 import java.security.KeyStore;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -58,27 +59,35 @@ public class JettyService {
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
         // for REST endpoints
-        handlers.put(DEFAULT_ROOT_PATH, new ServletContextHandler(null, DEFAULT_ROOT_PATH, NO_SESSIONS));
+        //        handlers.put(DEFAULT_ROOT_PATH, new ServletContextHandler(null, DEFAULT_ROOT_PATH, NO_SESSIONS));
         // for websocket endpoints
         handlers.put("/", new ServletContextHandler(null, "/", NO_SESSIONS));
     }
 
     public void start() {
         try {
-            var port = configuration.getHttpPort();
             server = new Server();
+            configuration.getPortMappings().forEach((name, mapping) -> {
 
-            if (keyStore != null) {
-                server.addConnector(httpsServerConnector(port));
-                monitor.info("HTTPS listening on " + port);
-            } else {
-                server.addConnector(httpServerConnector(port));
-                monitor.info("HTTP listening on " + port);
-            }
+                ServerConnector connector;
+                if (Arrays.stream(server.getConnectors()).anyMatch(c -> ((ServerConnector) c).getPort() == mapping.getPort())) {
+                    throw new IllegalArgumentException("A binding for port " + mapping.getPort() + " already exists");
+                }
+                if (keyStore != null) {
+                    connector = httpsServerConnector(mapping.getPort());
+                    monitor.info("HTTPS '" + mapping.getName() + "' listening on " + mapping.getPort());
+                } else {
+                    connector = httpServerConnector(mapping.getPort());
+                    monitor.info("HTTP '" + mapping.getName() + "' listening on " + mapping.getPort());
+                }
+                connector.setName(name);
+                server.addConnector(connector);
 
-            server.setErrorHandler(new JettyErrorHandler());
+                ServletContextHandler handler = createHandler(mapping);
+                handlers.put(mapping.getPath(), handler);
+                server.setErrorHandler(new JettyErrorHandler());
+            });
             server.setHandler(new ContextHandlerCollection(handlers.values().toArray(ServletContextHandler[]::new)));
-
             server.start();
         } catch (Exception e) {
             throw new EdcException("Error starting Jetty service", e);
@@ -90,21 +99,23 @@ public class JettyService {
         try {
             if (server != null) {
                 server.stop();
+                server.join(); //wait for all threads to wind down
             }
         } catch (Exception e) {
             throw new EdcException("Error shutting down Jetty service", e);
         }
     }
 
-    public void registerServlet(String contextPath, String path, Servlet servlet) {
+    public void registerServlet(String contextName, Servlet servlet) {
         ServletHolder servletHolder = new ServletHolder(Source.EMBEDDED);
-        servletHolder.setName("EDC-" + path); //must be unique
+        servletHolder.setName("EDC-" + contextName); //must be unique
         servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
 
-        var handler = getOrCreate(contextPath);
+        var actualPath = configuration.getPortMappings().get(contextName).getPath();
 
-        handler.getServletHandler().addServletWithMapping(servletHolder, path);
+        var handler = getOrCreate(actualPath);
+        handler.getServletHandler().addServletWithMapping(servletHolder, "/*");
     }
 
     public ServletContextHandler getHandler(String path) {
@@ -115,6 +126,12 @@ public class JettyService {
         handlers.put(handler.getContextPath(), handler);
     }
 
+    @NotNull
+    private ServletContextHandler createHandler(JettyConfiguration.PortMapping mapping) {
+        var handler = new ServletContextHandler(null, mapping.getPath(), NO_SESSIONS);
+        handler.setVirtualHosts(new String[]{ "@" + mapping.getName() });
+        return handler;
+    }
 
     @NotNull
     private ServerConnector httpsServerConnector(int port) {

@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.toSet;
 import static org.glassfish.jersey.server.ServerProperties.WADL_FEATURE_DISABLE;
 
 public class JerseyRestService implements WebService {
-    private static final String DEFAULT_API_PATH = "/*";
+    private static final String DEFAULT_CONTEXT_ALIAS = "default";
 
     private final JettyService jettyService;
     private final TypeManager typeManager;
@@ -56,16 +56,13 @@ public class JerseyRestService implements WebService {
 
     @Override
     public void registerResource(Object controller) {
-        controllers.computeIfAbsent(DEFAULT_API_PATH, s -> new ArrayList<>())
+        controllers.computeIfAbsent(DEFAULT_CONTEXT_ALIAS, s -> new ArrayList<>())
                 .add(controller);
     }
 
     @Override
-    public void registerResource(String contextPath, Object resource) {
-        if (!contextPath.endsWith("/*")) {
-            contextPath = contextPath + "/*";
-        }
-        controllers.computeIfAbsent(contextPath, s -> new ArrayList<>())
+    public void registerResource(String contextAlias, Object resource) {
+        controllers.computeIfAbsent(contextAlias, s -> new ArrayList<>())
                 .add(resource);
     }
 
@@ -77,7 +74,7 @@ public class JerseyRestService implements WebService {
         }
     }
 
-    private void registerContext(String contextPath, List<Object> controllers) {
+    private void registerContext(String contextAlias, List<Object> controllers) {
         var resourceConfig = new ResourceConfig();
 
         // Disable WADL as it is not used and emits a warning message about JAXB (which is also not used)
@@ -95,9 +92,9 @@ public class JerseyRestService implements WebService {
         resourceConfig.register(MultiPartFeature.class);
 
         var servletContainer = new ServletContainer(resourceConfig);
-        jettyService.registerServlet(JettyService.DEFAULT_ROOT_PATH, contextPath, servletContainer);
+        jettyService.registerServlet(contextAlias, servletContainer);
 
-        monitor.info("Registered Web API context at: " + contextPath);
+        monitor.info("Registered Web API context at: " + contextAlias);
     }
 
     /**

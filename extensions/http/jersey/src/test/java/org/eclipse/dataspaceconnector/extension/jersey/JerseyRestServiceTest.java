@@ -28,11 +28,13 @@ import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -46,25 +48,23 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class JerseyRestServiceTest {
+    private final int httpPort = 8181;
     private JerseyRestService jerseyRestService;
-    private int httpPort;
     private JettyService jettyService;
+    private Monitor monitorMock;
 
     @BeforeEach
     void setup() {
-        var monitorMock = mock(Monitor.class);
-        httpPort = randomPort();
-        JettyConfiguration config = new JettyConfiguration(httpPort, null, null);
-        jettyService = new JettyService(config, monitorMock);
-        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), CorsFilterConfiguration.none(), monitorMock);
+        monitorMock = mock(Monitor.class);
     }
 
     @Test
     @DisplayName("Verifies that a resource is available under the default path")
     void verifyDefaultContextPath() throws IOException {
+        startJetty(new JettyConfiguration.PortMapping());
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
-        jettyService.start();
+
 
         var response = executeRequest("http://localhost:" + httpPort + "/api/test/resource");
 
@@ -75,16 +75,16 @@ public class JerseyRestServiceTest {
     }
 
     @Test
-    @DisplayName("Verifies that a second resource is available under a specific path")
+    @DisplayName("Verifies that a second resource is available under a specific path and port")
     void verifyAnotherContextPath() throws IOException {
-
-        jerseyRestService.registerResource("/path/*", new TestController());
+        startJetty(new JettyConfiguration.PortMapping(),
+                new JettyConfiguration.PortMapping("path", 8998, "/path"));
+        jerseyRestService.registerResource("path", new TestController());
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
-        jettyService.start();
 
 
-        var response = executeRequest("http://localhost:" + httpPort + "/api/path/test/resource");
+        var response = executeRequest("http://localhost:" + 8998 + "/path/test/resource");
 
         assertThat(response.code()).isEqualTo(200);
         var body = response.body();
@@ -104,14 +104,16 @@ public class JerseyRestServiceTest {
     @DisplayName("Verifies that a request filter only fires for the desired path/context")
     void verifyFilterForOneContextPath() throws IOException {
         var filterMock = mock(ContainerRequestFilter.class);
+        startJetty(new JettyConfiguration.PortMapping(),
+                new JettyConfiguration.PortMapping("path", 8998, "/path"));
+
         jerseyRestService.registerResource(new TestController());
-        jerseyRestService.registerResource("/path/*", new TestController());
-        jerseyRestService.registerResource("/path/*", filterMock);
+        jerseyRestService.registerResource("path", new TestController());
+        jerseyRestService.registerResource("path", filterMock);
         jerseyRestService.start();
-        jettyService.start();
 
         //verify that the first request hits the filter
-        var response = executeRequest("http://localhost:" + httpPort + "/api/path/test/resource");
+        var response = executeRequest("http://localhost:" + 8998 + "/path/test/resource");
 
         assertThat(response.code()).isEqualTo(200);
         verify(filterMock).filter(any(ContainerRequestContext.class));
@@ -129,18 +131,20 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that different filters fire for different paths")
     void verifySeparateFilters() {
+        startJetty(new JettyConfiguration.PortMapping(),
+                new JettyConfiguration.PortMapping("foo", 1234, "/foo"),
+                new JettyConfiguration.PortMapping("bar", 8998, "/bar"));
         // mocking the ContextRequestFilter doesn't work here, Mockito apparently re-uses mocks for the same target class
         var barFilter = mock(BarRequestFilter.class);
         var fooRequestFilter = mock(FooRequestFilter.class);
-        jerseyRestService.registerResource("/foo/*", new TestController());
-        jerseyRestService.registerResource("/foo/*", fooRequestFilter);
-        jerseyRestService.registerResource("/bar/*", new TestController());
-        jerseyRestService.registerResource("/bar/*", barFilter);
+        jerseyRestService.registerResource("foo", new TestController());
+        jerseyRestService.registerResource("foo", fooRequestFilter);
+        jerseyRestService.registerResource("bar", new TestController());
+        jerseyRestService.registerResource("bar", barFilter);
         jerseyRestService.start();
-        jettyService.start();
 
         //verify that the first request hits only the bar filter
-        var response = executeRequest("http://localhost:" + httpPort + "/api/bar/test/resource");
+        var response = executeRequest("http://localhost:" + 8998 + "/bar/test/resource");
 
         assertThat(response.code()).isEqualTo(200);
         verify(fooRequestFilter, never()).filter(any(ContainerRequestContext.class));
@@ -150,11 +154,24 @@ public class JerseyRestServiceTest {
         reset(barFilter, fooRequestFilter);
 
         //  verify that the second request only hits the foo filter
-        var response2 = executeRequest("http://localhost:" + httpPort + "/api/foo/test/resource");
+        var response2 = executeRequest("http://localhost:" + 1234 + "/foo/test/resource");
         assertThat(response2.code()).isEqualTo(200);
         verify(barFilter, never()).filter(any());
         verify(fooRequestFilter).filter(any());
         verifyNoMoreInteractions(fooRequestFilter);
+    }
+
+    @AfterEach
+    void teardown() {
+        jettyService.shutdown();
+    }
+
+    private void startJetty(JettyConfiguration.PortMapping... mapping) {
+        JettyConfiguration config = new JettyConfiguration(null, null);
+        Arrays.stream(mapping).forEach(config::portMapping);
+        jettyService = new JettyService(config, monitorMock);
+        jerseyRestService = new JerseyRestService(jettyService, new TypeManager(), CorsFilterConfiguration.none(), monitorMock);
+        jettyService.start();
     }
 
     @NotNull
