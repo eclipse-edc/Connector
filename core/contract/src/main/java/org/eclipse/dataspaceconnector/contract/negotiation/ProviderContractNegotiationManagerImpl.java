@@ -54,6 +54,7 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation.Type.PROVIDER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
@@ -86,8 +87,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
     //TODO validate previous offers against hash?
 
-    public void start(ContractNegotiationStore negotiationStore) {
-        this.negotiationStore = negotiationStore;
+    public void start(ContractNegotiationStore store) {
+        negotiationStore = store;
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -164,8 +165,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .counterPartyId(request.getConnectorId())
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
-                .type(ContractNegotiation.Type.PROVIDER)
                 .traceContext(telemetry.getCurrentTraceContext())
+                .type(PROVIDER)
                 .build();
 
         negotiation.transitionRequested();
@@ -342,23 +343,34 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
         //TODO protocol-independent response type?
         dispatcherRegistry.send(Object.class, contractOfferRequest, () -> null)
-                .whenComplete((response, throwable) -> {
-                    if (throwable == null) {
-                        negotiation.transitionOffered();
-                        negotiationStore.save(negotiation);
-                        observable.invokeForEach(l -> l.providerOffered(negotiation));
-                        monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-                    } else {
-                        negotiation.transitionOffering();
-                        negotiationStore.save(negotiation);
-                        observable.invokeForEach(l -> l.providerOffering(negotiation));
-                        String message = format("[Provider] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
-                                currentOffer.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
-                        monitor.debug(message, throwable);
-                    }
-                });
+                .whenComplete(onCounterOfferSent(negotiation.getId(), currentOffer.getId()));
         return false;
+    }
+
+    @NotNull
+    private BiConsumer<Object, Throwable> onCounterOfferSent(String negotiationId, String offerId) {
+        return (response, throwable) -> {
+            var negotiation = negotiationStore.find(negotiationId);
+            if (negotiation == null) {
+                monitor.severe(String.format("[Provider] ContractNegotiation %s not found.", negotiationId));
+                return;
+            }
+
+            if (throwable == null) {
+                negotiation.transitionOffered();
+                negotiationStore.save(negotiation);
+                observable.invokeForEach(l -> l.providerOffered(negotiation));
+                monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            } else {
+                negotiation.transitionOffering();
+                negotiationStore.save(negotiation);
+                observable.invokeForEach(l -> l.providerOffering(negotiation));
+                String message = format("[Provider] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
+                        offerId, negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
+                monitor.debug(message, throwable);
+            }
+        };
     }
 
     /**
@@ -380,23 +392,35 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
         //TODO protocol-independent response type?
         dispatcherRegistry.send(Object.class, rejection, () -> null)
-                .whenComplete((response, throwable) -> {
-                    if (throwable == null) {
-                        negotiation.transitionDeclined();
-                        negotiationStore.save(negotiation);
-                        observable.invokeForEach(l -> l.declined(negotiation));
-                        monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
-                                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-                    } else {
-                        negotiation.transitionDeclining();
-                        negotiationStore.save(negotiation);
-                        observable.invokeForEach(l -> l.declining(negotiation));
-                        String message = format("[Provider] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
-                                negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
-                        monitor.debug(message, throwable);
-                    }
-                });
+                .whenComplete(onRejectionSent(negotiation.getId()));
+
         return false;
+    }
+
+    @NotNull
+    private BiConsumer<Object, Throwable> onRejectionSent(String negotiationId) {
+        return (response, throwable) -> {
+            var negotiation = negotiationStore.find(negotiationId);
+            if (negotiation == null) {
+                monitor.severe(String.format("[Provider] ContractNegotiation %s not found.", negotiationId));
+                return;
+            }
+
+            if (throwable == null) {
+                negotiation.transitionDeclined();
+                negotiationStore.save(negotiation);
+                observable.invokeForEach(l -> l.declined(negotiation));
+                monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
+                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            } else {
+                negotiation.transitionDeclining();
+                negotiationStore.save(negotiation);
+                observable.invokeForEach(l -> l.declining(negotiation));
+                String message = format("[Provider] Failed to send contract rejection. ContractNegotiation %s stays in state %s.",
+                        negotiation.getId(), ContractNegotiationStates.from(negotiation.getState()));
+                monitor.debug(message, throwable);
+            }
+        };
     }
 
     /**
@@ -436,7 +460,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             agreement = retrievedAgreement;
         }
 
-        ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
+        var request = ContractAgreementRequest.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
                 .connectorId(negotiation.getCounterPartyId())
                 .connectorAddress(negotiation.getCounterPartyAddress())
@@ -455,7 +479,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     @NotNull
     private BiConsumer<Object, Throwable> onAgreementSent(String id, ContractAgreement agreement) {
         return (response, throwable) -> {
-            ContractNegotiation negotiation = negotiationStore.find(id);
+            var negotiation = negotiationStore.find(id);
             if (negotiation == null) {
                 monitor.severe(String.format("[Provider] ContractNegotiation %s not found.", id));
                 return;

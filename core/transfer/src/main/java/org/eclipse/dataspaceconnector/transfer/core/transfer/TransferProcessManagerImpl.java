@@ -114,8 +114,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private Monitor monitor;
     private Telemetry telemetry;
 
-    private TransferProcessManagerImpl() {
-    }
+    private TransferProcessManagerImpl() { }
 
     public void start(TransferProcessStore processStore) {
         transferProcessStore = processStore;
@@ -237,7 +236,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         observable.invokeForEach(l -> l.deprovisioned(transferProcess));
     }
 
-    private void transitionRequestAck(String processId) {
+    private void transitionToRequestAck(String processId) {
         TransferProcess transferProcess = transferProcessStore.find(processId);
         if (transferProcess == null) {
             monitor.severe("TransferProcessManager: no TransferProcess found for acked request");
@@ -408,25 +407,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                     if (throwable == null) {
                         onDeprovisionComplete(process.getId());
                     } else {
-                        monitor.severe("Error during deprovisioning", throwable);
-                        process.transitionError("Error during deprovisioning: " + throwable.getCause().getLocalizedMessage());
-                        transferProcessStore.update(process);
+                        transitionToError(process.getId(), throwable, "Error during deprovisioning");
                     }
                 });
+
         return true;
     }
 
     @WithSpan
     private boolean processAckRequested(TransferProcess process) {
         if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-
-            if (process.getDataRequest().getTransferType().isFinite()) {
-                process.transitionInProgress();
-            } else {
-                process.transitionStreaming();
-            }
-            transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.inProgress(process));
+            transitionToInProgress(process);
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             return true;
         } else {
@@ -486,19 +477,26 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         transferProcessStore.update(process);
         observable.invokeForEach(l -> l.provisioning(process));
 
-        provisionManager.provision(process).whenComplete((responses, throwable) -> {
-            if (throwable == null) {
-                onProvisionComplete(process.getId(), responses);
-            } else {
-                monitor.severe("Error during provisioning", throwable);
-                process.transitionError("Error during provisioning: " + throwable.getCause().getLocalizedMessage());
-                transferProcessStore.update(process);
-            }
-        });
+        provisionManager.provision(process)
+                .whenComplete((responses, throwable) -> {
+                    if (throwable == null) {
+                        onProvisionComplete(process.getId(), responses);
+                    } else {
+                        transitionToError(process.getId(), throwable.getCause(), "Error during provisioning");
+                    }
+                });
 
         return true;
     }
 
+    private void transitionToError(String id, Throwable throwable, String message) {
+        var transferProcess = transferProcessStore.find(id);
+        monitor.severe(message, throwable);
+        transferProcess.transitionError(format("%s: %s", message, throwable.getLocalizedMessage()));
+        transferProcessStore.update(transferProcess);
+    }
+
+    @NotNull
     private boolean processProvisioned(TransferProcess process) {
         DataRequest dataRequest = process.getDataRequest();
         if (CONSUMER == process.getType()) {
@@ -513,13 +511,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
         var response = dataFlowManager.initiate(dataRequest);
         if (response.succeeded()) {
-            if (process.getDataRequest().getTransferType().isFinite()) {
-                process.transitionInProgress();
-            } else {
-                process.transitionStreaming();
-            }
-            transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.inProgress(process));
+            transitionToInProgress(process);
         } else {
             if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
                 monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
@@ -533,6 +525,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 observable.invokeForEach(l -> l.error(process));
             }
         }
+
     }
 
     @WithSpan
@@ -542,21 +535,27 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         observable.invokeForEach(l -> l.requested(process));
         dispatcherRegistry.send(Object.class, dataRequest, process::getId)
                 .thenApply(o -> {
-                    transitionRequestAck(process.getId());
-                    transferProcessStore.update(process);
+                    // TODO: what's the point of this state transition?
+                    transitionToRequestAck(process.getId());
                     return o;
                 })
                 .whenComplete((o, throwable) -> {
                     if (o != null) {
                         monitor.info("Object received: " + o);
-                        if (dataRequest.getTransferType().isFinite()) {
-                            process.transitionInProgress();
-                        } else {
-                            process.transitionStreaming();
-                        }
-                        transferProcessStore.update(process);
+                        transitionToInProgress(transferProcessStore.find(process.getId()));
                     }
                 });
+    }
+
+    private void transitionToInProgress(TransferProcess process) {
+        var dataRequest = process.getDataRequest();
+        if (dataRequest.getTransferType().isFinite()) {
+            process.transitionInProgress();
+        } else {
+            process.transitionStreaming();
+        }
+        transferProcessStore.update(process);
+        observable.invokeForEach(l -> l.inProgress(process));
     }
 
     public static class Builder {

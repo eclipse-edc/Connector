@@ -57,7 +57,6 @@ public class ContractServiceExtension implements ServiceExtension {
 
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
     private Monitor monitor;
-    private ServiceExtensionContext context;
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
     @Inject
@@ -68,6 +67,8 @@ public class ContractServiceExtension implements ServiceExtension {
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     @Inject
     private CommandHandlerRegistry commandHandlerRegistry;
+    @Inject
+    private ContractNegotiationStore store;
 
     @Override
     public String name() {
@@ -77,7 +78,6 @@ public class ContractServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
-        this.context = context;
 
         registerTypes(context);
         registerServices(context);
@@ -85,10 +85,8 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        // Start negotiation managers.
-        var negotiationStore = context.getService(ContractNegotiationStore.class);
-        consumerNegotiationManager.start(negotiationStore);
-        providerNegotiationManager.start(negotiationStore);
+        consumerNegotiationManager.start(store);
+        providerNegotiationManager.start(store);
     }
 
     @Override
