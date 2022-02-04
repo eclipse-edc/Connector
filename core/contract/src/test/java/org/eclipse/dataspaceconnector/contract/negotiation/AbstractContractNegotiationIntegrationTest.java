@@ -27,10 +27,10 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -75,12 +75,16 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         // Create a monitor that logs to the console
         Monitor monitor = new FakeConsoleMonitor();
 
+        // Create telemetry mock
+        Telemetry telemetry = mock(Telemetry.class);
+
         // Create the provider contract negotiation manager
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(new FakeProviderDispatcherRegistry())
                 .monitor(monitor)
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
+                .telemetry(telemetry)
                 .build();
         providerStore = new InMemoryContractNegotiationStore();
 
@@ -90,6 +94,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .monitor(monitor)
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
+                .telemetry(telemetry)
                 .build();
         consumerStore = new InMemoryContractNegotiationStore();
         

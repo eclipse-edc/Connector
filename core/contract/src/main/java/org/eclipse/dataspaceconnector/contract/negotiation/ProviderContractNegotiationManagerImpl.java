@@ -14,9 +14,6 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
@@ -51,9 +48,7 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.*;
 
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
@@ -69,9 +64,8 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private Monitor monitor;
-    private ExecutorService executor;
-
     private Telemetry telemetry;
+    private ExecutorService executor;
 
     private ProviderContractNegotiationManagerImpl() { }
 

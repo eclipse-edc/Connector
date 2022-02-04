@@ -14,8 +14,6 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
@@ -51,11 +49,7 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_APPROVING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONSUMER_OFFERING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.*;
 
 /**
  * Implementation of the {@link ConsumerContractNegotiationManager}.
@@ -74,11 +68,10 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
     private int batchSize = 5;
     private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private Monitor monitor;
+    private Telemetry telemetry;
     private ExecutorService executor;
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-
-    private Telemetry telemetry;
 
     public ConsumerContractNegotiationManagerImpl() {
     }
