@@ -13,7 +13,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi;
+package org.eclipse.dataspaceconnector.spi.observe;
 
 
 import java.util.Collection;
@@ -42,7 +42,7 @@ public abstract class Observable<T> {
     public void unregisterListener(T listener) {
         listeners.remove(listener);
     }
-    
+
     /**
      * Invokes a given action on all registered listeners.
      *

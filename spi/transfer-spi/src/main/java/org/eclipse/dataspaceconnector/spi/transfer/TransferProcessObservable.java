@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer;
 
-import org.eclipse.dataspaceconnector.spi.Observable;
+import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 @Feature("edc:core:transfer:transferprocess-observable")

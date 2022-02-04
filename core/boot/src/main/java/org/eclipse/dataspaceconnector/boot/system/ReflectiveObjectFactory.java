@@ -1,10 +1,10 @@
-package org.eclipse.dataspaceconnector.boot;
+package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.ObjectFactory;
 import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.InjectionPointScanner;
 import org.eclipse.dataspaceconnector.spi.system.Injector;
+import org.eclipse.dataspaceconnector.spi.system.ObjectFactory;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 

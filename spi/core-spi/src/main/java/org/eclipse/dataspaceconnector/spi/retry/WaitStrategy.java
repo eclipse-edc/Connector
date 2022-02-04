@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.spi;
+package org.eclipse.dataspaceconnector.spi.retry;
 
 public interface WaitStrategy {
 
