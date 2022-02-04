@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -33,6 +34,7 @@ include(":data-protocols:ids:ids-api-multipart-dispatcher-v1")
 include(":data-protocols:ids:ids-core")
 include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
+include(":data-protocols:ids:ids-token-validation")
 
 include(":extensions:ion:ion-core")
 include(":extensions:ion:ion-client")

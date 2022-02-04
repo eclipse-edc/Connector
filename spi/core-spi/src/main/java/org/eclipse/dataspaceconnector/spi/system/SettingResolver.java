@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -66,4 +67,14 @@ public interface SettingResolver {
         return getConfig().getLong(setting, defaultValue);
     }
 
+    /**
+     * Returns the configuration value parsed as boolean or the default value if not found
+     *
+     * @param setting the setting key
+     * @param defaultValue value returned if no key found
+     * @return the config value as boolean
+     */
+    default boolean getSetting(String setting, boolean defaultValue) {
+        return getConfig().getBoolean(setting, defaultValue);
+    }
 }

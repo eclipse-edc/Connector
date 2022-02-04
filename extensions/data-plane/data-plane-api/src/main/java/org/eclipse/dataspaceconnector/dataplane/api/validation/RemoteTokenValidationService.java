@@ -18,9 +18,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.iam.TokenValidationService;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 
@@ -42,7 +42,8 @@ public class RemoteTokenValidationService implements TokenValidationService {
     }
 
     @Override
-    public Result<ClaimToken> validate(@NotNull String token) {
+    public Result<ClaimToken> validate(TokenRepresentation tokenRepresentation) {
+        var token = tokenRepresentation.getToken();
         var request = new Request.Builder().url(remoteValidationEndpoint).header(AUTHORIZATION_HEADER, token).get().build();
         try (var response = httpClient.newCall(request).execute()) {
             if (response.isSuccessful()) {

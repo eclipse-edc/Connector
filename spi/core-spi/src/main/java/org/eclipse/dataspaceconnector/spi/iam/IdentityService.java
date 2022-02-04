@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -34,9 +35,22 @@ public interface IdentityService {
     /**
      * Verifies a JWT bearer token.
      *
-     *  @param token    the token to verify
-     *
+     * @param tokenRepresentation A token representation including the token to verify.
+     * @return Result of the validation.
      */
-    Result<ClaimToken> verifyJwtToken(String token);
+    Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation);
 
+    /**
+     * Verifies a JWT bearer token.
+     *
+     * @param token The token to verify.
+     * @return Result of the validation.
+     */
+    default Result<ClaimToken> verifyJwtToken(String token) {
+        var tokenRepresentation = TokenRepresentation.Builder.newInstance()
+                .token(token)
+                .build();
+
+        return verifyJwtToken(tokenRepresentation);
+    }
 }

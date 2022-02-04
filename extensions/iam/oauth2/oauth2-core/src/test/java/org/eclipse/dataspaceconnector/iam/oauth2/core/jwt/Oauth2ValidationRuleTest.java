@@ -1,7 +1,25 @@
+/*
+ *  Copyright (c) 2020 - 2022
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Fraunhofer Institute for Software and Systems Engineering
+ *
+ */
+
 package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
+import com.nimbusds.jose.JWSAlgorithm;
+import com.nimbusds.jose.JWSHeader;
 import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
+import org.eclipse.dataspaceconnector.iam.oauth2.core.rule.Oauth2ValidationRule;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -16,11 +34,13 @@ class Oauth2ValidationRuleTest {
     public static final String TEST_AUDIENCE = "test-audience";
     private final Instant now = Instant.now().truncatedTo(ChronoUnit.SECONDS);
     private Oauth2ValidationRule rule;
+    private JWSHeader jwsHeader;
 
     @BeforeEach
     public void setUp() {
-        var configuration = Oauth2Configuration.Builder.newInstance().build();
-        rule = new Oauth2ValidationRule(TEST_AUDIENCE, configuration);
+        var configuration = Oauth2Configuration.Builder.newInstance().providerAudience("test-audience").build();
+        rule = new Oauth2ValidationRule(configuration);
+        jwsHeader = new JWSHeader.Builder(JWSAlgorithm.RS256).build();
     }
 
     @Test
@@ -31,11 +51,12 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims);
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
-                .contains("Token is not valid yet");
+                .contains("Current date/time with leeway before the not before (nbf) claim in token");
     }
 
     @Test
@@ -45,11 +66,12 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims);
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
-                .contains("Missing notBefore time in token claims");
+                .contains("Required not before (nbf) claim is missing in token");
     }
 
     @Test
@@ -60,11 +82,12 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.minusSeconds(10)))
                 .build();
 
-        var result = rule.checkRule(claims);
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
-                .contains("Token has expired");
+                .contains("Token has expired (exp)");
     }
 
     @Test
@@ -74,11 +97,12 @@ class Oauth2ValidationRuleTest {
                 .notBeforeTime(Date.from(now))
                 .build();
 
-        var result = rule.checkRule(claims);
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
-                .contains("Missing expiration time in token claims");
+                .contains("Required expiration time (exp) claim is missing in token");
     }
 
     @Test
@@ -89,11 +113,12 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims);
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
-                .contains("Token audience did not match required audience: test-audience");
+                .contains("Token audience (aud) claim did not contain connector audience: test-audience");
     }
 
     @Test
@@ -103,11 +128,12 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims);
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
-                .contains("Missing audience in token claims");
+                .contains("Required audience (aud) claim is missing in token");
     }
 
     @Test
@@ -118,11 +144,13 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
         var configuration = Oauth2Configuration.Builder.newInstance()
+                .providerAudience(TEST_AUDIENCE)
                 .notBeforeValidationLeeway(20)
                 .build();
-        rule = new Oauth2ValidationRule(TEST_AUDIENCE, configuration);
+        rule = new Oauth2ValidationRule(configuration);
 
-        var result = rule.checkRule(claims);
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
 
         assertThat(result.succeeded()).isTrue();
     }
@@ -135,8 +163,41 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims);
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
 
         assertThat(result.succeeded()).isTrue();
+    }
+
+    @Test
+    void validationKoBecauseIssuedAtAfterExpires() {
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .audience(TEST_AUDIENCE)
+                .notBeforeTime(Date.from(now))
+                .expirationTime(Date.from(now.plusSeconds(60)))
+                .issueTime(Date.from(now.plusSeconds(65)))
+                .build();
+
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1).contains("Issued at (iat) claim is after expiration time (exp) claim in token");
+    }
+
+    @Test
+    void validationKoBecauseIssuedAtInFuture() {
+        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+                .audience(TEST_AUDIENCE)
+                .notBeforeTime(Date.from(now))
+                .expirationTime(Date.from(now.plusSeconds(60)))
+                .issueTime(Date.from(now.plusSeconds(10)))
+                .build();
+
+        var jwt = new SignedJWT(jwsHeader, claims);
+        var result = rule.checkRule(jwt);
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).hasSize(1).contains("Current date/time before issued at (iat) claim in token");
     }
 }

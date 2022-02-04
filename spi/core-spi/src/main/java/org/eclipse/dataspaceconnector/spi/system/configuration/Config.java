@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 package org.eclipse.dataspaceconnector.spi.system.configuration;
@@ -77,6 +78,24 @@ public interface Config {
      * @throws org.eclipse.dataspaceconnector.spi.EdcException if the value it's not parsable
      */
     Long getLong(String key, Long defaultValue);
+
+    /**
+     * Returns the Boolean representation of the value
+     *
+     * @param key of the setting
+     * @return a Boolean representation of the setting
+     * @throws org.eclipse.dataspaceconnector.spi.EdcException if no setting is found, or if it's not parsable
+     */
+    Boolean getBoolean(String key);
+
+    /**
+     * Returns the Boolean representation of the value, or the default one if not found
+     *
+     * @param key of the setting
+     * @return a Boolean representation of the setting
+     * @throws org.eclipse.dataspaceconnector.spi.EdcException if the value it's not parsable
+     */
+    Boolean getBoolean(String key, Boolean defaultValue);
 
     /**
      * Returns the Config representation relative to the specified path.

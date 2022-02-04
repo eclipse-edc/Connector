@@ -14,22 +14,24 @@
 
 package org.eclipse.dataspaceconnector.transfer.sync.api.rules;
 
-import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.token.JwtClaimValidationRule;
+import org.eclipse.dataspaceconnector.token.JwtValidationRule;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Map;
 
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.CONTRACT_ID_CLAM;
 
 /**
  * Assert that contract still allows access to the data. As of current implementation it only validates the contract end date.
  */
-public class ContractValidationRule implements JwtClaimValidationRule {
+public class ContractValidationRule implements JwtValidationRule {
 
     private final ContractNegotiationStore contractNegotiationStore;
 
@@ -38,10 +40,10 @@ public class ContractValidationRule implements JwtClaimValidationRule {
     }
 
     @Override
-    public Result<JWTClaimsSet> checkRule(@NotNull JWTClaimsSet toVerify) {
+    public Result<SignedJWT> checkRule(@NotNull SignedJWT toVerify, @Nullable Map<String, Object> additional) {
         String contractId;
         try {
-            contractId = toVerify.getStringClaim(CONTRACT_ID_CLAM);
+            contractId = toVerify.getJWTClaimsSet().getStringClaim(CONTRACT_ID_CLAM);
         } catch (ParseException e) {
             return Result.failure("Failed to parse claims");
         }

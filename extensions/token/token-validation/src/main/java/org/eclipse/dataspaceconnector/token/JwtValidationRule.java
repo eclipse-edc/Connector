@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.token;
 
-import com.nimbusds.jwt.JWTClaimsSet;
+import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.spi.iam.ValidationRule;
 
-public interface JwtClaimValidationRule extends ValidationRule<JWTClaimsSet> {
+public interface JwtValidationRule extends ValidationRule<SignedJWT> {
 }

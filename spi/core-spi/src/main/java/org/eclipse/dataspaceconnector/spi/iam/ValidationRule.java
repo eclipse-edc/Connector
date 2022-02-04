@@ -16,12 +16,19 @@ package org.eclipse.dataspaceconnector.spi.iam;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Interface for token validation rules.
  */
 @FunctionalInterface
 public interface ValidationRule<T> {
-    Result<T> checkRule(@NotNull T toVerify);
+    Result<T> checkRule(@NotNull T toVerify, @Nullable Map<String, Object> additional);
+
+    default Result<T> checkRule(@NotNull T toVerify) {
+        return checkRule(toVerify, new HashMap<>());
+    }
 }

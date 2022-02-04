@@ -119,7 +119,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         }
 
         @Override
-        public Result<ClaimToken> verifyJwtToken(String token) {
+        public Result<ClaimToken> verifyJwtToken(TokenRepresentation tokenRepresentation) {
             return Result.success(ClaimToken.Builder.newInstance().build());
         }
     }
