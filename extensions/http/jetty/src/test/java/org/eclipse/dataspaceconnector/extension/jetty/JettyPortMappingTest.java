@@ -53,21 +53,20 @@ class JettyPortMappingTest {
 
     @Test
     void verifyDefaultPortMapping() {
-        var config = ConfigFactory.fromMap(Map.of()); //default port mapping
+        var config = ConfigFactory.fromMap(Map.of("web.http.port", "7171")); //default port mapping
         jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
-        ResourceConfig rc = createTestResource();
 
         jettyService.start();
 
-        var servletContainer = new ServletContainer(rc);
+        var servletContainer = new ServletContainer(createTestResource());
         jettyService.registerServlet("default", servletContainer);
 
-        var response = executeRequest("http://localhost:8181/api/test/resource");
+        var response = executeRequest("http://localhost:7171/api/test/resource");
         assertThat(response.code()).isEqualTo(200);
     }
 
     @Test
-    @DisplayName("Verifies that a custom port mapping including a port is possible")
+    @DisplayName("Verifies the a custom port mapping")
     void verifyCustomPortMapping() {
         var config = ConfigFactory.fromMap(Map.of(
                 "web.http.another.port", "9191",
@@ -78,12 +77,11 @@ class JettyPortMappingTest {
 
         jettyService.start();
 
-        var servletContainer = new ServletContainer(rc);
-        jettyService.registerServlet("another", servletContainer);
+        jettyService.registerServlet("another", new ServletContainer(rc));
 
         assertThat(executeRequest("http://localhost:9191/another/test/resource").code()).isEqualTo(200);
         //verify that there is no default port mapping anymore
-        assertThatThrownBy(() -> executeRequest("http://localhost:8181/api/test/resource")).hasRootCauseInstanceOf(ConnectException.class);
+        assertThatThrownBy(() -> executeRequest("http://localhost:8872/api/test/resource")).hasRootCauseInstanceOf(ConnectException.class);
     }
 
     @Test
