@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 
-import org.eclipse.dataspaceconnector.spi.WaitStrategy;
+import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 
 /**
  * Implements a wait strategy for the {@link ContractNegotiationManager}.

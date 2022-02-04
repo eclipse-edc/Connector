@@ -1,6 +1,5 @@
-package org.eclipse.dataspaceconnector.boot;
+package org.eclipse.dataspaceconnector.boot.system;
 
-import org.eclipse.dataspaceconnector.boot.system.InjectorImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.InjectionPointScanner;

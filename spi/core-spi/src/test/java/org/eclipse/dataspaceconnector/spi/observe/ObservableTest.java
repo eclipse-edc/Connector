@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.spi;
+package org.eclipse.dataspaceconnector.spi.observe;
 
 import org.junit.jupiter.api.Test;
 
