@@ -1,13 +1,13 @@
 package org.eclipse.dataspaceconnector.spi.observe;
 
+import org.eclipse.dataspaceconnector.spi.ObservableImpl;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-class ObservableTest {
+class ObservableImplTest {
 
-    private final Observable<Object> observable = new Observable<>() {
-    };
+    private final Observable<Object> observable = new ObservableImpl<>();
 
     @Test
     void shouldRegisterListener() {

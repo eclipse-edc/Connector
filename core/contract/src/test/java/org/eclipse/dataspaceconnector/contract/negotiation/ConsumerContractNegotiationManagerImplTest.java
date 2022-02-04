@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -62,6 +63,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
+                .observable(mock(ContractNegotiationObservable.class))
                 .build();
 
         //TODO hand over store in start method, but run method should not be executed

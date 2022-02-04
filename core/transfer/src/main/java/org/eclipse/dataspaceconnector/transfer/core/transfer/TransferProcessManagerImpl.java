@@ -23,9 +23,9 @@ import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -85,7 +85,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link TransferWaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
-public class TransferProcessManagerImpl extends TransferProcessObservable implements TransferProcessManager {
+public class TransferProcessManagerImpl implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
@@ -104,6 +104,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private CommandRunner commandRunner;
     private DataProxyManager dataProxyManager;
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
+    private TransferProcessObservable observable;
 
 
     private TransferProcessManagerImpl() {
@@ -246,7 +247,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             process.transitionInitial();
         }
         transferProcessStore.create(process);
-        invokeForEach(l -> l.created(process));
+        observable.invokeForEach(l -> l.created(process));
         return TransferInitiateResult.success(process.getId());
     }
 
@@ -385,10 +386,10 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         var deprovisionedProcesses = transferProcessStore.nextForState(DEPROVISIONED.code(), batchSize);
 
         for (var process : deprovisionedProcesses) {
-            invokeForEach(l -> l.deprovisioned(process));
+            observable.invokeForEach(l -> l.deprovisioned(process));
             process.transitionEnded();
             transferProcessStore.update(process);
-            invokeForEach(l -> l.ended(process));
+            observable.invokeForEach(l -> l.ended(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
         }
         return deprovisionedProcesses.size();
@@ -406,7 +407,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         for (var process : processesDeprovisioning) {
             process.transitionDeprovisioning();
             transferProcessStore.update(process);
-            invokeForEach(l -> l.deprovisioning(process));
+            observable.invokeForEach(l -> l.deprovisioning(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             provisionManager.deprovision(process)
                     .whenComplete((responses, throwable) -> {
@@ -441,7 +442,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                     process.transitionStreaming();
                 }
                 transferProcessStore.update(process);
-                invokeForEach(l -> l.inProgress(process));
+                observable.invokeForEach(l -> l.inProgress(process));
                 monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             } else {
                 monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
@@ -491,7 +492,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         process.transitionCompleted();
         monitor.debug("Process " + process.getId() + " is now " + COMPLETED);
         transferProcessStore.update(process);
-        invokeForEach(listener -> listener.completed(process));
+        observable.invokeForEach(listener -> listener.completed(process));
     }
 
     /**
@@ -513,7 +514,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             }
             process.transitionProvisioning(manifest);
             transferProcessStore.update(process);
-            invokeForEach(l -> l.provisioning(process));
+            observable.invokeForEach(l -> l.provisioning(process));
             if (process.getResourceManifest().getDefinitions().isEmpty()) {
                 // no resources to provision, advance state
                 process.transitionProvisioned();
@@ -561,18 +562,18 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 process.transitionStreaming();
             }
             transferProcessStore.update(process);
-            invokeForEach(l -> l.inProgress(process));
+            observable.invokeForEach(l -> l.inProgress(process));
         } else {
             if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
                 monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
                 process.transitionProvisioned();
                 transferProcessStore.update(process);
-                invokeForEach(l -> l.provisioned(process));
+                observable.invokeForEach(l -> l.provisioned(process));
             } else {
                 monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
                 process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
                 transferProcessStore.update(process);
-                invokeForEach(l -> l.error(process));
+                observable.invokeForEach(l -> l.error(process));
             }
         }
     }
@@ -580,7 +581,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         process.transitionRequested();
         transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
-        invokeForEach(l -> l.requested(process));
+        observable.invokeForEach(l -> l.requested(process));
         dispatcherRegistry.send(Object.class, dataRequest, process::getId)
                 .thenApply(o -> {
                     transitionRequestAck(process.getId());
@@ -681,6 +682,11 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             return this;
         }
 
+        public Builder observable(TransferProcessObservable observable) {
+            manager.observable = observable;
+            return this;
+        }
+
         public TransferProcessManagerImpl build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
@@ -692,6 +698,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             Objects.requireNonNull(manager.statusCheckerRegistry, "StatusCheckerRegistry cannot be null!");
             Objects.requireNonNull(manager.dataProxyManager, "DataProxyManager cannot be null!");
             Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
+            Objects.requireNonNull(manager.observable, "Observable cannot be null");
             return manager;
         }
     }
