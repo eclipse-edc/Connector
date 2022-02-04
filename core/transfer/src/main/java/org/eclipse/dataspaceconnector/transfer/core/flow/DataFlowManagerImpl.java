@@ -45,7 +45,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
                     .filter(controller -> controller.canHandle(dataRequest))
                     .findFirst()
                     .map(controller -> controller.initiateFlow(dataRequest))
-                    .orElseGet(() -> failure(FATAL_ERROR, controllerNotFounda(dataRequest.getId())));
+                    .orElseGet(() -> failure(FATAL_ERROR, controllerNotFound(dataRequest.getId())));
         } catch (Exception e) {
             return failure(FATAL_ERROR, runtimeException(dataRequest.getId(), e.getLocalizedMessage()));
         }
@@ -55,7 +55,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
         return format("Unable to process data request %s. Data flow controller throws an exception: %s", id, message);
     }
 
-    private String controllerNotFounda(String id) {
+    private String controllerNotFound(String id) {
         return format("Unable to process data request %s. No data flow controller found", id);
     }
 
