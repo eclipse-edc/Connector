@@ -59,7 +59,7 @@ class HttpFunctionDataFlowControllerTest {
 
         httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
+        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().type("type").build()).build();
 
         assertThat(flowController.initiateFlow(dataRequest).succeeded()).isTrue();
     }
@@ -74,7 +74,7 @@ class HttpFunctionDataFlowControllerTest {
 
         httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
+        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().type("type").build()).build();
 
         assertEquals(ERROR_RETRY, flowController.initiateFlow(dataRequest).getFailure().status());
     }
@@ -89,7 +89,7 @@ class HttpFunctionDataFlowControllerTest {
 
         httpClient = new OkHttpClient.Builder().addInterceptor(delegate).build();
 
-        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().build()).build();
+        var dataRequest = DataRequest.Builder.newInstance().dataDestination(DataAddress.Builder.newInstance().type("type").build()).build();
 
         assertEquals(FATAL_ERROR, flowController.initiateFlow(dataRequest).getFailure().status());
     }

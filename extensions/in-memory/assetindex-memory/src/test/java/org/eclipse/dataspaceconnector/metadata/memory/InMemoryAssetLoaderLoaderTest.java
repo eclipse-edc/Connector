@@ -33,7 +33,7 @@ public class InMemoryAssetLoaderLoaderTest {
 
     @Test
     void accept_illegalParams() {
-        var dataAddress = DataAddress.Builder.newInstance().build();
+        var dataAddress = DataAddress.Builder.newInstance().type("type").build();
         assertThatThrownBy(() -> assetLoader.accept(null, dataAddress)).isInstanceOf(NullPointerException.class);
         assertThatThrownBy(() -> assetLoader.accept(createAsset("testasset", "testid"), null)).isInstanceOf(NullPointerException.class);
     }
@@ -90,27 +90,13 @@ public class InMemoryAssetLoaderLoaderTest {
     }
 
     private Asset createAsset(String name, String id) {
-        return Asset.Builder.newInstance().id(id).name(name).version("1").build();
+        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType("type").build();
     }
 
     private DataAddress createDataAddress(Asset asset) {
         return DataAddress.Builder.newInstance()
-                .type("test-asset")
+                .type(asset.getContentType())
                 .keyName("test-keyname")
-                .properties(flatten(asset))
                 .build();
-    }
-
-
-    private Map<String, ?> flatten(Object object) {
-
-        try {
-            var om = new ObjectMapper();
-            om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            var json = om.writeValueAsString(object);
-            return om.readValue(json, Map.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 }
