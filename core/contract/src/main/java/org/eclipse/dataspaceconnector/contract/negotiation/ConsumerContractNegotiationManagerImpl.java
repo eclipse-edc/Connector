@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
@@ -29,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -78,7 +78,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
-    private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+    private Telemetry telemetry;
 
     public ConsumerContractNegotiationManagerImpl() {
     }
@@ -106,15 +106,13 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      */
     @Override
     public NegotiationResult initiate(ContractOfferRequest contractOffer) {
-        var negotiationBuilder = ContractNegotiation.Builder.newInstance()
+        var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
-                .counterPartyAddress(contractOffer.getConnectorAddress());
-
-        openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiationBuilder, ContractNegotiationTraceContextMapper.INSTANCE);
-
-        var negotiation = negotiationBuilder.build();
+                .counterPartyAddress(contractOffer.getConnectorAddress())
+                .traceContext(telemetry.getCurrentTraceContext())
+                .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
         negotiation.transitionInitial();
@@ -291,9 +289,8 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
         var negotiations = negotiationStore.nextForState(INITIAL.code(), batchSize);
 
         for (ContractNegotiation negotiation : negotiations) {
-            Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
-                    .extract(Context.current(), negotiation, ContractNegotiationTraceContextMapper.INSTANCE);
-            extractedContext.makeCurrent();
+            // set the telemetry context for the current negotiation object
+            telemetry.setCurrentTraceContext(negotiation);
 
             var offer = negotiation.getLastContractOffer();
             negotiation.transitionRequesting();
@@ -546,11 +543,18 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
             return this;
         }
 
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
+            return this;
+        }
+
         public ConsumerContractNegotiationManagerImpl build() {
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             return manager;
         }
+
+
     }
 }

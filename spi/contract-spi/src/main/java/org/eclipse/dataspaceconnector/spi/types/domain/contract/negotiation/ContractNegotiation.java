@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -58,13 +59,12 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  */
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
-public class ContractNegotiation {
+public class ContractNegotiation implements TraceCarrier {
     private String id;
     private String correlationId;
     private String counterPartyId;
     private String counterPartyAddress;
     private String protocol;
-    private Map<String, String> traceContext = new HashMap<>();
     private Type type = Type.CONSUMER;
     private int state = UNSAVED.code();
     private int stateCount;
@@ -72,6 +72,7 @@ public class ContractNegotiation {
     private String errorDetail;
     private ContractAgreement contractAgreement;
     private List<ContractOffer> contractOffers = new ArrayList<>();
+    private Map<String, String> traceContext = new HashMap<>();
 
     public Type getType() {
         return type;
@@ -106,6 +107,7 @@ public class ContractNegotiation {
         return protocol;
     }
 
+    @Override
     public Map<String, String> getTraceContext() {
         return Collections.unmodifiableMap(traceContext);
     }
@@ -349,12 +351,10 @@ public class ContractNegotiation {
      * @return The copy.
      */
     public ContractNegotiation copy() {
-        var builder = ContractNegotiation.Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
+        return Builder.newInstance().id(id).correlationId(correlationId).counterPartyId(counterPartyId)
                 .counterPartyAddress(counterPartyAddress).protocol(protocol).type(type).state(state).stateCount(stateCount)
                 .stateTimestamp(stateTimestamp).errorDetail(errorDetail).contractAgreement(contractAgreement)
-                .contractOffers(contractOffers);
-        traceContext.entrySet().forEach(entry -> builder.traceContext(entry.getKey(), entry.getValue()));
-        return builder.build();
+                .contractOffers(contractOffers).traceContext(traceContext).build();
     }
 
     /**
@@ -491,8 +491,8 @@ public class ContractNegotiation {
             return this;
         }
 
-        public Builder traceContext(String key, String value) {
-            negotiation.traceContext.put(key, value);
+        public Builder traceContext(Map<String, String> traceContext) {
+            negotiation.traceContext = traceContext;
             return this;
         }
 

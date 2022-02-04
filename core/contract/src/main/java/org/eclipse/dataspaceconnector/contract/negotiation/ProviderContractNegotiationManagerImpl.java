@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -70,7 +71,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
     private Monitor monitor;
     private ExecutorService executor;
 
-    private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+    private Telemetry telemetry;
 
     private ProviderContractNegotiationManagerImpl() { }
 
@@ -136,19 +137,15 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
         monitor.info("ContractNegotiation requested");
-        var contractNegotiationBuilder = ContractNegotiation.Builder.newInstance()
+        var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
                 .counterPartyId(request.getConnectorId())
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
-                .type(ContractNegotiation.Type.PROVIDER);
-
-        monitor.debug("Injecting trace context into contract negotiation.");
-        // This will update the traceContext of the ContractNegotiation in the builder.
-        openTelemetry.getPropagators().getTextMapPropagator()
-                .inject(Context.current(), contractNegotiationBuilder, ContractNegotiationTraceContextMapper.INSTANCE);
-        var negotiation = contractNegotiationBuilder.build();
+                .type(ContractNegotiation.Type.PROVIDER)
+                .traceContext(telemetry.getCurrentTraceContext())
+                .build();
 
         negotiation.transitionRequested();
 
@@ -385,10 +382,9 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
         var confirmingNegotiations = negotiationStore.nextForState(CONFIRMING.code(), batchSize);
 
         for (var negotiation : confirmingNegotiations) {
-            monitor.debug("Extracting trace context from contract negotiation.");
-            Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
-                    .extract(Context.current(), negotiation, ContractNegotiationTraceContextMapper.INSTANCE);
-            extractedContext.makeCurrent();
+            // set the telemetry context for the current negotiation object
+            telemetry.setCurrentTraceContext(negotiation);
+
             negotiate(negotiation);
         }
 
@@ -506,11 +502,17 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
             return this;
         }
 
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
+            return this;
+        }
+
         public ProviderContractNegotiationManagerImpl build() {
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             return manager;
         }
+
     }
 }
