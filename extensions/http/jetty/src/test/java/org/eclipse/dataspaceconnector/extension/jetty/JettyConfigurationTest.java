@@ -30,8 +30,8 @@ class JettyConfigurationTest {
     void createFromConfig_defaultPort() {
 
         var res = JettyConfiguration.createFromConfig(null, null, ConfigFactory.fromMap(Map.of("web.http.port", "1234")));
-        assertThat(res.getPortMappings()).hasSize(1).allSatisfy((s, pm) -> {
-            assertThat(s).isEqualTo("default");
+        assertThat(res.getPortMappings()).hasSize(1).allSatisfy(pm -> {
+            assertThat(pm.getName()).isEqualTo("default");
             assertThat(pm.getPort()).isEqualTo(1234);
         });
     }
@@ -39,7 +39,7 @@ class JettyConfigurationTest {
     @Test
     void createFromConfig_noPortFound() {
         var res = JettyConfiguration.createFromConfig(null, null, ConfigFactory.fromMap(Map.of()));
-        assertThat(res.getPortMappings()).hasSize(1).allSatisfy((s, pm) -> {
+        assertThat(res.getPortMappings()).hasSize(1).allSatisfy(pm -> {
             assertThat(pm.getName()).isEqualTo("default");
             assertThat(pm.getPath()).isEqualTo("/api");
             assertThat(pm.getPort()).isEqualTo(8181);
@@ -55,11 +55,11 @@ class JettyConfigurationTest {
                 "web.http.another.path", "/foo/bar"
         )));
 
-        assertThat(res.getPortMappings()).hasSize(2).anySatisfy((s, pm) -> {
+        assertThat(res.getPortMappings()).hasSize(2).anySatisfy(pm -> {
             assertThat(pm.getName()).isEqualTo("default");
             assertThat(pm.getPort()).isEqualTo(1234);
             assertThat(pm.getPath()).isEqualTo("/api");
-        }).anySatisfy((s, pm) -> {
+        }).anySatisfy(pm -> {
             assertThat(pm.getName()).isEqualTo("another");
             assertThat(pm.getPort()).isEqualTo(8888);
             assertThat(pm.getPath()).isEqualTo("/foo/bar");
@@ -67,13 +67,13 @@ class JettyConfigurationTest {
     }
 
     @Test
-    void createFromConfig_implicitAndExplicitDefault_shouldOverwrite() {
+    void createFromConfig_implicitAndExplicitDefault_shouldThrowException() {
         ThrowableAssert.ThrowingCallable doubleDefaultConfig = () -> JettyConfiguration.createFromConfig(null, null, ConfigFactory.fromMap(Map.of(
                 "web.http.port", "1234",
                 "web.http.default.port", "8888"
         )));
 
-        assertThatThrownBy(doubleDefaultConfig).isInstanceOf(IllegalArgumentException.class).hasMessageStartingWith("A default configuration was already specified");
+        assertThatThrownBy(doubleDefaultConfig).isInstanceOf(IllegalArgumentException.class).hasMessageStartingWith("A port mapping for port '8888' already exists");
     }
 
     @Test
@@ -81,10 +81,39 @@ class JettyConfigurationTest {
         var res = JettyConfiguration.createFromConfig(null, null, ConfigFactory.fromMap(Map.of(
                 "web.http.this.is.longer.port", "8888"
         )));
-        assertThat(res.getPortMappings()).hasSize(1).allSatisfy((s, pm) -> {
-            assertThat(s).isEqualTo("this.is.longer");
-            assertThat(pm.getPort()).isEqualTo(8888);
+        assertThat(res.getPortMappings()).hasSize(1).allSatisfy(pm -> {
+            assertThat(pm).extracting(PortMapping::getName).isEqualTo("this.is.longer");
+            assertThat(pm).extracting(PortMapping::getPort).isEqualTo(8888);
         });
+
+    }
+
+    // The exception should be thrown when starting Jetty -> Servlet already exists
+    @Test
+    void createFromConfig_multipleContextsIdenticalPath_shouldNotThrowException() {
+        var result = JettyConfiguration.createFromConfig(null, null, ConfigFactory.fromMap(Map.of(
+                "web.http.port", "8888",
+                "web.http.path", "/foo",
+                "web.http.another.port", "1234",
+                "web.http.another.name", "test",
+                "web.http.another.path", "/foo"
+        )));
+        assertThat(result.getPortMappings()).hasSize(2).allMatch(pm -> pm.getPath().equals("/foo"));
+
+
+    }
+
+    // The exception should be thrown when starting Jetty -> failed to bind to port
+    @Test
+    void createFromConfig_multipleContextsIdenticalPort_shouldNotThrowException() {
+        var result = JettyConfiguration.createFromConfig(null, null, ConfigFactory.fromMap(Map.of(
+                "web.http.port", "8888",
+                "web.http.path", "/foo",
+                "web.http.another.port", "8888",
+                "web.http.another.name", "test",
+                "web.http.another.path", "/another"
+        )));
+        assertThat(result.getPortMappings()).hasSize(2).allMatch(pm -> pm.getPort() == 8888);
 
     }
 }

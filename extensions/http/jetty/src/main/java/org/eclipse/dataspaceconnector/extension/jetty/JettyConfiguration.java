@@ -17,71 +17,87 @@ package org.eclipse.dataspaceconnector.extension.jetty;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.system.Config;
 
+import java.util.AbstractMap;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class JettyConfiguration {
 
     public static final String WEB_HTTP_PREFIX = "web.http";
+    public static final String DEFAULT_PATH = "/api";
+    public static final String DEFAULT_CONTEXT_NAME = "default";
+    public static final int DEFAULT_PORT = 8181;
     @EdcSetting
     private static final String HTTP_PORT = "web.http.port";
     private final String keystorePassword;
     private final String keymanagerPassword;
-    private final Map<String, PortMapping> portMappings;
+    private final Set<PortMapping> portMappings;
 
     public JettyConfiguration(String keystorePassword, String keymanagerPassword) {
         this.keystorePassword = keystorePassword;
         this.keymanagerPassword = keymanagerPassword;
-        portMappings = new HashMap<>();
+        portMappings = new HashSet<>();
     }
 
     public static JettyConfiguration createFromConfig(String keystorePassword, String keymanagerPassword, Config config) {
         var jettyConfig = new JettyConfiguration(keystorePassword, keymanagerPassword);
 
-        var defaultPort = config.getInteger(HTTP_PORT, null);
-
-        // the default setting was used, no context specific port mappings
-        if (defaultPort != null) {
-            jettyConfig.portMapping("default", defaultPort, "/api");
-        }
-
-        // we have potentially multiple jetty port configs
         var subConfig = config.getConfig(WEB_HTTP_PREFIX);
 
-        subConfig.getEntries().keySet().forEach(key -> {
-            if (HTTP_PORT.equals(key)) { // file the web.http.port under web.http.default.port
-                var defaultPath = config.getString("web.http.path", "/api");
-                var defaultName = "default";
-                jettyConfig.portMapping(defaultName, config.getInteger(key), defaultPath);
-            } else if (key.endsWith(".port")) {
-                var name = key.replace(WEB_HTTP_PREFIX + ".", ""); //chop off leading web.http.
-                name = name.substring(0, name.lastIndexOf(".")); // for example web.http.something.port --> something
-                if (jettyConfig.portMappings.containsKey(name)) {
-                    throw new IllegalArgumentException("A default configuration was already specified. Please use either 'web.http.port' or 'web.http.default.port', not both!");
-                }
-                var path = config.getString(WEB_HTTP_PREFIX + "." + name + ".path", "/api");
-                jettyConfig.portMapping(name, config.getInteger(key), path);
-            }
-        });
+        Map<String, Map<String, String>> tempMappings = new HashMap<>();
+
+        subConfig.getRelativeEntries().entrySet().stream()
+                .map(e -> new AbstractMap.SimpleEntry<>(expandKey(e), e.getValue()))
+                .forEach(e -> split(tempMappings, e));
+
+        var portMappings = tempMappings.entrySet().stream()
+                .map(e -> new PortMapping(e.getKey(), Integer.parseInt(e.getValue().getOrDefault("port", "" + DEFAULT_PORT)), e.getValue().getOrDefault("path", DEFAULT_PATH)))
+                .collect(Collectors.toSet());
+
+        jettyConfig.portMappings.addAll(portMappings);
 
         if (jettyConfig.getPortMappings().isEmpty()) {
             jettyConfig.portMapping(new PortMapping());
         }
+
         return jettyConfig;
     }
 
-    public Map<String, PortMapping> getPortMappings() {
+    /**
+     * converts a map entry, that looks like "something.port" -> 1234, into a map entry, that looks like
+     * "something" -> ("port" -> "1234") and adds it to an existing map
+     */
+    private static void split(Map<String, Map<String, String>> rawMappings, Map.Entry<String, String> entry) {
+
+        var key = entry.getKey();
+        var value = entry.getValue();
+
+        var lastDotIndex = key.lastIndexOf(".");
+        var keyNamePart = key.substring(0, lastDotIndex);
+        var keyComponentPart = key.substring(lastDotIndex + 1);
+
+        var map = rawMappings.computeIfAbsent(keyNamePart, s -> new HashMap<>());
+        if (map.containsKey(keyComponentPart)) {
+            throw new IllegalArgumentException(String.format("A port mapping for %s '%s' already exists.", keyComponentPart, value));
+        }
+        map.put(keyComponentPart, value);
+
+    }
+
+
+    private static String expandKey(Map.Entry<String, ?> entry) {
+        return entry.getKey().contains(".") ? entry.getKey() : "default." + entry.getKey();
+    }
+
+    public Set<PortMapping> getPortMappings() {
         return portMappings;
     }
 
-    public JettyConfiguration portMapping(String name, int port, String path) {
-        portMappings.put(name, new PortMapping(name, port, path));
-        return this;
-    }
-
-    public JettyConfiguration portMapping(PortMapping mapping) {
-        portMappings.put(mapping.getName(), mapping);
-        return this;
+    public void portMapping(PortMapping mapping) {
+        portMappings.add(mapping);
     }
 
     public String getKeystorePassword() {
@@ -92,31 +108,4 @@ public class JettyConfiguration {
         return keymanagerPassword;
     }
 
-    public static class PortMapping {
-        private final String name;
-        private final int port;
-        private final String path;
-
-        public PortMapping() {
-            this("default", 8181, "/api");
-        }
-
-        public PortMapping(String name, int port, String path) {
-            this.name = name;
-            this.port = port;
-            this.path = path;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public int getPort() {
-            return port;
-        }
-
-        public String getPath() {
-            return path;
-        }
-    }
 }

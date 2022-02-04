@@ -25,6 +25,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
+import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
@@ -38,6 +40,7 @@ import java.util.Arrays;
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -61,7 +64,7 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that a resource is available under the default path")
     void verifyDefaultContextPath() throws IOException {
-        startJetty(new JettyConfiguration.PortMapping());
+        startJetty(new PortMapping());
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
 
@@ -77,8 +80,8 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that a second resource is available under a specific path and port")
     void verifyAnotherContextPath() throws IOException {
-        startJetty(new JettyConfiguration.PortMapping(),
-                new JettyConfiguration.PortMapping("path", 8998, "/path"));
+        startJetty(new PortMapping(),
+                new PortMapping("path", 8998, "/path"));
         jerseyRestService.registerResource("path", new TestController());
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
@@ -101,11 +104,22 @@ public class JerseyRestServiceTest {
     }
 
     @Test
+    @DisplayName("Verifies that registering two port mappings under the same path throws an exception")
+    void verifyIdenticalContextPats_throwsException() {
+        startJetty(new PortMapping("path1", 1234, "/path"),
+                new PortMapping("path2", 8998, "/path"));
+
+        jerseyRestService.registerResource("path1", new TestController());
+        jerseyRestService.registerResource("path2", new TestController());
+        assertThatThrownBy(() -> jerseyRestService.start()).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
     @DisplayName("Verifies that a request filter only fires for the desired path/context")
     void verifyFilterForOneContextPath() throws IOException {
         var filterMock = mock(ContainerRequestFilter.class);
-        startJetty(new JettyConfiguration.PortMapping(),
-                new JettyConfiguration.PortMapping("path", 8998, "/path"));
+        startJetty(new PortMapping(),
+                new PortMapping("path", 8998, "/path"));
 
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.registerResource("path", new TestController());
@@ -131,9 +145,9 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that different filters fire for different paths")
     void verifySeparateFilters() {
-        startJetty(new JettyConfiguration.PortMapping(),
-                new JettyConfiguration.PortMapping("foo", 1234, "/foo"),
-                new JettyConfiguration.PortMapping("bar", 8998, "/bar"));
+        startJetty(new PortMapping(),
+                new PortMapping("foo", 1234, "/foo"),
+                new PortMapping("bar", 8998, "/bar"));
         // mocking the ContextRequestFilter doesn't work here, Mockito apparently re-uses mocks for the same target class
         var barFilter = mock(BarRequestFilter.class);
         var fooRequestFilter = mock(FooRequestFilter.class);
@@ -161,12 +175,36 @@ public class JerseyRestServiceTest {
         verifyNoMoreInteractions(fooRequestFilter);
     }
 
+    @Test
+    @DisplayName("Verifies that registering two identical paths raises an exception")
+    void verifyIdenticalPathsRaiseException() {
+        startJetty(new PortMapping(),
+                new PortMapping("another", 1234, "/foo"),
+                new PortMapping("yet-another", 4321, "/foo"));
+
+        jerseyRestService.registerResource("another", new TestController());
+        jerseyRestService.registerResource("yet-another", new TestController());
+        assertThatThrownBy(() -> jerseyRestService.start()).isInstanceOf(EdcException.class)
+                .hasRootCauseInstanceOf(IllegalStateException.class);
+    }
+
+    @Test
+    @DisplayName("Verifies that registering a non-existing context alias raises an exception")
+    void verifyInvalidContextAlias_shouldThrowException() {
+        startJetty(new PortMapping(),
+                new PortMapping("another", 1234, "/foo"));
+
+        jerseyRestService.registerResource("not-exists", new TestController());
+        assertThatThrownBy(() -> jerseyRestService.start()).isInstanceOf(EdcException.class)
+                .hasRootCauseInstanceOf(IllegalArgumentException.class);
+    }
+
     @AfterEach
     void teardown() {
         jettyService.shutdown();
     }
 
-    private void startJetty(JettyConfiguration.PortMapping... mapping) {
+    private void startJetty(PortMapping... mapping) {
         JettyConfiguration config = new JettyConfiguration(null, null);
         Arrays.stream(mapping).forEach(config::portMapping);
         jettyService = new JettyService(config, monitorMock);

@@ -32,5 +32,15 @@ public interface WebService {
 
     void registerResource(Object controller);
 
-    void registerResource(String contextPath, Object resource);
+    /**
+     * Registers a resource (e.g. a controller or a filter) with the webservice, making it only available for
+     * the port mapping that matches the {@code contextAlias} parameter.
+     * <p>
+     * Note that registering a resource for a context alias, for which no port mapping exists, may raise an exception when
+     * starting the WebService.
+     *
+     * @param contextAlias a String identifying the respective port mapping.
+     * @param resource     a resource
+     */
+    void registerResource(String contextAlias, Object resource);
 }

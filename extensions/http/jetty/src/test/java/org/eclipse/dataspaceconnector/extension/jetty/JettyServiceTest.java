@@ -23,6 +23,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
 import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
 import org.glassfish.jersey.server.ResourceConfig;
@@ -40,7 +41,7 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class JettyPortMappingTest {
+class JettyServiceTest {
     private JettyService jettyService;
     private Monitor monitor;
     private TestController testController;
@@ -118,6 +119,21 @@ class JettyPortMappingTest {
         jettyService.registerServlet("another", new ServletContainer(createTestResource()));
 
         assertThat(executeRequest("http://localhost:9191/another/test/resource").code()).isEqualTo(404);
+    }
+
+    @Test
+    void verifyIdenticalPorts_shouldThrowException() {
+        var config = ConfigFactory.fromMap(Map.of(
+                "web.http.first.port", "7171",
+                "web.http.first.path", "/first",
+                "web.http.another.port", "7171",
+                "web.http.another.path", "/another"));
+        jettyService = new JettyService(JettyConfiguration.createFromConfig(null, null, config), monitor);
+
+        assertThatThrownBy(() -> jettyService.start()).isInstanceOf(EdcException.class)
+                .hasMessage("Error starting Jetty service")
+                .hasRootCauseInstanceOf(IllegalArgumentException.class)
+                .hasRootCauseMessage("A binding for port 7171 already exists");
     }
 
     @AfterEach

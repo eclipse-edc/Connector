@@ -66,7 +66,7 @@ public class JerseyRestService implements WebService {
                 .add(resource);
     }
 
-    public void start() {
+    void start() {
         try {
             controllers.forEach(this::registerContext);
         } catch (Exception e) {
@@ -94,7 +94,7 @@ public class JerseyRestService implements WebService {
         var servletContainer = new ServletContainer(resourceConfig);
         jettyService.registerServlet(contextAlias, servletContainer);
 
-        monitor.info("Registered Web API context at: " + contextAlias);
+        monitor.info("Registered Web API context alias: " + contextAlias);
     }
 
     /**

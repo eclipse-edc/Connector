@@ -33,6 +33,8 @@ import java.security.KeyStore;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static org.eclipse.jetty.servlet.ServletContextHandler.NO_SESSIONS;
 
@@ -67,7 +69,7 @@ public class JettyService {
     public void start() {
         try {
             server = new Server();
-            configuration.getPortMappings().forEach((name, mapping) -> {
+            configuration.getPortMappings().forEach(mapping -> {
 
                 ServerConnector connector;
                 if (Arrays.stream(server.getConnectors()).anyMatch(c -> ((ServerConnector) c).getPort() == mapping.getPort())) {
@@ -75,12 +77,12 @@ public class JettyService {
                 }
                 if (keyStore != null) {
                     connector = httpsServerConnector(mapping.getPort());
-                    monitor.info("HTTPS '" + mapping.getName() + "' listening on " + mapping.getPort());
+                    monitor.info("HTTPS context '" + mapping.getName() + "' listening on port " + mapping.getPort());
                 } else {
                     connector = httpServerConnector(mapping.getPort());
-                    monitor.info("HTTP '" + mapping.getName() + "' listening on " + mapping.getPort());
+                    monitor.info("HTTP context '" + mapping.getName() + "' listening on port " + mapping.getPort());
                 }
-                connector.setName(name);
+                connector.setName(mapping.getName());
                 server.addConnector(connector);
 
                 ServletContextHandler handler = createHandler(mapping);
@@ -89,6 +91,7 @@ public class JettyService {
             });
             server.setHandler(new ContextHandlerCollection(handlers.values().toArray(ServletContextHandler[]::new)));
             server.start();
+            monitor.debug("Port mappings: " + configuration.getPortMappings().stream().map(PortMapping::toString).collect(Collectors.joining(", ")));
         } catch (Exception e) {
             throw new EdcException("Error starting Jetty service", e);
         }
@@ -112,7 +115,11 @@ public class JettyService {
         servletHolder.setServlet(servlet);
         servletHolder.setInitOrder(1);
 
-        var actualPath = configuration.getPortMappings().get(contextName).getPath();
+        var actualPath = configuration.getPortMappings().stream()
+                .filter(pm -> Objects.equals(contextName, pm.getName()))
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("No PortMapping for contextName '" + contextName + "' found"))
+                .getPath();
 
         var handler = getOrCreate(actualPath);
         handler.getServletHandler().addServletWithMapping(servletHolder, "/*");
@@ -127,7 +134,7 @@ public class JettyService {
     }
 
     @NotNull
-    private ServletContextHandler createHandler(JettyConfiguration.PortMapping mapping) {
+    private ServletContextHandler createHandler(PortMapping mapping) {
         var handler = new ServletContextHandler(null, mapping.getPath(), NO_SESSIONS);
         handler.setVirtualHosts(new String[]{ "@" + mapping.getName() });
         return handler;
