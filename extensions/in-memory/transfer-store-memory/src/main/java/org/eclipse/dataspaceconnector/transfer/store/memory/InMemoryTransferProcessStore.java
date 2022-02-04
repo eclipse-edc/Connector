@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.store.memory;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
@@ -70,6 +71,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
+    @WithSpan("create transfer process")
     public void create(TransferProcess process) {
         writeLock(() -> {
             delete(process.getId());
@@ -82,6 +84,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
+    @WithSpan("update transfer process")
     public void update(TransferProcess process) {
         writeLock(() -> {
             process.updateStateTimestamp();
@@ -95,6 +98,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
+    @WithSpan("delete transfer process")
     public void delete(String processId) {
         writeLock(() -> {
             TransferProcess process = processesById.remove(processId);

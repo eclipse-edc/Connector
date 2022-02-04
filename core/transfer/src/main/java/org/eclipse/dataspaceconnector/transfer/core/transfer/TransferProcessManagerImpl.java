@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -21,6 +23,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
@@ -88,6 +91,8 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 public class TransferProcessManagerImpl extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
+    // TODO: Inject it
+    private Telemetry telemetry = new Telemetry(GlobalOpenTelemetry.get());
     private int batchSize = 5;
     private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
@@ -234,6 +239,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         transferProcessStore.update(transferProcess);
     }
 
+    @WithSpan("initiate request")
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
@@ -241,7 +247,8 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
             return TransferInitiateResult.success(processId);
         }
         var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
+        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type)
+                .traceContext(telemetry.getCurrentTraceContext()).build();
         if (process.getState() == TransferProcessStates.UNSAVED.code()) {
             process.transitionInitial();
         }
@@ -297,6 +304,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
                 .dataRequest(dataRequest)
                 .state(COMPLETED.code())
                 .type(type)
+                .traceContext(telemetry.getCurrentTraceContext())
                 .build();
     }
 
@@ -385,6 +393,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         var deprovisionedProcesses = transferProcessStore.nextForState(DEPROVISIONED.code(), batchSize);
 
         for (var process : deprovisionedProcesses) {
+            telemetry.setCurrentTraceContext(process);
             invokeForEach(l -> l.deprovisioned(process));
             process.transitionEnded();
             transferProcessStore.update(process);
@@ -432,6 +441,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         var requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
 
         for (var process : requestAcked) {
+            telemetry.setCurrentTraceContext(process);
             // process must either have a non-empty list of provisioned resources, or not have managed resources at all.
             if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
 
@@ -462,6 +472,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         var processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
 
         for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(toList())) {
+            telemetry.setCurrentTraceContext(process);
             if (process.getDataRequest().isManagedResources()) {
                 var resources = process.getProvisionedResourceSet().getResources();
                 var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
@@ -487,6 +498,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return processesInProgress.size();
     }
 
+    @WithSpan("transition TransferProcess to completed")
     private void transitionToCompleted(TransferProcess process) {
         process.transitionCompleted();
         monitor.debug("Process " + process.getId() + " is now " + COMPLETED);
@@ -503,6 +515,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private int provisionInitialProcesses() {
         var processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
         for (TransferProcess process : processes) {
+            telemetry.setCurrentTraceContext(process);
             DataRequest dataRequest = process.getDataRequest();
             ResourceManifest manifest;
             if (process.getType() == CONSUMER) {
@@ -542,6 +555,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private int sendOrProcessProvisionedRequests() {
         var processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
         for (TransferProcess process : processes) {
+            telemetry.setCurrentTraceContext(process);
             DataRequest dataRequest = process.getDataRequest();
             if (CONSUMER == process.getType()) {
                 sendConsumerRequest(process, dataRequest);
@@ -552,6 +566,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return processes.size();
     }
 
+    @WithSpan("process provider request")
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
         var response = dataFlowManager.initiate(dataRequest);
         if (response.succeeded()) {
@@ -577,6 +592,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         }
     }
 
+    @WithSpan("send consumer request")
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         process.transitionRequested();
         transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
