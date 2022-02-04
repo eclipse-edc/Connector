@@ -14,12 +14,13 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.observe;
 
+import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 
 /**
  * Interface implemented by listeners registered to observe transfer process
- * state changes via {@link TransferProcessObservable#registerListener(TransferProcessListener)}.
+ * state changes via {@link Observable#registerListener}.
  * <p>
  * Note that the listener is not guaranteed to be called after a state change, in case
  * the application restarts. That is relevant when using a persistent transfer

@@ -30,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -110,16 +111,16 @@ public class ContractServiceExtension implements ServiceExtension {
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
         context.registerService(ContractDefinitionService.class, definitionService);
 
-        // Register the created contract offer service with the service extension context.
         context.registerService(ContractOfferService.class, contractOfferService);
 
-        // negotiation
         var validationService = new ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
         context.registerService(ContractValidationService.class, validationService);
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
 
-        ContractNegotiationObservableImpl observable = new ContractNegotiationObservableImpl();
+        var observable = new ContractNegotiationObservableImpl();
+        context.registerService(ContractNegotiationObservable.class, observable);
+
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)

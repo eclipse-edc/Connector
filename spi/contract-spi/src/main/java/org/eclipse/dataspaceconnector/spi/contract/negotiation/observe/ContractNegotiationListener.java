@@ -13,13 +13,13 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation.observe;
 
-import org.eclipse.dataspaceconnector.spi.Observable;
+import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 
 /**
  * Interface implemented by listeners registered to observe contract negotiation state changes
- * via {@link Observable#registerListener(ContractNegotiationListener)}.
+ * via {@link Observable#registerListener}.
  * <p>
  * Note that the listener is not guaranteed to be called after a state change, in case
  * the application restarts. That is relevant when using a persistent contract negotiation
