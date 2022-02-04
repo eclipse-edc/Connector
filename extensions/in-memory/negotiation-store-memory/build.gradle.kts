@@ -19,8 +19,7 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-
-
+    api("io.opentelemetry:opentelemetry-extension-annotations:1.10.0")
 }
 publishing {
     publications {

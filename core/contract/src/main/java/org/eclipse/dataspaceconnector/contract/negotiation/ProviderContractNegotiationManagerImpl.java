@@ -59,10 +59,6 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  */
 public class ProviderContractNegotiationManagerImpl extends ContractNegotiationObservable implements ProviderContractNegotiationManager {
 
-    // TODO: Follow https://opentelemetry.io/docs/instrumentation/java/manual_instrumentation/
-    private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
-    private static ContractNegotiationTraceContextMapper traceContextMapper = new ContractNegotiationTraceContextMapper();
-
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
@@ -73,6 +69,8 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private Monitor monitor;
     private ExecutorService executor;
+
+    private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
 
     private ProviderContractNegotiationManagerImpl() { }
 
@@ -148,7 +146,8 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
 
         monitor.debug("Injecting trace context into contract negotiation.");
         // This will update the traceContext of the ContractNegotiation in the builder.
-        openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), contractNegotiationBuilder, traceContextMapper);
+        openTelemetry.getPropagators().getTextMapPropagator()
+                .inject(Context.current(), contractNegotiationBuilder, ContractNegotiationTraceContextMapper.INSTANCE);
         var negotiation = contractNegotiationBuilder.build();
 
         negotiation.transitionRequested();
@@ -388,7 +387,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
         for (var negotiation : confirmingNegotiations) {
             monitor.debug("Extracting trace context from contract negotiation.");
             Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
-                    .extract(Context.current(), negotiation, traceContextMapper);
+                    .extract(Context.current(), negotiation, ContractNegotiationTraceContextMapper.INSTANCE);
             extractedContext.makeCurrent();
             negotiate(negotiation);
         }

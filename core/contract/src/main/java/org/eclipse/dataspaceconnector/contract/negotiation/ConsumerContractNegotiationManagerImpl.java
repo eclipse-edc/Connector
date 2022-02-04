@@ -14,6 +14,9 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.context.Context;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
@@ -75,6 +78,8 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
+    private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+
     public ConsumerContractNegotiationManagerImpl() {
     }
 
@@ -101,12 +106,15 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      */
     @Override
     public NegotiationResult initiate(ContractOfferRequest contractOffer) {
-        var negotiation = ContractNegotiation.Builder.newInstance()
+        var negotiationBuilder = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
-                .counterPartyAddress(contractOffer.getConnectorAddress())
-                .build();
+                .counterPartyAddress(contractOffer.getConnectorAddress());
+
+        openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiationBuilder, ContractNegotiationTraceContextMapper.INSTANCE);
+
+        var negotiation = negotiationBuilder.build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
         negotiation.transitionInitial();
@@ -283,6 +291,10 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
         var negotiations = negotiationStore.nextForState(INITIAL.code(), batchSize);
 
         for (ContractNegotiation negotiation : negotiations) {
+            Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+                    .extract(Context.current(), negotiation, ContractNegotiationTraceContextMapper.INSTANCE);
+            extractedContext.makeCurrent();
+
             var offer = negotiation.getLastContractOffer();
             negotiation.transitionRequesting();
             negotiationStore.save(negotiation);

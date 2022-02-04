@@ -20,6 +20,12 @@ import io.opentelemetry.context.propagation.TextMapSetter;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
 public class ContractNegotiationTraceContextMapper implements TextMapGetter<ContractNegotiation>, TextMapSetter<ContractNegotiation.Builder> {
+
+    public static ContractNegotiationTraceContextMapper INSTANCE = new ContractNegotiationTraceContextMapper();
+
+    private ContractNegotiationTraceContextMapper() {
+    }
+
     @Override
     public String get(ContractNegotiation carrier, String key) {
         return carrier.getTraceContext().get(key);
