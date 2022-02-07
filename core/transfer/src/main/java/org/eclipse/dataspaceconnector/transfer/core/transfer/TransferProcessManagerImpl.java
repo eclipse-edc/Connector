@@ -237,7 +237,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         transferProcessStore.update(transferProcess);
     }
 
-    @WithSpan("initiate_request_transfer_process")
+    @WithSpan("initiate_transfer_process_request")
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
