@@ -88,8 +88,9 @@ public class JettyConfiguration {
     }
 
 
+    //prepends the default context name ("default") to a key if necessary
     private static String expandKey(Map.Entry<String, ?> entry) {
-        return entry.getKey().contains(".") ? entry.getKey() : "default." + entry.getKey();
+        return entry.getKey().contains(".") ? entry.getKey() : DEFAULT_CONTEXT_NAME + "." + entry.getKey();
     }
 
     public Set<PortMapping> getPortMappings() {

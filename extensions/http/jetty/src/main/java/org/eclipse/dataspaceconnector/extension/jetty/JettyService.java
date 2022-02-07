@@ -60,8 +60,6 @@ public class JettyService {
         this.keyStore = keyStore;
         this.monitor = monitor;
         System.setProperty(LOG_ANNOUNCE, "false");
-        // for REST endpoints
-        //        handlers.put(DEFAULT_ROOT_PATH, new ServletContextHandler(null, DEFAULT_ROOT_PATH, NO_SESSIONS));
         // for websocket endpoints
         handlers.put("/", new ServletContextHandler(null, "/", NO_SESSIONS));
     }
@@ -69,6 +67,7 @@ public class JettyService {
     public void start() {
         try {
             server = new Server();
+            //create a connector for every port mapping
             configuration.getPortMappings().forEach(mapping -> {
 
                 ServerConnector connector;

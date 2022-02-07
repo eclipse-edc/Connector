@@ -14,6 +14,12 @@
 
 package org.eclipse.dataspaceconnector.extension.jetty;
 
+/**
+ * POJO that contains portmappings for Jetty, consisting of a context alias, a port and a path.
+ *
+ * @see JettyConfiguration
+ * @see JettyService
+ */
 public class PortMapping {
     private final String alias;
     private final int port;
