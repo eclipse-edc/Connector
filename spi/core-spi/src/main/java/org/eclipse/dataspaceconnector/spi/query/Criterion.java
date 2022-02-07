@@ -1,4 +1,18 @@
-package org.eclipse.dataspaceconnector.spi.asset;
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
+package org.eclipse.dataspaceconnector.spi.query;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -10,15 +24,13 @@ import static java.lang.String.format;
  * This class can be used to form select expressions e.g. in SQL statements. It is a way to express
  * those statements in a generic way.
  * For example:
- * <p>
- * {@code
+ * <pre>
  * "operandLeft" = "name",
  * "operator" = "=",
  * "operandRight" = "someone"
- * }
+ * </pre>
  * <p>
- * can be translated to [select * where name = someone]
- * }
+ * can be translated to {@code [select * where name = someone]}
  */
 public class Criterion {
     @JsonProperty("left")

@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.contract.offer;
 
-import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -31,6 +31,10 @@ public class ContractOfferQuery {
     private long limit;
 
     private ContractOfferQuery() {
+    }
+
+    public static ContractOfferQuery.Builder builder() {
+        return ContractOfferQuery.Builder.newInstance();
     }
 
     public ClaimToken getClaimToken() {
@@ -49,15 +53,11 @@ public class ContractOfferQuery {
         return limit;
     }
 
-    public static ContractOfferQuery.Builder builder() {
-        return ContractOfferQuery.Builder.newInstance();
-    }
-
     public static final class Builder {
+        private final List<Criterion> criteria = new ArrayList<>();
         private ClaimToken claimToken;
         private long offset;
         private long limit;
-        private List<Criterion> criteria = new ArrayList<>();
 
         private Builder() {
         }
@@ -72,7 +72,7 @@ public class ContractOfferQuery {
         }
 
         public Builder criterion(Criterion criterion) {
-            this.criteria.add(criterion);
+            criteria.add(criterion);
             return this;
         }
 
@@ -93,10 +93,10 @@ public class ContractOfferQuery {
 
         public ContractOfferQuery build() {
             ContractOfferQuery contractOfferQuery = new ContractOfferQuery();
-            contractOfferQuery.claimToken = this.claimToken;
-            contractOfferQuery.offset = this.offset;
-            contractOfferQuery.limit = this.limit;
-            contractOfferQuery.criteria = this.criteria;
+            contractOfferQuery.claimToken = claimToken;
+            contractOfferQuery.offset = offset;
+            contractOfferQuery.limit = limit;
+            contractOfferQuery.criteria = criteria;
             return contractOfferQuery;
         }
     }

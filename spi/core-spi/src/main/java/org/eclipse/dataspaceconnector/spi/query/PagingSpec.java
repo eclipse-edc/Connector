@@ -1,7 +1,5 @@
 package org.eclipse.dataspaceconnector.spi.query;
 
-import org.eclipse.dataspaceconnector.spi.asset.Criterion;
-
 import java.util.List;
 import java.util.regex.Pattern;
 

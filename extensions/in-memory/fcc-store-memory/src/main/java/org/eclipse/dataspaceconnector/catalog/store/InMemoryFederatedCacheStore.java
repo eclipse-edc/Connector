@@ -1,8 +1,8 @@
 package org.eclipse.dataspaceconnector.catalog.store;
 
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
-import org.eclipse.dataspaceconnector.spi.asset.Criterion;
-import org.eclipse.dataspaceconnector.spi.asset.CriterionConverter;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.CriterionConverter;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
 import java.util.Collection;

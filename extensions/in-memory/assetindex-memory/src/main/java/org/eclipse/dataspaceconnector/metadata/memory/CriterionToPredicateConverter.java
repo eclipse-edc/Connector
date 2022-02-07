@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.metadata.memory;
 
-import org.eclipse.dataspaceconnector.spi.asset.Criterion;
-import org.eclipse.dataspaceconnector.spi.asset.CriterionConverter;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.CriterionConverter;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
 import java.util.Arrays;

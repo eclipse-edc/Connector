@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.spi.query;
 
-import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
