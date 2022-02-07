@@ -239,7 +239,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         transferProcessStore.update(transferProcess);
     }
 
-    @WithSpan("initiate request")
+    @WithSpan("initiate_request_transfer_process")
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return
         var processId = transferProcessStore.processIdForTransferId(dataRequest.getId());
@@ -498,7 +498,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return processesInProgress.size();
     }
 
-    @WithSpan("transition TransferProcess to completed")
+    @WithSpan("complete_transfer_process")
     private void transitionToCompleted(TransferProcess process) {
         process.transitionCompleted();
         monitor.debug("Process " + process.getId() + " is now " + COMPLETED);
@@ -566,7 +566,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return processes.size();
     }
 
-    @WithSpan("process provider request")
+    @WithSpan("process_provider_request")
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
         var response = dataFlowManager.initiate(dataRequest);
         if (response.succeeded()) {
@@ -592,7 +592,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         }
     }
 
-    @WithSpan("send consumer request")
+    @WithSpan("send_consumer_request")
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         process.transitionRequested();
         transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
