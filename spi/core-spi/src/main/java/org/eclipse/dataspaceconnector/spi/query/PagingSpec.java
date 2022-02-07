@@ -1,5 +1,7 @@
 package org.eclipse.dataspaceconnector.spi.query;
 
+import org.eclipse.dataspaceconnector.spi.asset.Criterion;
+
 import java.util.List;
 import java.util.regex.Pattern;
 
@@ -7,7 +9,7 @@ public class PagingSpec {
     private int offset = 0;
     private int limit = 50;
     private List<Criterion> filterExpression;
-    private SortOrder sortOrder;
+    private SortOrder sortOrder = SortOrder.DESC;
     private String sortField;
 
     public String getSortField() {
@@ -73,6 +75,12 @@ public class PagingSpec {
         }
 
         public PagingSpec build() {
+            if (pagingSpec.offset < 0) {
+                throw new IllegalArgumentException("offset");
+            }
+            if (pagingSpec.limit <= 0) {
+                throw new IllegalArgumentException("limit");
+            }
             return pagingSpec;
         }
 
@@ -94,7 +102,7 @@ public class PagingSpec {
                         pagingSpec.filterExpression = List.of(new Criterion(s[0], s[1], s[2]));
                     } else {
                         // unsupported filter expression
-                        throw new UnsupportedOperationException("Cannot convert " + filterExpression + " into a Criterion");
+                        throw new IllegalArgumentException("Cannot convert " + filterExpression + " into a Criterion");
                     }
                 }
             }
