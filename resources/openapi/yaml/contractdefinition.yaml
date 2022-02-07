@@ -1,0 +1,105 @@
+openapi: 3.0.1
+paths:
+  /contractdefinitions:
+    get:
+      operationId: getAllContractDefinitions
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        schema:
+          type: string
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ContractDefinitionDto'
+    post:
+      operationId: createContractDefinition
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContractDefinitionDto'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /contractdefinitions/{id}:
+    get:
+      operationId: getContractDefinition
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractDefinitionDto'
+    delete:
+      operationId: deleteContractDefinition
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+components:
+  schemas:
+    ContractDefinitionDto:
+      type: object
+      properties:
+        accessPolicyId:
+          type: string
+        contractPolicyId:
+          type: string
+        criteria:
+          type: array
+          items:
+            $ref: '#/components/schemas/Criterion'
+        id:
+          type: string
+    Criterion:
+      type: object
+      properties:
+        left:
+          type: object
+        op:
+          type: string
+        right:
+          type: object

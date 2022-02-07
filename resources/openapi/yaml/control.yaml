@@ -54,6 +54,20 @@ paths:
           description: default response
           content:
             application/json: {}
+  /control/negotiation/{id}/state:
+    get:
+      operationId: getNegotiationStateById
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
   /control/negotiation:
     post:
       operationId: initiateNegotiation
@@ -76,10 +90,6 @@ components:
           type: object
           additionalProperties:
             type: string
-        keyName:
-          type: string
-        type:
-          type: string
     DataRequest:
       type: object
       properties:

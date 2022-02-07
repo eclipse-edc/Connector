@@ -70,13 +70,17 @@ public class QuerySpec {
             return new Builder();
         }
 
-        public Builder offset(int offset) {
-            querySpec.offset = offset;
+        public Builder offset(Integer offset) {
+            if (offset != null) {
+                querySpec.offset = offset;
+            }
             return this;
         }
 
-        public Builder limit(int limit) {
-            querySpec.limit = limit;
+        public Builder limit(Integer limit) {
+            if (limit != null) {
+                querySpec.limit = limit;
+            }
             return this;
         }
 
