@@ -22,7 +22,7 @@ dependencies {
     api(project(":spi"))
     api(project(":common:util"))
     api(project(":extensions:azure:cosmos:cosmos-common"))
-    api(project(":extensions:dataloading:dataloading-asset"))
+    api(project(":extensions:dataloading"))
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
 
     testImplementation(testFixtures(project(":common:util")))
