@@ -20,6 +20,7 @@ public class Telemetry {
 
     /**
      * Gets the trace context from the current thread
+     *
      * @return The trace context as a Map
      */
     public Map<String, String> getCurrentTraceContext() {
@@ -31,6 +32,7 @@ public class Telemetry {
 
     /**
      * Propagates the trace context present in the carrier to the current thread
+     *
      * @param carrier The trace context carrier
      */
     public void setCurrentTraceContext(TraceCarrier carrier) {
