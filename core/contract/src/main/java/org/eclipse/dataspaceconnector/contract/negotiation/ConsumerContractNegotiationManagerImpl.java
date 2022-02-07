@@ -72,7 +72,6 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
     private int batchSize = 5;
     private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private Monitor monitor;
-    private Telemetry telemetry;
     private ExecutorService executor;
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
@@ -108,7 +107,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
                 .counterPartyAddress(contractOffer.getConnectorAddress())
-                .traceContext(telemetry.getCurrentTraceContext())
+                .traceContext(monitor.telemetry().getCurrentTraceContext())
                 .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
@@ -287,7 +286,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
 
         for (ContractNegotiation negotiation : negotiations) {
             // set the telemetry context for the current negotiation object
-            telemetry.setCurrentTraceContext(negotiation);
+            monitor.telemetry().setCurrentTraceContext(negotiation);
 
             var offer = negotiation.getLastContractOffer();
             negotiation.transitionRequesting();
@@ -537,11 +536,6 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
 
         public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry dispatcherRegistry) {
             manager.dispatcherRegistry = dispatcherRegistry;
-            return this;
-        }
-
-        public Builder telemetry(Telemetry telemetry) {
-            manager.telemetry = telemetry;
             return this;
         }
 
