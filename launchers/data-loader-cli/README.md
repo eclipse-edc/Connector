@@ -26,7 +26,7 @@ be created for both use cases.
 
 The class contains two fields: a `DataSink` (_sink_), and a collection of validation functions (_validationPredicates_),
 which validate an instance of the generic type and return a
-[`Result`](../../spi/src/main/java/org/eclipse/dataspaceconnector/spi/result/Result.java). The
+[`Result`](../../spi/core-spi/src/main/java/org/eclipse/dataspaceconnector/spi/result/Result.java). The
 [`DataSink`](../../extensions/dataloading/dataloading-spi/src/main/java/org/eclipse/dataspaceconnector/dataloading/DataLoader.java)
 interface is generic as well and will be used to persist the loaded data, therefore it contains just one method for
 accepting a new entry of the specified type. The interface should be implemented by persistence stores so that they
@@ -94,8 +94,7 @@ If either one is missing, the application is shut down. This launcher's `build.g
 to the dataloading modules - the CosmosDB implementation of the `AssetIndex` as well as the `ContractDefinitionStore`:
 
 ```gradle
-implementation(project(":extensions:dataloading:dataloading-asset"))
-implementation(project(":extensions:dataloading:dataloading-contractdef"))
+implementation(project(":extensions:dataloading"))
 
 ...
 

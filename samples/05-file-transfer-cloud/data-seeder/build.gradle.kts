@@ -19,5 +19,5 @@ plugins {
 dependencies {
     api(project(":spi"))
 
-    api(project(":extensions:dataloading:dataloading-asset"))
+    api(project(":extensions:dataloading"))
 }
