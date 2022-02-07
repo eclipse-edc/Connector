@@ -155,9 +155,7 @@ class JettyServiceTest {
         try {
             var client = new OkHttpClient.Builder().build();
             var rq = new Request.Builder().url(url).build();
-            Response response = null;
-            response = client.newCall(rq).execute();
-            return response;
+            return client.newCall(rq).execute();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

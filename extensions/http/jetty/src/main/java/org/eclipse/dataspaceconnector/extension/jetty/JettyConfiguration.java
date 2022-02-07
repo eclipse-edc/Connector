@@ -48,7 +48,6 @@ public class JettyConfiguration {
         var subConfig = config.getConfig(WEB_HTTP_PREFIX);
 
         Map<String, Map<String, String>> tempMappings = new HashMap<>();
-
         subConfig.getRelativeEntries().entrySet().stream()
                 .map(e -> new AbstractMap.SimpleEntry<>(expandKey(e), e.getValue()))
                 .forEach(e -> split(tempMappings, e));
@@ -58,6 +57,7 @@ public class JettyConfiguration {
                 .collect(Collectors.toSet());
 
         jettyConfig.portMappings.addAll(portMappings);
+
 
         if (jettyConfig.getPortMappings().isEmpty()) {
             jettyConfig.portMapping(new PortMapping());
@@ -75,13 +75,18 @@ public class JettyConfiguration {
         var key = entry.getKey();
         var value = entry.getValue();
 
+        // only <alias>.[port|path] is accepted
+        if (key.split("\\.").length != 2) {
+            return;
+        }
+
         var lastDotIndex = key.lastIndexOf(".");
         var keyNamePart = key.substring(0, lastDotIndex);
         var keyComponentPart = key.substring(lastDotIndex + 1);
 
         var map = rawMappings.computeIfAbsent(keyNamePart, s -> new HashMap<>());
         if (map.containsKey(keyComponentPart)) {
-            throw new IllegalArgumentException(String.format("A port mapping for %s '%s' already exists.", keyComponentPart, value));
+            throw new IllegalArgumentException(String.format("A port mapping for web.http.%s already exists, currently mapped to %s", key, map));
         }
         map.put(keyComponentPart, value);
 
