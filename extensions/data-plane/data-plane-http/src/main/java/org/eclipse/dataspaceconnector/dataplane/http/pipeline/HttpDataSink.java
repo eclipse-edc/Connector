@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
 
 import java.util.List;
 import java.util.Objects;
@@ -27,9 +28,9 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 
 import static java.lang.String.format;
-import static java.util.concurrent.CompletableFuture.allOf;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspaceconnector.common.async.AsyncUtils.asyncAllOf;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 
 /**
@@ -50,12 +51,15 @@ public class HttpDataSink implements DataSink {
         try (var partStream = source.openPartStream()) {
             var partitioned = PartitionIterator.streamOf(partStream, partitionSize);
             var futures = partitioned.map(parts -> supplyAsync(() -> postData(parts), executorService)).collect(toList());
-            return allOf(futures.toArray(CompletableFuture[]::new)).thenApply((s) -> {
-                if (futures.stream().anyMatch(future -> future.getNow(null).failed())) {
-                    return TransferResult.failure(ERROR_RETRY, "Error transferring data");
-                }
-                return TransferResult.success();
-            });
+            return futures.stream()
+                    .collect(asyncAllOf())
+                    .thenApply(results -> {
+                        if (results.stream().anyMatch(AbstractResult::failed)) {
+                            return TransferResult.failure(ERROR_RETRY, "Error transferring data");
+                        }
+                        return TransferResult.success();
+                    })
+                    .exceptionally(throwable -> TransferResult.failure(ERROR_RETRY, "Unhandled exception raised when transferring data: " + throwable.getMessage()));
         } catch (Exception e) {
             monitor.severe("Error processing data transfer request: " + requestId, e);
             return CompletableFuture.completedFuture(TransferResult.failure(ERROR_RETRY, "Error processing data transfer request"));

@@ -22,18 +22,17 @@ import java.util.List;
 /**
  * The result of a transfer operation.
  */
-public class TransferResult extends AbstractResult<String, ResponseFailure> {
+public class TransferResult extends AbstractResult<Void, ResponseFailure> {
 
     public static TransferResult success() {
-        return new TransferResult(null, null);
+        return new TransferResult(null);
     }
 
     public static TransferResult failure(ResponseStatus status, String error) {
-        return new TransferResult(null, new ResponseFailure(status, List.of(error)));
+        return new TransferResult(new ResponseFailure(status, List.of(error)));
     }
 
-    protected TransferResult(String content, ResponseFailure failure) {
-        super(content, failure);
+    protected TransferResult(ResponseFailure failure) {
+        super(null, failure);
     }
-
 }

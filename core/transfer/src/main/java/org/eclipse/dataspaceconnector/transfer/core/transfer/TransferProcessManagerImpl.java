@@ -57,6 +57,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
+import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
@@ -498,6 +499,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             processProviderRequest(process, dataRequest);
         }
         return true;
+    }
+
+    private static DataProxyRequest createDataProxyRequest(DataRequest request) {
+        return new DataProxyRequest(request.getConnectorAddress(), request.getContractId(), request.getDataDestination());
     }
 
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {

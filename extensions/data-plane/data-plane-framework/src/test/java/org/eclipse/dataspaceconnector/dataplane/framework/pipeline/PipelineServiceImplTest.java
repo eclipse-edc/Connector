@@ -38,8 +38,8 @@ class PipelineServiceImplTest {
         var request = DataFlowRequest.Builder.newInstance()
                 .id("1")
                 .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().build())
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("test").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("test").build())
                 .build();
 
         service.registerFactory(sourceFactory);

@@ -77,7 +77,7 @@ public class EndToEndTest {
                 .id("1")
                 .processId("1")
                 .sourceDataAddress(DataAddress.Builder.newInstance().type(type).build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().build());
+                .destinationDataAddress(DataAddress.Builder.newInstance().type(type).build());
     }
 
 }
