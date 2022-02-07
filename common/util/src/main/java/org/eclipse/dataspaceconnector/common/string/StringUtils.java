@@ -39,32 +39,4 @@ public class StringUtils {
         return nullable != null ? nullable.toString() : null;
     }
 
-    //algorithm taken from https://www.geeksforgeeks.org/longest-common-prefix-using-sorting/
-    public static String getCommonPrefix(List<String> strs) {
-        int size = strs.size();
-
-        /* if size is 0, return empty string */
-        if (size == 0) {
-            return "";
-        }
-
-        if (size == 1) {
-            return strs.get(0);
-        }
-
-        /* sort the array of strings */
-        strs.sort(String::compareTo);
-
-        /* find the minimum length from first and last string */
-        int end = Math.min(strs.get(0).length(), strs.get(size - 1).length());
-
-        /* find the common prefix between the first and
-           last string */
-        int i = 0;
-        while (i < end && strs.get(0).charAt(i) == strs.get(size - 1).charAt(i)) {
-            i++;
-        }
-
-        return strs.get(0).substring(0, i);
-    }
 }

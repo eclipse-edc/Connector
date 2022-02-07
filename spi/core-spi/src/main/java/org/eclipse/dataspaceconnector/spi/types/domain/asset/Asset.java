@@ -33,6 +33,7 @@ public class Asset {
 
     public static final String PROPERTY_ID = "asset:prop:id";
     public static final String PROPERTY_NAME = "asset:prop:name";
+    public static final String PROPERTY_DESCRIPTION = "asset:prop:description";
     public static final String PROPERTY_VERSION = "asset:prop:version";
     public static final String PROPERTY_CONTENT_TYPE = "asset:prop:contenttype";
 
@@ -50,6 +51,11 @@ public class Asset {
     @JsonIgnore
     public String getName() {
         return getPropertyAsString(PROPERTY_NAME);
+    }
+
+    @JsonIgnore
+    public String getDescription() {
+        return getPropertyAsString(PROPERTY_DESCRIPTION);
     }
 
     @JsonIgnore
@@ -97,6 +103,11 @@ public class Asset {
 
         public B name(String title) {
             asset.properties.put(PROPERTY_NAME, title);
+            return (B) this;
+        }
+
+        public B description(String description) {
+            asset.properties.put(PROPERTY_DESCRIPTION, description);
             return (B) this;
         }
 

@@ -67,13 +67,17 @@ public class BaseRuntime {
             var seList = serviceExtensions.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList());
             java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(seList, monitor)));
             bootExtensions(context, serviceExtensions);
-            var hc = context.getService(HealthCheckService.class);
-            hc.addStartupStatusProvider(this::getStartupStatus);
+
+            var healthCheckService = context.getService(HealthCheckService.class);
+            healthCheckService.addStartupStatusProvider(this::getStartupStatus);
+
+            startupStatus.set(HealthCheckResult.success());
+
+            healthCheckService.refresh();
         } catch (Exception e) {
             onError(e);
-
         }
-        startupStatus.set(HealthCheckResult.success());
+
         monitor.info(format("%s ready", name));
 
     }

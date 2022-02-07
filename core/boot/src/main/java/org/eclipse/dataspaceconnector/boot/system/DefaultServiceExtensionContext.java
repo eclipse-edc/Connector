@@ -17,15 +17,16 @@ package org.eclipse.dataspaceconnector.boot.system;
 import org.eclipse.dataspaceconnector.boot.util.TopologicalSort;
 import org.eclipse.dataspaceconnector.core.BaseExtension;
 import org.eclipse.dataspaceconnector.core.CoreExtension;
+import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
-import org.eclipse.dataspaceconnector.spi.system.FieldInjectionPoint;
-import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.InjectionPoint;
+import org.eclipse.dataspaceconnector.spi.system.InjectionPointScanner;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -39,6 +40,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -54,8 +56,10 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
 
     private final Map<Class<?>, Object> services = new HashMap<>();
     private final ServiceLocator serviceLocator;
+    private final InjectionPointScanner injectionPointScanner;
     private List<ConfigurationExtension> configurationExtensions;
     private String connectorId;
+    private Config config;
 
     public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor) {
         this(typeManager, monitor, new ServiceLocatorImpl());
@@ -68,6 +72,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         // register as services
         registerService(TypeManager.class, typeManager);
         registerService(Monitor.class, monitor);
+        injectionPointScanner = new InjectionPointScanner();
     }
 
     @Override
@@ -85,44 +90,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         return typeManager;
     }
 
-    /**
-     * Attempts to resolve the setting by delegating to configuration extensions, VM properties, and then env variables, in that order; otherwise
-     * the default value is returned.
-     */
     @Override
-    public String getSetting(String key, String defaultValue) {
-        String value;
-        for (ConfigurationExtension extension : configurationExtensions) {
-            value = extension.getSetting(key);
-            if (value != null) {
-                return value;
-            }
-        }
-        value = System.getProperty(key);
-        if (value != null) {
-            return value;
-        }
-        value = System.getenv(key);
-        return value != null ? value : defaultValue;
-    }
-
-    @Override
-    public Map<String, Object> getSettings(String prefix) {
-
-        Map<String, String> settings = Map.of();
-        for (var ext : configurationExtensions) {
-            settings = ext.getSettingsWithPrefix(prefix);
-        }
-        var sysProps = getSysPropsStartingWith(prefix);
-        var envProps = getEnvPropsStartingWith(prefix);
-
-        var all = new HashMap<String, Object>();
-        all.putAll(settings);
-        all.putAll(sysProps);
-        all.putAll(envProps);
-
-
-        return all;
+    public Config getConfig(String path) {
+        return this.config.getConfig(path);
     }
 
     @Override
@@ -182,17 +152,8 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
             ext.initialize(monitor);
             monitor.info("Initialized " + ext.name());
         });
+        this.config = loadConfig();
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
-    }
-
-    private Map<String, Object> getSysPropsStartingWith(String prefix) {
-        return System.getProperties().entrySet().stream().filter(e -> e.getKey().toString().startsWith(prefix))
-                .collect(Collectors.toMap(e -> e.getKey().toString(), Map.Entry::getValue));
-    }
-
-    private Map<String, String> getEnvPropsStartingWith(String prefix) {
-        return System.getenv().entrySet().stream().filter(e -> e.getKey().startsWith(prefix))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
     private List<InjectionContainer<ServiceExtension>> sortExtensions(List<ServiceExtension> loadedExtensions) {
@@ -208,7 +169,9 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         var injectionPoints = loadedExtensions.stream().flatMap(ext -> getInjectedFields(ext).stream().peek(injectionPoint -> {
             List<ServiceExtension> dependencies = dependencyMap.get(injectionPoint.getFeatureName());
             if (dependencies == null) {
-                unsatisfiedInjectionPoints.add(injectionPoint);
+                if (injectionPoint.isRequired()) {
+                    unsatisfiedInjectionPoints.add(injectionPoint);
+                }
             } else {
                 dependencies.forEach(dependency -> sort.addDependency(ext, dependency));
             }
@@ -273,30 +236,28 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
         baseDependencies.forEach(se -> loadedExtensions.add(0, se));
     }
 
+    private Config loadConfig() {
+        var config = configurationExtensions.stream()
+                .map(ConfigurationExtension::getConfig)
+                .filter(Objects::nonNull)
+                .reduce(Config::merge)
+                .orElse(ConfigFactory.empty());
+
+        var environmentConfig = ConfigFactory.fromMap(System.getenv());
+        var systemPropertyConfig = ConfigFactory.fromProperties(System.getProperties());
+
+        return config.merge(environmentConfig).merge(systemPropertyConfig);
+    }
+
     /**
      * Obtains all features a specific extension provides as strings
      */
     private Set<InjectionPoint<ServiceExtension>> getInjectedFields(ServiceExtension ext) {
         // initialize with legacy list
 
-        var injectFields = Arrays.stream(ext.getClass().getDeclaredFields())
-                .filter(f -> f.getAnnotation(Inject.class) != null)
-                .map(f -> new FieldInjectionPoint<>(ext, f, getFeatureValue(f.getType())));
+        return injectionPointScanner.getInjectionPoints(ext);
 
-        return injectFields.collect(Collectors.toSet());
     }
-
-    /**
-     * expands parent features (e.g. "some:feature" into child features, if they are proviced, e.g. "some:feature:subfeature"
-     *
-     * @param requiredFeature The potential parent feature. Could also be the child feature.
-     * @param allFeatures     All available features provided by the entirety of all extensions.
-     * @return If the given required feature is a parent feature, all sub-features that are in the same namespace are returned. Else, a singleton Set of the required feature itself is returned.
-     */
-    private Set<String> expand(String requiredFeature, Set<String> allFeatures) {
-        return allFeatures.stream().filter(feature -> feature.startsWith(requiredFeature)).collect(Collectors.toSet());
-    }
-
 
     /**
      * Obtains all features a specific extension requires as strings

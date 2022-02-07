@@ -25,8 +25,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets() {
         var testAsset = createAsset("foobar");
-        index.accept(testAsset, dataAddress());
-
+        index.accept(testAsset, createDataAddress(testAsset));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "foobar").build());
 
         assertThat(assets).hasSize(1).containsExactly(testAsset);
@@ -35,8 +34,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_notFound() {
         var testAsset = createAsset("foobar");
-        index.accept(testAsset, dataAddress());
-
+        index.accept(testAsset, createDataAddress(testAsset));
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals(Asset.PROPERTY_NAME, "barbaz").build());
 
         assertThat(assets).isEmpty();
@@ -45,7 +43,7 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_fieldNull() {
         var testAsset = createAsset("foobar");
-        index.accept(testAsset, dataAddress());
+        index.accept(testAsset, createDataAddress(testAsset));
 
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance().whenEquals("description", "barbaz").build());
 
@@ -57,9 +55,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, dataAddress());
-        index.accept(testAsset2, dataAddress());
-        index.accept(testAsset3, dataAddress());
+        index.accept(testAsset1, createDataAddress(testAsset1));
+        index.accept(testAsset2, createDataAddress(testAsset2));
+        index.accept(testAsset3, createDataAddress(testAsset3));
 
         var assets = index.queryAssets(AssetSelectorExpression.Builder.newInstance()
                 .whenEquals(Asset.PROPERTY_NAME, "barbaz")
@@ -72,10 +70,10 @@ class InMemoryAssetIndexTest {
     @Test
     void queryAssets_selectAll_shouldReturnAll() {
         var testAsset1 = createAsset("barbaz");
-        index.accept(testAsset1, dataAddress());
+        index.accept(testAsset1, createDataAddress(testAsset1));
 
         var testAsset2 = createAsset("foobar");
-        index.accept(testAsset2, dataAddress());
+        index.accept(testAsset2, createDataAddress(testAsset2));
 
         var results = index.queryAssets(SELECT_ALL);
 
@@ -86,7 +84,7 @@ class InMemoryAssetIndexTest {
     void findById() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("barbaz", id);
-        index.accept(testAsset, dataAddress());
+        index.accept(testAsset, createDataAddress(testAsset));
 
         var result = index.findById(id);
 
@@ -98,7 +96,7 @@ class InMemoryAssetIndexTest {
     void findById_notfound() {
         String id = UUID.randomUUID().toString();
         var testAsset = createAsset("foobar", id);
-        index.accept(testAsset, dataAddress());
+        index.accept(testAsset, createDataAddress(testAsset));
 
         var result = index.findById("not-exist");
 
@@ -110,9 +108,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, dataAddress());
-        index.accept(testAsset2, dataAddress());
-        index.accept(testAsset3, dataAddress());
+        index.accept(testAsset1, createDataAddress(testAsset1));
+        index.accept(testAsset2, createDataAddress(testAsset2));
+        index.accept(testAsset3, createDataAddress(testAsset3));
 
         var inExpr = format("(  %s )", String.join(", ", List.of(testAsset1.getId(), testAsset2.getId())));
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -129,9 +127,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, dataAddress());
-        index.accept(testAsset2, dataAddress());
-        index.accept(testAsset3, dataAddress());
+        index.accept(testAsset1, createDataAddress(testAsset1));
+        index.accept(testAsset2, createDataAddress(testAsset2));
+        index.accept(testAsset3, createDataAddress(testAsset3));
 
         var inExpr = format("(  %s )", String.join(", ", List.of("test-id1", "test-id2")));
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -148,9 +146,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, dataAddress());
-        index.accept(testAsset2, dataAddress());
-        index.accept(testAsset3, dataAddress());
+        index.accept(testAsset1, createDataAddress(testAsset1));
+        index.accept(testAsset2, createDataAddress(testAsset2));
+        index.accept(testAsset3, createDataAddress(testAsset3));
 
         var inExpr = String.join(", ", List.of(testAsset1.getId(), testAsset2.getId()));
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -167,9 +165,9 @@ class InMemoryAssetIndexTest {
         var testAsset1 = createAsset("foobar");
         var testAsset2 = createAsset("barbaz");
         var testAsset3 = createAsset("barbaz");
-        index.accept(testAsset1, dataAddress());
-        index.accept(testAsset2, dataAddress());
-        index.accept(testAsset3, dataAddress());
+        index.accept(testAsset1, createDataAddress(testAsset1));
+        index.accept(testAsset2, createDataAddress(testAsset2));
+        index.accept(testAsset3, createDataAddress(testAsset3));
 
         var inExpr = String.join(",", List.of(testAsset1.getId(), testAsset2.getId()));
         var selector = AssetSelectorExpression.Builder.newInstance()
@@ -182,18 +180,25 @@ class InMemoryAssetIndexTest {
     }
 
     @NotNull
-    private DataAddress dataAddress() {
-        return DataAddress.Builder.newInstance().build();
-    }
-
-    @NotNull
     private Asset createAsset(String name) {
         return createAsset(name, UUID.randomUUID().toString());
     }
 
     @NotNull
     private Asset createAsset(String name, String id) {
-        return Asset.Builder.newInstance().id(id).name(name).version("1").build();
+        return createAsset(name, id, "contentType");
     }
 
+    @NotNull
+    private Asset createAsset(String name, String id, String contentType) {
+        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType(contentType).build();
+    }
+
+    @NotNull
+    private DataAddress createDataAddress(Asset asset) {
+        return DataAddress.Builder.newInstance()
+                .keyName("test-keyname")
+                .type(asset.getContentType())
+                .build();
+    }
 }

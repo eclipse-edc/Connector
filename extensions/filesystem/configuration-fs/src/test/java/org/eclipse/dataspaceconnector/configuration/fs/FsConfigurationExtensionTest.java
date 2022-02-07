@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.configuration.fs;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -49,52 +50,10 @@ class FsConfigurationExtensionTest {
 
     @Test
     void verifyResolution() {
+        var config = configurationExtension.getConfig();
 
-        assertEquals("testvalue1", configurationExtension.getSetting("testkey1"));
-        assertNull(configurationExtension.getSetting("notthere"));
-        verify(context).getMonitor();
-    }
-
-    @Test
-    void getSettingWithPrefix_groupingLevel1() {
-        var all = configurationExtension.getSettingsWithPrefix("edc.datasource");
-        assertThat(all).hasSize(9);
-
-    }
-
-    @Test
-    void getSettingWithPrefix_groupingLevel2() {
-        var prefix = "edc.datasource.default";
-        var all = configurationExtension.getSettingsWithPrefix(prefix);
-
-
-        assertThat(all).hasSize(3)
-                .containsExactlyInAnyOrderEntriesOf(Map.of(
-                        prefix + ".user", "test-user",
-                        prefix + ".password", "test-pwd",
-                        prefix + ".driverClassName", "org.testcompany.testDriver.Driver"));
-
-        prefix = "edc.datasource.another";
-        all = configurationExtension.getSettingsWithPrefix(prefix);
-        assertThat(all).hasSize(6)
-                .containsExactlyInAnyOrderEntriesOf(Map.of(
-                        prefix + ".user", "test-user-2",
-                        prefix + ".password", "test-pwd-2",
-                        prefix + ".sub.property", "foo",
-                        prefix + ".sub.property2", "bar",
-                        prefix + ".driverClassName", "org.testcompany.another.Driver",
-                        prefix + ".specialProperty", "specialValue"));
-    }
-
-    @Test
-    void getSettingWithPrefix_groupingLevel3() {
-
-        var prefix = "edc.datasource.another.sub";
-        var all = configurationExtension.getSettingsWithPrefix(prefix);
-        assertThat(all).hasSize(2)
-                .containsExactlyInAnyOrderEntriesOf(Map.of(
-                        prefix + ".property", "foo",
-                        prefix + ".property2", "bar"));
+        assertThat(config.getString("testkey1")).isEqualTo("testvalue1");
+        assertThat(config.getString("not.there", null)).isEqualTo(null);
     }
 
 }
