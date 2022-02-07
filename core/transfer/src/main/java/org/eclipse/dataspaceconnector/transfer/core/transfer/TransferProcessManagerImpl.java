@@ -564,7 +564,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return processes.size();
     }
 
-    @WithSpan("process_provider_request")
+    @WithSpan("process_transfer_process_request")
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
         var response = dataFlowManager.initiate(dataRequest);
         if (response.succeeded()) {
@@ -590,7 +590,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         }
     }
 
-    @WithSpan("send_consumer_request")
+    @WithSpan("send_transfer_process_request")
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         process.transitionRequested();
         transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
