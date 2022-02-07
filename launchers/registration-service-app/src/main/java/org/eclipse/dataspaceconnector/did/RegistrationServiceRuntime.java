@@ -25,7 +25,10 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.*;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.bootServiceExtensions;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMonitor;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadTelemetry;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadVault;
 
 public class RegistrationServiceRuntime {
 
