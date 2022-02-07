@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
@@ -57,11 +58,13 @@ class ConsumerContractNegotiationManagerImplTest {
     void setUp() throws Exception {
 
         Monitor monitor = mock(Monitor.class);
+        Telemetry telemetry = mock(Telemetry.class);
 
         negotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .validationService(validationService)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
+                .telemetry(telemetry)
                 .build();
 
         //TODO hand over store in start method, but run method should not be executed

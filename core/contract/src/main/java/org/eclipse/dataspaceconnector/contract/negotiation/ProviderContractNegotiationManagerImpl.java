@@ -14,9 +14,6 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.context.Context;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
@@ -69,9 +66,8 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private Monitor monitor;
-    private ExecutorService executor;
-
     private Telemetry telemetry;
+    private ExecutorService executor;
 
     private ProviderContractNegotiationManagerImpl() { }
 
@@ -133,7 +129,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
      * @param request Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
-    @WithSpan(value = "initiate_contract_negotiation")
+    @WithSpan(value = "process_contract_negotiation_request")
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
         monitor.info("ContractNegotiation requested");
@@ -391,7 +387,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
         return confirmingNegotiations.size();
     }
 
-    @WithSpan(value = "processing negotiation offer")
+    @WithSpan(value = "process_contract_negotiation_offer")
     private void negotiate(ContractNegotiation negotiation) {
         var retrievedAgreement = negotiation.getContractAgreement();
 

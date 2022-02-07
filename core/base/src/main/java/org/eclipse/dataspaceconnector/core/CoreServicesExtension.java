@@ -83,6 +83,11 @@ public class CoreServicesExtension implements ServiceExtension {
     }
 
     @Override
+    public void start() {
+        healthCheckService.start();
+    }
+
+    @Override
     public void shutdown() {
         healthCheckService.stop();
         ServiceExtension.super.shutdown();

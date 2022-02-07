@@ -12,14 +12,15 @@
  *
  */
 
+val openTelemetryVersion: String by project
+
 plugins {
     `java-library`
 }
 
-
 dependencies {
     api(project(":spi"))
-    api("io.opentelemetry:opentelemetry-extension-annotations:1.10.0")
+    api("io.opentelemetry:opentelemetry-extension-annotations:${openTelemetryVersion}")
 }
 publishing {
     publications {

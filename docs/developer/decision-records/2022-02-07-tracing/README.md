@@ -1,0 +1,24 @@
+# Tracing 
+
+## Decision
+
+Use [OpenTelemetry](https://opentelemetry.io/) to enable distributed tracing in EDC. 
+
+[Context propagation](https://opentelemetry.io/docs/instrumentation/java/manual/#context-propagation) needs to be implemented accordingly so that traces are propagated across asynchronous workers. Business entities processed by async workers are used as carriers of tracing information, which is persisted together with the rest of the entity.
+
+## Rationale
+
+Distributed tracing is an essential observability pillar to correlate requests as they propagate through distributed cloud environments and services. EDC as a framework needs to support distributed tracing in any possible constellation where it might come to use. 
+
+OpenTelemetry provides a vendor-agnostic solution that can be configured to send telemetry data to the backend(s) of choice, including a variety of popular open-source projects. OpenTelemetry instrumentation with Java uses a Java agent that dynamically injects bytecode to capture telemetry from many popular libraries and frameworks automatically. It can be used to capture telemetry data at the “edges” of an app or service, such as inbound requests, outbound HTTP calls, database calls, and so on. This makes it a very compelling option for EDC. 
+
+## Span naming
+
+Open telemetry spans are named according to the best practices mentioned in the [documentation](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/trace/api.md#span):
+
+```java
+@WithSpan(value = "<ACTION>_<OBJECT_RECEIVING_ACTION>")
+
+// e.g.
+@WithSpan(value = "save_contract_negotiation")
+```

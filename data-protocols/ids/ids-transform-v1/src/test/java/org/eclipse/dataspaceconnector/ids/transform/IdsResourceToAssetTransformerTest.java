@@ -20,8 +20,10 @@ import de.fraunhofer.iais.eis.CustomMediaTypeBuilder;
 import de.fraunhofer.iais.eis.RepresentationBuilder;
 import de.fraunhofer.iais.eis.Resource;
 import de.fraunhofer.iais.eis.ResourceBuilder;
+import de.fraunhofer.iais.eis.util.TypedLiteral;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformKeys;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerContext;
+import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -38,6 +40,7 @@ class IdsResourceToAssetTransformerTest {
     private static final String ASSET_ID = "1";
     private static final URI RESOURCE_ID = URI.create("urn:resource:1");
     private static final String ASSET_FILENAME = "test_filename";
+    private static final String ASSET_DESCRIPTION = "foo bar";
     private static final String ASSET_FILE_EXTENSION = "txt";
     private static final BigInteger ASSET_BYTESIZE = BigInteger.valueOf(5);
 
@@ -66,6 +69,7 @@ class IdsResourceToAssetTransformerTest {
 
         resource = new ResourceBuilder(RESOURCE_ID)
                 ._representation_(new ArrayList<>(Collections.singletonList(representation)))
+                ._description_(new TypedLiteral(ASSET_DESCRIPTION))
                 .build();
         context = mock(TransformerContext.class);
     }
@@ -100,6 +104,7 @@ class IdsResourceToAssetTransformerTest {
                 .containsEntry(TransformKeys.KEY_ASSET_BYTE_SIZE, ASSET_BYTESIZE)
                 .containsEntry(TransformKeys.KEY_ASSET_FILE_NAME, ASSET_FILENAME)
                 .containsEntry(TransformKeys.KEY_ASSET_FILE_EXTENSION, ASSET_FILE_EXTENSION)
+                .containsEntry(Asset.PROPERTY_DESCRIPTION, ASSET_DESCRIPTION)
                 .containsEntry("key1", "val1")
                 .containsEntry("key2", "val2");
     }

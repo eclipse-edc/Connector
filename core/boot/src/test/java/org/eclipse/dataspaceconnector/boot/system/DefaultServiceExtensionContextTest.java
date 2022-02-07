@@ -16,8 +16,10 @@ package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.boot.util.CyclicDependencyException;
 import org.eclipse.dataspaceconnector.core.BaseExtension;
+import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -26,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -53,60 +56,66 @@ class DefaultServiceExtensionContextTest {
     void setUp() {
         TypeManager typeManager = new TypeManager();
         Monitor monitor = mock(Monitor.class);
+        Telemetry telemetry = mock(Telemetry.class);
         serviceLocatorMock = mock(ServiceLocator.class);
-        context = new DefaultServiceExtensionContext(typeManager, monitor, serviceLocatorMock);
+        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, serviceLocatorMock);
     }
 
     @Test
-    void getSettingsWithPrefix_onlyFromConfig() {
-        var prefix = "edc.test";
+    void getConfig_onlyFromConfig() {
+        var path = "edc.test";
 
         var configExtMock = mock(ConfigurationExtension.class);
-        when(configExtMock.getSettingsWithPrefix(prefix)).thenReturn(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        Config extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        when(configExtMock.getConfig()).thenReturn(extensionConfig);
         when(serviceLocatorMock.loadImplementors(eq(ConfigurationExtension.class), anyBoolean())).thenReturn(List.of(configExtMock));
         context.initialize();
 
-        var settings = context.getSettings(prefix);
+        var config = context.getConfig(path);
 
-        assertThat(settings).containsExactlyInAnyOrderEntriesOf(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        assertThat(config.getString("entry1")).isEqualTo("value1");
+        assertThat(config.getString("entry2")).isEqualTo("value2");
     }
 
     @Test
-    void getSettingsWithPrefix_withOtherProperties() {
-        var prefix = "edc.test";
+    void getConfig_withOtherProperties() {
+        var path = "edc.test";
 
         var configExtMock = mock(ConfigurationExtension.class);
-        when(configExtMock.getSettingsWithPrefix(prefix)).thenReturn(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        Config extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        when(configExtMock.getConfig()).thenReturn(extensionConfig);
         when(serviceLocatorMock.loadImplementors(eq(ConfigurationExtension.class), anyBoolean())).thenReturn(List.of(configExtMock));
-        context.initialize();
-
         System.setProperty("edc.test.entry3", "foo");
 
-        var settings = context.getSettings(prefix);
+        context.initialize();
+
+        var config = context.getConfig(path);
         try {
-            assertThat(settings).containsExactlyInAnyOrderEntriesOf(Map.of("edc.test.entry1", "value1",
-                    "edc.test.entry2", "value2",
-                    "edc.test.entry3", "foo"));
+            assertThat(config.getString("entry1")).isEqualTo("value1");
+            assertThat(config.getString("entry2")).isEqualTo("value2");
+            assertThat(config.getString("entry3")).isEqualTo("foo");
         } finally {
             System.clearProperty("edc.test.entry3");
         }
     }
 
     @Test
-    void getSettingsWithPrefix_withOtherPropertiesOverlapping() {
-        var prefix = "edc.test";
+    void getConfig_withOtherPropertiesOverlapping() {
+        var path = "edc.test";
 
         var configExtMock = mock(ConfigurationExtension.class);
-        when(configExtMock.getSettingsWithPrefix(prefix)).thenReturn(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        Config extensionConfig = ConfigFactory.fromMap(Map.of("edc.test.entry1", "value1", "edc.test.entry2", "value2"));
+        when(configExtMock.getConfig()).thenReturn(extensionConfig);
         when(serviceLocatorMock.loadImplementors(eq(ConfigurationExtension.class), anyBoolean())).thenReturn(List.of(configExtMock));
-        context.initialize();
-
         System.setProperty("edc.test.entry2", "foo");
 
-        var settings = context.getSettings(prefix);
+        context.initialize();
+
+        var config = context.getConfig(path);
+
         try {
-            assertThat(settings).containsExactlyInAnyOrderEntriesOf(Map.of("edc.test.entry1", "value1",
-                    "edc.test.entry2", "foo"));
+            assertThat(config.getString("entry1")).isEqualTo("value1");
+            assertThat(config.getString("entry2")).isEqualTo("foo");
         } finally {
             System.clearProperty("edc.test.entry2");
         }
@@ -280,7 +289,7 @@ class DefaultServiceExtensionContextTest {
     @Test
     void get_setting_returns_the_setting_from_the_configuration_extension() {
         var configuration = mock(ConfigurationExtension.class);
-        when(configuration.getSetting("key")).thenReturn("value");
+        when(configuration.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of("key", "value")));
         when(serviceLocatorMock.loadImplementors(ConfigurationExtension.class, false)).thenReturn(List.of(configuration));
         context.initialize();
 
@@ -292,7 +301,7 @@ class DefaultServiceExtensionContextTest {
     @Test
     void get_setting_returns_default_value_if_setting_is_not_found() {
         var configuration = mock(ConfigurationExtension.class);
-        when(configuration.getSetting("key")).thenReturn(null);
+        when(configuration.getConfig()).thenReturn(ConfigFactory.empty());
         when(serviceLocatorMock.loadImplementors(ConfigurationExtension.class, false)).thenReturn(List.of(configuration));
         context.initialize();
 

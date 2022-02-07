@@ -44,26 +44,13 @@ class InMemoryDataAddressResolverTest {
     }
 
     private Asset createAsset(String name, String id) {
-        return Asset.Builder.newInstance().id(id).name(name).version("1").build();
+        return Asset.Builder.newInstance().id(id).name(name).version("1").contentType("type").build();
     }
 
     private DataAddress createDataAddress(Asset asset) {
         return DataAddress.Builder.newInstance()
-                .type("test-asset")
                 .keyName("test-keyname")
-                .properties(flatten(asset))
+                .type(asset.getContentType())
                 .build();
-    }
-
-    private Map<String, ?> flatten(Object object) {
-
-        try {
-            var om = new ObjectMapper();
-            om.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-            var json = om.writeValueAsString(object);
-            return om.readValue(json, Map.class);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 }

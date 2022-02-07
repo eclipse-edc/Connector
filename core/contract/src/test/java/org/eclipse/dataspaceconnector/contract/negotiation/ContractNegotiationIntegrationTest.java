@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.util.concurrent.TimeUnit;
 
@@ -72,8 +73,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getLastContractOffer()).isEqualTo(providerNegotiation.getLastContractOffer());
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
-        verify(validationService).validate(token, offer);
-        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+        verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
+        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -120,7 +121,7 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
-        verify(validationService).validate(token, offer);
+        verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -169,8 +170,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
-        verify(validationService).validate(token, offer);
-        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+        verify(validationService, Mockito.atLeastOnce()).validate(token, offer);
+        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -228,9 +229,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-        verify(validationService).validate(token, initialOffer);
-        verify(validationService).validate(token, counterOffer, initialOffer);
-        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+        verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -286,9 +287,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         // Assert that no agreement has been stored on either side
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
-        verify(validationService).validate(token, initialOffer);
-        verify(validationService).validate(token, counterOffer, initialOffer);
-        verify(validationService).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
+        verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), any(ContractOffer.class));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -359,10 +360,10 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getContractAgreement()).isNotNull();
         assertThat(consumerNegotiation.getContractAgreement()).isEqualTo(providerNegotiation.getContractAgreement());
 
-        verify(validationService).validate(token, initialOffer);
-        verify(validationService).validate(token, counterOffer, initialOffer);
-        verify(validationService).validate(token, consumerCounterOffer, counterOffer);
-        verify(validationService).validate(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
+        verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(eq(token), any(ContractAgreement.class), eq(consumerCounterOffer));
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();
@@ -430,9 +431,9 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         assertThat(consumerNegotiation.getContractAgreement()).isNull();
         assertThat(providerNegotiation.getContractAgreement()).isNull();
 
-        verify(validationService).validate(token, initialOffer);
-        verify(validationService).validate(token, counterOffer, initialOffer);
-        verify(validationService).validate(token, consumerCounterOffer, counterOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(token, initialOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(token, counterOffer, initialOffer);
+        verify(validationService, Mockito.atLeastOnce()).validate(token, consumerCounterOffer, counterOffer);
 
         // Stop provider and consumer negotiation managers
         providerManager.stop();

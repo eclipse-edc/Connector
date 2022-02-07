@@ -15,12 +15,12 @@
 package org.eclipse.dataspaceconnector.spi.system;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Context provided to extensions when they are initialized.
@@ -31,12 +31,17 @@ public interface ServiceExtensionContext extends SettingResolver {
      * Fetches the unique ID of the connector. If the {@code dataspaceconnector.connector.name} config value has been set, that value is returned; otherwise  a random
      * name is chosen.
      */
-    public String getConnectorId();
+    String getConnectorId();
 
     /**
      * Returns the system monitor.
      */
     Monitor getMonitor();
+
+    /**
+     * Returns the system telemetry object.
+     */
+    Telemetry getTelemetry();
 
     /**
      * Returns the type manager.

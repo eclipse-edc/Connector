@@ -13,8 +13,6 @@
  */
 package org.eclipse.dataspaceconnector.spi.transaction.datasource;
 
-import org.jetbrains.annotations.Nullable;
-
 import javax.sql.DataSource;
 
 /**
@@ -35,7 +33,6 @@ public interface DataSourceRegistry {
     /**
      * Returns the datasource registered for the name or null if not found.
      */
-    @Nullable
     DataSource resolve(String name);
 
 }

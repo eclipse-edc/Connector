@@ -65,7 +65,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
         return negotiation != null ? negotiation.getContractAgreement() : null;
     }
 
-    @WithSpan(value = "saving negotiation")
+    @WithSpan(value = "save_contract_negotiation")
     @Override
     public void save(ContractNegotiation negotiation) {
         writeLock(() -> {

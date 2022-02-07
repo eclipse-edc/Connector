@@ -165,7 +165,7 @@ public class LoggerMonitorTests {
     public void loggedOnSevereLevel_WithNullVarArgs() {
 
         //Act
-        sut.severe(() -> message, null);
+        sut.severe(() -> message, (Throwable) null);
 
         //Assert
         assertLog(message, Level.SEVERE);
