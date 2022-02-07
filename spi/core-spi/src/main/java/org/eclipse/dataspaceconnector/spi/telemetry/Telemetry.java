@@ -18,6 +18,10 @@ public class Telemetry {
         this.openTelemetry = openTelemetry;
     }
 
+    /**
+     * Gets the trace context from the current thread
+     * @return The trace context as a Map
+     */
     public Map<String, String> getCurrentTraceContext() {
         Map<String, String> traceContext = new HashMap<>();
         openTelemetry.getPropagators().getTextMapPropagator()
@@ -25,6 +29,10 @@ public class Telemetry {
         return traceContext;
     }
 
+    /**
+     * Propagates the trace context present in the carrier to the current thread
+     * @param carrier The trace context carrier
+     */
     public void setCurrentTraceContext(TraceCarrier carrier) {
         Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
                 .extract(Context.current(), carrier, new TraceCarrierTextMapGetter());
