@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api.exception;
 
 import static java.lang.String.format;
 
-public class ObjectNotFoundException extends EdcApiExtension {
+public class ObjectNotFoundException extends EdcApiException {
     public ObjectNotFoundException(String objectType, String objectId) {
         super(format("Object of type %s with ID=%s was not found", objectType, objectId));
     }

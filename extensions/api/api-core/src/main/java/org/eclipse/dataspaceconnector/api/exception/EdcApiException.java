@@ -17,8 +17,8 @@ package org.eclipse.dataspaceconnector.api.exception;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 
 //marker class
-public abstract class EdcApiExtension extends EdcException {
-    public EdcApiExtension(String message) {
+public abstract class EdcApiException extends EdcException {
+    public EdcApiException(String message) {
         super(message);
     }
 }

@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api.exception;
 
 import static java.lang.String.format;
 
-public class ObjectExistsException extends EdcApiExtension {
+public class ObjectExistsException extends EdcApiException {
 
     public ObjectExistsException(String objectId, String objectType) {
         super(format("Object of type %s already exists with ID = %s", objectType, objectId));

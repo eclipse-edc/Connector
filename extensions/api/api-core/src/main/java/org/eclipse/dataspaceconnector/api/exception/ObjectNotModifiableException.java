@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.api.exception;
 
 import static java.lang.String.format;
 
-public class ObjectNotModifiableException extends EdcApiExtension {
+public class ObjectNotModifiableException extends EdcApiException {
     public ObjectNotModifiableException(String objectId, String objectType) {
         super(format("Object of type %s with ID=%s is not modifiable", objectType, objectId));
     }
