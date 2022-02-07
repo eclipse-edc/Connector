@@ -56,5 +56,5 @@ For example, the consumer would become:
       - ../:/samples
     ports:
       - 9191:8181
-    entrypoint: java -javaagent:/samples/04.3-open-telemetry/applicationinsights-agent-3.2.4.jar -jar /samples/04.0-file-transfer/consumer/build/libs/consumer.jar
+    entrypoint: java -javaagent:/samples/04.3-open-telemetry/applicationinsights-agent-3.2.5.jar -jar /samples/04.0-file-transfer/consumer/build/libs/consumer.jar
 ```
