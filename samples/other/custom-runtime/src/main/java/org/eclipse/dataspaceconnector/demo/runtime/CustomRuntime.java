@@ -29,9 +29,9 @@ public class CustomRuntime extends BaseRuntime {
     }
 
     @Override
-    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor) {
+    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
         //override the default service extension context with a super customized one
-        return new SuperCustomExtensionContext(typeManager, monitor, loadTelemetry());
+        return new SuperCustomExtensionContext(typeManager, monitor, telemetry);
     }
 
     @Override
