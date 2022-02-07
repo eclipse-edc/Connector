@@ -14,11 +14,14 @@
 
 package org.eclipse.dataspaceconnector.spi.monitor;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
+
 import java.util.Map;
 import java.util.function.Supplier;
 
 /**
- * System monitoring and logging interface.
+ * System observability interface.
  */
 public interface Monitor {
 
@@ -52,6 +55,10 @@ public interface Monitor {
 
     default void debug(String message, Throwable... errors) {
         debug(() -> message, errors);
+    }
+
+    default Telemetry telemetry() {
+        return new Telemetry(GlobalOpenTelemetry.get());
     }
 
 }
