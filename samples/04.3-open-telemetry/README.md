@@ -20,7 +20,7 @@ To run the consumer, the provider, and Jaeger execute the following commands in 
 
 ```bash
 ./gradlew samples:04.0-file-transfer:consumer:build samples:04.0-file-transfer:provider:build
-docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml --abort-on-container-exit up
+docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up --abort-on-container-exit
 ```
 
 Once the consumer and provider are up, start a contract negotiation by executing:
