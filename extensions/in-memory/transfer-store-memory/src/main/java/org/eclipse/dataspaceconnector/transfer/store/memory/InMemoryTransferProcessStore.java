@@ -71,7 +71,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    @WithSpan("create transfer process")
+    @WithSpan("create_transfer_process")
     public void create(TransferProcess process) {
         writeLock(() -> {
             delete(process.getId());
@@ -84,7 +84,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    @WithSpan("update transfer process")
+    @WithSpan("update_transfer_process")
     public void update(TransferProcess process) {
         writeLock(() -> {
             process.updateStateTimestamp();
@@ -98,7 +98,7 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     }
 
     @Override
-    @WithSpan("delete transfer process")
+    @WithSpan("delete_transfer_process")
     public void delete(String processId) {
         writeLock(() -> {
             TransferProcess process = processesById.remove(processId);

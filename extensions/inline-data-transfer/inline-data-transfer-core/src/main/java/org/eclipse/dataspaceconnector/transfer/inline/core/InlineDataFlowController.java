@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.inline.core;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -50,18 +51,11 @@ public class InlineDataFlowController implements DataFlowController {
     }
 
     @Override
+    @WithSpan("initiate_data_flow")
     public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
         var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
         var destinationType = dataRequest.getDestinationType();
         monitor.info(format("Copying data from %s to %s", source.getType(), destinationType));
-
-        var destSecretName = dataRequest.getDataDestination().getKeyName();
-        if (destSecretName == null) {
-            monitor.severe(format("No credentials found for %s, will not copy!", destinationType));
-            return DataFlowInitiateResult.failure(ERROR_RETRY, "Did not find credentials for data destination.");
-        }
-
-        var secret = vault.resolveSecret(destSecretName);
 
         // first look for a streamer
         DataStreamPublisher streamer = dataOperatorRegistry.getStreamPublisher(dataRequest);
@@ -71,6 +65,14 @@ public class InlineDataFlowController implements DataFlowController {
                 return DataFlowInitiateResult.failure(ERROR_RETRY, "Failed to copy data from source to destination: " + copyResult.getFailure().getMessages());
             }
         } else {
+            var destSecretName = dataRequest.getDataDestination().getKeyName();
+            if (destSecretName == null) {
+                monitor.severe(format("No credentials found for %s, will not copy!", destinationType));
+                return DataFlowInitiateResult.failure(ERROR_RETRY, "Did not find credentials for data destination.");
+            }
+
+            var secret = vault.resolveSecret(destSecretName);
+
             // if no copier found for this source/destination pair, then use inline read and write
             var reader = dataOperatorRegistry.getReader(source.getType());
             var writer = dataOperatorRegistry.getWriter(destinationType);

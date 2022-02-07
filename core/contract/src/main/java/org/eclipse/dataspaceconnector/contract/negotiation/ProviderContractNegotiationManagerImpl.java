@@ -133,7 +133,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
      * @param request Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
-    @WithSpan(value = "negotiation requested")
+    @WithSpan(value = "initiate_contract_negotiation")
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
         monitor.info("ContractNegotiation requested");

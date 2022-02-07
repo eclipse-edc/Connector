@@ -19,8 +19,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
-import io.opentelemetry.api.GlobalOpenTelemetry;
-import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.jetbrains.annotations.Nullable;
 

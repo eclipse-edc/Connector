@@ -262,7 +262,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      * @param process The contract negotiation.
      * @return The response to the sent message.
      */
-    @WithSpan(value = "sending negotiation offer")
+    @WithSpan(value = "send_negotiation_offer")
     private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferRequest.Type type) {
         var request = ContractOfferRequest.Builder.newInstance()
                 .contractOffer(offer)
