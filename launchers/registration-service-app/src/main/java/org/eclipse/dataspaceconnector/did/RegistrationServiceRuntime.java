@@ -25,17 +25,16 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.bootServiceExtensions;
-import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMonitor;
-import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadVault;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.*;
 
 public class RegistrationServiceRuntime {
 
     public static void main(String[] args) {
         TypeManager typeManager = new TypeManager();
         var monitor = loadMonitor();
+        var telemetry = loadTelemetry();
         MonitorProvider.setInstance(monitor);
-        DefaultServiceExtensionContext context = new DefaultServiceExtensionContext(typeManager, monitor);
+        DefaultServiceExtensionContext context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry);
         context.initialize();
 
         try {

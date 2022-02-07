@@ -18,6 +18,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static java.lang.String.format;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadTelemetry;
 
 /**
  * Base runtime class. During its {@code main()} method it instantiates a new {@code BaseRuntime} object that bootstraps
@@ -139,7 +140,8 @@ public class BaseRuntime {
      */
     @NotNull
     protected ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor) {
-        return new DefaultServiceExtensionContext(typeManager, monitor);
+        var telemetry = loadTelemetry();
+        return new DefaultServiceExtensionContext(typeManager, monitor, telemetry);
     }
 
     /**
