@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -91,8 +90,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 public class TransferProcessManagerImpl extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
-    // TODO: Inject it
-    private Telemetry telemetry = new Telemetry(GlobalOpenTelemetry.get());
+    private Telemetry telemetry;
     private int batchSize = 5;
     private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
@@ -664,6 +662,11 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
 
         public Builder statusCheckerRegistry(StatusCheckerRegistry statusCheckerRegistry) {
             manager.statusCheckerRegistry = statusCheckerRegistry;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
             return this;
         }
 
