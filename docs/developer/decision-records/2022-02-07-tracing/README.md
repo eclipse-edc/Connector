@@ -10,7 +10,7 @@ Use [OpenTelemetry](https://opentelemetry.io/) to enable distributed tracing in 
 
 Distributed tracing is an essential observability pillar to correlate requests as they propagate through distributed cloud environments and services. EDC as a framework needs to support distributed tracing in any possible constellation where it might come to use. 
 
-The OpenTelemetry Collector is a vendor-agnostic proxy that can receive, process, and export telemetry data to most common monitor backends, making it a very compelling option for EDC. 
+OpenTelemetry provides a vendor-agnostic solution that can be configured to send telemetry data to the backend(s) of choice, including a variety of popular open-source projects. OpenTelemetry instrumentation with Java uses a Java agent that dynamically injects bytecode to capture telemetry from many popular libraries and frameworks automatically. It can be used to capture telemetry data at the “edges” of an app or service, such as inbound requests, outbound HTTP calls, database calls, and so on. This makes it a very compelling option for EDC. 
 
 ## Span naming
 
