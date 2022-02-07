@@ -90,7 +90,6 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 public class TransferProcessManagerImpl extends TransferProcessObservable implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
-    private Telemetry telemetry;
     private int batchSize = 5;
     private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
@@ -99,6 +98,7 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
     private Monitor monitor;
+    private Telemetry telemetry;
     private ExecutorService executor;
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
