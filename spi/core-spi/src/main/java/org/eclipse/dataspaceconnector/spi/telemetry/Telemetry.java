@@ -7,6 +7,9 @@ import io.opentelemetry.context.propagation.TextMapGetter;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * System observability interface for tracing and metrics
+ */
 public class Telemetry {
 
     private final OpenTelemetry openTelemetry;
