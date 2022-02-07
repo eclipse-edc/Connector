@@ -551,7 +551,5 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             return manager;
         }
-
-
     }
 }
