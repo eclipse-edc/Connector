@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -47,7 +48,9 @@ import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
 import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult.Status.FATAL_ERROR;
-import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.*;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.DECLINING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.PROVIDER_OFFERING;
 
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
@@ -63,6 +66,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private Monitor monitor;
+    private Telemetry telemetry;
     private ExecutorService executor;
 
     private ProviderContractNegotiationManagerImpl() { }
@@ -136,7 +140,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
                 .type(ContractNegotiation.Type.PROVIDER)
-                .traceContext(monitor.telemetry().getCurrentTraceContext())
+                .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 
         negotiation.transitionRequested();
@@ -375,7 +379,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
 
         for (var negotiation : confirmingNegotiations) {
             // set the telemetry context for the current negotiation object
-            monitor.telemetry().setCurrentTraceContext(negotiation);
+            telemetry.setCurrentTraceContext(negotiation);
 
             negotiate(negotiation);
         }
@@ -491,6 +495,11 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
 
         public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry dispatcherRegistry) {
             manager.dispatcherRegistry = dispatcherRegistry;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
             return this;
         }
 

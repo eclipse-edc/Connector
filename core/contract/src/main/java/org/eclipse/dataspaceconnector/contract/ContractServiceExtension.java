@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.contract;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
@@ -41,6 +42,7 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
 @Provides({ContractOfferService.class, PolicyEngine.class, ParticipantAgentService.class, ContractValidationService.class,
@@ -118,11 +120,14 @@ public class ContractServiceExtension implements ServiceExtension {
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
 
+        var telemetry = new Telemetry(GlobalOpenTelemetry.get());
+
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .validationService(validationService)
+                .telemetry(telemetry)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -130,6 +135,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .validationService(validationService)
+                .telemetry(telemetry)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);

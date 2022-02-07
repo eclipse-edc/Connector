@@ -39,6 +39,11 @@ public interface ServiceExtensionContext extends SettingResolver {
     Monitor getMonitor();
 
     /**
+     * Returns the system telemetry object.
+     */
+    Telemetry getTelemetry();
+
+    /**
      * Returns the type manager.
      */
     TypeManager getTypeManager();
