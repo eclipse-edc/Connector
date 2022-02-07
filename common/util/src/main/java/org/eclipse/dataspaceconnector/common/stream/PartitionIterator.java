@@ -27,10 +27,9 @@ import static java.util.stream.StreamSupport.stream;
  * Partitions a source collection into units.
  */
 public class PartitionIterator<T> implements Iterator<List<T>> {
-    private Iterator<T> source;
-
-    private int partitionSize;
-    private List<T> partition;
+    
+    private final Iterator<T> source;
+    private final int partitionSize;
 
     public static <T> Stream<List<T>> streamOf(Stream<T> source, int partitionSize) {
         var iterator = new PartitionIterator<>(source.iterator(), partitionSize);
@@ -48,19 +47,15 @@ public class PartitionIterator<T> implements Iterator<List<T>> {
 
     @Override
     public boolean hasNext() {
-        nextPartition();
-        return partition != null && !partition.isEmpty();
+        return source.hasNext();
     }
 
     @Override
     public List<T> next() {
-        return partition;
-    }
-
-    private void nextPartition() {
-        partition = new ArrayList<>(partitionSize);
+        List<T> partition = new ArrayList<>(partitionSize);
         while (source.hasNext() && partition.size() < partitionSize) {
             partition.add(source.next());
         }
+        return partition;
     }
 }

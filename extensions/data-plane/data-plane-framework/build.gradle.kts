@@ -12,8 +12,6 @@
  *
  */
 
-val mockitoVersion: String by project
-
 plugins {
     `java-library`
 }

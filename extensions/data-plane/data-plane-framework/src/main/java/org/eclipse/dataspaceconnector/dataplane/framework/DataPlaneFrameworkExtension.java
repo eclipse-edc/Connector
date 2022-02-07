@@ -30,15 +30,15 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @EdcSetting
     private static final String QUEUE_CAPACITY = "edc.dataplane.queue.capacity";
-    private static final String DEFAULT_QUEUE_CAPACITY = "10000";
+    private static final int DEFAULT_QUEUE_CAPACITY = 10000;
 
     @EdcSetting
     private static final String WORKERS = "edc.dataplane.workers";
-    private static final String DEFAULT_WORKERS = "10";
+    private static final int DEFAULT_WORKERS = 10;
 
     @EdcSetting
     private static final String WAIT_TIMEOUT = "edc.dataplane.wait";
-    private static final String DEFAULT_WAIT_TIMEOUT = "1000";
+    private static final long DEFAULT_WAIT_TIMEOUT = 1000;
 
     @Override
     public String name() {
@@ -51,9 +51,9 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         context.registerService(PipelineService.class, pipelineService);
 
         var monitor = context.getMonitor();
-        var queueCapacity = Integer.parseInt(context.getSetting(QUEUE_CAPACITY, DEFAULT_QUEUE_CAPACITY));
-        var workers = Integer.parseInt(context.getSetting(WORKERS, DEFAULT_WORKERS));
-        var waitTimeout = Long.parseLong(context.getSetting(WAIT_TIMEOUT, DEFAULT_WAIT_TIMEOUT));
+        var queueCapacity = context.getSetting(QUEUE_CAPACITY, DEFAULT_QUEUE_CAPACITY);
+        var workers = context.getSetting(WORKERS, DEFAULT_WORKERS);
+        var waitTimeout = context.getSetting(WAIT_TIMEOUT, DEFAULT_WAIT_TIMEOUT);
 
         var dataPlaneManager = DataPlaneManagerImpl.Builder.newInstance()
                 .queueCapacity(queueCapacity)

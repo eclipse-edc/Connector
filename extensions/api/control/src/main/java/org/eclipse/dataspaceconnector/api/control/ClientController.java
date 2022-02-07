@@ -92,16 +92,16 @@ public class ClientController {
 
         return Response.ok(negotiation).build();
     }
-    
+
     @GET
     @Path("negotiation/{id}/state")
     public Response getNegotiationStateById(@PathParam("id") String id) {
         var negotiation = contractNegotiationStore.find(id);
-    
+
         if (negotiation == null) {
             return Response.status(404).build();
         }
-        
+
         return Response.ok(new NegotiationStatusResponse(negotiation)).build();
     }
 

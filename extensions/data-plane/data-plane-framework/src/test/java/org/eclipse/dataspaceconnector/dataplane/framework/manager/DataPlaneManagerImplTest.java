@@ -107,8 +107,8 @@ class DataPlaneManagerImplTest {
         return DataFlowRequest.Builder.newInstance()
                 .id("1")
                 .processId("1")
-                .sourceDataAddress(DataAddress.Builder.newInstance().build())
-                .destinationDataAddress(DataAddress.Builder.newInstance().build())
+                .sourceDataAddress(DataAddress.Builder.newInstance().type("type").build())
+                .destinationDataAddress(DataAddress.Builder.newInstance().type("type").build())
                 .build();
     }
 
