@@ -14,11 +14,11 @@
 
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -65,6 +65,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
         return negotiation != null ? negotiation.getContractAgreement() : null;
     }
 
+    @WithSpan(value = "save_contract_negotiation")
     @Override
     public void save(ContractNegotiation negotiation) {
         writeLock(() -> {

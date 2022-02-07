@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
@@ -25,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -70,6 +72,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
     private int batchSize = 5;
     private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private Monitor monitor;
+    private Telemetry telemetry;
     private ExecutorService executor;
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
@@ -105,6 +108,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
                 .counterPartyAddress(contractOffer.getConnectorAddress())
+                .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
@@ -255,6 +259,7 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
      * @param process The contract negotiation.
      * @return The response to the sent message.
      */
+    @WithSpan(value = "send_contract_negotiation_offer")
     private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferRequest.Type type) {
         var request = ContractOfferRequest.Builder.newInstance()
                 .contractOffer(offer)
@@ -281,6 +286,9 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
         var negotiations = negotiationStore.nextForState(INITIAL.code(), batchSize);
 
         for (ContractNegotiation negotiation : negotiations) {
+            // set the telemetry context for the current negotiation object
+            telemetry.setCurrentTraceContext(negotiation);
+
             var offer = negotiation.getLastContractOffer();
             negotiation.transitionRequesting();
             negotiationStore.save(negotiation);
@@ -529,6 +537,11 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
 
         public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry dispatcherRegistry) {
             manager.dispatcherRegistry = dispatcherRegistry;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
             return this;
         }
 

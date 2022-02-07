@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.util.List;
@@ -31,6 +32,7 @@ import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadVau
 
 public class EdcConnectorConsumerRuntime {
     private Monitor monitor;
+    private Telemetry telemetry;
     private TypeManager typeManager;
     private List<ServiceExtension> serviceExtensions;
     private DefaultServiceExtensionContext context;
@@ -41,7 +43,7 @@ public class EdcConnectorConsumerRuntime {
     public void start() {
         MonitorProvider.setInstance(monitor);
 
-        context = new DefaultServiceExtensionContext(typeManager, monitor);
+        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry);
         context.initialize();
 
         try {
@@ -71,6 +73,10 @@ public class EdcConnectorConsumerRuntime {
         return typeManager;
     }
 
+    public Telemetry getTelemetry() {
+        return telemetry;
+    }
+
     public Monitor getMonitor() {
         return monitor;
     }
@@ -94,6 +100,12 @@ public class EdcConnectorConsumerRuntime {
         public Builder monitor(Monitor monitor) {
             checkImmutable();
             runtime.monitor = monitor;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            checkImmutable();
+            runtime.telemetry = telemetry;
             return this;
         }
 

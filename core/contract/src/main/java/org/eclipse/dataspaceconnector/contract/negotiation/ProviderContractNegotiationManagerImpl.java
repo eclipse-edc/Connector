@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
@@ -25,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -64,6 +66,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private Monitor monitor;
+    private Telemetry telemetry;
     private ExecutorService executor;
 
     private ProviderContractNegotiationManagerImpl() { }
@@ -126,8 +129,10 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
      * @param request Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
+    @WithSpan(value = "process_contract_negotiation_request")
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+        monitor.info("ContractNegotiation requested");
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
@@ -135,6 +140,7 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
                 .type(ContractNegotiation.Type.PROVIDER)
+                .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 
         negotiation.transitionRequested();
@@ -372,50 +378,58 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
         var confirmingNegotiations = negotiationStore.nextForState(CONFIRMING.code(), batchSize);
 
         for (var negotiation : confirmingNegotiations) {
-            var retrievedAgreement = negotiation.getContractAgreement();
+            // set the telemetry context for the current negotiation object
+            telemetry.setCurrentTraceContext(negotiation);
 
-            ContractAgreement agreement;
-            if (retrievedAgreement == null) {
-                var lastOffer = negotiation.getLastContractOffer();
-
-                var contractIdTokens = parseContractId(lastOffer.getId());
-                if (contractIdTokens.length != 2) {
-                    monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
-                    continue;
-                }
-                var definitionId = contractIdTokens[DEFINITION_PART];
-
-                //TODO move to own service
-                agreement = ContractAgreement.Builder.newInstance()
-                        .id(ContractId.createContractId(definitionId))
-                        .contractEndDate(Instant.now().getEpochSecond() + 60 * 60 /* Five Minutes */) // TODO
-                        .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
-                        .contractStartDate(Instant.now().getEpochSecond())
-                        .providerAgentId(String.valueOf(lastOffer.getProvider()))
-                        .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
-                        .policy(lastOffer.getPolicy())
-                        .asset(lastOffer.getAsset())
-                        .build();
-            } else {
-                agreement = retrievedAgreement;
-            }
-
-            ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
-                    .protocol(negotiation.getProtocol())
-                    .connectorId(negotiation.getCounterPartyId())
-                    .connectorAddress(negotiation.getCounterPartyAddress())
-                    .contractAgreement(agreement)
-                    .correlationId(negotiation.getCorrelationId())
-                    .build();
-
-            //TODO protocol-independent response type?
-            negotiation.transitionConfirmingSent();
-            negotiationStore.save(negotiation);
-            dispatcherRegistry.send(Object.class, request, () -> null)
-                    .whenComplete(onAgreementSent(negotiation.getId(), agreement));
+            negotiate(negotiation);
         }
 
         return confirmingNegotiations.size();
+    }
+
+    @WithSpan(value = "process_contract_negotiation_offer")
+    private void negotiate(ContractNegotiation negotiation) {
+        var retrievedAgreement = negotiation.getContractAgreement();
+
+        ContractAgreement agreement;
+        if (retrievedAgreement == null) {
+            var lastOffer = negotiation.getLastContractOffer();
+
+            var contractIdTokens = parseContractId(lastOffer.getId());
+            if (contractIdTokens.length != 2) {
+                monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
+                return;
+            }
+            var definitionId = contractIdTokens[DEFINITION_PART];
+
+            //TODO move to own service
+            agreement = ContractAgreement.Builder.newInstance()
+                    .id(ContractId.createContractId(definitionId))
+                    .contractEndDate(Instant.now().getEpochSecond() + 60 * 60 /* Five Minutes */) // TODO
+                    .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
+                    .contractStartDate(Instant.now().getEpochSecond())
+                    .providerAgentId(String.valueOf(lastOffer.getProvider()))
+                    .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
+                    .policy(lastOffer.getPolicy())
+                    .asset(lastOffer.getAsset())
+                    .build();
+        } else {
+            agreement = retrievedAgreement;
+        }
+
+        ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
+                .protocol(negotiation.getProtocol())
+                .connectorId(negotiation.getCounterPartyId())
+                .connectorAddress(negotiation.getCounterPartyAddress())
+                .contractAgreement(agreement)
+                .correlationId(negotiation.getCorrelationId())
+                .build();
+
+        //TODO protocol-independent response type?
+        negotiation.transitionConfirmingSent();
+        negotiationStore.save(negotiation);
+        dispatcherRegistry.send(Object.class, request, () -> null)
+                .whenComplete(onAgreementSent(negotiation.getId(), agreement));
     }
 
     @NotNull
@@ -484,11 +498,17 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
             return this;
         }
 
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
+            return this;
+        }
+
         public ProviderContractNegotiationManagerImpl build() {
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             return manager;
         }
+
     }
 }

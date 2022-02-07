@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.SystemExtension;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
@@ -40,6 +41,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMonitor;
+import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadTelemetry;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
@@ -52,6 +54,7 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
     private List<ServiceExtension> runningServiceExtensions;
     private DefaultServiceExtensionContext context;
     private Monitor monitor;
+    private Telemetry telemetry;
 
     /**
      * Registers a mock service with the runtime.
@@ -78,10 +81,11 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
         var typeManager = new TypeManager();
 
         monitor = loadMonitor();
+        telemetry = loadTelemetry();
 
         MonitorProvider.setInstance(monitor);
 
-        context = new DefaultServiceExtensionContext(typeManager, monitor, new MultiSourceServiceLocator());
+        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, new MultiSourceServiceLocator());
         context.initialize();
 
         serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
