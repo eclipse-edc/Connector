@@ -31,7 +31,7 @@ public class ObservabilityApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
 
 
-        webService.registerResource("health", new ObservabilityApiController(healthCheckService));
+        webService.registerController(new ObservabilityApiController(healthCheckService));
 
         // contribute to the liveness probe
         healthCheckService.addReadinessProvider(() -> HealthCheckResult.Builder.newInstance().component("Observability API").build());
