@@ -16,8 +16,10 @@ package org.eclipse.dataspaceconnector.contract;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -39,5 +41,10 @@ public class NullAssetIndex implements AssetIndex {
     @Override
     public Asset findById(String assetId) {
         return null;
+    }
+
+    @Override
+    public List<Asset> findAll(QuerySpec querySpec) {
+        return Collections.emptyList();
     }
 }

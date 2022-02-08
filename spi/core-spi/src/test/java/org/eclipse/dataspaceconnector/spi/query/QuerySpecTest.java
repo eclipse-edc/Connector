@@ -38,15 +38,22 @@ class QuerySpecTest {
         assertion.extracting(QuerySpec::getFilterExpression).isNull();
         assertion.extracting(QuerySpec::getLimit).isEqualTo(50);
         assertion.extracting(QuerySpec::getOffset).isEqualTo(0);
-        assertion.extracting(QuerySpec::getSortOrder).isEqualTo(SortOrder.DESC);
+        assertion.extracting(QuerySpec::getSortOrder).isEqualTo(SortOrder.ASC);
         assertion.extracting(QuerySpec::getSortField).isNull();
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "name=foo", "name = foo", "name =      foo", "name contains foo" })
-    void verifyEqualsFilterExpressions(String equalityExp) {
-        var spec = QuerySpec.Builder.newInstance().filter(equalityExp).build();
+    void verifyEquals_whenEqualsAsContainsFilterExpressions(String equalityExp) {
+        var spec = QuerySpec.Builder.newInstance().equalsAsContains(true).filter(equalityExp).build();
         assertThat(spec.getFilterExpression()).hasSize(1).containsOnly(new Criterion("name", "contains", "foo"));
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = { "name=foo", "name = foo", "name =      foo" })
+    void verifyEquals_whenEqualsFilterExpressions(String equalityExp) {
+        var spec = QuerySpec.Builder.newInstance().equalsAsContains(false).filter(equalityExp).build();
+        assertThat(spec.getFilterExpression()).hasSize(1).containsOnly(new Criterion("name", "=", "foo"));
     }
 
     @Test

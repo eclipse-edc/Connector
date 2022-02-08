@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.asset;
 
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.Nullable;
@@ -59,5 +60,21 @@ public interface AssetIndex {
      */
     @Nullable
     Asset findById(String assetId);
+
+
+    /**
+     * Finds all assets that are covered by a specific {@link QuerySpec}. Results are always sorted. If no {@link QuerySpec#getSortField()}
+     * is specified, results are not explicitly sorted.
+     * <p>
+     * The general order of precedence of the query parameters is:
+     * <pre>
+     * filter > sort > limit
+     * </pre>
+     * <p>
+     *
+     * @param querySpec The query spec, e.g. paging, filtering, etc.
+     * @return A potentially empty collection of {@link Asset}, never null.
+     */
+    List<Asset> findAll(QuerySpec querySpec);
 
 }

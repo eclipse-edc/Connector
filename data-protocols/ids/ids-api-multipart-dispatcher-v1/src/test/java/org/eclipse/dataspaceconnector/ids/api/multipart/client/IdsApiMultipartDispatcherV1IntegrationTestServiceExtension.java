@@ -35,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -129,6 +130,11 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         @Override
         public Asset findById(String assetId) {
             return assets.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
+        }
+
+        @Override
+        public List<Asset> findAll(QuerySpec querySpec) {
+            throw new UnsupportedOperationException("Filtering/Paging not supported");
         }
     }
 
