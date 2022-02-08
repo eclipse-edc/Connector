@@ -18,7 +18,6 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.TracerProvider;
 import io.opentelemetry.context.propagation.ContextPropagators;
-import net.bytebuddy.agent.builder.AgentBuilder;
 import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
@@ -108,7 +107,7 @@ class ExtensionLoaderTest {
     void loadOpenTelemetry_whenSeveralOpenTelemetry() {
         List<OpenTelemetry> openTelemetries = new ArrayList<>(Arrays.asList(new CustomOpenTelemetry(), new CustomOpenTelemetry()));
         Exception thrown = assertThrows(IllegalStateException.class, () -> ExtensionLoader.loadOpenTelemetry(openTelemetries));
-        assertEquals(thrown.getMessage(), "Please provide only one OpenTelemetry service provider.");
+        assertEquals(thrown.getMessage(), "Found 2 OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.");
     }
 
     @Test
