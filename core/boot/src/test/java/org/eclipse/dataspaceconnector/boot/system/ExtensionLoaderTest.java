@@ -14,9 +14,11 @@
 
 package org.eclipse.dataspaceconnector.boot.system;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.TracerProvider;
 import io.opentelemetry.context.propagation.ContextPropagators;
+import net.bytebuddy.agent.builder.AgentBuilder;
 import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
@@ -89,19 +91,21 @@ class ExtensionLoaderTest {
     }
 
     @Test
-    void loadOpenTelemetry_whenNoOpenTelemetryExtension() {
+    void loadOpenTelemetry_whenNoOpenTelemetry() {
+        GlobalOpenTelemetry.set(new CustomOpenTelemetry());
         var openTelemetry = ExtensionLoader.loadOpenTelemetry(new ArrayList<>());
+        assertEquals(openTelemetry, GlobalOpenTelemetry.get());
     }
 
     @Test
-    void loadOpenTelemetry_whenSingleOpenTelemetryExtension() {
+    void loadOpenTelemetry_whenSingleOpenTelemetry() {
         List<OpenTelemetry> openTelemetries = Arrays.asList(new CustomOpenTelemetry());
         var openTelemetry = ExtensionLoader.loadOpenTelemetry(openTelemetries);
         assertTrue(openTelemetry instanceof CustomOpenTelemetry);
     }
 
     @Test
-    void loadOpenTelemetry_whenSeveralOpenTelemetryExtension() {
+    void loadOpenTelemetry_whenSeveralOpenTelemetry() {
         List<OpenTelemetry> openTelemetries = new ArrayList<>(Arrays.asList(new CustomOpenTelemetry(), new CustomOpenTelemetry()));
         Exception thrown = assertThrows(IllegalStateException.class, () -> ExtensionLoader.loadOpenTelemetry(openTelemetries));
         assertEquals(thrown.getMessage(), "Please provide only one OpenTelemetry service provider.");
