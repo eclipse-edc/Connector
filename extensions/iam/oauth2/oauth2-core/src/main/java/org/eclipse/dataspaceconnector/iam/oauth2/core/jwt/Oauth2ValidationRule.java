@@ -1,20 +1,24 @@
-package org.eclipse.dataspaceconnector.iam.oauth2.core.impl;
+package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
 import com.nimbusds.jwt.JWTClaimsSet;
+import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-class Oauth2ValidationRule implements ValidationRule {
+import static java.time.ZoneOffset.UTC;
 
-    private static Instant convertToUtcTime(Date date) {
-        return ZonedDateTime.ofInstant(date.toInstant(), ZoneId.of("UTC")).toInstant();
+public class Oauth2ValidationRule implements ValidationRule {
+
+    private final Oauth2Configuration configuration;
+
+    public Oauth2ValidationRule(Oauth2Configuration configuration) {
+        this.configuration = configuration;
     }
 
     /**
@@ -25,7 +29,6 @@ class Oauth2ValidationRule implements ValidationRule {
         Instant nowUtc = Instant.now();
         List<String> errors = new ArrayList<>();
 
-        // check audiences
         List<String> audiences = toVerify.getAudience();
         if (audiences.isEmpty()) {
             errors.add("Missing audience in token claims");
@@ -33,15 +36,14 @@ class Oauth2ValidationRule implements ValidationRule {
             errors.add("Token audience did not match required audience: " + audience);
         }
 
-        // check not before
+        var leewayNow = nowUtc.plusSeconds(configuration.getNotBeforeValidationLeeway());
         var notBefore = toVerify.getNotBeforeTime();
         if (notBefore == null) {
             errors.add("Missing notBefore time in token claims");
-        } else if (nowUtc.isBefore(convertToUtcTime(notBefore))) {
+        } else if (leewayNow.isBefore(convertToUtcTime(notBefore))) {
             errors.add("Token is not valid yet");
         }
 
-        // check expiration time
         Date expires = toVerify.getExpirationTime();
         if (expires == null) {
             errors.add("Missing expiration time in token claims");
@@ -55,5 +57,9 @@ class Oauth2ValidationRule implements ValidationRule {
             return Result.failure(errors);
         }
 
+    }
+
+    private static Instant convertToUtcTime(Date date) {
+        return ZonedDateTime.ofInstant(date.toInstant(), UTC).toInstant();
     }
 }

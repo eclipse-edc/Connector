@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.iam.oauth2.core.impl;
+package org.eclipse.dataspaceconnector.iam.oauth2.core.jwt;
 
 import java.util.List;
 

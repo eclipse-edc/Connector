@@ -12,10 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.iam.oauth2.core.impl;
+package org.eclipse.dataspaceconnector.iam.oauth2.core.identity;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.JwkKeys;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
