@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.dataspaceconnector.core.base.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -63,7 +64,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
-                .telemetry(new Telemetry(OpenTelemetry.noop())
+                .telemetry(new Telemetry(OpenTelemetry.noop()))
                 .commandQueue(mock(CommandQueue.class))
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
