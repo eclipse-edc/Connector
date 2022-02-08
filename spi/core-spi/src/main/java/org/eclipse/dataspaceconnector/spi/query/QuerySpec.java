@@ -1,8 +1,26 @@
+/*
+ *  Copyright (c) 2020 - 2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *
+ */
+
 package org.eclipse.dataspaceconnector.spi.query;
 
 import java.util.List;
 import java.util.regex.Pattern;
 
+/**
+ * Specifies various query parameters for collection-like queries.
+ * Typical uses include API endpoints, where the query is tunnelled through to the database level.
+ */
 public class QuerySpec {
     private int offset = 0;
     private int limit = 50;
