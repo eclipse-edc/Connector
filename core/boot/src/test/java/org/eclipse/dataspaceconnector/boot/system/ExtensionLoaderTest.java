@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.boot.system;
 
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.TracerProvider;
+import io.opentelemetry.context.propagation.ContextPropagators;
 import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
@@ -26,8 +29,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -66,6 +68,37 @@ class ExtensionLoaderTest {
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
 
         assertTrue(monitor instanceof ConsoleMonitor);
+    }
+
+    @Test
+    void loadOpenTelemetry_whenNoOpenTelemetryExtension() {
+        var openTelemetry = ExtensionLoader.loadOpenTelemetry(new ArrayList<>());
+    }
+
+    @Test
+    void loadOpenTelemetry_whenSingleOpenTelemetryExtension() {
+        var openTelemetries = new ArrayList<>();
+        class CustomOpenTelemetry implements OpenTelemetry {
+
+            @Override
+            public TracerProvider getTracerProvider() {
+                return null;
+            }
+
+            @Override
+            public ContextPropagators getPropagators() {
+                return null;
+            }
+        }
+        openTelemetries.add(new CustomOpenTelemetry());
+
+        var openTelemetry = ExtensionLoader.loadOpenTelemetry();
+        assertTrue(openTelemetry instanceof CustomOpenTelemetry);
+    }
+
+    @Test
+    void loadOpenTelemetry_whenSeveralOpenTelemetryExtension() {
+        //assertThrows()
     }
 
     @Test
@@ -115,4 +148,7 @@ class ExtensionLoaderTest {
         verify(contextMock, atLeastOnce()).getMonitor();
         verify(contextMock).loadSingletonExtension(VaultExtension.class, false);
     }
+
+    @Test
+    void loadOpenTelemetry()
 }
