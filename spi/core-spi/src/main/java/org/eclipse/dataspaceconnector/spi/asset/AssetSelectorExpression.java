@@ -18,6 +18,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +92,7 @@ public final class AssetSelectorExpression {
         /**
          * Convenience method to express equality checks. Is equivalent to {@code Builder.withConstraint(key, "=", value)}
          *
-         * @param key left-hand operand
+         * @param key   left-hand operand
          * @param value right-hand operand
          */
         @JsonIgnore
