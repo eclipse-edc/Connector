@@ -3,7 +3,7 @@ package org.eclipse.dataspaceconnector.spi.query;
 import java.util.List;
 import java.util.regex.Pattern;
 
-public class PagingSpec {
+public class QuerySpec {
     private int offset = 0;
     private int limit = 50;
     private List<Criterion> filterExpression;
@@ -16,7 +16,7 @@ public class PagingSpec {
 
     @Override
     public String toString() {
-        return "PagingSpec{" +
+        return "QuerySpec{" +
                 "offset=" + offset +
                 ", pageSize=" + limit +
                 ", filterExpression=" + filterExpression +
@@ -42,10 +42,10 @@ public class PagingSpec {
     }
 
     public static final class Builder {
-        private final PagingSpec pagingSpec;
+        private final QuerySpec querySpec;
 
         private Builder() {
-            pagingSpec = new PagingSpec();
+            querySpec = new QuerySpec();
         }
 
         public static Builder newInstance() {
@@ -53,33 +53,33 @@ public class PagingSpec {
         }
 
         public Builder offset(int offset) {
-            pagingSpec.offset = offset;
+            querySpec.offset = offset;
             return this;
         }
 
         public Builder limit(int limit) {
-            pagingSpec.limit = limit;
+            querySpec.limit = limit;
             return this;
         }
 
         public Builder sortOrder(SortOrder sortOrder) {
-            pagingSpec.sortOrder = sortOrder;
+            querySpec.sortOrder = sortOrder;
             return this;
         }
 
         public Builder sortField(String sortField) {
-            pagingSpec.sortField = sortField;
+            querySpec.sortField = sortField;
             return this;
         }
 
-        public PagingSpec build() {
-            if (pagingSpec.offset < 0) {
+        public QuerySpec build() {
+            if (querySpec.offset < 0) {
                 throw new IllegalArgumentException("offset");
             }
-            if (pagingSpec.limit <= 0) {
+            if (querySpec.limit <= 0) {
                 throw new IllegalArgumentException("limit");
             }
-            return pagingSpec;
+            return querySpec;
         }
 
         public Builder filter(String filterExpression) {
@@ -90,14 +90,14 @@ public class PagingSpec {
                     filterExpression = filterExpression.replace(" ", "");
                     // we'll interpret the "=" as "contains"
                     var tokens = filterExpression.split("=");
-                    pagingSpec.filterExpression = List.of(new Criterion(tokens[0], "contains", tokens[1]));
+                    querySpec.filterExpression = List.of(new Criterion(tokens[0], "contains", tokens[1]));
                 } else {
                     var sanitized = filterExpression.replaceAll(" +", " ");
                     var s = sanitized.split(" ");
 
                     //generic LEFT OPERAND RIGHT expression
                     if (s.length == 3) {
-                        pagingSpec.filterExpression = List.of(new Criterion(s[0], s[1], s[2]));
+                        querySpec.filterExpression = List.of(new Criterion(s[0], s[1], s[2]));
                     } else {
                         // unsupported filter expression
                         throw new IllegalArgumentException("Cannot convert " + filterExpression + " into a Criterion");
