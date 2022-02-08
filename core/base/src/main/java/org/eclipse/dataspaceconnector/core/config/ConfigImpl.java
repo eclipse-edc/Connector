@@ -20,14 +20,12 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collector;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
@@ -97,6 +95,20 @@ public class ConfigImpl implements Config {
     }
 
     @Override
+    public Config merge(Config other) {
+        var all = new HashMap<String, String>();
+        all.putAll(entries);
+        all.putAll(other.getEntries());
+
+        return new ConfigImpl("", Collections.unmodifiableMap(all));
+    }
+
+    @Override
+    public Stream<Config> partition() {
+        return getRelativeEntries().keySet().stream().map(it -> it.split("\\.")[0]).distinct().map(group -> getConfig(group));
+    }
+
+    @Override
     public Map<String, String> getEntries() {
         return entries;
     }
@@ -120,16 +132,8 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public Config merge(Config other) {
-        var all = new HashMap<String, String>();
-        all.putAll(this.entries);
-        all.putAll(other.getEntries());
-
-        return new ConfigImpl("", Collections.unmodifiableMap(all));
-    }
-
-    public Stream<Config> partition() {
-        return this.getRelativeEntries().keySet().stream().map(it -> it.split("\\.")[0]).distinct().map(group -> this.getConfig(group));
+    public boolean isLeaf() {
+        return entries.size() == 1 && entries.keySet().stream().allMatch(rootPath::equals);
     }
 
     private String removePrefix(String path, String rootPath) {

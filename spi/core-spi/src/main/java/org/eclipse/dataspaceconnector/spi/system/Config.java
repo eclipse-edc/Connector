@@ -140,4 +140,6 @@ public interface Config {
      * @return the name of the current node
      */
     String currentNode();
+
+    boolean isLeaf();
 }
