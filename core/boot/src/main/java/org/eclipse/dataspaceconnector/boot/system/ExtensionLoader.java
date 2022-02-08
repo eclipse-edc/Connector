@@ -99,6 +99,11 @@ public class ExtensionLoader {
     public static @NotNull OpenTelemetry loadOpenTelemetry() {
         var loader = ServiceLoader.load(OpenTelemetry.class);
         var openTelemetries = loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
+        return loadOpenTelemetry(openTelemetries);
+    }
+
+    static @NotNull OpenTelemetry loadOpenTelemetry(List<OpenTelemetry> openTelemetries) {
+        if (openTelemetries.size() > 1) throw new IllegalStateException("Please provide only one OpenTelemetry service provider.");
         return openTelemetries.isEmpty() ? GlobalOpenTelemetry.get() : openTelemetries.get(0);
     }
 
