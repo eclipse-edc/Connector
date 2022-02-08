@@ -28,6 +28,8 @@ import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -40,6 +42,22 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 class ExtensionLoaderTest {
+
+    /**
+     * This is a dummy OpenTelemetry implementation used to test loading of OpenTelemetry.
+     */
+    class CustomOpenTelemetry implements OpenTelemetry {
+
+        @Override
+        public TracerProvider getTracerProvider() {
+            return null;
+        }
+
+        @Override
+        public ContextPropagators getPropagators() {
+            return null;
+        }
+    }
 
     @Test
     void loadMonitor_whenSingleMonitorExtension() {
@@ -77,28 +95,16 @@ class ExtensionLoaderTest {
 
     @Test
     void loadOpenTelemetry_whenSingleOpenTelemetryExtension() {
-        var openTelemetries = new ArrayList<>();
-        class CustomOpenTelemetry implements OpenTelemetry {
-
-            @Override
-            public TracerProvider getTracerProvider() {
-                return null;
-            }
-
-            @Override
-            public ContextPropagators getPropagators() {
-                return null;
-            }
-        }
-        openTelemetries.add(new CustomOpenTelemetry());
-
-        var openTelemetry = ExtensionLoader.loadOpenTelemetry();
+        List<OpenTelemetry> openTelemetries = Arrays.asList(new CustomOpenTelemetry());
+        var openTelemetry = ExtensionLoader.loadOpenTelemetry(openTelemetries);
         assertTrue(openTelemetry instanceof CustomOpenTelemetry);
     }
 
     @Test
     void loadOpenTelemetry_whenSeveralOpenTelemetryExtension() {
-        //assertThrows()
+        List<OpenTelemetry> openTelemetries = new ArrayList<>(Arrays.asList(new CustomOpenTelemetry(), new CustomOpenTelemetry()));
+        Exception thrown = assertThrows(IllegalStateException.class, () -> ExtensionLoader.loadOpenTelemetry(openTelemetries));
+        assertEquals(thrown.getMessage(), "Please provide only one OpenTelemetry service provider.");
     }
 
     @Test
@@ -149,6 +155,4 @@ class ExtensionLoaderTest {
         verify(contextMock).loadSingletonExtension(VaultExtension.class, false);
     }
 
-    @Test
-    void loadOpenTelemetry()
 }
