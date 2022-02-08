@@ -159,5 +159,4 @@ class ExtensionLoaderTest {
         verify(contextMock, atLeastOnce()).getMonitor();
         verify(contextMock).loadSingletonExtension(VaultExtension.class, false);
     }
-
 }
