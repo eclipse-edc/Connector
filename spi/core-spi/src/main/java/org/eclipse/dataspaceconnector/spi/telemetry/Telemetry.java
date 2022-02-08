@@ -35,9 +35,8 @@ public class Telemetry {
      * Propagates the trace context present in the carrier to the current thread and returns a {@link Scope} which
      * corresponds to the current scope of execution.
      * <p>
-     * {@link Scope#close()} must be called to properly restore the previous context from before this scope of execution
-     * or context will not work correctly. It is recommended to use try-with-resources to call {@link Scope#close()}
-     * automatically.
+     * {@link Scope#close()} must be called to restore the previous parent context and avoid leaking child scopes.
+     * It is recommended to use try-with-resources to call {@link Scope#close()} automatically.
      *
      * <pre>{@code
      * var prevTraceContext = telemetry.getCurrentTraceContext();
