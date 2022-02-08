@@ -317,6 +317,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
+    private DataProxyRequest createDataProxyRequest(DataRequest request) {
+        return new DataProxyRequest(request.getConnectorAddress(), request.getContractId(), request.getDataDestination());
+    }
+
     private boolean isRetryable(Throwable ex) {
         return ex instanceof ConnectException; //we might need to add more retryable exceptions
     }
@@ -365,8 +369,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
     }
 
-    @NotNull
-    private Boolean processCommand(Command command) {
+    private boolean processCommand(Command command) {
         var commandResult = commandRunner.runCommand(command);
         if (commandResult.failed()) {
             if (command.canRetry()) {
@@ -408,8 +411,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return true;
     }
 
-    @NotNull
-    private Boolean processAckRequested(TransferProcess process) {
+    private boolean processAckRequested(TransferProcess process) {
         if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
 
             if (process.getDataRequest().getTransferType().isFinite()) {
@@ -427,8 +429,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
-    @NotNull
-    private Boolean processInProgress(TransferProcess process) {
+    private boolean processInProgress(TransferProcess process) {
         if (process.getType() != CONSUMER) {
             return false;
         }
@@ -436,10 +437,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
         if (checker == null) {
             if (process.getDataRequest().isManagedResources()) {
-                String message = format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId());
-                process.transitionError(message);
-                transferProcessStore.update(process);
-                monitor.info(message);
+                monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
+                return false;
             } else {
                 //no checker, transition the process to the COMPLETED state automatically
                 transitionToCompleted(process);
@@ -466,6 +465,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         observable.invokeForEach(listener -> listener.completed(process));
     }
 
+    /**
+     * Performs consumer-side or provider side provisioning for a service.
+     * <br/>
+     * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
+     * map involve preprocessing data or other operations.
+     */
     private boolean processInitial(TransferProcess process) {
         var manifest = manifestGenerator.generateResourceManifest(process);
         process.transitionProvisioning(manifest);
@@ -485,21 +490,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return true;
     }
 
-    @NotNull
-    private Boolean processProvisioned(TransferProcess process) {
+    private boolean processProvisioned(TransferProcess process) {
         DataRequest dataRequest = process.getDataRequest();
         if (CONSUMER == process.getType()) {
-            return sendConsumerRequest(process, dataRequest);
+            sendConsumerRequest(process, dataRequest);
         } else {
-            return processProviderRequest(process, dataRequest);
+            processProviderRequest(process, dataRequest);
         }
+        return true;
     }
 
-    private static DataProxyRequest createDataProxyRequest(DataRequest request) {
-        return new DataProxyRequest(request.getConnectorAddress(), request.getContractId(), request.getDataDestination());
-    }
-
-    private boolean processProviderRequest(TransferProcess process, DataRequest dataRequest) {
+    private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
         var response = dataFlowManager.initiate(dataRequest);
         if (response.succeeded()) {
             if (process.getDataRequest().getTransferType().isFinite()) {
@@ -522,11 +523,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 observable.invokeForEach(l -> l.error(process));
             }
         }
-
-        return true;
     }
 
-    private boolean sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
+    private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         process.transitionRequested();
         transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
         observable.invokeForEach(l -> l.requested(process));
@@ -547,7 +546,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                         transferProcessStore.update(process);
                     }
                 });
-        return true;
     }
 
     public static class Builder {

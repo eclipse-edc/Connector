@@ -15,6 +15,9 @@
 package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.DisplayNameGeneration;
+import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -140,7 +143,8 @@ class TransferProcessTest {
     }
 
     @Test
-    void shouldPassFromDeprovisioningRequestToDeprovisioning() {
+    @DisplayName("Should pass from deprovisioning request to deprovisioning")
+    void deprovisioningChangeState() {
         TransferProcess process = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString()).state(DEPROVISIONING_REQ.code()).build();
 
         process.transitionDeprovisioning();
@@ -149,7 +153,8 @@ class TransferProcessTest {
     }
 
     @Test
-    void shouldConsideredProvisionedWhenThereAreNoDefinitionsAndNoProvisionedResource() {
+    @DisplayName("Should considered provisioned when there are no definitions and no provisioned resource")
+    void provisionComplete_emptyManifestAndResources() {
         var emptyManifest = ResourceManifest.Builder.newInstance().definitions(emptyList()).build();
         var emptyResources = ProvisionedResourceSet.Builder.newInstance().resources(emptyList()).build();
         TransferProcess process = TransferProcess.Builder.newInstance()
@@ -162,7 +167,8 @@ class TransferProcessTest {
     }
 
     @Test
-    void shouldConsideredProvisionedWhenThereAreNoDefinitionsAndProvisionedResourceSetIsNull() {
+    @DisplayName("Should considered provisioned when there are no definitions and provisioned resource set is null")
+    void provisionComplete_noResources() {
         var emptyManifest = ResourceManifest.Builder.newInstance().definitions(emptyList()).build();
         TransferProcess process = TransferProcess.Builder.newInstance()
                 .id(UUID.randomUUID().toString()).resourceManifest(emptyManifest).provisionedResourceSet(null)

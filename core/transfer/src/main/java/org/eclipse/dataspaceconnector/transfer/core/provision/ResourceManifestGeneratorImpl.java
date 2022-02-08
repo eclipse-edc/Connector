@@ -48,28 +48,29 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
 
     @Override
     public ResourceManifest generateResourceManifest(TransferProcess process) {
-        var definitions = definitions(process);
+        var definitions = generateDefinitions(process);
         return ResourceManifest.Builder.newInstance().definitions(definitions).build();
     }
 
-    private List<ResourceDefinition> definitions(TransferProcess process) {
+    @NotNull
+    private List<ResourceDefinition> generateDefinitions(TransferProcess process) {
         var dataRequest = process.getDataRequest();
         if (process.getType() == CONSUMER) {
-            return dataRequest.isManagedResources() ? consumerDefinitions(process) : emptyList();
+            return dataRequest.isManagedResources() ? generateConsumerDefinitions(process) : emptyList();
         } else {
-            return providerDefinitions(process);
+            return generateProviderDefinitions(process);
         }
     }
 
     @NotNull
-    private List<ResourceDefinition> consumerDefinitions(TransferProcess process) {
+    private List<ResourceDefinition> generateConsumerDefinitions(TransferProcess process) {
         return consumerGenerators.stream()
                 .map(generator -> generator.generate(process))
                 .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @NotNull
-    private List<ResourceDefinition> providerDefinitions(TransferProcess process) {
+    private List<ResourceDefinition> generateProviderDefinitions(TransferProcess process) {
         return providerGenerators.stream()
                 .map(generator -> generator.generate(process))
                 .filter(Objects::nonNull).collect(Collectors.toList());
