@@ -32,6 +32,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -102,7 +103,7 @@ class ExtensionLoaderTest {
     void loadOpenTelemetry_whenSingleOpenTelemetry() {
         List<OpenTelemetry> openTelemetries = Arrays.asList(new CustomOpenTelemetry());
         var openTelemetry = ExtensionLoader.loadOpenTelemetry(openTelemetries);
-        assertTrue(openTelemetry instanceof CustomOpenTelemetry);
+        assertThat(openTelemetry).isInstanceOf(CustomOpenTelemetry.class)
     }
 
     @Test

@@ -103,9 +103,8 @@ public class ExtensionLoader {
     }
 
     static @NotNull OpenTelemetry loadOpenTelemetry(List<OpenTelemetry> openTelemetries) {
-        if (openTelemetries.size() > 1) throw new IllegalStateException(
-                String.format("Found %s OpenTelemetry implementations. " +
-                        "Please provide only one OpenTelemetry service provider.", openTelemetries.size()));
+        if (openTelemetries.size() > 1)
+            throw new IllegalStateException(String.format("Found %s OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.", openTelemetries.size()));
         return openTelemetries.isEmpty() ? GlobalOpenTelemetry.get() : openTelemetries.get(0);
     }
 
