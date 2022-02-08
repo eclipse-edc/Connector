@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.boot.system;
 
 import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.core.security.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -92,8 +93,13 @@ public class ExtensionLoader {
     }
 
     public static @NotNull Telemetry loadTelemetry() {
-        // TODO: enable overriding telemetry through an extension
-        return new Telemetry(GlobalOpenTelemetry.get());
+        return new Telemetry(loadOpenTelemetry());
+    }
+
+    public static @NotNull OpenTelemetry loadOpenTelemetry() {
+        var loader = ServiceLoader.load(OpenTelemetry.class);
+        var openTelemetries = loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
+        return openTelemetries.isEmpty() ? GlobalOpenTelemetry.get() : openTelemetries.get(0);
     }
 
     static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors) {
