@@ -15,40 +15,22 @@
 
 package org.eclipse.dataspaceconnector.spi.observe;
 
-
 import java.util.Collection;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.function.Consumer;
 
-public abstract class Observable<T> {
+public interface Observable<T> {
+    Collection<T> getListeners();
 
-    private final Collection<T> listeners;
+    void registerListener(T listener);
 
-    protected Observable() {
-        listeners = new ConcurrentLinkedQueue<>();
-    }
-
-    public Collection<T> getListeners() {
-        return listeners;
-    }
-
-    public void registerListener(T listener) {
-
-        if (!listeners.contains(listener)) {
-            listeners.add(listener);
-        }
-    }
-
-    public void unregisterListener(T listener) {
-        listeners.remove(listener);
-    }
+    void unregisterListener(T listener);
 
     /**
      * Invokes a given action on all registered listeners.
      *
      * @param action the action to invoke.
      */
-    protected void invokeForEach(Consumer<T> action) {
+    default void invokeForEach(Consumer<T> action) {
         getListeners().forEach(action);
     }
 }

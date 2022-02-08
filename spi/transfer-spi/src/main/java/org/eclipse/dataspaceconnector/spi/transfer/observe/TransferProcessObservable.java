@@ -12,11 +12,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.transfer;
+package org.eclipse.dataspaceconnector.spi.transfer.observe;
 
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 @Feature("edc:core:transfer:transferprocess-observable")
-public abstract class TransferProcessObservable extends Observable<TransferProcessListener> {
+public interface TransferProcessObservable extends Observable<TransferProcessListener> {
 }

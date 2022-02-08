@@ -11,11 +11,11 @@
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.contract.negotiation;
+package org.eclipse.dataspaceconnector.spi.contract.negotiation.observe;
 
 import org.eclipse.dataspaceconnector.spi.observe.Observable;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 
 @Feature("edc:core:contract:contractnegotiation:observable")
-public abstract class ContractNegotiationObservable extends Observable<ContractNegotiationListener> {
+public interface ContractNegotiationObservable extends Observable<ContractNegotiationListener> {
 }

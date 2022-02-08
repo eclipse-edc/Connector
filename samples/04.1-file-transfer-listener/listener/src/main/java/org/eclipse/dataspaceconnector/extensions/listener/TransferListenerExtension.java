@@ -2,7 +2,7 @@ package org.eclipse.dataspaceconnector.extensions.listener;
 
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 
 public class TransferListenerExtension implements ServiceExtension {
 
