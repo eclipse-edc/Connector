@@ -105,7 +105,7 @@ class TransferProcessManagerImplTest {
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
-                .telemetry(mock(Telemetry.class))
+                .telemetry(new Telemetry(OpenTelemetry.noop())
                 .commandQueue(mock(CommandQueue.class))
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())

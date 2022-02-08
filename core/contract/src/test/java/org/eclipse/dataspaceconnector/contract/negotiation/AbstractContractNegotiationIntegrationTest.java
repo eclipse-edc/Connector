@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.negotiation.store.memory.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.policy.model.Action;
@@ -76,7 +77,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         Monitor monitor = new FakeConsoleMonitor();
 
         // Create telemetry mock
-        Telemetry telemetry = mock(Telemetry.class);
+        Telemetry telemetry = new Telemetry(OpenTelemetry.noop());
 
         // Create the provider contract negotiation manager
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()

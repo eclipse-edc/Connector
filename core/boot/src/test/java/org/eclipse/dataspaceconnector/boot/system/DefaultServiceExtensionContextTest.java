@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.boot.system;
 
+import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.dataspaceconnector.boot.util.CyclicDependencyException;
 import org.eclipse.dataspaceconnector.core.BaseExtension;
 import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
@@ -56,7 +57,7 @@ class DefaultServiceExtensionContextTest {
     void setUp() {
         TypeManager typeManager = new TypeManager();
         Monitor monitor = mock(Monitor.class);
-        Telemetry telemetry = mock(Telemetry.class);
+        Telemetry telemetry = new Telemetry(OpenTelemetry.noop());
         serviceLocatorMock = mock(ServiceLocator.class);
         context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, serviceLocatorMock);
     }
