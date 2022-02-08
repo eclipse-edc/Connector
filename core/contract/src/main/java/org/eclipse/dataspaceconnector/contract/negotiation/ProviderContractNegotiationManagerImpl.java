@@ -379,9 +379,9 @@ public class ProviderContractNegotiationManagerImpl extends ContractNegotiationO
 
         for (var negotiation : confirmingNegotiations) {
             // set the telemetry context for the current negotiation object
-            telemetry.setCurrentTraceContext(negotiation);
-
-            negotiate(negotiation);
+            try (var scope = telemetry.setCurrentTraceContext(negotiation)) {
+                negotiate(negotiation);
+            }
         }
 
         return confirmingNegotiations.size();
