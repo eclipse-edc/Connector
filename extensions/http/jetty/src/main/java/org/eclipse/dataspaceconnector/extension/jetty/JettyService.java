@@ -86,8 +86,8 @@ public class JettyService {
 
                 ServletContextHandler handler = createHandler(mapping);
                 handlers.put(mapping.getPath(), handler);
-                server.setErrorHandler(new JettyErrorHandler());
             });
+            server.setErrorHandler(new JettyErrorHandler());
             server.setHandler(new ContextHandlerCollection(handlers.values().toArray(ServletContextHandler[]::new)));
             server.start();
             monitor.debug("Port mappings: " + configuration.getPortMappings().stream().map(PortMapping::toString).collect(Collectors.joining(", ")));
