@@ -2,7 +2,7 @@ package org.eclipse.dataspaceconnector.catalog.store;
 
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.asset.CriterionConverter;
+import org.eclipse.dataspaceconnector.spi.query.CriterionConverter;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,6 +18,20 @@ import static org.assertj.core.api.Assertions.assertThat;
 class InMemoryFederatedCacheStoreTest {
 
     private FederatedCacheStore store;
+
+    private static Asset createAsset(String id) {
+        return Asset.Builder.newInstance()
+                .id(id)
+                .build();
+    }
+
+    private static ContractOffer createContractOffer(String id, Asset asset) {
+        return ContractOffer.Builder.newInstance()
+                .id(id)
+                .asset(asset)
+                .policy(Policy.Builder.newInstance().build())
+                .build();
+    }
 
     @BeforeEach
     public void setUp() {
@@ -79,19 +93,5 @@ class InMemoryFederatedCacheStoreTest {
                 .hasSize(2)
                 .anySatisfy(co -> assertThat(co.getAsset().getId()).isEqualTo(assetId1))
                 .anySatisfy(co -> assertThat(co.getAsset().getId()).isEqualTo(assetId2));
-    }
-
-    private static Asset createAsset(String id) {
-        return Asset.Builder.newInstance()
-                .id(id)
-                .build();
-    }
-
-    private static ContractOffer createContractOffer(String id, Asset asset) {
-        return ContractOffer.Builder.newInstance()
-                .id(id)
-                .asset(asset)
-                .policy(Policy.Builder.newInstance().build())
-                .build();
     }
 }

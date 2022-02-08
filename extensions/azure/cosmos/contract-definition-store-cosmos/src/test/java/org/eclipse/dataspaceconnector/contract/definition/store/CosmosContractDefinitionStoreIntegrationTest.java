@@ -13,7 +13,7 @@ import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
-import org.eclipse.dataspaceconnector.spi.asset.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.AfterAll;

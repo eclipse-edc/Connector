@@ -1,6 +1,6 @@
 package org.eclipse.dataspaceconnector.catalog.spi;
 
-import org.eclipse.dataspaceconnector.spi.asset.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 
