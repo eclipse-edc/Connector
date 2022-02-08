@@ -103,7 +103,7 @@ class ExtensionLoaderTest {
     void loadOpenTelemetry_whenSingleOpenTelemetry() {
         List<OpenTelemetry> openTelemetries = Arrays.asList(new CustomOpenTelemetry());
         var openTelemetry = ExtensionLoader.loadOpenTelemetry(openTelemetries);
-        assertThat(openTelemetry).isInstanceOf(CustomOpenTelemetry.class)
+        assertThat(openTelemetry).isInstanceOf(CustomOpenTelemetry.class);
     }
 
     @Test
