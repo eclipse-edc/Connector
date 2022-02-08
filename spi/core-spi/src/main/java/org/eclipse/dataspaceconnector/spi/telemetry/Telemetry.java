@@ -34,11 +34,10 @@ public class Telemetry {
     /**
      * Propagates the trace context present in the carrier to the current thread and returns a {@link Scope} which
      * corresponds to the current scope of execution.
-     * @param carrier The trace context carrier
-     *
-     * {@link Scope#close() must be called to properly restore the
-     * previous context from before this scope of execution or context will not work correctly.
-     * It is recommended to use try-with-resources to call {@link Scope#close()} automatically.
+     * <p>
+     * {@link Scope#close()} must be called to properly restore the previous context from before this scope of execution
+     * or context will not work correctly. It is recommended to use try-with-resources to call {@link Scope#close()}
+     * automatically.
      *
      * <pre>{@code
      * var prevTraceContext = telemetry.getCurrentTraceContext();
@@ -47,6 +46,8 @@ public class Telemetry {
      * }
      * assert telemetry.getCurrentTraceContext() == prevTraceContext;
      * }</pre>
+     *
+     * @param carrier The trace context carrier
      */
     public Scope setCurrentTraceContext(TraceCarrier carrier) {
         Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
