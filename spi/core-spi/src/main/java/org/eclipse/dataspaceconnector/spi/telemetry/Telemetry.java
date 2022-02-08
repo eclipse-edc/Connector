@@ -2,6 +2,7 @@ package org.eclipse.dataspaceconnector.spi.telemetry;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import io.opentelemetry.context.propagation.TextMapGetter;
 
 import java.util.HashMap;
@@ -35,10 +36,10 @@ public class Telemetry {
      *
      * @param carrier The trace context carrier
      */
-    public void setCurrentTraceContext(TraceCarrier carrier) {
+    public Scope setCurrentTraceContext(TraceCarrier carrier) {
         Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
                 .extract(Context.current(), carrier, new TraceCarrierTextMapGetter());
-        extractedContext.makeCurrent();
+        return extractedContext.makeCurrent();
     }
 
     private static class TraceCarrierTextMapGetter implements TextMapGetter<TraceCarrier> {

@@ -391,12 +391,13 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         var deprovisionedProcesses = transferProcessStore.nextForState(DEPROVISIONED.code(), batchSize);
 
         for (var process : deprovisionedProcesses) {
-            telemetry.setCurrentTraceContext(process);
-            invokeForEach(l -> l.deprovisioned(process));
-            process.transitionEnded();
-            transferProcessStore.update(process);
-            invokeForEach(l -> l.ended(process));
-            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+            try (var scope = telemetry.setCurrentTraceContext(process)) {
+                invokeForEach(l -> l.deprovisioned(process));
+                process.transitionEnded();
+                transferProcessStore.update(process);
+                invokeForEach(l -> l.ended(process));
+                monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+            }
         }
         return deprovisionedProcesses.size();
     }
@@ -439,20 +440,21 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         var requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
 
         for (var process : requestAcked) {
-            telemetry.setCurrentTraceContext(process);
-            // process must either have a non-empty list of provisioned resources, or not have managed resources at all.
-            if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
+            try (var scope = telemetry.setCurrentTraceContext(process)) {
+                // process must either have a non-empty list of provisioned resources, or not have managed resources at all.
+                if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
 
-                if (process.getDataRequest().getTransferType().isFinite()) {
-                    process.transitionInProgress();
+                    if (process.getDataRequest().getTransferType().isFinite()) {
+                        process.transitionInProgress();
+                    } else {
+                        process.transitionStreaming();
+                    }
+                    transferProcessStore.update(process);
+                    invokeForEach(l -> l.inProgress(process));
+                    monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
                 } else {
-                    process.transitionStreaming();
+                    monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
                 }
-                transferProcessStore.update(process);
-                invokeForEach(l -> l.inProgress(process));
-                monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            } else {
-                monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
             }
         }
 
@@ -470,26 +472,27 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         var processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
 
         for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(toList())) {
-            telemetry.setCurrentTraceContext(process);
-            if (process.getDataRequest().isManagedResources()) {
-                var resources = process.getProvisionedResourceSet().getResources();
-                var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
-                if (checker == null) {
-                    monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
-                } else if (checker.isComplete(process, resources)) {
-                    // checker passed, transition the process to the COMPLETED state
-                    transitionToCompleted(process);
-                }
-            } else {
-                var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
-                if (checker != null) {
-                    if (checker.isComplete(process, emptyList())) {
-                        //checker passed, transition the process to the COMPLETED state automatically
+            try (var scope = telemetry.setCurrentTraceContext(process)) {
+                if (process.getDataRequest().isManagedResources()) {
+                    var resources = process.getProvisionedResourceSet().getResources();
+                    var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
+                    if (checker == null) {
+                        monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
+                    } else if (checker.isComplete(process, resources)) {
+                        // checker passed, transition the process to the COMPLETED state
                         transitionToCompleted(process);
                     }
                 } else {
-                    //no checker, transition the process to the COMPLETED state automatically
-                    transitionToCompleted(process);
+                    var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
+                    if (checker != null) {
+                        if (checker.isComplete(process, emptyList())) {
+                            //checker passed, transition the process to the COMPLETED state automatically
+                            transitionToCompleted(process);
+                        }
+                    } else {
+                        //no checker, transition the process to the COMPLETED state automatically
+                        transitionToCompleted(process);
+                    }
                 }
             }
         }
@@ -513,34 +516,34 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private int provisionInitialProcesses() {
         var processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
         for (TransferProcess process : processes) {
-            telemetry.setCurrentTraceContext(process);
-            DataRequest dataRequest = process.getDataRequest();
-            ResourceManifest manifest;
-            if (process.getType() == CONSUMER) {
-                // if resources are managed by this connector, generate the manifest; otherwise create an empty one
-                manifest = dataRequest.isManagedResources() ? manifestGenerator.generateConsumerManifest(process) : ResourceManifest.Builder.newInstance().build();
-            } else {
-                manifest = manifestGenerator.generateProviderManifest(process);
-            }
-            process.transitionProvisioning(manifest);
-            transferProcessStore.update(process);
-            invokeForEach(l -> l.provisioning(process));
-            if (process.getResourceManifest().getDefinitions().isEmpty()) {
-                // no resources to provision, advance state
-                process.transitionProvisioned();
+            try (var scope = telemetry.setCurrentTraceContext(process)) {
+                DataRequest dataRequest = process.getDataRequest();
+                ResourceManifest manifest;
+                if (process.getType() == CONSUMER) {
+                    // if resources are managed by this connector, generate the manifest; otherwise create an empty one
+                    manifest = dataRequest.isManagedResources() ? manifestGenerator.generateConsumerManifest(process) : ResourceManifest.Builder.newInstance().build();
+                } else {
+                    manifest = manifestGenerator.generateProviderManifest(process);
+                }
+                process.transitionProvisioning(manifest);
                 transferProcessStore.update(process);
-            } else {
-                provisionManager.provision(process).whenComplete((responses, throwable) -> {
-                    if (throwable == null) {
-                        onProvisionComplete(process.getId(), responses);
-                    } else {
-                        monitor.severe("Error during provisioning", throwable);
-                        process.transitionError("Error during provisioning: " + throwable.getCause().getLocalizedMessage());
-                        transferProcessStore.update(process);
-                    }
-                });
+                invokeForEach(l -> l.provisioning(process));
+                if (process.getResourceManifest().getDefinitions().isEmpty()) {
+                    // no resources to provision, advance state
+                    process.transitionProvisioned();
+                    transferProcessStore.update(process);
+                } else {
+                    provisionManager.provision(process).whenComplete((responses, throwable) -> {
+                        if (throwable == null) {
+                            onProvisionComplete(process.getId(), responses);
+                        } else {
+                            monitor.severe("Error during provisioning", throwable);
+                            process.transitionError("Error during provisioning: " + throwable.getCause().getLocalizedMessage());
+                            transferProcessStore.update(process);
+                        }
+                    });
+                }
             }
-
         }
         return processes.size();
     }
@@ -553,12 +556,13 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
     private int sendOrProcessProvisionedRequests() {
         var processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
         for (TransferProcess process : processes) {
-            telemetry.setCurrentTraceContext(process);
-            DataRequest dataRequest = process.getDataRequest();
-            if (CONSUMER == process.getType()) {
-                sendConsumerRequest(process, dataRequest);
-            } else {
-                processProviderRequest(process, dataRequest);
+            try (var scope = telemetry.setCurrentTraceContext(process)) {
+                DataRequest dataRequest = process.getDataRequest();
+                if (CONSUMER == process.getType()) {
+                    sendConsumerRequest(process, dataRequest);
+                } else {
+                    processProviderRequest(process, dataRequest);
+                }
             }
         }
         return processes.size();
