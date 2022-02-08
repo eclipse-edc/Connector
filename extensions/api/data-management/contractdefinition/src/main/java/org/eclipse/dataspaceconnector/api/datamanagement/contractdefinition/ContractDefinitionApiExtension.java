@@ -25,8 +25,13 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        //todo: register this with the "data" context alias, once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/pull/601
-        //gets merged
-        webService.registerController(new ContractDefinitionApiController(context.getMonitor()));
+        //avoid jetty throwing exceptions down the road
+        if (!context.getConfig().getEntries().containsKey("web.http.data.port")) {
+            context.getMonitor().severe("No port mapping entry for context 'data' ('web.http.data.port=...') found in configuration. The Data Management API will not be available!");
+        } else {
+            // todo: also register the Authorization filter, once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/pull/598 is finished:
+            // webService.registerResource("data", new AuthorizationRequestFilter());
+            webService.registerResource("data", new ContractDefinitionApiController(context.getMonitor()));
+        }
     }
 }

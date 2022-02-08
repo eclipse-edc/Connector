@@ -7,14 +7,14 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class ContractDefinitionApiControllerTest {
     private ContractDefinitionApiController controller;
 
     @BeforeEach
     void setup() {
-        var monitor = new Monitor() {
-        };
+        var monitor = mock(Monitor.class);
         controller = new ContractDefinitionApiController(monitor);
     }
 

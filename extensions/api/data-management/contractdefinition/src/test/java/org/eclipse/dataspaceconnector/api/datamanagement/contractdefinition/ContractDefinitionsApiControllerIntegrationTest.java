@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
 import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
+import org.eclipse.dataspaceconnector.extension.jetty.PortMapping;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
@@ -43,13 +44,14 @@ public class ContractDefinitionsApiControllerIntegrationTest {
     static void prepareWebserver() {
         port = 1024 + new Random().nextInt(10000);
         var monitor = mock(Monitor.class);
-        var config = new JettyConfiguration(port, null, null);
+        var config = new JettyConfiguration(null, null);
+        config.portMapping(new PortMapping("data", port, "/api/v1/data"));
         var jetty = new JettyService(config, monitor);
 
         var ctrl = new ContractDefinitionApiController(monitor);
         var jerseyService = new JerseyRestService(jetty, new TypeManager(), mock(CorsFilterConfiguration.class), monitor);
         jetty.start();
-        jerseyService.registerController(ctrl);
+        jerseyService.registerResource("data", ctrl);
         jerseyService.start();
     }
 
@@ -90,7 +92,7 @@ public class ContractDefinitionsApiControllerIntegrationTest {
 
     @NotNull
     private String basePath() {
-        return "http://localhost:" + port + "/api/contractdefinitions";
+        return "http://localhost:" + port + "/api/v1/data/contractdefinitions";
     }
 
     @NotNull

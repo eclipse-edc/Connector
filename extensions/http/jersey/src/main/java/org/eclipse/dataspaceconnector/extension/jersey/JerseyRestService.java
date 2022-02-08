@@ -66,7 +66,7 @@ public class JerseyRestService implements WebService {
                 .add(resource);
     }
 
-    void start() {
+    public void start() {
         try {
             controllers.forEach(this::registerContext);
         } catch (Exception e) {
