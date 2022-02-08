@@ -47,7 +47,7 @@ public class Telemetry {
      * }
      * assert telemetry.getCurrentTraceContext() == prevTraceContext;
      * }</pre>
-     * */
+     */
     public Scope setCurrentTraceContext(TraceCarrier carrier) {
         Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
                 .extract(Context.current(), carrier, new TraceCarrierTextMapGetter());
