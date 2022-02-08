@@ -18,6 +18,7 @@ package org.eclipse.dataspaceconnector.contract;
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
+import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
@@ -29,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
@@ -109,20 +111,22 @@ public class ContractServiceExtension implements ServiceExtension {
         var contractOfferService = new ContractOfferServiceImpl(agentService, definitionService, assetIndex);
         context.registerService(ContractDefinitionService.class, definitionService);
 
-        // Register the created contract offer service with the service extension context.
         context.registerService(ContractOfferService.class, contractOfferService);
 
-        // negotiation
         var validationService = new ContractValidationServiceImpl(agentService, () -> definitionService, assetIndex);
         context.registerService(ContractValidationService.class, validationService);
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
+
+        var observable = new ContractNegotiationObservableImpl();
+        context.registerService(ContractNegotiationObservable.class, observable);
 
         consumerNegotiationManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .validationService(validationService)
+                .observable(observable)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -130,6 +134,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .validationService(validationService)
+                .observable(observable)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);

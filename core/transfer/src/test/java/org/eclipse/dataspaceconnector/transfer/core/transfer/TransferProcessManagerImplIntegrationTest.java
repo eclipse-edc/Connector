@@ -6,6 +6,7 @@ import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -68,6 +69,7 @@ class TransferProcessManagerImplIntegrationTest {
                 .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
                 .dataProxyManager(mock(DataProxyManager.class))
                 .proxyEntryHandlerRegistry(new ProxyEntryHandlerRegistryImpl())
+                .observable(mock(TransferProcessObservable.class))
                 .build();
 
         transferProcessManager.start(store);

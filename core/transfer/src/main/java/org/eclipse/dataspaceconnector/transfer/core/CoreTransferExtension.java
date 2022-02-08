@@ -26,9 +26,9 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
@@ -39,6 +39,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.transfer.core.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
+import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
 import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
@@ -105,6 +106,10 @@ public class CoreTransferExtension implements ServiceExtension {
         context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
 
         CommandQueue commandQueue = new BoundedCommandQueue(10);
+        TransferProcessObservable observable = new TransferProcessObservableImpl();
+        context.registerService(TransferProcessObservable.class, observable);
+
+
         processManager = TransferProcessManagerImpl.Builder.newInstance()
                 .waitStrategy(waitStrategy)
                 .manifestGenerator(manifestGenerator)
@@ -119,10 +124,11 @@ public class CoreTransferExtension implements ServiceExtension {
                 .commandRunner(new CommandRunner(registry, monitor))
                 .dataProxyManager(dataProxyManager)
                 .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
+                .observable(observable)
                 .build();
 
+
         context.registerService(TransferProcessManager.class, processManager);
-        context.registerService(TransferProcessObservable.class, processManager);
 
     }
 

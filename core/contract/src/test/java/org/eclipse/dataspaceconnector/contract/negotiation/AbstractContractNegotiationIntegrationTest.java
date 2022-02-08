@@ -14,12 +14,14 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.negotiation.store.memory.InMemoryContractNegotiationStore;
 import org.eclipse.dataspaceconnector.policy.model.Action;
 import org.eclipse.dataspaceconnector.policy.model.Duty;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.policy.model.PolicyType;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationListener;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationListener;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
@@ -30,7 +32,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
@@ -52,6 +53,9 @@ public abstract class AbstractContractNegotiationIntegrationTest {
 
     protected ProviderContractNegotiationManagerImpl providerManager;
     protected ConsumerContractNegotiationManagerImpl consumerManager;
+
+    protected ContractNegotiationObservable providerObservable = new ContractNegotiationObservableImpl();
+    protected ContractNegotiationObservable consumerObservable = new ContractNegotiationObservableImpl();
 
     protected InMemoryContractNegotiationStore providerStore;
     protected InMemoryContractNegotiationStore consumerStore;
@@ -81,6 +85,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .monitor(monitor)
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
+                .observable(providerObservable)
                 .build();
         providerStore = new InMemoryContractNegotiationStore();
 
@@ -90,6 +95,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .monitor(monitor)
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
+                .observable(consumerObservable)
                 .build();
         consumerStore = new InMemoryContractNegotiationStore();
         

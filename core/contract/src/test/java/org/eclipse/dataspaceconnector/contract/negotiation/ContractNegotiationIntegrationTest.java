@@ -41,8 +41,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 any(ContractOffer.class))).thenReturn(true);
 
         // Create and register listeners for provider and consumer
-        providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
-        consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -89,8 +89,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, offer)).thenReturn(Result.success(offer));
     
         // Create and register listeners for provider and consumer
-        providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
-        consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -138,8 +138,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 any(ContractOffer.class))).thenReturn(false);
     
         // Create and register listeners for provider and consumer
-        providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
-        consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -191,8 +191,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
                 eq(counterOffer))).thenReturn(true);
 
         // Create and register listeners for provider and consumer
-        providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
-        consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -250,8 +250,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, counterOffer, initialOffer)).thenReturn(Result.success(null));
     
         // Create and register listeners for provider and consumer
-        providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
-        consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -319,8 +319,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(eq(token), any(ContractAgreement.class),
                 eq(consumerCounterOffer))).thenReturn(true);
         // Create and register listeners for provider and consumer
-        providerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
-        consumerManager.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
+        consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
@@ -390,8 +390,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         when(validationService.validate(token, consumerCounterOffer, counterOffer)).thenReturn(Result.success(null));
         
         // Create and register listeners for provider and consumer
-        providerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
-        consumerManager.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        providerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
+        consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
         providerManager.start(providerStore);
