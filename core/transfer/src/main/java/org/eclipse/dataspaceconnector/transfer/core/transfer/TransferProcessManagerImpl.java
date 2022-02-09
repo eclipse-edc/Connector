@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.core.base.CommandQueueProcessor;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -88,7 +89,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link TransferWaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
-public class TransferProcessManagerImpl implements TransferProcessManager {
+public class TransferProcessManagerImpl extends CommandQueueProcessor<TransferProcessCommand> implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
@@ -125,6 +126,18 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         if (executor != null) {
             executor.shutdownNow();
         }
+    }
+    
+    protected CommandQueue<TransferProcessCommand> getCommandQueue() {
+        return commandQueue;
+    }
+    
+    protected CommandRunner<TransferProcessCommand> getCommandRunner() {
+        return commandRunner;
+    }
+    
+    protected Monitor getMonitor() {
+        return monitor;
     }
 
     /**

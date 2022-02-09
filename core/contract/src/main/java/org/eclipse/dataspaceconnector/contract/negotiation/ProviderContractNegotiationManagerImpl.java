@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.core.base.CommandQueueProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
@@ -44,7 +45,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -59,7 +59,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
  */
-public class ProviderContractNegotiationManagerImpl implements ProviderContractNegotiationManager {
+public class ProviderContractNegotiationManagerImpl extends CommandQueueProcessor<ContractNegotiationCommand> implements ProviderContractNegotiationManager {
 
     private final AtomicBoolean active = new AtomicBoolean();
 
@@ -94,6 +94,18 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         if (executor != null) {
             executor.shutdownNow();
         }
+    }
+    
+    protected CommandQueue<ContractNegotiationCommand> getCommandQueue() {
+        return commandQueue;
+    }
+    
+    protected CommandRunner<ContractNegotiationCommand> getCommandRunner() {
+        return commandRunner;
+    }
+    
+    protected Monitor getMonitor() {
+        return monitor;
     }
     
     @Override
@@ -299,29 +311,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 }
             }
         }
-    }
-    
-    private int processCommandQueue() {
-        var batchSize = 5;
-        var commands = commandQueue.dequeue(batchSize);
-        AtomicInteger successCount = new AtomicInteger(); //needs to be an atomic because lambda.
-    
-        commands.forEach(command -> {
-            var commandResult = commandRunner.runCommand(command);
-            if (commandResult.failed()) {
-                //re-queue if possible
-                if (command.canRetry()) {
-                    monitor.warning(format("Could not process command [%s], will retry. error: %s", command.getClass(), commandResult.getFailureMessages()));
-                    commandQueue.enqueue(command);
-                } else {
-                    monitor.severe(format("Command [%s] has exceeded its retry limit, will discard now", command.getClass()));
-                }
-            } else {
-                monitor.debug(format("Successfully processed command [%s]", command.getClass()));
-                successCount.getAndIncrement();
-            }
-        });
-        return successCount.get();
     }
 
     private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
