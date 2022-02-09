@@ -141,5 +141,13 @@ public interface Config {
      */
     String currentNode();
 
+    /**
+     * Checks whether a particular config is a "leaf", i.e. has no more children, or not
+     */
     boolean isLeaf();
+
+    /**
+     * Checks whether a (fully qualified) config key is present or not
+     */
+    boolean hasKey(String key);
 }

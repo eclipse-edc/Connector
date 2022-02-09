@@ -136,6 +136,11 @@ public class ConfigImpl implements Config {
         return entries.size() == 1 && entries.keySet().stream().allMatch(rootPath::equals);
     }
 
+    @Override
+    public boolean hasKey(String key) {
+        return getEntries().containsKey(key);
+    }
+
     private String removePrefix(String path, String rootPath) {
         if (!rootPath.isEmpty() && path.startsWith(rootPath)) {
             return path.substring(rootPath.length() + 1);
