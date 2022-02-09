@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
 package org.eclipse.dataspaceconnector.spi.command;
@@ -16,8 +17,8 @@ package org.eclipse.dataspaceconnector.spi.command;
 /**
  * Links together a Command and its handler class
  */
-public interface CommandHandlerRegistry {
-    <C extends Command> void register(CommandHandler<C> handlerClass);
-
-    <C extends Command> CommandHandler<C> get(Class<C> commandClass);
+public interface CommandHandlerRegistry<C extends Command> {
+    <T extends C> void register(CommandHandler<T> handlerClass);
+    
+    <T extends C> CommandHandler<T> get(Class<T> commandClass);
 }

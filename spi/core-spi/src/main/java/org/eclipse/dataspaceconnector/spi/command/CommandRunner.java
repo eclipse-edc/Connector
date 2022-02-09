@@ -1,3 +1,17 @@
+/*
+ *  Copyright (c) 2020-2022 Microsoft Corporation
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactored
+ *
+ */
 package org.eclipse.dataspaceconnector.spi.command;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -11,18 +25,18 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
  *     <li>convert exception into a {@link Result}, increase error count</li>
  * </ol>
  */
-public class CommandRunner {
-    private final CommandHandlerRegistry commandHandlerRegistry;
-    private final Monitor monitor;
+public abstract class CommandRunner<C extends Command> {
+    protected final CommandHandlerRegistry<C> commandHandlerRegistry;
+    protected final Monitor monitor;
 
-    public CommandRunner(CommandHandlerRegistry commandHandlerRegistry, Monitor monitor) {
+    protected CommandRunner(CommandHandlerRegistry<C> commandHandlerRegistry, Monitor monitor) {
         this.commandHandlerRegistry = commandHandlerRegistry;
         this.monitor = monitor;
     }
 
-    public <C extends Command> Result<Void> runCommand(C command) {
+    public <T extends C> Result<Void> runCommand(T command) {
 
-        Class<C> commandClass = (Class<C>) command.getClass();
+        Class<T> commandClass = (Class<T>) command.getClass();
 
         var handler = commandHandlerRegistry.get(commandClass);
         if (handler == null) {
