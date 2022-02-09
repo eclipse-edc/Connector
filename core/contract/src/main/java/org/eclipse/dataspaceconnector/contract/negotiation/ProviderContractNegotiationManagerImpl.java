@@ -32,6 +32,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandQueue;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandRunner;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -41,6 +43,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.BiConsumer;
 import java.util.function.Predicate;
 
@@ -67,6 +70,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private Monitor monitor;
     private ExecutorService executor;
+    private ContractNegotiationCommandQueue commandQueue;
+    private ContractNegotiationCommandRunner commandRunner;
     private ContractNegotiationObservable observable;
     private Predicate<Boolean> isProcessed = it -> it;
 
@@ -264,7 +269,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 var confirming = onNegotiationsInState(CONFIRMING).doProcess(this::processConfirming);
 
                 var totalProcessed = providerOffering + declining + confirming;
-
+    
                 if (totalProcessed == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
@@ -286,6 +291,29 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 }
             }
         }
+    }
+    
+    private int processCommandQueue() {
+        var batchSize = 5;
+        var commands = commandQueue.dequeue(batchSize);
+        AtomicInteger successCount = new AtomicInteger(); //needs to be an atomic because lambda.
+    
+        commands.forEach(command -> {
+            var commandResult = commandRunner.runCommand(command);
+            if (commandResult.failed()) {
+                //re-queue if possible
+                if (command.canRetry()) {
+                    monitor.warning(format("Could not process command [%s], will retry. error: %s", command.getClass(), commandResult.getFailureMessages()));
+                    commandQueue.enqueue(command);
+                } else {
+                    monitor.severe(format("Command [%s] has exceeded its retry limit, will discard now", command.getClass()));
+                }
+            } else {
+                monitor.debug(format("Successfully processed command [%s]", command.getClass()));
+                successCount.getAndIncrement();
+            }
+        });
+        return successCount.get();
     }
 
     private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
@@ -486,6 +514,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             manager.dispatcherRegistry = dispatcherRegistry;
             return this;
         }
+        
+        public Builder commandQueue(ContractNegotiationCommandQueue commandQueue) {
+            manager.commandQueue = commandQueue;
+            return this;
+        }
+        
+        public Builder commandRunner(ContractNegotiationCommandRunner commandRunner) {
+            manager.commandRunner = commandRunner;
+            return this;
+        }
 
         public Builder observable(ContractNegotiationObservable observable) {
             manager.observable = observable;
@@ -496,6 +534,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
+            Objects.requireNonNull(manager.commandQueue, "commandQueue");
+            Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
             return manager;
         }
