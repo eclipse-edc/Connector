@@ -287,14 +287,14 @@ public class ConsumerContractNegotiationManagerImpl extends ContractNegotiationO
 
         for (ContractNegotiation negotiation : negotiations) {
             // set the telemetry context for the current negotiation object
-            telemetry.setCurrentTraceContext(negotiation);
+            try (var scope = telemetry.setCurrentTraceContext(negotiation)) {
+                var offer = negotiation.getLastContractOffer();
+                negotiation.transitionRequesting();
+                negotiationStore.save(negotiation);
 
-            var offer = negotiation.getLastContractOffer();
-            negotiation.transitionRequesting();
-            negotiationStore.save(negotiation);
-
-            sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL)
-                    .whenComplete(onOfferSent(negotiation.getId(), offer));
+                sendOffer(offer, negotiation, ContractOfferRequest.Type.INITIAL)
+                        .whenComplete(onOfferSent(negotiation.getId(), offer));
+            }
         }
 
         return negotiations.size();

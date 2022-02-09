@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.inline.core;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
@@ -50,6 +51,7 @@ public class InlineDataFlowController implements DataFlowController {
     }
 
     @Override
+    @WithSpan("initiate_data_flow")
     public @NotNull DataFlowInitiateResult initiateFlow(DataRequest dataRequest) {
         var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
         var destinationType = dataRequest.getDestinationType();
