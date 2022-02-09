@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols.stream;
 
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
@@ -31,7 +32,6 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamContext;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.CountDownLatch;
 
@@ -50,7 +50,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
     @BeforeAll
     static void setup() {
         //let's randomize the port
-        var port = 2000 + new Random().nextInt(8000);
+        var port = TestUtils.getFreePort(1024);
         System.setProperty("web.http.port", String.valueOf(port));
         System.setProperty("edc.demo.protocol.ws.pubsub", "ws://localhost:" + port + "/pubsub/");
         System.setProperty("edc.demo.protocol.http.pubsub", "http://localhost:" + port + "/api/demo/pubsub/");

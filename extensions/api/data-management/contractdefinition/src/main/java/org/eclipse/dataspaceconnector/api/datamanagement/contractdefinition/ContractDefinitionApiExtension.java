@@ -26,7 +26,7 @@ public class ContractDefinitionApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         //avoid jetty throwing exceptions down the road
-        if (!context.getConfig().getEntries().containsKey("web.http.data.port")) {
+        if (!context.getConfig().hasKey("web.http.data.port")) {
             context.getMonitor().severe("No port mapping entry for context 'data' ('web.http.data.port=...') found in configuration. The Data Management API will not be available!");
         } else {
             // todo: also register the Authorization filter, once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/pull/598 is finished:

@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.common.testfixtures;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.ServerSocket;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Path;
@@ -54,5 +56,14 @@ public class TestUtils {
         var stream = Thread.currentThread().getContextClassLoader().getResourceAsStream(resourceName);
         Scanner s = new Scanner(Objects.requireNonNull(stream)).useDelimiter("\\A");
         return s.hasNext() ? s.next() : "";
+    }
+
+    public static int getFreePort(int start) {
+        try {
+            ServerSocket socket = new ServerSocket(0);
+            return socket.getLocalPort();
+        } catch (IOException e) {
+            throw new RuntimeException("no port is available");
+        }
     }
 }

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractdefinition;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
 import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
@@ -30,7 +31,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -42,7 +42,7 @@ public class ContractDefinitionsApiControllerIntegrationTest {
 
     @BeforeAll
     static void prepareWebserver() {
-        port = 1024 + new Random().nextInt(10000);
+        port = TestUtils.getFreePort(1024);
         var monitor = mock(Monitor.class);
         var config = new JettyConfiguration(null, null);
         config.portMapping(new PortMapping("data", port, "/api/v1/data"));
