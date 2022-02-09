@@ -35,32 +35,18 @@ public class ContractDefinitionDto {
         return accessPolicyId;
     }
 
-    public void setAccessPolicyId(String accessPolicyId) {
-        this.accessPolicyId = accessPolicyId;
-    }
-
     public String getContractPolicyId() {
         return contractPolicyId;
     }
 
-    public void setContractPolicyId(String contractPolicyId) {
-        this.contractPolicyId = contractPolicyId;
-    }
 
     public List<Criterion> getCriteria() {
         return criteria;
     }
 
-    public void setCriteria(List<Criterion> criteria) {
-        this.criteria = criteria;
-    }
 
     public String getId() {
         return id;
-    }
-
-    public void setId(String id) {
-        this.id = id;
     }
 
 
