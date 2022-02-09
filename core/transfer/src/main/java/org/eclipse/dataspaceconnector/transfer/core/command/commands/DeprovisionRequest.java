@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
 package org.eclipse.dataspaceconnector.transfer.core.command.commands;
@@ -21,7 +22,7 @@ import org.eclipse.dataspaceconnector.transfer.core.command.handlers.Deprovision
  *
  * @see DeprovisionRequestHandler
  */
-public class DeprovisionRequest extends TransferProcessCommand {
+public class DeprovisionRequest extends SingleTransferProcessCommand {
 
     public DeprovisionRequest(String transferProcessId) {
         super(transferProcessId);

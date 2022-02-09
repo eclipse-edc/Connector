@@ -38,7 +38,10 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
-import org.eclipse.dataspaceconnector.transfer.core.command.BoundedCommandQueue;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommandHandlerRegistry;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommandQueue;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommandRunner;
+import org.eclipse.dataspaceconnector.transfer.core.command.BoundedTransferProcessCommandQueue;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.inline.DataOperatorRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
@@ -61,7 +64,7 @@ public class CoreTransferExtension implements ServiceExtension {
     @Inject
     private TransferProcessStore transferProcessStore;
     @Inject
-    private CommandHandlerRegistry registry;
+    private TransferProcessCommandHandlerRegistry registry;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
@@ -104,8 +107,8 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
         context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
-
-        CommandQueue commandQueue = new BoundedCommandQueue(10);
+    
+        TransferProcessCommandQueue commandQueue = new BoundedTransferProcessCommandQueue(10);
         TransferProcessObservable observable = new TransferProcessObservableImpl();
         context.registerService(TransferProcessObservable.class, observable);
 
@@ -121,7 +124,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .vault(vault)
                 .typeManager(typeManager)
                 .commandQueue(commandQueue)
-                .commandRunner(new CommandRunner(registry, monitor))
+                .commandRunner(new TransferProcessCommandRunner(registry, monitor))
                 .dataProxyManager(dataProxyManager)
                 .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
                 .observable(observable)

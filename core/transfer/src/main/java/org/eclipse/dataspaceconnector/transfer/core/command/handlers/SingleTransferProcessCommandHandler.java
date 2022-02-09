@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
 package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
@@ -17,24 +18,24 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.transfer.core.command.commands.TransferProcessCommand;
+import org.eclipse.dataspaceconnector.transfer.core.command.commands.SingleTransferProcessCommand;
 
 import static java.lang.String.format;
 
 /**
- * Handler for a {@link TransferProcessCommand}. Deals with obtaining the {@link TransferProcess} from the {@link TransferProcessStore}[
+ * Handler for a {@link SingleTransferProcessCommand}. Deals with obtaining the {@link TransferProcess} from the {@link TransferProcessStore}[
  *
- * @param <T> The concrete type of {@link TransferProcessCommand}
+ * @param <T> The concrete type of {@link SingleTransferProcessCommand}
  */
-public abstract class TransferProcessCommandHandler<T extends TransferProcessCommand> implements CommandHandler<T> {
+public abstract class SingleTransferProcessCommandHandler<T extends SingleTransferProcessCommand> implements CommandHandler<T> {
     protected final TransferProcessStore store;
 
-    public TransferProcessCommandHandler(TransferProcessStore store) {
+    public SingleTransferProcessCommandHandler(TransferProcessStore store) {
         this.store = store;
     }
 
     @Override
-    public void handle(TransferProcessCommand command) {
+    public void handle(SingleTransferProcessCommand command) {
         var transferProcessId = command.getTransferProcessId();
         var transferProcess = store.find(transferProcessId);
         if (transferProcess == null) {

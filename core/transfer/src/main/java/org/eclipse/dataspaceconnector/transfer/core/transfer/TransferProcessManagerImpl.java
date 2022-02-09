@@ -43,6 +43,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResou
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommandQueue;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommandRunner;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
@@ -102,8 +105,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TypeManager typeManager;
-    private CommandQueue commandQueue;
-    private CommandRunner commandRunner;
+    private TransferProcessCommandQueue commandQueue;
+    private TransferProcessCommandRunner commandRunner;
     private DataProxyManager dataProxyManager;
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
     private TransferProcessObservable observable;
@@ -166,7 +169,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     @Override
-    public void enqueueCommand(Command command) {
+    public void enqueueCommand(TransferProcessCommand command) {
         commandQueue.enqueue(command);
     }
 
@@ -614,12 +617,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder commandQueue(CommandQueue queue) {
+        public Builder commandQueue(TransferProcessCommandQueue queue) {
             manager.commandQueue = queue;
             return this;
         }
 
-        public Builder commandRunner(CommandRunner runner) {
+        public Builder commandRunner(TransferProcessCommandRunner runner) {
             manager.commandRunner = runner;
             return this;
         }

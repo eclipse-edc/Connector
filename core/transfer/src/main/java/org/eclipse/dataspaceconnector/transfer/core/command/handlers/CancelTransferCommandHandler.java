@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
 package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
@@ -17,7 +18,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.transfer.core.command.commands.CancelTransferCommand;
 
-public class CancelTransferCommandHandler extends TransferProcessCommandHandler<CancelTransferCommand> {
+public class CancelTransferCommandHandler extends SingleTransferProcessCommandHandler<CancelTransferCommand> {
 
     public CancelTransferCommandHandler(TransferProcessStore store) {
         super(store);
