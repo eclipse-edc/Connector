@@ -55,3 +55,14 @@ Other monitoring backends can be plugged in easily with OpenTelemetry. For insta
       - 9191:8181
     entrypoint: java -javaagent:/samples/04.3-open-telemetry/applicationinsights-agent-3.2.5.jar -jar /samples/04.0-file-transfer/consumer/build/libs/consumer.jar
 ```
+
+## Provide your own OpenTelemetry implementation
+
+In order to provide your own OpenTelemetry implementation, you have to "deploy an OpenTelemetry service provider on the class path":
+
+- Create a module containing your OpenTelemetry implementation.
+- Add a file in the resource directory META-INF/services. The file should be called `io.opentelemetry.api.OpenTelemetry`.
+- Add to the file the fully qualified name of your custom OpenTelemetry implementation class.
+
+EDC uses a [ServiceLoader](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/ServiceLoader.html) to load an implementation of OpenTelemetry. If it finds an OpenTelemetry service provider on the class path it will use it, otherwise it will use the registered global OpenTelemetry.
+You can look at the section `Deploying service providers on the class path` of the [ServiceLoader documentation](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/util/ServiceLoader.html) to have more information about service providers.
