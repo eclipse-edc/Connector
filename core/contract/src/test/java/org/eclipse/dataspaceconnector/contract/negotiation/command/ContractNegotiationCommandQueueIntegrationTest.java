@@ -20,6 +20,7 @@ import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegot
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.commands.SingleContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.handlers.SingleContractNegotiationCommandHandler;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -44,6 +45,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private ContractNegotiationCommandQueue commandQueue;
     private ContractNegotiationCommandRunner commandRunner;
     private ContractNegotiationCommandHandlerRegistry commandHandlerRegistry;
+    private ContractNegotiationObservable observable;
     private Monitor monitor;
     
     private CountDownLatch countDownLatch;
@@ -60,6 +62,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
         store = mock(ContractNegotiationStore.class);
         validationService = mock(ContractValidationService.class);
         dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
+        observable = mock(ContractNegotiationObservable.class);
         
         // Create CommandHandlerRegistry
         commandHandlerRegistry = new ContractNegotiationCommandHandlerRegistryImpl();
@@ -95,6 +98,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .dispatcherRegistry(dispatcherRegistry)
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
+                .observable(observable)
                 .build();
         negotiationManager.start(store);
         
@@ -124,6 +128,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .dispatcherRegistry(dispatcherRegistry)
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
+                .observable(observable)
                 .build();
         negotiationManager.start(store);
         
