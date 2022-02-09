@@ -15,5 +15,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.transfer.command;
 
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 
+/**
+ * Sub-type of the {@link CommandHandlerRegistry} for registering {@link TransferProcessCommand}
+ * handlers.
+ */
 public interface TransferProcessCommandHandlerRegistry extends CommandHandlerRegistry<TransferProcessCommand> {
 }

@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.transfer.command;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
+/**
+ * Sub-type of {@link CommandRunner} that runs commands for modifying TransferProcesses.
+ */
 public class TransferProcessCommandRunner extends CommandRunner<TransferProcessCommand> {
     
     public TransferProcessCommandRunner(TransferProcessCommandHandlerRegistry registry,

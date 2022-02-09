@@ -15,6 +15,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.transfer.command;
 
 import org.eclipse.dataspaceconnector.spi.command.Command;
 
+/**
+ * Sub-type of {@link Command} for modifying TransferProcesses.
+ */
 public abstract class TransferProcessCommand extends Command {
     
     protected TransferProcessCommand() {

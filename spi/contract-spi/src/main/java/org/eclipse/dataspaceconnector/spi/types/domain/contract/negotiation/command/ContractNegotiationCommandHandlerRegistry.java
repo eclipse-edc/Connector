@@ -15,5 +15,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.com
 
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 
+/**
+ * Sub-type of the {@link CommandHandlerRegistry} for registering {@link ContractNegotiationCommand}
+ * handlers.
+ */
 public interface ContractNegotiationCommandHandlerRegistry extends CommandHandlerRegistry<ContractNegotiationCommand> {
 }

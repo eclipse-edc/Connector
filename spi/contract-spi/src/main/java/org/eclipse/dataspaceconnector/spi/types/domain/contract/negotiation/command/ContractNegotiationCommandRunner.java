@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.com
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
+/**
+ * Sub-type of {@link CommandRunner} that runs commands for modifying ContractNegotiations.
+ */
 public class ContractNegotiationCommandRunner extends CommandRunner<ContractNegotiationCommand> {
     
     public ContractNegotiationCommandRunner(ContractNegotiationCommandHandlerRegistry registry,

@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.transfer.command;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 
+/**
+ * Sub-type of {@link CommandQueue} for enqueuing {@link TransferProcessCommand}s.
+ */
 @Feature("edc:core:transfer:commandqueue")
 public interface TransferProcessCommandQueue extends CommandQueue<TransferProcessCommand> {
 }

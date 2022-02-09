@@ -15,6 +15,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.com
 
 import org.eclipse.dataspaceconnector.spi.command.Command;
 
+/**
+ * Sub-type of {@link Command} for modifying ContractNegotiations.
+ */
 public abstract class ContractNegotiationCommand extends Command {
     
     protected ContractNegotiationCommand() {

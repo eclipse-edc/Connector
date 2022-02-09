@@ -16,6 +16,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.com
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 
+/**
+ * Sub-type of {@link CommandQueue} for enqueuing {@link ContractNegotiationCommand}s.
+ */
 @Feature("edc:core:contract:contractnegotiation:commandqueue")
 public interface ContractNegotiationCommandQueue extends CommandQueue<ContractNegotiationCommand> {
 }
