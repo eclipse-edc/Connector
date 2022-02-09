@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - added method
  *
  */
 package org.eclipse.dataspaceconnector.spi.contract.negotiation;
@@ -16,6 +17,7 @@ package org.eclipse.dataspaceconnector.spi.contract.negotiation;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
 /**
  * Manages contract negotiations on a consumer or provider. Subtypes define consumer- and provider-specific operations.
@@ -32,4 +34,5 @@ public interface ContractNegotiationManager {
      */
     NegotiationResult declined(ClaimToken token, String negotiationId);
 
+    void enqueueCommand(ContractNegotiationCommand command);
 }
