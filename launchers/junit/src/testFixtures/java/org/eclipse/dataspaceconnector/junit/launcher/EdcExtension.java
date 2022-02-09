@@ -14,19 +14,20 @@
 
 package org.eclipse.dataspaceconnector.junit.launcher;
 
-import okhttp3.Interceptor;
-import org.eclipse.dataspaceconnector.boot.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.boot.system.ExtensionLoader;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocator;
 import org.eclipse.dataspaceconnector.boot.system.ServiceLocatorImpl;
+import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.SystemExtension;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -39,14 +40,13 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMonitor;
 import static org.eclipse.dataspaceconnector.common.types.Cast.cast;
 
 /**
  * A JUnit extension for running an embedded EDC runtime as part of a test fixture.
  * This extension attaches a EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
-public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
+public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCallback, AfterTestExecutionCallback, ParameterResolver {
     private final LinkedHashMap<Class<?>, Object> serviceMocks = new LinkedHashMap<>();
     private final LinkedHashMap<Class<? extends SystemExtension>, List<SystemExtension>> systemExtensions = new LinkedHashMap<>();
     private List<ServiceExtension> runningServiceExtensions;
@@ -69,50 +69,45 @@ public class EdcExtension implements BeforeTestExecutionCallback, AfterTestExecu
         systemExtensions.computeIfAbsent(type, k -> new ArrayList<>()).add(extension);
     }
 
-    public void registerInterceptor(Interceptor interceptor) {
-
-    }
-
     @Override
     public void beforeTestExecution(ExtensionContext extensionContext) {
-        var typeManager = new TypeManager();
-
-        monitor = loadMonitor();
-
-        MonitorProvider.setInstance(monitor);
-
-        context = new DefaultServiceExtensionContext(typeManager, monitor, new MultiSourceServiceLocator());
-        context.initialize();
-
-        serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
-
-        try {
-            if (!serviceMocks.containsKey(Vault.class)) {
-                ExtensionLoader.loadVault(context);
-            }
-
-            var serviceInjectionPoints = context.loadServiceExtensions();
-            runningServiceExtensions = serviceInjectionPoints.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList());
-
-            ExtensionLoader.bootServiceExtensions(serviceInjectionPoints, context);
-        } catch (Exception e) {
-            throw new EdcException(e);
-        }
+        boot();
     }
 
     @Override
     public void afterTestExecution(ExtensionContext context) {
         if (runningServiceExtensions != null) {
-            var iter = runningServiceExtensions.listIterator(runningServiceExtensions.size());
-            while (iter.hasPrevious()) {
-                ServiceExtension extension = iter.previous();
-                extension.shutdown();
-                monitor.info("Shutdown " + extension);
-            }
+            shutdown(runningServiceExtensions, monitor);
         }
 
         // clear the systemExtensions map to prevent it from piling up between subsequent runs
         systemExtensions.clear();
+    }
+
+    @Override
+    protected void bootExtensions(ServiceExtensionContext context, List<InjectionContainer<ServiceExtension>> serviceExtensions) {
+        this.runningServiceExtensions = serviceExtensions.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList());
+        super.bootExtensions(context, serviceExtensions);
+    }
+
+    @Override
+    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor) {
+        this.context = new DefaultServiceExtensionContext(typeManager, monitor, new MultiSourceServiceLocator());
+        return this.context;
+    }
+
+    @Override
+    protected void initializeContext(ServiceExtensionContext context) {
+        serviceMocks.forEach((key, value) -> context.registerService(cast(key), value));
+        this.monitor = context.getMonitor();
+        super.initializeContext(context);
+    }
+
+    @Override
+    protected void initializeVault(ServiceExtensionContext context) {
+        if (!serviceMocks.containsKey(Vault.class)) {
+            ExtensionLoader.loadVault(context);
+        }
     }
 
     @Override
