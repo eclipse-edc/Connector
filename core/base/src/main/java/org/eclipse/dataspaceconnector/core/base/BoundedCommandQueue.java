@@ -14,14 +14,14 @@
  */
 package org.eclipse.dataspaceconnector.core.base;
 
+import org.eclipse.dataspaceconnector.spi.command.Command;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.jetbrains.annotations.Nullable;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
-
-import org.eclipse.dataspaceconnector.spi.command.Command;
-import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
-import org.jetbrains.annotations.Nullable;
 
 public abstract class BoundedCommandQueue<C extends Command> implements CommandQueue<C> {
     

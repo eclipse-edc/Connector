@@ -13,12 +13,12 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation.command;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandHandlerRegistry;
+
+import java.util.HashMap;
+import java.util.Map;
 
 public class ContractNegotiationCommandHandlerRegistryImpl implements ContractNegotiationCommandHandlerRegistry {
     private final Map<Class<? extends ContractNegotiationCommand>, CommandHandler<?>> registrations;
