@@ -47,6 +47,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.Contra
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
@@ -356,6 +357,10 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
+    
+        @Override
+        public void enqueueCommand(ContractNegotiationCommand command) {
+        }
     }
 
     private static class FakeConsumerContractNegotiationManager implements ConsumerContractNegotiationManager {
@@ -378,6 +383,10 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return NegotiationResult.success(fakeContractNegotiation());
+        }
+    
+        @Override
+        public void enqueueCommand(ContractNegotiationCommand command) {
         }
     }
 }
