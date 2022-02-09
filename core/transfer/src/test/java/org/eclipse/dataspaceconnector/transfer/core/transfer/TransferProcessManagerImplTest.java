@@ -22,15 +22,16 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
+import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntry;
+import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler;
 import org.eclipse.dataspaceconnector.spi.response.ResponseFailure;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntry;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandler;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
@@ -392,7 +393,7 @@ class TransferProcessManagerImplTest {
         doNothing().when(store).create(tpCapture.capture());
         when(store.find(anyString())).thenAnswer(i -> tpCapture.getValue()); //short-wire it
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(createObjectWithPayload()));
-        DataRequest request = createSyncRequest();
+        var request = createSyncRequest();
         manager.start(store);
 
         var result = manager.initiateConsumerRequest(request);
@@ -424,7 +425,7 @@ class TransferProcessManagerImplTest {
         var request = createSyncRequest();
         var tpCapture = ArgumentCaptor.forClass(TransferProcess.class);
         doNothing().when(store).create(tpCapture.capture());
-        when(dataProxyManager.getProxy(request)).thenReturn(rq -> createProxyEntry());
+        when(dataProxyManager.getProxy(request.getDestinationType())).thenReturn(rq -> Result.success(createProxyEntry()));
         manager.start(store);
 
         var result = manager.initiateProviderRequest(request);
@@ -432,7 +433,7 @@ class TransferProcessManagerImplTest {
         assertThat(result.succeeded()).isTrue();
         assertThat(result.getData()).isInstanceOf(ProxyEntry.class).extracting("type").isEqualTo(DESTINATION_TYPE);
         verify(store).create(tpCapture.capture());
-        verify(dataProxyManager).getProxy(request);
+        verify(dataProxyManager).getProxy(request.getDestinationType());
     }
 
     @Test
@@ -440,7 +441,7 @@ class TransferProcessManagerImplTest {
         var tpCapture = ArgumentCaptor.forClass(TransferProcess.class);
         doNothing().when(store).create(tpCapture.capture());
         var request = createSyncRequest();
-        when(dataProxyManager.getProxy(request)).thenReturn(null);
+        when(dataProxyManager.getProxy(request.getDestinationType())).thenReturn(null);
         manager.start(store);
 
         var result = manager.initiateProviderRequest(request);
@@ -450,7 +451,7 @@ class TransferProcessManagerImplTest {
                 .extracting(ResponseFailure::status)
                 .isEqualTo(FATAL_ERROR);
         verify(store).create(tpCapture.capture());
-        verify(dataProxyManager).getProxy(request);
+        verify(dataProxyManager).getProxy(request.getDestinationType());
     }
 
     private Object createObjectWithPayload() {

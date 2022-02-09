@@ -29,12 +29,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.BiConsumer;
-import java.util.function.Function;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.concurrent.CompletableFuture.failedFuture;
+import static org.eclipse.dataspaceconnector.common.async.AsyncUtils.asyncAllOf;
 
 public class ProvisionManagerImpl implements ProvisionManager {
     private final List<Provisioner<?, ?>> provisioners = new ArrayList<>();
@@ -67,11 +65,11 @@ public class ProvisionManagerImpl implements ProvisionManager {
     private CompletableFuture<ProvisionResponse> provision(ResourceDefinition definition) {
         try {
             return provisioners.stream()
-                        .filter(it -> it.canProvision(definition))
-                        .findFirst()
-                        .map(it -> (Provisioner<ResourceDefinition, ?>) it)
-                        .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()))
-                        .provision(definition);
+                    .filter(it -> it.canProvision(definition))
+                    .findFirst()
+                    .map(it -> (Provisioner<ResourceDefinition, ?>) it)
+                    .orElseThrow(() -> new EdcException("Unknown provision type" + definition.getClass().getName()))
+                    .provision(definition);
         } catch (Exception e) {
             return failedFuture(e);
         }
@@ -108,15 +106,6 @@ public class ProvisionManagerImpl implements ProvisionManager {
             }
         };
     }
-
-    private <X, T extends CompletableFuture<X>> Collector<T, ?, CompletableFuture<List<X>>> asyncAllOf() {
-        Function<List<T>, CompletableFuture<List<X>>> finisher = list -> CompletableFuture
-                .allOf(list.toArray(CompletableFuture[]::new))
-                .thenApply(v -> list.stream().map(CompletableFuture::join).collect(Collectors.toList()));
-
-        return Collectors.collectingAndThen(Collectors.toList(), finisher);
-    }
-
 }
 
 

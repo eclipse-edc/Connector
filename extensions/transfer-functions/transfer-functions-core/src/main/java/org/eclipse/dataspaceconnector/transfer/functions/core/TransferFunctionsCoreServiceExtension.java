@@ -15,14 +15,16 @@ package org.eclipse.dataspaceconnector.transfer.functions.core;
 
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
-import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionConfiguration;
-import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpFunctionDataFlowController;
+import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpDataFlowConfiguration;
+import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.functions.core.flow.http.HttpStatusChecker;
 import org.eclipse.dataspaceconnector.transfer.functions.spi.flow.http.TransferFunctionInterceptorRegistry;
 import org.jetbrains.annotations.NotNull;
@@ -52,7 +54,11 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     private static final String DEFAULT_LOCAL_TRANSFER_URL = "http://localhost:9090/transfer";
     private static final String DEFAULT_LOCAL_CHECK_URL = "http://localhost:9090/checker";
 
-    private Monitor monitor;
+    protected Monitor monitor;
+
+    @Inject
+    protected DataAddressResolver addressResolver;
+
     private Set<String> protocols;
 
     @Override
@@ -64,7 +70,6 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         monitor = context.getMonitor();
-
         protocols = getSupportedProtocols(context);
 
         initializeHttpFunctions(context);
@@ -77,7 +82,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
         var typeManager = context.getTypeManager();
         var transferEndpoint = context.getSetting(TRANSFER_URL_KEY, DEFAULT_LOCAL_TRANSFER_URL);
         var checkEndpoint = context.getSetting(CHECK_URL_KEY, DEFAULT_LOCAL_CHECK_URL);
-        var configuration = HttpFunctionConfiguration.Builder.newInstance()
+        var configuration = HttpDataFlowConfiguration.Builder.newInstance()
                 .transferEndpoint(transferEndpoint)
                 .checkEndpoint(checkEndpoint)
                 .clientSupplier(httpClient::build)
@@ -86,7 +91,7 @@ public class TransferFunctionsCoreServiceExtension implements ServiceExtension {
                 .monitor(monitor)
                 .build();
 
-        var flowController = new HttpFunctionDataFlowController(configuration);
+        var flowController = new HttpDataFlowController(configuration, addressResolver);
         var flowManager = context.getService(DataFlowManager.class);
         flowManager.register(flowController);
 

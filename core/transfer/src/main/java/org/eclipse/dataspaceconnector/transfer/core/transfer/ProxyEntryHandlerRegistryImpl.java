@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandler;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandlerRegistry;
+import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler;
+import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandlerRegistry;
 
 import java.util.concurrent.ConcurrentHashMap;
 

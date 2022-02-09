@@ -1,8 +1,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.synchronous;
 
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxy;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+import org.eclipse.dataspaceconnector.spi.proxy.DataProxy;
+import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -20,7 +19,7 @@ public class DataProxyManagerImpl implements DataProxyManager {
     }
 
     @Override
-    public DataProxy getProxy(DataRequest dataRequest) {
-        return proxies.get(dataRequest.getDestinationType());
+    public DataProxy getProxy(String type) {
+        return proxies.get(type);
     }
 }

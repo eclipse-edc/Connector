@@ -19,6 +19,10 @@ import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
+import org.eclipse.dataspaceconnector.spi.proxy.DataProxyRequest;
+import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntry;
+import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
@@ -29,10 +33,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObserv
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxyManager;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntry;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandler;
-import org.eclipse.dataspaceconnector.spi.transfer.synchronous.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
@@ -58,6 +58,7 @@ import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.PROVIDER;
@@ -127,13 +128,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     /**
      * Initiate a consumer request TransferProcess.
-     *
+     * <p>
      * If the request is sync, instead of inserting a {@link TransferProcess} into - and having it traverse through -
      * it returns immediately (= "synchronously"). The {@link TransferProcess} is created in the
      * {@link TransferProcessStates#COMPLETED} state.
      * <p>
-     * There is a set of {@link ProxyEntryHandler} instances, that receive the resulting {@link ProxyEntry} object.
-     * If a {@link ProxyEntryHandler} is registered, the {@link ProxyEntry} is forwarded to it, and if no {@link ProxyEntryHandler}
+     * There is a set of {@link org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler} instances, that receive the resulting {@link ProxyEntry} object.
+     * If a {@link org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler} is registered, the {@link ProxyEntry} is forwarded to it, and if no {@link org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler}
      * is registered, the {@link ProxyEntry} object is returned.
      */
     @Override
@@ -147,12 +148,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     /**
      * Initiate a provider request TransferProcess.
-     *
+     * <p>
      * If the request is sync, instead of inserting a {@link TransferProcess} into - and having it traverse through -
      * it returns immediately (= "synchronously"). The {@link TransferProcess} is created in the
      * {@link TransferProcessStates#COMPLETED} state.
      * <p>
-     * The {@link DataProxyManager} checks if a {@link org.eclipse.dataspaceconnector.spi.transfer.synchronous.DataProxy}
+     * The {@link DataProxyManager} checks if a {@link org.eclipse.dataspaceconnector.spi.proxy.DataProxy}
      * is registered for a particular request and if so, calls it.
      */
     @Override
@@ -257,12 +258,15 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         transferProcessStore.create(process);
 
-        var dataProxy = dataProxyManager.getProxy(dataRequest);
+        var dataProxy = dataProxyManager.getProxy(dataRequest.getDestinationType());
         if (dataProxy == null) {
             return TransferInitiateResult.error(process.getId(), FATAL_ERROR, "There is not DataProxy for destination " + dataRequest.getDestinationType());
         } else {
-            var proxyData = dataProxy.getData(dataRequest);
-            return TransferInitiateResult.success(process.getId(), proxyData);
+            var proxyDataResult = dataProxy.getData(createDataProxyRequest(dataRequest));
+            if (proxyDataResult.failed()) {
+                return TransferInitiateResult.error(process.getId(), ERROR_RETRY, "Failed to get data from proxy");
+            }
+            return TransferInitiateResult.success(process.getId(), proxyDataResult.getContent());
         }
     }
 
@@ -277,8 +281,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .thenApply(proxyEntry -> {
                     String type = proxyEntry.getType();
                     return Optional.ofNullable(proxyEntryHandlers.get(type))
-                                    .map(handler -> handler.accept(dataRequest, proxyEntry))
-                                    .orElse(proxyEntry);
+                            .map(handler -> handler.accept(createDataProxyRequest(dataRequest), proxyEntry))
+                            .orElse(proxyEntry);
                 });
 
         try {
@@ -551,6 +555,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             }
         }
         return processes.size();
+    }
+
+    private static DataProxyRequest createDataProxyRequest(DataRequest request) {
+        return new DataProxyRequest(request.getConnectorAddress(), request.getContractId(), request.getDataDestination());
     }
 
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
