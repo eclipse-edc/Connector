@@ -23,11 +23,11 @@ import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-public abstract class BoundedCommandQueue<C extends Command> implements CommandQueue<C> {
+public class BoundedCommandQueue<C extends Command> implements CommandQueue<C> {
     
     private final BlockingQueue<C> queue;
     
-    protected BoundedCommandQueue(int bound) {
+    public BoundedCommandQueue(int bound) {
         queue = new ArrayBlockingQueue<>(bound);
     }
     

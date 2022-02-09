@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
@@ -33,8 +35,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandQueue;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandRunner;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -71,8 +71,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private Monitor monitor;
     private ExecutorService executor;
-    private ContractNegotiationCommandQueue commandQueue;
-    private ContractNegotiationCommandRunner commandRunner;
+    private CommandQueue<ContractNegotiationCommand> commandQueue;
+    private CommandRunner<ContractNegotiationCommand> commandRunner;
     private ContractNegotiationObservable observable;
     private Predicate<Boolean> isProcessed = it -> it;
 
@@ -273,7 +273,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 var providerOffering = onNegotiationsInState(PROVIDER_OFFERING).doProcess(this::processProviderOffering);
                 var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
                 var confirming = onNegotiationsInState(CONFIRMING).doProcess(this::processConfirming);
-
+    
+                int commandsProcessed = processCommandQueue();
+                
                 var totalProcessed = providerOffering + declining + confirming;
     
                 if (totalProcessed == 0) {
@@ -521,12 +523,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return this;
         }
         
-        public Builder commandQueue(ContractNegotiationCommandQueue commandQueue) {
+        public Builder commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
             manager.commandQueue = commandQueue;
             return this;
         }
         
-        public Builder commandRunner(ContractNegotiationCommandRunner commandRunner) {
+        public Builder commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
             manager.commandRunner = commandRunner;
             return this;
         }

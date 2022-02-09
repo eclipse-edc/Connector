@@ -25,11 +25,11 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
  *     <li>convert exception into a {@link Result}, increase error count</li>
  * </ol>
  */
-public abstract class CommandRunner<C extends Command> {
+public class CommandRunner<C extends Command> {
     protected final CommandHandlerRegistry<C> commandHandlerRegistry;
     protected final Monitor monitor;
 
-    protected CommandRunner(CommandHandlerRegistry<C> commandHandlerRegistry, Monitor monitor) {
+    public CommandRunner(CommandHandlerRegistry<C> commandHandlerRegistry, Monitor monitor) {
         this.commandHandlerRegistry = commandHandlerRegistry;
         this.monitor = monitor;
     }

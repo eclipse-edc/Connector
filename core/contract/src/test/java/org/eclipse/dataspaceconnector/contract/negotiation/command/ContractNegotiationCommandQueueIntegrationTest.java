@@ -17,6 +17,9 @@ import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegot
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.commands.SingleContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.handlers.SingleContractNegotiationCommandHandler;
+import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
@@ -24,9 +27,8 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandHandlerRegistry;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandQueue;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandRunner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -42,8 +44,8 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private ContractNegotiationStore store;
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private ContractNegotiationCommandQueue commandQueue;
-    private ContractNegotiationCommandRunner commandRunner;
+    private CommandQueue<ContractNegotiationCommand> commandQueue;
+    private CommandRunner<ContractNegotiationCommand> commandRunner;
     private ContractNegotiationCommandHandlerRegistry commandHandlerRegistry;
     private ContractNegotiationObservable observable;
     private Monitor monitor;
@@ -76,10 +78,10 @@ class ContractNegotiationCommandQueueIntegrationTest {
         commandHandlerRegistry.register(handler);
         
         // Create CommandRunner
-        commandRunner = new ContractNegotiationCommandRunner(commandHandlerRegistry, monitor);
+        commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
         
         // Create CommandQueue
-        commandQueue = new BoundedContractNegotiationCommandQueue(1);
+        commandQueue = new BoundedCommandQueue<>(1);
     
         // Create ContractNegotiation and TestCommand
         negotiationId = "test";

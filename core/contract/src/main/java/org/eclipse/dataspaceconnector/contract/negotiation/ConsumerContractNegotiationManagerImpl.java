@@ -15,6 +15,8 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
@@ -33,8 +35,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandQueue;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandRunner;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
@@ -76,8 +76,8 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     
-    private ContractNegotiationCommandQueue commandQueue;
-    private ContractNegotiationCommandRunner commandRunner;
+    private CommandQueue<ContractNegotiationCommand> commandQueue;
+    private CommandRunner<ContractNegotiationCommand> commandRunner;
     private ContractNegotiationObservable observable;
     private Predicate<Boolean> isProcessed = it -> it;
 
@@ -471,7 +471,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 var offering = onNegotiationsInState(CONSUMER_OFFERING).doProcess(this::processConsumerOffering);
                 var approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
                 var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
-
+    
+                int commandsProcessed = processCommandQueue();
+                
                 long totalProcessed = requesting + offering + approving + declining;
 
                 if (totalProcessed == 0) {
@@ -563,12 +565,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return this;
         }
     
-        public Builder commandQueue(ContractNegotiationCommandQueue commandQueue) {
+        public Builder commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
             manager.commandQueue = commandQueue;
             return this;
         }
     
-        public Builder commandRunner(ContractNegotiationCommandRunner commandRunner) {
+        public Builder commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
             manager.commandRunner = commandRunner;
             return this;
         }
