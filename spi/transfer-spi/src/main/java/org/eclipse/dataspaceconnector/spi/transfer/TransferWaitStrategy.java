@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer;
 
-import org.eclipse.dataspaceconnector.spi.WaitStrategy;
+import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 
 /**
  * Implements a wait strategy for the {@link TransferProcessManager}.

@@ -43,6 +43,10 @@ public class CorsFilterConfiguration {
         return config;
     }
 
+    public static CorsFilterConfiguration none() {
+        return new CorsFilterConfiguration();
+    }
+
     public String getAllowedOrigins() {
         return allowedOrigins;
     }

@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.catalog.store;
 
 import org.eclipse.dataspaceconnector.catalog.spi.FederatedCacheStore;
-import org.eclipse.dataspaceconnector.spi.asset.CriterionConverter;
+import org.eclipse.dataspaceconnector.spi.query.CriterionConverter;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;

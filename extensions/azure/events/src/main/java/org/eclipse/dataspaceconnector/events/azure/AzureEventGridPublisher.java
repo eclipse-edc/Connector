@@ -18,7 +18,7 @@ import com.azure.core.util.BinaryData;
 import com.azure.messaging.eventgrid.EventGridEvent;
 import com.azure.messaging.eventgrid.EventGridPublisherAsyncClient;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.jetbrains.annotations.NotNull;

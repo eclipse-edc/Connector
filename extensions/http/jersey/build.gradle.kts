@@ -18,6 +18,7 @@ plugins {
 
 val jerseyVersion: String by project
 val rsApi: String by project
+val okHttpVersion: String by project
 
 dependencies {
     api(project(":spi:web-spi"))
@@ -32,6 +33,8 @@ dependencies {
     implementation("org.glassfish.jersey.containers:jersey-container-servlet:${jerseyVersion}")
 
     implementation("org.eclipse.jetty.toolchain:jetty-jakarta-servlet-api:5.0.2")
+
+    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 }
 
 publishing {

@@ -5,13 +5,10 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import static java.lang.String.format;
-
 @Provides({ JettyService.class })
 public class JettyExtension implements ServiceExtension {
 
-    @EdcSetting
-    private static final String HTTP_PORT = "web.http.port";
+
     @EdcSetting
     private static final String KEYSTORE_PASSWORD = "keystore.password";
     @EdcSetting
@@ -28,11 +25,8 @@ public class JettyExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
-        var configuration = new JettyConfiguration(
-                context.getSetting(HTTP_PORT, 8181),
-                context.getSetting(KEYSTORE_PASSWORD, "password"),
-                context.getSetting(KEYMANAGER_PASSWORD, "password")
-        );
+        var configuration = JettyConfiguration.createFromConfig(context.getSetting(KEYSTORE_PASSWORD, "password"),
+                context.getSetting(KEYMANAGER_PASSWORD, "password"), context.getConfig());
 
         jettyService = new JettyService(configuration, monitor);
         context.registerService(JettyService.class, jettyService);
@@ -49,4 +43,5 @@ public class JettyExtension implements ServiceExtension {
             jettyService.shutdown();
         }
     }
+
 }

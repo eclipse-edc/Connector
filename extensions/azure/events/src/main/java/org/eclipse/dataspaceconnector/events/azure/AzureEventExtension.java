@@ -19,7 +19,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
+import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 
 import java.util.Objects;
 

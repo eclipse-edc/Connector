@@ -3,8 +3,8 @@ package org.eclipse.dataspaceconnector.catalog.cache.loader;
 import org.eclipse.dataspaceconnector.catalog.spi.Loader;
 import org.eclipse.dataspaceconnector.catalog.spi.LoaderManager;
 import org.eclipse.dataspaceconnector.catalog.spi.model.UpdateResponse;
-import org.eclipse.dataspaceconnector.spi.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 
 import java.util.ArrayList;
 import java.util.List;

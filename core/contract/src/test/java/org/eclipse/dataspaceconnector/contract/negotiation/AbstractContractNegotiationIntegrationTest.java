@@ -54,6 +54,9 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     protected ProviderContractNegotiationManagerImpl providerManager;
     protected ConsumerContractNegotiationManagerImpl consumerManager;
 
+    protected ContractNegotiationObservable providerObservable = new ContractNegotiationObservableImpl();
+    protected ContractNegotiationObservable consumerObservable = new ContractNegotiationObservableImpl();
+
     protected InMemoryContractNegotiationStore providerStore;
     protected InMemoryContractNegotiationStore consumerStore;
 
@@ -85,6 +88,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .monitor(monitor)
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
+                .observable(providerObservable)
                 .telemetry(telemetry)
                 .build();
         providerStore = new InMemoryContractNegotiationStore();
@@ -95,6 +99,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .monitor(monitor)
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
+                .observable(consumerObservable)
                 .telemetry(telemetry)
                 .build();
         consumerStore = new InMemoryContractNegotiationStore();
