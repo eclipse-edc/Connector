@@ -41,7 +41,7 @@ public class Main {
     public static void main(String... args) throws Exception {
         System.setProperty("java.awt.headless", "true");
 
-        EdcConnectorConsumerRuntime runtime = EdcConnectorConsumerRuntime.Builder.newInstance().build();
+        var runtime = new EdcConnectorConsumerRuntime();
         runtime.start();
 
         TerminalBuilder terminalBuilder = TerminalBuilder.builder().dumb(true);
@@ -55,8 +55,6 @@ public class Main {
         LineReader reader = readerBuilder.terminal(terminal).completer(assembly.getCompleter()).build();
 
         Main.inputLoop(terminal, reader, executors, runtime);
-
-        runtime.shutdown();
     }
 
     private static void inputLoop(Terminal terminal, LineReader reader, Map<String, CommandExecutor> executors, EdcConnectorConsumerRuntime runtime) {

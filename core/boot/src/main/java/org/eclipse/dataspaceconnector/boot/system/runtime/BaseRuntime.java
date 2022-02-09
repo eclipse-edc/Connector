@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static java.lang.Runtime.getRuntime;
 import static java.lang.String.format;
 
 /**
@@ -65,7 +66,7 @@ public class BaseRuntime {
             initializeVault(context);
             List<InjectionContainer<ServiceExtension>> serviceExtensions = createExtensions(context);
             var seList = serviceExtensions.stream().map(InjectionContainer::getInjectionTarget).collect(Collectors.toList());
-            java.lang.Runtime.getRuntime().addShutdownHook(new Thread(() -> shutdown(seList, monitor)));
+            getRuntime().addShutdownHook(new Thread(() -> shutdown(seList, monitor)));
             bootExtensions(context, serviceExtensions);
 
             var healthCheckService = context.getService(HealthCheckService.class);
