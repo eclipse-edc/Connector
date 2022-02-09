@@ -22,6 +22,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
+import java.util.Random;
 import java.util.Scanner;
 
 import static java.lang.String.format;
@@ -67,6 +68,7 @@ public class TestUtils {
      * @throws IllegalArgumentException if no free port is available
      */
     public static int getFreePort() {
+        var rnd = 1024 + new Random().nextInt(MAX_TCP_PORT - 1024);
         return getFreePort(1024);
     }
 
