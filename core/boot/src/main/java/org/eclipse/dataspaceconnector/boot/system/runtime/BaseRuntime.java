@@ -155,9 +155,9 @@ public class BaseRuntime {
         while (iter.hasPrevious()) {
             var extension = iter.previous();
             extension.shutdown();
-            monitor.info("Shutdown " + extension);
+            monitor.info("Shutdown " + extension.name());
         }
-        monitor.info("Connector shutdown complete");
+        monitor.info("Shutdown complete");
     }
 
     /**
