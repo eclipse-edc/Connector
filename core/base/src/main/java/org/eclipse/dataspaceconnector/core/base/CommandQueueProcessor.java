@@ -1,3 +1,16 @@
+/*
+ *  Copyright (c) 2021-2022 Fraunhofer Institute for Software and Systems Engineering
+ *
+ *  This program and the accompanying materials are made available under the
+ *  terms of the Apache License, Version 2.0 which is available at
+ *  https://www.apache.org/licenses/LICENSE-2.0
+ *
+ *  SPDX-License-Identifier: Apache-2.0
+ *
+ *  Contributors:
+ *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
+ *
+ */
 package org.eclipse.dataspaceconnector.core.base;
 
 import org.eclipse.dataspaceconnector.spi.command.Command;
@@ -17,11 +30,11 @@ import static java.lang.String.format;
  */
 public abstract class CommandQueueProcessor<C extends Command> {
     
-    protected abstract CommandQueue<C> getCommandQueue();
+    protected CommandQueue<C> commandQueue;
     
-    protected abstract CommandRunner<C> getCommandRunner();
+    protected CommandRunner<C> commandRunner;
     
-    protected abstract Monitor getMonitor();
+    protected Monitor monitor;
     
     /**
      * Fetches a batch of commands from the {@link CommandQueue} and processes them using the
@@ -31,21 +44,21 @@ public abstract class CommandQueueProcessor<C extends Command> {
      */
     protected int processCommandQueue() {
         var batchSize = 5;
-        var commands = getCommandQueue().dequeue(batchSize);
+        var commands = commandQueue.dequeue(batchSize);
         AtomicInteger successCount = new AtomicInteger(); //needs to be an atomic because lambda.
         
         commands.forEach(command -> {
-            var commandResult = getCommandRunner().runCommand(command);
+            var commandResult = commandRunner.runCommand(command);
             if (commandResult.failed()) {
                 //re-queue if possible
                 if (command.canRetry()) {
-                    getMonitor().warning(format("Could not process command [%s], will retry. error: %s", command.getClass(), commandResult.getFailureMessages()));
-                    getCommandQueue().enqueue(command);
+                    monitor.warning(format("Could not process command [%s], will retry. error: %s", command.getClass(), commandResult.getFailureMessages()));
+                    commandQueue.enqueue(command);
                 } else {
-                    getMonitor().severe(format("Command [%s] has exceeded its retry limit, will discard now", command.getClass()));
+                    monitor.severe(format("Command [%s] has exceeded its retry limit, will discard now", command.getClass()));
                 }
             } else {
-                getMonitor().debug(format("Successfully processed command [%s]", command.getClass()));
+                monitor.debug(format("Successfully processed command [%s]", command.getClass()));
                 successCount.getAndIncrement();
             }
         });

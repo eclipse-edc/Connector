@@ -71,13 +71,10 @@ public class ConsumerContractNegotiationManagerImpl extends CommandQueueProcesso
 
     private int batchSize = 5;
     private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
-    private Monitor monitor;
     private ExecutorService executor;
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     
-    private CommandQueue<ContractNegotiationCommand> commandQueue;
-    private CommandRunner<ContractNegotiationCommand> commandRunner;
     private ContractNegotiationObservable observable;
     private Predicate<Boolean> isProcessed = it -> it;
 
@@ -96,18 +93,6 @@ public class ConsumerContractNegotiationManagerImpl extends CommandQueueProcesso
         if (executor != null) {
             executor.shutdownNow();
         }
-    }
-    
-    protected CommandQueue<ContractNegotiationCommand> getCommandQueue() {
-        return commandQueue;
-    }
-    
-    protected CommandRunner<ContractNegotiationCommand> getCommandRunner() {
-        return commandRunner;
-    }
-    
-    protected Monitor getMonitor() {
-        return monitor;
     }
     
     @Override

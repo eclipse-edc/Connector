@@ -69,10 +69,7 @@ public class ProviderContractNegotiationManagerImpl extends CommandQueueProcesso
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private Monitor monitor;
     private ExecutorService executor;
-    private CommandQueue<ContractNegotiationCommand> commandQueue;
-    private CommandRunner<ContractNegotiationCommand> commandRunner;
     private ContractNegotiationObservable observable;
     private Predicate<Boolean> isProcessed = it -> it;
 
@@ -94,18 +91,6 @@ public class ProviderContractNegotiationManagerImpl extends CommandQueueProcesso
         if (executor != null) {
             executor.shutdownNow();
         }
-    }
-    
-    protected CommandQueue<ContractNegotiationCommand> getCommandQueue() {
-        return commandQueue;
-    }
-    
-    protected CommandRunner<ContractNegotiationCommand> getCommandRunner() {
-        return commandRunner;
-    }
-    
-    protected Monitor getMonitor() {
-        return monitor;
     }
     
     @Override

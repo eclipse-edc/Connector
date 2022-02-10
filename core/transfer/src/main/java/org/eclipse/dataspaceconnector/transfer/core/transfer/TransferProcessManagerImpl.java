@@ -99,13 +99,10 @@ public class TransferProcessManagerImpl extends CommandQueueProcessor<TransferPr
     private TransferProcessStore transferProcessStore;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
-    private Monitor monitor;
     private ExecutorService executor;
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TypeManager typeManager;
-    private CommandQueue<TransferProcessCommand> commandQueue;
-    private CommandRunner<TransferProcessCommand> commandRunner;
     private DataProxyManager dataProxyManager;
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
     private TransferProcessObservable observable;
@@ -126,18 +123,6 @@ public class TransferProcessManagerImpl extends CommandQueueProcessor<TransferPr
         if (executor != null) {
             executor.shutdownNow();
         }
-    }
-    
-    protected CommandQueue<TransferProcessCommand> getCommandQueue() {
-        return commandQueue;
-    }
-    
-    protected CommandRunner<TransferProcessCommand> getCommandRunner() {
-        return commandRunner;
-    }
-    
-    protected Monitor getMonitor() {
-        return monitor;
     }
 
     /**
