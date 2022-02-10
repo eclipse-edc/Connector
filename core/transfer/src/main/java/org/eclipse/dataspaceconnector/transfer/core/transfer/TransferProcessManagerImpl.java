@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -38,7 +39,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedDataDestinationResource;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
@@ -52,12 +53,10 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static java.util.UUID.randomUUID;
-import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
 import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
@@ -67,7 +66,9 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED_ACK;
 
 /**
  * This transfer process manager receives a {@link TransferProcess} and transitions it through its internal state machine (cf {@link TransferProcessStates}.
@@ -106,7 +107,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private DataProxyManager dataProxyManager;
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
     private TransferProcessObservable observable;
-
 
     private TransferProcessManagerImpl() {
 
@@ -178,7 +178,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
 
         if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed"));
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
             return;
         }
 
@@ -221,13 +221,13 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
 
         if (transferProcess.getState() == ERROR.code()) {
-            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be completed"));
+            monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be completed", transferProcess.getId()));
             return;
         }
 
         transferProcess.transitionDeprovisioned();
-
         transferProcessStore.update(transferProcess);
+        observable.invokeForEach(l -> l.deprovisioned(transferProcess));
     }
 
     private void transitionRequestAck(String processId) {
@@ -317,6 +317,10 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
+    private DataProxyRequest createDataProxyRequest(DataRequest request) {
+        return new DataProxyRequest(request.getConnectorAddress(), request.getContractId(), request.getDataDestination());
+    }
+
     private boolean isRetryable(Throwable ex) {
         return ex instanceof ConnectException; //we might need to add more retryable exceptions
     }
@@ -324,23 +328,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private void run() {
         while (active.get()) {
             try {
-                int provisioning = provisionInitialProcesses();
+                long initial = onTransfersInState(INITIAL).doProcess(this::processInitial);
+                long provisioned = onTransfersInState(PROVISIONED).doProcess(this::processProvisioned);
+                long ackRequested = onTransfersInState(REQUESTED_ACK).doProcess(this::processAckRequested);
+                long inProgress = onTransfersInState(IN_PROGRESS).doProcess(this::processInProgress);
+                long deprovisioningRequest = onTransfersInState(DEPROVISIONING_REQ).doProcess(this::processDeprovisioningRequest);
+                long deprovisioned = onTransfersInState(DEPROVISIONED).doProcess(this::processDeprovisioned);
 
-                // TODO check processes in provisioning state and timestamps for failed processes
+                long commandsProcessed = onCommands().doProcess(this::processCommand);
 
-                int sent = sendOrProcessProvisionedRequests();
-
-                int provisioned = checkProvisioned();
-
-                int finished = checkCompleted();
-
-                int deprovisioning = checkDeprovisioningRequested();
-
-                int deprovisioned = checkDeprovisioned();
-
-                int commandsProcessed = processCommandQueue();
-
-                if (provisioning + provisioned + sent + finished + deprovisioning + deprovisioned + commandsProcessed == 0) {
+                var totalProcessed = initial + provisioned + ackRequested + inProgress + deprovisioningRequest + deprovisioned + commandsProcessed;
+                if (totalProcessed == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
                 waitStrategy.success();
@@ -363,133 +361,101 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
-    private int processCommandQueue() {
-        var batchSize = 5;
-        var commands = commandQueue.dequeue(batchSize);
-        AtomicInteger successCount = new AtomicInteger(); //needs to be an atomic because lambda.
+    private EntitiesProcessor<TransferProcess> onTransfersInState(TransferProcessStates state) {
+        return new EntitiesProcessor<>(() -> transferProcessStore.nextForState(state.code(), batchSize));
+    }
 
-        commands.forEach(command -> {
-            var commandResult = commandRunner.runCommand(command);
-            if (commandResult.failed()) {
-                //re-queue if possible
-                if (command.canRetry()) {
-                    monitor.warning(format("Could not process command [%s], will retry. error: %s", command.getClass(), commandResult.getFailureMessages()));
-                    commandQueue.enqueue(command);
-                } else {
-                    monitor.severe(format("Command [%s] has exceeded its retry limit, will discard now", command.getClass()));
-                }
+    private EntitiesProcessor<Command> onCommands() {
+        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    }
+
+    private boolean processCommand(Command command) {
+        var commandResult = commandRunner.runCommand(command);
+        if (commandResult.failed()) {
+            if (command.canRetry()) {
+                monitor.warning(format("Could not process command [%s], will retry. Error: %s", command.getClass(), commandResult.getFailureMessages()));
+                commandQueue.enqueue(command);
             } else {
-                monitor.debug(format("Successfully processed command [%s]", command.getClass()));
-                successCount.getAndIncrement();
+                monitor.severe(format("Could not process command [%s], it has exceeded its retry limit, will discard now. Error: %s", command.getClass(), commandResult.getFailureMessages()));
             }
-        });
-        return successCount.get();
-    }
-
-    private int checkDeprovisioned() {
-        var deprovisionedProcesses = transferProcessStore.nextForState(DEPROVISIONED.code(), batchSize);
-
-        for (var process : deprovisionedProcesses) {
-            observable.invokeForEach(l -> l.deprovisioned(process));
-            process.transitionEnded();
-            transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.ended(process));
-            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+            return false;
+        } else {
+            monitor.debug(format("Successfully processed command [%s]", command.getClass()));
+            return true;
         }
-        return deprovisionedProcesses.size();
     }
 
-    /**
-     * Transitions all processes that are in state DEPROVISIONING_REQ and deprovisions their associated
-     * resources. Then they are moved to DEPROVISIONING
-     *
-     * @return the number of transfer processes in DEPROVISIONING_REQ
-     */
-    private int checkDeprovisioningRequested() {
-        List<TransferProcess> processesDeprovisioning = transferProcessStore.nextForState(DEPROVISIONING_REQ.code(), batchSize);
-
-        for (var process : processesDeprovisioning) {
-            process.transitionDeprovisioning();
-            transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.deprovisioning(process));
-            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            provisionManager.deprovision(process)
-                    .whenComplete((responses, throwable) -> {
-                        if (throwable == null) {
-                            onDeprovisionComplete(process.getId());
-                        } else {
-                            monitor.severe("Error during deprovisioning", throwable);
-                            process.transitionError("Error during deprovisioning: " + throwable.getCause().getLocalizedMessage());
-                            transferProcessStore.update(process);
-                        }
-                    });
-        }
-
-        return processesDeprovisioning.size();
+    private boolean processDeprovisioned(TransferProcess process) {
+        process.transitionEnded();
+        transferProcessStore.update(process);
+        observable.invokeForEach(l -> l.ended(process));
+        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+        return true;
     }
 
-    /**
-     * Transition all processes, who have provisioned resources, into the IN_PROGRESS or STREAMING status, depending on
-     * whether they're finite or not.
-     * If a process does not have provisioned resources, it will remain in REQUESTED_ACK.
-     */
-    private int checkProvisioned() {
-        var requestAcked = transferProcessStore.nextForState(TransferProcessStates.REQUESTED_ACK.code(), batchSize);
-
-        for (var process : requestAcked) {
-            // process must either have a non-empty list of provisioned resources, or not have managed resources at all.
-            if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-
-                if (process.getDataRequest().getTransferType().isFinite()) {
-                    process.transitionInProgress();
-                } else {
-                    process.transitionStreaming();
-                }
-                transferProcessStore.update(process);
-                observable.invokeForEach(l -> l.inProgress(process));
-                monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
-            } else {
-                monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
-            }
-        }
-
-        return requestAcked.size();
-
-    }
-
-    /**
-     * Checks all provisioned resources that are assigned to a transfer process for completion. If no StatusChecker exists
-     * for a particular ProvisionedResource, it is automatically assumed to be complete.
-     */
-    private int checkCompleted() {
-
-        //deal with all the consumer processes
-        var processesInProgress = transferProcessStore.nextForState(TransferProcessStates.IN_PROGRESS.code(), batchSize);
-
-        for (var process : processesInProgress.stream().filter(p -> p.getType() == CONSUMER).collect(toList())) {
-            if (process.getDataRequest().isManagedResources()) {
-                var resources = process.getProvisionedResourceSet().getResources();
-                var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
-                if (checker == null) {
-                    monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
-                } else if (checker.isComplete(process, resources)) {
-                    // checker passed, transition the process to the COMPLETED state
-                    transitionToCompleted(process);
-                }
-            } else {
-                var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
-                if (checker != null) {
-                    if (checker.isComplete(process, emptyList())) {
-                        //checker passed, transition the process to the COMPLETED state automatically
-                        transitionToCompleted(process);
+    private boolean processDeprovisioningRequest(TransferProcess process) {
+        process.transitionDeprovisioning();
+        transferProcessStore.update(process);
+        observable.invokeForEach(l -> l.deprovisioning(process));
+        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+        provisionManager.deprovision(process)
+                .whenComplete((responses, throwable) -> {
+                    if (throwable == null) {
+                        onDeprovisionComplete(process.getId());
+                    } else {
+                        monitor.severe("Error during deprovisioning", throwable);
+                        process.transitionError("Error during deprovisioning: " + throwable.getCause().getLocalizedMessage());
+                        transferProcessStore.update(process);
                     }
-                } else {
-                    //no checker, transition the process to the COMPLETED state automatically
-                    transitionToCompleted(process);
-                }
+                });
+        return true;
+    }
+
+    private boolean processAckRequested(TransferProcess process) {
+        if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
+
+            if (process.getDataRequest().getTransferType().isFinite()) {
+                process.transitionInProgress();
+            } else {
+                process.transitionStreaming();
+            }
+            transferProcessStore.update(process);
+            observable.invokeForEach(l -> l.inProgress(process));
+            monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+            return true;
+        } else {
+            monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
+            return false;
+        }
+    }
+
+    private boolean processInProgress(TransferProcess process) {
+        if (process.getType() != CONSUMER) {
+            return false;
+        }
+
+        var checker = statusCheckerRegistry.resolve(process.getDataRequest().getDestinationType());
+        if (checker == null) {
+            if (process.getDataRequest().isManagedResources()) {
+                monitor.info(format("No checker found for process %s. The process will not advance to the COMPLETED state.", process.getId()));
+                return false;
+            } else {
+                //no checker, transition the process to the COMPLETED state automatically
+                transitionToCompleted(process);
+            }
+            return true;
+        } else {
+            List<ProvisionedResource> resources = process.getDataRequest().isManagedResources() ? process.getProvisionedResourceSet().getResources() : emptyList();
+            if (checker.isComplete(process, resources)) {
+                transitionToCompleted(process);
+                return true;
+            } else {
+                process.transitionInProgress();
+                transferProcessStore.update(process);
+                monitor.info(format("Transfer process %s not COMPLETED yet. The process will not advance to the COMPLETED state.", process.getId()));
+                return false;
             }
         }
-        return processesInProgress.size();
     }
 
     private void transitionToCompleted(TransferProcess process) {
@@ -505,60 +471,33 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
      * map involve preprocessing data or other operations.
      */
-    private int provisionInitialProcesses() {
-        var processes = transferProcessStore.nextForState(INITIAL.code(), batchSize);
-        for (TransferProcess process : processes) {
-            DataRequest dataRequest = process.getDataRequest();
-            ResourceManifest manifest;
-            if (process.getType() == CONSUMER) {
-                // if resources are managed by this connector, generate the manifest; otherwise create an empty one
-                manifest = dataRequest.isManagedResources() ? manifestGenerator.generateConsumerManifest(process) : ResourceManifest.Builder.newInstance().build();
+    private boolean processInitial(TransferProcess process) {
+        var manifest = manifestGenerator.generateResourceManifest(process);
+        process.transitionProvisioning(manifest);
+        transferProcessStore.update(process);
+        observable.invokeForEach(l -> l.provisioning(process));
+
+        provisionManager.provision(process).whenComplete((responses, throwable) -> {
+            if (throwable == null) {
+                onProvisionComplete(process.getId(), responses);
             } else {
-                manifest = manifestGenerator.generateProviderManifest(process);
-            }
-            process.transitionProvisioning(manifest);
-            transferProcessStore.update(process);
-            observable.invokeForEach(l -> l.provisioning(process));
-            if (process.getResourceManifest().getDefinitions().isEmpty()) {
-                // no resources to provision, advance state
-                process.transitionProvisioned();
+                monitor.severe("Error during provisioning", throwable);
+                process.transitionError("Error during provisioning: " + throwable.getCause().getLocalizedMessage());
                 transferProcessStore.update(process);
-            } else {
-                provisionManager.provision(process).whenComplete((responses, throwable) -> {
-                    if (throwable == null) {
-                        onProvisionComplete(process.getId(), responses);
-                    } else {
-                        monitor.severe("Error during provisioning", throwable);
-                        process.transitionError("Error during provisioning: " + throwable.getCause().getLocalizedMessage());
-                        transferProcessStore.update(process);
-                    }
-                });
             }
+        });
 
-        }
-        return processes.size();
+        return true;
     }
 
-    /**
-     * On a consumer, sends provisioned requests to the provider connector. On the provider, sends provisioned requests to the data flow manager.
-     *
-     * @return the number of requests processed
-     */
-    private int sendOrProcessProvisionedRequests() {
-        var processes = transferProcessStore.nextForState(PROVISIONED.code(), batchSize);
-        for (TransferProcess process : processes) {
-            DataRequest dataRequest = process.getDataRequest();
-            if (CONSUMER == process.getType()) {
-                sendConsumerRequest(process, dataRequest);
-            } else {
-                processProviderRequest(process, dataRequest);
-            }
+    private boolean processProvisioned(TransferProcess process) {
+        DataRequest dataRequest = process.getDataRequest();
+        if (CONSUMER == process.getType()) {
+            sendConsumerRequest(process, dataRequest);
+        } else {
+            processProviderRequest(process, dataRequest);
         }
-        return processes.size();
-    }
-
-    private static DataProxyRequest createDataProxyRequest(DataRequest request) {
-        return new DataProxyRequest(request.getConnectorAddress(), request.getContractId(), request.getDataDestination());
+        return true;
     }
 
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
@@ -710,6 +649,5 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return manager;
         }
     }
-
 
 }

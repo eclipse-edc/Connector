@@ -32,6 +32,10 @@ public class ResourceManifest {
     private String transferProcessId;
     private final List<ResourceDefinition> definitions = new ArrayList<>();
 
+    private ResourceManifest() {
+
+    }
+
     @NotNull
     public List<ResourceDefinition> getDefinitions() {
         return definitions;

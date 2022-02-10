@@ -14,18 +14,20 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.provision;
 
-import org.eclipse.dataspaceconnector.policy.model.AtomicConstraintFunction;
-import org.eclipse.dataspaceconnector.policy.model.Duty;
-import org.eclipse.dataspaceconnector.policy.model.Permission;
-import org.eclipse.dataspaceconnector.policy.model.Prohibition;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceDefinitionGenerator;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static java.util.Collections.emptyList;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess.Type.CONSUMER;
 
 /**
  * Default implementation.
@@ -45,42 +47,32 @@ public class ResourceManifestGeneratorImpl implements ResourceManifestGenerator 
     }
 
     @Override
-    public void registerPermissionFunctions(Map<String, AtomicConstraintFunction<String, Permission, Boolean>> functions) {
-        throw new UnsupportedOperationException();
+    public ResourceManifest generateResourceManifest(TransferProcess process) {
+        var definitions = generateDefinitions(process);
+        return ResourceManifest.Builder.newInstance().definitions(definitions).build();
     }
 
-    @Override
-    public void registerProhibitionFunctions(Map<String, AtomicConstraintFunction<String, Prohibition, Boolean>> functions) {
-        throw new UnsupportedOperationException();
+    @NotNull
+    private List<ResourceDefinition> generateDefinitions(TransferProcess process) {
+        var dataRequest = process.getDataRequest();
+        if (process.getType() == CONSUMER) {
+            return dataRequest.isManagedResources() ? generateConsumerDefinitions(process) : emptyList();
+        } else {
+            return generateProviderDefinitions(process);
+        }
     }
 
-    @Override
-    public void registerObligationFunctions(Map<String, AtomicConstraintFunction<String, Duty, Boolean>> functions) {
-        throw new UnsupportedOperationException();
+    @NotNull
+    private List<ResourceDefinition> generateConsumerDefinitions(TransferProcess process) {
+        return consumerGenerators.stream()
+                .map(generator -> generator.generate(process))
+                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 
-    @Override
-    public ResourceManifest generateConsumerManifest(TransferProcess process) {
-        var manifest = new ResourceManifest();
-        consumerGenerators.forEach(g -> {
-            var definition = g.generate(process);
-            if (definition != null) {
-                manifest.addDefinition(definition);
-            }
-        });
-        return manifest;
-    }
-
-    @Override
-    public ResourceManifest generateProviderManifest(TransferProcess process) {
-        var manifest = new ResourceManifest();
-        providerGenerators.forEach(g -> {
-            var definition = g.generate(process);
-            if (definition != null) {
-                manifest.addDefinition(definition);
-            }
-        });
-        return manifest;
-
+    @NotNull
+    private List<ResourceDefinition> generateProviderDefinitions(TransferProcess process) {
+        return providerGenerators.stream()
+                .map(generator -> generator.generate(process))
+                .filter(Objects::nonNull).collect(Collectors.toList());
     }
 }

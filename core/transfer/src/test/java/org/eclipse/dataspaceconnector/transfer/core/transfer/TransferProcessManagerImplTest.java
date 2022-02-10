@@ -93,7 +93,7 @@ class TransferProcessManagerImplTest {
     @BeforeEach
     void setup() {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
-        when(manifestGenerator.generateConsumerManifest(any(TransferProcess.class))).thenReturn(resourceManifest);
+        when(manifestGenerator.generateResourceManifest(any(TransferProcess.class))).thenReturn(resourceManifest);
 
         var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
         proxyEntryHandlerRegistry.put(DESTINATION_TYPE, mock(ProxyEntryHandler.class));

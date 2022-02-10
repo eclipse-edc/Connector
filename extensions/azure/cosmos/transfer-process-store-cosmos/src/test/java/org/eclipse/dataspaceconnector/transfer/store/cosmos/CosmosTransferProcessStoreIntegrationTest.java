@@ -297,7 +297,7 @@ class CosmosTransferProcessStoreIntegrationTest {
 
         store.create(tp);
 
-        tp.transitionProvisioning(new ResourceManifest());
+        tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(tp);
 
         CosmosItemResponse<Object> response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
@@ -313,7 +313,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         var tp = createTransferProcess("process-id");
 
         tp.transitionInitial();
-        tp.transitionProvisioning(new ResourceManifest());
+        tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(tp);
 
         CosmosItemResponse<Object> response = container.readItem(tp.getId(), new PartitionKey(partitionKey), Object.class);
@@ -334,7 +334,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         container.upsertItem(doc);
 
         //act
-        tp.transitionProvisioning(new ResourceManifest());
+        tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         store.update(tp);
 
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
@@ -352,7 +352,7 @@ class CosmosTransferProcessStoreIntegrationTest {
         container.upsertItem(doc);
 
         //act
-        tp.transitionProvisioning(new ResourceManifest());
+        tp.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
         assertThatThrownBy(() -> store.update(tp)).isInstanceOf(EdcException.class).hasRootCauseInstanceOf(BadRequestException.class);
     }
 
