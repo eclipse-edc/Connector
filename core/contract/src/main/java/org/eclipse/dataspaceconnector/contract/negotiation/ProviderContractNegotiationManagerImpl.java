@@ -59,7 +59,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 /**
  * Implementation of the {@link ProviderContractNegotiationManager}.
  */
-public class ProviderContractNegotiationManagerImpl extends CommandQueueProcessor<ContractNegotiationCommand> implements ProviderContractNegotiationManager {
+public class ProviderContractNegotiationManagerImpl implements ProviderContractNegotiationManager {
 
     private final AtomicBoolean active = new AtomicBoolean();
 
@@ -71,9 +71,15 @@ public class ProviderContractNegotiationManagerImpl extends CommandQueueProcesso
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private ExecutorService executor;
     private ContractNegotiationObservable observable;
+    private CommandQueue<ContractNegotiationCommand> commandQueue;
+    private CommandRunner<ContractNegotiationCommand> commandRunner;
+    private CommandQueueProcessor<ContractNegotiationCommand> commandQueueProcessor;
+    private Monitor monitor;
     private Predicate<Boolean> isProcessed = it -> it;
 
-    private ProviderContractNegotiationManagerImpl() { }
+    private ProviderContractNegotiationManagerImpl() {
+        this.commandQueueProcessor = new CommandQueueProcessor<>();
+    }
 
     //TODO check state count for retry
 
@@ -271,7 +277,7 @@ public class ProviderContractNegotiationManagerImpl extends CommandQueueProcesso
                 var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
                 var confirming = onNegotiationsInState(CONFIRMING).doProcess(this::processConfirming);
     
-                int commandsProcessed = processCommandQueue();
+                int commandsProcessed = commandQueueProcessor.processCommandQueue(commandQueue, commandRunner, monitor);
                 
                 var totalProcessed = providerOffering + declining + confirming;
     

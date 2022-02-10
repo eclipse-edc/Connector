@@ -64,7 +64,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 /**
  * Implementation of the {@link ConsumerContractNegotiationManager}.
  */
-public class ConsumerContractNegotiationManagerImpl extends CommandQueueProcessor<ContractNegotiationCommand> implements ConsumerContractNegotiationManager {
+public class ConsumerContractNegotiationManagerImpl implements ConsumerContractNegotiationManager {
     private final AtomicBoolean active = new AtomicBoolean();
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
@@ -76,9 +76,14 @@ public class ConsumerContractNegotiationManagerImpl extends CommandQueueProcesso
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     
     private ContractNegotiationObservable observable;
+    private CommandQueue<ContractNegotiationCommand> commandQueue;
+    private CommandRunner<ContractNegotiationCommand> commandRunner;
+    private CommandQueueProcessor<ContractNegotiationCommand> commandQueueProcessor;
+    private Monitor monitor;
     private Predicate<Boolean> isProcessed = it -> it;
 
     public ConsumerContractNegotiationManagerImpl() {
+        this.commandQueueProcessor = new CommandQueueProcessor<>();
     }
 
     public void start(ContractNegotiationStore store) {
@@ -469,7 +474,7 @@ public class ConsumerContractNegotiationManagerImpl extends CommandQueueProcesso
                 var approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
                 var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
     
-                int commandsProcessed = processCommandQueue();
+                int commandsProcessed = commandQueueProcessor.processCommandQueue(commandQueue, commandRunner, monitor);
                 
                 long totalProcessed = requesting + offering + approving + declining;
 

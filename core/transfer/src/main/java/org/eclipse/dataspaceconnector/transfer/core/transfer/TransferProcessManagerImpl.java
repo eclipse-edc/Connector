@@ -89,7 +89,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link TransferWaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
-public class TransferProcessManagerImpl extends CommandQueueProcessor<TransferProcessCommand> implements TransferProcessManager {
+public class TransferProcessManagerImpl implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
@@ -106,9 +106,13 @@ public class TransferProcessManagerImpl extends CommandQueueProcessor<TransferPr
     private DataProxyManager dataProxyManager;
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
     private TransferProcessObservable observable;
+    private CommandQueue<TransferProcessCommand> commandQueue;
+    private CommandRunner<TransferProcessCommand> commandRunner;
+    private CommandQueueProcessor<TransferProcessCommand> commandQueueProcessor;
+    private Monitor monitor;
 
     private TransferProcessManagerImpl() {
-
+        commandQueueProcessor = new CommandQueueProcessor<>();
     }
 
     public void start(TransferProcessStore processStore) {
