@@ -14,18 +14,18 @@
 
 package org.eclipse.dataspaceconnector.api.auth;
 
-import org.eclipse.dataspaceconnector.api.exception.AuthorizationFailedException;
+import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class TokenBasedAuthorizationService implements AuthorizationService {
+public class TokenBasedAuthenticationService implements AuthenticationService {
 
     private static final String API_KEY_HEADER_NAME = "x-api-key";
     private final String hardCodedApiKey; //todo: have a list of API keys?
 
-    public TokenBasedAuthorizationService(String hardCodedApiKey) {
+    public TokenBasedAuthenticationService(String hardCodedApiKey) {
         this.hardCodedApiKey = hardCodedApiKey;
     }
 
@@ -36,7 +36,7 @@ public class TokenBasedAuthorizationService implements AuthorizationService {
      * @throws IllegalArgumentException The map of headers did not contain the "X-Api-Key" header
      */
     @Override
-    public boolean isAuthorized(Map<String, List<String>> headers) {
+    public boolean isAuthenticated(Map<String, List<String>> headers) {
 
         Objects.requireNonNull(headers, "headers");
 
@@ -45,7 +45,7 @@ public class TokenBasedAuthorizationService implements AuthorizationService {
                 .map(headers::get)
                 .findFirst();
 
-        return apiKey.map(this::checkApiKeyValid).orElseThrow(() -> new AuthorizationFailedException(API_KEY_HEADER_NAME + " not found"));
+        return apiKey.map(this::checkApiKeyValid).orElseThrow(() -> new AuthenticationFailedException(API_KEY_HEADER_NAME + " not found"));
     }
 
     private boolean checkApiKeyValid(List<String> apiKeys) {

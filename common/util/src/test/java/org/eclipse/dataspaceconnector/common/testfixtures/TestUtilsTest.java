@@ -25,6 +25,6 @@ class TestUtilsTest {
 
     @Test
     void findsRandomPort() {
-        assertThat(TestUtils.findUnallocatedServerPort()).isBetween(EPHEMERAL_PORT_MIN, EPHEMERAL_PORT_MAX);
+        assertThat(TestUtils.getFreePort()).isBetween(EPHEMERAL_PORT_MIN, EPHEMERAL_PORT_MAX);
     }
 }

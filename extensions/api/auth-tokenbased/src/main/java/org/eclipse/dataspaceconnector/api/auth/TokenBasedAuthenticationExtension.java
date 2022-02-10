@@ -23,19 +23,19 @@ import java.util.UUID;
 import static java.lang.String.format;
 
 /**
- * Extension that registers an AuthorizationService that uses API Keys
+ * Extension that registers an AuthenticationService that uses API Keys
  */
-@Provides(AuthorizationService.class)
-public class TokenBasedAuthorizationExtension implements ServiceExtension {
+@Provides(AuthenticationService.class)
+public class TokenBasedAuthenticationExtension implements ServiceExtension {
     private static final String AUTH_SETTING_APIKEY = "edc.api.auth.key";
 
     @Override
     public void initialize(ServiceExtensionContext context) {
         var apiKey = context.getSetting(AUTH_SETTING_APIKEY, UUID.randomUUID().toString());
 
-        context.getMonitor().info(format("API Authorization: using static API Key '%s'", apiKey));
+        context.getMonitor().info(format("API Authentication: using static API Key '%s'", apiKey));
 
-        var authService = new TokenBasedAuthorizationService(apiKey);
-        context.registerService(AuthorizationService.class, authService);
+        var authService = new TokenBasedAuthenticationService(apiKey);
+        context.registerService(AuthenticationService.class, authService);
     }
 }

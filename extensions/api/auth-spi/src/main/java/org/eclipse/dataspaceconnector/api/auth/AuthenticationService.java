@@ -14,19 +14,19 @@
 
 package org.eclipse.dataspaceconnector.api.auth;
 
-import org.eclipse.dataspaceconnector.api.exception.AuthorizationFailedException;
+import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
 
 import java.util.List;
 import java.util.Map;
 
 @FunctionalInterface
-public interface AuthorizationService {
+public interface AuthenticationService {
 
     /**
-     * Checks whether a particular request is authorized.
+     * Checks whether a particular request can be authenticated.
      *
      * @param headers The headers, that contain the credential to be used, e.g. a token, Basic-Auth header, etc.
-     * @throws AuthorizationFailedException when the credential passed was not acceptable (e.g. null, empty, invalid base64)
+     * @throws AuthenticationFailedException when the credential passed was not acceptable (e.g. null, empty, invalid base64)
      */
-    boolean isAuthorized(Map<String, List<String>> headers);
+    boolean isAuthenticated(Map<String, List<String>> headers);
 }

@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.api.auth;
 
-import org.eclipse.dataspaceconnector.api.exception.AuthorizationFailedException;
+import org.eclipse.dataspaceconnector.api.exception.AuthenticationFailedException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -27,50 +27,50 @@ import java.util.Map;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class TokenBasedAuthorizationServiceTest {
+class TokenBasedAuthenticationServiceTest {
 
     private static final String TEST_API_KEY = "test-key";
-    private TokenBasedAuthorizationService service;
+    private TokenBasedAuthenticationService service;
 
     @BeforeEach
     void setUp() {
-        service = new TokenBasedAuthorizationService(TEST_API_KEY);
+        service = new TokenBasedAuthenticationService(TEST_API_KEY);
     }
 
     @ParameterizedTest
     @ValueSource(strings = { "x-api-key", "X-API-KEY", "X-Api-Key" })
     void isAuthorized(String validKey) {
         var map = Map.of(validKey, List.of(TEST_API_KEY));
-        assertThat(service.isAuthorized(map)).isTrue();
+        assertThat(service.isAuthenticated(map)).isTrue();
     }
 
     @Test
     void isAuthorized_headerNotPresent_throwsException() {
         var map = Map.of("header1", List.of("val1, val2"),
                 "header2", List.of("anotherval1", "anotherval2"));
-        assertThatThrownBy(() -> service.isAuthorized(map)).isInstanceOf(AuthorizationFailedException.class).hasMessage("x-api-key not found");
+        assertThatThrownBy(() -> service.isAuthenticated(map)).isInstanceOf(AuthenticationFailedException.class).hasMessage("x-api-key not found");
     }
 
     @Test
     void isAuthorized_headersEmpty_throwsException() {
         Map<String, List<String>> map = Collections.emptyMap();
-        assertThatThrownBy(() -> service.isAuthorized(map)).isInstanceOf(AuthorizationFailedException.class).hasMessage("x-api-key not found");
+        assertThatThrownBy(() -> service.isAuthenticated(map)).isInstanceOf(AuthenticationFailedException.class).hasMessage("x-api-key not found");
     }
 
     @Test
     void isAuthorized_headersNull_throwsException() {
-        assertThatThrownBy(() -> service.isAuthorized(null)).isInstanceOf(NullPointerException.class);
+        assertThatThrownBy(() -> service.isAuthenticated(null)).isInstanceOf(NullPointerException.class);
     }
 
     @Test
     void isAuthorized_notAuthorized() {
         var map = Map.of("x-api-key", List.of("invalid_api_key"));
-        assertThat(service.isAuthorized(map)).isFalse();
+        assertThat(service.isAuthenticated(map)).isFalse();
     }
 
     @Test
     void isAuthorized_multipleValues_oneAuthorized() {
         var map = Map.of("x-api-key", List.of("invalid_api_key", TEST_API_KEY));
-        assertThat(service.isAuthorized(map)).isTrue();
+        assertThat(service.isAuthenticated(map)).isTrue();
     }
 }

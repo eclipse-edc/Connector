@@ -19,17 +19,17 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 /**
- * Extension that registers the AuthorizationRequestFilter with the webservice
+ * Extension that registers the AuthenticationRequestFilter with the webservice
  */
-public class AuthorizationExtension implements ServiceExtension {
+public class AuthenticationExtension implements ServiceExtension {
     @Inject(required = false)
-    private AuthorizationService authorizationService;
+    private AuthenticationService authenticationService;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        //        if (authorizationService == null) {
-        //            context.getMonitor().warning("No AuthorizationService was registered. Will deny all requests!");
-        //            authorizationService = (headers) -> false;
+        //        if (authenticationService == null) {
+        //            context.getMonitor().warning("No AuthenticationService was registered. Will deny all requests!");
+        //            authenticationService = (headers) -> false;
         //        }
 
         // todo: this extension will eventually go away - the request filter should be registered by every API separately

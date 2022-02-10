@@ -11,4 +11,4 @@
  #
 
 
-org.eclipse.dataspaceconnector.api.auth.AuthorizationExtension
+org.eclipse.dataspaceconnector.api.auth.AuthenticationExtension

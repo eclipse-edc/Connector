@@ -16,29 +16,25 @@ package org.eclipse.dataspaceconnector.api.auth;
 
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
-import jakarta.ws.rs.container.PreMatching;
-import jakarta.ws.rs.ext.Provider;
 import org.eclipse.dataspaceconnector.api.exception.NotAuthorizedException;
 
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Provider
-@PreMatching
-public class AuthorizationRequestFilter implements ContainerRequestFilter {
-    private final AuthorizationService authorizationService;
+public class AuthenticationRequestFilter implements ContainerRequestFilter {
+    private final AuthenticationService authenticationService;
 
-    public AuthorizationRequestFilter(AuthorizationService authorizationService) {
-        this.authorizationService = authorizationService;
+    public AuthenticationRequestFilter(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
     }
 
     @Override
     public void filter(ContainerRequestContext requestContext) {
         var headers = requestContext.getHeaders();
 
-        var isAuthorized = authorizationService.isAuthorized(headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
+        var isAuthenticated = authenticationService.isAuthenticated(headers.entrySet().stream().collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)));
 
-        if (!isAuthorized) {
+        if (!isAuthenticated) {
             throw new NotAuthorizedException();
         }
     }
