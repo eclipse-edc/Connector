@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.common.configuration;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 /**
  * Common configuration functions used by extensions.
  */
@@ -31,6 +34,20 @@ public class ConfigurationFunctions {
         String upperKey = key.toUpperCase().replace('.', '_');
         value = System.getenv(upperKey);
         return value != null ? value : defaultValue;
+    }
+
+    /**
+     * Utility method to find an unallocated port. Note that there is a race condition,
+     * the port might be allocated by the time it is used.
+     *
+     * @return a server port.
+     */
+    public static int findUnallocatedServerPort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
     }
 
 }

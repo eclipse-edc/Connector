@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractN
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 public class ApiEndpointExtension implements ServiceExtension {
 
@@ -32,6 +33,7 @@ public class ApiEndpointExtension implements ServiceExtension {
         var webService = context.getService(WebService.class);
         var processManager = context.getService(TransferProcessManager.class);
         var negotiationManager = context.getService(ConsumerContractNegotiationManager.class);
-        webService.registerController(new ConsumerApiController(context.getMonitor(), processManager, negotiationManager));
+        var transferProcessStore = context.getService(TransferProcessStore.class);
+        webService.registerController(new ConsumerApiController(context.getMonitor(), processManager, negotiationManager, transferProcessStore));
     }
 }

@@ -6,10 +6,10 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.findUnallocatedServerPort;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractClientControlCatalogApiControllerTest {
@@ -38,14 +38,6 @@ abstract class AbstractClientControlCatalogApiControllerTest {
 
     protected int getPort() {
         return PORT.get();
-    }
-
-    private static int findUnallocatedServerPort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
     }
 
     protected String getUrl() {
