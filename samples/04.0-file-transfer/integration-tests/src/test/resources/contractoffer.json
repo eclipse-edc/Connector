@@ -36,8 +36,8 @@
       "ids:fileName": null
     }
   },
-  "provider": null,
-  "consumer": null,
+  "provider": "urn:connector:provider",
+  "consumer": "urn:connector:consumer",
   "offerStart": null,
   "offerEnd": null,
   "contractStart": null,
