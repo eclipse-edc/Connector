@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.spi.command;
 
-import java.io.Serializable;
 import java.util.UUID;
 
 /**
@@ -15,7 +14,7 @@ import java.util.UUID;
  * <li>Commands do not have results. Any results that an operation may produce are to be handled by the {@link CommandHandler}</li>
  * </ul>
  */
-public abstract class Command implements Serializable {
+public abstract class Command {
     private final String commandId;
     private int errorCount = 0;
 

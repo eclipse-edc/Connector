@@ -30,7 +30,12 @@ public interface WebService {
     @Deprecated
     void registerController(Object controller);
 
-    void registerResource(Object controller);
+    /**
+     * Registers a resource (e.g. a controller or a filter) with the webservice, making it available for the default port mapping.
+     *
+     * @param resource a resource
+     */
+    void registerResource(Object resource);
 
     /**
      * Registers a resource (e.g. a controller or a filter) with the webservice, making it only available for

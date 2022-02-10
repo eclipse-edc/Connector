@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.spi.observe;
 
-import org.eclipse.dataspaceconnector.spi.ObservableImpl;
 import org.junit.jupiter.api.Test;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -58,6 +57,7 @@ class ObservableImplTest {
         assertThat(observable.getListeners()).doesNotContain(listener2).containsOnly(listener);
     }
 
-    private static class TestListener { }
+    private static class TestListener {
+    }
 
 }
