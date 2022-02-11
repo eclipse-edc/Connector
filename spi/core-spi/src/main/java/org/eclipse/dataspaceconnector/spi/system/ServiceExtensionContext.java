@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.spi.system;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +38,11 @@ public interface ServiceExtensionContext extends SettingResolver {
      * Returns the system monitor.
      */
     Monitor getMonitor();
+
+    /**
+     * Returns the system telemetry object.
+     */
+    Telemetry getTelemetry();
 
     /**
      * Returns the type manager.

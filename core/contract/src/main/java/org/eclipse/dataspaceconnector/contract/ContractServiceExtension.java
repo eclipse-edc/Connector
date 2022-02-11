@@ -128,6 +128,7 @@ public class ContractServiceExtension implements ServiceExtension {
         CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
         CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
 
+        var telemetry = context.getTelemetry();
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);
 
@@ -139,6 +140,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
                 .observable(observable)
+                .telemetry(telemetry)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -149,6 +151,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
                 .observable(observable)
+                .telemetry(telemetry)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);

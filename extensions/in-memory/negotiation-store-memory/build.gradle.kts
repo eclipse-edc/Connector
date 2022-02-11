@@ -12,10 +12,11 @@
  *
  */
 
+val openTelemetryVersion: String by project
+
 plugins {
     `java-library`
 }
-
 
 dependencies {
     api(project(":spi"))

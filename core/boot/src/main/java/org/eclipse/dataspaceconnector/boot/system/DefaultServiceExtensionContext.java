@@ -31,6 +31,7 @@ import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPoint;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPointScanner;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.util.ArrayList;
@@ -52,6 +53,7 @@ import java.util.stream.Stream;
  */
 public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private final Monitor monitor;
+    private final Telemetry telemetry;
     private final TypeManager typeManager;
 
     private final Map<Class<?>, Object> services = new HashMap<>();
@@ -61,13 +63,14 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     private String connectorId;
     private Config config;
 
-    public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor) {
-        this(typeManager, monitor, new ServiceLocatorImpl());
+    public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
+        this(typeManager, monitor, telemetry, new ServiceLocatorImpl());
     }
 
-    public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor, ServiceLocator serviceLocator) {
+    public DefaultServiceExtensionContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry, ServiceLocator serviceLocator) {
         this.typeManager = typeManager;
         this.monitor = monitor;
+        this.telemetry = telemetry;
         this.serviceLocator = serviceLocator;
         // register as services
         registerService(TypeManager.class, typeManager);
@@ -83,6 +86,11 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     @Override
     public Monitor getMonitor() {
         return monitor;
+    }
+
+    @Override
+    public Telemetry getTelemetry() {
+        return telemetry;
     }
 
     @Override

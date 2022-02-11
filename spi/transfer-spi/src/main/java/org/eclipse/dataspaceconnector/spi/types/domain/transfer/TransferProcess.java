@@ -19,10 +19,14 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -71,13 +75,14 @@ import static java.util.stream.Collectors.toSet;
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
-public class TransferProcess {
+public class TransferProcess implements TraceCarrier {
 
     private String id;
     private Type type = Type.CONSUMER;
     private int state;
     private int stateCount = TransferProcessStates.UNSAVED.code();
     private long stateTimestamp;
+    private Map<String, String> traceContext = new HashMap<>();
     private String errorDetail;
     private DataRequest dataRequest;
     private ResourceManifest resourceManifest;
@@ -104,6 +109,10 @@ public class TransferProcess {
 
     public long getStateTimestamp() {
         return stateTimestamp;
+    }
+
+    public Map<String, String> getTraceContext() {
+        return Collections.unmodifiableMap(traceContext);
     }
 
     public DataRequest getDataRequest() {
@@ -251,7 +260,7 @@ public class TransferProcess {
 
     public TransferProcess copy() {
         return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest).dataRequest(dataRequest)
-                .provisionedResourceSet(provisionedResourceSet).type(type).errorDetail(errorDetail).build();
+                .provisionedResourceSet(provisionedResourceSet).traceContext(traceContext).type(type).errorDetail(errorDetail).build();
     }
 
     public Builder toBuilder() {
@@ -361,6 +370,11 @@ public class TransferProcess {
 
         public Builder errorDetail(String errorDetail) {
             process.errorDetail = errorDetail;
+            return this;
+        }
+
+        public Builder traceContext(Map<String, String> traceContext) {
+            process.traceContext = traceContext;
             return this;
         }
 

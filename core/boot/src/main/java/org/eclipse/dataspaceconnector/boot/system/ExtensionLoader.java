@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.boot.system;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.dataspaceconnector.boot.system.injection.InjectorImpl;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -28,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -90,9 +93,13 @@ public class ExtensionLoader {
         return loadMonitor(loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList()));
     }
 
+    public static @NotNull Telemetry loadTelemetry() {
+        var loader = ServiceLoader.load(OpenTelemetry.class);
+        var openTelemetries = loader.stream().map(ServiceLoader.Provider::get).collect(Collectors.toList());
+        return new Telemetry(selectOpenTelemetryImpl(openTelemetries));
+    }
+
     static @NotNull Monitor loadMonitor(List<MonitorExtension> availableMonitors) {
-
-
         if (availableMonitors.isEmpty()) {
             return new ConsoleMonitor();
         }
@@ -102,5 +109,12 @@ public class ExtensionLoader {
         }
 
         return availableMonitors.get(0).getMonitor();
+    }
+
+    static @NotNull OpenTelemetry selectOpenTelemetryImpl(List<OpenTelemetry> openTelemetries) {
+        if (openTelemetries.size() > 1) {
+            throw new IllegalStateException(String.format("Found %s OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.", openTelemetries.size()));
+        }
+        return openTelemetries.isEmpty() ? GlobalOpenTelemetry.get() : openTelemetries.get(0);
     }
 }

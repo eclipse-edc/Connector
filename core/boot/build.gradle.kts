@@ -19,10 +19,13 @@ plugins {
 
 val jupiterVersion: String by project
 val slf4jVersion: String by project
+val openTelemetryVersion: String by project
 
 dependencies {
     api(project(":spi:core-spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
+
+    implementation("io.opentelemetry:opentelemetry-api:${openTelemetryVersion}")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")
 }
