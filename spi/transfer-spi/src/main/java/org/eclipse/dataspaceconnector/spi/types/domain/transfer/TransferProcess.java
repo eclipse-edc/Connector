@@ -26,23 +26,9 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
-import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.CANCELLED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED_ACK;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.STREAMING;
-import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 
 /**
  * Represents a data transfer process.
@@ -87,7 +73,7 @@ public class TransferProcess {
     private String id;
     private Type type = Type.CONSUMER;
     private int state;
-    private int stateCount = UNSAVED.code();
+    private int stateCount = TransferProcessStates.UNSAVED.code();
     private long stateTimestamp;
     private String errorDetail;
     private DataRequest dataRequest;
@@ -134,11 +120,11 @@ public class TransferProcess {
     }
 
     public void transitionInitial() {
-        transition(INITIAL, UNSAVED);
+        transition(TransferProcessStates.INITIAL, TransferProcessStates.UNSAVED);
     }
 
     public void transitionProvisioning(ResourceManifest manifest) {
-        transition(PROVISIONING, INITIAL, PROVISIONING);
+        transition(TransferProcessStates.PROVISIONING, TransferProcessStates.INITIAL, TransferProcessStates.PROVISIONING);
         resourceManifest = manifest;
         resourceManifest.setTransferProcessId(id);
     }
@@ -169,7 +155,7 @@ public class TransferProcess {
 
     public void transitionProvisioned() {
         // requested is allowed to support retries
-        transition(TransferProcessStates.PROVISIONED, PROVISIONING, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
+        transition(TransferProcessStates.PROVISIONED, TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
     }
 
     public void transitionRequested() {
@@ -224,8 +210,12 @@ public class TransferProcess {
         // alternatively we could take the ".values()" array, and remove disallowed once, but this
         // seems more explicit
         var allowedStates = new TransferProcessStates[]{
-                UNSAVED, INITIAL, PROVISIONING, PROVISIONED, REQUESTED, REQUESTED_ACK,
-                IN_PROGRESS, STREAMING, DEPROVISIONED, DEPROVISIONING_REQ, DEPROVISIONING, CANCELLED
+                TransferProcessStates.UNSAVED, TransferProcessStates.INITIAL,
+                TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED,
+                TransferProcessStates.REQUESTED, TransferProcessStates.REQUESTED_ACK,
+                TransferProcessStates.IN_PROGRESS, TransferProcessStates.STREAMING,
+                TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING_REQ,
+                TransferProcessStates.DEPROVISIONING, TransferProcessStates.CANCELLED
         };
         transition(TransferProcessStates.CANCELLED, allowedStates);
     }
@@ -373,7 +363,7 @@ public class TransferProcess {
 
         public TransferProcess build() {
             Objects.requireNonNull(process.id, "id");
-            if (process.state == UNSAVED.code() && process.stateTimestamp == 0) {
+            if (process.state == TransferProcessStates.UNSAVED.code() && process.stateTimestamp == 0) {
                 process.stateTimestamp = Instant.now().toEpochMilli();
             }
             if (process.resourceManifest != null) {
