@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.core.base.CommandQueueProcessor;
+import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
@@ -37,8 +37,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
@@ -78,12 +76,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private ContractNegotiationObservable observable;
     private CommandQueue<ContractNegotiationCommand> commandQueue;
     private CommandRunner<ContractNegotiationCommand> commandRunner;
-    private CommandQueueProcessor<ContractNegotiationCommand> commandQueueProcessor;
+    private CommandProcessor<ContractNegotiationCommand> commandProcessor;
     private Monitor monitor;
     private Predicate<Boolean> isProcessed = it -> it;
 
     public ConsumerContractNegotiationManagerImpl() {
-        this.commandQueueProcessor = new CommandQueueProcessor<>();
+        this.commandProcessor = new CommandProcessor<>();
     }
 
     public void start(ContractNegotiationStore store) {
@@ -469,14 +467,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private void run() {
         while (active.get()) {
             try {
-                var requesting = onNegotiationsInState(INITIAL).doProcess(this::processInitial);
-                var offering = onNegotiationsInState(CONSUMER_OFFERING).doProcess(this::processConsumerOffering);
-                var approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
-                var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
+                long requesting = onNegotiationsInState(INITIAL).doProcess(this::processInitial);
+                long offering = onNegotiationsInState(CONSUMER_OFFERING).doProcess(this::processConsumerOffering);
+                long approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
+                long declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
     
-                int commandsProcessed = commandQueueProcessor.processCommandQueue(commandQueue, commandRunner, monitor);
+                long commandsProcessed = onCommands().doProcess(this::processCommand);
                 
-                long totalProcessed = requesting + offering + approving + declining;
+                long totalProcessed = requesting + offering + approving + declining + commandsProcessed;
 
                 if (totalProcessed == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
@@ -503,6 +501,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
     private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
         return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize));
+    }
+    
+    private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
+        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    }
+    
+    private boolean processCommand(ContractNegotiationCommand command) {
+        return commandProcessor.processCommandQueue(command, commandQueue, commandRunner, monitor);
     }
 
     /**

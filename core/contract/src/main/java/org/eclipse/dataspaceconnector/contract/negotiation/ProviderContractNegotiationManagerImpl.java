@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.core.base.CommandQueueProcessor;
+import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
@@ -73,12 +73,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private ContractNegotiationObservable observable;
     private CommandQueue<ContractNegotiationCommand> commandQueue;
     private CommandRunner<ContractNegotiationCommand> commandRunner;
-    private CommandQueueProcessor<ContractNegotiationCommand> commandQueueProcessor;
+    private CommandProcessor<ContractNegotiationCommand> commandProcessor;
     private Monitor monitor;
     private Predicate<Boolean> isProcessed = it -> it;
 
     private ProviderContractNegotiationManagerImpl() {
-        this.commandQueueProcessor = new CommandQueueProcessor<>();
+        this.commandProcessor = new CommandProcessor<>();
     }
 
     //TODO check state count for retry
@@ -273,13 +273,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private void run() {
         while (active.get()) {
             try {
-                var providerOffering = onNegotiationsInState(PROVIDER_OFFERING).doProcess(this::processProviderOffering);
-                var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
-                var confirming = onNegotiationsInState(CONFIRMING).doProcess(this::processConfirming);
+                long providerOffering = onNegotiationsInState(PROVIDER_OFFERING).doProcess(this::processProviderOffering);
+                long declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
+                long confirming = onNegotiationsInState(CONFIRMING).doProcess(this::processConfirming);
     
-                int commandsProcessed = commandQueueProcessor.processCommandQueue(commandQueue, commandRunner, monitor);
+                long commandsProcessed = onCommands().doProcess(this::processCommand);
                 
-                var totalProcessed = providerOffering + declining + confirming;
+                var totalProcessed = providerOffering + declining + confirming + commandsProcessed;
     
                 if (totalProcessed == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
@@ -306,6 +306,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
     private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
         return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize));
+    }
+    
+    private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
+        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    }
+    
+    private boolean processCommand(ContractNegotiationCommand command) {
+        return commandProcessor.processCommandQueue(command, commandQueue, commandRunner, monitor);
     }
 
     /**

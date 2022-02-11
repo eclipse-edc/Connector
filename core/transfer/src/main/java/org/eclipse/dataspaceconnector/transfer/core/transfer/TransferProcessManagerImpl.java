@@ -14,9 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.core.base.CommandQueueProcessor;
+import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
-import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -108,11 +107,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private TransferProcessObservable observable;
     private CommandQueue<TransferProcessCommand> commandQueue;
     private CommandRunner<TransferProcessCommand> commandRunner;
-    private CommandQueueProcessor<TransferProcessCommand> commandQueueProcessor;
+    private CommandProcessor<TransferProcessCommand> commandProcessor;
     private Monitor monitor;
 
     private TransferProcessManagerImpl() {
-        commandQueueProcessor = new CommandQueueProcessor<>();
+        commandProcessor = new CommandProcessor<>();
     }
 
     public void start(TransferProcessStore processStore) {
@@ -373,24 +372,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return new EntitiesProcessor<>(() -> transferProcessStore.nextForState(state.code(), batchSize));
     }
 
-    private EntitiesProcessor<Command> onCommands() {
+    private EntitiesProcessor<TransferProcessCommand> onCommands() {
         return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
     }
 
-    private boolean processCommand(Command command) {
-        var commandResult = commandRunner.runCommand(command);
-        if (commandResult.failed()) {
-            if (command.canRetry()) {
-                monitor.warning(format("Could not process command [%s], will retry. Error: %s", command.getClass(), commandResult.getFailureMessages()));
-                commandQueue.enqueue(command);
-            } else {
-                monitor.severe(format("Could not process command [%s], it has exceeded its retry limit, will discard now. Error: %s", command.getClass(), commandResult.getFailureMessages()));
-            }
-            return false;
-        } else {
-            monitor.debug(format("Successfully processed command [%s]", command.getClass()));
-            return true;
-        }
+    private boolean processCommand(TransferProcessCommand command) {
+        return commandProcessor.processCommandQueue(command, commandQueue, commandRunner, monitor);
     }
 
     private boolean processDeprovisioned(TransferProcess process) {
