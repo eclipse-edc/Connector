@@ -14,6 +14,10 @@
 
 package org.eclipse.dataspaceconnector.boot.system;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.TracerProvider;
+import io.opentelemetry.context.propagation.ContextPropagators;
 import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
@@ -25,8 +29,12 @@ import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -66,6 +74,27 @@ class ExtensionLoaderTest {
         var monitor = ExtensionLoader.loadMonitor(new ArrayList<>());
 
         assertTrue(monitor instanceof ConsoleMonitor);
+    }
+
+    @Test
+    void loadOpenTelemetry_whenNoOpenTelemetry() {
+        GlobalOpenTelemetry.set(new CustomOpenTelemetry());
+        var openTelemetry = ExtensionLoader.loadOpenTelemetry(new ArrayList<>());
+        assertEquals(openTelemetry, GlobalOpenTelemetry.get());
+    }
+
+    @Test
+    void loadOpenTelemetry_whenSingleOpenTelemetry() {
+        List<OpenTelemetry> openTelemetries = Arrays.asList(new CustomOpenTelemetry());
+        var openTelemetry = ExtensionLoader.loadOpenTelemetry(openTelemetries);
+        assertThat(openTelemetry).isInstanceOf(CustomOpenTelemetry.class);
+    }
+
+    @Test
+    void loadOpenTelemetry_whenSeveralOpenTelemetry() {
+        List<OpenTelemetry> openTelemetries = new ArrayList<>(Arrays.asList(new CustomOpenTelemetry(), new CustomOpenTelemetry()));
+        Exception thrown = assertThrows(IllegalStateException.class, () -> ExtensionLoader.loadOpenTelemetry(openTelemetries));
+        assertEquals(thrown.getMessage(), "Found 2 OpenTelemetry implementations. Please provide only one OpenTelemetry service provider.");
     }
 
     @Test
@@ -114,5 +143,21 @@ class ExtensionLoaderTest {
         verify(contextMock, times(1)).registerService(Vault.class, vaultMock);
         verify(contextMock, atLeastOnce()).getMonitor();
         verify(contextMock).loadSingletonExtension(VaultExtension.class, false);
+    }
+
+    /**
+     * This is a dummy OpenTelemetry implementation used to test loading of OpenTelemetry.
+     */
+    private static class CustomOpenTelemetry implements OpenTelemetry {
+
+        @Override
+        public TracerProvider getTracerProvider() {
+            return null;
+        }
+
+        @Override
+        public ContextPropagators getPropagators() {
+            return null;
+        }
     }
 }

@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.consumer.runtime;
 import org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,8 +30,8 @@ public class EdcConnectorConsumerRuntime extends BaseRuntime {
     }
 
     @Override
-    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor) {
-        this.context = super.createContext(typeManager, monitor);
+    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
+        this.context = super.createContext(typeManager, monitor, telemetry);
         return context;
     }
 

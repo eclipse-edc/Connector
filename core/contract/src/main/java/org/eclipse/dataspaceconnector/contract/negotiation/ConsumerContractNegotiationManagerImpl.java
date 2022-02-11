@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
@@ -26,6 +27,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -33,8 +35,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
@@ -45,7 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
@@ -74,11 +74,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private int batchSize = 5;
     private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private Monitor monitor;
+    private Telemetry telemetry;
     private ExecutorService executor;
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private ContractNegotiationObservable observable;
-    private Predicate<Boolean> isProcessed = it -> it;
 
     public ConsumerContractNegotiationManagerImpl() {
     }
@@ -111,6 +111,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
                 .counterPartyAddress(contractOffer.getConnectorAddress())
+                .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
@@ -185,6 +186,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
+    @WithSpan("process_contract_agreement")
     @Override
     public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
@@ -261,6 +263,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * @param process The contract negotiation.
      * @return The response to the sent message.
      */
+    @WithSpan(value = "send_contract_negotiation_request")
     private CompletableFuture<Object> sendOffer(ContractOffer offer, ContractNegotiation process, ContractOfferRequest.Type type) {
         var request = ContractOfferRequest.Builder.newInstance()
                 .contractOffer(offer)
@@ -356,8 +359,8 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      *
      * @return true if processed, false elsewhere
      */
-    @NotNull
-    private Boolean processConsumerApproving(ContractNegotiation negotiation) {
+    @WithSpan("send_contract_agreement")
+    private boolean processConsumerApproving(ContractNegotiation negotiation) {
         //TODO this is a dummy agreement used to approve the provider's offer, real agreement will be created and sent by provider
         var lastOffer = negotiation.getLastContractOffer();
 
@@ -415,6 +418,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      *
      * @return true if processed, false elsewhere
      */
+    @WithSpan("send_contract_rejection")
     private boolean processDeclining(ContractNegotiation negotiation) {
         var rejection = ContractRejection.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
@@ -452,10 +456,10 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private void run() {
         while (active.get()) {
             try {
-                var requesting = onNegotiationsInState(INITIAL).doProcess(this::processInitial);
-                var offering = onNegotiationsInState(CONSUMER_OFFERING).doProcess(this::processConsumerOffering);
-                var approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
-                var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
+                var requesting = processNegotiationsInState(INITIAL, this::processInitial);
+                var offering = processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering);
+                var approving = processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving);
+                var declining = processNegotiationsInState(DECLINING, this::processDeclining);
 
                 long totalProcessed = requesting + offering + approving + declining;
 
@@ -482,8 +486,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         }
     }
 
-    private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
-        return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize));
+    private long processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
+        return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize))
+                .doProcess(telemetry.contextPropagationMiddleware(function));
     }
 
     /**
@@ -522,6 +527,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry dispatcherRegistry) {
             manager.dispatcherRegistry = dispatcherRegistry;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
             return this;
         }
 

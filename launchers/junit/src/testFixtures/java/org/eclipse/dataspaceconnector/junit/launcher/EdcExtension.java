@@ -26,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.SystemExtension;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -91,8 +92,8 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     }
 
     @Override
-    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor) {
-        this.context = new DefaultServiceExtensionContext(typeManager, monitor, new MultiSourceServiceLocator());
+    protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
+        this.context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, new MultiSourceServiceLocator());
         return this.context;
     }
 

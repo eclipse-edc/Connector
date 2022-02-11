@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.api.OpenTelemetry;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.contract.observe.ContractNegotiationObservableImpl;
 import org.eclipse.dataspaceconnector.negotiation.store.memory.InMemoryContractNegotiationStore;
@@ -29,6 +30,7 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -79,6 +81,9 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         // Create a monitor that logs to the console
         Monitor monitor = new FakeConsoleMonitor();
 
+        // Create telemetry mock
+        Telemetry telemetry = new Telemetry(OpenTelemetry.noop());
+
         // Create the provider contract negotiation manager
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(new FakeProviderDispatcherRegistry())
@@ -86,6 +91,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
                 .observable(providerObservable)
+                .telemetry(telemetry)
                 .build();
         providerStore = new InMemoryContractNegotiationStore();
 
@@ -96,6 +102,7 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .validationService(validationService)
                 .waitStrategy(() -> 1000)
                 .observable(consumerObservable)
+                .telemetry(telemetry)
                 .build();
         consumerStore = new InMemoryContractNegotiationStore();
         
