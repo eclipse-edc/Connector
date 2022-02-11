@@ -16,11 +16,9 @@ package org.eclipse.dataspaceconnector.spi.types.domain.transfer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.DisplayNameGeneration;
-import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -147,10 +145,10 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = { 0, 100, 200, 300, 400, 500, 600, 700, 850, 900, 1000, 1200 })
-    void verifyCancel_validStates(int state) {
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR" }, mode = EnumSource.Mode.EXCLUDE)
+    void verifyCancel_validStates(TransferProcessStates state) {
         TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
-        builder.state(state);
+        builder.state(state.code());
         var tp = builder.build();
         tp.transitionCancelled();
         assertThat(tp.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
@@ -158,10 +156,10 @@ class TransferProcessTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = { 800, 1100, -1 })
-    void verifyCancel_invalidStates(int state) {
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR" }, mode = EnumSource.Mode.INCLUDE)
+    void verifyCancel_invalidStates(TransferProcessStates state) {
         TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
-        builder.state(state);
+        builder.state(state.code());
         var tp = builder.build();
         assertThatThrownBy(tp::transitionCancelled).isInstanceOf(IllegalStateException.class);
     }

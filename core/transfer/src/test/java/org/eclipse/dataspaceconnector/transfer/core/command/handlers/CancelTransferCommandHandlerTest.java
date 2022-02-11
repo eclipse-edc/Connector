@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.transfer.core.command.commands.CancelTrans
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.ValueSource;
+import org.junit.jupiter.params.provider.EnumSource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -61,10 +61,9 @@ class CancelTransferCommandHandlerTest {
     }
 
     @ParameterizedTest
-    //COMPLETED, ENDED, ERROR, CANCELLED -> values must be compile-time constant
-    @ValueSource(ints = { 800, 1100, -1, 1200 })
-    void handle_illegalState(int targetState) {
-        var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState)
+    @EnumSource(value = TransferProcessStates.class, names = { "COMPLETED", "ENDED", "ERROR", "CANCELLED" })
+    void handle_illegalState(TransferProcessStates targetState) {
+        var tp = TransferProcess.Builder.newInstance().id("test-id").state(targetState.code())
                 .type(TransferProcess.Type.CONSUMER).build();
         var cmd = new CancelTransferCommand("test-id");
 
