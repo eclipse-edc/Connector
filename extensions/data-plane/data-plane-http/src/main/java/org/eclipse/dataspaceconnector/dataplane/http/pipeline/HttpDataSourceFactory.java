@@ -20,10 +20,13 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.jetbrains.annotations.NotNull;
 
 import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.ENDPOINT;
 import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.NAME;
+import static org.eclipse.dataspaceconnector.spi.result.Result.failure;
 
 /**
  * Instantiates {@link HttpDataSource}s for requests whose source data type is {@link HttpDataSchema#TYPE}.
@@ -42,6 +45,18 @@ public class HttpDataSourceFactory implements DataSourceFactory {
     @Override
     public boolean canHandle(DataFlowRequest request) {
         return HttpDataSchema.TYPE.equals(request.getSourceDataAddress().getType());
+    }
+
+    @Override
+    public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+        var sourceDataAddress = request.getSourceDataAddress();
+        if (sourceDataAddress == null || !sourceDataAddress.getProperties().containsKey(ENDPOINT)) {
+            return failure("HTTP data source endpoint not provided for request: " + request.getId());
+        }
+        if (!sourceDataAddress.getProperties().containsKey(NAME)) {
+            return failure("HTTP data name not provided for request: " + request.getId());
+        }
+        return VALID;
     }
 
     @Override

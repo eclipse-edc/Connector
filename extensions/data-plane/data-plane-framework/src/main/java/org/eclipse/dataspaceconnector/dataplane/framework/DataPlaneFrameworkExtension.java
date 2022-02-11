@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 /**
  * Provides core services for the Data Plane Framework.
  */
-@Provides(PipelineService.class)
+@Provides({DataPlaneManager.class, PipelineService.class})
 public class DataPlaneFrameworkExtension implements ServiceExtension {
 
     @EdcSetting
@@ -39,6 +39,8 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
     @EdcSetting
     private static final String WAIT_TIMEOUT = "edc.dataplane.wait";
     private static final long DEFAULT_WAIT_TIMEOUT = 1000;
+
+    private DataPlaneManagerImpl dataPlaneManager;
 
     @Override
     public String name() {
@@ -55,7 +57,7 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
         var workers = context.getSetting(WORKERS, DEFAULT_WORKERS);
         var waitTimeout = context.getSetting(WAIT_TIMEOUT, DEFAULT_WAIT_TIMEOUT);
 
-        var dataPlaneManager = DataPlaneManagerImpl.Builder.newInstance()
+        dataPlaneManager = DataPlaneManagerImpl.Builder.newInstance()
                 .queueCapacity(queueCapacity)
                 .workers(workers)
                 .waitTimeout(waitTimeout)
@@ -63,5 +65,17 @@ public class DataPlaneFrameworkExtension implements ServiceExtension {
                 .monitor(monitor).build();
 
         context.registerService(DataPlaneManager.class, dataPlaneManager);
+    }
+
+    @Override
+    public void start() {
+        dataPlaneManager.start();
+    }
+
+    @Override
+    public void shutdown() {
+        if (dataPlaneManager != null) {
+            dataPlaneManager.forceStop();
+        }
     }
 }

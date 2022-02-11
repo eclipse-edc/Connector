@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
 import java.util.concurrent.ArrayBlockingQueue;
@@ -69,6 +70,11 @@ public class DataPlaneManagerImpl implements DataPlaneManager {
         if (executorService != null) {
             executorService.shutdownNow();
         }
+    }
+
+    @Override
+    public Result<Boolean> validate(DataFlowRequest dataRequest) {
+        return pipelineService.validate(dataRequest);
     }
 
     public void initiateTransfer(DataFlowRequest dataRequest) {
