@@ -31,6 +31,18 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.CANCELLED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.REQUESTED_ACK;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.STREAMING;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.UNSAVED;
 
 /**
  * Represents a data transfer process.
@@ -75,7 +87,7 @@ public class TransferProcess {
     private String id;
     private Type type = Type.CONSUMER;
     private int state;
-    private int stateCount = TransferProcessStates.UNSAVED.code();
+    private int stateCount = UNSAVED.code();
     private long stateTimestamp;
     private String errorDetail;
     private DataRequest dataRequest;
@@ -122,11 +134,11 @@ public class TransferProcess {
     }
 
     public void transitionInitial() {
-        transition(TransferProcessStates.INITIAL, TransferProcessStates.UNSAVED);
+        transition(INITIAL, UNSAVED);
     }
 
     public void transitionProvisioning(ResourceManifest manifest) {
-        transition(TransferProcessStates.PROVISIONING, TransferProcessStates.INITIAL, TransferProcessStates.PROVISIONING);
+        transition(PROVISIONING, INITIAL, PROVISIONING);
         resourceManifest = manifest;
         resourceManifest.setTransferProcessId(id);
     }
@@ -157,7 +169,7 @@ public class TransferProcess {
 
     public void transitionProvisioned() {
         // requested is allowed to support retries
-        transition(TransferProcessStates.PROVISIONED, TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
+        transition(TransferProcessStates.PROVISIONED, PROVISIONING, TransferProcessStates.PROVISIONED, TransferProcessStates.REQUESTED);
     }
 
     public void transitionRequested() {
@@ -209,11 +221,13 @@ public class TransferProcess {
     }
 
     public void transitionCancelled() {
-        var allowedStartStates = Stream.of(TransferProcessStates.values()).collect(Collectors.toList());
-        allowedStartStates.remove(TransferProcessStates.ERROR);
-        allowedStartStates.remove(TransferProcessStates.ENDED);
-        allowedStartStates.remove(TransferProcessStates.COMPLETED);
-        transition(TransferProcessStates.CANCELLED, allowedStartStates.toArray(new TransferProcessStates[0]));
+        // alternatively we could take the ".values()" array, and remove disallowed once, but this
+        // seems more explicit
+        var allowedStates = new TransferProcessStates[]{
+                UNSAVED, INITIAL, PROVISIONING, PROVISIONED, REQUESTED, REQUESTED_ACK,
+                IN_PROGRESS, STREAMING, DEPROVISIONED, DEPROVISIONING_REQ, DEPROVISIONING, CANCELLED
+        };
+        transition(TransferProcessStates.CANCELLED, allowedStates);
     }
 
     /**
@@ -359,7 +373,7 @@ public class TransferProcess {
 
         public TransferProcess build() {
             Objects.requireNonNull(process.id, "id");
-            if (process.state == TransferProcessStates.UNSAVED.code() && process.stateTimestamp == 0) {
+            if (process.state == UNSAVED.code() && process.stateTimestamp == 0) {
                 process.stateTimestamp = Instant.now().toEpochMilli();
             }
             if (process.resourceManifest != null) {

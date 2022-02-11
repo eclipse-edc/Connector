@@ -19,6 +19,8 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.DisplayNameGeneration;
 import org.junit.jupiter.api.DisplayNameGenerator;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.IOException;
 import java.io.StringWriter;
@@ -26,8 +28,10 @@ import java.util.UUID;
 
 import static java.util.Collections.emptyList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.DEPROVISIONING_REQ;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -114,9 +118,9 @@ class TransferProcessTest {
         process.transitionInitial();
         process.transitionProvisioning(ResourceManifest.Builder.newInstance().build());
 
-        process.rollbackState(TransferProcessStates.INITIAL);
+        process.rollbackState(INITIAL);
 
-        assertEquals(TransferProcessStates.INITIAL.code(), process.getState());
+        assertEquals(INITIAL.code(), process.getState());
         assertEquals(1, process.getStateCount());
     }
 
@@ -133,13 +137,33 @@ class TransferProcessTest {
 
         ProvisionedResourceSet resourceSet = ProvisionedResourceSet.Builder.newInstance().build();
 
-        process =  process.toBuilder().provisionedResourceSet(resourceSet).build();
+        process = process.toBuilder().provisionedResourceSet(resourceSet).build();
 
         assertFalse(process.provisioningComplete());
 
         resourceSet.addResource(TestProvisionedResource.Builder.newInstance().id("p1").resourceDefinitionId("r1").transferProcessId("123").build());
 
         assertTrue(process.provisioningComplete());
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = { 0, 100, 200, 300, 400, 500, 600, 700, 850, 900, 1000, 1200 })
+    void verifyCancel_validStates(int state) {
+        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        builder.state(state);
+        var tp = builder.build();
+        tp.transitionCancelled();
+        assertThat(tp.getState()).isEqualTo(TransferProcessStates.CANCELLED.code());
+
+    }
+
+    @ParameterizedTest
+    @ValueSource(ints = { 800, 1100, -1 })
+    void verifyCancel_invalidStates(int state) {
+        TransferProcess.Builder builder = TransferProcess.Builder.newInstance().id(UUID.randomUUID().toString());
+        builder.state(state);
+        var tp = builder.build();
+        assertThatThrownBy(tp::transitionCancelled).isInstanceOf(IllegalStateException.class);
     }
 
     @Test
