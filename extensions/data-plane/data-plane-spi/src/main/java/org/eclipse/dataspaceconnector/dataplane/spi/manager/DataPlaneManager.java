@@ -27,7 +27,7 @@ import java.util.concurrent.CompletableFuture;
 public interface DataPlaneManager {
 
     /**
-     * Determines if the data flow request can be handled by this runtime.
+     * Determines if the data flow request is valid and can be processed by this runtime.
      */
     Result<Boolean> validate(DataFlowRequest dataRequest);
 
