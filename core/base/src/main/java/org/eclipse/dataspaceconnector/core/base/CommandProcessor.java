@@ -27,17 +27,24 @@ import static java.lang.String.format;
  */
 public class CommandProcessor<C extends Command> {
     
+    private CommandQueue<C> commandQueue;
+    private CommandRunner<C> commandRunner;
+    private Monitor monitor;
+    
+    public CommandProcessor(CommandQueue<C> commandQueue, CommandRunner<C> commandRunner, Monitor monitor) {
+        this.commandQueue = commandQueue;
+        this.commandRunner = commandRunner;
+        this.monitor = monitor;
+    }
+    
     /**
      * Processes the given command using a {@link CommandRunner}. If processing the command fails,
      * it is enqueued in the {@link CommandQueue} again.
      *
      * @param command the Command to process.
-     * @param commandQueue the CommandQueue.
-     * @param commandRunner the CommandRunner.
-     * @param monitor the Monitor.
      * @return true, if the command has successfully been processed; false otherwise.
      */
-    public boolean processCommandQueue(C command, CommandQueue<C> commandQueue, CommandRunner<C> commandRunner, Monitor monitor) {
+    public boolean processCommandQueue(C command) {
         var commandResult = commandRunner.runCommand(command);
         if (commandResult.failed()) {
             if (command.canRetry()) {

@@ -81,7 +81,6 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private Predicate<Boolean> isProcessed = it -> it;
 
     public ConsumerContractNegotiationManagerImpl() {
-        this.commandProcessor = new CommandProcessor<>();
     }
 
     public void start(ContractNegotiationStore store) {
@@ -508,7 +507,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     }
     
     private boolean processCommand(ContractNegotiationCommand command) {
-        return commandProcessor.processCommandQueue(command, commandQueue, commandRunner, monitor);
+        return commandProcessor.processCommandQueue(command);
     }
 
     /**
@@ -572,6 +571,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             Objects.requireNonNull(manager.commandQueue, "commandQueue");
             Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
+    
+            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            
             return manager;
         }
     }

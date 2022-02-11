@@ -111,7 +111,6 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private Monitor monitor;
 
     private TransferProcessManagerImpl() {
-        commandProcessor = new CommandProcessor<>();
     }
 
     public void start(TransferProcessStore processStore) {
@@ -377,7 +376,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     private boolean processCommand(TransferProcessCommand command) {
-        return commandProcessor.processCommandQueue(command, commandQueue, commandRunner, monitor);
+        return commandProcessor.processCommandQueue(command);
     }
 
     private boolean processDeprovisioned(TransferProcess process) {
@@ -641,6 +640,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.dataProxyManager, "DataProxyManager cannot be null!");
             Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "Observable cannot be null");
+            
+            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            
             return manager;
         }
     }

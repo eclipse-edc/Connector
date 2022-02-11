@@ -78,7 +78,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private Predicate<Boolean> isProcessed = it -> it;
 
     private ProviderContractNegotiationManagerImpl() {
-        this.commandProcessor = new CommandProcessor<>();
     }
 
     //TODO check state count for retry
@@ -313,7 +312,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     }
     
     private boolean processCommand(ContractNegotiationCommand command) {
-        return commandProcessor.processCommandQueue(command, commandQueue, commandRunner, monitor);
+        return commandProcessor.processCommandQueue(command);
     }
 
     /**
@@ -533,6 +532,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             Objects.requireNonNull(manager.commandQueue, "commandQueue");
             Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
+    
+            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            
             return manager;
         }
     }
