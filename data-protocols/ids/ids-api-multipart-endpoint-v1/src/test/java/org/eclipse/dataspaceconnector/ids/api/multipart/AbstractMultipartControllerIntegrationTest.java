@@ -54,8 +54,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.io.IOException;
-import java.net.ServerSocket;
 import java.net.URI;
 import java.net.http.HttpHeaders;
 import java.text.SimpleDateFormat;
@@ -64,6 +62,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
+
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.findUnallocatedServerPort;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
@@ -113,14 +113,6 @@ abstract class AbstractMultipartControllerIntegrationTest {
 
     protected int getPort() {
         return PORT.get();
-    }
-
-    private static int findUnallocatedServerPort() {
-        try (ServerSocket socket = new ServerSocket(0)) {
-            return socket.getLocalPort();
-        } catch (IOException e) {
-            throw new RuntimeException(e.getMessage(), e);
-        }
     }
 
     protected String getUrl() {
