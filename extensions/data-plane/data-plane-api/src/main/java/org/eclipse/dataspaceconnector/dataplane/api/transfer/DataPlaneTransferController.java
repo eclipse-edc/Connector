@@ -22,6 +22,7 @@ import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.dataplane.spi.manager.DataPlaneManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 
+import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.dataplane.api.common.ResponseFunctions.validationError;
 import static org.eclipse.dataspaceconnector.dataplane.api.common.ResponseFunctions.validationErrors;
 
@@ -46,7 +47,7 @@ public class DataPlaneTransferController {
         // TODO token authentication
         var result = dataPlaneManager.validate(request);
         if (result.failed()) {
-            return result.getFailureMessages().isEmpty() ? validationError("Invalid request: " + request.getId()) : validationErrors(result.getFailureMessages());
+            return result.getFailureMessages().isEmpty() ? validationError(format("Invalid request: %s", request.getId())) : validationErrors(result.getFailureMessages());
         }
         dataPlaneManager.initiateTransfer(request);
         return Response.ok().build();
