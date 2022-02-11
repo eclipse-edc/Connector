@@ -26,8 +26,8 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
  * </ol>
  */
 public class CommandRunner<C extends Command> {
-    protected final CommandHandlerRegistry<C> commandHandlerRegistry;
-    protected final Monitor monitor;
+    private final CommandHandlerRegistry<C> commandHandlerRegistry;
+    private final Monitor monitor;
 
     public CommandRunner(CommandHandlerRegistry<C> commandHandlerRegistry, Monitor monitor) {
         this.commandHandlerRegistry = commandHandlerRegistry;
