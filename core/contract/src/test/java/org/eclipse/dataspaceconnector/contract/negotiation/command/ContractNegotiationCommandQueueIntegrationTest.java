@@ -17,7 +17,9 @@ import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegot
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.commands.SingleContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.handlers.SingleContractNegotiationCommandHandler;
+import org.eclipse.dataspaceconnector.core.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
@@ -28,7 +30,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandHandlerRegistry;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -46,7 +47,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private CommandQueue<ContractNegotiationCommand> commandQueue;
     private CommandRunner<ContractNegotiationCommand> commandRunner;
-    private ContractNegotiationCommandHandlerRegistry commandHandlerRegistry;
+    private CommandHandlerRegistry commandHandlerRegistry;
     private ContractNegotiationObservable observable;
     private Monitor monitor;
     
@@ -67,7 +68,7 @@ class ContractNegotiationCommandQueueIntegrationTest {
         observable = mock(ContractNegotiationObservable.class);
         
         // Create CommandHandlerRegistry
-        commandHandlerRegistry = new ContractNegotiationCommandHandlerRegistryImpl();
+        commandHandlerRegistry = new CommandHandlerRegistryImpl();
     
         // Set error detail that will be set on the negotiation by the command handler
         errorDetail = "Updated by command handler";

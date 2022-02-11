@@ -17,8 +17,8 @@ package org.eclipse.dataspaceconnector.spi.command;
 /**
  * Links together a Command and its handler class
  */
-public interface CommandHandlerRegistry<C extends Command> {
-    <T extends C> void register(CommandHandler<T> handlerClass);
+public interface CommandHandlerRegistry {
+    <C extends Command> void register(CommandHandler<C> handlerClass);
     
-    <T extends C> CommandHandler<T> get(Class<T> commandClass);
+    <C extends Command> CommandHandler<C> get(Class<C> commandClass);
 }

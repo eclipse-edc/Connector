@@ -1,11 +1,11 @@
 package org.eclipse.dataspaceconnector.samples.sample042;
 
+import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommandHandlerRegistry;
 
 public class WatchdogExtension implements ServiceExtension {
 
@@ -16,7 +16,7 @@ public class WatchdogExtension implements ServiceExtension {
     private TransferProcessStore store;
 
     @Inject
-    private TransferProcessCommandHandlerRegistry commandHandlerRegistry;
+    private CommandHandlerRegistry commandHandlerRegistry;
     private Watchdog wd;
 
     @Override

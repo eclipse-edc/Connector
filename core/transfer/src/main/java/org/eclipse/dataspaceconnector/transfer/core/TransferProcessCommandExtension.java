@@ -13,14 +13,14 @@
  */
 package org.eclipse.dataspaceconnector.transfer.core;
 
+import org.eclipse.dataspaceconnector.core.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.core.CoreExtension;
+import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommandHandlerRegistry;
-import org.eclipse.dataspaceconnector.transfer.core.command.TransferProcessCommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.CancelTransferCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionRequestHandler;
 
@@ -28,7 +28,7 @@ import org.eclipse.dataspaceconnector.transfer.core.command.handlers.Deprovision
  * Registers command handlers that the core provides
  */
 @CoreExtension
-@Provides({ TransferProcessCommandHandlerRegistry.class })
+@Provides({ CommandHandlerRegistry.class })
 public class TransferProcessCommandExtension implements ServiceExtension {
 
     @Inject
@@ -36,14 +36,16 @@ public class TransferProcessCommandExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
-        TransferProcessCommandHandlerRegistryImpl registry = new TransferProcessCommandHandlerRegistryImpl();
-        context.registerService(TransferProcessCommandHandlerRegistry.class, registry);
+        CommandHandlerRegistry registry = context.getService(CommandHandlerRegistry.class, true);
+        if (registry == null) {
+            registry = new CommandHandlerRegistryImpl();
+            context.registerService(CommandHandlerRegistry.class, registry);
+        }
 
         registerDefaultCommands(registry);
     }
 
-    private void registerDefaultCommands(TransferProcessCommandHandlerRegistryImpl registry) {
+    private void registerDefaultCommands(CommandHandlerRegistry registry) {
         registry.register(new CancelTransferCommandHandler(store));
         registry.register(new DeprovisionRequestHandler(store));
     }

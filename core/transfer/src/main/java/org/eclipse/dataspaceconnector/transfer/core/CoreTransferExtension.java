@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.core;
 import org.eclipse.dataspaceconnector.core.CoreExtension;
 import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -39,7 +40,6 @@ import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.inline.DataOperatorRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
@@ -62,7 +62,7 @@ public class CoreTransferExtension implements ServiceExtension {
     @Inject
     private TransferProcessStore transferProcessStore;
     @Inject
-    private TransferProcessCommandHandlerRegistry registry;
+    private CommandHandlerRegistry registry;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 

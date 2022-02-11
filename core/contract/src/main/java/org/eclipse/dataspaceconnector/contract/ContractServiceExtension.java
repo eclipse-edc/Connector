@@ -27,6 +27,7 @@ import org.eclipse.dataspaceconnector.core.CoreExtension;
 import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
@@ -48,7 +49,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandHandlerRegistry;
 
 @Provides({ContractOfferService.class, PolicyEngine.class, ParticipantAgentService.class, ContractValidationService.class,
         ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class})
@@ -67,7 +67,7 @@ public class ContractServiceExtension implements ServiceExtension {
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     @Inject
-    private ContractNegotiationCommandHandlerRegistry commandHandlerRegistry;
+    private CommandHandlerRegistry commandHandlerRegistry;
 
     @Override
     public String name() {
@@ -125,8 +125,8 @@ public class ContractServiceExtension implements ServiceExtension {
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
 
-        CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<ContractNegotiationCommand>(10);
-        CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner(commandHandlerRegistry, monitor);
+        CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
+        CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
         
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);

@@ -26,10 +26,10 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
  * </ol>
  */
 public class CommandRunner<C extends Command> {
-    private final CommandHandlerRegistry<C> commandHandlerRegistry;
+    private final CommandHandlerRegistry commandHandlerRegistry;
     private final Monitor monitor;
 
-    public CommandRunner(CommandHandlerRegistry<C> commandHandlerRegistry, Monitor monitor) {
+    public CommandRunner(CommandHandlerRegistry commandHandlerRegistry, Monitor monitor) {
         this.commandHandlerRegistry = commandHandlerRegistry;
         this.monitor = monitor;
     }

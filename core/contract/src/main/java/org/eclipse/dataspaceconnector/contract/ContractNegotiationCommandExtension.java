@@ -13,22 +13,22 @@
  */
 package org.eclipse.dataspaceconnector.contract;
 
-import org.eclipse.dataspaceconnector.contract.negotiation.command.ContractNegotiationCommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.command.handlers.CancelNegotiationCommandHandler;
+import org.eclipse.dataspaceconnector.core.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.core.CoreExtension;
+import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommandHandlerRegistry;
 
 /**
- * Adds a {@link ContractNegotiationCommandHandlerRegistry} to the context and registers the
+ * Adds a {@link CommandHandlerRegistry} to the context and registers the
  * handlers the core provides.
  */
 @CoreExtension
-@Provides({ContractNegotiationCommandHandlerRegistry.class})
+@Provides({CommandHandlerRegistry.class})
 public class ContractNegotiationCommandExtension implements ServiceExtension {
     
     @Inject
@@ -36,13 +36,16 @@ public class ContractNegotiationCommandExtension implements ServiceExtension {
     
     @Override
     public void initialize(ServiceExtensionContext context) {
-        ContractNegotiationCommandHandlerRegistry registry = new ContractNegotiationCommandHandlerRegistryImpl();
-        context.registerService(ContractNegotiationCommandHandlerRegistry.class, registry);
+        CommandHandlerRegistry registry = context.getService(CommandHandlerRegistry.class, true);
+        if (registry == null) {
+            registry = new CommandHandlerRegistryImpl();
+            context.registerService(CommandHandlerRegistry.class, registry);
+        }
         
         registerDefaultCommandHandlers(registry);
     }
     
-    private void registerDefaultCommandHandlers(ContractNegotiationCommandHandlerRegistry registry) {
+    private void registerDefaultCommandHandlers(CommandHandlerRegistry registry) {
         registry.register(new CancelNegotiationCommandHandler(store));
     }
     
