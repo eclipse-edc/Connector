@@ -11,4 +11,4 @@
 #       Amadeus - initial API and implementation
 #
 #
-org.eclipse.dataspaceconnector.dataplane.validation.server.DataPlaneValidationServerExtension
+org.eclipse.dataspaceconnector.dataplane.validation.server.DataPlaneValidationFacadeExtension

@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:web-spi"))
     api(project(":spi:contract-spi"))
-    api(project(":extensions:token-services:token-services-validation"))
+    api(project(":extensions:token:token-validation"))
 
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")

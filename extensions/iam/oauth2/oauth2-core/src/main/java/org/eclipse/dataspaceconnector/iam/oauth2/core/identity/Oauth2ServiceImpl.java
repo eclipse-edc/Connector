@@ -33,17 +33,17 @@ import okhttp3.ResponseBody;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.Oauth2ValidationRule;
 import org.eclipse.dataspaceconnector.iam.oauth2.spi.JwtDecoratorRegistry;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.ValidationRule;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
+import org.eclipse.dataspaceconnector.spi.iam.ValidationRule;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
+import org.eclipse.dataspaceconnector.token.JwtClaimValidationRule;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.security.interfaces.RSAPublicKey;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -67,7 +67,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     private final OkHttpClient httpClient;
     private final TypeManager typeManager;
-    private final List<ValidationRule> validationRules;
+    private final List<JwtClaimValidationRule> validationRules;
     private final JWSSigner tokenSigner;
     private final JwtDecoratorRegistry jwtDecoratorRegistry;
     private final JWSAlgorithm jwsAlgorithm;
@@ -83,15 +83,20 @@ public class Oauth2ServiceImpl implements IdentityService {
      * @param additionalValidationRules An optional list of {@link ValidationRule} that are evaluated <em>after</em> the
      *                                  standard OAuth2 validation
      */
-    public Oauth2ServiceImpl(Oauth2Configuration configuration, JWSSigner tokenSigner, OkHttpClient client, JwtDecoratorRegistry jwtDecoratorRegistry, TypeManager typeManager, ValidationRule... additionalValidationRules) {
+    public Oauth2ServiceImpl(Oauth2Configuration configuration,
+                             JWSSigner tokenSigner,
+                             OkHttpClient client,
+                             JwtDecoratorRegistry jwtDecoratorRegistry,
+                             TypeManager typeManager,
+                             JwtClaimValidationRule... additionalValidationRules) {
         this.configuration = configuration;
         this.typeManager = typeManager;
         httpClient = client;
         this.jwtDecoratorRegistry = jwtDecoratorRegistry;
         this.tokenSigner = tokenSigner;
 
-        List<ValidationRule> rules = new ArrayList<>();
-        rules.add(new Oauth2ValidationRule(this.configuration)); //OAuth2 validation must ALWAYS be done
+        List<JwtClaimValidationRule> rules = new ArrayList<>();
+        rules.add(new Oauth2ValidationRule(configuration.getProviderAudience(), this.configuration)); //OAuth2 validation must ALWAYS be done
         rules.addAll(List.of(additionalValidationRules));
         validationRules = Collections.unmodifiableList(rules);
 
@@ -157,7 +162,7 @@ public class Oauth2ServiceImpl implements IdentityService {
             var claimsSet = signedJwt.getJWTClaimsSet();
 
             var errors = validationRules.stream()
-                    .map(r -> r.checkRule(claimsSet, configuration.getProviderAudience()))
+                    .map(r -> r.checkRule(claimsSet))
                     .filter(Result::failed)
                     .map(Result::getFailureMessages)
                     .flatMap(Collection::stream)
@@ -169,9 +174,9 @@ public class Oauth2ServiceImpl implements IdentityService {
 
             var tokenBuilder = ClaimToken.Builder.newInstance();
             claimsSet.getClaims().entrySet().stream()
-                            .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
-                            .filter(entry -> entry.getValue() != null)
-                            .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
+                    .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
+                    .filter(entry -> entry.getValue() != null)
+                    .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
 
             return Result.success(tokenBuilder.build());
 
@@ -184,7 +189,7 @@ public class Oauth2ServiceImpl implements IdentityService {
 
     @Nullable
     private JWSVerifier createVerifier(JWSHeader header, String publicKeyId) {
-        RSAPublicKey publicKey = configuration.getIdentityProviderKeyResolver().resolveKey(publicKeyId);
+        var publicKey = configuration.getIdentityProviderKeyResolver().resolveKey(publicKeyId);
         try {
             return new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey);
         } catch (JOSEException e) {

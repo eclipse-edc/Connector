@@ -20,18 +20,18 @@ class Oauth2ValidationRuleTest {
     @BeforeEach
     public void setUp() {
         var configuration = Oauth2Configuration.Builder.newInstance().build();
-        rule = new Oauth2ValidationRule(configuration);
+        rule = new Oauth2ValidationRule(TEST_AUDIENCE, configuration);
     }
 
     @Test
     void validationKoBecauseNotBeforeTimeNotRespected() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience("test-audience")
+        var claims = new JWTClaimsSet.Builder()
+                .audience(TEST_AUDIENCE)
                 .notBeforeTime(Date.from(now.plusSeconds(20)))
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -40,12 +40,12 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseNotBeforeTimeNotProvided() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience("test-audience")
+        var claims = new JWTClaimsSet.Builder()
+                .audience(TEST_AUDIENCE)
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -54,13 +54,13 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseExpirationTimeNotRespected() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience("test-audience")
+        var claims = new JWTClaimsSet.Builder()
+                .audience(TEST_AUDIENCE)
                 .notBeforeTime(Date.from(now))
                 .expirationTime(Date.from(now.minusSeconds(10)))
                 .build();
 
-        var result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -69,12 +69,12 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseExpirationTimeNotProvided() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience("test-audience")
+        var claims = new JWTClaimsSet.Builder()
+                .audience(TEST_AUDIENCE)
                 .notBeforeTime(Date.from(now))
                 .build();
 
-        var result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -89,7 +89,7 @@ class Oauth2ValidationRuleTest {
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -98,12 +98,12 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationKoBecauseAudienceNotProvided() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
+        var claims = new JWTClaimsSet.Builder()
                 .notBeforeTime(Date.from(now))
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims);
 
         assertThat(result.succeeded()).isFalse();
         assertThat(result.getFailureMessages()).hasSize(1)
@@ -112,30 +112,30 @@ class Oauth2ValidationRuleTest {
 
     @Test
     void validationOkWhenLeewayOnNotBefore() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience("test-audience")
+        var claims = new JWTClaimsSet.Builder()
+                .audience(TEST_AUDIENCE)
                 .notBeforeTime(Date.from(now.plusSeconds(20)))
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
         var configuration = Oauth2Configuration.Builder.newInstance()
                 .notBeforeValidationLeeway(20)
                 .build();
-        rule = new Oauth2ValidationRule(configuration);
+        rule = new Oauth2ValidationRule(TEST_AUDIENCE, configuration);
 
-        var result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims);
 
         assertThat(result.succeeded()).isTrue();
     }
 
     @Test
     void validationOk() {
-        JWTClaimsSet claims = new JWTClaimsSet.Builder()
-                .audience("test-audience")
+        var claims = new JWTClaimsSet.Builder()
+                .audience(TEST_AUDIENCE)
                 .notBeforeTime(Date.from(now))
                 .expirationTime(Date.from(now.plusSeconds(600)))
                 .build();
 
-        var result = rule.checkRule(claims, TEST_AUDIENCE);
+        var result = rule.checkRule(claims);
 
         assertThat(result.succeeded()).isTrue();
     }

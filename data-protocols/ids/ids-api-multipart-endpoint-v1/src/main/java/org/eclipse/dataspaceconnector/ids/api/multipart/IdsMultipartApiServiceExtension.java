@@ -20,6 +20,7 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import de.fraunhofer.iais.eis.ParticipantUpdateMessage;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ArtifactRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractAgreementHandler;
@@ -27,7 +28,10 @@ import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractOfferHan
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRejectionHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.ContractRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.DescriptionHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.EndpointDataReferenceHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.Handler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandler;
+import org.eclipse.dataspaceconnector.ids.api.multipart.handler.NotificationMessageHandlerRegistry;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ArtifactDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.ConnectorDescriptionRequestHandler;
 import org.eclipse.dataspaceconnector.ids.api.multipart.handler.description.DataCatalogDescriptionRequestHandler;
@@ -55,11 +59,12 @@ import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceReceiverRegistry;
+import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.SimpleDateFormat;
 import java.util.LinkedList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -96,6 +101,10 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
     private TransferProcessManager transferProcessManager;
     @Inject
     private ContractValidationService contractValidationService;
+    @Inject
+    private EndpointDataReferenceReceiverRegistry endpointDataReferenceReceiverRegistry;
+    @Inject
+    private EndpointDataReferenceTransformer endpointDataReferenceTransformer;
 
     @Override
     public String name() {
@@ -112,19 +121,19 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
 
     private void registerControllers(ServiceExtensionContext serviceExtensionContext) {
 
-        String connectorId = resolveConnectorId(serviceExtensionContext);
+        var connectorId = resolveConnectorId(serviceExtensionContext);
 
         // create description request handlers
-        ArtifactDescriptionRequestHandler artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        DataCatalogDescriptionRequestHandler dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry);
-        RepresentationDescriptionRequestHandler representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
-        ResourceDescriptionRequestHandler resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
-        ConnectorDescriptionRequestHandler connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
+        var artifactDescriptionRequestHandler = new ArtifactDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
+        var dataCatalogDescriptionRequestHandler = new DataCatalogDescriptionRequestHandler(monitor, connectorId, dataCatalogService, transformerRegistry);
+        var representationDescriptionRequestHandler = new RepresentationDescriptionRequestHandler(monitor, connectorId, assetIndex, transformerRegistry);
+        var resourceDescriptionRequestHandler = new ResourceDescriptionRequestHandler(monitor, connectorId, assetIndex, contractOfferService, transformerRegistry);
+        var connectorDescriptionRequestHandler = new ConnectorDescriptionRequestHandler(monitor, connectorId, connectorService, transformerRegistry);
 
         // create & register controller
         // TODO ObjectMapper needs to be replaced by one capable to write proper IDS JSON-LD
         //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
-        ObjectMapper objectMapper = new ObjectMapper();
+        var objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         objectMapper.setDateFormat(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX"));
         objectMapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
@@ -133,7 +142,7 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         objectMapper.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
 
         // create request handler
-        DescriptionHandler descriptionHandler = new DescriptionHandler(
+        var descriptionHandler = new DescriptionHandler(
                 monitor,
                 connectorId,
                 transformerRegistry,
@@ -143,11 +152,11 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
                 resourceDescriptionRequestHandler,
                 connectorDescriptionRequestHandler);
 
-        List<Handler> handlers = new LinkedList<>();
+        var handlers = new LinkedList<Handler>();
         handlers.add(descriptionHandler);
 
-        Vault vault = serviceExtensionContext.getService(Vault.class);
-        ArtifactRequestHandler artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
+        var vault = serviceExtensionContext.getService(Vault.class);
+        var artifactRequestHandler = new ArtifactRequestHandler(monitor, connectorId, objectMapper, contractNegotiationStore, contractValidationService, transferProcessManager, vault);
         handlers.add(artifactRequestHandler);
 
         // create contract message handlers
@@ -156,8 +165,14 @@ public final class IdsMultipartApiServiceExtension implements ServiceExtension {
         handlers.add(new ContractOfferHandler(monitor, connectorId, objectMapper, providerNegotiationManager, consumerNegotiationManager));
         handlers.add(new ContractRejectionHandler(monitor, connectorId, providerNegotiationManager, consumerNegotiationManager));
 
+        // add notification handler and sub-handlers
+        var notificationHandlersRegistry = new NotificationMessageHandlerRegistry();
+        var endpointDataReferenceHandler = new EndpointDataReferenceHandler(monitor, connectorId, endpointDataReferenceReceiverRegistry, endpointDataReferenceTransformer, serviceExtensionContext.getTypeManager());
+        notificationHandlersRegistry.addHandler(ParticipantUpdateMessage.class, endpointDataReferenceHandler);
+        handlers.add(new NotificationMessageHandler(connectorId, notificationHandlersRegistry));
+
         // create & register controller
-        MultipartController multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
+        var multipartController = new MultipartController(connectorId, objectMapper, identityService, handlers);
         webService.registerController(multipartController);
     }
 

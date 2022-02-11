@@ -17,9 +17,9 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.handler;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.fraunhofer.iais.eis.ArtifactRequestMessage;
 import de.fraunhofer.iais.eis.Message;
+import org.eclipse.dataspaceconnector.common.string.StringUtils;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartRequest;
 import org.eclipse.dataspaceconnector.ids.api.multipart.message.MultipartResponse;
-import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
@@ -31,19 +31,19 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
-import java.net.URI;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 public class ArtifactRequestHandler implements Handler {
 
@@ -84,29 +84,29 @@ public class ArtifactRequestHandler implements Handler {
         Objects.requireNonNull(multipartRequest);
         Objects.requireNonNull(verificationResult);
 
-        ArtifactRequestMessage artifactRequestMessage = (ArtifactRequestMessage) multipartRequest.getHeader();
+        var artifactRequestMessage = (ArtifactRequestMessage) multipartRequest.getHeader();
 
-        URI artifactUri = artifactRequestMessage.getRequestedArtifact();
-        IdsId artifactIdsId = IdsIdParser.parse(artifactUri.toString());
+        var artifactUri = artifactRequestMessage.getRequestedArtifact();
+        var artifactIdsId = IdsIdParser.parse(artifactUri.toString());
         if (artifactIdsId.getType() != IdsType.ARTIFACT) {
             monitor.info("ArtifactRequestHandler: Requested artifact URI not of type artifact.");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
-        URI contractUri = artifactRequestMessage.getTransferContract();
-        IdsId contractIdsId = IdsIdParser.parse(contractUri.toString());
+        var contractUri = artifactRequestMessage.getTransferContract();
+        var contractIdsId = IdsIdParser.parse(contractUri.toString());
         if (contractIdsId.getType() != IdsType.CONTRACT) {
             monitor.info("ArtifactRequestHandler: Requested artifact URI not of type contract.");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
-        ContractAgreement contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
+        var contractAgreement = contractNegotiationStore.findContractAgreement(contractIdsId.getValue());
         if (contractAgreement == null) {
             monitor.info(String.format("ArtifactRequestHandler: No Contract Agreement with Id %s found.", contractIdsId.getValue()));
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
         }
 
-        boolean isContractValid = contractValidationService.validate(verificationResult.getContent(), contractAgreement);
+        var isContractValid = contractValidationService.validate(verificationResult.getContent(), contractAgreement);
         if (!isContractValid) {
             monitor.info("ArtifactRequestHandler: Contract Validation Invalid");
             return createBadParametersErrorMultipartResponse(multipartRequest.getHeader());
@@ -120,15 +120,23 @@ public class ArtifactRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(artifactRequestMessage);
         }
 
-        DataAddress dataAddress = artifactRequestMessagePayload.getDataDestination();
+        var dataAddress = artifactRequestMessagePayload.getDataDestination();
 
-
-        var props = new HashMap<String, String>();
+        Map<String, String> props = new HashMap<>();
         if (artifactRequestMessage.getProperties() != null) {
             artifactRequestMessage.getProperties().forEach((k, v) -> props.put(k, v.toString()));
         }
 
-        DataRequest dataRequest = DataRequest.Builder.newInstance()
+        String idsWebhookAddress = Optional.ofNullable(props.remove(IDS_WEBHOOK_ADDRESS_PROPERTY))
+                .map(Object::toString)
+                .orElse(null);
+        if (StringUtils.isNullOrBlank(idsWebhookAddress)) {
+            var msg = "Ids webhook address is invalid";
+            monitor.debug(String.format("%s: %s", getClass().getSimpleName(), msg));
+            return createBadParametersErrorMultipartResponse(artifactRequestMessage, msg);
+        }
+
+        var dataRequest = DataRequest.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol(Protocols.IDS_MULTIPART)
                 .dataDestination(dataAddress)
@@ -136,7 +144,7 @@ public class ArtifactRequestHandler implements Handler {
                 .assetId(artifactIdsId.getValue())
                 .contractId(contractIdsId.getValue())
                 .properties(props)
-                .connectorAddress(artifactRequestMessage.getSenderAgent().toString() + "/api/ids/multipart") // TODO Is this correct?
+                .connectorAddress(idsWebhookAddress)
                 .build();
 
         var result = transferProcessManager.initiateProviderRequest(dataRequest);
@@ -145,11 +153,10 @@ public class ArtifactRequestHandler implements Handler {
             vault.storeSecret(dataAddress.getKeyName(), artifactRequestMessagePayload.getSecret());
         }
 
-        var multipartResponse = MultipartResponse.Builder.newInstance()
+        return MultipartResponse.Builder.newInstance()
                 .header(ResponseMessageUtil.createDummyResponse(connectorId, artifactRequestMessage)) // TODO Change this response so that it matches our UML pictures
                 .payload(result.getData())
                 .build();
-        return multipartResponse;
     }
 
     private MultipartResponse createBadParametersErrorMultipartResponse(Message message) {
@@ -158,4 +165,10 @@ public class ArtifactRequestHandler implements Handler {
                 .build();
     }
 
+    private MultipartResponse createBadParametersErrorMultipartResponse(Message message, String payload) {
+        return MultipartResponse.Builder.newInstance()
+                .header(badParameters(message, connectorId))
+                .payload(payload)
+                .build();
+    }
 }

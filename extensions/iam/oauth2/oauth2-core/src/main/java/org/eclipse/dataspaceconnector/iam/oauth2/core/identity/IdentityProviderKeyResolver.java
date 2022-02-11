@@ -20,7 +20,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.JwkKey;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.JwkKeys;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.PublicKeyResolver;
+import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
