@@ -24,8 +24,4 @@ public abstract class TransferProcessCommand extends Command {
         super();
     }
     
-    protected TransferProcessCommand(String commandId) {
-        super(commandId);
-    }
-    
 }
