@@ -19,19 +19,25 @@ val jerseyVersion: String by project
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
-    api(project(":extensions:api:api-core"))
-    api(project(":extensions:api:data-management:contractdefinition"))
-    api(project(":extensions:api:data-management:transferprocess"))
+    api(project(":spi"))
+    implementation(project(":common:util"))
+    implementation(project(":extensions:api:api-core"))
+    implementation(project(":core"))
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
+    testImplementation(project(":extensions:http"))
+    testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("data-management-api") {
-            artifactId = "data-management-api"
+        create<MavenPublication>("transferprocess-api") {
+            artifactId = "transferprocess-api"
             from(components["java"])
         }
     }
