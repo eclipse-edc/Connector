@@ -39,6 +39,7 @@ dependencies {
     testImplementation(project(":extensions:filesystem:configuration-fs"))
 
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation("io.rest-assured:rest-assured:4.4.0")
 
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))

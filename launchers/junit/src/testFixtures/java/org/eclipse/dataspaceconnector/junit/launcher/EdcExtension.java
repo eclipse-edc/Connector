@@ -70,12 +70,12 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
     }
 
     @Override
-    public void beforeTestExecution(ExtensionContext extensionContext) {
+    public void beforeTestExecution(ExtensionContext extensionContext) throws Exception {
         boot();
     }
 
     @Override
-    public void afterTestExecution(ExtensionContext context) {
+    public void afterTestExecution(ExtensionContext context) throws Exception {
         if (runningServiceExtensions != null) {
             shutdown(runningServiceExtensions, monitor);
         }

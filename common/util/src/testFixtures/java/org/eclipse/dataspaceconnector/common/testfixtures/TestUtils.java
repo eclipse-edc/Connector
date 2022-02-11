@@ -22,15 +22,12 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Objects;
-import java.util.Random;
 import java.util.Scanner;
 
-import static java.lang.String.format;
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class TestUtils {
     public static final String SAMPLE_FILE_RESOURCE_NAME = "hello.txt";
-    public static final int MAX_TCP_PORT = 65_535;
 
     public static Path getResourcePath(String resourceName) {
         Path path = null;
@@ -62,59 +59,16 @@ public class TestUtils {
     }
 
     /**
-     * Gets a free port in the range 1024 - 65535 by trying them in ascending order.
+     * Utility method to find an unallocated port. Note that there is a race condition,
+     * the port might be allocated by the time it is used.
      *
-     * @return the first free port
-     * @throws IllegalArgumentException if no free port is available
+     * @return a server port.
      */
-    public static int getFreePort() {
-        var rnd = 1024 + new Random().nextInt(MAX_TCP_PORT - 1024);
-        return getFreePort(1024);
-    }
-
-    /**
-     * Gets a free port in the range lowerBound - 65535 by trying them in ascending order.
-     *
-     * @return the first free port
-     * @throws IllegalArgumentException if no free port is available
-     */
-    public static int getFreePort(int lowerBound) {
-        if (lowerBound <= 0 || lowerBound >= MAX_TCP_PORT) {
-            throw new IllegalArgumentException("Lower bound must be > 0 and < " + MAX_TCP_PORT);
+    public static int findUnallocatedServerPort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
-        return getFreePort(lowerBound, MAX_TCP_PORT);
-    }
-
-    /**
-     * Gets a free port in the range lowerBound - upperBound by trying them in ascending order.
-     *
-     * @return the first free port
-     * @throws IllegalArgumentException if no free port is available or if the bounds are invalid.
-     */
-    public static int getFreePort(int lowerBound, int upperBound) {
-
-        if (lowerBound <= 0 || lowerBound >= MAX_TCP_PORT || lowerBound >= upperBound) {
-            throw new IllegalArgumentException("Lower bound must be > 0 and < " + MAX_TCP_PORT + " and be < upperBound");
-        }
-        if (upperBound > MAX_TCP_PORT) {
-            throw new IllegalArgumentException("Upper bound must be < " + MAX_TCP_PORT);
-        }
-        var port = lowerBound;
-        boolean found = false;
-
-        while (!found && port <= upperBound) {
-            try (ServerSocket serverSocket = new ServerSocket(port)) {
-                found = true;
-                port = serverSocket.getLocalPort();
-            } catch (IOException e) {
-                found = false;
-                port++;
-            }
-        }
-
-        if (!found) {
-            throw new IllegalArgumentException(format("No free ports in the range [%d - %d]", lowerBound, upperBound));
-        }
-        return port;
     }
 }

@@ -21,6 +21,8 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.function.Supplier;
 
+import static java.lang.String.format;
+
 /**
  * Default monitor implementation. Outputs messages to the console.
  */
@@ -32,12 +34,15 @@ public class ConsoleMonitor implements Monitor {
     private static final String DEBUG = "DEBUG";
 
     private final Level level;
+    private final String prefix;
 
     public ConsoleMonitor() {
-        level = Level.DEBUG;
+        this.prefix = "";
+        this.level = Level.DEBUG;
     }
 
     public ConsoleMonitor(@Nullable String runtimeName, Level level) {
+        this.prefix = format("[%s] ", runtimeName);
         this.level = level;
     }
 
@@ -72,7 +77,7 @@ public class ConsoleMonitor implements Monitor {
 
     private void output(String level, Supplier<String> supplier, Throwable... errors) {
         String time = ZonedDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME);
-        System.out.println(level + " " + time + " " + supplier.get());
+        System.out.println(prefix + level + " " + time + " " + supplier.get());
         if (errors != null) {
             for (Throwable error : errors) {
                 if (error != null) {
