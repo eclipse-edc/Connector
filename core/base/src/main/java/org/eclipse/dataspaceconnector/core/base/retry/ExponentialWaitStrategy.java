@@ -13,10 +13,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.base;
+package org.eclipse.dataspaceconnector.core.base.retry;
 
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
 
 public class ExponentialWaitStrategy implements TransferWaitStrategy, NegotiationWaitStrategy {
 

@@ -15,6 +15,7 @@
 
 package org.eclipse.dataspaceconnector.core.base;
 
+import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
