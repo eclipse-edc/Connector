@@ -12,14 +12,14 @@
  *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
-package org.eclipse.dataspaceconnector.core;
-
-import java.util.HashMap;
-import java.util.Map;
+package org.eclipse.dataspaceconnector.core.base;
 
 import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandler;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
+
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Implementation of the {@link CommandHandlerRegistry} interface.
