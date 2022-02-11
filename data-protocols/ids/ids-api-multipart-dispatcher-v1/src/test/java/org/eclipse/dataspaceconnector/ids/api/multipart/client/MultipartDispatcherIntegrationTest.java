@@ -59,6 +59,7 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
@@ -80,7 +81,11 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
         transformerRegistry = mock(TransformerRegistry.class);
 
         Vault vault = mock(Vault.class);
-        var httpClient = new OkHttpClient.Builder().build();
+        var httpClient = new OkHttpClient.Builder()
+                .connectTimeout(1, TimeUnit.MINUTES)
+                .writeTimeout(1, TimeUnit.MINUTES)
+                .readTimeout(1, TimeUnit.MINUTES)
+                .build();
 
         var idsWebhookAddress = "http://webhook";
 
