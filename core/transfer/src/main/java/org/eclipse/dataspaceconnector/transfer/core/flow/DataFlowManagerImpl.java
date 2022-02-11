@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.flow;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
@@ -38,6 +39,7 @@ public class DataFlowManagerImpl implements DataFlowManager {
         controllers.add(controller);
     }
 
+    @WithSpan
     @Override
     public @NotNull DataFlowInitiateResult initiate(DataRequest dataRequest) {
         try {
