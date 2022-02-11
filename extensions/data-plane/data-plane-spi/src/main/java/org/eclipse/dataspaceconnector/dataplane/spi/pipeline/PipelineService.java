@@ -25,7 +25,7 @@ import java.util.concurrent.CompletableFuture;
 public interface PipelineService {
 
     /**
-     * Determines if a pipeline can be created for the data flow request.
+     * Determines if the request is valid.
      */
     Result<Boolean> validate(DataFlowRequest request);
 
