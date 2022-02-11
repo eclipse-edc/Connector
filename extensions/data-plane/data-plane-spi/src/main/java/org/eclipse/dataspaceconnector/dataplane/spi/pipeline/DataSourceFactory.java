@@ -13,7 +13,9 @@
  */
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Creates {@link DataSource}s and optimized {@link PipelineService}s.
@@ -21,9 +23,19 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 public interface DataSourceFactory {
 
     /**
+     * A successful validation result.
+     */
+    Result<Boolean> VALID = Result.success(true);
+
+    /**
      * Returns true if this factory can create a {@link DataSource} for the request.
      */
     boolean canHandle(DataFlowRequest request);
+
+    /**
+     * Returns true if the request is valid.
+     */
+    @NotNull Result<Boolean> validate(DataFlowRequest request);
 
     /**
      * Creates a source to access data to be sent.

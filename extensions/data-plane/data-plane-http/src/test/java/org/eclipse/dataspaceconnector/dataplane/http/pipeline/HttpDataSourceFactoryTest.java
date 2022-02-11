@@ -43,6 +43,20 @@ class HttpDataSourceFactoryTest {
     }
 
     @Test
+    void verifyValidation() {
+        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").property(NAME, "foo").type(HttpDataSchema.TYPE).build();
+        var validRequest = createRequest(HttpDataSchema.TYPE).sourceDataAddress(dataAddress).build();
+        assertThat(factory.validate(validRequest).succeeded()).isTrue();
+
+        var missingEndpointRequest = createRequest("Unknown").build();
+        assertThat(factory.validate(missingEndpointRequest).failed()).isTrue();
+
+        var missingNameAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(HttpDataSchema.TYPE).build();
+        var missingNameRequest = createRequest(HttpDataSchema.TYPE).sourceDataAddress(missingNameAddress).build();
+        assertThat(factory.validate(missingNameRequest).failed()).isTrue();
+    }
+
+    @Test
     void verifyCreateSource() {
         var dataAddress = DataAddress.Builder.newInstance()
                 .type(HttpDataSchema.TYPE)

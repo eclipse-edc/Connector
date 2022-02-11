@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSource;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSourceFactory;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.PipelineService;
 import org.eclipse.dataspaceconnector.dataplane.spi.result.TransferResult;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -37,6 +38,33 @@ import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_E
 public class PipelineServiceImpl implements PipelineService {
     private List<DataSourceFactory> sourceFactories = new ArrayList<>();
     private List<DataSinkFactory> sinkFactories = new ArrayList<>();
+
+    @Override
+    public Result<Boolean> validate(DataFlowRequest request) {
+        var sourceFactory = getSourceFactory(request);
+        if (sourceFactory == null) {
+            // NB: do not include the source type as that can possibly leak internal information
+            return Result.failure("Data source not supported for: " + request.getId());
+        }
+
+        var sourceValidation = sourceFactory.validate(request);
+        if (sourceValidation.failed()) {
+            return Result.failure(sourceValidation.getFailureMessages());
+        }
+
+        var sinkFactory = getSinkFactory(request);
+        if (sinkFactory == null) {
+            // NB: do not include the target type as that can possibly leak internal information
+            return Result.failure("Data target not supported for: " + request.getId());
+        }
+
+        var sinkValidation = sinkFactory.validate(request);
+        if (sinkValidation.failed()) {
+            return Result.failure(sinkValidation.getFailureMessages());
+        }
+
+        return Result.success(true);
+    }
 
     @Override
     public CompletableFuture<TransferResult> transfer(DataFlowRequest request) {
