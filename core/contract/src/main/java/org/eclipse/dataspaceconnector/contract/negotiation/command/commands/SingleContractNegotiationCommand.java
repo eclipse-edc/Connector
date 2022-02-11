@@ -24,6 +24,7 @@ public class SingleContractNegotiationCommand extends ContractNegotiationCommand
     protected final String negotiationId;
     
     public SingleContractNegotiationCommand(String negotiationId) {
+        super();
         this.negotiationId = negotiationId;
     }
     

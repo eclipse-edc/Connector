@@ -24,8 +24,4 @@ public abstract class ContractNegotiationCommand extends Command {
         super();
     }
     
-    protected ContractNegotiationCommand(String commandId) {
-        super(commandId);
-    }
-    
 }

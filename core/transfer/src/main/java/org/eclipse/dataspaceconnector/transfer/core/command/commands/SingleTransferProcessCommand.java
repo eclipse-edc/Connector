@@ -29,6 +29,7 @@ public class SingleTransferProcessCommand extends TransferProcessCommand {
     protected final String transferProcessId;
 
     public SingleTransferProcessCommand(String transferProcessId) {
+        super();
         this.transferProcessId = transferProcessId;
     }
 
