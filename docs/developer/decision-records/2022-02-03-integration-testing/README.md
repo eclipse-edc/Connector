@@ -111,28 +111,29 @@ The integration tests module only contains the classpath of the Provider module:
 The JUnit integration test runs the Provider using the preexisting `EdcExtension`, and the Consumer using a newly developed extension:
 
 ```java
-    // EDC Consumer runtime
-    @RegisterExtension
-    @Order(1)
-    static GradleModuleRuntimeExtension otherConnector = new GradleModuleRuntimeExtension(
-            ":samples:04.0-file-transfer:consumer", // Gradle module of the runtime to be started
-            Map.of( // settings
-                    "web.http.port", "9191",
-                    "edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH,
-                    "ids.webhook.address", "http://localhost:9191"));
+// EDC Consumer runtime
+@RegisterExtension
+static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
+        ":samples:04.0-file-transfer:consumer", // Gradle module of the runtime to be started
+        "consumer", // prefix for console log output
+        Map.of( // settings
+        "web.http.port", String.valueOf(CONSUMER_CONNECTOR_PORT),
+        "edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH,
+        "ids.webhook.address", CONSUMER_CONNECTOR_HOST));
 
-    // EDC Provider runtime
-    @RegisterExtension
-    @Order(2)
-    static EdcExtension edc = new EdcExtension();
-
+// EDC Provider runtime
+@RegisterExtension
+static EdcRuntimeExtension provider = new EdcRuntimeExtension(
+        ":samples:04.0-file-transfer:provider",
+        "provider",
+        Map.of(...));
 ```
 
 The extension determines the class path by running a custom Gradle task:
 
 ```java
-// GradleModuleRuntimeExtension.java
-Runtime.getRuntime().exec(root + "/gradlew -q " + moduleName + ":printClasspath");
+// EdcRuntimeExtension.java
+Runtime.getRuntime().exec("/gradlew -q " + moduleName + ":printClasspath");
 
 // ... process classpath (see below) ...
 
@@ -176,7 +177,7 @@ tasks.getByName<Test>("test") {
 The test runs in seconds.
 
 ```shell
-$ RUN_INTEGRATION_TEST=true time ./gradlew cleanTest :samples:04.0-file-transfer:integration-tests:test --tests org.eclipse.dataspaceconnector.samples.ClassLoaderWithGradleClasspathTest
+$ time ./gradlew cleanTest :samples:04.0-file-transfer:integration-tests:test --tests org.eclipse.dataspaceconnector.samples.ClassLoaderWithGradleClasspathTest
 
 > Configure project :
 > No version was specified, setting default 0.0.1-SNAPSHOT

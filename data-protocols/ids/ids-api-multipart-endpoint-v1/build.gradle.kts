@@ -34,6 +34,7 @@ dependencies {
     testImplementation("net.javacrumbs.json-unit:json-unit-json-path:2.28.0")
     testImplementation("net.javacrumbs.json-unit:json-unit:2.28.0")
     testImplementation(testFixtures(project(":launchers:junit")))
+    testImplementation(testFixtures(project(":common:util")))
     testImplementation(project(":core:base"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }

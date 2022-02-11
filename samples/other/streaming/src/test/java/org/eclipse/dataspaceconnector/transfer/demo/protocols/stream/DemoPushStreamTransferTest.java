@@ -50,7 +50,7 @@ class DemoPushStreamTransferTest extends AbstractDemoTransferTest {
     @BeforeAll
     static void setup() {
         //let's randomize the port
-        var port = TestUtils.getFreePort();
+        var port = TestUtils.findUnallocatedServerPort();
         System.setProperty("web.http.port", String.valueOf(port));
         System.setProperty("edc.demo.protocol.ws.pubsub", "ws://localhost:" + port + "/pubsub/");
         System.setProperty("edc.demo.protocol.http.pubsub", "http://localhost:" + port + "/api/demo/pubsub/");

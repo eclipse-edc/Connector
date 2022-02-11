@@ -13,15 +13,17 @@
  */
 package org.eclipse.dataspaceconnector.junit.launcher;
 
+import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor.Level;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
 import org.junit.jupiter.api.extension.BeforeTestExecutionCallback;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Arrays;
@@ -31,6 +33,7 @@ import java.util.Properties;
 import java.util.concurrent.CountDownLatch;
 import java.util.stream.Stream;
 
+import static java.lang.String.format;
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMonitor;
 
@@ -42,8 +45,9 @@ import static org.eclipse.dataspaceconnector.boot.system.ExtensionLoader.loadMon
  * This extension attaches a EDC runtime to the {@link BeforeTestExecutionCallback} and {@link AfterTestExecutionCallback} lifecycle hooks. Parameter injection of runtime services is supported.
  */
 public class EdcRuntimeExtension extends EdcExtension {
-    final String moduleName;
-    final Map<String, String> properties;
+    private final String moduleName;
+    private final String logPrefix;
+    private final Map<String, String> properties;
     private Thread runtimeThread;
     private static final String GRADLE_WRAPPER_UNIX = "gradlew";
     private static final String GRADLE_WRAPPER_WINDOWS = "gradlew.bat";
@@ -54,9 +58,15 @@ public class EdcRuntimeExtension extends EdcExtension {
         GRADLE_WRAPPER = (System.getProperty("os.name").toLowerCase().contains("win")) ? GRADLE_WRAPPER_WINDOWS : GRADLE_WRAPPER_UNIX;
     }
 
-    public EdcRuntimeExtension(String moduleName, Map<String, String> properties) {
+    public EdcRuntimeExtension(String moduleName, String logPrefix, Map<String, String> properties) {
         this.moduleName = moduleName;
+        this.logPrefix = logPrefix;
         this.properties = Map.copyOf(properties);
+    }
+
+    @Override
+    protected @NotNull Monitor createMonitor() {
+        return new ConsoleMonitor(logPrefix, Level.DEBUG);
     }
 
     @Override
@@ -74,10 +84,11 @@ public class EdcRuntimeExtension extends EdcExtension {
                 moduleName + ":printClasspath"
         };
         Process exec = Runtime.getRuntime().exec(command);
-        InputStream inputStream = exec.getInputStream();
-        var classpathString = new String(inputStream.readAllBytes());
+        var classpathString = new String(exec.getInputStream().readAllBytes());
+        var errorOutput = new String(exec.getErrorStream().readAllBytes());
         if (exec.waitFor() != 0) {
-            throw new EdcException("Failed to run gradle command: " + String.join(" ", command));
+            throw new EdcException(format("Failed to run gradle command: [%s]. Output: %s %s",
+                    String.join(" ", command), classpathString, errorOutput));
         }
 
         // Replace subproject JAR entries with subproject build directories in classpath.
@@ -130,7 +141,9 @@ public class EdcRuntimeExtension extends EdcExtension {
 
     @Override
     public void afterTestExecution(ExtensionContext context) throws Exception {
-        runtimeThread.join();
+        if (runtimeThread != null) {
+            runtimeThread.join();
+        }
         super.afterTestExecution(context);
     }
 
