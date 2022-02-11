@@ -65,6 +65,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
     // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
@@ -161,7 +163,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
                 .build();
-        message.setProperty("idsWebhookAddress", "http://someUrl");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, "http://someUrl");
         return message;
     }
 

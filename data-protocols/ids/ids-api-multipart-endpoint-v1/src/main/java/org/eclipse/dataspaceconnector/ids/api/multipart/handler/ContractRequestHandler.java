@@ -38,6 +38,7 @@ import java.io.IOException;
 import java.util.Objects;
 
 import static org.eclipse.dataspaceconnector.ids.api.multipart.util.RejectionMessageUtil.badParameters;
+import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
 /**
  * This class handles and processes incoming IDS {@link ContractRequestMessage}s.
@@ -88,7 +89,7 @@ public class ContractRequestHandler implements Handler {
             return createBadParametersErrorMultipartResponse(message);
         }
 
-        var idsWebhookAddress = message.getProperties().get("idsWebhookAddress");
+        var idsWebhookAddress = message.getProperties().get(IDS_WEBHOOK_ADDRESS_PROPERTY);
         if (idsWebhookAddress == null || idsWebhookAddress.toString().isBlank()) {
             var msg = "Ids webhook address is invalid";
             monitor.debug(String.format("ContractRequestHandler: %s", msg));
