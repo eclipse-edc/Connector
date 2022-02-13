@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.transfer.inline.spi;
+package org.eclipse.dataspaceconnector.spi.transfer.inline;
 
 /**
  * A context for creating stream sessions.
@@ -14,5 +14,5 @@ public interface StreamContext {
      * @return the session
      */
     StreamSession createSession(String uri, String topicName, String secretName);
-    
+
 }

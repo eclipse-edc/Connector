@@ -19,11 +19,11 @@ import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.StreamContext;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.StreamSession;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.common.ProtocolsSecretToken;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.http.HttpStreamSession;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WsPushStreamSession;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamContext;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamSession;
 import org.jetbrains.annotations.Nullable;
 
 import java.net.MalformedURLException;

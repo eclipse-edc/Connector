@@ -27,11 +27,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.DataOperatorRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
-import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
+import org.eclipse.dataspaceconnector.transfer.core.inline.InlineDataFlowController;
 
 import java.nio.file.Path;
 
@@ -61,7 +61,7 @@ public class FileTransferExtension implements ServiceExtension {
         var policy = createPolicy();
 
         registerDataEntries(context);
-        registerContractDefinition(context, policy);
+        registerContractDefinition(policy);
 
         context.getMonitor().info("File Transfer Extension initialized!");
     }
@@ -95,7 +95,7 @@ public class FileTransferExtension implements ServiceExtension {
         loader.accept(asset, dataAddress);
     }
 
-    private void registerContractDefinition(ServiceExtensionContext context, Policy policy) {
+    private void registerContractDefinition(Policy policy) {
 
         ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")

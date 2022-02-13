@@ -19,7 +19,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamSession;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.StreamSession;
 
 import java.io.IOException;
 import java.net.URL;

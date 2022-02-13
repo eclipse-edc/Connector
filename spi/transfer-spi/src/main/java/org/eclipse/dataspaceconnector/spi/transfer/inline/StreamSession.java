@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.transfer.inline.spi;
+package org.eclipse.dataspaceconnector.spi.transfer.inline;
 
 /**
  * A stateful connection to a streaming topic.

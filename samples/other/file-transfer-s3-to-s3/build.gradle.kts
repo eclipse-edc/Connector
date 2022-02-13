@@ -26,10 +26,7 @@ dependencies {
     api(project(":spi"))
     implementation(project(":extensions:aws:s3:s3-provision"))
     implementation(project(":extensions:aws:s3:s3-core"))
-    implementation(project(":extensions:inline-data-transfer:inline-data-transfer-spi"))
-    implementation(project(":extensions:inline-data-transfer:inline-data-transfer-core"))
-
-
+    
     implementation(platform("software.amazon.awssdk:bom:${awsVersion}"))
     implementation("software.amazon.awssdk:s3")
     implementation("software.amazon.awssdk:sts")

@@ -20,15 +20,15 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.DataOperatorRegistry;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.DataStreamPublisher;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.StreamContext;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.fixture.AbstractDemoTransferTest;
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.spi.stream.TopicManager;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamContext;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 

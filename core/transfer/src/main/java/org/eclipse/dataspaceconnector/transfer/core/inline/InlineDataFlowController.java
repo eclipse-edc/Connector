@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.transfer.inline.core;
+package org.eclipse.dataspaceconnector.transfer.core.inline;
 
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -20,9 +20,9 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.DataOperatorRegistry;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.DataStreamPublisher;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
