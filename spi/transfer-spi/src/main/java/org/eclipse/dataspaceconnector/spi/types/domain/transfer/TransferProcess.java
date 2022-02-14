@@ -26,7 +26,6 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
@@ -51,6 +50,7 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#DEPROVISIONING} ->
  * {@link TransferProcessStates#DEPROVISIONED} ->
  * {@link TransferProcessStates#ENDED} ->
+ * {@link TransferProcessStates#CANCELLED} -> optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
  * <br/>
  * <br/>
@@ -65,7 +65,9 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#DEPROVISIONING} ->
  * {@link TransferProcessStates#DEPROVISIONED} ->
  * {@link TransferProcessStates#ENDED} ->
+ * {@link TransferProcessStates#CANCELLED} -> optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
+ * <br/>
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
@@ -205,6 +207,20 @@ public class TransferProcess {
 
     public void transitionDeprovisioned() {
         transition(TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONING_REQ, TransferProcessStates.DEPROVISIONED);
+    }
+
+    public void transitionCancelled() {
+        // alternatively we could take the ".values()" array, and remove disallowed once, but this
+        // seems more explicit
+        var allowedStates = new TransferProcessStates[]{
+                TransferProcessStates.UNSAVED, TransferProcessStates.INITIAL,
+                TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED,
+                TransferProcessStates.REQUESTED, TransferProcessStates.REQUESTED_ACK,
+                TransferProcessStates.IN_PROGRESS, TransferProcessStates.STREAMING,
+                TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING_REQ,
+                TransferProcessStates.DEPROVISIONING, TransferProcessStates.CANCELLED
+        };
+        transition(TransferProcessStates.CANCELLED, allowedStates);
     }
 
     /**

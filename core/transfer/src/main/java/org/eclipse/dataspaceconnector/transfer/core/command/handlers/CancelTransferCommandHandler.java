@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.core.command.handlers;
 
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.transfer.core.command.commands.CancelTransferCommand;
 
 public class CancelTransferCommandHandler extends SingleTransferProcessCommandHandler<CancelTransferCommand> {
@@ -31,7 +32,14 @@ public class CancelTransferCommandHandler extends SingleTransferProcessCommandHa
 
     @Override
     protected boolean modify(TransferProcess process) {
-        process.transitionError("Cancelled");
+        var state = process.getState();
+        if (state == TransferProcessStates.COMPLETED.code() ||
+                state == TransferProcessStates.ERROR.code() ||
+                state == TransferProcessStates.CANCELLED.code() ||
+                state == TransferProcessStates.ENDED.code()) {
+            return false;
+        }
+        process.transitionCancelled();
         return true;
     }
 }
