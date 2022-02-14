@@ -25,8 +25,8 @@ import java.util.function.Predicate;
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.ContractNegotiationFunctions.property;
 
 /**
- * Converts a {@link Criterion} into a {@link Predicate<ContractNegotiation>} for use with an {@link InMemoryContractNegotiationStore}.
- * Currently, only the "=" and "in" operators are supported (cf. {@link Criterion#getOperator()}.
+ * Converts a {@link Criterion} into a {@link Predicate} for use with an {@link InMemoryContractNegotiationStore}.
+ * Currently, only the "=" and "in" operators are supported (cf. {@link Criterion#getOperator()}).
  */
 class CriterionToPredicateConverter implements CriterionConverter<Predicate<ContractNegotiation>> {
     @Override
@@ -40,8 +40,8 @@ class CriterionToPredicateConverter implements CriterionConverter<Predicate<Cont
                 return Objects.equals(property, criterion.getOperandRight());
             };
         } else if ("in".equalsIgnoreCase(criterion.getOperator())) {
-            return asset -> {
-                String property = property(asset, (String) criterion.getOperandLeft());
+            return contractNegotiation -> {
+                String property = property(contractNegotiation, (String) criterion.getOperandLeft());
                 var list = (String) criterion.getOperandRight();
                 // some cleanup needs to happen
                 list = list.replace("(", "").replace(")", "").replace(" ", "");

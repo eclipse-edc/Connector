@@ -35,6 +35,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -215,29 +216,5 @@ class InMemoryContractNegotiationStoreTest {
         assertThat(store.queryNegotiations(query).collect(Collectors.toList())).hasSize(10);
     }
 
-    private ContractNegotiation createNegotiation(String name) {
-        return ContractNegotiation.Builder.newInstance()
-                .type(ContractNegotiation.Type.CONSUMER)
-                .id(name)
-                .contractAgreement(createAgreement())
-                .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
-                        .policy(Policy.Builder.newInstance().build()).build()))
-                .counterPartyAddress("consumer")
-                .counterPartyId("consumerId")
-                .protocol("ids-multipart")
-                .build();
-    }
 
-    private ContractAgreement createAgreement() {
-        return ContractAgreement.Builder.newInstance()
-                .id("agreementId")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .asset(Asset.Builder.newInstance().build())
-                .policy(Policy.Builder.newInstance().build())
-                .contractSigningDate(LocalDate.MIN.toEpochDay())
-                .contractStartDate(LocalDate.MIN.toEpochDay())
-                .contractEndDate(LocalDate.MAX.toEpochDay())
-                .build();
-    }
 }
