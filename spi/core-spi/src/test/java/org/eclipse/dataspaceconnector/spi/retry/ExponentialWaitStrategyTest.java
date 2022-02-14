@@ -13,9 +13,8 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.base;
+package org.eclipse.dataspaceconnector.spi.retry;
 
-import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;

@@ -25,7 +25,7 @@ import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.dataspaceconnector.core.CoreExtension;
 import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
-import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -127,7 +127,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
         CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
         CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
-        
+
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);
 

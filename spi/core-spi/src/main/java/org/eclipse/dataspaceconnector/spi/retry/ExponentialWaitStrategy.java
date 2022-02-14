@@ -13,10 +13,11 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.base.retry;
+package org.eclipse.dataspaceconnector.spi.retry;
 
-import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
-
+/**
+ * Implements an exponential backoff strategy for successive retries.
+ */
 public class ExponentialWaitStrategy implements WaitStrategy {
 
     private final long successWaitPeriodMillis;

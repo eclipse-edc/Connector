@@ -16,7 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.core;
 
 import org.eclipse.dataspaceconnector.core.CoreExtension;
 import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
-import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -105,7 +105,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
         context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
-    
+
         CommandQueue<TransferProcessCommand> commandQueue = new BoundedCommandQueue<>(10);
         TransferProcessObservable observable = new TransferProcessObservableImpl();
         context.registerService(TransferProcessObservable.class, observable);
