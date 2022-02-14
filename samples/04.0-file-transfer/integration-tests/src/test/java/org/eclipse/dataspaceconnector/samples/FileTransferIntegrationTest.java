@@ -39,7 +39,6 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.findUnallocatedServerPort;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -62,18 +61,11 @@ public class FileTransferIntegrationTest {
     private static final String DESTINATION_PARAM = "destination";
     private static final String CONTRACT_ID_PARAM = "contractId";
     private static final String FILE_NAME_PARAM = "filename";
-
-    private static final String CONSUMER_ASSET_PATH = propOrEnv("edc.samples.04.consumer.asset.path", tempDirectory());
-    private static final int CONSUMER_CONNECTOR_PORT = findUnallocatedServerPort();
-    private static final String CONSUMER_CONNECTOR_HOST = "http://localhost:" + CONSUMER_CONNECTOR_PORT;
-
-    private static final int PROVIDER_CONNECTOR_PORT = findUnallocatedServerPort();
-    private static final String PROVIDER_CONNECTOR_HOST = "http://localhost:" + PROVIDER_CONNECTOR_PORT;
-    private static final String PROVIDER_ASSET_PATH = propOrEnv("edc.samples.04.asset.path", format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_NAME));
-
     private static final String API_KEY_CONTROL_AUTH = propOrEnv("edc.api.control.auth.apikey.value", "password");
     private static final String API_KEY_HEADER = "X-Api-Key";
-
+    private static final String CONSUMER_ASSET_PATH = propOrEnv("edc.samples.04.consumer.asset.path", tempDirectory());
+    private static final int CONSUMER_CONNECTOR_PORT = TestUtils.getFreePort();
+    private static final String CONSUMER_CONNECTOR_HOST = "http://localhost:" + CONSUMER_CONNECTOR_PORT;
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
             ":samples:04.0-file-transfer:consumer",
@@ -83,6 +75,9 @@ public class FileTransferIntegrationTest {
                     "edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH,
                     "ids.webhook.address", CONSUMER_CONNECTOR_HOST));
 
+    private static final int PROVIDER_CONNECTOR_PORT = TestUtils.getFreePort();
+    private static final String PROVIDER_CONNECTOR_HOST = "http://localhost:" + PROVIDER_CONNECTOR_PORT;
+    private static final String PROVIDER_ASSET_PATH = propOrEnv("edc.samples.04.asset.path", format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_NAME));
     @RegisterExtension
     static EdcRuntimeExtension provider = new EdcRuntimeExtension(
             ":samples:04.0-file-transfer:provider",
@@ -91,6 +86,19 @@ public class FileTransferIntegrationTest {
                     "web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT),
                     "edc.samples.04.asset.path", PROVIDER_ASSET_PATH,
                     "ids.webhook.address", PROVIDER_CONNECTOR_HOST));
+
+    /**
+     * Helper method to create a temporary directory.
+     *
+     * @return a newly create temporary directory.
+     */
+    private static String tempDirectory() {
+        try {
+            return Files.createTempDirectory(FileTransferIntegrationTest.class.getSimpleName()).toString();
+        } catch (IOException e) {
+            throw new EdcException(e);
+        }
+    }
 
     @Test
     public void transferFile_success() throws Exception {
@@ -107,9 +115,9 @@ public class FileTransferIntegrationTest {
                         .contentType(ContentType.JSON)
                         .queryParam(CONNECTOR_ADDRESS_PARAM, format("%s/api/ids/multipart", PROVIDER_CONNECTOR_HOST))
                         .body(contractOffer)
-                .when()
+                        .when()
                         .post(CONTRACT_NEGOTIATION_PATH)
-                .then()
+                        .then()
                         .assertThat().statusCode(HttpStatus.SC_OK)
                         .extract().asString();
 
@@ -120,9 +128,9 @@ public class FileTransferIntegrationTest {
         // Verify ContractNegotiation is CONFIRMED
         await().atMost(30, SECONDS).untilAsserted(() ->
                 fetchNegotiatedAgreement(contractNegotiationRequestId)
-                .body("id", equalTo(contractNegotiationRequestId))
-                .body("state", equalTo(ContractNegotiationStates.CONFIRMED.code()))
-                .body("contractAgreement.id", notNullValue()));
+                        .body("id", equalTo(contractNegotiationRequestId))
+                        .body("state", equalTo(ContractNegotiationStates.CONFIRMED.code()))
+                        .body("contractAgreement.id", notNullValue()));
 
         // Obtain contract agreement ID
         var contractAgreementId = fetchNegotiatedAgreement(contractNegotiationRequestId)
@@ -136,9 +144,9 @@ public class FileTransferIntegrationTest {
                         .queryParam(CONNECTOR_ADDRESS_PARAM, format("%s/api/ids/multipart", PROVIDER_CONNECTOR_HOST))
                         .queryParam(DESTINATION_PARAM, CONSUMER_ASSET_PATH)
                         .queryParam(CONTRACT_ID_PARAM, contractAgreementId)
-                .when()
+                        .when()
                         .post(FILE_TRANSFER_PATH)
-                .then()
+                        .then()
                         .assertThat().statusCode(HttpStatus.SC_OK)
                         .extract().asString();
 
@@ -150,7 +158,7 @@ public class FileTransferIntegrationTest {
                 fetchTransfer(transferProcessId)
                         .body("id", equalTo(transferProcessId))
                         .body("state", equalTo(TransferProcessStates.COMPLETED.code())
-                ));
+                        ));
 
         var copiedFilePath = Path.of(format(CONSUMER_ASSET_PATH + "/%s.txt", PROVIDER_ASSET_NAME));
         var actualFileContent = Files.readString(copiedFilePath);
@@ -166,9 +174,9 @@ public class FileTransferIntegrationTest {
         return
                 givenConsumerRequest()
                         .pathParam(TRANSFER_ID_PARAM, transferProcessId)
-                .when()
+                        .when()
                         .get(TRANSFER_PATH)
-                .then()
+                        .then()
                         .assertThat().statusCode(HttpStatus.SC_OK);
     }
 
@@ -183,27 +191,14 @@ public class FileTransferIntegrationTest {
                 givenConsumerRequest()
                         .pathParam(CONTRACT_NEGOTIATION_REQUEST_ID_PARAM, contractNegotiationRequestId)
                         .header(API_KEY_HEADER, API_KEY_CONTROL_AUTH)
-                .when()
+                        .when()
                         .get(CONTRACT_AGREEMENT_PATH)
-                .then()
+                        .then()
                         .assertThat().statusCode(HttpStatus.SC_OK);
     }
 
     private RequestSpecification givenConsumerRequest() {
         return given()
                 .baseUri(CONSUMER_CONNECTOR_HOST);
-    }
-
-    /**
-     * Helper method to create a temporary directory.
-     *
-     * @return a newly create temporary directory.
-     */
-    private static String tempDirectory() {
-        try {
-            return Files.createTempDirectory(FileTransferIntegrationTest.class.getSimpleName()).toString();
-        } catch (IOException e) {
-            throw new EdcException(e);
-        }
     }
 }

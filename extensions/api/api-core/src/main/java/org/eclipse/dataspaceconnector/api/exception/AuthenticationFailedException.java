@@ -19,8 +19,12 @@ import org.eclipse.dataspaceconnector.spi.EdcException;
 /**
  * Indicates that an authorization was not possible or failed, e.g. due to missing or unreadable auth headers
  */
-public class AuthorizationFailedException extends EdcException {
-    public AuthorizationFailedException() {
-        super("Authorization not possible or failed");
+public class AuthenticationFailedException extends EdcException {
+    public AuthenticationFailedException() {
+        super("Authentication not possible or failed");
+    }
+
+    public AuthenticationFailedException(String message) {
+        super(message);
     }
 }
