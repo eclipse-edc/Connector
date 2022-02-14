@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.junit;
 
-import org.eclipse.dataspaceconnector.core.security.NullVaultExtension;
+import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;

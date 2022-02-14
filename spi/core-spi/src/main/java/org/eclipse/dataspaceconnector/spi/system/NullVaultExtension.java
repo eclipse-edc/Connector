@@ -12,13 +12,12 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.security;
+package org.eclipse.dataspaceconnector.spi.system;
 
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
 import org.jetbrains.annotations.Nullable;
 
 /**
