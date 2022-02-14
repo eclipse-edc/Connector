@@ -30,7 +30,6 @@ dependencies {
     implementation("com.atomikos:transactions-jta:${atomikosVersion}")
     implementation("com.atomikos:transactions-jdbc:${atomikosVersion}")
 
-    testImplementation(project(":core:base"))
     testImplementation("com.h2database:h2:${h2Version}")
 }
 
