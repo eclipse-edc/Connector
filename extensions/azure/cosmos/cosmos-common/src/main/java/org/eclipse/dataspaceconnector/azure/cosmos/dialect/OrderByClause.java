@@ -18,6 +18,17 @@ import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
 
+/**
+ * Represents in a structural way an ORDER BY clause in an SQL statement.
+ * The sort criterion, i.e. the SQL column by which to sort, is needed.
+ * <p>
+ * Optionally an {@code orderPrefix} can be specified, which represents the "path" of the property. This is particularly
+ * relevant for CosmosDB queries, e.g:
+ * <pre>
+ *     SELECT * FROM YourDocument WHERE ... ORDER BY YourDocument.Header.Age
+ * </pre>
+ * In this case the {@code orderPrefix} would have to be {@code "YourDocument.Header"}.
+ */
 class OrderByClause implements Clause {
 
     private final String orderField;
@@ -29,6 +40,10 @@ class OrderByClause implements Clause {
         this.orderField = orderField;
         this.sortAsc = sortAsc;
         this.objectPrefix = objectPrefix;
+    }
+
+    public OrderByClause(String orderField, boolean sortAsc) {
+        this(orderField, sortAsc, null);
     }
 
     OrderByClause() {

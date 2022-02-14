@@ -19,6 +19,9 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
+/**
+ * Interface for all SQL-like statements or parts thereof. Offers conversion to String plus an optional list of parameters.
+ */
 interface Clause {
     String asString();
 

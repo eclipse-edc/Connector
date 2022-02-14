@@ -14,6 +14,10 @@
 
 package org.eclipse.dataspaceconnector.azure.cosmos.dialect;
 
+/**
+ * Represents in a structural way an LIMIT clause in an SQL statement.
+ * LIMIT clauses are optional in SQL statements, so if no LIMIT is required, simply pass {@code null} in the constructor.
+ */
 class LimitClause implements Clause {
 
     private final Integer limit;

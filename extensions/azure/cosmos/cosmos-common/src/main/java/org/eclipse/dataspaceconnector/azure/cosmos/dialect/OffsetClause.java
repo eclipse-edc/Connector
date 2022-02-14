@@ -16,6 +16,10 @@ package org.eclipse.dataspaceconnector.azure.cosmos.dialect;
 
 import static java.lang.String.format;
 
+/**
+ * Represents in a structural way an OFFSET clause in an SQL statement.
+ * OFFSET clauses are optional in SQL statements, so if no OFFSET is required, simply pass {@code null} in the constructor.
+ */
 class OffsetClause implements Clause {
 
     private final Integer offset;

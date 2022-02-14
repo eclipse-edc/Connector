@@ -23,6 +23,20 @@ import java.util.List;
 
 import static org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument.sanitize;
 
+/**
+ * Represents in a structural way a WHERE clause in an SQL statement. Attempts to use parameterized statements using
+ * {@link SqlParameter} if possible. Currently, this is only implemented for the equals-operator ("=").
+ * <p>
+ * For every {@link Criterion} that is passed in, another {@code WHERE}- or {@code AND}-clause is appended.
+ *
+ * <p>
+ * Optionally an {@code orderPrefix} can be specified, which represents the "path" of the property. This is particularly
+ * relevant for CosmosDB queries, e.g:
+ * <pre>
+ *     SELECT * FROM YourDocument WHERE YourDocument.Header.Author = 'Foo Bar'
+ * </pre>
+ * In this case the {@code orderPrefix} would have to be {@code "YourDocument.Header"}.
+ */
 class WhereClause implements Clause {
     public static final String EQUALS_OPERATOR = "=";
     public static final String IN_OPERATOR = "IN";
@@ -42,11 +56,6 @@ class WhereClause implements Clause {
         objectPrefix = null;
     }
 
-
-    public String getWhere() {
-        return where;
-    }
-
     @Override
     public String asString() {
         return getWhere();
@@ -55,6 +64,10 @@ class WhereClause implements Clause {
     @Override
     public @NotNull List<SqlParameter> getParameters() {
         return parameters;
+    }
+
+    String getWhere() {
+        return where;
     }
 
     private void criterion(Criterion criterion) {
