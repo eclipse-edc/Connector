@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DeprovisionRespo
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionResponse;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResource;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceDefinition;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -47,7 +46,6 @@ public interface Provisioner<RD extends ResourceDefinition, PR extends Provision
      * {@link ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
      * {@link ResponseStatus#FATAL_ERROR}.
      */
-    @NotNull
     CompletableFuture<ProvisionResponse> provision(RD resourceDefinition);
 
     /**
@@ -56,7 +54,6 @@ public interface Provisioner<RD extends ResourceDefinition, PR extends Provision
      * {@link ResponseStatus#ERROR_RETRY}. If an exception occurs and re-tries should not be re-attempted, return
      * {@link ResponseStatus#FATAL_ERROR}.
      */
-    @NotNull
     CompletableFuture<DeprovisionResponse> deprovision(PR provisionedResource);
 
 }

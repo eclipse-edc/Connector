@@ -12,9 +12,10 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.spi.transfer;
+package org.eclipse.dataspaceconnector.spi.transfer.retry;
 
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 
 /**
  * Implements a wait strategy for the {@link TransferProcessManager}.
