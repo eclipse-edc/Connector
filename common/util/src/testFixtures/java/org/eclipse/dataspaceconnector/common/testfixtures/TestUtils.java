@@ -104,8 +104,8 @@ public class TestUtils {
 
         while (!found && port <= upperBound) {
             try (ServerSocket serverSocket = new ServerSocket(port)) {
-                found = true;
                 port = serverSocket.getLocalPort();
+                found = true;
             } catch (IOException e) {
                 found = false;
                 port++;
