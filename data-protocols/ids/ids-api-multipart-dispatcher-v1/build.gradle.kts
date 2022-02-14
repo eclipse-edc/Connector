@@ -15,6 +15,7 @@
 val infoModelVersion: String by project
 val rsApi: String by project
 val jerseyVersion: String by project
+val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -29,10 +30,11 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation(project(":core:base"))
+    testImplementation(project(":core:transfer"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }

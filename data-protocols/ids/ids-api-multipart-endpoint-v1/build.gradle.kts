@@ -24,7 +24,6 @@ dependencies {
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
-    api(project(":core:transfer"))
     api(project(":extensions:http"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
@@ -35,7 +34,7 @@ dependencies {
     testImplementation("net.javacrumbs.json-unit:json-unit:2.28.0")
     testImplementation(testFixtures(project(":launchers:junit")))
     testImplementation(testFixtures(project(":common:util")))
-    testImplementation(project(":core:base"))
+    testImplementation(project(":core:transfer"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }
 

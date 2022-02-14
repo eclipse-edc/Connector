@@ -23,10 +23,11 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    implementation(project(":common:util"))
-    testImplementation(project(":core:base"))
 
+    implementation(project(":common:util"))
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+
+    testImplementation(project(":core:base"))
     testImplementation("org.glassfish.jersey.core:jersey-common:${jerseyVersion}")
     testImplementation("org.glassfish.jersey.core:jersey-server:${jerseyVersion}")
 

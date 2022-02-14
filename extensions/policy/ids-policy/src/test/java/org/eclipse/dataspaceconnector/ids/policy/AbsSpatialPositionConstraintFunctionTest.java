@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.ids.policy;
 
-import org.eclipse.dataspaceconnector.contract.policy.PolicyContextImpl;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.junit.jupiter.api.Test;
@@ -24,7 +23,7 @@ class AbsSpatialPositionConstraintFunctionTest {
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
         var permission = dummyPermission();
 
-        boolean result = constraintFunction.evaluate(EQ, "eu", permission, new PolicyContextImpl(euAgent));
+        boolean result = constraintFunction.evaluate(EQ, "eu", permission, new MockPolicyContext(euAgent));
 
         assertThat(result).isTrue();
     }
@@ -34,7 +33,7 @@ class AbsSpatialPositionConstraintFunctionTest {
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
         var permission = dummyPermission();
 
-        boolean result = constraintFunction.evaluate(EQ, "us", permission, new PolicyContextImpl(euAgent));
+        boolean result = constraintFunction.evaluate(EQ, "us", permission, new MockPolicyContext(euAgent));
 
         assertThat(result).isFalse();
     }
@@ -43,7 +42,7 @@ class AbsSpatialPositionConstraintFunctionTest {
     void shouldVerifyInConstraint() {
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(IN, List.of("eu"), dummyPermission(), new PolicyContextImpl(euAgent));
+        boolean result = constraintFunction.evaluate(IN, List.of("eu"), dummyPermission(), new MockPolicyContext(euAgent));
 
         assertThat(result).isTrue();
     }
@@ -52,7 +51,7 @@ class AbsSpatialPositionConstraintFunctionTest {
     void shouldNotVerifyInConstraint() {
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(IN, List.of("us"), dummyPermission(), new PolicyContextImpl(euAgent));
+        boolean result = constraintFunction.evaluate(IN, List.of("us"), dummyPermission(), new MockPolicyContext(euAgent));
 
         assertThat(result).isFalse();
     }
@@ -61,7 +60,7 @@ class AbsSpatialPositionConstraintFunctionTest {
     void shouldVerifyNotEqConstraint() {
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(NEQ, "us", dummyPermission(), new PolicyContextImpl(euAgent));
+        boolean result = constraintFunction.evaluate(NEQ, "us", dummyPermission(), new MockPolicyContext(euAgent));
 
         assertThat(result).isTrue();
     }
@@ -70,7 +69,7 @@ class AbsSpatialPositionConstraintFunctionTest {
     void shouldNotVerifyNotEqConstraint() {
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(NEQ, "eu", dummyPermission(), new PolicyContextImpl(euAgent));
+        boolean result = constraintFunction.evaluate(NEQ, "eu", dummyPermission(), new MockPolicyContext(euAgent));
 
         assertThat(result).isFalse();
     }
@@ -79,7 +78,7 @@ class AbsSpatialPositionConstraintFunctionTest {
     void shouldVerifyGreatherThanConstraint() {
         var euAgent = new ParticipantAgent(Map.of("region", "eu"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(GT, "eu", dummyPermission(), new PolicyContextImpl(euAgent));
+        boolean result = constraintFunction.evaluate(GT, "eu", dummyPermission(), new MockPolicyContext(euAgent));
 
         assertThat(result).isFalse();
     }
@@ -87,4 +86,5 @@ class AbsSpatialPositionConstraintFunctionTest {
     private Permission dummyPermission() {
         return Permission.Builder.newInstance().build();
     }
+
 }

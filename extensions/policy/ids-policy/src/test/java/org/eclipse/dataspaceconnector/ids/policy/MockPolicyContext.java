@@ -1,0 +1,40 @@
+package org.eclipse.dataspaceconnector.ids.policy;
+
+import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
+import org.eclipse.dataspaceconnector.spi.contract.policy.PolicyContext;
+import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ */
+class MockPolicyContext implements PolicyContext {
+    private final ParticipantAgent agent;
+    private final List<String> problems = new ArrayList<>();
+
+    public MockPolicyContext(ParticipantAgent agent) {
+        this.agent = agent;
+    }
+
+    @Override
+    public void reportProblem(String problem) {
+        problems.add(problem);
+    }
+
+    @Override
+    public boolean hasProblems() {
+        return !problems.isEmpty();
+    }
+
+    @Override
+    public @NotNull List<String> getProblems() {
+        return problems;
+    }
+
+    @Override
+    public ParticipantAgent getParticipantAgent() {
+        return agent;
+    }
+}

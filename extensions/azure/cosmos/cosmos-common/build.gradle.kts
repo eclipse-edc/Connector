@@ -21,7 +21,6 @@ val cosmosSdkVersion: String by project
 dependencies {
     api(project(":spi"))
     api(project(":common:util"))
-    api(project(":core:base"))
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
 
     testImplementation(testFixtures(project(":common:util")))
