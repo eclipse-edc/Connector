@@ -1,5 +1,8 @@
-package org.eclipse.dataspaceconnector.spi.system;
+package org.eclipse.dataspaceconnector.spi.system.injection;
 
+import org.eclipse.dataspaceconnector.spi.system.Provides;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -68,7 +71,7 @@ class InjectionContainerTest {
     private interface BarService {
     }
 
-    @Provides({ FooService.class, BarService.class })
+    @Provides({FooService.class, BarService.class})
     private static class TestExtension implements ServiceExtension {
     }
 }

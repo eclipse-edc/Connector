@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.spi.system;
 
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
