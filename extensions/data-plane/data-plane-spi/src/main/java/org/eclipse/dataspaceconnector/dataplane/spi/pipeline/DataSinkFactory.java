@@ -13,7 +13,9 @@
  */
 package org.eclipse.dataspaceconnector.dataplane.spi.pipeline;
 
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Creates {@link DataFlowRequest}s
@@ -21,9 +23,19 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
 public interface DataSinkFactory {
 
     /**
+     * A successful validation result.
+     */
+    Result<Boolean> VALID = Result.success(true);
+
+    /**
      * Returns true if this factory can create a {@link DataSink} for the request.
      */
     boolean canHandle(DataFlowRequest request);
+
+    /**
+     * Returns true if the request is valid.
+     */
+    @NotNull Result<Boolean> validate(DataFlowRequest request);
 
     /**
      * Creates a sink to send data to.

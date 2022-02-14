@@ -19,13 +19,16 @@ import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSink;
 import org.eclipse.dataspaceconnector.dataplane.spi.pipeline.DataSinkFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataFlowRequest;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.concurrent.ExecutorService;
 
 import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.AUTHENTICATION_CODE;
 import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.AUTHENTICATION_KEY;
 import static org.eclipse.dataspaceconnector.dataplane.http.schema.HttpDataSchema.ENDPOINT;
+import static org.eclipse.dataspaceconnector.spi.result.Result.failure;
 
 /**
  * Instantiates {@link HttpDataSink}s for requests whose source data type is {@link HttpDataSchema#TYPE}.
@@ -46,6 +49,15 @@ public class HttpDataSinkFactory implements DataSinkFactory {
     @Override
     public boolean canHandle(DataFlowRequest request) {
         return HttpDataSchema.TYPE.equals(request.getSourceDataAddress().getType());
+    }
+
+    @Override
+    public @NotNull Result<Boolean> validate(DataFlowRequest request) {
+        var dataAddress = request.getDestinationDataAddress();
+        if (dataAddress == null || !dataAddress.getProperties().containsKey(ENDPOINT)) {
+            return failure("HTTP data sink endpoint not provided for request: " + request.getId());
+        }
+        return VALID;
     }
 
     @Override

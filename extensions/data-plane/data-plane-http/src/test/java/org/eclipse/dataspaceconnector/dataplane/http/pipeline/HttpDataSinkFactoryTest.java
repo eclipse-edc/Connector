@@ -55,6 +55,16 @@ class HttpDataSinkFactoryTest {
     }
 
     @Test
+    void verifyValidation() {
+        var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(HttpDataSchema.TYPE).build();
+        var validRequest = createRequest(HttpDataSchema.TYPE).destinationDataAddress(dataAddress).build();
+        assertThat(factory.validate(validRequest).succeeded()).isTrue();
+
+        var missingEndpointRequest = createRequest("Unknown").build();
+        assertThat(factory.validate(missingEndpointRequest).failed()).isTrue();
+    }
+
+    @Test
     void verifyCreateSource() {
         var dataAddress = DataAddress.Builder.newInstance().property(ENDPOINT, "http://example.com").type(HttpDataSchema.TYPE).build();
         var validRequest = createRequest(HttpDataSchema.TYPE).destinationDataAddress(dataAddress).build();
