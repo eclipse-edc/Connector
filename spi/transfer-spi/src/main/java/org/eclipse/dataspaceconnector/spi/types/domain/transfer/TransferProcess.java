@@ -50,6 +50,7 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#DEPROVISIONING} ->
  * {@link TransferProcessStates#DEPROVISIONED} ->
  * {@link TransferProcessStates#ENDED} ->
+ * {@link TransferProcessStates#CANCELLED} -> optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
  * <br/>
  * <br/>
@@ -64,7 +65,9 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#DEPROVISIONING} ->
  * {@link TransferProcessStates#DEPROVISIONED} ->
  * {@link TransferProcessStates#ENDED} ->
+ * {@link TransferProcessStates#CANCELLED} -> optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
+ * <br/>
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
