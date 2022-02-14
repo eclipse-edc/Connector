@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.core.security.azure;
 
-import org.eclipse.dataspaceconnector.core.security.VaultPrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.security.VaultPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
