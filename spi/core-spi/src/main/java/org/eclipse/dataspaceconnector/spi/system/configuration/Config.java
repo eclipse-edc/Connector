@@ -11,7 +11,7 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.spi.system;
+package org.eclipse.dataspaceconnector.spi.system.configuration;
 
 import java.util.Map;
 import java.util.stream.Stream;

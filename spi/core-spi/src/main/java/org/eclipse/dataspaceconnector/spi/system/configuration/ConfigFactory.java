@@ -11,16 +11,13 @@
  *       Bayerische Motoren Werke Aktiengesellschaft (BMW AG) - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.core.config;
-
-import org.eclipse.dataspaceconnector.spi.system.Config;
+package org.eclipse.dataspaceconnector.spi.system.configuration;
 
 import java.util.Map;
 import java.util.Properties;
-import java.util.stream.Collectors;
 
 import static java.util.Collections.emptyMap;
-import static org.eclipse.dataspaceconnector.core.config.ConfigImpl.TO_MAP;
+import static org.eclipse.dataspaceconnector.spi.system.configuration.ConfigImpl.TO_MAP;
 
 public class ConfigFactory {
 

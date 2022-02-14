@@ -1,7 +1,6 @@
-package org.eclipse.dataspaceconnector.core.config;
+package org.eclipse.dataspaceconnector.spi.system.configuration;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
