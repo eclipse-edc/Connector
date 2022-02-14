@@ -15,10 +15,9 @@
 
 package org.eclipse.dataspaceconnector.core.base.retry;
 
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
-import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 
-public class ExponentialWaitStrategy implements TransferWaitStrategy, NegotiationWaitStrategy {
+public class ExponentialWaitStrategy implements WaitStrategy {
 
     private final long successWaitPeriodMillis;
     private int errorCount = 0;
