@@ -15,22 +15,22 @@
 package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.boot.util.TopologicalSort;
-import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
-import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
-import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
-import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
+import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
-import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
-import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPoint;
-import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPointScanner;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
+import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPoint;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPointScanner;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 
 import java.util.ArrayList;

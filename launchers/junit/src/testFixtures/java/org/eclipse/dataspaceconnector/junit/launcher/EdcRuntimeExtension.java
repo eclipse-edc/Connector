@@ -13,9 +13,9 @@
  */
 package org.eclipse.dataspaceconnector.junit.launcher;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor.Level;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.extension.AfterTestExecutionCallback;
@@ -169,7 +169,7 @@ public class EdcRuntimeExtension extends EdcExtension {
      * Replace Gradle subproject JAR entries with subproject build directories in classpath.
      * This ensures modified classes are picked up without needing to rebuild dependent JARs.
      *
-     * @param root           project root directory.
+     * @param root project root directory.
      * @param classPathEntry class path entry to resolve.
      * @return resolved class path entries for the input argument.
      */

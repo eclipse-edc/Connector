@@ -14,10 +14,10 @@
 package org.eclipse.dataspaceconnector.boot.system.injection;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public final class InjectorImpl implements Injector {
 

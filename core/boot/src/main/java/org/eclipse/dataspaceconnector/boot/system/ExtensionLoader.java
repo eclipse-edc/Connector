@@ -16,18 +16,18 @@ package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.boot.system.injection.InjectorImpl;
 import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
-import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
-import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
-import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
 import org.eclipse.dataspaceconnector.spi.system.MonitorExtension;
+import org.eclipse.dataspaceconnector.spi.system.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
+import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;

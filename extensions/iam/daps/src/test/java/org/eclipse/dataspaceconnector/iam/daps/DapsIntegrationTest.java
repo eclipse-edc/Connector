@@ -15,7 +15,6 @@
 package org.eclipse.dataspaceconnector.iam.daps;
 
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
-import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.core.security.fs.FsCertificateResolver;
 import org.eclipse.dataspaceconnector.core.security.fs.FsPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
@@ -26,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;

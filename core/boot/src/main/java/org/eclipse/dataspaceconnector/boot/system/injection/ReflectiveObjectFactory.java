@@ -14,11 +14,11 @@
 package org.eclipse.dataspaceconnector.boot.system.injection;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPointScanner;
 import org.eclipse.dataspaceconnector.spi.system.injection.Injector;
 import org.eclipse.dataspaceconnector.spi.system.injection.ObjectFactory;
-import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Constructor;

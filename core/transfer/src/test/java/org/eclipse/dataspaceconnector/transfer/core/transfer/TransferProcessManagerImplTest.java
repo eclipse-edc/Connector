@@ -16,7 +16,6 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
@@ -27,6 +26,7 @@ import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntry;
 import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler;
 import org.eclipse.dataspaceconnector.spi.response.ResponseFailure;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
