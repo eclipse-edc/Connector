@@ -38,7 +38,7 @@ public class NegotiationResult extends AbstractResult<ContractNegotiation, Statu
     }
 
     public enum Status {
-        /**
+        /**1
          * The operation completed successfully.
          */
         OK,

@@ -30,7 +30,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class ContractNegotiationIntegrationTest extends AbstractContractNegotiationIntegrationTest {
+class ContractNegotiationManagerIntegrationTest extends AbstractContractNegotiationManagerIntegrationTest {
 
     @Test
     void testNegotiation_initialOfferAccepted() throws Exception {
@@ -45,8 +45,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
-        providerManager.start(providerStore);
-        consumerManager.start(consumerStore);
+        providerManager.start();
+        consumerManager.start();
 
         // Create an initial request and trigger consumer manager
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -93,8 +93,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
-        providerManager.start(providerStore);
-        consumerManager.start(consumerStore);
+        providerManager.start();
+        consumerManager.start();
 
         // Create an initial request and trigger consumer manager
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -142,8 +142,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
-        providerManager.start(providerStore);
-        consumerManager.start(consumerStore);
+        providerManager.start();
+        consumerManager.start();
 
         // Create an initial request and trigger consumer manager
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -195,8 +195,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
-        providerManager.start(providerStore);
-        consumerManager.start(consumerStore);
+        providerManager.start();
+        consumerManager.start();
 
         // Create an initial request and trigger consumer manager
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -254,8 +254,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
-        providerManager.start(providerStore);
-        consumerManager.start(consumerStore);
+        providerManager.start();
+        consumerManager.start();
 
         // Create an initial request and trigger consumer manager
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -323,8 +323,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerObservable.registerListener(new ConfirmedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
-        providerManager.start(providerStore);
-        consumerManager.start(consumerStore);
+        providerManager.start();
+        consumerManager.start();
 
         // Create an initial request and trigger consumer manager
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()
@@ -394,8 +394,8 @@ class ContractNegotiationIntegrationTest extends AbstractContractNegotiationInte
         consumerObservable.registerListener(new DeclinedContractNegotiationListener(countDownLatch));
 
         // Start provider and consumer negotiation managers
-        providerManager.start(providerStore);
-        consumerManager.start(consumerStore);
+        providerManager.start();
+        consumerManager.start();
 
         // Create an initial request and trigger consumer manager
         ContractOfferRequest request = ContractOfferRequest.Builder.newInstance()

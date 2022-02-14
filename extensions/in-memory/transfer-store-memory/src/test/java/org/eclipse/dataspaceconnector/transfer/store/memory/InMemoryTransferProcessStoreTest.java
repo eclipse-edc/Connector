@@ -20,13 +20,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ResourceManifest
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -34,7 +34,8 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryTransferProcessStoreTest {
-    private InMemoryTransferProcessStore store;
+
+    private final InMemoryTransferProcessStore store = new InMemoryTransferProcessStore();
 
     @Test
     void verifyCreateUpdateDelete() {
@@ -58,7 +59,7 @@ class InMemoryTransferProcessStoreTest {
 
         found = store.find(id);
         assertNotNull(found);
-        assertEquals(TransferProcessStates.PROVISIONING.code(), found.getState());
+        assertEquals(PROVISIONING.code(), found.getState());
 
         store.delete(id);
         Assertions.assertNull(store.find(id));
@@ -86,11 +87,11 @@ class InMemoryTransferProcessStoreTest {
 
         assertTrue(store.nextForState(TransferProcessStates.INITIAL.code(), 1).isEmpty());
 
-        List<TransferProcess> found = store.nextForState(TransferProcessStates.PROVISIONING.code(), 1);
+        List<TransferProcess> found = store.nextForState(PROVISIONING.code(), 1);
         assertEquals(1, found.size());
         assertEquals(transferProcess2, found.get(0));
 
-        found = store.nextForState(TransferProcessStates.PROVISIONING.code(), 3);
+        found = store.nextForState(PROVISIONING.code(), 3);
         assertEquals(2, found.size());
         assertEquals(transferProcess2, found.get(0));
         assertEquals(transferProcess1, found.get(1));
@@ -122,7 +123,8 @@ class InMemoryTransferProcessStoreTest {
     @Test
     void verifyOrderingByTimestamp() {
         for (int i = 0; i < 100; i++) {
-            TransferProcess process = createProcess("test-process-" + i);
+            TransferProcess process = createProcess("test-process-" + i)
+                    .build();
             process.transitionInitial();
             store.create(process);
         }
@@ -136,7 +138,8 @@ class InMemoryTransferProcessStoreTest {
     @Test
     void verifyNextForState_avoidsStarvation() throws InterruptedException {
         for (int i = 0; i < 10; i++) {
-            TransferProcess process = createProcess("test-process-" + i);
+            TransferProcess process = createProcess("test-process-" + i)
+                    .build();
             process.transitionInitial();
             store.create(process);
         }
@@ -148,20 +151,14 @@ class InMemoryTransferProcessStoreTest {
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
 
-    @BeforeEach
-    void setUp() {
-        store = new InMemoryTransferProcessStore();
-    }
-
-    private TransferProcess createProcess(String name) {
-        DataRequest mock = DataRequest.Builder.newInstance().destinationType("type").build();
+    private TransferProcess.Builder createProcess(String name) {
+        DataRequest dataRequest = DataRequest.Builder.newInstance().destinationType("type").build();
         return TransferProcess.Builder.newInstance()
                 .type(TransferProcess.Type.CONSUMER)
                 .id(name)
                 .stateTimestamp(0)
                 .state(TransferProcessStates.UNSAVED.code())
                 .provisionedResourceSet(new ProvisionedResourceSet())
-                .dataRequest(mock)
-                .build();
+                .dataRequest(dataRequest);
     }
 }

@@ -87,8 +87,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
     //TODO validate previous offers against hash?
 
-    public void start(ContractNegotiationStore store) {
-        negotiationStore = store;
+    public void start() {
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -282,6 +281,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 long providerOffering = processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering);
                 long declining = processNegotiationsInState(DECLINING, this::processDeclining);
                 long confirming = processNegotiationsInState(CONFIRMING, this::processConfirming);
+
                 long commandsProcessed = onCommands().doProcess(this::processCommand);
 
                 var totalProcessed = providerOffering + declining + confirming + commandsProcessed;
@@ -341,6 +341,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .correlationId(negotiation.getCorrelationId())
                 .build();
 
+        negotiationStore.save(negotiation);
+
         //TODO protocol-independent response type?
         dispatcherRegistry.send(Object.class, contractOfferRequest, () -> null)
                 .whenComplete(onCounterOfferSent(negotiation.getId(), currentOffer.getId()));
@@ -389,6 +391,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .correlationId(negotiation.getCorrelationId())
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
+
+        negotiationStore.save(negotiation);
 
         //TODO protocol-independent response type?
         dispatcherRegistry.send(Object.class, rejection, () -> null)
@@ -563,6 +567,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return this;
         }
 
+        public Builder store(ContractNegotiationStore store) {
+            manager.negotiationStore = store;
+            return this;
+        }
+
         public ProviderContractNegotiationManagerImpl build() {
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
@@ -571,6 +580,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
             Objects.requireNonNull(manager.telemetry, "telemetry");
+            Objects.requireNonNull(manager.negotiationStore, "store");
+
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;

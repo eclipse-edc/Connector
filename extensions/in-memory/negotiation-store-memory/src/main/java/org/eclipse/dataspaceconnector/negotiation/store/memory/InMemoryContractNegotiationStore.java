@@ -30,6 +30,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Predicate;
@@ -112,8 +113,9 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     @Override
     public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
         return readLock(() -> {
-            var set = stateCache.get(state);
-            return set == null ? Collections.emptyList() : set.stream()
+            var negotiations = Optional.ofNullable(stateCache.get(state)).orElse(Collections.emptyList());
+
+            return negotiations.stream()
                     .sorted(Comparator.comparingLong(ContractNegotiation::getStateTimestamp)) //order by state timestamp, oldest first
                     .limit(max)
                     .map(ContractNegotiation::copy)

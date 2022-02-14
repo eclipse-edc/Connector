@@ -16,33 +16,26 @@ package org.eclipse.dataspaceconnector.ids.api.multipart.client;
 
 import de.fraunhofer.iais.eis.Action;
 import de.fraunhofer.iais.eis.BaseConnector;
+import de.fraunhofer.iais.eis.BaseConnectorBuilder;
+import de.fraunhofer.iais.eis.Connector;
 import de.fraunhofer.iais.eis.ContractAgreementBuilder;
 import de.fraunhofer.iais.eis.ContractOfferBuilder;
 import de.fraunhofer.iais.eis.DescriptionResponseMessage;
 import de.fraunhofer.iais.eis.MessageProcessedNotificationMessage;
-import de.fraunhofer.iais.eis.MessageProcessedNotificationMessageImpl;
 import de.fraunhofer.iais.eis.PermissionBuilder;
 import de.fraunhofer.iais.eis.RejectionMessage;
-import de.fraunhofer.iais.eis.RequestInProcessMessageImpl;
+import de.fraunhofer.iais.eis.RequestInProcessMessage;
 import de.fraunhofer.iais.eis.ResponseMessage;
-import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartRemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartDescriptionResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartMessageProcessedResponse;
 import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.message.MultipartRequestInProcessResponse;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartArtifactRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartCatalogDescriptionRequestSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractAgreementSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractOfferSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartContractRejectionSender;
-import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.sender.MultipartDescriptionRequestSender;
 import org.eclipse.dataspaceconnector.ids.core.util.CalendarUtil;
 import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
+import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -59,8 +52,8 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -71,52 +64,32 @@ import static org.mockito.Mockito.when;
 
 class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherIntegrationTest {
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
-    private TransformerRegistry transformerRegistry;
-    private IdsMultipartRemoteMessageDispatcher multipartDispatcher;
+    private final TransformerRegistry transformerRegistry = mock(TransformerRegistry.class);
 
     @BeforeEach
-    void init() {
-        Monitor monitor = mock(Monitor.class);
-
-        transformerRegistry = mock(TransformerRegistry.class);
-
-        Vault vault = mock(Vault.class);
-        var httpClient = new OkHttpClient.Builder()
-                .connectTimeout(1, TimeUnit.MINUTES)
-                .writeTimeout(1, TimeUnit.MINUTES)
-                .readTimeout(1, TimeUnit.MINUTES)
-                .build();
-
-        var idsWebhookAddress = "http://webhook";
-
-        multipartDispatcher = new IdsMultipartRemoteMessageDispatcher();
-        multipartDispatcher.register(new MultipartDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartArtifactRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, vault, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractOfferSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractAgreementSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry, idsWebhookAddress));
-        multipartDispatcher.register(new MultipartContractRejectionSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
-        multipartDispatcher.register(new MultipartCatalogDescriptionRequestSender(CONNECTOR_ID, httpClient, OBJECT_MAPPER, monitor, identityService, transformerRegistry));
+    void init(EdcExtension extension) {
+        extension.registerServiceMock(TransformerRegistry.class, transformerRegistry);
     }
 
     @Test
-    void testSendDescriptionRequestMessage() throws Exception {
+    void testSendDescriptionRequestMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var request = MetadataRequest.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
                 .protocol(Protocols.IDS_MULTIPART)
                 .build();
 
-        var result = multipartDispatcher.send(MultipartDescriptionResponse.class, request, () -> null).get();
+        when(transformerRegistry.transform(any(), eq(Connector.class)))
+                .thenReturn(Result.success(new BaseConnectorBuilder().build()));
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-        assertThat(result.getHeader()).isInstanceOf(DescriptionResponseMessage.class);
-        assertThat(result.getPayload()).isNotNull();
-        assertThat(result.getPayload()).isInstanceOf(BaseConnector.class);
+        var future = dispatcher.send(MultipartDescriptionResponse.class, request, () -> null);
+        var assertion = assertThat(future).succeedsWithin(10, SECONDS).isNotNull();
+        assertion.extracting(MultipartDescriptionResponse::getHeader).isInstanceOf(DescriptionResponseMessage.class);
+        assertion.extracting(MultipartDescriptionResponse::getPayload).isInstanceOf(BaseConnector.class);
     }
 
     @Test
-    void testSendArtifactRequestMessage() throws Exception {
+    void testSendArtifactRequestMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var asset = Asset.Builder.newInstance().id("1").build();
         addAsset(asset);
         when(transformerRegistry.transform(any(), any()))
@@ -133,19 +106,17 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
-        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var future = dispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
+        var assertion = assertThat(future).succeedsWithin(10, SECONDS).isNotNull();
         //TODO revise when handler for ArtifactRequestMessage exists
-        assertThat(result.getHeader()).isInstanceOf(ResponseMessage.class);
-        assertThat(result.getPayload()).isNull();
+        assertion.extracting(MultipartRequestInProcessResponse::getHeader).isInstanceOf(ResponseMessage.class);
+        assertion.extracting(MultipartRequestInProcessResponse::getPayload).isNull();
         verify(transformerRegistry, times(2)).transform(any(), any());
     }
 
     @Test
-    void testSendContractOfferMessage() throws Exception {
+    void testSendContractOfferMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
@@ -159,18 +130,16 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var future = dispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        assertThat(result.getHeader()).isInstanceOf(RequestInProcessMessageImpl.class);
-        assertThat(result.getPayload()).isNull();
+        var assertion = assertThat(future).succeedsWithin(10, SECONDS).isNotNull();
+        assertion.extracting(MultipartRequestInProcessResponse::getHeader).isInstanceOf(RequestInProcessMessage.class);
+        assertion.extracting(MultipartRequestInProcessResponse::getPayload).isNull();
         verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
-    void testSendContractRequestMessage() throws Exception {
+    void testSendContractRequestMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var contractOffer = ContractOffer.Builder.newInstance().id("id").policy(Policy.Builder.newInstance().build()).build();
         when(transformerRegistry.transform(any(), any()))
                 .thenReturn(Result.success(getIdsContractOffer()));
@@ -184,27 +153,25 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
+        var future = dispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        // TODO Should be RequestInProcess
-        assertThat(result.getHeader()).isInstanceOf(RejectionMessage.class);
-        assertThat(result.getPayload()).isNull();
+        var assertion = assertThat(future).succeedsWithin(10, SECONDS).isNotNull();
+        assertion.extracting(MultipartRequestInProcessResponse::getHeader).isInstanceOf(RejectionMessage.class);
+        assertion.extracting(MultipartRequestInProcessResponse::getPayload).isNull();
         verify(transformerRegistry).transform(any(), any());
     }
 
     @Test
-    void testSendContractAgreementMessage() throws Exception {
+    void testSendContractAgreementMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var contractAgreement = ContractAgreement.Builder.newInstance()
                 .id("1:23456").consumerAgentId("consumer").providerAgentId("provider")
                 .policy(Policy.Builder.newInstance().build())
                 .asset(Asset.Builder.newInstance().build())
                 .build();
-
         when(transformerRegistry.transform(any(), eq(de.fraunhofer.iais.eis.ContractAgreement.class)))
                 .thenReturn(Result.success(getIdsContractAgreement()));
+        when(transformerRegistry.transform(any(), eq(ContractAgreement.class)))
+                .thenReturn(Result.success(contractAgreement));
         when(transformerRegistry.transform(any(), eq(URI.class)))
                 .thenReturn(Result.success(URI.create("https://example.com")));
 
@@ -216,18 +183,15 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId("1")
                 .build();
 
-        var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, request, () -> null).get();
+        var future = dispatcher.send(MultipartMessageProcessedResponse.class, request, () -> null);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessageImpl.class);
-        assertThat(result.getPayload()).isNull();
-        verify(transformerRegistry, times(2)).transform(any(), any());
+        var assertion = assertThat(future).succeedsWithin(10, SECONDS).isNotNull();
+        assertion.extracting(MultipartMessageProcessedResponse::getHeader).isInstanceOf(MessageProcessedNotificationMessage.class);
+        assertion.extracting(MultipartMessageProcessedResponse::getPayload).isNull();
     }
 
     @Test
-    void testSendContractRejectionMessage() throws Exception {
+    void testSendContractRejectionMessage(RemoteMessageDispatcherRegistry dispatcher) {
         var rejection = ContractRejection.Builder.newInstance()
                 .connectorId(CONNECTOR_ID)
                 .connectorAddress(getUrl())
@@ -236,17 +200,15 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .correlationId(UUID.randomUUID().toString())
                 .build();
 
-        var result = multipartDispatcher.send(MultipartMessageProcessedResponse.class, rejection, () -> null).get();
+        var future = dispatcher.send(MultipartMessageProcessedResponse.class, rejection, () -> null);
 
-        assertThat(result).isNotNull();
-        assertThat(result.getHeader()).isNotNull();
-
-        assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessage.class);
-        assertThat(result.getPayload()).isNull();
+        var assertion = assertThat(future).succeedsWithin(10, SECONDS).isNotNull();
+        assertion.extracting(MultipartMessageProcessedResponse::getHeader).isInstanceOf(MessageProcessedNotificationMessage.class);
+        assertion.extracting(MultipartMessageProcessedResponse::getPayload).isNull();
     }
 
     @Override
-    protected Map<String, String> getSystemProperties() {
+    protected Map<String, String> getConfigurationProperties() {
         return new HashMap<>() {
             {
                 put("web.http.port", String.valueOf(getPort()));

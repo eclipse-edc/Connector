@@ -184,32 +184,30 @@ abstract class IdsMultipartSender<M extends RemoteMessage, R> implements IdsMess
                 .post(multipartRequestBody)
                 .build();
 
-        // Execute call
-        CompletableFuture<R> future = new CompletableFuture<>();
+        var future = new CompletableFuture<R>();
 
-        httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, r -> {
-            try (r) {
-                monitor.debug("Response received from connector. Status " + r.code());
-                if (r.isSuccessful()) {
-                    try (var body = r.body()) {
+        httpClient.newCall(httpRequest).enqueue(new FutureCallback<>(future, response -> {
+            try (response) {
+                if (response.isSuccessful()) {
+                    monitor.debug("Successful response received from connector. Status " + response.code());
+                    try (var body = response.body()) {
                         if (body == null) {
-                            future.completeExceptionally(new EdcException("Received an empty body response from connector"));
+                            throw new EdcException("Received an empty body response from connector");
                         } else {
                             IdsMultipartParts parts = extractResponseParts(body);
                             return getResponseContent(parts);
                         }
                     } catch (Exception e) {
-                        future.completeExceptionally(e);
+                        throw new EdcException(e);
                     }
                 } else {
-                    if (r.code() == 403) {
+                    if (response.code() == 403) {
                         // forbidden
-                        future.completeExceptionally(new EdcException("Received not authorized from connector"));
+                        throw new EdcException("Received not authorized from connector");
                     } else {
-                        future.completeExceptionally(new EdcException("Received an error from connector:" + r.code()));
+                        throw new EdcException("Received an error from connector: " + response.code());
                     }
                 }
-                return null;
             }
         }));
 

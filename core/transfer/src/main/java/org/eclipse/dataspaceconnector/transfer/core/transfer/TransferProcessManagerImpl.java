@@ -116,8 +116,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     private TransferProcessManagerImpl() { }
 
-    public void start(TransferProcessStore processStore) {
-        transferProcessStore = processStore;
+    public void start() {
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -176,13 +175,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         commandQueue.enqueue(command);
     }
 
-    void onProvisionComplete(String processId, List<ProvisionResponse> responses) {
-        var transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            monitor.severe("TransferProcessManager: no TransferProcess found for deprovisioned resources");
-            return;
-        }
-
+    void onProvisionComplete(TransferProcess transferProcess, List<ProvisionResponse> responses) {
         if (transferProcess.getState() == ERROR.code()) {
             monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so provisioning could not be completed", transferProcess.getId()));
             return;
@@ -217,15 +210,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         transferProcessStore.update(transferProcess);
     }
 
-    void onDeprovisionComplete(String processId) {
-        monitor.info("Deprovisioning successfully completed.");
-
-        TransferProcess transferProcess = transferProcessStore.find(processId);
-        if (transferProcess == null) {
-            monitor.severe("TransferProcessManager: no TransferProcess found for provisioned resources");
-            return;
-        }
-
+    void onDeprovisionComplete(TransferProcess transferProcess) {
         if (transferProcess.getState() == ERROR.code()) {
             monitor.severe(format("TransferProcessManager: transfer process %s is in ERROR state, so deprovisioning could not be completed", transferProcess.getId()));
             return;
@@ -404,10 +389,18 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
         provisionManager.deprovision(process)
                 .whenComplete((responses, throwable) -> {
+                    TransferProcess transferProcess = transferProcessStore.find(process.getId());
+                    if (transferProcess == null) {
+                        monitor.severe(format("TransferProcessManager: no TransferProcess found for provisioned resources with id %s", process.getId()));
+                        return;
+                    }
+
                     if (throwable == null) {
-                        onDeprovisionComplete(process.getId());
+                        onDeprovisionComplete(transferProcess);
                     } else {
-                        transitionToError(process.getId(), throwable, "Error during deprovisioning");
+                        monitor.severe("Error during deprovisioning", throwable);
+                        transferProcess.transitionError("Error during deprovisioning: " + throwable.getLocalizedMessage());
+                        transferProcessStore.update(transferProcess);
                     }
                 });
 
@@ -481,29 +474,24 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         provisionManager.provision(process)
                 .whenComplete((responses, throwable) -> {
+                    var transferProcess = transferProcessStore.find(process.getId());
+                    if (transferProcess == null) {
+                        monitor.severe(format("TransferProcessManager: no TransferProcess found for deprovisioned resources with id %s", process.getId()));
+                        return;
+                    }
+
                     if (throwable == null) {
-                        onProvisionComplete(process.getId(), responses);
+                        onProvisionComplete(transferProcess, responses);
                     } else {
-                        transitionToError(process.getId(), throwable.getCause(), "Error during provisioning");
+                        monitor.severe("Error during provisioning", throwable);
+                        transferProcess.transitionError("Error during provisioning: " + throwable.getLocalizedMessage());
+                        transferProcessStore.update(transferProcess);
                     }
                 });
 
         return true;
     }
 
-    private void transitionToError(String id, Throwable throwable, String message) {
-        var transferProcess = transferProcessStore.find(id);
-        if (transferProcess == null) {
-            monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", id));
-            return;
-        }
-
-        monitor.severe(message, throwable);
-        transferProcess.transitionError(format("%s: %s", message, throwable.getLocalizedMessage()));
-        transferProcessStore.update(transferProcess);
-    }
-
-    @NotNull
     private boolean processProvisioned(TransferProcess process) {
         DataRequest dataRequest = process.getDataRequest();
         if (CONSUMER == process.getType()) {
@@ -549,9 +537,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                     return o;
                 })
                 .whenComplete((o, throwable) -> {
-                    if (o != null) {
+                    if (throwable == null) {
+                        var transferProcess = transferProcessStore.find(process.getId());
                         monitor.info("Object received: " + o);
-                        TransferProcess transferProcess = transferProcessStore.find(process.getId());
                         if (transferProcess == null) {
                             monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", process.getId()));
                             return;
@@ -656,6 +644,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
+        public Builder store(TransferProcessStore transferProcessStore) {
+            manager.transferProcessStore = transferProcessStore;
+            return this;
+        }
+
         public TransferProcessManagerImpl build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
@@ -669,6 +662,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "Observable cannot be null");
             Objects.requireNonNull(manager.telemetry, "Telemetry cannot be null");
+            Objects.requireNonNull(manager.transferProcessStore, "Store cannot be null");
+
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;

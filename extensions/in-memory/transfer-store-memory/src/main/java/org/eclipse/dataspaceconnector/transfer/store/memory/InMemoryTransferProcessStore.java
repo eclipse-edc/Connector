@@ -21,17 +21,21 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
+import static java.util.Collections.emptyList;
 import static java.util.stream.Collectors.toList;
 
 /**
@@ -60,8 +64,9 @@ public class InMemoryTransferProcessStore implements TransferProcessStore {
     @Override
     public @NotNull List<TransferProcess> nextForState(int state, int max) {
         return readLock(() -> {
-            var set = stateCache.get(state);
-            return set == null ? Collections.emptyList() : set.stream()
+            var processes = Optional.ofNullable(stateCache.get(state)).orElse(emptyList());
+
+            return processes.stream()
                     .sorted(Comparator.comparingLong(TransferProcess::getStateTimestamp)) //order by state timestamp, oldest first
                     .limit(max)
                     .map(TransferProcess::copy)

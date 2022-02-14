@@ -39,11 +39,11 @@ public abstract class IdsRemoteMessageDispatcher implements RemoteMessageDispatc
     @Override
     public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
         Objects.requireNonNull(message, "Message was null");
-        IdsMessageSender<RemoteMessage, ?> handler = (IdsMessageSender<RemoteMessage, ?>) senders.get(message.getClass());
+        var handler = (IdsMessageSender<RemoteMessage, T>) senders.get(message.getClass());
         if (handler == null) {
             throw new EdcException("Message sender not found for message type: " + message.getClass().getName());
         }
-        return (CompletableFuture<T>) handler.send(message, context);
+        return handler.send(message, context);
     }
 
 }

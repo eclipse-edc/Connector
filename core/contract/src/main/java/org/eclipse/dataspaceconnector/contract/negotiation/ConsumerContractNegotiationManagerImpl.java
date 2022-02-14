@@ -85,8 +85,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
     private ConsumerContractNegotiationManagerImpl() { }
 
-    public void start(ContractNegotiationStore store) {
-        negotiationStore = store;
+    public void start() {
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -383,6 +382,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 monitor.debug(message, throwable);
             }
         };
+
     }
 
     /**
@@ -424,6 +424,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 .correlationId(negotiation.getId())
                 .build();
 
+        negotiationStore.save(negotiation);
         // TODO protocol-independent response type?
         dispatcherRegistry.send(Object.class, request, negotiation::getId)
                 .whenComplete(onAgreementSent(negotiation.getId(), agreement.getId()));
@@ -474,9 +475,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 .rejectionReason(negotiation.getErrorDetail())
                 .build();
 
+        negotiationStore.save(negotiation);
         // TODO protocol-independent response type?
         dispatcherRegistry.send(Object.class, rejection, negotiation::getId)
                 .whenComplete(onRejectionSent(negotiation.getId()));
+
         return false;
     }
 
@@ -614,6 +617,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         public Builder observable(ContractNegotiationObservable observable) {
             manager.observable = observable;
+            return this;
+        }
+
+        public Builder store(ContractNegotiationStore store) {
+            manager.negotiationStore = store;
             return this;
         }
 

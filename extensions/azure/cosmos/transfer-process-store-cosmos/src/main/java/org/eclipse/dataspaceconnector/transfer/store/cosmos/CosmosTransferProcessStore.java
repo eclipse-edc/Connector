@@ -23,6 +23,7 @@ import net.jodah.failsafe.FailsafeExecutor;
 import net.jodah.failsafe.Fallback;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
+import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
@@ -41,7 +42,6 @@ import java.util.stream.Collectors;
 import static net.jodah.failsafe.Failsafe.with;
 
 public class CosmosTransferProcessStore implements TransferProcessStore {
-
 
     private static final String NEXT_FOR_STATE_S_PROC_NAME = "nextForState";
     private static final String LEASE_S_PROC_NAME = "lease";
@@ -114,15 +114,14 @@ public class CosmosTransferProcessStore implements TransferProcessStore {
         }
 
         //now we need to convert to a list, convert each element in that list to json, and convert that back to a TransferProcessDocument
-        var l = typeManager.readValue(rawJson, List.class);
+        List<Object> l = typeManager.readValue(rawJson, List.class);
 
-        return (List<TransferProcess>) l.stream().map(typeManager::writeValueAsString)
-                .map(json -> typeManager.readValue(json.toString(), TransferProcessDocument.class))
-                .map(tp -> ((TransferProcessDocument) tp).getWrappedInstance())
+        return l.stream()
+                .map(typeManager::writeValueAsString)
+                .map(json -> typeManager.readValue(json, TransferProcessDocument.class))
+                .map(CosmosDocument::getWrappedInstance)
                 .collect(Collectors.toList());
-
     }
-
 
     @Override
     public void create(TransferProcess process) {

@@ -221,7 +221,6 @@ class CosmosContractNegotiationStoreIntegrationTest {
                 .allSatisfy(r -> assertThat(preparedNegotiations).extracting(ContractNegotiation::getId).contains(r.getId()));
     }
 
-
     @Test
     void nextForState_noResult() {
         var state = ContractNegotiationStates.CONFIRMED;
@@ -300,7 +299,6 @@ class CosmosContractNegotiationStoreIntegrationTest {
         var result = store.nextForState(state.code(), 10);
         assertThat(result).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
     }
-
 
     @Test
     void findAll_noQuerySpec() {

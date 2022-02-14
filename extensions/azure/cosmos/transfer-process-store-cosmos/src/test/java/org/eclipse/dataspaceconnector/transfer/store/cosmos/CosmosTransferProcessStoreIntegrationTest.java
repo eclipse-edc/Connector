@@ -129,7 +129,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         });
     }
 
-
     @Test
     void create_processWithSameIdExists_shouldReplace() {
         String id = UUID.randomUUID().toString();
@@ -144,7 +143,6 @@ class CosmosTransferProcessStoreIntegrationTest {
 
     @Test
     void nextForState() throws InterruptedException {
-
         String id1 = UUID.randomUUID().toString();
         var tp = createTransferProcess(id1, TransferProcessStates.UNSAVED);
 
@@ -158,7 +156,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         store.create(tp);
         store.create(tp2);
         store.create(tp3);
-
 
         List<TransferProcess> processes = store.nextForState(TransferProcessStates.INITIAL.code(), 2);
 
@@ -223,8 +220,6 @@ class CosmosTransferProcessStoreIntegrationTest {
         container.upsertItem(d1);
         container.upsertItem(d2);
 
-
-        //act
         assertThat(store.nextForState(TransferProcessStates.INITIAL.code(), 5)).isEmpty();
     }
 

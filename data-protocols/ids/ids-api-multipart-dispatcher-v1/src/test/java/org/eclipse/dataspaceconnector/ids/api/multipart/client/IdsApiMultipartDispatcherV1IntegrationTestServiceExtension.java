@@ -31,9 +31,6 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitio
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.message.MessageContext;
-import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
@@ -48,7 +45,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.message.RemoteMessage;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -61,7 +57,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 @Provides({ AssetIndex.class, TransferProcessStore.class, ContractDefinitionStore.class, IdentityService.class, ContractNegotiationManager.class,
@@ -74,6 +69,18 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
     public IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(List<Asset> assets, IdentityService identityService) {
         this.assets = Objects.requireNonNull(assets);
         this.identityService = identityService;
+    }
+
+    @Override
+    public void initialize(ServiceExtensionContext context) {
+        context.registerService(IdentityService.class, identityService);
+        context.registerService(TransferProcessStore.class, new FakeTransferProcessStore());
+        context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
+        context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
+        context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
+        context.registerService(ContractValidationService.class, new FakeContractValidationService());
+        context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
+        context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
     }
 
     private static ContractNegotiation fakeContractNegotiation() {
@@ -97,20 +104,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
                 .build();
     }
 
-    @Override
-    public void initialize(ServiceExtensionContext context) {
-        context.registerService(IdentityService.class, identityService);
-        context.registerService(TransferProcessStore.class, new FakeTransferProcessStore());
-        context.registerService(RemoteMessageDispatcherRegistry.class, new FakeRemoteMessageDispatcherRegistry());
-        context.registerService(AssetIndex.class, new FakeAssetIndex(assets));
-        context.registerService(ContractOfferService.class, new FakeContractOfferService(assets));
-        context.registerService(ContractDefinitionStore.class, new FakeContractDefinitionStore());
-        context.registerService(ContractValidationService.class, new FakeContractValidationService());
-        context.registerService(ProviderContractNegotiationManager.class, new FakeProviderContractNegotiationManager());
-        context.registerService(ConsumerContractNegotiationManager.class, new FakeConsumerContractNegotiationManager());
-    }
-
-    private static class FakeAssetIndex implements AssetIndex {
+    static class FakeAssetIndex implements AssetIndex {
         private final List<Asset> assets;
 
         private FakeAssetIndex(List<Asset> assets) {
@@ -134,7 +128,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
 
     }
 
-    private static class FakeContractOfferService implements ContractOfferService {
+    static class FakeContractOfferService implements ContractOfferService {
         private final List<Asset> assets;
 
         private FakeContractOfferService(List<Asset> assets) {
@@ -166,7 +160,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
     }
 
-    private static class FakeTransferProcessStore implements TransferProcessStore {
+    static class FakeTransferProcessStore implements TransferProcessStore {
         @Override
         public TransferProcess find(String id) {
             return null;
@@ -216,19 +210,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
     }
 
-    private static class FakeRemoteMessageDispatcherRegistry implements RemoteMessageDispatcherRegistry {
-
-        @Override
-        public void register(RemoteMessageDispatcher dispatcher) {
-        }
-
-        @Override
-        public <T> CompletableFuture<T> send(Class<T> responseType, RemoteMessage message, MessageContext context) {
-            return null;
-        }
-    }
-
-    private static class FakeContractDefinitionStore implements ContractDefinitionStore {
+    static class FakeContractDefinitionStore implements ContractDefinitionStore {
 
         private final List<ContractDefinition> contractDefinitions = new ArrayList<>();
 
@@ -283,7 +265,7 @@ class IdsApiMultipartDispatcherV1IntegrationTestServiceExtension implements Serv
         }
     }
 
-    private static class FakeContractValidationService implements ContractValidationService {
+    static class FakeContractValidationService implements ContractValidationService {
 
         @Override
         public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {

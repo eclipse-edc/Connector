@@ -34,7 +34,6 @@ import java.util.Map;
 import java.util.Objects;
 
 import static java.lang.String.format;
-import static java.util.stream.Collectors.joining;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMED;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING;
 import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.CONFIRMING_SENT;
@@ -51,11 +50,7 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
  * <p>
  * Note: This class implements the negotiation process that is started by a consumer. For some use
  * cases, it may be interesting to initiate the contract negotiation as a provider.
- *
- * <p>
- * TODO: This is only placeholder
- * TODO: Implement state transitions
- * TODO: Add error details
+ * </p>
  */
 @JsonTypeName("dataspaceconnector:contractnegotiation")
 @JsonDeserialize(builder = ContractNegotiation.Builder.class)
@@ -384,16 +379,6 @@ public class ContractNegotiation implements TraceCarrier {
                 type == that.type && Objects.equals(contractAgreement, that.contractAgreement) && Objects.equals(contractOffers, that.contractOffers);
     }
 
-    private void checkState(int... legalStates) {
-        for (var legalState : legalStates) {
-            if (state == legalState) {
-                return;
-            }
-        }
-        var values = Arrays.stream(legalStates).mapToObj(String::valueOf).collect(joining(","));
-        throw new IllegalStateException(format("Illegal state: %s. Expected one of: %s.", state, values));
-    }
-
     /**
      * Transition to a given end state from an allowed number of previous states. Increases the
      * state count if transitioned to the same state and updates the state timestamp.
@@ -477,7 +462,7 @@ public class ContractNegotiation implements TraceCarrier {
 
         //used mainly for JSON deserialization
         public Builder contractOffers(List<ContractOffer> contractOffers) {
-            negotiation.contractOffers = contractOffers;
+            negotiation.contractOffers = new ArrayList<>(contractOffers);
             return this;
         }
 

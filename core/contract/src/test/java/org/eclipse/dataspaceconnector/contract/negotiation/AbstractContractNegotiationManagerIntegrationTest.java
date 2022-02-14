@@ -55,7 +55,7 @@ import static org.mockito.Mockito.when;
 /**
  * Setup for the contract negotiation integration test.
  */
-public abstract class AbstractContractNegotiationIntegrationTest {
+public abstract class AbstractContractNegotiationManagerIntegrationTest {
 
     protected ProviderContractNegotiationManagerImpl providerManager;
     protected ConsumerContractNegotiationManagerImpl consumerManager;
@@ -63,8 +63,8 @@ public abstract class AbstractContractNegotiationIntegrationTest {
     protected ContractNegotiationObservable providerObservable = new ContractNegotiationObservableImpl();
     protected ContractNegotiationObservable consumerObservable = new ContractNegotiationObservableImpl();
 
-    protected InMemoryContractNegotiationStore providerStore;
-    protected InMemoryContractNegotiationStore consumerStore;
+    protected InMemoryContractNegotiationStore providerStore = new InMemoryContractNegotiationStore();
+    protected InMemoryContractNegotiationStore consumerStore = new InMemoryContractNegotiationStore();
 
     protected ContractValidationService validationService;
 
@@ -92,7 +92,6 @@ public abstract class AbstractContractNegotiationIntegrationTest {
         // Create CommandRunner mock
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
-        // Create the provider contract negotiation manager
         providerManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(new FakeProviderDispatcherRegistry())
                 .monitor(monitor)
@@ -101,10 +100,9 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .commandQueue(queue)
                 .commandRunner(runner)
                 .observable(providerObservable)
+                .store(providerStore)
                 .build();
-        providerStore = new InMemoryContractNegotiationStore();
 
-        // Create the consumer contract negotiation manager
         consumerManager = ConsumerContractNegotiationManagerImpl.Builder.newInstance()
                 .dispatcherRegistry(new FakeConsumerDispatcherRegistry())
                 .monitor(monitor)
@@ -113,9 +111,9 @@ public abstract class AbstractContractNegotiationIntegrationTest {
                 .commandQueue(queue)
                 .commandRunner(runner)
                 .observable(consumerObservable)
+                .store(consumerStore)
                 .build();
-        consumerStore = new InMemoryContractNegotiationStore();
-        
+
         countDownLatch = new CountDownLatch(2);
     }
     

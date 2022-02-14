@@ -20,12 +20,22 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.eclipse.dataspaceconnector.ids.api.multipart.controller.MultipartController;
+import org.eclipse.dataspaceconnector.ids.api.multipart.dispatcher.IdsMultipartDispatcherServiceExtension;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
+import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
+import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
+import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.ConfigurationExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -62,24 +72,9 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
 
     protected IdentityService identityService;
 
-    @AfterEach
-    void after() {
-        ASSETS.clear();
-
-        for (String key : getSystemProperties().keySet()) {
-            System.clearProperty(key);
-        }
-
-        PORT.set(null);
-    }
-
     @BeforeEach
     protected void before(EdcExtension extension) {
         PORT.set(getFreePort());
-
-        for (Map.Entry<String, String> entry : getSystemProperties().entrySet()) {
-            System.setProperty(entry.getKey(), entry.getValue());
-        }
 
         var tokenResult = TokenRepresentation.Builder.newInstance().token("token").build();
         var claimToken = ClaimToken.Builder.newInstance().claim("key", "value").build();
@@ -87,8 +82,17 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         when(identityService.obtainClientCredentials(any())).thenReturn(Result.success(tokenResult));
         when(identityService.verifyJwtToken(any())).thenReturn(Result.success(claimToken));
 
-        extension.registerSystemExtension(ServiceExtension.class,
-                new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService));
+        extension.registerSystemExtension(ConfigurationExtension.class,
+                (ConfigurationExtension) () -> ConfigFactory.fromMap(getConfigurationProperties()));
+        extension.registerSystemExtension(ServiceExtension.class, new IdsMultipartDispatcherServiceExtension());
+        extension.registerSystemExtension(ServiceExtension.class, new IdsApiMultipartDispatcherV1IntegrationTestServiceExtension(ASSETS, identityService));
+    }
+
+    @AfterEach
+    void after() {
+        ASSETS.clear();
+
+        PORT.set(null);
     }
 
     protected void addAsset(Asset asset) {
@@ -103,5 +107,5 @@ abstract class AbstractMultipartDispatcherIntegrationTest {
         return String.format("http://localhost:%s/api%s", getPort(), MultipartController.PATH);
     }
 
-    protected abstract Map<String, String> getSystemProperties();
+    protected abstract Map<String, String> getConfigurationProperties();
 }

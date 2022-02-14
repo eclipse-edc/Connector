@@ -23,7 +23,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
@@ -35,7 +34,7 @@ import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiation;
+import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates.REQUESTING;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -43,12 +42,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryContractNegotiationStoreTest {
-    private InMemoryContractNegotiationStore store;
-
-    @BeforeEach
-    void setUp() {
-        store = new InMemoryContractNegotiationStore();
-    }
+    private final InMemoryContractNegotiationStore store = new InMemoryContractNegotiationStore();
 
     @Test
     void verifyCreateUpdateDelete() {
@@ -73,7 +67,7 @@ class InMemoryContractNegotiationStoreTest {
 
         found = store.find(id);
         assertNotNull(found);
-        assertEquals(ContractNegotiationStates.REQUESTING.code(), found.getState());
+        assertEquals(REQUESTING.code(), found.getState());
 
         store.delete(id);
         Assertions.assertNull(store.find(id));
@@ -101,7 +95,7 @@ class InMemoryContractNegotiationStoreTest {
         negotiation1.transitionRequested();
         store.save(negotiation1);
 
-        assertTrue(store.nextForState(ContractNegotiationStates.REQUESTING.code(), 1).isEmpty());
+        assertTrue(store.nextForState(REQUESTING.code(), 1).isEmpty());
 
         List<ContractNegotiation> found = store.nextForState(ContractNegotiationStates.REQUESTED.code(), 1);
         assertEquals(1, found.size());
@@ -161,7 +155,7 @@ class InMemoryContractNegotiationStoreTest {
 
         var list1 = store.nextForState(ContractNegotiationStates.INITIAL.code(), 5);
         Thread.sleep(50); //simulate a short delay to generate different timestamps
-        list1.forEach(tp -> store.save(tp));
+        list1.forEach(store::save);
         var list2 = store.nextForState(ContractNegotiationStates.INITIAL.code(), 5);
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
@@ -216,5 +210,34 @@ class InMemoryContractNegotiationStoreTest {
         assertThat(store.queryNegotiations(query).collect(Collectors.toList())).hasSize(10);
     }
 
+
+    private ContractNegotiation createNegotiation(String name) {
+        return createNegotiationBuilder(name).build();
+    }
+
+    private ContractNegotiation.Builder createNegotiationBuilder(String name) {
+        ContractOffer contractOffer = ContractOffer.Builder.newInstance().id("contractId").policy(Policy.Builder.newInstance().build()).build();
+        return ContractNegotiation.Builder.newInstance()
+                .type(ContractNegotiation.Type.CONSUMER)
+                .id(name)
+                .contractAgreement(createAgreement())
+                .contractOffers(List.of(contractOffer))
+                .counterPartyAddress("consumer")
+                .counterPartyId("consumerId")
+                .protocol("ids-multipart");
+    }
+
+    private ContractAgreement createAgreement() {
+        return ContractAgreement.Builder.newInstance()
+                .id("agreementId")
+                .providerAgentId("provider")
+                .consumerAgentId("consumer")
+                .asset(Asset.Builder.newInstance().build())
+                .policy(Policy.Builder.newInstance().build())
+                .contractSigningDate(LocalDate.MIN.toEpochDay())
+                .contractStartDate(LocalDate.MIN.toEpochDay())
+                .contractEndDate(LocalDate.MAX.toEpochDay())
+                .build();
+    }
 
 }

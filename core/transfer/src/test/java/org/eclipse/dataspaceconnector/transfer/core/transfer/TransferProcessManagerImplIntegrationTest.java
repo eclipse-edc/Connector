@@ -64,16 +64,17 @@ class TransferProcessManagerImplIntegrationTest {
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
-                .commandQueue((CommandQueue<TransferProcessCommand>) mock(CommandQueue.class))
-                .commandRunner((CommandRunner<TransferProcessCommand>) mock(CommandRunner.class))
+                .commandQueue(mock(CommandQueue.class))
+                .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
                 .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
                 .dataProxyManager(mock(DataProxyManager.class))
                 .proxyEntryHandlerRegistry(new ProxyEntryHandlerRegistryImpl())
                 .observable(mock(TransferProcessObservable.class))
+                .store(store)
                 .build();
 
-        transferProcessManager.start(store);
+        transferProcessManager.start();
     }
 
     @Test

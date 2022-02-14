@@ -93,7 +93,7 @@ public class EdcExtension extends BaseRuntime implements BeforeTestExecutionCall
 
     @Override
     protected @NotNull ServiceExtensionContext createContext(TypeManager typeManager, Monitor monitor, Telemetry telemetry) {
-        this.context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, new MultiSourceServiceLocator());
+        this.context = new TestServiceExtensionContext(typeManager, monitor, telemetry, new MultiSourceServiceLocator());
         return this.context;
     }
 

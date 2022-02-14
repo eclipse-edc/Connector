@@ -248,7 +248,6 @@ public class TransferProcess implements TraceCarrier {
         transition(TransferProcessStates.DEPROVISIONING_REQ, TransferProcessStates.COMPLETED, TransferProcessStates.DEPROVISIONING_REQ);
     }
 
-
     public void transitionEnded() {
         transition(TransferProcessStates.ENDED, TransferProcessStates.DEPROVISIONED);
     }
@@ -260,7 +259,6 @@ public class TransferProcess implements TraceCarrier {
         updateStateTimestamp();
     }
 
-
     public void rollbackState(TransferProcessStates state) {
         this.state = state.code();
         stateCount = 1;
@@ -268,12 +266,17 @@ public class TransferProcess implements TraceCarrier {
     }
 
     public TransferProcess copy() {
-        return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest).dataRequest(dataRequest)
-                .provisionedResourceSet(provisionedResourceSet).traceContext(traceContext).type(type).errorDetail(errorDetail).build();
+        return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount)
+                .resourceManifest(resourceManifest).dataRequest(dataRequest).traceContext(traceContext)
+                .provisionedResourceSet(provisionedResourceSet).type(type).errorDetail(errorDetail).build();
     }
 
     public Builder toBuilder() {
         return new Builder(copy());
+    }
+
+    public void updateStateTimestamp() {
+        stateTimestamp = Instant.now().toEpochMilli();
     }
 
     @Override
@@ -300,10 +303,6 @@ public class TransferProcess implements TraceCarrier {
                 ", state=" + TransferProcessStates.from(state) +
                 ", stateTimestamp=" + Instant.ofEpochMilli(stateTimestamp) +
                 '}';
-    }
-
-    public void updateStateTimestamp() {
-        stateTimestamp = Instant.now().toEpochMilli();
     }
 
     private void transition(TransferProcessStates end, TransferProcessStates... starts) {
