@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.api.control;
 
-import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.junit.jupiter.api.AfterEach;
@@ -10,6 +9,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractClientControlCatalogApiControllerTest {
@@ -27,7 +27,7 @@ abstract class AbstractClientControlCatalogApiControllerTest {
 
     @BeforeEach
     protected void before(EdcExtension extension) {
-        PORT.set(TestUtils.getFreePort());
+        PORT.set(getFreePort());
 
         for (Map.Entry<String, String> entry : getSystemProperties().entrySet()) {
             System.setProperty(entry.getKey(), entry.getValue());
