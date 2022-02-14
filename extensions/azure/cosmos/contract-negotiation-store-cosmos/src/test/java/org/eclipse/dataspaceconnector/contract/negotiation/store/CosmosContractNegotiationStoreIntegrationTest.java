@@ -16,6 +16,8 @@ import org.eclipse.dataspaceconnector.contract.negotiation.store.model.ContractN
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -31,6 +33,7 @@ import org.junit.jupiter.api.TestInfo;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.Scanner;
 import java.util.UUID;
@@ -38,6 +41,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateDocument;
 import static org.eclipse.dataspaceconnector.contract.negotiation.store.TestFunctions.generateNegotiation;
@@ -75,7 +79,7 @@ class CosmosContractNegotiationStoreIntegrationTest {
     static void deleteDatabase() {
         if (database != null) {
             CosmosDatabaseResponse delete = database.delete();
-            assertThat(delete.getStatusCode()).isGreaterThanOrEqualTo(200).isLessThan(300);
+            assertThat(delete.getStatusCode()).isBetween(200, 300);
         }
     }
 
@@ -295,6 +299,104 @@ class CosmosContractNegotiationStoreIntegrationTest {
 
         var result = store.nextForState(state.code(), 10);
         assertThat(result).hasSize(1).allSatisfy(neg -> assertThat(neg).usingRecursiveComparison().isEqualTo(n));
+    }
+
+
+    @Test
+    void findAll_noQuerySpec() {
+        var doc1 = generateDocument();
+        var doc2 = generateDocument();
+
+        container.createItem(doc1);
+        container.createItem(doc2);
+
+        assertThat(store.queryNegotiations(QuerySpec.none())).hasSize(2).extracting(ContractNegotiation::getId).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
+    }
+
+    @Test
+    void findAll_verifyPaging() {
+
+        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .map(ContractNegotiationDocument::getId)
+                .collect(Collectors.toList());
+
+        // page size fits
+        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4)
+                .extracting(ContractNegotiation::getId).isSubsetOf(all);
+
+    }
+
+    @Test
+    void findAll_verifyPaging_pageSizeLargerThanCollection() {
+
+        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .map(ContractNegotiationDocument::getId)
+                .collect(Collectors.toList());
+
+        // page size fits
+        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7)
+                .extracting(ContractNegotiation::getId).isSubsetOf(all);
+    }
+
+    @Test
+    void findAll_verifyFiltering() {
+        var documents = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .collect(Collectors.toList());
+
+        var expectedId = documents.get(3).getId();
+
+        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
+        assertThat(store.queryNegotiations(query)).extracting(ContractNegotiation::getId).containsOnly(expectedId);
+    }
+
+    @Test
+    void findAll_verifyFiltering_invalidFilterExpression() {
+        IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .forEach(d -> container.createItem(d));
+
+        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
+
+        assertThatThrownBy(() -> store.queryNegotiations(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: contains");
+    }
+
+    @Test
+    void findAll_verifyFiltering_unsuccessfulFilterExpression() {
+        IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .forEach(d -> container.createItem(d));
+
+        var query = QuerySpec.Builder.newInstance().filter("something = other").build();
+
+        assertThat(store.queryNegotiations(query)).isEmpty();
+    }
+
+    @Test
+    void findAll_verifySorting() {
+
+        IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .forEach(d -> container.createItem(d));
+
+        var ascendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
+        assertThat(store.queryNegotiations(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractNegotiation::getId));
+        var descendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
+        assertThat(store.queryNegotiations(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+    }
+
+    @Test
+    void findAll_sorting_nonExistentProperty() {
+
+        var allIds = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .map(ContractNegotiationDocument::getId)
+                .collect(Collectors.toList());
+
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        var all = store.queryNegotiations(query).collect(Collectors.toList());
+        assertThat(all).isEmpty();
     }
 
     private ContractNegotiationDocument toDocument(Object object) {
