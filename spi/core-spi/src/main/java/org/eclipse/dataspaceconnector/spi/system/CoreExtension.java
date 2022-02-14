@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.core;
+package org.eclipse.dataspaceconnector.spi.system;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
