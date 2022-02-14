@@ -17,7 +17,7 @@ import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -68,14 +68,15 @@ public class FccTestExtension implements ServiceExtension {
         }
 
         @Override
-        public Stream<Asset> queryAssets(List<Criterion> criteria) {
-            return null;
+        public Stream<Asset> queryAssets(QuerySpec querySpec) {
+            throw new UnsupportedOperationException("Filtering/Paging not supported");
         }
 
         @Override
         public Asset findById(String assetId) {
             return assets.stream().filter(a -> a.getId().equals(assetId)).findFirst().orElse(null);
         }
+
     }
 
     private static class FakeContractOfferService implements ContractOfferService {

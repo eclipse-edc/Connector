@@ -17,11 +17,15 @@ package org.eclipse.dataspaceconnector.assetindex.azure;
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
 import org.eclipse.dataspaceconnector.assetindex.azure.model.AssetDocument;
+import org.eclipse.dataspaceconnector.common.matchers.PredicateMatcher;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -34,6 +38,7 @@ import java.util.stream.Stream;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
@@ -165,8 +170,87 @@ class CosmosAssetIndexTest {
         assertThat(assets)
                 .anyMatch(asset -> asset.getId().equals(id1))
                 .anyMatch(asset -> asset.getId().equals(id2));
-        assertThat(queryCapture.getValue().getQueryText()).matches(".*WHERE AssetDocument.* = 'somename'");
+        assertThat(queryCapture.getValue().getQueryText()).matches(".*WHERE AssetDocument.* = @asset_prop_name");
         verify(api).queryItems(queryCapture.capture());
         verifyNoMoreInteractions(api);
     }
+
+    @Test
+    void findAll_noQuerySpec() {
+        String id = "id-test";
+        AssetDocument document = createDocument(id);
+        var expectedQuery = "SELECT * FROM AssetDocument OFFSET 0 LIMIT 50";
+        when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
+
+        List<Asset> assets = assetIndex.queryAssets(QuerySpec.none()).collect(Collectors.toList());
+
+        assertThat(assets).hasSize(1).extracting(Asset::getId).containsExactly(document.getWrappedAsset().getId());
+        assertThat(assets).extracting(Asset::getProperties).allSatisfy(m -> assertThat(m).containsAllEntriesOf(document.getWrappedAsset().getProperties()));
+        verify(api).queryItems(any(SqlQuerySpec.class));
+    }
+
+    @Test
+    void findAll_withPaging_SortingDesc() {
+        String id = "id-test";
+        AssetDocument document = createDocument(id);
+        var expectedQuery = "SELECT * FROM AssetDocument ORDER BY AssetDocument.wrappedInstance.anyField DESC OFFSET 5 LIMIT 100";
+        when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
+
+        List<Asset> assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                        .offset(5)
+                        .limit(100)
+                        .sortField("anyField")
+                        .sortOrder(SortOrder.DESC)
+                        .build())
+                .collect(Collectors.toList());
+
+        assertThat(assets).hasSize(1).extracting(Asset::getId).containsExactly(document.getWrappedAsset().getId());
+        assertThat(assets).extracting(Asset::getProperties).allSatisfy(m -> assertThat(m).containsAllEntriesOf(document.getWrappedAsset().getProperties()));
+        verify(api).queryItems(any(SqlQuerySpec.class));
+    }
+
+    @Test
+    void findAll_withPaging_SortingAsc() {
+        String id = "id-test";
+        AssetDocument document = createDocument(id);
+        var expectedQuery = "SELECT * FROM AssetDocument ORDER BY AssetDocument.wrappedInstance.anyField ASC OFFSET 5 LIMIT 100";
+        when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
+
+        List<Asset> assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                        .offset(5)
+                        .limit(100)
+                        .sortField("anyField")
+                        .sortOrder(SortOrder.ASC)
+                        .build())
+                .collect(Collectors.toList());
+
+        assertThat(assets).hasSize(1).extracting(Asset::getId).containsExactly(document.getWrappedAsset().getId());
+        assertThat(assets).extracting(Asset::getProperties).allSatisfy(m -> assertThat(m).containsAllEntriesOf(document.getWrappedAsset().getProperties()));
+        verify(api).queryItems(any(SqlQuerySpec.class));
+    }
+
+    @Test
+    void findAll_withFiltering() {
+        String id = "id-test";
+        AssetDocument document = createDocument(id);
+        var expectedQuery = "SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.someField = @someField OFFSET 5 LIMIT 100";
+        when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
+
+        List<Asset> assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                        .offset(5)
+                        .limit(100)
+                        .filter("someField=randomValue")
+                        .build())
+                .collect(Collectors.toList());
+
+        assertThat(assets).hasSize(1).extracting(Asset::getId).containsExactly(document.getWrappedAsset().getId());
+        assertThat(assets).extracting(Asset::getProperties).allSatisfy(m -> assertThat(m).containsAllEntriesOf(document.getWrappedAsset().getProperties()));
+        verify(api).queryItems(any(SqlQuerySpec.class));
+    }
+
+    @NotNull
+    private PredicateMatcher<SqlQuerySpec> queryMatches(String expectedQuery) {
+        return new PredicateMatcher<>(sqlQuerySpec -> sqlQuerySpec.getQueryText().equals(expectedQuery));
+    }
+
 }

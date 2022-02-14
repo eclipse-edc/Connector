@@ -20,6 +20,10 @@ public abstract class CosmosDocument<T> {
         this.partitionKey = partitionKey;
     }
 
+    public static String sanitize(String key) {
+        return key.replace(':', '_');
+    }
+
     public String getPartitionKey() {
         return partitionKey;
     }

@@ -14,8 +14,10 @@
 
 package org.eclipse.dataspaceconnector.spi.query;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Specifies various query parameters for collection-like queries.
@@ -25,8 +27,12 @@ public class QuerySpec {
     private int offset = 0;
     private int limit = 50;
     private List<Criterion> filterExpression;
-    private SortOrder sortOrder = SortOrder.DESC;
+    private SortOrder sortOrder = SortOrder.ASC;
     private String sortField;
+
+    public static QuerySpec none() {
+        return new QuerySpec();
+    }
 
     public String getSortField() {
         return sortField;
@@ -61,6 +67,7 @@ public class QuerySpec {
 
     public static final class Builder {
         private final QuerySpec querySpec;
+        private boolean equalsAsContains = false;
 
         private Builder() {
             querySpec = new QuerySpec();
@@ -94,6 +101,11 @@ public class QuerySpec {
             return this;
         }
 
+        public Builder equalsAsContains(boolean equalsAsContains) {
+            this.equalsAsContains = equalsAsContains;
+            return this;
+        }
+
         public QuerySpec build() {
             if (querySpec.offset < 0) {
                 throw new IllegalArgumentException("offset");
@@ -104,6 +116,11 @@ public class QuerySpec {
             return querySpec;
         }
 
+        public Builder filter(List<Criterion> criteria) {
+            querySpec.filterExpression = criteria;
+            return this;
+        }
+
         public Builder filter(String filterExpression) {
 
             if (filterExpression != null) {
@@ -112,14 +129,14 @@ public class QuerySpec {
                     filterExpression = filterExpression.replace(" ", "");
                     // we'll interpret the "=" as "contains"
                     var tokens = filterExpression.split("=");
-                    querySpec.filterExpression = List.of(new Criterion(tokens[0], "contains", tokens[1]));
+                    querySpec.filterExpression = List.of(new Criterion(tokens[0], equalsAsContains ? "contains" : "=", tokens[1]));
                 } else {
-                    var sanitized = filterExpression.replaceAll(" +", " ");
-                    var s = sanitized.split(" ");
+                    var s = filterExpression.split(" +");
 
                     //generic LEFT OPERAND RIGHT expression
-                    if (s.length == 3) {
-                        querySpec.filterExpression = List.of(new Criterion(s[0], s[1], s[2]));
+                    if (s.length >= 3) {
+                        var rh = Arrays.stream(s, 2, s.length).collect(Collectors.joining(" "));
+                        querySpec.filterExpression = List.of(new Criterion(s[0], s[1], rh));
                     } else {
                         // unsupported filter expression
                         throw new IllegalArgumentException("Cannot convert " + filterExpression + " into a Criterion");
@@ -129,5 +146,7 @@ public class QuerySpec {
 
             return this;
         }
+
+
     }
 }

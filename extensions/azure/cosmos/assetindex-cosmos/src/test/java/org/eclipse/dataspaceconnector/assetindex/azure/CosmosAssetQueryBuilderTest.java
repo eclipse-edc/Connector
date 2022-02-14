@@ -1,7 +1,7 @@
 package org.eclipse.dataspaceconnector.assetindex.azure;
 
+import com.azure.cosmos.models.SqlParameter;
 import com.azure.cosmos.models.SqlQuerySpec;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +20,7 @@ class CosmosAssetQueryBuilderTest {
 
     @Test
     void queryAll() {
-        SqlQuerySpec query = builder.from(AssetSelectorExpression.SELECT_ALL);
+        SqlQuerySpec query = builder.from(AssetSelectorExpression.SELECT_ALL.getCriteria());
 
         assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument");
     }
@@ -32,9 +32,10 @@ class CosmosAssetQueryBuilderTest {
                 .whenEquals("name", "'name-test'")
                 .build();
 
-        SqlQuerySpec query = builder.from(expression);
+        SqlQuerySpec query = builder.from(expression.getCriteria());
 
-        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.id = 'id-test' AND AssetDocument.wrappedInstance.name = 'name-test'");
+        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.id = @id AND AssetDocument.wrappedInstance.name = @name");
+        assertThat(query.getParameters()).hasSize(2).extracting(SqlParameter::getName).containsExactlyInAnyOrder("@id", "@name");
     }
 
     @Test
@@ -44,9 +45,11 @@ class CosmosAssetQueryBuilderTest {
                 .whenEquals("test:name", "'name-test'")
                 .build();
 
-        SqlQuerySpec query = builder.from(expression);
+        SqlQuerySpec query = builder.from(expression.getCriteria());
 
-        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.test_id = 'id-test' AND AssetDocument.wrappedInstance.test_name = 'name-test'");
+        assertThat(query.getQueryText()).isEqualTo("SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.test_id = @test_id AND AssetDocument.wrappedInstance.test_name = @test_name");
+        assertThat(query.getParameters()).hasSize(2).extracting(SqlParameter::getName).containsExactlyInAnyOrder("@test_id", "@test_name");
+
     }
 
     @Test
@@ -56,7 +59,7 @@ class CosmosAssetQueryBuilderTest {
                 .constraint("name", "in", "name-test")
                 .build();
 
-        assertThatExceptionOfType(EdcException.class).isThrownBy(() -> builder.from(expression))
+        assertThatExceptionOfType(IllegalArgumentException.class).isThrownBy(() -> builder.from(expression.getCriteria()))
                 .withMessage("Cannot build SqlParameter for operator: in");
     }
 }
