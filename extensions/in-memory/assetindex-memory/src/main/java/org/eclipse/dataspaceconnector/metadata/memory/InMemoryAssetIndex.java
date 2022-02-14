@@ -20,7 +20,6 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -60,29 +59,47 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
 
         // select everything ONLY if the special constant is used
         if (expression == AssetSelectorExpression.SELECT_ALL) {
-            lock.readLock().lock();
-            try {
-                return cache.values().stream();
-            } finally {
-                lock.readLock().unlock();
-            }
+            return queryAssets(QuerySpec.none());
         }
 
-        // convert all the criteria into predicates since we're in memory anyway, collate all predicates into one and
-        // apply it to the stream
-        var rootPredicate = expression.getCriteria().stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
-
-        lock.readLock().lock();
-        try {
-            return filterByPredicate(cache, rootPredicate);
-        } finally {
-            lock.readLock().unlock();
-        }
+        return queryAssets(QuerySpec.Builder.newInstance().filter(expression.getCriteria()).build());
     }
 
     @Override
-    public Stream<Asset> queryAssets(List<Criterion> criteria) {
-        return queryAssets(AssetSelectorExpression.Builder.newInstance().criteria(criteria).build());
+    public Stream<Asset> queryAssets(QuerySpec querySpec) {
+        // first filter...
+        var expr = querySpec.getFilterExpression();
+        Stream<Asset> result;
+
+        lock.readLock().lock();
+        try {
+            if (CollectionUtil.isNotEmpty(expr)) {
+                // convert all the criteria into predicates since we're in memory anyway, collate all predicates into one and
+                // apply it to the stream
+                var rootPredicate = expr.stream().map(predicateFactory::convert).reduce(x -> true, Predicate::and);
+                result = filterByPredicate(cache, rootPredicate);
+            } else {
+                result = cache.values().stream();
+            }
+
+            // ... then sort
+            var sortField = querySpec.getSortField();
+            if (sortField != null) {
+                result = result.sorted((asset1, asset2) -> {
+                    var f1 = asComparable(asset1.getProperty(sortField));
+                    var f2 = asComparable(asset2.getProperty(sortField));
+                    if (f1 == null || f2 == null) {
+                        throw new IllegalArgumentException(format("Cannot sort by field %s, it does not exist on one or more Assets", sortField));
+                    }
+                    return querySpec.getSortOrder() == SortOrder.ASC ? f1.compareTo(f2) : f2.compareTo(f1);
+                });
+            }
+
+            // ... then limit
+            return result.skip(querySpec.getOffset()).limit(querySpec.getLimit());
+        } finally {
+            lock.readLock().unlock();
+        }
     }
 
     @Override
@@ -96,36 +113,6 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
             lock.readLock().unlock();
         }
         return assets.isEmpty() ? null : assets.get(0);
-    }
-
-    @Override
-    public List<Asset> findAll(QuerySpec querySpec) {
-        // first filter...
-        var expr = querySpec.getFilterExpression();
-        Stream<Asset> result;
-        if (CollectionUtil.isNotEmpty(expr)) {
-            result = queryAssets(expr);
-        } else {
-            result = cache.values().stream();
-        }
-
-        // ... then sort
-        var sortField = querySpec.getSortField();
-        if (sortField != null) {
-            result = result.sorted((asset1, asset2) -> {
-                var f1 = asComparable(asset1.getProperty(sortField));
-                var f2 = asComparable(asset2.getProperty(sortField));
-                if (f1 == null || f2 == null) {
-                    throw new IllegalArgumentException(format("Cannot sort by field %s, it does not exist on one or more Assets", sortField));
-                }
-                return querySpec.getSortOrder() == SortOrder.ASC ? f1.compareTo(f2) : f2.compareTo(f1);
-            });
-        }
-
-        // ... then limit
-        result = result.skip(querySpec.getOffset()).limit(querySpec.getLimit());
-
-        return result.collect(Collectors.toList());
     }
 
     @Override
@@ -164,6 +151,7 @@ public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, Asse
     public void accept(Asset asset, DataAddress dataAddress) {
         accept(new AssetEntry(asset, dataAddress));
     }
+
 
     private @Nullable Comparable asComparable(Object property) {
         return property instanceof Comparable ? (Comparable) property : null;

@@ -189,7 +189,7 @@ class InMemoryAssetIndexTest {
                 .peek(a -> index.accept(a, createDataAddress(a))).collect(Collectors.toList());
 
 
-        assertThat(index.findAll(QuerySpec.Builder.newInstance().build())).containsAll(assets);
+        assertThat(index.queryAssets(QuerySpec.Builder.newInstance().build())).containsAll(assets);
     }
 
     @Test
@@ -200,7 +200,7 @@ class InMemoryAssetIndexTest {
 
         var spec = QuerySpec.Builder.newInstance().sortOrder(SortOrder.DESC).offset(5).limit(2).build();
 
-        var all = index.findAll(spec);
+        var all = index.queryAssets(spec);
         assertThat(all).hasSize(2);
     }
 
@@ -212,7 +212,7 @@ class InMemoryAssetIndexTest {
 
         var spec = QuerySpec.Builder.newInstance().sortOrder(SortOrder.ASC).offset(3).limit(3).build();
 
-        var all = index.findAll(spec);
+        var all = index.queryAssets(spec);
         assertThat(all).hasSize(3);
     }
 
@@ -224,7 +224,7 @@ class InMemoryAssetIndexTest {
                 .collect(Collectors.toList());
 
         var spec = QuerySpec.Builder.newInstance().equalsAsContains(false).filter(Asset.PROPERTY_ID + " = id1").build();
-        assertThat(index.findAll(spec)).hasSize(1).containsExactly(assets.get(1));
+        assertThat(index.queryAssets(spec)).hasSize(1).containsExactly(assets.get(1));
     }
 
 
@@ -239,7 +239,7 @@ class InMemoryAssetIndexTest {
                 .offset(15)
                 .limit(10)
                 .build();
-        assertThat(index.findAll(spec)).isEmpty();
+        assertThat(index.queryAssets(spec)).isEmpty();
     }
 
     @Test
@@ -250,7 +250,7 @@ class InMemoryAssetIndexTest {
                 .collect(Collectors.toList());
 
         var spec = QuerySpec.Builder.newInstance().sortField(Asset.PROPERTY_ID).sortOrder(SortOrder.ASC).build();
-        assertThat(index.findAll(spec)).containsAll(assets);
+        assertThat(index.queryAssets(spec)).containsAll(assets);
     }
 
     @NotNull

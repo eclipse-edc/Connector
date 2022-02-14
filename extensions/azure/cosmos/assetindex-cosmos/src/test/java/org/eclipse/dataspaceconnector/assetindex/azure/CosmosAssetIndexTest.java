@@ -182,7 +182,7 @@ class CosmosAssetIndexTest {
         var expectedQuery = "SELECT * FROM AssetDocument OFFSET 0 LIMIT 50";
         when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
 
-        List<Asset> assets = assetIndex.findAll(QuerySpec.none());
+        List<Asset> assets = assetIndex.queryAssets(QuerySpec.none()).collect(Collectors.toList());
 
         assertThat(assets).hasSize(1).extracting(Asset::getId).containsExactly(document.getWrappedAsset().getId());
         assertThat(assets).extracting(Asset::getProperties).allSatisfy(m -> assertThat(m).containsAllEntriesOf(document.getWrappedAsset().getProperties()));
@@ -196,12 +196,13 @@ class CosmosAssetIndexTest {
         var expectedQuery = "SELECT * FROM AssetDocument ORDER BY AssetDocument.wrappedInstance.anyField DESC OFFSET 5 LIMIT 100";
         when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
 
-        List<Asset> assets = assetIndex.findAll(QuerySpec.Builder.newInstance()
-                .offset(5)
-                .limit(100)
-                .sortField("anyField")
-                .sortOrder(SortOrder.DESC)
-                .build());
+        List<Asset> assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                        .offset(5)
+                        .limit(100)
+                        .sortField("anyField")
+                        .sortOrder(SortOrder.DESC)
+                        .build())
+                .collect(Collectors.toList());
 
         assertThat(assets).hasSize(1).extracting(Asset::getId).containsExactly(document.getWrappedAsset().getId());
         assertThat(assets).extracting(Asset::getProperties).allSatisfy(m -> assertThat(m).containsAllEntriesOf(document.getWrappedAsset().getProperties()));
@@ -215,12 +216,13 @@ class CosmosAssetIndexTest {
         var expectedQuery = "SELECT * FROM AssetDocument ORDER BY AssetDocument.wrappedInstance.anyField ASC OFFSET 5 LIMIT 100";
         when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
 
-        List<Asset> assets = assetIndex.findAll(QuerySpec.Builder.newInstance()
-                .offset(5)
-                .limit(100)
-                .sortField("anyField")
-                .sortOrder(SortOrder.ASC)
-                .build());
+        List<Asset> assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                        .offset(5)
+                        .limit(100)
+                        .sortField("anyField")
+                        .sortOrder(SortOrder.ASC)
+                        .build())
+                .collect(Collectors.toList());
 
         assertThat(assets).hasSize(1).extracting(Asset::getId).containsExactly(document.getWrappedAsset().getId());
         assertThat(assets).extracting(Asset::getProperties).allSatisfy(m -> assertThat(m).containsAllEntriesOf(document.getWrappedAsset().getProperties()));
@@ -234,11 +236,12 @@ class CosmosAssetIndexTest {
         var expectedQuery = "SELECT * FROM AssetDocument WHERE AssetDocument.wrappedInstance.someField = @someField OFFSET 5 LIMIT 100";
         when(api.queryItems(argThat(queryMatches(expectedQuery)))).thenReturn(Stream.of(document));
 
-        List<Asset> assets = assetIndex.findAll(QuerySpec.Builder.newInstance()
-                .offset(5)
-                .limit(100)
-                .filter("someField=randomValue")
-                .build());
+        List<Asset> assets = assetIndex.queryAssets(QuerySpec.Builder.newInstance()
+                        .offset(5)
+                        .limit(100)
+                        .filter("someField=randomValue")
+                        .build())
+                .collect(Collectors.toList());
 
         assertThat(assets).hasSize(1).extracting(Asset::getId).containsExactly(document.getWrappedAsset().getId());
         assertThat(assets).extracting(Asset::getProperties).allSatisfy(m -> assertThat(m).containsAllEntriesOf(document.getWrappedAsset().getProperties()));

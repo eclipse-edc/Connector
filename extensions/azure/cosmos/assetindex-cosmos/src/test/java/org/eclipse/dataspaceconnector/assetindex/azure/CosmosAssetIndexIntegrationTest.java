@@ -261,7 +261,7 @@ class CosmosAssetIndexIntegrationTest {
         Asset asset1 = createAsset("123", "test", "world");
         container.createItem(new AssetDocument(asset1, TEST_PARTITION_KEY, dataAddress));
 
-        var all = assetIndex.findAll(QuerySpec.none());
+        var all = assetIndex.queryAssets(QuerySpec.none());
         assertThat(all).hasSize(1).extracting(Asset::getId).containsExactly(asset1.getId());
 
     }
@@ -273,7 +273,7 @@ class CosmosAssetIndexIntegrationTest {
 
         var limitQuery = QuerySpec.Builder.newInstance().limit(5).offset(2).build();
 
-        var all = assetIndex.findAll(limitQuery);
+        var all = assetIndex.queryAssets(limitQuery);
         assertThat(all).hasSize(5).extracting(Asset::getId).containsExactly("id2", "id3", "id4", "id5", "id6");
     }
 
@@ -288,7 +288,7 @@ class CosmosAssetIndexIntegrationTest {
                 .sortOrder(SortOrder.DESC)
                 .build();
 
-        var all = assetIndex.findAll(limitQuery);
+        var all = assetIndex.queryAssets(limitQuery);
         assertThat(all).hasSize(5).extracting(Asset::getId).containsExactly("id7", "id6", "id5", "id4", "id3");
     }
 
@@ -303,7 +303,7 @@ class CosmosAssetIndexIntegrationTest {
                 .sortOrder(SortOrder.ASC)
                 .build();
 
-        var all = assetIndex.findAll(limitQuery);
+        var all = assetIndex.queryAssets(limitQuery);
         assertThat(all).hasSize(3).extracting(Asset::getId).containsExactly("id2", "id3", "id4");
     }
 
@@ -317,7 +317,7 @@ class CosmosAssetIndexIntegrationTest {
                 .filter("foo=bar4")
                 .build();
 
-        var all = assetIndex.findAll(filterQuery);
+        var all = assetIndex.queryAssets(filterQuery);
         assertThat(all).hasSize(1).extracting(a -> a.getProperty("foo")).containsOnly("bar4");
     }
 
@@ -331,7 +331,7 @@ class CosmosAssetIndexIntegrationTest {
                 .filter("foo STARTSWITH bar4")
                 .build();
 
-        assertThatThrownBy(() -> assetIndex.findAll(filterQuery)).isInstanceOf(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: STARTSWITH");
+        assertThatThrownBy(() -> assetIndex.queryAssets(filterQuery)).isInstanceOf(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: STARTSWITH");
     }
 
     @Test
@@ -345,7 +345,7 @@ class CosmosAssetIndexIntegrationTest {
                 .limit(10)
                 .build();
 
-        var all = assetIndex.findAll(filterQuery);
+        var all = assetIndex.queryAssets(filterQuery);
         assertThat(all).hasSize(4).extracting(Asset::getId).containsExactlyInAnyOrder("id4", "id3", "id2", "id1");
     }
 
@@ -359,7 +359,7 @@ class CosmosAssetIndexIntegrationTest {
                 .sortField("foo")
                 .build();
 
-        var all = assetIndex.findAll(sortQuery);
+        var all = assetIndex.queryAssets(sortQuery);
         assertThat(all).hasSize(5).extracting(Asset::getId).containsExactly("id9", "id8", "id7", "id6", "id5");
 
     }

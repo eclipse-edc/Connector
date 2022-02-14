@@ -14,13 +14,11 @@
 
 package org.eclipse.dataspaceconnector.spi.asset;
 
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.stream.Stream;
 
 /**
@@ -47,22 +45,6 @@ public interface AssetIndex {
     Stream<Asset> queryAssets(AssetSelectorExpression expression);
 
     /**
-     * Returns true if the set of asset are in the group of assets defined by criteria.
-     */
-    Stream<Asset> queryAssets(List<Criterion> criteria);
-
-    /**
-     * Fetches the {@link Asset} with the given ID from the metadata backend.
-     *
-     * @param assetId A String that represents the Asset ID, in most cases this will be a UUID.
-     * @return The {@link Asset} if one was found, or null otherwise.
-     * @throws NullPointerException If {@code assetId} was null or empty.
-     */
-    @Nullable
-    Asset findById(String assetId);
-
-
-    /**
      * Finds all assets that are covered by a specific {@link QuerySpec}. Results are always sorted. If no {@link QuerySpec#getSortField()}
      * is specified, results are not explicitly sorted.
      * <p>
@@ -75,6 +57,17 @@ public interface AssetIndex {
      * @param querySpec The query spec, e.g. paging, filtering, etc.
      * @return A potentially empty collection of {@link Asset}, never null.
      */
-    List<Asset> findAll(QuerySpec querySpec);
+    Stream<Asset> queryAssets(QuerySpec querySpec);
+
+    /**
+     * Fetches the {@link Asset} with the given ID from the metadata backend.
+     *
+     * @param assetId A String that represents the Asset ID, in most cases this will be a UUID.
+     * @return The {@link Asset} if one was found, or null otherwise.
+     * @throws NullPointerException If {@code assetId} was null or empty.
+     */
+    @Nullable
+    Asset findById(String assetId);
+
 
 }

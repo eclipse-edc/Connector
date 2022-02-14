@@ -23,17 +23,14 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static net.jodah.failsafe.Failsafe.with;
@@ -67,7 +64,7 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
         Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
 
         if (expression.equals(AssetSelectorExpression.SELECT_ALL)) {
-            return findAll(QuerySpec.none()).stream();
+            return queryAssets(QuerySpec.none());
         }
 
         SqlQuerySpec query = queryBuilder.from(expression.getCriteria());
@@ -78,22 +75,7 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
     }
 
     @Override
-    public Stream<Asset> queryAssets(List<Criterion> criteria) {
-
-        SqlQuerySpec query = queryBuilder.from(criteria);
-        var response = with(retryPolicy).get(() -> assetDb.queryItems(query));
-        return response.map(this::convertObject)
-                .map(AssetDocument::getWrappedAsset);
-    }
-
-    @Override
-    public Asset findById(String assetId) {
-        var result = queryByIdInternal(assetId);
-        return result.map(AssetDocument::getWrappedAsset).orElse(null);
-    }
-
-    @Override
-    public List<Asset> findAll(QuerySpec querySpec) {
+    public Stream<Asset> queryAssets(QuerySpec querySpec) {
         var expr = querySpec.getFilterExpression();
 
         var sortField = querySpec.getSortField();
@@ -103,8 +85,13 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
         var sqlQuery = queryBuilder.from(expr, sortField, sortAsc, limit, querySpec.getOffset());
         var response = with(retryPolicy).get(() -> assetDb.queryItems(sqlQuery));
         return response.map(this::convertObject)
-                .map(AssetDocument::getWrappedAsset)
-                .collect(Collectors.toList());
+                .map(AssetDocument::getWrappedAsset);
+    }
+
+    @Override
+    public Asset findById(String assetId) {
+        var result = queryByIdInternal(assetId);
+        return result.map(AssetDocument::getWrappedAsset).orElse(null);
     }
 
     @Override

@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionServi
 import org.eclipse.dataspaceconnector.spi.contract.validation.ContractValidationService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -66,7 +67,7 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
         // take asset from definition and index
         var criteria = createCriteria(offer, contractDefinition);
-        var targetAssets = assetIndex.queryAssets(criteria);
+        var targetAssets = assetIndex.queryAssets(QuerySpec.Builder.newInstance().filter(criteria).build());
         var targetAsset = targetAssets.findFirst().orElse(null);
         if (targetAsset == null) {
             return Result.failure("");

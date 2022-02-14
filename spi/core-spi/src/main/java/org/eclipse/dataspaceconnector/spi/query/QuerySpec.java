@@ -116,6 +116,11 @@ public class QuerySpec {
             return querySpec;
         }
 
+        public Builder filter(List<Criterion> criteria) {
+            querySpec.filterExpression = criteria;
+            return this;
+        }
+
         public Builder filter(String filterExpression) {
 
             if (filterExpression != null) {
@@ -141,5 +146,7 @@ public class QuerySpec {
 
             return this;
         }
+
+
     }
 }
