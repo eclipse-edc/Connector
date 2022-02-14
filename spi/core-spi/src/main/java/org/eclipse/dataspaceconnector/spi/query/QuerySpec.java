@@ -126,8 +126,7 @@ public class QuerySpec {
                     var tokens = filterExpression.split("=");
                     querySpec.filterExpression = List.of(new Criterion(tokens[0], equalsAsContains ? "contains" : "=", tokens[1]));
                 } else {
-                    var sanitized = filterExpression.replaceAll(" +", " ");
-                    var s = sanitized.split(" ");
+                    var s = filterExpression.split(" +");
 
                     //generic LEFT OPERAND RIGHT expression
                     if (s.length >= 3) {

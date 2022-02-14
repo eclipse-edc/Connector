@@ -42,13 +42,13 @@ import static java.lang.String.format;
 /**
  * An ephemeral asset index, that is also a DataAddressResolver and an AssetLoader
  */
-public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, AssetLoader {
+public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, AssetLoader {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
     private final CriterionToPredicateConverter predicateFactory;
     private final ReentrantReadWriteLock lock;
 
-    public InMemoryAssetLoader(CriterionToPredicateConverter predicateFactory) {
+    public InMemoryAssetIndex(CriterionToPredicateConverter predicateFactory) {
         this.predicateFactory = predicateFactory;
         //fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
@@ -110,15 +110,17 @@ public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, Ass
         }
 
         // ... then sort
-        var sortField = querySpec.getSortField() == null ? Asset.PROPERTY_ID : querySpec.getSortField();
-        result = result.sorted((asset1, asset2) -> {
-            var f1 = asComparable(asset1.getProperty(sortField));
-            var f2 = asComparable(asset2.getProperty(sortField));
-            if (f1 == null || f2 == null) {
-                throw new IllegalArgumentException(format("Cannot sort by field %s, it does not exist on one or more Assets", sortField));
-            }
-            return querySpec.getSortOrder() == SortOrder.ASC ? f1.compareTo(f2) : f2.compareTo(f1);
-        });
+        var sortField = querySpec.getSortField();
+        if (sortField != null) {
+            result = result.sorted((asset1, asset2) -> {
+                var f1 = asComparable(asset1.getProperty(sortField));
+                var f2 = asComparable(asset2.getProperty(sortField));
+                if (f1 == null || f2 == null) {
+                    throw new IllegalArgumentException(format("Cannot sort by field %s, it does not exist on one or more Assets", sortField));
+                }
+                return querySpec.getSortOrder() == SortOrder.ASC ? f1.compareTo(f2) : f2.compareTo(f1);
+            });
+        }
 
         // ... then limit
         result = result.skip(querySpec.getOffset()).limit(querySpec.getLimit());

@@ -19,11 +19,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression.SELECT_ALL;
 
 class InMemoryAssetIndexTest {
-    private InMemoryAssetLoader index;
+    private InMemoryAssetIndex index;
 
     @BeforeEach
     void setUp() {
-        index = new InMemoryAssetLoader(new CriterionToPredicateConverter());
+        index = new InMemoryAssetIndex(new CriterionToPredicateConverter());
     }
 
     @Test
@@ -193,7 +193,7 @@ class InMemoryAssetIndexTest {
     }
 
     @Test
-    void findAll_withPaging_desc() {
+    void findAll_withPaging_noSortOrderDesc() {
         IntStream.range(0, 10)
                 .mapToObj(i -> createAsset("test-asset", "id" + i))
                 .forEach(a -> index.accept(a, createDataAddress(a)));
@@ -201,12 +201,11 @@ class InMemoryAssetIndexTest {
         var spec = QuerySpec.Builder.newInstance().sortOrder(SortOrder.DESC).offset(5).limit(2).build();
 
         var all = index.findAll(spec);
-        //it gets sorted 9...0, then skip 5, take 2
-        assertThat(all).hasSize(2).extracting(Asset::getId).containsExactly("id4", "id3");
+        assertThat(all).hasSize(2);
     }
 
     @Test
-    void findAll_withPaging_asc() {
+    void findAll_withPaging_noSortOrderAsc() {
         IntStream.range(0, 10)
                 .mapToObj(i -> createAsset("test-asset", "id" + i))
                 .forEach(a -> index.accept(a, createDataAddress(a)));
@@ -214,8 +213,7 @@ class InMemoryAssetIndexTest {
         var spec = QuerySpec.Builder.newInstance().sortOrder(SortOrder.ASC).offset(3).limit(3).build();
 
         var all = index.findAll(spec);
-        assertThat(all).hasSize(3).extracting(Asset::getId).containsExactly("id3", "id4", "id5");
-
+        assertThat(all).hasSize(3);
     }
 
     @Test

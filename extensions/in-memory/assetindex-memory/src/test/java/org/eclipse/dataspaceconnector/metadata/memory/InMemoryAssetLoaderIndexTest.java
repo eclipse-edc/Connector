@@ -13,7 +13,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-public class InMemoryAssetLoaderLoaderTest {
+public class InMemoryAssetLoaderIndexTest {
 
     private AssetLoader assetLoader;
 
@@ -23,8 +23,8 @@ public class InMemoryAssetLoaderLoaderTest {
         var dataAddress = createDataAddress(asset);
         assetLoader.accept(asset, dataAddress);
 
-        assertThat(((InMemoryAssetLoader) assetLoader).getAssets()).hasSize(1);
-        assertThat(((InMemoryAssetLoader) assetLoader).getDataAddresses()).hasSize(1);
+        assertThat(((InMemoryAssetIndex) assetLoader).getAssets()).hasSize(1);
+        assertThat(((InMemoryAssetIndex) assetLoader).getDataAddresses()).hasSize(1);
     }
 
     @Test
@@ -43,8 +43,8 @@ public class InMemoryAssetLoaderLoaderTest {
         assetLoader.accept(asset, dataAddress1);
 
         //assert that this replaces the previous data address
-        assertThat(((InMemoryAssetLoader) assetLoader).getAssets()).hasSize(1).containsValue(asset);
-        assertThat(((InMemoryAssetLoader) assetLoader).getDataAddresses()).hasSize(1).containsValue(dataAddress1);
+        assertThat(((InMemoryAssetIndex) assetLoader).getAssets()).hasSize(1).containsValue(asset);
+        assertThat(((InMemoryAssetIndex) assetLoader).getDataAddresses()).hasSize(1).containsValue(dataAddress1);
 
     }
 
@@ -59,8 +59,8 @@ public class InMemoryAssetLoaderLoaderTest {
         List.of(new AssetEntry(asset1, address1), new AssetEntry(asset2, address2))
                 .forEach(entry -> assetLoader.accept(entry));
 
-        assertThat(((InMemoryAssetLoader) assetLoader).getAssets()).hasSize(2);
-        assertThat(((InMemoryAssetLoader) assetLoader).getDataAddresses()).hasSize(2);
+        assertThat(((InMemoryAssetIndex) assetLoader).getAssets()).hasSize(2);
+        assertThat(((InMemoryAssetIndex) assetLoader).getDataAddresses()).hasSize(2);
 
     }
 
@@ -75,14 +75,14 @@ public class InMemoryAssetLoaderLoaderTest {
                 .forEach(entry -> assetLoader.accept(entry));
 
         // only one address/asset combo should exist
-        assertThat(((InMemoryAssetLoader) assetLoader).getAssets()).hasSize(1);
-        assertThat(((InMemoryAssetLoader) assetLoader).getDataAddresses()).hasSize(1).containsValue(address2).containsKeys(asset1.getId());
+        assertThat(((InMemoryAssetIndex) assetLoader).getAssets()).hasSize(1);
+        assertThat(((InMemoryAssetIndex) assetLoader).getDataAddresses()).hasSize(1).containsValue(address2).containsKeys(asset1.getId());
 
     }
 
     @BeforeEach
     void setup() {
-        assetLoader = new InMemoryAssetLoader(new CriterionToPredicateConverter());
+        assetLoader = new InMemoryAssetIndex(new CriterionToPredicateConverter());
     }
 
     private Asset createAsset(String name, String id) {
