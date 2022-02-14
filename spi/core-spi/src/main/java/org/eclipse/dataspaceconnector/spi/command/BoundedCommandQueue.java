@@ -12,10 +12,8 @@
  *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
-package org.eclipse.dataspaceconnector.core.base;
+package org.eclipse.dataspaceconnector.spi.command;
 
-import org.eclipse.dataspaceconnector.spi.command.Command;
-import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -24,44 +22,44 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public class BoundedCommandQueue<C extends Command> implements CommandQueue<C> {
-    
+
     private final BlockingQueue<C> queue;
-    
+
     public BoundedCommandQueue(int bound) {
         queue = new ArrayBlockingQueue<>(bound);
     }
-    
+
     @Override
     public void enqueue(C element) {
         //add will throw an IllegalStateException if the queue exceeds its capacity
         queue.add(element);
     }
-    
+
     @Nullable
     @Override
     public Command dequeue() {
         return queue.poll();
     }
-    
+
     @Override
     public List<C> dequeue(int amount) {
         if (amount < 0) {
             throw new IllegalArgumentException();
         }
-        
+
         var result = new ArrayList<C>();
         queue.drainTo(result, amount);
         return result;
     }
-    
+
     @Nullable
     @Override
     public C peek() {
         return queue.peek();
     }
-    
+
     public int size() {
         return queue.size();
     }
-    
+
 }

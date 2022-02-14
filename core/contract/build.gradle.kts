@@ -22,7 +22,6 @@ plugins {
 dependencies {
     api(project(":spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
-    api(project(":core:base"))
     implementation(project(":core:policy:policy-engine"))
     implementation(project(":common:util"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))

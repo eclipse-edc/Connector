@@ -11,11 +11,8 @@
  *       Fraunhofer Institute for Software and Systems Engineering - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.core.base;
+package org.eclipse.dataspaceconnector.spi.command;
 
-import org.eclipse.dataspaceconnector.spi.command.Command;
-import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
-import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 
 import static java.lang.String.format;
@@ -23,20 +20,20 @@ import static java.lang.String.format;
 /**
  * Processes commands from a {@link CommandQueue} using a {@link CommandRunner}.
  *
- * @param <C> the type of command that can be can processed.
+ * @param <C> the type of command that can be processed.
  */
 public class CommandProcessor<C extends Command> {
-    
+
     private CommandQueue<C> commandQueue;
     private CommandRunner<C> commandRunner;
     private Monitor monitor;
-    
+
     public CommandProcessor(CommandQueue<C> commandQueue, CommandRunner<C> commandRunner, Monitor monitor) {
         this.commandQueue = commandQueue;
         this.commandRunner = commandRunner;
         this.monitor = monitor;
     }
-    
+
     /**
      * Processes the given command using a {@link CommandRunner}. If processing the command fails,
      * it is enqueued in the {@link CommandQueue} again.
@@ -59,5 +56,5 @@ public class CommandProcessor<C extends Command> {
             return true;
         }
     }
-    
+
 }

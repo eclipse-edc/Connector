@@ -11,9 +11,8 @@
  *       Microsoft Corporation - initial API and implementation
  *       Fraunhofer Institute for Software and Systems Engineering - refactored
  */
-package org.eclipse.dataspaceconnector.core.base;
+package org.eclipse.dataspaceconnector.spi.command;
 
-import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -111,7 +110,7 @@ class BoundedCommandQueueTest {
         assertThat(queue.peek()).isEqualTo(element);
         assertThat(queue.size()).isEqualTo(1);
     }
-    
+
     private static class TestCommand extends Command {
     }
 
