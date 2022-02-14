@@ -13,8 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.junit.launcher;
 
-import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
-import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor.Level;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor.Level;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.NotNull;

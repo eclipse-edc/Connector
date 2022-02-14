@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.boot.system;
 
 import org.eclipse.dataspaceconnector.boot.system.injection.InjectorImpl;
-import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.core.security.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;

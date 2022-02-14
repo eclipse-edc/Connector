@@ -12,9 +12,8 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.monitor;
+package org.eclipse.dataspaceconnector.spi.monitor;
 
-import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.ZonedDateTime;

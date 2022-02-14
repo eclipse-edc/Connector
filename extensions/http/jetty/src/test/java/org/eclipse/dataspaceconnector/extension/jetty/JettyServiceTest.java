@@ -22,7 +22,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
-import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.glassfish.jersey.internal.inject.AbstractBinder;
