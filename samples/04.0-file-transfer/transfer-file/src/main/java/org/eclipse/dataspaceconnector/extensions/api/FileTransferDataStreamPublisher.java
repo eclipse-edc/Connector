@@ -3,9 +3,9 @@ package org.eclipse.dataspaceconnector.extensions.api;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.DataStreamPublisher;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.StreamContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamContext;
 
 import java.io.IOException;
 import java.nio.file.Files;

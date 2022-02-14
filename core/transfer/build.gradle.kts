@@ -21,7 +21,6 @@ dependencies {
     api(project(":spi"))
     api(project(":common:util"))
     api(project(":core:base"))
-    api(project(":extensions:inline-data-transfer:inline-data-transfer-core"))
 
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
 }
