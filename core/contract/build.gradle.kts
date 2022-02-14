@@ -20,7 +20,7 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:contract-spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
     implementation(project(":core:policy:policy-engine"))
     implementation(project(":common:util"))
