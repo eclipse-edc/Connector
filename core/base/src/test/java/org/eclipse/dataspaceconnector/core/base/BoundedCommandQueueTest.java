@@ -9,10 +9,11 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
- *
+ *       Fraunhofer Institute for Software and Systems Engineering - refactored
  */
-package org.eclipse.dataspaceconnector.transfer.core.command;
+package org.eclipse.dataspaceconnector.core.base;
 
+import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -24,11 +25,11 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 class BoundedCommandQueueTest {
 
     private static final int QUEUE_BOUND = 3;
-    private BoundedCommandQueue queue;
+    private BoundedTestCommandQueue queue;
 
     @BeforeEach
     void setup() {
-        queue = new BoundedCommandQueue(QUEUE_BOUND);
+        queue = new BoundedTestCommandQueue(QUEUE_BOUND);
     }
 
     @Test
@@ -110,6 +111,14 @@ class BoundedCommandQueueTest {
         assertThat(queue.peek()).isEqualTo(element);
         assertThat(queue.size()).isEqualTo(1);
     }
+    
+    private static class TestCommand extends Command {
+    }
 
+    private static class BoundedTestCommandQueue extends BoundedCommandQueue<TestCommand> {
+        public BoundedTestCommandQueue(int bound) {
+            super(bound);
+        }
+    }
 
 }

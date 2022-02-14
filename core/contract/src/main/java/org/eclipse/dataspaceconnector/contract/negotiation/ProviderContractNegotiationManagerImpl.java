@@ -15,7 +15,10 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
@@ -32,6 +35,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -65,12 +69,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private Monitor monitor;
     private ExecutorService executor;
     private ContractNegotiationObservable observable;
+    private CommandQueue<ContractNegotiationCommand> commandQueue;
+    private CommandRunner<ContractNegotiationCommand> commandRunner;
+    private CommandProcessor<ContractNegotiationCommand> commandProcessor;
+    private Monitor monitor;
     private Predicate<Boolean> isProcessed = it -> it;
 
-    private ProviderContractNegotiationManagerImpl() { }
+    private ProviderContractNegotiationManagerImpl() {
+    }
 
     //TODO check state count for retry
 
@@ -88,6 +96,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         if (executor != null) {
             executor.shutdownNow();
         }
+    }
+    
+    @Override
+    public void enqueueCommand(ContractNegotiationCommand command) {
+        commandQueue.enqueue(command);
     }
 
     /**
@@ -259,12 +272,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private void run() {
         while (active.get()) {
             try {
-                var providerOffering = onNegotiationsInState(PROVIDER_OFFERING).doProcess(this::processProviderOffering);
-                var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
-                var confirming = onNegotiationsInState(CONFIRMING).doProcess(this::processConfirming);
-
-                var totalProcessed = providerOffering + declining + confirming;
-
+                long providerOffering = onNegotiationsInState(PROVIDER_OFFERING).doProcess(this::processProviderOffering);
+                long declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
+                long confirming = onNegotiationsInState(CONFIRMING).doProcess(this::processConfirming);
+    
+                long commandsProcessed = onCommands().doProcess(this::processCommand);
+                
+                var totalProcessed = providerOffering + declining + confirming + commandsProcessed;
+    
                 if (totalProcessed == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
                 }
@@ -290,6 +305,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
     private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
         return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize));
+    }
+    
+    private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
+        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    }
+    
+    private boolean processCommand(ContractNegotiationCommand command) {
+        return commandProcessor.processCommandQueue(command);
     }
 
     /**
@@ -486,6 +509,16 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             manager.dispatcherRegistry = dispatcherRegistry;
             return this;
         }
+        
+        public Builder commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
+            manager.commandQueue = commandQueue;
+            return this;
+        }
+        
+        public Builder commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
+            manager.commandRunner = commandRunner;
+            return this;
+        }
 
         public Builder observable(ContractNegotiationObservable observable) {
             manager.observable = observable;
@@ -496,7 +529,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
+            Objects.requireNonNull(manager.commandQueue, "commandQueue");
+            Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
+    
+            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            
             return manager;
         }
     }

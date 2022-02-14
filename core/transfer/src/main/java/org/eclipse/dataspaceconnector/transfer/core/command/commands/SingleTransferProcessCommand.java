@@ -9,24 +9,27 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
 package org.eclipse.dataspaceconnector.transfer.core.command.commands;
 
 import org.eclipse.dataspaceconnector.spi.command.Command;
-import org.eclipse.dataspaceconnector.transfer.core.command.handlers.TransferProcessCommandHandler;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
+import org.eclipse.dataspaceconnector.transfer.core.command.handlers.SingleTransferProcessCommandHandler;
 
 /**
  * Specialization of the {@link Command} interface, that is useful in situations where
  * a single {@link org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess} is
  * operated on.
  *
- * @see TransferProcessCommandHandler
+ * @see SingleTransferProcessCommandHandler
  */
-public class TransferProcessCommand extends Command {
+public class SingleTransferProcessCommand extends TransferProcessCommand {
     protected final String transferProcessId;
 
-    public TransferProcessCommand(String transferProcessId) {
+    public SingleTransferProcessCommand(String transferProcessId) {
+        super();
         this.transferProcessId = transferProcessId;
     }
 

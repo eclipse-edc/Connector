@@ -19,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
 import org.eclipse.dataspaceconnector.transfer.store.memory.InMemoryTransferProcessStore;
@@ -63,8 +64,8 @@ class TransferProcessManagerImplIntegrationTest {
                 .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
-                .commandQueue(mock(CommandQueue.class))
-                .commandRunner(mock(CommandRunner.class))
+                .commandQueue((CommandQueue<TransferProcessCommand>) mock(CommandQueue.class))
+                .commandRunner((CommandRunner<TransferProcessCommand>) mock(CommandRunner.class))
                 .typeManager(new TypeManager())
                 .statusCheckerRegistry(mock(StatusCheckerRegistry.class))
                 .dataProxyManager(mock(DataProxyManager.class))
@@ -128,3 +129,4 @@ class TransferProcessManagerImplIntegrationTest {
 
 
 }
+

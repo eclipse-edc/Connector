@@ -15,6 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.core;
 
 import org.eclipse.dataspaceconnector.core.CoreExtension;
+import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -38,7 +39,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
-import org.eclipse.dataspaceconnector.transfer.core.command.BoundedCommandQueue;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.inline.DataOperatorRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
@@ -104,8 +105,8 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
         context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
-
-        CommandQueue commandQueue = new BoundedCommandQueue(10);
+    
+        CommandQueue<TransferProcessCommand> commandQueue = new BoundedCommandQueue<>(10);
         TransferProcessObservable observable = new TransferProcessObservableImpl();
         context.registerService(TransferProcessObservable.class, observable);
 
@@ -121,7 +122,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .vault(vault)
                 .typeManager(typeManager)
                 .commandQueue(commandQueue)
-                .commandRunner(new CommandRunner(registry, monitor))
+                .commandRunner(new CommandRunner<>(registry, monitor))
                 .dataProxyManager(dataProxyManager)
                 .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
                 .observable(observable)

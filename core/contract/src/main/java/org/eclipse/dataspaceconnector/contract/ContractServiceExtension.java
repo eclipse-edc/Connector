@@ -24,8 +24,12 @@ import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
 import org.eclipse.dataspaceconnector.contract.validation.ContractValidationServiceImpl;
 import org.eclipse.dataspaceconnector.core.CoreExtension;
+import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
+import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
@@ -44,6 +48,7 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 
 @Provides({ContractOfferService.class, PolicyEngine.class, ParticipantAgentService.class, ContractValidationService.class,
         ConsumerContractNegotiationManager.class, ProviderContractNegotiationManager.class})
@@ -61,6 +66,8 @@ public class ContractServiceExtension implements ServiceExtension {
     private ContractDefinitionStore contractDefinitionStore;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    @Inject
+    private CommandHandlerRegistry commandHandlerRegistry;
 
     @Override
     public String name() {
@@ -118,6 +125,9 @@ public class ContractServiceExtension implements ServiceExtension {
 
         var waitStrategy = context.hasService(NegotiationWaitStrategy.class) ? context.getService(NegotiationWaitStrategy.class) : new ExponentialWaitStrategy(DEFAULT_ITERATION_WAIT);
 
+        CommandQueue<ContractNegotiationCommand> commandQueue = new BoundedCommandQueue<>(10);
+        CommandRunner<ContractNegotiationCommand> commandRunner = new CommandRunner<>(commandHandlerRegistry, monitor);
+        
         var observable = new ContractNegotiationObservableImpl();
         context.registerService(ContractNegotiationObservable.class, observable);
 
@@ -126,6 +136,8 @@ public class ContractServiceExtension implements ServiceExtension {
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .validationService(validationService)
+                .commandQueue(commandQueue)
+                .commandRunner(commandRunner)
                 .observable(observable)
                 .build();
 
@@ -134,6 +146,8 @@ public class ContractServiceExtension implements ServiceExtension {
                 .dispatcherRegistry(dispatcherRegistry)
                 .monitor(monitor)
                 .validationService(validationService)
+                .commandQueue(commandQueue)
+                .commandRunner(commandRunner)
                 .observable(observable)
                 .build();
 

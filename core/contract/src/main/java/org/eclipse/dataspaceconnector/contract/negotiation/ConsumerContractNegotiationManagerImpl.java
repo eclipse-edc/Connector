@@ -15,7 +15,10 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
+import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
@@ -32,9 +35,8 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.LocalDate;
@@ -67,11 +69,15 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
     private int batchSize = 5;
     private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
-    private Monitor monitor;
     private ExecutorService executor;
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
+    
     private ContractNegotiationObservable observable;
+    private CommandQueue<ContractNegotiationCommand> commandQueue;
+    private CommandRunner<ContractNegotiationCommand> commandRunner;
+    private CommandProcessor<ContractNegotiationCommand> commandProcessor;
+    private Monitor monitor;
     private Predicate<Boolean> isProcessed = it -> it;
 
     public ConsumerContractNegotiationManagerImpl() {
@@ -89,6 +95,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         if (executor != null) {
             executor.shutdownNow();
         }
+    }
+    
+    @Override
+    public void enqueueCommand(ContractNegotiationCommand command) {
+        commandQueue.enqueue(command);
     }
 
     /**
@@ -455,12 +466,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private void run() {
         while (active.get()) {
             try {
-                var requesting = onNegotiationsInState(INITIAL).doProcess(this::processInitial);
-                var offering = onNegotiationsInState(CONSUMER_OFFERING).doProcess(this::processConsumerOffering);
-                var approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
-                var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
-
-                long totalProcessed = requesting + offering + approving + declining;
+                long requesting = onNegotiationsInState(INITIAL).doProcess(this::processInitial);
+                long offering = onNegotiationsInState(CONSUMER_OFFERING).doProcess(this::processConsumerOffering);
+                long approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
+                long declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
+    
+                long commandsProcessed = onCommands().doProcess(this::processCommand);
+                
+                long totalProcessed = requesting + offering + approving + declining + commandsProcessed;
 
                 if (totalProcessed == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
@@ -487,6 +500,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
     private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
         return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize));
+    }
+    
+    private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
+        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    }
+    
+    private boolean processCommand(ContractNegotiationCommand command) {
+        return commandProcessor.processCommandQueue(command);
     }
 
     /**
@@ -527,6 +548,16 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             manager.dispatcherRegistry = dispatcherRegistry;
             return this;
         }
+    
+        public Builder commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
+            manager.commandQueue = commandQueue;
+            return this;
+        }
+    
+        public Builder commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
+            manager.commandRunner = commandRunner;
+            return this;
+        }
 
         public Builder observable(ContractNegotiationObservable observable) {
             manager.observable = observable;
@@ -537,7 +568,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
+            Objects.requireNonNull(manager.commandQueue, "commandQueue");
+            Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
+    
+            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            
             return manager;
         }
     }

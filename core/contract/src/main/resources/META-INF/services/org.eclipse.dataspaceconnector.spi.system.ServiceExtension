@@ -9,7 +9,9 @@
 #
 #  Contributors:
 #       Daimler TSS GmbH - Initial API and Implementation
+#       Fraunhofer Institute for Software and Systems Engineering - added command extension
 #
 #
 
 org.eclipse.dataspaceconnector.contract.ContractServiceExtension
+org.eclipse.dataspaceconnector.contract.ContractNegotiationCommandExtension

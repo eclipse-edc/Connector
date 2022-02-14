@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
 import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
-import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -43,6 +43,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResou
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
@@ -97,19 +98,19 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private TransferProcessStore transferProcessStore;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
-    private Monitor monitor;
     private ExecutorService executor;
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TypeManager typeManager;
-    private CommandQueue commandQueue;
-    private CommandRunner commandRunner;
     private DataProxyManager dataProxyManager;
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
     private TransferProcessObservable observable;
+    private CommandQueue<TransferProcessCommand> commandQueue;
+    private CommandRunner<TransferProcessCommand> commandRunner;
+    private CommandProcessor<TransferProcessCommand> commandProcessor;
+    private Monitor monitor;
 
     private TransferProcessManagerImpl() {
-
     }
 
     public void start(TransferProcessStore processStore) {
@@ -166,7 +167,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     @Override
-    public void enqueueCommand(Command command) {
+    public void enqueueCommand(TransferProcessCommand command) {
         commandQueue.enqueue(command);
     }
 
@@ -370,24 +371,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return new EntitiesProcessor<>(() -> transferProcessStore.nextForState(state.code(), batchSize));
     }
 
-    private EntitiesProcessor<Command> onCommands() {
+    private EntitiesProcessor<TransferProcessCommand> onCommands() {
         return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
     }
 
-    private boolean processCommand(Command command) {
-        var commandResult = commandRunner.runCommand(command);
-        if (commandResult.failed()) {
-            if (command.canRetry()) {
-                monitor.warning(format("Could not process command [%s], will retry. Error: %s", command.getClass(), commandResult.getFailureMessages()));
-                commandQueue.enqueue(command);
-            } else {
-                monitor.severe(format("Could not process command [%s], it has exceeded its retry limit, will discard now. Error: %s", command.getClass(), commandResult.getFailureMessages()));
-            }
-            return false;
-        } else {
-            monitor.debug(format("Successfully processed command [%s]", command.getClass()));
-            return true;
-        }
+    private boolean processCommand(TransferProcessCommand command) {
+        return commandProcessor.processCommandQueue(command);
     }
 
     private boolean processDeprovisioned(TransferProcess process) {
@@ -614,12 +603,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder commandQueue(CommandQueue queue) {
+        public Builder commandQueue(CommandQueue<TransferProcessCommand> queue) {
             manager.commandQueue = queue;
             return this;
         }
 
-        public Builder commandRunner(CommandRunner runner) {
+        public Builder commandRunner(CommandRunner<TransferProcessCommand> runner) {
             manager.commandRunner = runner;
             return this;
         }
@@ -651,6 +640,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.dataProxyManager, "DataProxyManager cannot be null!");
             Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "Observable cannot be null");
+            
+            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+            
             return manager;
         }
     }

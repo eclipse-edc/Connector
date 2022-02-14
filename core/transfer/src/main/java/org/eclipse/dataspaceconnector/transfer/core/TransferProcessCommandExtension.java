@@ -14,13 +14,13 @@
 package org.eclipse.dataspaceconnector.transfer.core;
 
 import org.eclipse.dataspaceconnector.core.CoreExtension;
+import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
-import org.eclipse.dataspaceconnector.transfer.core.command.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.CancelTransferCommandHandler;
 import org.eclipse.dataspaceconnector.transfer.core.command.handlers.DeprovisionRequestHandler;
 
@@ -29,21 +29,23 @@ import org.eclipse.dataspaceconnector.transfer.core.command.handlers.Deprovision
  */
 @CoreExtension
 @Provides({ CommandHandlerRegistry.class })
-public class CommandExtension implements ServiceExtension {
+public class TransferProcessCommandExtension implements ServiceExtension {
 
     @Inject
     private TransferProcessStore store;
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-
-        CommandHandlerRegistryImpl registry = new CommandHandlerRegistryImpl();
-        context.registerService(CommandHandlerRegistry.class, registry);
+        CommandHandlerRegistry registry = context.getService(CommandHandlerRegistry.class, true);
+        if (registry == null) {
+            registry = new CommandHandlerRegistryImpl();
+            context.registerService(CommandHandlerRegistry.class, registry);
+        }
 
         registerDefaultCommands(registry);
     }
 
-    private void registerDefaultCommands(CommandHandlerRegistryImpl registry) {
+    private void registerDefaultCommands(CommandHandlerRegistry registry) {
         registry.register(new CancelTransferCommandHandler(store));
         registry.register(new DeprovisionRequestHandler(store));
     }
