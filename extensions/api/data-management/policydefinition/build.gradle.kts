@@ -13,9 +13,7 @@
  */
 
 
-val infoModelVersion: String by project
 val rsApi: String by project
-val jerseyVersion: String by project
 
 plugins {
     `java-library`
