@@ -24,6 +24,10 @@ import java.util.function.Predicate;
 
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.ContractNegotiationFunctions.property;
 
+/**
+ * Converts a {@link Criterion} into a {@link Predicate<ContractNegotiation>} for use with an {@link InMemoryContractNegotiationStore}.
+ * Currently, only the "=" and "in" operators are supported (cf. {@link Criterion#getOperator()}.
+ */
 class CriterionToPredicateConverter implements CriterionConverter<Predicate<ContractNegotiation>> {
     @Override
     public Predicate<ContractNegotiation> convert(Criterion criterion) {

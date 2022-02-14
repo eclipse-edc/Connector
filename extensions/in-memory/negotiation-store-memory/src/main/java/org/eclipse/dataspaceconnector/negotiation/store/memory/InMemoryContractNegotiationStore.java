@@ -155,7 +155,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
             var o2 = property(negotiation2, property);
 
             if (o1 == null || o2 == null) {
-                throw new IllegalArgumentException(format("A property %s does not exist on %s", property, ContractNegotiation.class.getSimpleName()));
+                return 0;
             }
 
             if (!(o1 instanceof Comparable)) {

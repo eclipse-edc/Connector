@@ -212,7 +212,7 @@ class InMemoryContractNegotiationStoreTest {
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         // must actually collect, otherwise the stream is not materialized
-        assertThatThrownBy(() -> store.queryNegotiations(query).collect(Collectors.toList())).isInstanceOf(IllegalArgumentException.class);
+        assertThat(store.queryNegotiations(query).collect(Collectors.toList())).hasSize(10);
     }
 
     private ContractNegotiation createNegotiation(String name) {
