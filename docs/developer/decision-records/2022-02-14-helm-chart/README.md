@@ -13,4 +13,6 @@ A [Helm Chart](https://helm.sh) is provided to be used to deploy the EDC runtime
 
 The chart was generated using `helm create` in order to follow best practice for components, configurability and ingress definitions, and adapted to fit the EDC runtime.
 
+A generic Dockerfile was created that builds a Docker image using any runtime JAR. It is designed to be used as-is and take configuration from environment variables. Alternatively, implementors can extend the Dockerfile to package a configuration file.
+
 The chart must be tested in CI like any other code. A GitHub worklow installs minikube (a local lightweight kubernetes installation) and deploys two releases of the chart, for the Consumer and Provider EDC connector of sample 04.0. The workflow then triggers file copy and verifies that the destination file was created on the Provider pod.
