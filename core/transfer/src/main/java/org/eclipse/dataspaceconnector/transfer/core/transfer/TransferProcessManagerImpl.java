@@ -15,7 +15,7 @@
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
-import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;

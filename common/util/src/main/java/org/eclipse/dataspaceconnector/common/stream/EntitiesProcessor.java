@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.core.manager;
+package org.eclipse.dataspaceconnector.common.stream;
 
 import java.util.Collection;
 import java.util.function.Function;

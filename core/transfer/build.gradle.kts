@@ -22,6 +22,8 @@ dependencies {
     api(project(":common:util"))
     api(project(":core:base"))
 
+    implementation(project(":common:util"))
+
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
 }
 

@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.core.manager;
+package org.eclipse.dataspaceconnector.common.stream;
 
 import org.junit.jupiter.api.Test;
 
