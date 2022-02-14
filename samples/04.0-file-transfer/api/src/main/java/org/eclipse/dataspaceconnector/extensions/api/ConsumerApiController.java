@@ -69,7 +69,7 @@ public class ConsumerApiController {
         var contractOfferRequest = ContractOfferRequest.Builder.newInstance()
                 .contractOffer(contractOffer)
                 .protocol("ids-multipart")
-                .connectorId("consumer")
+                .connectorId("urn:connector:provider") // counter party id matching the address !!
                 .connectorAddress(connectorAddress)
                 .type(ContractOfferRequest.Type.INITIAL)
                 .build();
@@ -124,4 +124,3 @@ public class ConsumerApiController {
                 );
     }
 }
-

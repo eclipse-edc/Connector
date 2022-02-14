@@ -14,6 +14,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
@@ -52,7 +53,12 @@ class ContractValidationServiceImplTest {
         when(assetIndex.queryAssets(isA(List.class))).thenReturn(Stream.of(asset));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = ContractOffer.Builder.newInstance().asset(asset).policy(originalPolicy).id("1:2").build();
+        var offer = ContractOffer.Builder.newInstance().id("1:2")
+                .asset(asset)
+                .policy(originalPolicy)
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"))
+                .build();
 
         var result = validationService.validate(claimToken, offer);
 

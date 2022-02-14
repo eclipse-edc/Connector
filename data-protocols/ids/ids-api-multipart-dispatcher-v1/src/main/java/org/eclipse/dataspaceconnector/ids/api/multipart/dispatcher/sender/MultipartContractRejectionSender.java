@@ -71,6 +71,7 @@ public class MultipartContractRejectionSender extends IdsMultipartSender<Contrac
                 ._senderAgent_(getConnectorId())
                 ._recipientConnector_(Collections.singletonList(URI.create(rejection.getConnectorId())))
                 ._contractRejectionReason_(new TypedLiteral(rejection.getRejectionReason()))
+                ._transferContract_(URI.create(rejection.getCorrelationId()))
                 .build();
     }
 

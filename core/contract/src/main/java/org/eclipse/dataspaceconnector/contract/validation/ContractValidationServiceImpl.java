@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 package org.eclipse.dataspaceconnector.contract.validation;
@@ -52,16 +53,19 @@ public class ContractValidationServiceImpl implements ContractValidationService 
     @Override
     @NotNull
     public Result<ContractOffer> validate(ClaimToken token, ContractOffer offer) {
-        var agent = agentService.createFor(token);
-        var contractIdTokens = parseContractId(offer.getId());
-        if (contractIdTokens.length != 2) {
-            return Result.failure("Not a valid id: " + offer.getId());
+        if (isMandatoryAttributeMissing(offer)) {
+            return Result.failure("Mandatory attributes are missing.");
         }
 
-        // validate the offer against the original definition, which includes policy verification
+        var contractIdTokens = parseContractId(offer.getId());
+        if (contractIdTokens.length != 2) {
+            return Result.failure("Invalid id: " + offer.getId());
+        }
+
+        var agent = agentService.createFor(token);
         var contractDefinition = definitionServiceSupplier.get().definitionFor(agent, contractIdTokens[DEFINITION_PART]);
         if (contractDefinition == null) {
-            return Result.failure("");
+            return Result.failure("Invalid contract.");
         }
 
         // take asset from definition and index
@@ -69,11 +73,8 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var targetAssets = assetIndex.queryAssets(criteria);
         var targetAsset = targetAssets.findFirst().orElse(null);
         if (targetAsset == null) {
-            return Result.failure("");
+            return Result.failure("Invalid target: " + offer.getAsset());
         }
-
-        // TODO Hand over to external PDP
-        // TODO create counter offer if wanted
 
         var sanitizedUsagePolicy = contractDefinition.getContractPolicy();
         var validatedOffer = ContractOffer.Builder.newInstance()
@@ -86,15 +87,16 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public @NotNull Result<ContractOffer> validate(ClaimToken token, ContractOffer offer, ContractOffer latestOffer) {
-        var agent = agentService.createFor(token);
-        var contractIdTokens = parseContractId(offer.getId());
-        if (contractIdTokens.length != 2) {
-            return Result.failure("Not a valid id: " + offer.getId());
+        if (isMandatoryAttributeMissing(offer)) {
+            return Result.failure("Mandatory attributes are missing.");
         }
 
-        // TODO implement validation
-        // TODO Hand over to external PDP
-        // TODO create counter offer if wanted
+        var contractIdTokens = parseContractId(offer.getId());
+        if (contractIdTokens.length != 2) {
+            return Result.failure("Invalid id: " + offer.getId());
+        }
+
+        // TODO implement validation against latest offer within the negotiation
 
         return Result.success(null);
     }
@@ -104,15 +106,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
         var agent = agentService.createFor(token);
         var tokens = parseContractId(agreement.getId());
         if (tokens.length != 2) {
-            // not a valid id
-            return false;
+            return false; // not a valid id
         }
 
-        if (!isStarted(agreement)) {
-            return false;
-        }
-
-        if (isExpired(agreement)) {
+        if (!isStarted(agreement) || isExpired(agreement)) {
             return false;
         }
 
@@ -122,11 +119,9 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     @Override
     public boolean validate(ClaimToken token, ContractAgreement agreement, ContractOffer latestOffer) {
-        // TODO implement validation
-        // TODO Hand over to external PDP
-        // TODO create counter offer if wanted
-
-        return true;
+        // TODO implement validation against latest offer within the negotiation
+        var contractIdTokens = parseContractId(agreement.getId());
+        return contractIdTokens.length == 2;
     }
 
     @NotNull
@@ -143,5 +138,10 @@ public class ContractValidationServiceImpl implements ContractValidationService 
 
     private boolean isStarted(ContractAgreement contractAgreement) {
         return contractAgreement.getContractStartDate() <= Instant.now().getEpochSecond();
+    }
+
+    private boolean isMandatoryAttributeMissing(ContractOffer offer) {
+        // TODO add contractStart and contractEnd check as soon as the Infomodel serializer is used
+        return offer.getProvider() == null || offer.getConsumer() == null;
     }
 }

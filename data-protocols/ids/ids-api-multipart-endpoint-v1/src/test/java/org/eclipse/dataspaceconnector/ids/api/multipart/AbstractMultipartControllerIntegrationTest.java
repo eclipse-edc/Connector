@@ -167,6 +167,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
     protected ContractRejectionMessage getContractRejectionMessage() {
         return new ContractRejectionMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
+                ._transferContract_(URI.create("contractId"))
                 ._securityToken_(getDynamicAttributeToken())
                 .build();
     }

@@ -59,12 +59,6 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiati
 
 /**
  * Implementation of the {@link ConsumerContractNegotiationManager}.
- *
- * TODO
- * - InMemoryContractNegotiationStore (see InMemoryTransferProcessStore), implement ContractNegotiationStore
- * - ContractNegotiation: Builder, transfer change methods
- * - ConsumerContractNegotiationManager & ProviderContractNegotiationManager: add start and stop methods, builder
- * - method call in CoreTransferExtension
  */
 public class ConsumerContractNegotiationManagerImpl implements ConsumerContractNegotiationManager {
     private final AtomicBoolean active = new AtomicBoolean();
@@ -155,7 +149,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         negotiation.addContractOffer(contractOffer); // TODO persist unchecked offer of provider?
         if (result.failed()) {
             monitor.debug("[Consumer] Contract offer received. Will be rejected.");
-            negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
+            negotiation.setErrorDetail(result.getFailureMessages().get(0));
             negotiation.transitionDeclining();
             negotiationStore.save(negotiation);
             observable.invokeForEach(l -> l.declining(negotiation));
@@ -166,7 +160,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             negotiationStore.save(negotiation);
             observable.invokeForEach(l -> l.consumerApproving(negotiation));
         }
-        
+
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -239,18 +233,27 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      */
     @Override
     public NegotiationResult declined(ClaimToken token, String negotiationId) {
-        var negotiation = negotiationStore.find(negotiationId);
+        var negotiation = findContractNegotiationById(negotiationId);
         if (negotiation == null) {
             return NegotiationResult.failure(FATAL_ERROR);
         }
 
-        monitor.debug("[Consumer] Contract rejection received. Abort negotiation process");
+        monitor.debug("[Consumer] Contract rejection received. Abort negotiation process.");
         negotiation.transitionDeclined();
         negotiationStore.save(negotiation);
         observable.invokeForEach(l -> l.declined(negotiation));
         monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         return NegotiationResult.success(negotiation);
+    }
+
+    private ContractNegotiation findContractNegotiationById(String negotiationId) {
+        var negotiation = negotiationStore.find(negotiationId);
+        if (negotiation == null) {
+            negotiation = negotiationStore.findForCorrelationId(negotiationId);
+        }
+
+        return negotiation;
     }
 
     /**
