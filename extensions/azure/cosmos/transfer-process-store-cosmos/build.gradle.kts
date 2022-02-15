@@ -20,7 +20,7 @@ val cosmosSdkVersion: String by project
 val jodahFailsafeVersion: String by project
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:transfer-spi"))
     api(project(":common:util"))
     api(project(":extensions:azure:cosmos:cosmos-common"))
 

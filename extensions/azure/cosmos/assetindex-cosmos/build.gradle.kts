@@ -17,7 +17,6 @@ plugins {
 }
 
 val cosmosSdkVersion: String by project
-val okHttpVersion: String by project
 val jodahFailsafeVersion: String by project
 
 dependencies {
@@ -27,7 +26,6 @@ dependencies {
     api(project(":extensions:dataloading"))
 
     implementation("com.azure:azure-cosmos:${cosmosSdkVersion}")
-    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
     implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
 
     testImplementation(testFixtures(project(":common:util")))
