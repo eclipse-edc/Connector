@@ -12,36 +12,32 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.negotiation.store.memory;
-
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
-import org.eclipse.dataspaceconnector.spi.query.CriterionConverter;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
+package org.eclipse.dataspaceconnector.spi.query;
 
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.function.Predicate;
 
-import static org.eclipse.dataspaceconnector.negotiation.store.memory.ContractNegotiationFunctions.property;
-
 /**
- * Converts a {@link Criterion} into a {@link Predicate} for use with an {@link InMemoryContractNegotiationStore}.
- * Currently, only the "=" and "in" operators are supported (cf. {@link Criterion#getOperator()}).
+ * Converts a {@link Criterion} into a {@link Predicate} of any given type.
+ * At this time only "=" and "in" operators are supported.
+ *
+ * @param <T> The type of object that the Predicate is created for.
  */
-class CriterionToPredicateConverter implements CriterionConverter<Predicate<ContractNegotiation>> {
+public abstract class BaseCriterionToPredicateConverter<T> implements CriterionConverter<Predicate<T>> {
     @Override
-    public Predicate<ContractNegotiation> convert(Criterion criterion) {
+    public Predicate<T> convert(Criterion criterion) {
         if ("=".equals(criterion.getOperator())) {
-            return negotiation -> {
-                Object property = property(negotiation, (String) criterion.getOperandLeft());
+            return t -> {
+                Object property = property((String) criterion.getOperandLeft(), t);
                 if (property == null) {
-                    return false; //property does not exist on negotiation
+                    return false; //property does not exist on t
                 }
                 return Objects.equals(property, criterion.getOperandRight());
             };
         } else if ("in".equalsIgnoreCase(criterion.getOperator())) {
-            return contractNegotiation -> {
-                String property = property(contractNegotiation, (String) criterion.getOperandLeft());
+            return t -> {
+                String property = property((String) criterion.getOperandLeft(), t);
                 var list = (String) criterion.getOperandRight();
                 // some cleanup needs to happen
                 list = list.replace("(", "").replace(")", "").replace(" ", "");
@@ -52,5 +48,12 @@ class CriterionToPredicateConverter implements CriterionConverter<Predicate<Cont
         throw new IllegalArgumentException(String.format("Operator [%s] is not supported by this converter!", criterion.getOperator()));
     }
 
-
+    /**
+     * Method to extract an object's field's value
+     *
+     * @param key    Then name of the field
+     * @param object The target object
+     * @param <R>    The type of the field's value
+     */
+    protected abstract <R> R property(String key, Object object);
 }

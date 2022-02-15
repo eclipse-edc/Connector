@@ -8,12 +8,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiation;
 
-class CriterionToPredicateConverterTest {
-    private CriterionToPredicateConverter converter;
+class ContractNegotiationPredicateConverterTest {
+    private ContractNegotiationPredicateConverter converter;
 
     @BeforeEach
     void setUp() {
-        converter = new CriterionToPredicateConverter();
+        converter = new ContractNegotiationPredicateConverter();
     }
 
     @Test

@@ -38,7 +38,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static java.lang.String.format;
 import static java.util.stream.Collectors.toList;
 import static org.eclipse.dataspaceconnector.negotiation.store.memory.ContractNegotiationFunctions.property;
 
@@ -168,7 +167,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
     }
 
     private Predicate<ContractNegotiation> toPredicate(Criterion criterion) {
-        return new CriterionToPredicateConverter().convert(criterion);
+        return new ContractNegotiationPredicateConverter().convert(criterion);
     }
 
     private <T> T readLock(Supplier<T> work) {
