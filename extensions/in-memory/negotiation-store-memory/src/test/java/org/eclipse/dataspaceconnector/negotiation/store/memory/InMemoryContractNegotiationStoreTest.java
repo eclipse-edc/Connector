@@ -15,21 +15,27 @@
 package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
 import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.negotiation.store.memory.TestFunctions.createNegotiation;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotSame;
@@ -38,6 +44,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class InMemoryContractNegotiationStoreTest {
     private InMemoryContractNegotiationStore store;
+
+    @BeforeEach
+    void setUp() {
+        store = new InMemoryContractNegotiationStore();
+    }
 
     @Test
     void verifyCreateUpdateDelete() {
@@ -155,34 +166,55 @@ class InMemoryContractNegotiationStoreTest {
         assertThat(list1).isNotEqualTo(list2).doesNotContainAnyElementsOf(list2);
     }
 
-    @BeforeEach
-    void setUp() {
-        store = new InMemoryContractNegotiationStore();
+    @Test
+    void findAll_noQuerySpec() {
+        IntStream.range(0, 10).forEach(i -> store.save(createNegotiation("test-neg-" + i)));
+
+        var all = store.queryNegotiations(QuerySpec.Builder.newInstance().build());
+        assertThat(all).hasSize(10);
     }
 
-    private ContractNegotiation createNegotiation(String name) {
-        return ContractNegotiation.Builder.newInstance()
-                .type(ContractNegotiation.Type.CONSUMER)
-                .id(name)
-                .contractAgreement(createAgreement())
-                .contractOffers(List.of(ContractOffer.Builder.newInstance().id("contractId")
-                        .policy(Policy.Builder.newInstance().build()).build()))
-                .counterPartyAddress("consumer")
-                .counterPartyId("consumerId")
-                .protocol("ids-multipart")
-                .build();
+    @Test
+    void findAll_verifyPaging() {
+
+        IntStream.range(0, 10).forEach(i -> store.save(createNegotiation("test-neg-" + i)));
+
+        // page size fits
+        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
+
+        // page size too large
+        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
     }
 
-    private ContractAgreement createAgreement() {
-        return ContractAgreement.Builder.newInstance()
-                .id("agreementId")
-                .providerAgentId("provider")
-                .consumerAgentId("consumer")
-                .asset(Asset.Builder.newInstance().build())
-                .policy(Policy.Builder.newInstance().build())
-                .contractSigningDate(LocalDate.MIN.toEpochDay())
-                .contractStartDate(LocalDate.MIN.toEpochDay())
-                .contractEndDate(LocalDate.MAX.toEpochDay())
-                .build();
+    @Test
+    void findAll_verifyFiltering() {
+        IntStream.range(0, 10).forEach(i -> store.save(createNegotiation("test-neg-" + i)));
+        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().equalsAsContains(false).filter("id=test-neg-3").build())).extracting(ContractNegotiation::getId).containsOnly("test-neg-3");
     }
+
+    @Test
+    void findAll_verifyFiltering_invalidFilterExpression() {
+        IntStream.range(0, 10).forEach(i -> store.save(createNegotiation("test-neg-" + i)));
+        assertThatThrownBy(() -> store.queryNegotiations(QuerySpec.Builder.newInstance().filter("something foobar other").build())).isInstanceOfAny(IllegalArgumentException.class);
+    }
+
+    @Test
+    void findAll_verifySorting() {
+        IntStream.range(0, 10).forEach(i -> store.save(createNegotiation("test-neg-" + i)));
+
+        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build())).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractNegotiation::getId));
+        assertThat(store.queryNegotiations(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build())).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+    }
+
+    @Test
+    void findAll_verifySorting_invalidProperty() {
+        IntStream.range(0, 10).forEach(i -> store.save(createNegotiation("test-neg-" + i)));
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        // must actually collect, otherwise the stream is not materialized
+        assertThat(store.queryNegotiations(query).collect(Collectors.toList())).hasSize(10);
+    }
+
+
 }

@@ -335,6 +335,11 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
             return Collections.emptyList();
         }
+
+        @Override
+        public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private static class FakeProviderContractNegotiationManager implements ProviderContractNegotiationManager {
@@ -342,6 +347,10 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return NegotiationResult.success(fakeContractNegotiation());
+        }
+
+        @Override
+        public void enqueueCommand(ContractNegotiationCommand command) {
         }
 
         @Override
@@ -357,10 +366,6 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         @Override
         public NegotiationResult consumerApproved(ClaimToken token, String correlationId, ContractAgreement agreement, String hash) {
             return NegotiationResult.success(fakeContractNegotiation());
-        }
-    
-        @Override
-        public void enqueueCommand(ContractNegotiationCommand command) {
         }
     }
 
@@ -385,7 +390,7 @@ class IdsApiMultipartEndpointV1IntegrationTestServiceExtension implements Servic
         public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return NegotiationResult.success(fakeContractNegotiation());
         }
-    
+
         @Override
         public void enqueueCommand(ContractNegotiationCommand command) {
         }

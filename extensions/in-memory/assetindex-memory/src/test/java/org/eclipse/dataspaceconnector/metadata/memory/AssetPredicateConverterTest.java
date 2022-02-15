@@ -8,13 +8,13 @@ import org.junit.jupiter.api.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-class CriterionToPredicateConverterTest {
+class AssetPredicateConverterTest {
 
-    private CriterionToPredicateConverter converter;
+    private AssetPredicateConverter converter;
 
     @BeforeEach
     void setUp() {
-        converter = new CriterionToPredicateConverter();
+        converter = new AssetPredicateConverter();
     }
 
     @Test

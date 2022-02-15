@@ -16,9 +16,11 @@ package org.eclipse.dataspaceconnector.negotiation.store.memory;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
-import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -30,10 +32,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
+import static org.eclipse.dataspaceconnector.negotiation.store.memory.ContractNegotiationFunctions.property;
 
 /**
  * An in-memory, threadsafe process store.
@@ -114,6 +119,52 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
                     .map(ContractNegotiation::copy)
                     .collect(toList());
         });
+    }
+
+    @Override
+    public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+        return readLock(() -> {
+            Stream<ContractNegotiation> negotiationStream = processesById.values().stream();
+            // filter
+            var andPredicate = querySpec.getFilterExpression().stream().map(this::toPredicate).reduce(x -> true, Predicate::and);
+            negotiationStream = negotiationStream.filter(andPredicate);
+
+            // sort
+            var sortField = querySpec.getSortField();
+
+            if (sortField != null) {
+                var comparator = propertyComparator(querySpec, sortField);
+                negotiationStream = negotiationStream.sorted(comparator);
+            }
+
+            //limit
+            negotiationStream = negotiationStream.skip(querySpec.getOffset()).limit(querySpec.getLimit());
+
+            return negotiationStream;
+        });
+    }
+
+    @NotNull
+    private Comparator<ContractNegotiation> propertyComparator(QuerySpec querySpec, String property) {
+        return (negotiation1, negotiation2) -> {
+            var o1 = property(negotiation1, property);
+            var o2 = property(negotiation2, property);
+
+            if (o1 == null || o2 == null) {
+                return 0;
+            }
+
+            if (!(o1 instanceof Comparable)) {
+                throw new IllegalArgumentException("A property '" + property + "' is not comparable!");
+            }
+            var comp1 = (Comparable) o1;
+            var comp2 = (Comparable) o2;
+            return querySpec.getSortOrder() == SortOrder.ASC ? comp1.compareTo(comp2) : comp2.compareTo(comp1);
+        };
+    }
+
+    private Predicate<ContractNegotiation> toPredicate(Criterion criterion) {
+        return new ContractNegotiationPredicateConverter().convert(criterion);
     }
 
     private <T> T readLock(Supplier<T> work) {

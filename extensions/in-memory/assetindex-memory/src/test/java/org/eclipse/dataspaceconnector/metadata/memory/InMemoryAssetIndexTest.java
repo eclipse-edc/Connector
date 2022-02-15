@@ -23,7 +23,7 @@ class InMemoryAssetIndexTest {
 
     @BeforeEach
     void setUp() {
-        index = new InMemoryAssetIndex(new CriterionToPredicateConverter());
+        index = new InMemoryAssetIndex(new AssetPredicateConverter());
     }
 
     @Test

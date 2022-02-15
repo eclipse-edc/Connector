@@ -44,10 +44,10 @@ import static java.lang.String.format;
 public class InMemoryAssetIndex implements AssetIndex, DataAddressResolver, AssetLoader {
     private final Map<String, Asset> cache = new ConcurrentHashMap<>();
     private final Map<String, DataAddress> dataAddresses = new ConcurrentHashMap<>();
-    private final CriterionToPredicateConverter predicateFactory;
+    private final AssetPredicateConverter predicateFactory;
     private final ReentrantReadWriteLock lock;
 
-    public InMemoryAssetIndex(CriterionToPredicateConverter predicateFactory) {
+    public InMemoryAssetIndex(AssetPredicateConverter predicateFactory) {
         this.predicateFactory = predicateFactory;
         //fair locks guarantee strong consistency since all waiting threads are processed in order of waiting time
         lock = new ReentrantReadWriteLock(true);
