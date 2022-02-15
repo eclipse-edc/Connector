@@ -29,6 +29,7 @@ import java.util.Map;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.eclipse.dataspaceconnector.transaction.atomikos.JdbcTestFixtures.createAtomikosConfig;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.JdbcTestFixtures.createDataSourceConfig;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -49,6 +50,7 @@ class AtomikosTransactionExtensionTest {
         when(extensionContext.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(TransactionManagerConfigurationKeys.LOGGING, "false")));
 
         when(extensionContext.getConfig(isA(String.class))).thenAnswer(a -> createDataSourceConfig());
+        when(extensionContext.getConfig()).thenAnswer(a -> createAtomikosConfig());
         when(extensionContext.getMonitor()).thenReturn(new ConsoleMonitor());
 
         var dsRegistry = new DataSourceRegistry[1];
