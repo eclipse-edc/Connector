@@ -306,9 +306,9 @@ paths:
           description: default response
           content:
             application/json: {}
-  /transferprocess:
+  /policies:
     get:
-      operationId: getAllContractDefinitions
+      operationId: getAllPolicies
       parameters:
       - name: offset
         in: query
@@ -358,22 +358,22 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TransferProcessDto'
+                  $ref: '#/components/schemas/PolicyDefinitionDto'
     post:
-      operationId: createContractDefinition
+      operationId: createPolicy
       requestBody:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/TransferProcessDto'
+              $ref: '#/components/schemas/PolicyDefinitionDto'
       responses:
         default:
           description: default response
           content:
             application/json: {}
-  /transferprocess/{id}:
+  /policies/{id}:
     get:
-      operationId: getContractDefinition
+      operationId: getPolicy
       parameters:
       - name: id
         in: path
@@ -388,9 +388,9 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/TransferProcessDto'
+                $ref: '#/components/schemas/PolicyDefinitionDto'
     delete:
-      operationId: deleteContractDefinition
+      operationId: deletePolicy
       parameters:
       - name: id
         in: path
@@ -536,15 +536,6 @@ components:
           type: string
         sync:
           type: boolean
-    DataRequestDto:
-      type: object
-      properties:
-        assetId:
-          type: string
-        contractId:
-          type: string
-        connectorId:
-          type: string
     Duty:
       type: object
       properties:
@@ -629,6 +620,35 @@ components:
           - SET
           - OFFER
           - CONTRACT
+    PolicyDefinitionDto:
+      type: object
+      properties:
+        uid:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+        prohibitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prohibition'
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        '@type':
+          type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
     Prohibition:
       type: object
       properties:
@@ -646,19 +666,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Constraint'
-    TransferProcessDto:
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-        state:
-          type: string
-        errorDetail:
-          type: string
-        dataRequest:
-          $ref: '#/components/schemas/DataRequestDto'
     TransferType:
       type: object
       properties:

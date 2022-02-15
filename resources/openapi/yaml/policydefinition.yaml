@@ -1,0 +1,189 @@
+openapi: 3.0.1
+paths:
+  /policies:
+    get:
+      operationId: getAllPolicies
+      parameters:
+      - name: offset
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          format: int32
+      - name: filter
+        in: query
+        schema:
+          type: string
+      - name: sort
+        in: query
+        schema:
+          type: string
+          enum:
+          - ASC
+          - DESC
+      - name: sortField
+        in: query
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PolicyDefinitionDto'
+    post:
+      operationId: createPolicy
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PolicyDefinitionDto'
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+  /policies/{id}:
+    get:
+      operationId: getPolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PolicyDefinitionDto'
+    delete:
+      operationId: deletePolicy
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json: {}
+components:
+  schemas:
+    Action:
+      type: object
+      properties:
+        type:
+          type: string
+        includedIn:
+          type: string
+        constraint:
+          $ref: '#/components/schemas/Constraint'
+    Constraint:
+      required:
+      - edctype
+      type: object
+      properties:
+        edctype:
+          type: string
+      discriminator:
+        propertyName: edctype
+    Duty:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        parentPermission:
+          $ref: '#/components/schemas/Permission'
+        consequence:
+          $ref: '#/components/schemas/Duty'
+    Permission:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
+        duties:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+    PolicyDefinitionDto:
+      type: object
+      properties:
+        uid:
+          type: string
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Permission'
+        prohibitions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Prohibition'
+        obligations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Duty'
+        extensibleProperties:
+          type: object
+          additionalProperties:
+            type: object
+        inheritsFrom:
+          type: string
+        '@type':
+          type: string
+          enum:
+          - SET
+          - OFFER
+          - CONTRACT
+    Prohibition:
+      type: object
+      properties:
+        uid:
+          type: string
+        target:
+          type: string
+        action:
+          $ref: '#/components/schemas/Action'
+        assignee:
+          type: string
+        assigner:
+          type: string
+        constraints:
+          type: array
+          items:
+            $ref: '#/components/schemas/Constraint'
