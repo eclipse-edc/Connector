@@ -14,7 +14,7 @@
 
 package org.eclipse.dataspaceconnector.boot.system;
 
-import org.eclipse.dataspaceconnector.core.monitor.ConsoleMonitor;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.monitor.MultiplexingMonitor;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;

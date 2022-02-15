@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
-import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -25,6 +25,7 @@ import org.eclipse.dataspaceconnector.spi.proxy.DataProxyRequest;
 import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntry;
 import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -32,7 +33,6 @@ import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
-import org.eclipse.dataspaceconnector.spi.transfer.retry.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
@@ -85,14 +85,14 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * Each iteration will seek to transition a set number of processes for each state to avoid situations where an excessive number of processes in one state block progress of
  * processes in other states.
  * <br/>
- * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link TransferWaitStrategy} before conducting the next iteration.
+ * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link WaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
 public class TransferProcessManagerImpl implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
-    private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private TransferProcessStore transferProcessStore;
@@ -558,7 +558,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder waitStrategy(TransferWaitStrategy waitStrategy) {
+        public Builder waitStrategy(WaitStrategy waitStrategy) {
             manager.waitStrategy = waitStrategy;
             return this;
         }
@@ -640,9 +640,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.dataProxyManager, "DataProxyManager cannot be null!");
             Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "Observable cannot be null");
-            
+
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
-            
+
             return manager;
         }
     }

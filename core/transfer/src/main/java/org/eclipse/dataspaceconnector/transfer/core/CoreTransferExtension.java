@@ -14,16 +14,16 @@
 
 package org.eclipse.dataspaceconnector.transfer.core;
 
-import org.eclipse.dataspaceconnector.core.CoreExtension;
-import org.eclipse.dataspaceconnector.core.base.BoundedCommandQueue;
-import org.eclipse.dataspaceconnector.core.base.retry.ExponentialWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
 import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandlerRegistry;
+import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -105,7 +105,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
         var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
         context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
-    
+
         CommandQueue<TransferProcessCommand> commandQueue = new BoundedCommandQueue<>(10);
         TransferProcessObservable observable = new TransferProcessObservableImpl();
         context.registerService(TransferProcessObservable.class, observable);

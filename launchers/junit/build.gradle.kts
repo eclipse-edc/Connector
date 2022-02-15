@@ -25,6 +25,7 @@ dependencies {
     api(project(":spi"))
 
     api(project(":core:boot"))
+    api(project(":core:base"))
 
     testFixturesImplementation(project(":common:util"))
 

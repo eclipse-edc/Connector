@@ -13,8 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
-import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
-import org.eclipse.dataspaceconnector.spi.system.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

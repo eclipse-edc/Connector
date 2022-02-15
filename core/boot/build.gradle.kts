@@ -21,8 +21,7 @@ val jupiterVersion: String by project
 val slf4jVersion: String by project
 
 dependencies {
-    api(project(":spi"))
-    api(project(":core:base"))
+    api(project(":spi:core-spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:${jupiterVersion}")

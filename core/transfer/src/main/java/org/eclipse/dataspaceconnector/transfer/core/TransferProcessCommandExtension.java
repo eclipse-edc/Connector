@@ -13,9 +13,8 @@
  */
 package org.eclipse.dataspaceconnector.transfer.core;
 
-import org.eclipse.dataspaceconnector.core.CoreExtension;
-import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
+import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -36,12 +35,7 @@ public class TransferProcessCommandExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext context) {
-        CommandHandlerRegistry registry = context.getService(CommandHandlerRegistry.class, true);
-        if (registry == null) {
-            registry = new CommandHandlerRegistryImpl();
-            context.registerService(CommandHandlerRegistry.class, registry);
-        }
-
+        CommandHandlerRegistry registry = context.getService(CommandHandlerRegistry.class);
         registerDefaultCommands(registry);
     }
 

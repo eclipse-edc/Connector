@@ -1,9 +1,11 @@
 package org.eclipse.dataspaceconnector.boot.system;
 
+import org.eclipse.dataspaceconnector.boot.system.injection.InjectorImpl;
+import org.eclipse.dataspaceconnector.boot.system.injection.ReflectiveObjectFactory;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.InjectionPointScanner;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionPointScanner;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

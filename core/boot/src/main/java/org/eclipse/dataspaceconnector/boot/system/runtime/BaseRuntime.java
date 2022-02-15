@@ -5,11 +5,11 @@ import org.eclipse.dataspaceconnector.boot.monitor.MonitorProvider;
 import org.eclipse.dataspaceconnector.boot.system.DefaultServiceExtensionContext;
 import org.eclipse.dataspaceconnector.boot.system.ExtensionLoader;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckResult;
 import org.eclipse.dataspaceconnector.spi.system.health.HealthCheckService;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.jetbrains.annotations.NotNull;
 
@@ -112,7 +112,7 @@ public class BaseRuntime {
     /**
      * Starts all service extensions by invoking {@link ExtensionLoader#bootServiceExtensions(List, ServiceExtensionContext)}
      *
-     * @param context           The {@code ServiceExtensionContext} that is used in this runtime.
+     * @param context The {@code ServiceExtensionContext} that is used in this runtime.
      * @param serviceExtensions a list of extensions
      */
     protected void bootExtensions(ServiceExtensionContext context, List<InjectionContainer<ServiceExtension>> serviceExtensions) {
@@ -135,7 +135,7 @@ public class BaseRuntime {
      * this would likely need to be overridden.
      *
      * @param typeManager The TypeManager (for JSON de-/serialization)
-     * @param monitor     a Monitor
+     * @param monitor a Monitor
      * @return a {@code ServiceExtensionContext}
      */
     @NotNull
@@ -148,7 +148,7 @@ public class BaseRuntime {
      * forward this signal to all extensions through their {@link ServiceExtension#shutdown()} callback.
      *
      * @param serviceExtensions All extensions that should receive the shutdown signal.
-     * @param monitor           A monitor - should you need one.
+     * @param monitor A monitor - should you need one.
      */
     protected void shutdown(List<ServiceExtension> serviceExtensions, Monitor monitor) {
         var iter = serviceExtensions.listIterator(serviceExtensions.size());

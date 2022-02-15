@@ -16,13 +16,16 @@ package org.eclipse.dataspaceconnector.core;
 
 import net.jodah.failsafe.RetryPolicy;
 import okhttp3.OkHttpClient;
+import org.eclipse.dataspaceconnector.core.base.CommandHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.core.base.RemoteMessageDispatcherRegistryImpl;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceConfiguration;
 import org.eclipse.dataspaceconnector.core.health.HealthCheckServiceImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
+import org.eclipse.dataspaceconnector.spi.system.BaseExtension;
 import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -80,6 +83,8 @@ public class CoreServicesExtension implements ServiceExtension {
         // remote message dispatcher registry
         var dispatcherRegistry = new RemoteMessageDispatcherRegistryImpl();
         context.registerService(RemoteMessageDispatcherRegistry.class, dispatcherRegistry);
+
+        context.registerService(CommandHandlerRegistry.class, new CommandHandlerRegistryImpl());
     }
 
     @Override

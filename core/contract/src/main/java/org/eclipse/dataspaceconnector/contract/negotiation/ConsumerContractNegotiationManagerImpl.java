@@ -14,13 +14,12 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.core.base.CommandProcessor;
-import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
@@ -29,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -68,11 +68,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private ContractValidationService validationService;
 
     private int batchSize = 5;
-    private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ExecutorService executor;
 
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    
+
     private ContractNegotiationObservable observable;
     private CommandQueue<ContractNegotiationCommand> commandQueue;
     private CommandRunner<ContractNegotiationCommand> commandRunner;
@@ -96,7 +96,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             executor.shutdownNow();
         }
     }
-    
+
     @Override
     public void enqueueCommand(ContractNegotiationCommand command) {
         commandQueue.enqueue(command);
@@ -470,9 +470,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 long offering = onNegotiationsInState(CONSUMER_OFFERING).doProcess(this::processConsumerOffering);
                 long approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
                 long declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
-    
+
                 long commandsProcessed = onCommands().doProcess(this::processCommand);
-                
+
                 long totalProcessed = requesting + offering + approving + declining + commandsProcessed;
 
                 if (totalProcessed == 0) {
@@ -501,11 +501,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
         return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize));
     }
-    
+
     private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
         return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
     }
-    
+
     private boolean processCommand(ContractNegotiationCommand command) {
         return commandProcessor.processCommandQueue(command);
     }
@@ -539,7 +539,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return this;
         }
 
-        public Builder waitStrategy(NegotiationWaitStrategy waitStrategy) {
+        public Builder waitStrategy(WaitStrategy waitStrategy) {
             manager.waitStrategy = waitStrategy;
             return this;
         }
@@ -548,12 +548,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             manager.dispatcherRegistry = dispatcherRegistry;
             return this;
         }
-    
+
         public Builder commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
             manager.commandQueue = commandQueue;
             return this;
         }
-    
+
         public Builder commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
             manager.commandRunner = commandRunner;
             return this;
@@ -571,9 +571,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             Objects.requireNonNull(manager.commandQueue, "commandQueue");
             Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
-    
+
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
-            
+
             return manager;
         }
     }
