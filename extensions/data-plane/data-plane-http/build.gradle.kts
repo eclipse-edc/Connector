@@ -14,6 +14,7 @@
 
 val okHttpVersion: String by project
 val jodahFailsafeVersion: String by project
+val rsApi: String by project
 
 plugins {
     `java-library`

@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.dataplane.validation.server.rules;
+package org.eclipse.dataspaceconnector.dataplane.validation.rules;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;

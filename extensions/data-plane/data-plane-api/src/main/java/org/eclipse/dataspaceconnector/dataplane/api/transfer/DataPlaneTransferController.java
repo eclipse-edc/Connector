@@ -11,6 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
+
 package org.eclipse.dataspaceconnector.dataplane.api.transfer;
 
 import jakarta.ws.rs.Consumes;
@@ -33,7 +34,7 @@ import static org.eclipse.dataspaceconnector.dataplane.api.common.ResponseFuncti
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/transfer")
 public class DataPlaneTransferController {
-    private DataPlaneManager dataPlaneManager;
+    private final DataPlaneManager dataPlaneManager;
 
     public DataPlaneTransferController(DataPlaneManager dataPlaneManager) {
         this.dataPlaneManager = dataPlaneManager;

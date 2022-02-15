@@ -23,7 +23,7 @@ dependencies {
     api(project(":spi:core-spi"))
     api(project(":spi:web-spi"))
     api(project(":spi:contract-spi"))
-    api(project(":extensions:token:token-validation"))
+    implementation(project(":extensions:token:token-validation"))
 
     implementation("com.nimbusds:nimbus-jose-jwt:${nimbusVersion}")
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
@@ -32,8 +32,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-plane-validation-server") {
-            artifactId = "data-plane-validation-server"
+        create<MavenPublication>("data-plane-validation-facade") {
+            artifactId = "data-plane-validation-facade"
             from(components["java"])
         }
     }

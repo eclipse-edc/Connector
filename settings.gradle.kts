@@ -110,7 +110,7 @@ include(":extensions:data-plane:data-plane-http")
 include(":extensions:data-plane:data-plane-api")
 include(":extensions:token:token-generation")
 include(":extensions:token:token-validation")
-include(":extensions:data-plane:data-plane-validation-facade:data-plane-validation-server")
+include(":extensions:data-plane:data-plane-validation-facade")
 include(":extensions:sql:common")
 include(":extensions:sql:pool:apache-commons-pool")
 
