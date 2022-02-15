@@ -124,10 +124,8 @@ we would appreciate if your pull request applies to the following points:
 
 ## Project and Milestone Planning
 
-Milestones are planned for about 6 to 8 weeks. Future milestones describe an outlook on features to 
-be considered. The transparent process on GitHub enables participation. To decide what features and
-issues will be targeted, user requirements and sponsors are considered. Thus, everyone is able to
-influence the addressed developments and its priorities! 
+We use milestones to set a common focus for a period of 6 to 8 weeks. 
+The group of committers chooses issues based on customer needs and contributions we expect.
 
 ### Projects
 
