@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.spi.query;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -26,7 +27,7 @@ import java.util.stream.Collectors;
 public class QuerySpec {
     private int offset = 0;
     private int limit = 50;
-    private List<Criterion> filterExpression;
+    private List<Criterion> filterExpression = new ArrayList<>();
     private SortOrder sortOrder = SortOrder.ASC;
     private String sortField;
 
@@ -117,7 +118,9 @@ public class QuerySpec {
         }
 
         public Builder filter(List<Criterion> criteria) {
-            querySpec.filterExpression = criteria;
+            if (criteria != null) {
+                querySpec.filterExpression = criteria;
+            }
             return this;
         }
 
