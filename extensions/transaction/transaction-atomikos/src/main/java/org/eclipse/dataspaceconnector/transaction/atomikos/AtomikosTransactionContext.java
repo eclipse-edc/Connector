@@ -13,6 +13,7 @@
  */
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
 
@@ -63,6 +64,7 @@ public class AtomikosTransactionContext implements TransactionContext {
             } catch (SystemException ex) {
                 monitor.severe("Error setting rollback", ex);
             }
+            throw new EdcException(e);
         } finally {
             if (startedTransaction) {
                 try {

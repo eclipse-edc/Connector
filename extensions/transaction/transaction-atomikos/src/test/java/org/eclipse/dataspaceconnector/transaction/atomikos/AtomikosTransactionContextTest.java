@@ -1,5 +1,6 @@
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
+import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -8,6 +9,7 @@ import javax.transaction.Status;
 import javax.transaction.Transaction;
 import javax.transaction.TransactionManager;
 
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -47,11 +49,13 @@ class AtomikosTransactionContextTest {
         when(transactionManager.getTransaction()).thenReturn(null, transaction);
         when(transactionManager.getStatus()).thenReturn(Status.STATUS_MARKED_ROLLBACK);
 
-        transactionContext.execute(() -> {
-            transactionContext.execute(() -> {
-                throw new RuntimeException();
-            });
-        });
+        assertThatExceptionOfType(EdcException.class)
+                .isThrownBy(() ->
+                        transactionContext.execute(() -> {
+                            transactionContext.execute(() -> {
+                                throw new RuntimeException();
+                            });
+                        }));
 
         verify(transactionManager, times(1)).begin();
         verify(transactionManager, times(1)).rollback();
@@ -61,9 +65,11 @@ class AtomikosTransactionContextTest {
     void verifyRollback() throws Exception {
         when(transactionManager.getTransaction()).thenReturn(null, transaction);
         when(transactionManager.getStatus()).thenReturn(Status.STATUS_MARKED_ROLLBACK);
-        transactionContext.execute(() -> {
-            throw new RuntimeException();
-        });
+        assertThatExceptionOfType(EdcException.class)
+                .isThrownBy(() ->
+                        transactionContext.execute(() -> {
+                            throw new RuntimeException();
+                        }));
 
         verify(transaction, times(1)).setRollbackOnly();
         verify(transactionManager, times(1)).rollback();
