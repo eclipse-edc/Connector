@@ -39,6 +39,7 @@ import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.awaitility.Awaitility.await;
 import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.notNullValue;
 
@@ -61,13 +62,15 @@ public class FileTransferIntegrationTest {
     private static final String DESTINATION_PARAM = "destination";
     private static final String CONTRACT_ID_PARAM = "contractId";
     private static final String FILE_NAME_PARAM = "filename";
+
+    private static final String CONSUMER_ASSET_PATH = propOrEnv("edc.samples.04.consumer.asset.path", tempDirectory());
+    private static final int CONSUMER_CONNECTOR_PORT = getFreePort();
     private static final String API_KEY_CONTROL_AUTH = propOrEnv("edc.api.control.auth.apikey.value", "password");
     private static final String API_KEY_HEADER = "X-Api-Key";
-    private static final String CONSUMER_ASSET_PATH = propOrEnv("edc.samples.04.consumer.asset.path", tempDirectory());
-    private static final int CONSUMER_CONNECTOR_PORT = TestUtils.getFreePort();
     private static final String CONSUMER_CONNECTOR_HOST = "http://localhost:" + CONSUMER_CONNECTOR_PORT;
     @RegisterExtension
     static EdcRuntimeExtension consumer = new EdcRuntimeExtension(
+
             ":samples:04.0-file-transfer:consumer",
             "consumer",
             Map.of(
@@ -75,7 +78,7 @@ public class FileTransferIntegrationTest {
                     "edc.api.control.auth.apikey.value", API_KEY_CONTROL_AUTH,
                     "ids.webhook.address", CONSUMER_CONNECTOR_HOST));
 
-    private static final int PROVIDER_CONNECTOR_PORT = TestUtils.getFreePort();
+    private static final int PROVIDER_CONNECTOR_PORT = getFreePort();
     private static final String PROVIDER_CONNECTOR_HOST = "http://localhost:" + PROVIDER_CONNECTOR_PORT;
     private static final String PROVIDER_ASSET_PATH = propOrEnv("edc.samples.04.asset.path", format("%s/%s.txt", tempDirectory(), PROVIDER_ASSET_NAME));
     @RegisterExtension
@@ -86,6 +89,7 @@ public class FileTransferIntegrationTest {
                     "web.http.port", String.valueOf(PROVIDER_CONNECTOR_PORT),
                     "edc.samples.04.asset.path", PROVIDER_ASSET_PATH,
                     "ids.webhook.address", PROVIDER_CONNECTOR_HOST));
+
 
     /**
      * Helper method to create a temporary directory.
