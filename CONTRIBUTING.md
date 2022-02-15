@@ -152,12 +152,7 @@ Milestones are organized at the
 [Github Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
 They are numbered in ascending order.
 
-The ongoing milestone has a due date - that is **no guarantee** that all linked issues will be 
-resolved by then. 
-Further milestones, that are already known, can be created any time, and issues can be assigned
-to them. However, for every new milestone, a due date will be voted in the committers round only as
-soon as the current milestone is closed.
-
+The due date of a milestone does not imply any guarantee that all linked issued will be resolved by then.
 The milestone `Milestone Scoping` is a permanent milestone without a due date. Issues that should be 
 considered for future milestones but already need to be targeted for the current one will be 
 assigned here. This way, contributors, users, and adopters can track the progress.
