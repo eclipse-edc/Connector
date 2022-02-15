@@ -150,9 +150,7 @@ developers or contributors, it should be converted to a discussion and not be cl
 
 Milestones are organized at the 
 [Github Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
-They are numbered in ascending order, e.g. `Milestone 1`, `Milestone 2`, ... Closed milestones can
-always be viewed in the according 
-[tab](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones?state=closed).
+They are numbered in ascending order.
 
 The ongoing milestone has a due date - that is **no guarantee** that all linked issues will be 
 resolved by then. 
