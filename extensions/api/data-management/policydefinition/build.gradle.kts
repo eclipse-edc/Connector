@@ -21,6 +21,7 @@ plugins {
 }
 
 dependencies {
+    implementation(project(":core:policy:policy-evaluator"))
     implementation(project(":common:util"))
     implementation(project(":extensions:api:api-core"))
 
