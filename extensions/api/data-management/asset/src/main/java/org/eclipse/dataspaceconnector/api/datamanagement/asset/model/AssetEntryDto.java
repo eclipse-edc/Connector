@@ -23,31 +23,23 @@ public class AssetEntryDto {
     private AssetDto assetDto;
     private DataAddress dataAddress;
 
-    private AssetEntryDto(){
+    private AssetEntryDto() {
     }
 
     public AssetDto getAssetDto() {
         return assetDto;
     }
 
-    public void setAssetDto(AssetDto assetDto) {
-        this.assetDto = assetDto;
-    }
-
     public DataAddress getDataAddress() {
         return dataAddress;
     }
 
-    public void setDataAddress(DataAddress dataAddress) {
-        this.dataAddress = dataAddress;
-    }
-
     @JsonPOJOBuilder(withPrefix = "")
-    public static final class Builder{
+    public static final class Builder {
 
         private final AssetEntryDto assetEntryDto;
 
-        private Builder(){
+        private Builder() {
 
             assetEntryDto = new AssetEntryDto();
         }
@@ -57,17 +49,17 @@ public class AssetEntryDto {
             return new Builder();
         }
 
-        public Builder assetDto(AssetDto assetDto){
+        public Builder assetDto(AssetDto assetDto) {
             assetEntryDto.assetDto = assetDto;
             return this;
         }
 
-        public Builder dataAddress(DataAddress dataAddress){
-            assetEntryDto.dataAddress=dataAddress;
+        public Builder dataAddress(DataAddress dataAddress) {
+            assetEntryDto.dataAddress = dataAddress;
             return this;
         }
 
-        public AssetEntryDto build(){
+        public AssetEntryDto build() {
             return assetEntryDto;
         }
     }

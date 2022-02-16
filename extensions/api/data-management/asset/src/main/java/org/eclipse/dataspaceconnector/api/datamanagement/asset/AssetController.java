@@ -13,7 +13,19 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
-import jakarta.ws.rs.*;
+import java.util.Collections;
+import java.util.List;
+
+import static java.lang.String.format;
+
+import jakarta.ws.rs.Consumes;
+import jakarta.ws.rs.DELETE;
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.POST;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
@@ -21,13 +33,8 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
-import java.util.Collections;
-import java.util.List;
-
-import static java.lang.String.format;
-
-@Consumes({ MediaType.APPLICATION_JSON })
-@Produces({ MediaType.APPLICATION_JSON })
+@Consumes({MediaType.APPLICATION_JSON})
+@Produces({MediaType.APPLICATION_JSON})
 @Path("/assets")
 public class AssetController {
 
@@ -39,7 +46,7 @@ public class AssetController {
 
     @POST
     @Path("")
-    public void createAsset(AssetEntryDto assetEntryDto){
+    public void createAsset(AssetEntryDto assetEntryDto) {
         monitor.debug(format("Asset created %s", assetEntryDto.getAssetDto()));
     }
 
@@ -49,7 +56,7 @@ public class AssetController {
                                        @QueryParam("limit") Integer limit,
                                        @QueryParam("filter") String filterExpression,
                                        @QueryParam("sort") SortOrder sortOrder,
-                                       @QueryParam("sortField") String sortField){
+                                       @QueryParam("sortField") String sortField) {
 
         var spec = QuerySpec.Builder.newInstance()
                 .offset(offset)
@@ -65,7 +72,7 @@ public class AssetController {
 
     @GET
     @Path("{id}")
-    public AssetDto getAsset(@PathParam("id") String id){
+    public AssetDto getAsset(@PathParam("id") String id) {
 
         monitor.debug(format("Attempting to return Asset with id %s", id));
         return null;
@@ -73,7 +80,7 @@ public class AssetController {
 
     @DELETE
     @Path("{id}")
-    public void removeAsset(@PathParam("id") String id){
+    public void removeAsset(@PathParam("id") String id) {
 
         monitor.debug(format("Attempting to delete Asset with id %s", id));
     }

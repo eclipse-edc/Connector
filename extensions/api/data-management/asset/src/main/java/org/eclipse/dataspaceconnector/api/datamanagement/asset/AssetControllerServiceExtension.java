@@ -33,8 +33,6 @@ public class AssetControllerServiceExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
         monitor = serviceExtensionContext.getMonitor();
-
         webService.registerController(new AssetController(monitor));
     }
-
 }
