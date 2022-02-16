@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
-import static org.eclipse.dataspaceconnector.negotiation.store.memory.ContractNegotiationFunctions.property;
+import static org.eclipse.dataspaceconnector.common.reflection.ReflectionUtil.propertyComparator;
 
 /**
  * An in-memory, threadsafe process store.
@@ -130,7 +130,7 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
             var sortField = querySpec.getSortField();
 
             if (sortField != null) {
-                var comparator = propertyComparator(querySpec, sortField);
+                var comparator = propertyComparator(querySpec.getSortOrder() == SortOrder.ASC, sortField);
                 negotiationStream = negotiationStream.sorted(comparator);
             }
 
@@ -139,26 +139,6 @@ public class InMemoryContractNegotiationStore implements ContractNegotiationStor
 
             return negotiationStream;
         });
-    }
-
-    @NotNull
-    @SuppressWarnings({"rawtypes", "unchecked"})
-    private Comparator<ContractNegotiation> propertyComparator(QuerySpec querySpec, String property) {
-        return (negotiation1, negotiation2) -> {
-            var o1 = property(negotiation1, property);
-            var o2 = property(negotiation2, property);
-
-            if (o1 == null || o2 == null) {
-                return 0;
-            }
-
-            if (!(o1 instanceof Comparable)) {
-                throw new IllegalArgumentException("A property '" + property + "' is not comparable!");
-            }
-            var comp1 = (Comparable) o1;
-            var comp2 = (Comparable) o2;
-            return querySpec.getSortOrder() == SortOrder.ASC ? comp1.compareTo(comp2) : comp2.compareTo(comp1);
-        };
     }
 
     private Predicate<ContractNegotiation> toPredicate(Criterion criterion) {

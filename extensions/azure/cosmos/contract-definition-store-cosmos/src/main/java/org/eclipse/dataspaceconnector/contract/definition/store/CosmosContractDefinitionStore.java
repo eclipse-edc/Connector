@@ -5,6 +5,7 @@ import net.jodah.failsafe.function.CheckedSupplier;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
@@ -16,6 +17,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static net.jodah.failsafe.Failsafe.with;
 
@@ -42,6 +44,11 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
     @Override
     public @NotNull Collection<ContractDefinition> findAll() {
         return getCache().values();
+    }
+
+    @Override
+    public @NotNull Stream<ContractDefinition> findAll(QuerySpec spec) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

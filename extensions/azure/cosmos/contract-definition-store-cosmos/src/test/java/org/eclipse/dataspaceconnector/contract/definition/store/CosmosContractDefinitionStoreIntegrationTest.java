@@ -9,11 +9,12 @@ import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.junit.jupiter.api.AfterAll;
@@ -24,8 +25,11 @@ import org.junit.jupiter.api.TestInfo;
 
 import java.time.temporal.ChronoUnit;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -33,7 +37,7 @@ import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationF
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
 
-@IntegrationTest
+//@IntegrationTest
 public class CosmosContractDefinitionStoreIntegrationTest {
     public static final String REGION = "westeurope";
     private static final String TEST_ID = UUID.randomUUID().toString();
@@ -47,7 +51,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     @BeforeAll
     static void prepareCosmosClient() {
-        var key = propOrEnv("COSMOS_KEY", null);
+        var key = propOrEnv("COSMOS_KEY", "RYNecVDtJq2WKAcIoONBLzuTBys06kUcP8Rw9Yz5zOzsOQFVGaP8oGuI5qgF5ONQY4VukjkpQ4x7a2jwVvo7SQ==");
         if (key != null) {
             var client = new CosmosClientBuilder()
                     .key(key)
@@ -208,6 +212,104 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     void reload() {
 
     }
+
+    @Test
+    void findAll_noQuerySpec() {
+        var doc1 = generateDocument();
+        var doc2 = generateDocument();
+
+        container.createItem(doc1);
+        container.createItem(doc2);
+
+        assertThat(store.findAll(QuerySpec.none())).hasSize(2).extracting(ContractDefinition::getId).containsExactlyInAnyOrder(doc1.getId(), doc2.getId());
+    }
+
+    @Test
+    void findAll_verifyPaging() {
+
+        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .map(ContractDefinitionDocument::getId)
+                .collect(Collectors.toList());
+
+        // page size fits
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4)
+                .extracting(ContractDefinition::getId).isSubsetOf(all);
+
+    }
+
+    @Test
+    void findAll_verifyPaging_pageSizeLargerThanCollection() {
+
+        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .map(ContractDefinitionDocument::getId)
+                .collect(Collectors.toList());
+
+        // page size fits
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7)
+                .extracting(ContractDefinition::getId).isSubsetOf(all);
+    }
+
+    @Test
+    void findAll_verifyFiltering() {
+        var documents = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .collect(Collectors.toList());
+
+        var expectedId = documents.get(3).getId();
+
+        var query = QuerySpec.Builder.newInstance().filter("id=" + expectedId).build();
+        assertThat(store.findAll(query)).extracting(ContractDefinition::getId).containsOnly(expectedId);
+    }
+
+    @Test
+    void findAll_verifyFiltering_invalidFilterExpression() {
+        IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .forEach(d -> container.createItem(d));
+
+        var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
+
+        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: contains");
+    }
+
+    @Test
+    void findAll_verifyFiltering_unsuccessfulFilterExpression() {
+        IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .forEach(d -> container.createItem(d));
+
+        var query = QuerySpec.Builder.newInstance().filter("something = other").build();
+
+        assertThat(store.findAll(query)).isEmpty();
+    }
+
+    @Test
+    void findAll_verifySorting() {
+
+        IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .forEach(d -> container.createItem(d));
+
+        var ascendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
+        assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getId));
+        var descendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build();
+        assertThat(store.findAll(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
+    }
+
+    @Test
+    void findAll_sorting_nonExistentProperty() {
+
+        var allIds = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+                .peek(d -> container.createItem(d))
+                .map(ContractDefinitionDocument::getId)
+                .collect(Collectors.toList());
+
+
+        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+
+        var all = store.findAll(query).collect(Collectors.toList());
+        assertThat(all).isEmpty();
+    }
+
 
     private ContractDefinition convert(Object object) {
         var json = typeManager.writeValueAsString(object);

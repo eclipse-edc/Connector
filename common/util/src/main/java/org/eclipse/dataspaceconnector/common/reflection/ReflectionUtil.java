@@ -14,6 +14,9 @@
 
 package org.eclipse.dataspaceconnector.common.reflection;
 
+import org.jetbrains.annotations.NotNull;
+
+import java.util.Comparator;
 import java.util.Objects;
 
 public class ReflectionUtil {
@@ -52,6 +55,25 @@ public class ReflectionUtil {
         } catch (ReflectionException ignored) {
             return null;
         }
+    }
+
+    @NotNull
+    public static <T> Comparator<T> propertyComparator(boolean isAscending, String property) {
+        return (def1, def2) -> {
+            var o1 = ReflectionUtil.getFieldValueSilent(property, def1);
+            var o2 = ReflectionUtil.getFieldValueSilent(property, def2);
+
+            if (o1 == null || o2 == null) {
+                return 0;
+            }
+
+            if (!(o1 instanceof Comparable)) {
+                throw new IllegalArgumentException("A property '" + property + "' is not comparable!");
+            }
+            var comp1 = (Comparable) o1;
+            var comp2 = (Comparable) o2;
+            return isAscending ? comp1.compareTo(comp2) : comp2.compareTo(comp1);
+        };
     }
 
 

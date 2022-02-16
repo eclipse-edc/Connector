@@ -13,11 +13,13 @@
  */
 package org.eclipse.dataspaceconnector.spi.contract.offer.store;
 
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
+import java.util.stream.Stream;
 
 /**
  * Persists {@link ContractDefinition}s.
@@ -32,6 +34,12 @@ public interface ContractDefinitionStore {
      */
     @NotNull
     Collection<ContractDefinition> findAll();
+
+    /**
+     * Returns all the definitions in the store.
+     */
+    @NotNull
+    Stream<ContractDefinition> findAll(QuerySpec spec);
 
     /**
      * Persists the definitions.

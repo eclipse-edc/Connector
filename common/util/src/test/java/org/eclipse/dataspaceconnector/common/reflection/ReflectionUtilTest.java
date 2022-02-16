@@ -16,6 +16,10 @@ package org.eclipse.dataspaceconnector.common.reflection;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Comparator;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -86,5 +90,24 @@ class ReflectionUtilTest {
                 .isInstanceOf(NullPointerException.class).hasMessage("object");
     }
 
+    @Test
+    void propertyComparator_whenAscending() {
+        var testObjects = IntStream.range(0, 10).mapToObj(i -> new TestObject("id" + i, i)).collect(Collectors.toList());
+        var comparator = ReflectionUtil.propertyComparator(true, "description");
+        assertThat(testObjects.stream().sorted(comparator)).isSortedAccordingTo(Comparator.comparing(TestObject::getDescription));
+    }
 
+    @Test
+    void propertyComparator_whenDescending() {
+        var testObjects = IntStream.range(0, 10).mapToObj(i -> new TestObject("id" + i, i)).collect(Collectors.toList());
+        var comparator = ReflectionUtil.propertyComparator(false, "description");
+        assertThat(testObjects.stream().sorted(comparator)).isSortedAccordingTo(Comparator.comparing(TestObject::getDescription).reversed());
+    }
+
+    @Test
+    void propertyComparator_whenPropertyNotFound() {
+        var testObjects = IntStream.range(0, 10).mapToObj(i -> new TestObject("id" + i, i)).collect(Collectors.toList());
+        var comparator = ReflectionUtil.propertyComparator(true, "notexist");
+        assertThat(testObjects.stream().sorted(comparator)).containsExactlyInAnyOrder(testObjects.toArray(new TestObject[]{}));
+    }
 }
