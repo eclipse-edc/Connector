@@ -33,7 +33,7 @@ import static java.lang.String.format;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
-@Path("/contractnegotitations")
+@Path("/contractnegotiations")
 public class ContractNegotiationController {
     private final Monitor monitor;
 
