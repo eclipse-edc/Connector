@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Diego Gomez
+ * Copyright (c) 2022 ZF friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -10,6 +10,8 @@
  * Contributors:
  *   Diego Gomez - Initial API and Implementation
  */
+
+package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 import java.io.IOException;
 import java.util.Collections;
@@ -26,7 +28,7 @@ import okhttp3.Response;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.AssetController;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddress;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
 import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
@@ -94,7 +96,7 @@ public class AssetControllerIntegrationTest {
     void postAsset() throws IOException {
 
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "An Asset")).build();
-        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
+        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
         var str = objectMapper.writeValueAsString(assetEntryDto);
 
@@ -108,7 +110,7 @@ public class AssetControllerIntegrationTest {
     @Test
     void postAssetIDAlreadyExists() throws IOException {
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-Existent", "An Asset")).build();
-        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
+        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
         var str = objectMapper.writeValueAsString(assetEntryDto);
 
@@ -122,7 +124,7 @@ public class AssetControllerIntegrationTest {
     @Test
     void postAssetIsEmpty() throws IOException {
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-empty", "")).build();
-        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
+        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
         var str = objectMapper.writeValueAsString(assetEntryDto);
 

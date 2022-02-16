@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Diego Gomez
+ * Copyright (c) 2022 ZF friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -45,13 +45,11 @@ public class AssetController {
     }
 
     @POST
-    @Path("")
     public void createAsset(AssetEntryDto assetEntryDto) {
         monitor.debug(format("Asset created %s", assetEntryDto.getAssetDto()));
     }
 
     @GET
-    @Path("")
     public List<AssetDto> getAllAssets(@QueryParam("offset") Integer offset,
                                        @QueryParam("limit") Integer limit,
                                        @QueryParam("filter") String filterExpression,

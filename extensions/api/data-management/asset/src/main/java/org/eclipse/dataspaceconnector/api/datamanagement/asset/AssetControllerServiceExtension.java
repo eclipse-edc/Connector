@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Diego Gomez
+ * Copyright (c) 2022 ZF friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -13,6 +13,8 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
+import javax.naming.Context;
+
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -21,9 +23,11 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class AssetControllerServiceExtension implements ServiceExtension {
 
-    private Monitor monitor;
     @Inject
     private WebService webService;
+
+    @Inject
+    Context context;
 
     @Override
     public String name() {
@@ -32,7 +36,11 @@ public class AssetControllerServiceExtension implements ServiceExtension {
 
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
-        monitor = serviceExtensionContext.getMonitor();
-        webService.registerController(new AssetController(monitor));
+        Monitor monitor = serviceExtensionContext.getMonitor();
+        if (!serviceExtensionContext.getConfig().hasKey("web.http.data.port")) {
+            monitor.severe("No port mapping entry for context 'data' ('web.http.data.port=...') found in configuration. The Data Management API will not be available!");
+        } else {
+            // todo: also register the Authorization filter, once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/pull/598 is finished: // webService.registerResource("data", new AuthorizationRequestFilter());
+            webService.registerResource("data", new AssetController(monitor)); }
     }
 }

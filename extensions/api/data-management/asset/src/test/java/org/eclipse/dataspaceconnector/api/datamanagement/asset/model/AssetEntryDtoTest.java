@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Diego Gomez
+ * Copyright (c) 2022 ZF friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -35,7 +35,7 @@ public class AssetEntryDtoTest {
     void verifySerialization() throws JsonProcessingException {
 
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
-        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
+        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
 
         var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
 

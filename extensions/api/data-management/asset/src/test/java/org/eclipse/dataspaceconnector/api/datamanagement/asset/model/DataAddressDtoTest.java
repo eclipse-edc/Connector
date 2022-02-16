@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Diego Gomez
+ * Copyright (c) 2022 ZF friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -22,7 +22,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class DataAddressTest {
+public class DataAddressDtoTest {
 
     private ObjectMapper objectMapper;
 
@@ -33,13 +33,13 @@ public class DataAddressTest {
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
+        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
 
         var str = objectMapper.writeValueAsString(dataAddress);
 
         assertThat(str).isNotNull();
 
-        var deserialized = objectMapper.readValue(str, DataAddress.class);
+        var deserialized = objectMapper.readValue(str, DataAddressDto.class);
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(dataAddress);
     }
 }

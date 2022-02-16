@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Diego Gomez
+ * Copyright (c) 2022 ZF friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
 @JsonDeserialize(builder = AssetDto.Builder.class)
 public class AssetDto {
-
     private Map<String, Object> properties;
 
     private AssetDto() {
@@ -33,11 +32,9 @@ public class AssetDto {
 
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
-
         private final AssetDto assetDto;
 
         private Builder() {
-
             assetDto = new AssetDto();
         }
 

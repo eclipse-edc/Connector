@@ -11,9 +11,10 @@
  *   Diego Gomez - Initial API and Implementation
  */
 
+package org.eclipse.dataspaceconnector.api.datamanagement.asset;
+
 import static org.mockito.Mockito.mock;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.AssetController;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -39,27 +40,27 @@ public class AssetControllerTest {
     }
 
     @Test
-    void listAllAssets() {
+    void getAllAssets() {
         //Todo: implement
     }
 
     @Test
-    void getAssetFromID() {
+    void getAssetById() {
         //Todo: implement
     }
 
     @Test
-    void getAssetFromIDNotExists() {
+    void getAssetById_notExists() {
         //Todo: implement
     }
 
     @Test
-    void removeAssetfromID() {
+    void deleteAsset() {
         //Todo: implement
     }
 
     @Test
-    void removeAssetFromIDNotExists() {
+    void deleteAsset_notExists() {
         //Todo: implement
     }
 

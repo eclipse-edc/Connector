@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Diego Gomez
+ * Copyright (c) 2022 ZF friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -19,12 +19,12 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
 
-@JsonDeserialize(builder = DataAddress.Builder.class)
-public class DataAddress {
+@JsonDeserialize(builder = DataAddressDto.Builder.class)
+public class DataAddressDto {
 
     private Map<String, Object> properties;
 
-    private DataAddress() {
+    private DataAddressDto() {
     }
 
     public Map<String, Object> getProperties() {
@@ -34,10 +34,10 @@ public class DataAddress {
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
 
-        private final DataAddress dataAddress;
+        private final DataAddressDto dataAddressDto;
 
         private Builder() {
-            dataAddress = new DataAddress();
+            dataAddressDto = new DataAddressDto();
         }
 
         @JsonCreator
@@ -46,12 +46,12 @@ public class DataAddress {
         }
 
         public Builder properties(Map<String, Object> properties) {
-            dataAddress.properties = properties;
+            dataAddressDto.properties = properties;
             return this;
         }
 
-        public DataAddress build() {
-            return dataAddress;
+        public DataAddressDto build() {
+            return dataAddressDto;
         }
 
     }
