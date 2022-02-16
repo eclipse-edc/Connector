@@ -13,27 +13,29 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
+import java.util.Collections;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class AssetEntryDtoTest {
 
     private ObjectMapper objectMapper;
 
     @BeforeEach
-    void setUp() { objectMapper = new ObjectMapper();}
+    void setUp() {
+        objectMapper = new ObjectMapper();
+    }
 
     @Test
-    void verifySerialization() throws JsonProcessingException{
+    void verifySerialization() throws JsonProcessingException {
 
-        var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1","")).build();
-        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1","/localhost")).build();
+        var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "")).build();
+        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
 
         var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
 
@@ -41,7 +43,7 @@ public class AssetEntryDtoTest {
 
         assertThat(str).isNotNull();
 
-        var deserialized = objectMapper.readValue(str,AssetEntryDto.class);
+        var deserialized = objectMapper.readValue(str, AssetEntryDto.class);
         assertThat(deserialized).usingRecursiveComparison().isEqualTo(assetEntryDto);
     }
 }

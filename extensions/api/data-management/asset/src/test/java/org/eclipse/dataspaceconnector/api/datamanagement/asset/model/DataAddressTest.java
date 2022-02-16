@@ -13,27 +13,27 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
+import java.util.Collections;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.util.Collections;
-
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class DataAddressTest {
 
     private ObjectMapper objectMapper;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         objectMapper = new ObjectMapper();
     }
 
     @Test
     void verifySerialization() throws JsonProcessingException {
-        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1","/localhost")).build();
+        var dataAddress = DataAddress.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
 
         var str = objectMapper.writeValueAsString(dataAddress);
 
