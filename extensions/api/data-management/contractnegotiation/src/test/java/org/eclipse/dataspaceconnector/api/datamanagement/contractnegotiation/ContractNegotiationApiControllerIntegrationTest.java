@@ -40,7 +40,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @BeforeAll
     static void prepareWebserver() {
-        port = TestUtils.getFreePort(1024, 10000);
+        port = TestUtils.getFreePort();
         var monitor = mock(Monitor.class);
         var config = new JettyConfiguration(null, null);
         config.portMapping(new PortMapping("data", port, "/api/v1/data"));

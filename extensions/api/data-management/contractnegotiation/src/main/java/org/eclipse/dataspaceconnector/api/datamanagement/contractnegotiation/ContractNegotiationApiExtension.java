@@ -19,7 +19,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class ContractNegotiationApiExtension implements ServiceExtension {
-
     @Inject
     private WebService webService;
 
