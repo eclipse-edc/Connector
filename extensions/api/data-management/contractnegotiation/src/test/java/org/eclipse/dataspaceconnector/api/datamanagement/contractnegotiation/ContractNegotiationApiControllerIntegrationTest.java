@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Florian Rusch
+ * Copyright (c) 2022 ZF Friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -8,15 +8,10 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Contributors:
- *   Florian Rusch - Initial API and Implementation
+ *   ZF Friedrichshafen AG - Initial API and Implementation
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
-
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -33,6 +28,11 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
 
 class ContractNegotiationApiControllerIntegrationTest {
     private static int port;
