@@ -20,13 +20,13 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 
 @JsonDeserialize(builder = ContractNegotiationDto.Builder.class)
 public class ContractNegotiationDto {
-    private final Type type = Type.CONSUMER;
-    private String id;
+    private String contractAgreementId; // is null until state == CONFIRMED
     private String counterPartyAddress;
+    private String errorDetail;
+    private String id;
     private String protocol = "ids-multipart";
     private String state;
-    private String errorDetail;
-    private String contractAgreementId; // is null until state == CONFIRMED
+    private Type type = Type.CONSUMER;
 
     private ContractNegotiationDto() {
     }
@@ -103,9 +103,7 @@ public class ContractNegotiationDto {
         }
 
         public Builder type(Type type) {
-            if (type != Type.CONSUMER) {
-                throw new IllegalArgumentException("The type can only be CONSUMER");
-            }
+            dto.type = type;
             return this;
         }
 
