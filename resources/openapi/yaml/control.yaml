@@ -117,10 +117,10 @@ components:
             type: string
         transferType:
           $ref: '#/components/schemas/TransferType'
-        destinationType:
-          type: string
         sync:
           type: boolean
+        destinationType:
+          type: string
     TransferType:
       type: object
       properties:
