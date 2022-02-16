@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 cluetec GmbH
+ * Copyright (c) 2022 Florian Rusch
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Contributors:
- *   cluetec GmbH - Initial API and Implementation
+ *   Florian Rusch - Initial API and Implementation
  */
 
 val infoModelVersion: String by project
@@ -22,23 +22,20 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":common:util"))
-    api(project(":extensions:http"))
+    implementation(project(":common:util"))
+    implementation(project(":extensions:api:api-core"))
+    implementation(project(":core"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
-    testImplementation(project(":core:"))
-
-
-
     testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation("io.rest-assured:rest-assured:4.4.0")
+    testImplementation(project(":extensions:http"))
+    testImplementation(testFixtures(project(":common:util")))
 }
 
 publishing {
     publications {
-        create<MavenPublication>("control-api") {
-            artifactId = "control-api"
+        create<MavenPublication>("contractnegotiation-api") {
+            artifactId = "contractnegotiation-api"
             from(components["java"])
         }
     }

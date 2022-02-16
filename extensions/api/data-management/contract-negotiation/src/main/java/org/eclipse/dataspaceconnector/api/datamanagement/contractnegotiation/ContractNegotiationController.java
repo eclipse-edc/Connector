@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 cluetec GmbH
+ * Copyright (c) 2022 Florian Rusch
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -8,9 +8,8 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Contributors:
- *   cluetec GmbH - Initial API and Implementation
+ *   Florian Rusch - Initial API and Implementation
  */
-
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
@@ -20,84 +19,65 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.model.ContractNegotiationDto;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
-import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+
+import static java.lang.String.format;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
-@Path("/v1/contractnegotitations")
+@Path("/contractnegotitations")
 public class ContractNegotiationController {
-    private final ContractNegotiationStore contractNegotiationStore;
+    private final Monitor monitor;
 
-    // TODO remove dummy constructor of the ContractNegotiationDto class after controller logic was implemented
-    public ContractNegotiationController(@NotNull ContractNegotiationStore contractNegotiationStore) {
-        this.contractNegotiationStore = Objects.requireNonNull(contractNegotiationStore);
+    public ContractNegotiationController(Monitor monitor) {
+        this.monitor = monitor;
     }
 
     @GET
     @Path("/")
-    public List<ContractNegotiationDto> getNegotiations() {
-        var negotiations = new ArrayList<ContractNegotiationDto>();
-        negotiations.add(new ContractNegotiationDto());
+    public List<ContractNegotiationDto> getNegotiations(@QueryParam("offset") Integer offset, @QueryParam("limit") Integer limit, @QueryParam("filter") String filterExpression, @QueryParam("sort") SortOrder sortOrder, @QueryParam("sortField") String sortField) {
+        var spec = QuerySpec.Builder.newInstance().offset(offset).limit(limit).sortField(sortField).filter(filterExpression).sortOrder(sortOrder).build();
 
-        return negotiations;
+        monitor.debug(format("Get all contract definitions %s", spec));
+
+        return Collections.emptyList();
     }
 
     @GET
     @Path("/{id}")
-    public ContractNegotiationDto getNegotiationById(@PathParam("id") String id) {
-        // var negotiation = contractNegotiationStore.find(id);
-        //
-        // if (negotiation == null) {
-        //     return Response.status(404).build();
-        // }
-        //
-        // return ContractNegotiationDto.fromContractNegotiation(negotiation);
-        return new ContractNegotiationDto();
+    public ContractNegotiationDto getNegotiation(@PathParam("id") String id) {
+        monitor.debug(format("Get contract negotiation with id %s", id));
+        return null;
     }
 
     @GET
     @Path("/{id}/state")
-    public String getNegotiationStateById(@PathParam("id") String id) {
-        // var negotiation = contractNegotiationStore.find(id);
-        //
-        // if (negotiation == null) {
-        //     throw new ObjectNotFoundException();
-        // }
-        //
-        // return new ContractNegotiationDto(negotiation).getState();
-        var dto = new ContractNegotiationDto();
-        return dto.getState();
+    public String getNegotiationState(@PathParam("id") String id) {
+        monitor.debug(format("Get contract negotiation state with id %s", id));
+        return "some state";
     }
 
     @POST
     @Path("/{id}/cancel")
     public void cancelNegotiation(@PathParam("id") String id) {
-        // var negotiation = contractNegotiationStore.find(id);
-        //
-        // if (negotiation == null) {
-        //     return Response.status(404).build();
-        // }
-
         // TODO move Negotiation to the CANCELLING/CANCELLED state
         // TODO Throw IllegalStateException if not possible
+        monitor.debug(format("Attempting to cancel contract negotiation with id %s", id));
     }
 
     @POST
     @Path("/{id}/decline")
     public void declineNegotiation(@PathParam("id") String id) {
-        // var negotiation = contractNegotiationStore.find(id);
-        //
-        // if (negotiation == null) {
-        //     return Response.status(404).build();
-        // }
-
         // TODO move Negotiation to the DECLINING/DECLINED state
         // TODO Throw IllegalStateException if not possible
+        monitor.debug(format("Attempting to decline contract negotiation with id %s", id));
     }
 }
