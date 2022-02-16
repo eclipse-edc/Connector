@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
+import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
 import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
 import org.eclipse.dataspaceconnector.extension.jetty.JettyConfiguration;
@@ -39,9 +40,7 @@ class ContractNegotiationApiControllerIntegrationTest {
 
     @BeforeAll
     static void prepareWebserver() {
-        // TODO refactor when #641 was merged
-        // port = TestUtils.getFreePort(1024, 10000);
-        port = 83933;
+        port = TestUtils.getFreePort(1024, 10000);
         var monitor = mock(Monitor.class);
         var config = new JettyConfiguration(null, null);
         config.portMapping(new PortMapping("data", port, "/api/v1/data"));

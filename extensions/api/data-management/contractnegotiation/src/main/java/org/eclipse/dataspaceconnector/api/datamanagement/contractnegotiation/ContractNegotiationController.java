@@ -43,7 +43,11 @@ public class ContractNegotiationController {
 
     @GET
     @Path("/")
-    public List<ContractNegotiationDto> getNegotiations(@QueryParam("offset") Integer offset, @QueryParam("limit") Integer limit, @QueryParam("filter") String filterExpression, @QueryParam("sort") SortOrder sortOrder, @QueryParam("sortField") String sortField) {
+    public List<ContractNegotiationDto> getNegotiations(@QueryParam("offset") Integer offset,
+                                                        @QueryParam("limit") Integer limit,
+                                                        @QueryParam("filter") String filterExpression,
+                                                        @QueryParam("sort") SortOrder sortOrder,
+                                                        @QueryParam("sortField") String sortField) {
         var spec = QuerySpec.Builder.newInstance().offset(offset).limit(limit).sortField(sortField).filter(filterExpression).sortOrder(sortOrder).build();
 
         monitor.debug(format("Get all contract definitions %s", spec));

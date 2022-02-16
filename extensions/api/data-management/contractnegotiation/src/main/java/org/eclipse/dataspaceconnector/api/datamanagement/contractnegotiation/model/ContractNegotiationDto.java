@@ -103,6 +103,13 @@ public class ContractNegotiationDto {
             return this;
         }
 
+        public Builder type(Type type) {
+            if (type != Type.CONSUMER) {
+                throw new IllegalArgumentException("The type can only be CONSUMER");
+            }
+            return this;
+        }
+
         public ContractNegotiationDto build() {
             return dto;
         }
