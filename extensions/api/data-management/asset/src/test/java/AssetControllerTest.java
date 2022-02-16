@@ -11,60 +11,55 @@
  *   Diego Gomez - Initial API and Implementation
  */
 
+import static org.mockito.Mockito.mock;
+
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.AssetController;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import static org.mockito.Mockito.mock;
 
 public class AssetControllerTest {
 
     private AssetController assetController;
 
     @BeforeEach
-    void setUp(){
+    void setUp() {
         var monitor = mock(Monitor.class);
         assetController = new AssetController(monitor);
     }
 
     @Test
-    void createAsset(){
+    void createAsset() {
         //Todo: implement
     }
 
     @Test
-    void createAssetAlreadyExists(){
+    void createAssetAlreadyExists() {
         //Todo: implement
     }
 
     @Test
-    void createAssetPathNotExists(){
+    void listAllAssets() {
         //Todo: implement
     }
 
     @Test
-    void listAllAssets(){
+    void getAssetFromID() {
         //Todo: implement
     }
 
     @Test
-    void getAssetFromID(){
+    void getAssetFromIDNotExists() {
         //Todo: implement
     }
 
     @Test
-    void getAssetFromIDNotExists(){
+    void removeAssetfromID() {
         //Todo: implement
     }
 
     @Test
-    void removeAssetfromID(){
-        //Todo: implement
-    }
-
-    @Test
-    void removeAssetFromIDNotExists(){
+    void removeAssetFromIDNotExists() {
         //Todo: implement
     }
 
