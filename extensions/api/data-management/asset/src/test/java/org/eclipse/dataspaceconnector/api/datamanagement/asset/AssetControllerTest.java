@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2022 Diego Gomez
+ * Copyright (c) 2022 ZF Friedrichshafen AG
  *
  * This program and the accompanying materials are made available under the
  * terms of the Apache License, Version 2.0 which is available at
@@ -8,7 +8,7 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  * Contributors:
- *   Diego Gomez - Initial API and Implementation
+ *    ZF Friedrichshafen AG - Initial API and Implementation
  */
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
