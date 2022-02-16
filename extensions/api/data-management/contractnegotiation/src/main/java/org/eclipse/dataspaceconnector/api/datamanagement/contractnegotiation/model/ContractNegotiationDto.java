@@ -22,7 +22,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 public class ContractNegotiationDto {
     private String id;
     private String counterPartyAddress;
-    private String protocol;
+    private String protocol = "ids-multipart";
     private final Type type = Type.CONSUMER;
     private String state;
     private String errorDetail;
