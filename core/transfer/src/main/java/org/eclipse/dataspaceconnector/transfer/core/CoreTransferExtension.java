@@ -77,6 +77,8 @@ public class CoreTransferExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
         var monitor = context.getMonitor();
 
+        var telemetry = context.getTelemetry();
+
         var typeManager = context.getTypeManager();
 
         registerTypes(typeManager);
@@ -119,6 +121,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .dispatcherRegistry(dispatcherRegistry)
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .monitor(monitor)
+                .telemetry(telemetry)
                 .vault(vault)
                 .typeManager(typeManager)
                 .commandQueue(commandQueue)

@@ -28,6 +28,7 @@ import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -55,8 +56,9 @@ class DefaultServiceExtensionContextTest {
     void setUp() {
         TypeManager typeManager = new TypeManager();
         Monitor monitor = mock(Monitor.class);
+        Telemetry telemetry = new Telemetry();
         serviceLocatorMock = mock(ServiceLocator.class);
-        context = new DefaultServiceExtensionContext(typeManager, monitor, serviceLocatorMock);
+        context = new DefaultServiceExtensionContext(typeManager, monitor, telemetry, serviceLocatorMock);
     }
 
     @Test

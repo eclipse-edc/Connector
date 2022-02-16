@@ -29,6 +29,7 @@ import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistr
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -47,7 +48,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
@@ -77,8 +78,8 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private CommandQueue<ContractNegotiationCommand> commandQueue;
     private CommandRunner<ContractNegotiationCommand> commandRunner;
     private CommandProcessor<ContractNegotiationCommand> commandProcessor;
+    private Telemetry telemetry;
     private Monitor monitor;
-    private Predicate<Boolean> isProcessed = it -> it;
 
     public ConsumerContractNegotiationManagerImpl() {
     }
@@ -116,6 +117,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 .protocol(contractOffer.getProtocol())
                 .counterPartyId(contractOffer.getConnectorId())
                 .counterPartyAddress(contractOffer.getConnectorAddress())
+                .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
@@ -370,8 +372,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      *
      * @return true if processed, false elsewhere
      */
-    @NotNull
-    private Boolean processConsumerApproving(ContractNegotiation negotiation) {
+    private boolean processConsumerApproving(ContractNegotiation negotiation) {
         //TODO this is a dummy agreement used to approve the provider's offer, real agreement will be created and sent by provider
         var lastOffer = negotiation.getLastContractOffer();
 
@@ -466,11 +467,10 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private void run() {
         while (active.get()) {
             try {
-                long requesting = onNegotiationsInState(INITIAL).doProcess(this::processInitial);
-                long offering = onNegotiationsInState(CONSUMER_OFFERING).doProcess(this::processConsumerOffering);
-                long approving = onNegotiationsInState(CONSUMER_APPROVING).doProcess(this::processConsumerApproving);
-                long declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
-
+                long requesting = processNegotiationsInState(INITIAL, this::processInitial);
+                long offering = processNegotiationsInState(CONSUMER_OFFERING, this::processConsumerOffering);
+                long approving = processNegotiationsInState(CONSUMER_APPROVING, this::processConsumerApproving);
+                long declining = processNegotiationsInState(DECLINING, this::processDeclining);
                 long commandsProcessed = onCommands().doProcess(this::processCommand);
 
                 long totalProcessed = requesting + offering + approving + declining + commandsProcessed;
@@ -498,8 +498,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         }
     }
 
-    private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
-        return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize));
+    private long processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
+        return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize))
+                .doProcess(telemetry.contextPropagationMiddleware(function));
     }
 
     private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
@@ -518,6 +519,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
         private Builder() {
             manager = new ConsumerContractNegotiationManagerImpl();
+            manager.telemetry = new Telemetry(); // default noop implementation
         }
 
         public static Builder newInstance() {
@@ -559,6 +561,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return this;
         }
 
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
+            return this;
+        }
+
         public Builder observable(ContractNegotiationObservable observable) {
             manager.observable = observable;
             return this;
@@ -571,7 +578,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             Objects.requireNonNull(manager.commandQueue, "commandQueue");
             Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
-
+            Objects.requireNonNull(manager.telemetry, "telemetry");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;

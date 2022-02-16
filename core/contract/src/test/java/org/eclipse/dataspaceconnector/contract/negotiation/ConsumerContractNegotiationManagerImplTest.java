@@ -63,11 +63,11 @@ class ConsumerContractNegotiationManagerImplTest {
     void setUp() throws Exception {
 
         Monitor monitor = mock(Monitor.class);
-    
+
         // Create CommandQueue mock
         CommandQueue<ContractNegotiationCommand> queue = (CommandQueue<ContractNegotiationCommand>) mock(CommandQueue.class);
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
-    
+
         // Create CommandRunner mock
         CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
