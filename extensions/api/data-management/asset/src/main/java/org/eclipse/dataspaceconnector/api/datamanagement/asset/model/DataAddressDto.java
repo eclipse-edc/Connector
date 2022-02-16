@@ -13,11 +13,11 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+import java.util.Map;
 
 @JsonDeserialize(builder = DataAddressDto.Builder.class)
 public class DataAddressDto {

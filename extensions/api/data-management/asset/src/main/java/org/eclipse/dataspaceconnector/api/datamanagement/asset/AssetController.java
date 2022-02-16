@@ -13,11 +13,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
-import java.util.Collections;
-import java.util.List;
-
-import static java.lang.String.format;
-
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
@@ -33,8 +28,13 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
-@Consumes({MediaType.APPLICATION_JSON})
-@Produces({MediaType.APPLICATION_JSON})
+import java.util.Collections;
+import java.util.List;
+
+import static java.lang.String.format;
+
+@Consumes({ MediaType.APPLICATION_JSON })
+@Produces({ MediaType.APPLICATION_JSON })
 @Path("/assets")
 public class AssetController {
 

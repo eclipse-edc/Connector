@@ -21,14 +21,13 @@ plugins {
 }
 
 dependencies {
-    api(project(":spi:core-spi"))
-    api(project(":spi:web-spi"))
+    implementation(project(":extensions:api:api-core"))
+    implementation(project(":extensions:api:auth-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
-
     testImplementation(testFixtures(project(":common:util")))
     testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
-
+    testImplementation(project(":extensions:http"))
 }
 
 publishing {

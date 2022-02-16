@@ -13,11 +13,11 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
-import static org.mockito.Mockito.mock;
-
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import static org.mockito.Mockito.mock;
 
 public class AssetControllerTest {
 
@@ -35,7 +35,7 @@ public class AssetControllerTest {
     }
 
     @Test
-    void createAssetAlreadyExists() {
+    void createAsset_alreadyExists() {
         //Todo: implement
     }
 

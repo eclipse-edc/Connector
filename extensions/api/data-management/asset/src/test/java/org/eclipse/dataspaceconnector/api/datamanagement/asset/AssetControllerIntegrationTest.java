@@ -13,19 +13,12 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
-import java.io.IOException;
-import java.util.Collections;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.AssetController;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
@@ -42,6 +35,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.util.Collections;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 public class AssetControllerIntegrationTest {
 
     private static int port;
@@ -50,8 +49,7 @@ public class AssetControllerIntegrationTest {
 
     @BeforeAll
     static void prepareWebserver() {
-
-        port = TestUtils.getFreePort(1024);
+        port = TestUtils.getFreePort();
         var monitor = mock(Monitor.class);
         var config = new JettyConfiguration(null, null);
         config.portMapping(new PortMapping("data", port, "/api/v1/data"));
@@ -85,7 +83,7 @@ public class AssetControllerIntegrationTest {
     }
 
     @Test
-    void getSingleAssetNotFound() throws IOException {
+    void getSingleAsset_notFound() throws IOException {
         var id = "test-id";
         try (var response = get(basePath() + "/" + id)) {
             //assertThat(response.code()).isEqualTo(400);
@@ -94,13 +92,12 @@ public class AssetControllerIntegrationTest {
 
     @Test
     void postAsset() throws IOException {
-
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "An Asset")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
         var str = objectMapper.writeValueAsString(assetEntryDto);
 
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), str);
+        RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
 
         try (var response = post(basePath(), requestBody)) {
             //assertThat(response.code()).isEqualTo(200);
@@ -108,13 +105,13 @@ public class AssetControllerIntegrationTest {
     }
 
     @Test
-    void postAssetIDAlreadyExists() throws IOException {
+    void postAssetId_alreadyExists() throws IOException {
         var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-Existent", "An Asset")).build();
         var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
         var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
         var str = objectMapper.writeValueAsString(assetEntryDto);
 
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/jsonn"), str);
+        RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
 
         try (var response = post(basePath(), requestBody)) {
             //assertThat(response.code()).isEqualTo(400);
@@ -128,7 +125,7 @@ public class AssetControllerIntegrationTest {
         var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
         var str = objectMapper.writeValueAsString(assetEntryDto);
 
-        RequestBody requestBody = RequestBody.create(MediaType.parse("application/json"), str);
+        RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
 
         try (var response = post(basePath(), requestBody)) {
             //assertThat(response.code()).isEqualTo(400);
@@ -144,7 +141,7 @@ public class AssetControllerIntegrationTest {
     }
 
     @Test
-    void deleteAssetIDNotExists() throws IOException {
+    void deleteAssetId_notExists() throws IOException {
         var id = "test-id";
         try (var response = delete(basePath() + "/" + id)) {
             //assertThat(response.code()).isEqualTo(400);
@@ -170,6 +167,4 @@ public class AssetControllerIntegrationTest {
     private Response delete(String url) throws IOException {
         return client.newCall(new Request.Builder().delete().url(url).build()).execute();
     }
-
-
 }

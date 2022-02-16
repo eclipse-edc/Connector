@@ -13,14 +13,14 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
-import java.util.Collections;
-
-import static org.assertj.core.api.Assertions.assertThat;
-
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.util.Collections;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class AssetDtoTest {
 
