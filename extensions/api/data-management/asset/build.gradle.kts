@@ -14,37 +14,26 @@
 val infoModelVersion: String by project
 val rsApi: String by project
 val jerseyVersion: String by project
+val okHttpVersion: String by project
 
 plugins {
     `java-library`
 }
 
 dependencies {
-    api(project(":spi"))
-    api(project(":common:util"))
-    api(project(":extensions:http"))
+    api(project(":spi:core-spi"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    testImplementation(project(":core:"))
-    testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":extensions:in-memory:transfer-store-memory"))
-    testImplementation(project(":data-protocols:ids"))
-    testImplementation(project(":extensions:iam:iam-mock"))
-    testImplementation(project(":extensions:filesystem:configuration-fs"))
-
-    testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation("io.rest-assured:rest-assured:4.4.0")
-
-    testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
 }
 
 publishing {
     publications {
-        create<MavenPublication>("AssetDTO-api") {
-            artifactId = "AssetDTO-api"
+        create<MavenPublication>("asset-api") {
+            artifactId = "asset-api"
             from(components["java"])
         }
     }
