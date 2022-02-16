@@ -29,7 +29,6 @@ dependencies {
     testImplementation(project(":core:"))
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
-    testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     testImplementation(project(":data-protocols:ids"))
     testImplementation(project(":extensions:iam:iam-mock"))
     testImplementation(project(":extensions:filesystem:configuration-fs"))
@@ -38,13 +37,14 @@ dependencies {
     testImplementation("io.rest-assured:rest-assured:4.4.0")
 
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
+    testImplementation(testFixtures(project(":common:util")))
 
 }
 
 publishing {
     publications {
-        create<MavenPublication>("control-api") {
-            artifactId = "control-api"
+        create<MavenPublication>("AssetDTO-api") {
+            artifactId = "AssetDTO-api"
             from(components["java"])
         }
     }
