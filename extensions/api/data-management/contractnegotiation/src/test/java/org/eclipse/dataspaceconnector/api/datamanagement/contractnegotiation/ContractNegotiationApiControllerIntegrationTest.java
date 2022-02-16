@@ -13,6 +13,11 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
+import java.io.IOException;
+
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
@@ -28,11 +33,6 @@ import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-
-import java.io.IOException;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 class ContractNegotiationApiControllerIntegrationTest {
     private static int port;
@@ -86,7 +86,6 @@ class ContractNegotiationApiControllerIntegrationTest {
             // assertThat(response.code()).isEqualTo(404);
         }
     }
-
 
     @NotNull
     private String basePath() {

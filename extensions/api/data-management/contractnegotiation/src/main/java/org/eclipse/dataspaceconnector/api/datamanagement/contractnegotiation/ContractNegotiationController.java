@@ -13,6 +13,11 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
+import java.util.Collections;
+import java.util.List;
+
+import static java.lang.String.format;
+
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -25,11 +30,6 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
-
-import java.util.Collections;
-import java.util.List;
-
-import static java.lang.String.format;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
@@ -48,7 +48,13 @@ public class ContractNegotiationController {
                                                         @QueryParam("filter") String filterExpression,
                                                         @QueryParam("sort") SortOrder sortOrder,
                                                         @QueryParam("sortField") String sortField) {
-        var spec = QuerySpec.Builder.newInstance().offset(offset).limit(limit).sortField(sortField).filter(filterExpression).sortOrder(sortOrder).build();
+        var spec = QuerySpec.Builder.newInstance()
+                .offset(offset)
+                .limit(limit)
+                .sortField(sortField)
+                .filter(filterExpression)
+                .sortOrder(sortOrder)
+                .build();
 
         monitor.debug(format("Get all contract definitions %s", spec));
 

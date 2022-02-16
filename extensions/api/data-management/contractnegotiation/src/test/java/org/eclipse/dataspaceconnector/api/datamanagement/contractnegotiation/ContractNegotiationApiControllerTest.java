@@ -13,14 +13,14 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.mock;
+
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.Mockito.mock;
 
 class ContractNegotiationApiControllerTest {
     private ContractNegotiationController controller;
@@ -51,7 +51,6 @@ class ContractNegotiationApiControllerTest {
     void getAll_paging_withValidFilter(String filter) {
         //todo: implement
     }
-
 
     @ParameterizedTest
     @ValueSource(strings = { "id > id1", "id < id1", "id like id1", "id inside id1" })
@@ -84,7 +83,6 @@ class ContractNegotiationApiControllerTest {
     void getContractNegotiation_notFound() {
         assertThat(controller.getNegotiation("not-exist")).isNull();
     }
-
 
     @Test
     void getContractNegotiationState_found() {

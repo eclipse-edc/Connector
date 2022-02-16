@@ -59,7 +59,6 @@ public class ContractNegotiationDto {
         return contractAgreementId;
     }
 
-
     @JsonPOJOBuilder(withPrefix = "")
     public static final class Builder {
         private final ContractNegotiationDto dto;
