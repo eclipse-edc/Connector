@@ -37,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -153,7 +154,11 @@ class JettyServiceTest {
     private Response executeRequest(String url) {
 
         try {
-            var client = new OkHttpClient.Builder().build();
+            var client = new OkHttpClient.Builder()
+                    .connectTimeout(1, TimeUnit.MINUTES)
+                    .writeTimeout(1, TimeUnit.MINUTES)
+                    .readTimeout(1, TimeUnit.MINUTES)
+                    .build();
             var rq = new Request.Builder().url(url).build();
             return client.newCall(rq).execute();
         } catch (IOException e) {

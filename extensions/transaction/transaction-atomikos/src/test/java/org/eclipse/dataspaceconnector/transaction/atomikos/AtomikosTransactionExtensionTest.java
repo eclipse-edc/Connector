@@ -14,6 +14,7 @@
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
 import org.eclipse.dataspaceconnector.spi.EdcException;
+import org.eclipse.dataspaceconnector.spi.monitor.ConsoleMonitor;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 import org.eclipse.dataspaceconnector.spi.transaction.TransactionContext;
@@ -28,6 +29,7 @@ import java.util.Map;
 import static java.util.UUID.randomUUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import static org.eclipse.dataspaceconnector.transaction.atomikos.JdbcTestFixtures.createAtomikosConfig;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.JdbcTestFixtures.createDataSourceConfig;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.ArgumentMatchers.isA;
@@ -48,6 +50,8 @@ class AtomikosTransactionExtensionTest {
         when(extensionContext.getConfig()).thenReturn(ConfigFactory.fromMap(Map.of(TransactionManagerConfigurationKeys.LOGGING, "false")));
 
         when(extensionContext.getConfig(isA(String.class))).thenAnswer(a -> createDataSourceConfig());
+        when(extensionContext.getConfig()).thenAnswer(a -> createAtomikosConfig());
+        when(extensionContext.getMonitor()).thenReturn(new ConsoleMonitor());
 
         var dsRegistry = new DataSourceRegistry[1];
         doAnswer(invocation -> {
