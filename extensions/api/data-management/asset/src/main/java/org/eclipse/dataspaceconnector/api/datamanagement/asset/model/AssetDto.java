@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.api.datamanagement.asset;
+package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
 import java.util.Map;
 
@@ -20,7 +20,7 @@ public class AssetDto {
 
     @Override
     public String toString() {
-        return "org.eclipse.dataspaceconnector.api.datamanagement.asset.AssetDto{" +
+        return "org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto{" +
                 "properties=" + properties +
                 '}';
     }

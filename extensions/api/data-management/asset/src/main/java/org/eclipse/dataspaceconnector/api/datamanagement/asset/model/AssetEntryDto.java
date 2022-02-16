@@ -1,4 +1,4 @@
-package org.eclipse.dataspaceconnector.api.datamanagement.asset;
+package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
 public class AssetEntryDto {
 
