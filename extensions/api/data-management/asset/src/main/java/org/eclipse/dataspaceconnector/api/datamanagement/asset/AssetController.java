@@ -27,7 +27,7 @@ public class AssetController {
     @POST
     @Path("")
     public void createAsset(AssetEntryDto assetEntryDto){
-        monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
+        monitor.debug(format("Asset created %s", assetEntryDto.getAssetDto()));
     }
 
     @GET

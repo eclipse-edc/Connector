@@ -1,28 +1,61 @@
 package org.eclipse.dataspaceconnector.api.datamanagement.asset.model;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+
+@JsonDeserialize(builder = AssetEntryDto.Builder.class)
 public class AssetEntryDto {
 
-    private AssetDto asset;
-    private DataAddress dataAddressDto;
+    private AssetDto assetDto;
+    private DataAddress dataAddress;
 
-    public AssetEntryDto(AssetDto asset, DataAddress dataAddressDto){
-        this.asset = asset;
-        this.dataAddressDto = dataAddressDto;
+    private AssetEntryDto(){
     }
 
-    public AssetDto getAsset() {
-        return asset;
+    public AssetDto getAssetDto() {
+        return assetDto;
     }
 
-    public void setAsset(AssetDto asset) {
-        this.asset = asset;
+    public void setAssetDto(AssetDto assetDto) {
+        this.assetDto = assetDto;
     }
 
-    public DataAddress getDataAddressDto() {
-        return dataAddressDto;
+    public DataAddress getDataAddress() {
+        return dataAddress;
     }
 
-    public void setDataAddressDto(DataAddress dataAddressDto) {
-        this.dataAddressDto = dataAddressDto;
+    public void setDataAddress(DataAddress dataAddress) {
+        this.dataAddress = dataAddress;
+    }
+
+    @JsonPOJOBuilder(withPrefix = "")
+    public static final class Builder{
+
+        private final AssetEntryDto assetEntryDto;
+
+        private Builder(){
+
+            assetEntryDto = new AssetEntryDto();
+        }
+
+        @JsonCreator
+        public static Builder newInstance() {
+            return new Builder();
+        }
+
+        public Builder assetDto(AssetDto assetDto){
+            assetEntryDto.assetDto = assetDto;
+            return this;
+        }
+
+        public Builder dataAddress(DataAddress dataAddress){
+            assetEntryDto.dataAddress=dataAddress;
+            return this;
+        }
+
+        public AssetEntryDto build(){
+            return assetEntryDto;
+        }
     }
 }
