@@ -21,21 +21,21 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
 public class ContractNegotiationApiServiceExtension implements ServiceExtension {
 
-	@Inject
-	private WebService webService;
+    @Inject
+    private WebService webService;
 
-	@Inject
-	private ContractNegotiationStore contractNegotiationStore;
+    @Inject
+    private ContractNegotiationStore contractNegotiationStore;
 
-	@Override
-	public String name() {
-		return "EDC management API for contract-negotiation";
-	}
+    @Override
+    public String name() {
+        return "EDC management API for contract-negotiation";
+    }
 
-	@Override
-	public void initialize(ServiceExtensionContext serviceExtensionContext) {
-		webService.registerController(
-				new ContractNegotiationController(contractNegotiationStore)
-		);
-	}
+    @Override
+    public void initialize(ServiceExtensionContext serviceExtensionContext) {
+        webService.registerController(
+                new ContractNegotiationController(contractNegotiationStore)
+        );
+    }
 }

@@ -17,84 +17,84 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation.Type;
 
 class ContractNegotiationDto {
-	private String id;
-	private String counterPartyAddress;
-	private String protocol;
-	private static final Type type = Type.CONSUMER;
-	private String state;
-	private String errorDetail;
-	private String contractAgreementId; // is null until state == CONFIRMED
+    private String id;
+    private String counterPartyAddress;
+    private String protocol;
+    private final Type type = Type.CONSUMER;
+    private String state;
+    private String errorDetail;
+    private String contractAgreementId; // is null until state == CONFIRMED
 
-	ContractNegotiationDto(ContractNegotiation contractNegotiation) {
-		setId(contractNegotiation.getId());
-		setCounterPartyAddress(contractNegotiation.getCounterPartyAddress());
-		setProtocol(contractNegotiation.getProtocol());
-		setState(String.valueOf(contractNegotiation.getState()));
-		setErrorDetail(contractNegotiation.getErrorDetail());
-		setContractAgreementId(contractNegotiation.getContractAgreement() != null ?
-				contractNegotiation.getContractAgreement().getId() : null);
-	}
+    ContractNegotiationDto(ContractNegotiation contractNegotiation) {
+        setId(contractNegotiation.getId());
+        setCounterPartyAddress(contractNegotiation.getCounterPartyAddress());
+        setProtocol(contractNegotiation.getProtocol());
+        setState(String.valueOf(contractNegotiation.getState()));
+        setErrorDetail(contractNegotiation.getErrorDetail());
+        setContractAgreementId(contractNegotiation.getContractAgreement() != null ?
+                contractNegotiation.getContractAgreement().getId() : null);
+    }
 
-	// TODO remove after controller logic was implemented
-	ContractNegotiationDto() {
-		setId("contract-negotiation-1");
-		setCounterPartyAddress("counter-party-address");
-		setProtocol("protocol");
-		setState("1");
-		setErrorDetail(null);
-		setContractAgreementId(null);
-	}
+    // TODO remove after controller logic was implemented
+    ContractNegotiationDto() {
+        setId("contract-negotiation-1");
+        setCounterPartyAddress("counter-party-address");
+        setProtocol("protocol");
+        setState("1");
+        setErrorDetail(null);
+        setContractAgreementId(null);
+    }
 
 
-	public String getId() {
-		return id;
-	}
+    public String getId() {
+        return id;
+    }
 
-	public void setId(String id) {
-		this.id = id;
-	}
+    public void setId(String id) {
+        this.id = id;
+    }
 
-	public String getCounterPartyAddress() {
-		return counterPartyAddress;
-	}
+    public String getCounterPartyAddress() {
+        return counterPartyAddress;
+    }
 
-	public void setCounterPartyAddress(String counterPartyAddress) {
-		this.counterPartyAddress = counterPartyAddress;
-	}
+    public void setCounterPartyAddress(String counterPartyAddress) {
+        this.counterPartyAddress = counterPartyAddress;
+    }
 
-	public String getProtocol() {
-		return protocol;
-	}
+    public String getProtocol() {
+        return protocol;
+    }
 
-	public void setProtocol(String protocol) {
-		this.protocol = protocol;
-	}
+    public void setProtocol(String protocol) {
+        this.protocol = protocol;
+    }
 
-	public Type getType() {
-		return type;
-	}
+    public Type getType() {
+        return type;
+    }
 
-	public String getState() {
-		return state;
-	}
+    public String getState() {
+        return state;
+    }
 
-	public void setState(String state) {
-		this.state = state;
-	}
+    public void setState(String state) {
+        this.state = state;
+    }
 
-	public String getErrorDetail() {
-		return errorDetail;
-	}
+    public String getErrorDetail() {
+        return errorDetail;
+    }
 
-	public void setErrorDetail(String errorDetail) {
-		this.errorDetail = errorDetail;
-	}
+    public void setErrorDetail(String errorDetail) {
+        this.errorDetail = errorDetail;
+    }
 
-	public String getContractAgreementId() {
-		return contractAgreementId;
-	}
+    public String getContractAgreementId() {
+        return contractAgreementId;
+    }
 
-	public void setContractAgreementId(String contractAgreementId) {
-		this.contractAgreementId = contractAgreementId;
-	}
+    public void setContractAgreementId(String contractAgreementId) {
+        this.contractAgreementId = contractAgreementId;
+    }
 }
