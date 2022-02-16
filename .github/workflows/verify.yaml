@@ -118,3 +118,38 @@ jobs:
           killall java      
 
       # we cannot check sample 5 currently because we'd need repo secrets for that (client id,...)
+
+
+  Helm-Chart:
+    runs-on: ubuntu-latest
+    name: Test Helm chart in minikube
+    steps:
+      - uses: actions/checkout@v2
+
+      - uses: actions/setup-java@v2
+        with:
+          distribution: 'temurin'
+          java-version: '11'
+          # Do not use cache, as it would cause the test not to run on cache hit
+
+      - name: Install and start minikube
+        run: |
+          curl -fLo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+          chmod +x minikube
+          ./minikube start --wait all
+
+      - name: Build JARs
+        run: ./gradlew samples:04.0-file-transfer:consumer:shadowJar samples:04.0-file-transfer:provider:shadowJar --no-daemon
+
+      - name: Test
+        run: |
+          eval $(minikube -p minikube docker-env)
+          samples/04.0-file-transfer/integration-tests/minikube/minikube-test.sh
+
+      - name: Kubernetes logs
+        if: always()
+        run: |
+          set -x
+          kubectl get pods
+          kubectl logs deployment/provider-dataspace-connector --tail=200
+          kubectl logs deployment/consumer-dataspace-connector --tail=200

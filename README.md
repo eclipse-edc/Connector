@@ -100,6 +100,11 @@ connector to become operational the `runtime` needs to perform several important
 example take a look at
 [this runtime](launchers/basic/src/main/java/org/eclipse/dataspaceconnector/runtime/ConnectorRuntime.java)
 
+### `resources/charts`
+
+Contains a Helm chart for the EDC runtime. You can use the `launchers/generic/Dockerfile` to build a runtime image
+for your connector runtime, and deploy the resulting image to Kubernetes.
+
 ### `data-protocols`
 
 Contains implementations for communication protocols a connector might use, such as IDS.

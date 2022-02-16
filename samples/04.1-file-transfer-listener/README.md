@@ -56,7 +56,7 @@ Assuming you didn't change the config files, the consumer will listen on port `9
 Open another terminal window (or any REST client of your choice) and execute the following REST requests like in the previous sample:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/ids/multipart"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/client/src/main/resources/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://localhost:8181/api/ids/multipart"
 curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{negotiation ID}/state"
 curl -X POST "http://localhost:9191/api/file/test-document?connectorAddress=http://localhost:8181/api/ids/multipart/&destination=/path/on/yourmachine&contractId={agreement ID}"
 ```
