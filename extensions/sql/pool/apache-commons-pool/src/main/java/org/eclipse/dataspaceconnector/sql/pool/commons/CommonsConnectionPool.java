@@ -20,6 +20,7 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
+import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.eclipse.dataspaceconnector.sql.pool.ConnectionPool;
 import org.jetbrains.annotations.NotNull;
 
@@ -60,13 +61,11 @@ final class CommonsConnectionPool implements ConnectionPool, AutoCloseable {
     }
 
     @Override
-    public Connection getConnection() throws SQLException {
+    public Connection getConnection() {
         try {
             return connectionObjectPool.borrowObject();
-        } catch (SQLException sqlException) {
-            throw sqlException;
         } catch (Exception e) {
-            throw new SQLException(e);
+            throw new EdcPersistenceException(e.getMessage(), e);
         }
     }
 

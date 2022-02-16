@@ -28,7 +28,6 @@ public interface ConnectionFactory {
      * Creates a fresh connection.
      *
      * @return connection created from a defined set of connection configuration parameters.
-     * @throws SQLException if the connection was not able to be obtained
      */
-    Connection create() throws SQLException;
+    Connection create();
 }

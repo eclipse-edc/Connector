@@ -14,10 +14,10 @@
 
 package org.eclipse.dataspaceconnector.sql.pool.commons;
 
-import org.eclipse.dataspaceconnector.spi.system.Config;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
 import org.eclipse.dataspaceconnector.spi.transaction.datasource.DataSourceRegistry;
 import org.eclipse.dataspaceconnector.sql.ConnectionFactory;
 import org.eclipse.dataspaceconnector.sql.datasource.ConnectionFactoryDataSource;

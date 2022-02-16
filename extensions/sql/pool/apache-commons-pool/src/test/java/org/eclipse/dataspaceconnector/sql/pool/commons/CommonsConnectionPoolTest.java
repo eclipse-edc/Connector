@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.sql.pool.commons;
 
+import org.eclipse.dataspaceconnector.spi.persistence.EdcPersistenceException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -57,7 +58,7 @@ class CommonsConnectionPoolTest {
 
         Mockito.when(dataSource.getConnection()).thenThrow(causingRuntimeException);
 
-        SQLException exceptionWrappingRuntimeException = Assertions.assertThrows(SQLException.class, connectionPool::getConnection);
+        EdcPersistenceException exceptionWrappingRuntimeException = Assertions.assertThrows(EdcPersistenceException.class, connectionPool::getConnection);
 
         Assertions.assertNotNull(exceptionWrappingRuntimeException.getCause());
         Assertions.assertEquals(causingRuntimeException, exceptionWrappingRuntimeException.getCause());
@@ -74,10 +75,10 @@ class CommonsConnectionPoolTest {
 
         Mockito.when(dataSource.getConnection()).thenThrow(causingSqlException);
 
-        SQLException sqlException = Assertions.assertThrows(SQLException.class, connectionPool::getConnection);
+        EdcPersistenceException sqlException = Assertions.assertThrows(EdcPersistenceException.class, connectionPool::getConnection);
 
-        Assertions.assertNull(sqlException.getCause());
-        Assertions.assertEquals(causingSqlException, sqlException);
+        Assertions.assertNotNull(sqlException.getCause());
+        Assertions.assertEquals(causingSqlException, sqlException.getCause());
 
         Mockito.verify(dataSource, Mockito.atLeastOnce()).getConnection();
     }
