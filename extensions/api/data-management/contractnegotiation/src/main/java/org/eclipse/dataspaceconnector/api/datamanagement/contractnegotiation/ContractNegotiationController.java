@@ -13,11 +13,6 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation;
 
-import java.util.Collections;
-import java.util.List;
-
-import static java.lang.String.format;
-
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
@@ -30,6 +25,11 @@ import org.eclipse.dataspaceconnector.api.datamanagement.contractnegotiation.mod
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
+
+import java.util.Collections;
+import java.util.List;
+
+import static java.lang.String.format;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })

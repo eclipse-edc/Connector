@@ -20,10 +20,10 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 
 @JsonDeserialize(builder = ContractNegotiationDto.Builder.class)
 public class ContractNegotiationDto {
+    private final Type type = Type.CONSUMER;
     private String id;
     private String counterPartyAddress;
     private String protocol = "ids-multipart";
-    private final Type type = Type.CONSUMER;
     private String state;
     private String errorDetail;
     private String contractAgreementId; // is null until state == CONFIRMED
