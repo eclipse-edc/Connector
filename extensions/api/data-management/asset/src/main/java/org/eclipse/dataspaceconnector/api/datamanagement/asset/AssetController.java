@@ -2,38 +2,41 @@ package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
-import jakarta.ws.rs.core.Response;
-import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
+import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.jetbrains.annotations.NotNull;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+
+import static java.lang.String.format;
 
 @Consumes({ MediaType.APPLICATION_JSON })
 @Produces({ MediaType.APPLICATION_JSON })
 @Path("/assets")
 public class AssetController {
 
-    private RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry;
-    private Monitor monitor;
+    private final Monitor monitor;
 
-    public AssetController(@NotNull RemoteMessageDispatcherRegistry remoteMessageDispatcherRegistry, Monitor monitor) {
-        this.remoteMessageDispatcherRegistry = Objects.requireNonNull(remoteMessageDispatcherRegistry, "remoteMessageDispatcherRegistry");
+    public AssetController(Monitor monitor) {
         this.monitor = monitor;
     }
 
     @POST
     @Path("")
-    public Response createAsset(AssetEntryDto assetEntryDto){
-        return Response.ok(assetEntryDto.getAsset()).build();
+    public void createAsset(AssetEntryDto assetEntryDto){
+        monitor.debug(format("Asset created %s", assetEntryDto.getAsset()));
     }
 
     @GET
     @Path("")
-    public List<AssetDto> getAllAssets(){
-        //Creating a dummy list of 4 objects of type AssetEntryDto and
+    public List<AssetDto> getAllAssets(@QueryParam("offset") Integer offset,
+                                       @QueryParam("limit") Integer limit,
+                                       @QueryParam("filter") String filterExpression,
+                                       @QueryParam("sort") SortOrder sortOrder,
+                                       @QueryParam("sortField") String sortField){
 
         var spec = QuerySpec.Builder.newInstance()
                 .offset(offset)
@@ -41,9 +44,8 @@ public class AssetController {
                 .sortField(sortField)
                 .filter(filterExpression)
                 .sortOrder(sortOrder).build();
-        monitor.debug(format("get all contract definitions %s", spec));
 
-        monitor.info("Returning the list of Assets");
+        monitor.debug(format("get all Assets from %s", spec));
 
         return Collections.emptyList();
     }
@@ -52,21 +54,14 @@ public class AssetController {
     @Path("{id}")
     public AssetDto getAsset(@PathParam("id") String id){
 
+        monitor.debug(format("Attempting to return Asset with id %s", id));
         return null;
     }
 
     @DELETE
     @Path("{id}")
-    public Response removeAsset(@PathParam("id") String id){
+    public void removeAsset(@PathParam("id") String id){
 
-        //assuming dummy local database with just 1 id with name "asset"
-        try{
-            if(id.equals("asset")){
-                monitor.debug("The asset with the id " + id + " was removed from the list");
-            }
-        }catch (Exception IllegatlStateException){
-            monitor.severe("The asset with the ID " +id+ "does not exist");
-        }
-        return null;
+        monitor.debug(format("Attempting to delete Asset with id %s", id));
     }
 }
