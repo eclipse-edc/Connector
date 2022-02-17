@@ -1,8 +1,8 @@
 openapi: 3.0.1
 paths:
-  /transferprocess/{id}/cancel:
+  /contractnegotiations/{id}/cancel:
     post:
-      operationId: createContractDefinition
+      operationId: cancelNegotiation
       parameters:
       - name: id
         in: path
@@ -14,9 +14,9 @@ paths:
           description: default response
           content:
             application/json: {}
-  /transferprocess/{id}/deprovision:
+  /contractnegotiations/{id}/decline:
     post:
-      operationId: deleteContractDefinition
+      operationId: declineNegotiation
       parameters:
       - name: id
         in: path
@@ -28,9 +28,41 @@ paths:
           description: default response
           content:
             application/json: {}
-  /transferprocess:
+  /contractnegotiations/{id}:
     get:
-      operationId: getAllContractDefinitions
+      operationId: getNegotiation
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContractNegotiationDto'
+  /contractnegotiations/{id}/state:
+    get:
+      operationId: getNegotiationState
+      parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+      responses:
+        default:
+          description: default response
+          content:
+            application/json:
+              schema:
+                type: string
+  /contractnegotiations:
+    get:
+      operationId: getNegotiations
       parameters:
       - name: offset
         in: query
@@ -65,60 +97,26 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/TransferProcessDto'
-  /transferprocess/{id}:
-    get:
-      operationId: getTransferProcess
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferProcessDto'
-  /transferprocess/{id}/state:
-    get:
-      operationId: getTransferProcessState
-      parameters:
-      - name: id
-        in: path
-        required: true
-        schema:
-          type: string
-      responses:
-        default:
-          description: default response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/TransferProcessDto'
+                  $ref: '#/components/schemas/ContractNegotiationDto'
 components:
   schemas:
-    DataRequestDto:
+    ContractNegotiationDto:
       type: object
       properties:
-        assetId:
+        contractAgreementId:
           type: string
-        contractId:
-          type: string
-        connectorId:
-          type: string
-    TransferProcessDto:
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-        state:
+        counterPartyAddress:
           type: string
         errorDetail:
           type: string
-        dataRequest:
-          $ref: '#/components/schemas/DataRequestDto'
+        id:
+          type: string
+        protocol:
+          type: string
+        state:
+          type: string
+        type:
+          type: string
+          enum:
+          - CONSUMER
+          - PROVIDER

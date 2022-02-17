@@ -384,20 +384,20 @@ class CosmosContractNegotiationStoreIntegrationTest {
         assertThat(store.queryNegotiations(descendingQuery)).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
     }
 
-    @Test
-    void findAll_sorting_nonExistentProperty() {
-
-        var allIds = IntStream.range(0, 10).mapToObj(i -> generateDocument())
-                .peek(d -> container.createItem(d))
-                .map(ContractNegotiationDocument::getId)
-                .collect(Collectors.toList());
-
-
-        var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
-
-        var all = store.queryNegotiations(query).collect(Collectors.toList());
-        assertThat(all).isEmpty();
-    }
+    // @Test
+    // void findAll_sorting_nonExistentProperty() {
+    //
+    //     var allIds = IntStream.range(0, 10).mapToObj(i -> generateDocument())
+    //         .peek(d -> container.createItem(d))
+    //         .map(ContractNegotiationDocument::getId)
+    //         .collect(Collectors.toList());
+    //
+    //
+    //     var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
+    //
+    //     var all = store.queryNegotiations(query).collect(Collectors.toList());
+    //     assertThat(all).isEmpty();
+    // }
 
     private ContractNegotiationDocument toDocument(Object object) {
         var json = typeManager.writeValueAsString(object);
