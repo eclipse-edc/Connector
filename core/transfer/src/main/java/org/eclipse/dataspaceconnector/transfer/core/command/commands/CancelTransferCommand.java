@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering - refactored
  *
  */
 package org.eclipse.dataspaceconnector.transfer.core.command.commands;
@@ -16,7 +17,7 @@ package org.eclipse.dataspaceconnector.transfer.core.command.commands;
 /**
  * Cancels a transfer process by sending it to the ERROR state
  */
-public class CancelTransferCommand extends TransferProcessCommand {
+public class CancelTransferCommand extends SingleTransferProcessCommand {
 
     public CancelTransferCommand(String transferProcessId) {
         super(transferProcessId);

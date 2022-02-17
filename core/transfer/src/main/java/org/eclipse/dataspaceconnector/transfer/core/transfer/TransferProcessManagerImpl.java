@@ -14,8 +14,8 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
-import org.eclipse.dataspaceconnector.spi.command.Command;
+import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
+import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -25,10 +25,11 @@ import org.eclipse.dataspaceconnector.spi.proxy.DataProxyRequest;
 import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntry;
 import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferInitiateResult;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
@@ -43,6 +44,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.ProvisionedResou
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerRegistry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.jetbrains.annotations.NotNull;
 
 import java.net.ConnectException;
@@ -53,6 +55,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
@@ -84,32 +87,33 @@ import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferP
  * Each iteration will seek to transition a set number of processes for each state to avoid situations where an excessive number of processes in one state block progress of
  * processes in other states.
  * <br/>
- * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link TransferWaitStrategy} before conducting the next iteration.
+ * If no processes need to be transitioned, the transfer manager will wait according to the the defined {@link WaitStrategy} before conducting the next iteration.
  * A wait strategy may implement a backoff scheme.
  */
 public class TransferProcessManagerImpl implements TransferProcessManager {
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
-    private TransferWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
     private ResourceManifestGenerator manifestGenerator;
     private ProvisionManager provisionManager;
     private TransferProcessStore transferProcessStore;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
     private DataFlowManager dataFlowManager;
-    private Monitor monitor;
     private ExecutorService executor;
     private StatusCheckerRegistry statusCheckerRegistry;
     private Vault vault;
     private TypeManager typeManager;
-    private CommandQueue commandQueue;
-    private CommandRunner commandRunner;
     private DataProxyManager dataProxyManager;
     private ProxyEntryHandlerRegistry proxyEntryHandlers;
     private TransferProcessObservable observable;
+    private CommandQueue<TransferProcessCommand> commandQueue;
+    private CommandRunner<TransferProcessCommand> commandRunner;
+    private CommandProcessor<TransferProcessCommand> commandProcessor;
+    private Monitor monitor;
+    private Telemetry telemetry;
 
     private TransferProcessManagerImpl() {
-
     }
 
     public void start(TransferProcessStore processStore) {
@@ -166,7 +170,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     }
 
     @Override
-    public void enqueueCommand(Command command) {
+    public void enqueueCommand(TransferProcessCommand command) {
         commandQueue.enqueue(command);
     }
 
@@ -232,6 +236,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     private void transitionRequestAck(String processId) {
         TransferProcess transferProcess = transferProcessStore.find(processId);
+        if (transferProcess == null) {
+            monitor.severe("TransferProcessManager: no TransferProcess found for acked request");
+            return;
+        }
+
         transferProcess.transitionRequestAck();
         transferProcessStore.update(transferProcess);
     }
@@ -243,7 +252,8 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return TransferInitiateResult.success(processId);
         }
         var id = randomUUID().toString();
-        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
+        var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type)
+                .traceContext(telemetry.getCurrentTraceContext()).build();
         if (process.getState() == TransferProcessStates.UNSAVED.code()) {
             process.transitionInitial();
         }
@@ -302,6 +312,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .dataRequest(dataRequest)
                 .state(COMPLETED.code())
                 .type(type)
+                .traceContext(telemetry.getCurrentTraceContext())
                 .build();
     }
 
@@ -328,12 +339,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private void run() {
         while (active.get()) {
             try {
-                long initial = onTransfersInState(INITIAL).doProcess(this::processInitial);
-                long provisioned = onTransfersInState(PROVISIONED).doProcess(this::processProvisioned);
-                long ackRequested = onTransfersInState(REQUESTED_ACK).doProcess(this::processAckRequested);
-                long inProgress = onTransfersInState(IN_PROGRESS).doProcess(this::processInProgress);
-                long deprovisioningRequest = onTransfersInState(DEPROVISIONING_REQ).doProcess(this::processDeprovisioningRequest);
-                long deprovisioned = onTransfersInState(DEPROVISIONED).doProcess(this::processDeprovisioned);
+                long initial = processTransfersInState(INITIAL, this::processInitial);
+                long provisioned = processTransfersInState(PROVISIONED, this::processProvisioned);
+                long ackRequested = processTransfersInState(REQUESTED_ACK, this::processAckRequested);
+                long inProgress = processTransfersInState(IN_PROGRESS, this::processInProgress);
+                long deprovisioningRequest = processTransfersInState(DEPROVISIONING_REQ, this::processDeprovisioningRequest);
+                long deprovisioned = processTransfersInState(DEPROVISIONED, this::processDeprovisioned);
 
                 long commandsProcessed = onCommands().doProcess(this::processCommand);
 
@@ -361,28 +372,17 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
-    private EntitiesProcessor<TransferProcess> onTransfersInState(TransferProcessStates state) {
-        return new EntitiesProcessor<>(() -> transferProcessStore.nextForState(state.code(), batchSize));
+    private long processTransfersInState(TransferProcessStates state, Function<TransferProcess, Boolean> function) {
+        var functionWithTraceContext = telemetry.contextPropagationMiddleware(function);
+        return new EntitiesProcessor<>(() -> transferProcessStore.nextForState(state.code(), batchSize)).doProcess(functionWithTraceContext);
     }
 
-    private EntitiesProcessor<Command> onCommands() {
+    private EntitiesProcessor<TransferProcessCommand> onCommands() {
         return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
     }
 
-    private boolean processCommand(Command command) {
-        var commandResult = commandRunner.runCommand(command);
-        if (commandResult.failed()) {
-            if (command.canRetry()) {
-                monitor.warning(format("Could not process command [%s], will retry. Error: %s", command.getClass(), commandResult.getFailureMessages()));
-                commandQueue.enqueue(command);
-            } else {
-                monitor.severe(format("Could not process command [%s], it has exceeded its retry limit, will discard now. Error: %s", command.getClass(), commandResult.getFailureMessages()));
-            }
-            return false;
-        } else {
-            monitor.debug(format("Successfully processed command [%s]", command.getClass()));
-            return true;
-        }
+    private boolean processCommand(TransferProcessCommand command) {
+        return commandProcessor.processCommandQueue(command);
     }
 
     private boolean processDeprovisioned(TransferProcess process) {
@@ -553,6 +553,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
         private Builder() {
             manager = new TransferProcessManagerImpl();
+            manager.telemetry = new Telemetry(); // default noop implementation
         }
 
         public static Builder newInstance() {
@@ -564,7 +565,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder waitStrategy(TransferWaitStrategy waitStrategy) {
+        public Builder waitStrategy(WaitStrategy waitStrategy) {
             manager.waitStrategy = waitStrategy;
             return this;
         }
@@ -599,6 +600,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
+            return this;
+        }
+
         public Builder vault(Vault vault) {
             manager.vault = vault;
             return this;
@@ -609,12 +615,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
-        public Builder commandQueue(CommandQueue queue) {
+        public Builder commandQueue(CommandQueue<TransferProcessCommand> queue) {
             manager.commandQueue = queue;
             return this;
         }
 
-        public Builder commandRunner(CommandRunner runner) {
+        public Builder commandRunner(CommandRunner<TransferProcessCommand> runner) {
             manager.commandRunner = runner;
             return this;
         }
@@ -646,6 +652,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.dataProxyManager, "DataProxyManager cannot be null!");
             Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "Observable cannot be null");
+            Objects.requireNonNull(manager.telemetry, "Telemetry cannot be null");
+            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+
             return manager;
         }
     }

@@ -7,6 +7,7 @@ import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgentService;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractDefinitionService;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
@@ -14,9 +15,9 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOf
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.net.URI;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.util.List;
 import java.util.stream.Stream;
 
 import static java.time.Instant.MAX;
@@ -49,10 +50,15 @@ class ContractValidationServiceImplTest {
 
         when(agentService.createFor(isA(ClaimToken.class))).thenReturn(new ParticipantAgent(emptyMap(), emptyMap()));
         when(definitionService.definitionFor(isA(ParticipantAgent.class), eq("1"))).thenReturn(contractDefinition);
-        when(assetIndex.queryAssets(isA(List.class))).thenReturn(Stream.of(asset));
+        when(assetIndex.queryAssets(isA(QuerySpec.class))).thenReturn(Stream.of(asset));
 
         var claimToken = ClaimToken.Builder.newInstance().build();
-        var offer = ContractOffer.Builder.newInstance().asset(asset).policy(originalPolicy).id("1:2").build();
+        var offer = ContractOffer.Builder.newInstance().id("1:2")
+                .asset(asset)
+                .policy(originalPolicy)
+                .provider(URI.create("provider"))
+                .consumer(URI.create("consumer"))
+                .build();
 
         var result = validationService.validate(claimToken, offer);
 
@@ -60,7 +66,7 @@ class ContractValidationServiceImplTest {
         assertThat(result.getContent().getPolicy()).isNotSameAs(originalPolicy); // verify the returned policy is the sanitized one
         verify(agentService).createFor(isA(ClaimToken.class));
         verify(definitionService).definitionFor(isA(ParticipantAgent.class), eq("1"));
-        verify(assetIndex).queryAssets(isA(List.class));
+        verify(assetIndex).queryAssets(isA(QuerySpec.class));
     }
 
     @Test

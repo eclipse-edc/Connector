@@ -14,6 +14,7 @@
 
 val infoModelVersion: String by project
 val rsApi: String by project
+val okHttpVersion: String by project
 
 plugins {
     `java-library`
@@ -22,13 +23,14 @@ plugins {
 
 dependencies {
     api(project(":spi"))
-    api(project(":core:base"))
     api(project(":common:util"))
     api(project(":data-protocols:ids:ids-spi"))
 
     api("de.fraunhofer.iais.eis.ids.infomodel:java:${infoModelVersion}")
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
+
     implementation(project(":core:policy:policy-engine"))
 }
 

@@ -13,5 +13,5 @@
 #
 
 org.eclipse.dataspaceconnector.transfer.core.CoreTransferExtension
-org.eclipse.dataspaceconnector.transfer.core.CommandExtension
+org.eclipse.dataspaceconnector.transfer.core.TransferProcessCommandExtension
 

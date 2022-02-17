@@ -12,11 +12,6 @@
  *
  */
 
-
-val infoModelVersion: String by project
-val rsApi: String by project
-val jerseyVersion: String by project
-
 plugins {
     `java-library`
 }
@@ -24,6 +19,7 @@ plugins {
 dependencies {
     api(project(":extensions:api:api-core"))
     api(project(":extensions:api:data-management:contractdefinition"))
+    api(project(":extensions:api:data-management:transferprocess"))
 
 }
 

@@ -1,6 +1,5 @@
 package org.eclipse.dataspaceconnector.ids.policy;
 
-import org.eclipse.dataspaceconnector.contract.policy.PolicyContextImpl;
 import org.eclipse.dataspaceconnector.policy.model.Operator;
 import org.eclipse.dataspaceconnector.policy.model.Permission;
 import org.eclipse.dataspaceconnector.spi.contract.agent.ParticipantAgent;
@@ -22,7 +21,7 @@ class PartnerLevelConstraintFunctionTest {
     void shouldVerifyEqConstraint() {
         var agent = new ParticipantAgent(Map.of("partnerLevel", "gold"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(EQ, "gold", Permission.Builder.newInstance().build(), new PolicyContextImpl(agent));
+        boolean result = constraintFunction.evaluate(EQ, "gold", Permission.Builder.newInstance().build(), new MockPolicyContext(agent));
 
         assertThat(result).isTrue();
     }
@@ -31,7 +30,7 @@ class PartnerLevelConstraintFunctionTest {
     void shouldNotVerifyEqConstraint() {
         var agent = new ParticipantAgent(Map.of("partnerLevel", "gold"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(EQ, "silver", Permission.Builder.newInstance().build(), new PolicyContextImpl(agent));
+        boolean result = constraintFunction.evaluate(EQ, "silver", Permission.Builder.newInstance().build(), new MockPolicyContext(agent));
 
         assertThat(result).isFalse();
     }
@@ -40,7 +39,7 @@ class PartnerLevelConstraintFunctionTest {
     void shouldVerifyNotEqConstraint() {
         var agent = new ParticipantAgent(Map.of("partnerLevel", "gold"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(NEQ, "silver", Permission.Builder.newInstance().build(), new PolicyContextImpl(agent));
+        boolean result = constraintFunction.evaluate(NEQ, "silver", Permission.Builder.newInstance().build(), new MockPolicyContext(agent));
 
         assertThat(result).isTrue();
     }
@@ -49,7 +48,7 @@ class PartnerLevelConstraintFunctionTest {
     void shouldNotVerifyNotEqConstraint() {
         var agent = new ParticipantAgent(Map.of("partnerLevel", "gold"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(NEQ, "gold", Permission.Builder.newInstance().build(), new PolicyContextImpl(agent));
+        boolean result = constraintFunction.evaluate(NEQ, "gold", Permission.Builder.newInstance().build(), new MockPolicyContext(agent));
 
         assertThat(result).isFalse();
     }
@@ -59,7 +58,7 @@ class PartnerLevelConstraintFunctionTest {
     void shouldVerifyInConstraint() {
         var agent = new ParticipantAgent(Map.of("partnerLevel", "gold"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(Operator.IN, List.of("gold"), Permission.Builder.newInstance().build(), new PolicyContextImpl(agent));
+        boolean result = constraintFunction.evaluate(Operator.IN, List.of("gold"), Permission.Builder.newInstance().build(), new MockPolicyContext(agent));
 
         assertThat(result).isTrue();
     }
@@ -68,7 +67,7 @@ class PartnerLevelConstraintFunctionTest {
     void shouldNotVerifyInConstraint() {
         var agent = new ParticipantAgent(Map.of("partnerLevel", "silver"), emptyMap());
 
-        boolean result = constraintFunction.evaluate(Operator.IN, List.of("gold"), Permission.Builder.newInstance().build(), new PolicyContextImpl(agent));
+        boolean result = constraintFunction.evaluate(Operator.IN, List.of("gold"), Permission.Builder.newInstance().build(), new MockPolicyContext(agent));
 
         assertThat(result).isFalse();
     }

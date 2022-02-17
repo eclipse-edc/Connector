@@ -14,6 +14,8 @@
 
 package org.eclipse.dataspaceconnector.spi.system;
 
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+
 /**
  * Contributes configuration to a runtime. Multiple configuration extensions may be loaded in a runtime.
  */

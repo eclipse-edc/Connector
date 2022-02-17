@@ -23,12 +23,12 @@ import org.eclipse.dataspaceconnector.dataloading.AssetLoader;
 import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
-import org.eclipse.dataspaceconnector.spi.query.Criterion;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
+import org.eclipse.dataspaceconnector.spi.query.SortOrder;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 
-import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -63,7 +63,11 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
 
-        SqlQuerySpec query = queryBuilder.from(expression);
+        if (expression.equals(AssetSelectorExpression.SELECT_ALL)) {
+            return queryAssets(QuerySpec.none());
+        }
+
+        SqlQuerySpec query = queryBuilder.from(expression.getCriteria());
 
         var response = with(retryPolicy).get(() -> assetDb.queryItems(query));
         return response.map(this::convertObject)
@@ -71,10 +75,15 @@ public class CosmosAssetIndex implements AssetIndex, DataAddressResolver, AssetL
     }
 
     @Override
-    public Stream<Asset> queryAssets(List<Criterion> criteria) {
+    public Stream<Asset> queryAssets(QuerySpec querySpec) {
+        var expr = querySpec.getFilterExpression();
 
-        SqlQuerySpec query = queryBuilder.from(criteria);
-        var response = with(retryPolicy).get(() -> assetDb.queryItems(query));
+        var sortField = querySpec.getSortField();
+        var limit = querySpec.getLimit();
+        var sortAsc = querySpec.getSortOrder() == SortOrder.ASC;
+
+        var sqlQuery = queryBuilder.from(expr, sortField, sortAsc, limit, querySpec.getOffset());
+        var response = with(retryPolicy).get(() -> assetDb.queryItems(sqlQuery));
         return response.map(this::convertObject)
                 .map(AssetDocument::getWrappedAsset);
     }

@@ -23,6 +23,9 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Response when a transfer request is initiated.
+ */
 public class TransferInitiateResult extends AbstractResult<String, ResponseFailure> {
 
     private @Nullable Object data;

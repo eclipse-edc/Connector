@@ -65,12 +65,16 @@ public class ContractRejectionHandler implements Handler {
         Objects.requireNonNull(verificationResult);
 
         var message = (ContractRejectionMessage) multipartRequest.getHeader();
-        var correlationMessageId = message.getCorrelationMessage();
+        var correlationMessageId = message.getCorrelationMessage(); // TODO correlation msg missing
         var correlationId = message.getTransferContract();
         var rejectionReason = message.getContractRejectionReason();
         monitor.debug(String.format("ContractRejectionHandler: Received contract rejection to " +
                 "message %s. Negotiation process: %s. Rejection Reason: %s", correlationMessageId,
                 correlationId, rejectionReason));
+
+        if (correlationId == null) {
+            return createBadParametersErrorMultipartResponse(message);
+        }
 
         // abort negotiation process (one of them can handle this process by id)
         var token = verificationResult.getContent();
@@ -81,7 +85,6 @@ public class ContractRejectionHandler implements Handler {
 
         if (result.failed() && result.getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             monitor.debug("ContractRejectionHandler: Could not process contract rejection");
-            return createBadParametersErrorMultipartResponse(message);
         }
 
         return MultipartResponse.Builder.newInstance()

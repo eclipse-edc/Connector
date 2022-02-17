@@ -10,6 +10,7 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.Negotiat
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
+import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
@@ -18,6 +19,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractDefinition;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
@@ -25,6 +27,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Stream;
 
 class ClientControlCatalogApiControllerTestServiceExtension implements ServiceExtension {
 
@@ -151,6 +154,11 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         public @NotNull List<ContractNegotiation> nextForState(int state, int max) {
             return null;
         }
+
+        @Override
+        public Stream<ContractNegotiation> queryNegotiations(QuerySpec querySpec) {
+            throw new UnsupportedOperationException();
+        }
     }
 
     private static class FakeConsumerNegotiationManager implements ConsumerContractNegotiationManager {
@@ -174,6 +182,10 @@ class ClientControlCatalogApiControllerTestServiceExtension implements ServiceEx
         @Override
         public NegotiationResult declined(ClaimToken token, String negotiationId) {
             return null;
+        }
+
+        @Override
+        public void enqueueCommand(ContractNegotiationCommand command) {
         }
     }
 }

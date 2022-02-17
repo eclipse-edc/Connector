@@ -16,15 +16,47 @@ package org.eclipse.dataspaceconnector.common.testfixtures;
 
 import org.junit.jupiter.api.Test;
 
+import java.io.IOException;
+import java.net.ServerSocket;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class TestUtilsTest {
 
-    private static final int EPHEMERAL_PORT_MIN = 1024;
-    private static final int EPHEMERAL_PORT_MAX = 65535;
+    public static final int MAX_PORT = 65535;
+    public static final int MIN_PORT = 1024;
 
     @Test
-    void findsRandomPort() {
-        assertThat(TestUtils.findUnallocatedServerPort()).isBetween(EPHEMERAL_PORT_MIN, EPHEMERAL_PORT_MAX);
+    void getFreePort() {
+        assertThat(TestUtils.getFreePort()).isGreaterThan(MIN_PORT).isLessThan(MAX_PORT);
+    }
+
+    @Test
+    void getFreePort_lowerBound() {
+        assertThat(TestUtils.getFreePort(5000)).isGreaterThanOrEqualTo(5000).isLessThan(MAX_PORT);
+
+        assertThatThrownBy(() -> TestUtils.getFreePort(-1)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> TestUtils.getFreePort(0)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> TestUtils.getFreePort(65536)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void getFreePort_withUpperAndLowerBound() {
+        assertThat(TestUtils.getFreePort(5000, 7000)).isGreaterThanOrEqualTo(5000).isLessThan(7000);
+
+        assertThatThrownBy(() -> TestUtils.getFreePort(5000, 4999)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> TestUtils.getFreePort(5000, 5000)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> TestUtils.getFreePort(5000, 65536)).isInstanceOf(IllegalArgumentException.class);
+        assertThatThrownBy(() -> TestUtils.getFreePort(5000, 0)).isInstanceOf(IllegalArgumentException.class);
+    }
+
+    @Test
+    void getFreePort_whenOccupied() throws IOException {
+        var port = TestUtils.getFreePort(MIN_PORT);
+
+        try (var socket = new ServerSocket(port)) {
+            assertThat(TestUtils.getFreePort(MIN_PORT)).describedAs("Next free port").isGreaterThan(socket.getLocalPort());
+        }
     }
 }

@@ -18,19 +18,24 @@ plugins {
 }
 
 val rsApi: String by project
+val jodahFailsafeVersion: String by project
+val okHttpVersion: String by project
 
 dependencies {
-    api(project(":spi"))
+    api(project(":spi:core-spi"))
     api(project(":extensions:catalog:federated-catalog-spi"))
-    implementation(project(":core:base"))
+
     implementation(project(":common:util"))
-    implementation(project(":extensions:http"))
+    implementation(project(":core:base"))
+
+    implementation("com.squareup.okhttp3:okhttp:${okHttpVersion}")
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
+    implementation("net.jodah:failsafe:${jodahFailsafeVersion}")
 
     // required for integration test
     testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(project(":core:base"))
+    testImplementation(project(":extensions:http"))
     testImplementation(project(":data-protocols:ids:ids-spi"))
     testImplementation(project(":extensions:in-memory:fcc-node-directory-memory"))
     testImplementation(project(":extensions:in-memory:fcc-store-memory"))

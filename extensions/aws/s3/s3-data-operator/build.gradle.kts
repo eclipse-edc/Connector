@@ -20,7 +20,6 @@ dependencies {
     api(project(":spi"))
     api(project(":core"))
     api(project(":extensions:aws:s3:s3-core"))
-    api(project(":extensions:inline-data-transfer:inline-data-transfer-spi"))
 }
 
 publishing {

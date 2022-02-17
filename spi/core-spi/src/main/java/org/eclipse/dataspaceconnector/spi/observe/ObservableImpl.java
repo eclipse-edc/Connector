@@ -18,6 +18,9 @@ package org.eclipse.dataspaceconnector.spi.observe;
 import java.util.Collection;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
+/**
+ * Default implementation.
+ */
 public class ObservableImpl<T> implements Observable<T> {
 
     private final Collection<T> listeners;

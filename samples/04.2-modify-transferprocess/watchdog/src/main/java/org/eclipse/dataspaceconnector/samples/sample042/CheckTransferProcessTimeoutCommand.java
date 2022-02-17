@@ -1,11 +1,11 @@
 package org.eclipse.dataspaceconnector.samples.sample042;
 
-import org.eclipse.dataspaceconnector.spi.command.Command;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 
 import java.time.Duration;
 
-public class CheckTransferProcessTimeoutCommand extends Command {
+public class CheckTransferProcessTimeoutCommand extends TransferProcessCommand {
 
     private final int batchSize;
     private final TransferProcessStates targetState;

@@ -1,14 +1,15 @@
 package org.eclipse.dataspaceconnector.boot.system;
 
+import org.eclipse.dataspaceconnector.boot.system.injection.InjectorImpl;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.system.EdcInjectionException;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
-import org.eclipse.dataspaceconnector.spi.system.FieldInjectionPoint;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
-import org.eclipse.dataspaceconnector.spi.system.InjectionContainer;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
+import org.eclipse.dataspaceconnector.spi.system.injection.EdcInjectionException;
+import org.eclipse.dataspaceconnector.spi.system.injection.FieldInjectionPoint;
+import org.eclipse.dataspaceconnector.spi.system.injection.InjectionContainer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;

@@ -14,9 +14,11 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
-import org.eclipse.dataspaceconnector.core.manager.EntitiesProcessor;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
+import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
+import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
+import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.observe.ContractNegotiationObservable;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
@@ -26,12 +28,15 @@ import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.retry.WaitStrategy;
+import org.eclipse.dataspaceconnector.spi.telemetry.Telemetry;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
+import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.command.ContractNegotiationCommand;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.jetbrains.annotations.NotNull;
 
@@ -42,7 +47,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
-import java.util.function.Predicate;
+import java.util.function.Function;
 
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
@@ -60,17 +65,21 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private final AtomicBoolean active = new AtomicBoolean();
 
     private int batchSize = 5;
-    private NegotiationWaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
+    private WaitStrategy waitStrategy = () -> 5000L;  // default wait five seconds
 
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    private Monitor monitor;
     private ExecutorService executor;
     private ContractNegotiationObservable observable;
-    private Predicate<Boolean> isProcessed = it -> it;
+    private CommandQueue<ContractNegotiationCommand> commandQueue;
+    private CommandRunner<ContractNegotiationCommand> commandRunner;
+    private CommandProcessor<ContractNegotiationCommand> commandProcessor;
+    private Monitor monitor;
+    private Telemetry telemetry;
 
-    private ProviderContractNegotiationManagerImpl() { }
+    private ProviderContractNegotiationManagerImpl() {
+    }
 
     //TODO check state count for retry
 
@@ -90,6 +99,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
     }
 
+    @Override
+    public void enqueueCommand(ContractNegotiationCommand command) {
+        commandQueue.enqueue(command);
+    }
+
     /**
      * Tells this manager that a {@link ContractNegotiation} has been declined by the counter-party.
      * Transitions the corresponding ContractNegotiation to state DECLINED.
@@ -101,12 +115,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      */
     @Override
     public NegotiationResult declined(ClaimToken token, String correlationId) {
-        var negotiation = negotiationStore.findForCorrelationId(correlationId);
+        var negotiation = findContractNegotiationById(correlationId);
         if (negotiation == null) {
             return NegotiationResult.failure(FATAL_ERROR);
         }
 
-        monitor.debug("[Provider] Contract rejection received. Abort negotiation process");
+        monitor.debug("[Provider] Contract rejection received. Abort negotiation process.");
 
         // Remove agreement if present
         if (negotiation.getContractAgreement() != null) {
@@ -119,6 +133,15 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return NegotiationResult.success(negotiation);
+    }
+
+    private ContractNegotiation findContractNegotiationById(String negotiationId) {
+        var negotiation = negotiationStore.find(negotiationId);
+        if (negotiation == null) {
+            negotiation = negotiationStore.findForCorrelationId(negotiationId);
+        }
+
+        return negotiation;
     }
 
     /**
@@ -139,13 +162,14 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .counterPartyAddress(request.getConnectorAddress())
                 .protocol(request.getProtocol())
                 .type(ContractNegotiation.Type.PROVIDER)
+                .traceContext(telemetry.getCurrentTraceContext())
                 .build();
 
         negotiation.transitionRequested();
 
         negotiationStore.save(negotiation);
         observable.invokeForEach(l -> l.requested(negotiation));
-        
+
         monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -196,11 +220,11 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
         if (result.failed()) {
             monitor.debug("[Provider] Contract offer received. Will be rejected.");
-            negotiation.setErrorDetail("Contract rejected."); //TODO set error detail
+            negotiation.setErrorDetail(result.getFailureMessages().get(0));
             negotiation.transitionDeclining();
             negotiationStore.save(negotiation);
             observable.invokeForEach(l -> l.declining(negotiation));
-            
+
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
             return NegotiationResult.success(negotiation);
@@ -250,11 +274,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     private void run() {
         while (active.get()) {
             try {
-                var providerOffering = onNegotiationsInState(PROVIDER_OFFERING).doProcess(this::processProviderOffering);
-                var declining = onNegotiationsInState(DECLINING).doProcess(this::processDeclining);
-                var confirming = onNegotiationsInState(CONFIRMING).doProcess(this::processConfirming);
+                long providerOffering = processNegotiationsInState(PROVIDER_OFFERING, this::processProviderOffering);
+                long declining = processNegotiationsInState(DECLINING, this::processDeclining);
+                long confirming = processNegotiationsInState(CONFIRMING, this::processConfirming);
+                long commandsProcessed = onCommands().doProcess(this::processCommand);
 
-                var totalProcessed = providerOffering + declining + confirming;
+                var totalProcessed = providerOffering + declining + confirming + commandsProcessed;
 
                 if (totalProcessed == 0) {
                     Thread.sleep(waitStrategy.waitForMillis());
@@ -279,8 +304,17 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         }
     }
 
-    private EntitiesProcessor<ContractNegotiation> onNegotiationsInState(ContractNegotiationStates state) {
-        return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize));
+    private long processNegotiationsInState(ContractNegotiationStates state, Function<ContractNegotiation, Boolean> function) {
+        return new EntitiesProcessor<>(() -> negotiationStore.nextForState(state.code(), batchSize))
+                .doProcess(telemetry.contextPropagationMiddleware(function));
+    }
+
+    private EntitiesProcessor<ContractNegotiationCommand> onCommands() {
+        return new EntitiesProcessor<>(() -> commandQueue.dequeue(5));
+    }
+
+    private boolean processCommand(ContractNegotiationCommand command) {
+        return commandProcessor.processCommandQueue(command);
     }
 
     /**
@@ -366,8 +400,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      *
      * @return true if processed, false elsewhere
      */
-    @NotNull
-    private Boolean processConfirming(ContractNegotiation negotiation) {
+    private boolean processConfirming(ContractNegotiation negotiation) {
         var retrievedAgreement = negotiation.getContractAgreement();
 
         ContractAgreement agreement;
@@ -447,6 +480,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
         private Builder() {
             manager = new ProviderContractNegotiationManagerImpl();
+            manager.telemetry = new Telemetry(); // default noop implementation
         }
 
         public static Builder newInstance() {
@@ -468,13 +502,28 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             return this;
         }
 
-        public Builder waitStrategy(NegotiationWaitStrategy waitStrategy) {
+        public Builder waitStrategy(WaitStrategy waitStrategy) {
             manager.waitStrategy = waitStrategy;
             return this;
         }
 
         public Builder dispatcherRegistry(RemoteMessageDispatcherRegistry dispatcherRegistry) {
             manager.dispatcherRegistry = dispatcherRegistry;
+            return this;
+        }
+
+        public Builder commandQueue(CommandQueue<ContractNegotiationCommand> commandQueue) {
+            manager.commandQueue = commandQueue;
+            return this;
+        }
+
+        public Builder commandRunner(CommandRunner<ContractNegotiationCommand> commandRunner) {
+            manager.commandRunner = commandRunner;
+            return this;
+        }
+
+        public Builder telemetry(Telemetry telemetry) {
+            manager.telemetry = telemetry;
             return this;
         }
 
@@ -487,7 +536,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
+            Objects.requireNonNull(manager.commandQueue, "commandQueue");
+            Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
+            Objects.requireNonNull(manager.telemetry, "telemetry");
+            manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
+
             return manager;
         }
     }

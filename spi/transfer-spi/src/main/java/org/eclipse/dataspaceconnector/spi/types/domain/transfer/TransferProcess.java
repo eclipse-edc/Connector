@@ -19,14 +19,17 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonPOJOBuilder;
+import org.eclipse.dataspaceconnector.spi.telemetry.TraceCarrier;
 import org.jetbrains.annotations.Nullable;
 
 import java.time.Instant;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static java.util.stream.Collectors.toSet;
@@ -51,6 +54,7 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#DEPROVISIONING} ->
  * {@link TransferProcessStates#DEPROVISIONED} ->
  * {@link TransferProcessStates#ENDED} ->
+ * {@link TransferProcessStates#CANCELLED} -> optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
  * <br/>
  * <br/>
@@ -65,17 +69,20 @@ import static java.util.stream.Collectors.toSet;
  * {@link TransferProcessStates#DEPROVISIONING} ->
  * {@link TransferProcessStates#DEPROVISIONED} ->
  * {@link TransferProcessStates#ENDED} ->
+ * {@link TransferProcessStates#CANCELLED} -> optional, reachable from every state except ENDED, COMPLETED or ERROR
  * </pre>
+ * <br/>
  */
 @JsonTypeName("dataspaceconnector:transferprocess")
 @JsonDeserialize(builder = TransferProcess.Builder.class)
-public class TransferProcess {
+public class TransferProcess implements TraceCarrier {
 
     private String id;
     private Type type = Type.CONSUMER;
     private int state;
     private int stateCount = TransferProcessStates.UNSAVED.code();
     private long stateTimestamp;
+    private Map<String, String> traceContext = new HashMap<>();
     private String errorDetail;
     private DataRequest dataRequest;
     private ResourceManifest resourceManifest;
@@ -102,6 +109,10 @@ public class TransferProcess {
 
     public long getStateTimestamp() {
         return stateTimestamp;
+    }
+
+    public Map<String, String> getTraceContext() {
+        return Collections.unmodifiableMap(traceContext);
     }
 
     public DataRequest getDataRequest() {
@@ -207,6 +218,20 @@ public class TransferProcess {
         transition(TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING, TransferProcessStates.DEPROVISIONING_REQ, TransferProcessStates.DEPROVISIONED);
     }
 
+    public void transitionCancelled() {
+        // alternatively we could take the ".values()" array, and remove disallowed once, but this
+        // seems more explicit
+        var allowedStates = new TransferProcessStates[]{
+                TransferProcessStates.UNSAVED, TransferProcessStates.INITIAL,
+                TransferProcessStates.PROVISIONING, TransferProcessStates.PROVISIONED,
+                TransferProcessStates.REQUESTED, TransferProcessStates.REQUESTED_ACK,
+                TransferProcessStates.IN_PROGRESS, TransferProcessStates.STREAMING,
+                TransferProcessStates.DEPROVISIONED, TransferProcessStates.DEPROVISIONING_REQ,
+                TransferProcessStates.DEPROVISIONING, TransferProcessStates.CANCELLED
+        };
+        transition(TransferProcessStates.CANCELLED, allowedStates);
+    }
+
     /**
      * Indicates that the transfer process is completed and that it should be deprovisioned
      */
@@ -235,7 +260,7 @@ public class TransferProcess {
 
     public TransferProcess copy() {
         return Builder.newInstance().id(id).state(state).stateTimestamp(stateTimestamp).stateCount(stateCount).resourceManifest(resourceManifest).dataRequest(dataRequest)
-                .provisionedResourceSet(provisionedResourceSet).type(type).errorDetail(errorDetail).build();
+                .provisionedResourceSet(provisionedResourceSet).traceContext(traceContext).type(type).errorDetail(errorDetail).build();
     }
 
     public Builder toBuilder() {
@@ -345,6 +370,11 @@ public class TransferProcess {
 
         public Builder errorDetail(String errorDetail) {
             process.errorDetail = errorDetail;
+            return this;
+        }
+
+        public Builder traceContext(Map<String, String> traceContext) {
+            process.traceContext = traceContext;
             return this;
         }
 

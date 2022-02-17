@@ -13,16 +13,19 @@
  */
 package org.eclipse.dataspaceconnector.transaction.atomikos;
 
-import org.eclipse.dataspaceconnector.core.config.ConfigFactory;
-import org.eclipse.dataspaceconnector.spi.system.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.Config;
+import org.eclipse.dataspaceconnector.spi.system.configuration.ConfigFactory;
 
 import java.util.HashMap;
-import java.util.Map;
 
 import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfiguration.DataSourceType.NON_XA;
+import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfigurationKeys.CONNECTION_TIMEOUT;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfigurationKeys.DRIVER_CLASS;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfigurationKeys.DS_TYPE;
+import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfigurationKeys.LOGIN_TIMEOUT;
 import static org.eclipse.dataspaceconnector.transaction.atomikos.DataSourceConfigurationKeys.URL;
+import static org.eclipse.dataspaceconnector.transaction.atomikos.TransactionManagerConfigurationKeys.LOGGING;
+import static org.eclipse.dataspaceconnector.transaction.atomikos.TransactionManagerConfigurationKeys.TIMEOUT;
 
 /**
  * Test fixtures for working with JDBC resources.
@@ -37,6 +40,12 @@ public class JdbcTestFixtures {
         properties.put("default." + DRIVER_CLASS, driverClass);
         properties.put("default." + DS_TYPE, NON_XA.toString().toLowerCase());
         properties.put("default." + DataSourceConfigurationKeys.POOL_SIZE, "2");
+        return ConfigFactory.fromMap(properties);
+    }
+
+    public static Config createAtomikosConfig() {
+        var properties = new HashMap<String, String>();
+        properties.put(TIMEOUT, "60");
         return ConfigFactory.fromMap(properties);
     }
 }

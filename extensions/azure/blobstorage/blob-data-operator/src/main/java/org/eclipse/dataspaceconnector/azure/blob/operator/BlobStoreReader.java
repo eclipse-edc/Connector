@@ -3,8 +3,8 @@ package org.eclipse.dataspaceconnector.azure.blob.operator;
 import org.eclipse.dataspaceconnector.azure.blob.core.AzureBlobStoreSchema;
 import org.eclipse.dataspaceconnector.azure.blob.core.api.BlobStoreApi;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.transfer.inline.DataReader;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
-import org.eclipse.dataspaceconnector.transfer.inline.spi.DataReader;
 
 import java.io.ByteArrayInputStream;
 

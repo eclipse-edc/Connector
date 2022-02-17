@@ -29,8 +29,15 @@ import java.util.Set;
 public interface TransferProcessStore {
     String FEATURE = "edc:core:transfer:transferprocessstore";
 
+    /**
+     * Returns the transfer process for the id or null if not found.
+     */
+    @Nullable
     TransferProcess find(String id);
 
+    /**
+     * Returns the transfer process for the data request id or null if not found.
+     */
     @Nullable
     String processIdForTransferId(String id);
 
@@ -45,16 +52,25 @@ public interface TransferProcessStore {
      * Some database frameworks such as Spring have automatic lastChanged columns.
      *
      * @param state The state that the processes of interest should be in.
-     * @param max   The maximum amount of result items.
+     * @param max The maximum amount of result items.
      * @return A list of TransferProcesses (at most _max_) that are in the desired state.
      */
     @NotNull
     List<TransferProcess> nextForState(int state, int max);
 
+    /**
+     * Creates a transfer process.
+     */
     void create(TransferProcess process);
 
+    /**
+     * Updates a transfer process.
+     */
     void update(TransferProcess process);
 
+    /**
+     * Deletes a transfer process.
+     */
     void delete(String processId);
 
     void createData(String processId, String key, Object data);

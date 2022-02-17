@@ -63,13 +63,17 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.findUnallocatedServerPort;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 
 @ExtendWith(EdcExtension.class)
 abstract class AbstractMultipartControllerIntegrationTest {
+    public static final String HEADER = "header";
+    public static final String PAYLOAD = "payload";
     // TODO needs to be replaced by an objectmapper capable to understand IDS JSON-LD
     //      once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    private static final AtomicReference<Integer> PORT = new AtomicReference<>();
+    private static final List<Asset> ASSETS = new LinkedList<>();
 
     static {
         OBJECT_MAPPER.registerModule(new JavaTimeModule());
@@ -78,22 +82,6 @@ abstract class AbstractMultipartControllerIntegrationTest {
         OBJECT_MAPPER.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
         OBJECT_MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         OBJECT_MAPPER.configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, true);
-    }
-
-    public static final String HEADER = "header";
-    public static final String PAYLOAD = "payload";
-    private static final AtomicReference<Integer> PORT = new AtomicReference<>();
-    private static final List<Asset> ASSETS = new LinkedList<>();
-
-    @BeforeEach
-    protected void before(EdcExtension extension) {
-        PORT.set(findUnallocatedServerPort());
-
-        for (Map.Entry<String, String> entry : getSystemProperties().entrySet()) {
-            System.setProperty(entry.getKey(), entry.getValue());
-        }
-
-        extension.registerSystemExtension(ServiceExtension.class, new IdsApiMultipartEndpointV1IntegrationTestServiceExtension(ASSETS));
     }
 
     @AfterEach
@@ -105,6 +93,17 @@ abstract class AbstractMultipartControllerIntegrationTest {
         }
 
         PORT.set(null);
+    }
+
+    @BeforeEach
+    protected void before(EdcExtension extension) {
+        PORT.set(getFreePort());
+
+        for (Map.Entry<String, String> entry : getSystemProperties().entrySet()) {
+            System.setProperty(entry.getKey(), entry.getValue());
+        }
+
+        extension.registerSystemExtension(ServiceExtension.class, new IdsApiMultipartEndpointV1IntegrationTestServiceExtension(ASSETS));
     }
 
     protected void addAsset(Asset asset) {
@@ -167,6 +166,7 @@ abstract class AbstractMultipartControllerIntegrationTest {
     protected ContractRejectionMessage getContractRejectionMessage() {
         return new ContractRejectionMessageBuilder()
                 ._correlationMessage_(URI.create("correlationId"))
+                ._transferContract_(URI.create("contractId"))
                 ._securityToken_(getDynamicAttributeToken())
                 .build();
     }
@@ -176,32 +176,6 @@ abstract class AbstractMultipartControllerIntegrationTest {
                 ._correlationMessage_(URI.create("correlationId"))
                 ._securityToken_(getDynamicAttributeToken())
                 .build();
-    }
-
-    // create the "header" multipart payload
-    private MultipartBody.Part createIdsMessageHeaderMultipart(Message message) throws Exception {
-        Headers headers = new Headers.Builder()
-                .add("Content-Disposition", "form-data; name=\"header\"")
-                .build();
-
-        RequestBody requestBody = RequestBody.create(
-                toJson(message),
-                okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
-
-        return MultipartBody.Part.create(headers, requestBody);
-    }
-
-    // create the "header" multipart payload
-    private MultipartBody.Part createIdsMessagePayloadMultipart(Contract contract) throws Exception {
-        Headers headers = new Headers.Builder()
-                .add("Content-Disposition", "form-data; name=\"payload\"")
-                .build();
-
-        RequestBody requestBody = RequestBody.create(
-                toJson(contract),
-                okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
-
-        return MultipartBody.Part.create(headers, requestBody);
     }
 
     // create the multipart-form-data request having the given message in its "header" multipart payload
@@ -297,6 +271,32 @@ abstract class AbstractMultipartControllerIntegrationTest {
         }
 
         return namedMultipartContentList;
+    }
+
+    // create the "header" multipart payload
+    private MultipartBody.Part createIdsMessageHeaderMultipart(Message message) throws Exception {
+        Headers headers = new Headers.Builder()
+                .add("Content-Disposition", "form-data; name=\"header\"")
+                .build();
+
+        RequestBody requestBody = RequestBody.create(
+                toJson(message),
+                okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
+
+        return MultipartBody.Part.create(headers, requestBody);
+    }
+
+    // create the "header" multipart payload
+    private MultipartBody.Part createIdsMessagePayloadMultipart(Contract contract) throws Exception {
+        Headers headers = new Headers.Builder()
+                .add("Content-Disposition", "form-data; name=\"payload\"")
+                .build();
+
+        RequestBody requestBody = RequestBody.create(
+                toJson(contract),
+                okhttp3.MediaType.get(MediaType.APPLICATION_JSON));
+
+        return MultipartBody.Part.create(headers, requestBody);
     }
 
     public static class NamedMultipartContent {
