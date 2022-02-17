@@ -27,7 +27,7 @@ public final class FsConfiguration {
     static final String KEYSTORE_LOCATION = propOrEnv("edc.keystore", "dataspaceconnector-keystore.jks");
 
     @EdcSetting
-    static final String KEYSTORE_PASSWORD = propOrEnv("edc.keystore.password", "test123");
+    static final String KEYSTORE_PASSWORD = propOrEnv("edc.keystore.password", null);
 
     @EdcSetting
     static final boolean PERSISTENT_VAULT = Boolean.parseBoolean(propOrEnv("edc.vault.persistent", "true"));
