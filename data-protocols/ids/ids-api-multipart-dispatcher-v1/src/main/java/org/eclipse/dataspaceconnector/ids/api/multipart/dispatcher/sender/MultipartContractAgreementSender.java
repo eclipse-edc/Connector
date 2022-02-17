@@ -34,6 +34,8 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Collections;
 
+import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
+
 /**
  * IdsMultipartSender implementation for contract agreements. Sends IDS ContractAgreementMessages and
  * expects an IDS RequestInProcessMessage as the response.
@@ -89,7 +91,7 @@ public class MultipartContractAgreementSender extends IdsMultipartSender<Contrac
                 ._recipientConnector_(Collections.singletonList(URI.create(request.getConnectorId())))
                 ._transferContract_(URI.create(request.getCorrelationId()))
                 .build();
-        message.setProperty("idsWebhookAddress", idsWebhookAddress + "/api/ids/multipart");
+        message.setProperty(IDS_WEBHOOK_ADDRESS_PROPERTY, idsWebhookAddress + "/api/ids/multipart");
 
         return message;
     }

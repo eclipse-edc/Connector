@@ -4,13 +4,13 @@ import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
-import org.eclipse.dataspaceconnector.token.spi.ValidationRule;
+import org.eclipse.dataspaceconnector.token.JwtClaimValidationRule;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
 import java.time.Instant;
 
-public class ContractValidationRule implements ValidationRule {
+public class ContractValidationRule implements JwtClaimValidationRule {
 
     private final ContractNegotiationStore contractNegotiationStore;
 

@@ -2,13 +2,13 @@ package org.eclipse.dataspaceconnector.dataplane.validation.server.rules;
 
 import com.nimbusds.jwt.JWTClaimsSet;
 import org.eclipse.dataspaceconnector.spi.result.Result;
-import org.eclipse.dataspaceconnector.token.spi.ValidationRule;
+import org.eclipse.dataspaceconnector.token.JwtClaimValidationRule;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.Date;
 
-public class ExpirationDateValidationRule implements ValidationRule {
+public class ExpirationDateValidationRule implements JwtClaimValidationRule {
 
     @Override
     public Result<JWTClaimsSet> checkRule(@NotNull JWTClaimsSet toVerify) {

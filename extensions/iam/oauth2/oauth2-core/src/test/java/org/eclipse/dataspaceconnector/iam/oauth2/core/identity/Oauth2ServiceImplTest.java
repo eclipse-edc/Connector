@@ -28,14 +28,13 @@ import com.nimbusds.jwt.SignedJWT;
 import okhttp3.OkHttpClient;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.Oauth2Configuration;
 import org.eclipse.dataspaceconnector.iam.oauth2.core.jwt.JwtDecoratorRegistryImpl;
-import org.eclipse.dataspaceconnector.iam.oauth2.spi.PublicKeyResolver;
+import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
 import org.eclipse.dataspaceconnector.spi.security.PrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
@@ -61,10 +60,10 @@ class Oauth2ServiceImplTest {
         RSAKey testKey = testKey();
 
         jwsSigner = new RSASSASigner(testKey.toPrivateKey());
-        PublicKeyResolver publicKeyResolverMock = mock(PublicKeyResolver.class);
+        var publicKeyResolverMock = mock(PublicKeyResolver.class);
         PrivateKeyResolver privateKeyResolverMock = mock(PrivateKeyResolver.class);
         CertificateResolver certificateResolverMock = mock(CertificateResolver.class);
-        when(publicKeyResolverMock.resolveKey(anyString())).thenReturn((RSAPublicKey) testKey.toPublicKey());
+        when(publicKeyResolverMock.resolveKey(anyString())).thenReturn(testKey.toPublicKey());
         Oauth2Configuration configuration = Oauth2Configuration.Builder.newInstance()
                 .tokenUrl(TOKEN_URL)
                 .clientId(CLIENT_ID)
