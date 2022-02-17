@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
@@ -110,6 +111,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * @param contractOffer Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
+    @WithSpan
     @Override
     public NegotiationResult initiate(ContractOfferRequest contractOffer) {
         var negotiation = ContractNegotiation.Builder.newInstance()
@@ -143,6 +145,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
+    @WithSpan
     @Override
     public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
@@ -192,6 +195,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id or no last
      *         offer found for negotiation; OK otherwise
      */
+    @WithSpan
     @Override
     public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
@@ -244,6 +248,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      * @return a {@link NegotiationResult}: OK, if successfully transitioned to declined;
      *         FATAL_ERROR, if no match found for Id.
      */
+    @WithSpan
     @Override
     public NegotiationResult declined(ClaimToken token, String negotiationId) {
         var negotiation = findContractNegotiationById(negotiationId);
@@ -299,6 +304,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      *
      * @return true if processed, false elsewhere
      */
+    @WithSpan
     private boolean processInitial(ContractNegotiation negotiation) {
         var offer = negotiation.getLastContractOffer();
         negotiation.transitionRequesting();
@@ -342,6 +348,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      *
      * @return true if processed, false elsewhere
      */
+    @WithSpan
     private boolean processConsumerOffering(ContractNegotiation negotiation) {
         var offer = negotiation.getLastContractOffer();
         sendOffer(offer, negotiation, ContractOfferRequest.Type.COUNTER_OFFER)
@@ -372,6 +379,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      *
      * @return true if processed, false elsewhere
      */
+    @WithSpan
     private boolean processConsumerApproving(ContractNegotiation negotiation) {
         //TODO this is a dummy agreement used to approve the provider's offer, real agreement will be created and sent by provider
         var lastOffer = negotiation.getLastContractOffer();
@@ -430,6 +438,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      *
      * @return true if processed, false elsewhere
      */
+    @WithSpan
     private boolean processDeclining(ContractNegotiation negotiation) {
         var rejection = ContractRejection.Builder.newInstance()
                 .protocol(negotiation.getProtocol())

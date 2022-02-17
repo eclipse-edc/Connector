@@ -14,6 +14,7 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
@@ -141,6 +142,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      * If a {@link org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler} is registered, the {@link ProxyEntry} is forwarded to it, and if no {@link org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler}
      * is registered, the {@link ProxyEntry} object is returned.
      */
+    @WithSpan
     @Override
     public TransferInitiateResult initiateConsumerRequest(DataRequest dataRequest) {
         if (dataRequest.isSync()) {
@@ -160,6 +162,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      * The {@link DataProxyManager} checks if a {@link org.eclipse.dataspaceconnector.spi.proxy.DataProxy}
      * is registered for a particular request and if so, calls it.
      */
+    @WithSpan
     @Override
     public TransferInitiateResult initiateProviderRequest(DataRequest dataRequest) {
         if (dataRequest.isSync()) {
@@ -385,6 +388,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return commandProcessor.processCommandQueue(command);
     }
 
+    @WithSpan
     private boolean processDeprovisioned(TransferProcess process) {
         process.transitionEnded();
         transferProcessStore.update(process);
@@ -393,6 +397,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return true;
     }
 
+    @WithSpan
     private boolean processDeprovisioningRequest(TransferProcess process) {
         process.transitionDeprovisioning();
         transferProcessStore.update(process);
@@ -411,6 +416,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return true;
     }
 
+    @WithSpan
     private boolean processAckRequested(TransferProcess process) {
         if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
 
@@ -429,6 +435,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
+    @WithSpan
     private boolean processInProgress(TransferProcess process) {
         if (process.getType() != CONSUMER) {
             return false;
@@ -458,6 +465,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
+    @WithSpan
     private void transitionToCompleted(TransferProcess process) {
         process.transitionCompleted();
         monitor.debug("Process " + process.getId() + " is now " + COMPLETED);
@@ -471,6 +479,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
      * On a consumer, provisioning may entail setting up a data destination and supporting infrastructure. On a provider, provisioning is initiated when a request is received and
      * map involve preprocessing data or other operations.
      */
+    @WithSpan
     private boolean processInitial(TransferProcess process) {
         var manifest = manifestGenerator.generateResourceManifest(process);
         process.transitionProvisioning(manifest);
@@ -500,6 +509,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         return true;
     }
 
+    @WithSpan
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
         var response = dataFlowManager.initiate(dataRequest);
         if (response.succeeded()) {
@@ -525,6 +535,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
         }
     }
 
+    @WithSpan
     private void sendConsumerRequest(TransferProcess process, DataRequest dataRequest) {
         process.transitionRequested();
         transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency

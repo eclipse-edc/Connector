@@ -14,6 +14,7 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.common.stream.EntitiesProcessor;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.command.CommandProcessor;
@@ -113,6 +114,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @return a {@link NegotiationResult}: OK, if successfully transitioned to declined;
      *         FATAL_ERROR, if no match found for Id.
      */
+    @WithSpan
     @Override
     public NegotiationResult declined(ClaimToken token, String correlationId) {
         var negotiation = findContractNegotiationById(correlationId);
@@ -153,6 +155,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @param request Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
+    @WithSpan
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
         var negotiation = ContractNegotiation.Builder.newInstance()
@@ -187,6 +190,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @param hash A hash of all previous contract offers.
      * @return a {@link NegotiationResult}: FATAL_ERROR, if no match found for Id; OK otherwise
      */
+    @WithSpan
     @Override
     public NegotiationResult offerReceived(ClaimToken token, String correlationId, ContractOffer offer, String hash) {
         var negotiation = negotiationStore.findForCorrelationId(correlationId);
@@ -324,6 +328,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      *
      * @return true if processed, false elsewhere
      */
+    @WithSpan
     private boolean processProviderOffering(ContractNegotiation negotiation) {
         var currentOffer = negotiation.getLastContractOffer();
 
@@ -363,6 +368,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      *
      * @return true if processed, false elsewhere
      */
+    @WithSpan
     private boolean processDeclining(ContractNegotiation negotiation) {
         ContractRejection rejection = ContractRejection.Builder.newInstance()
                 .protocol(negotiation.getProtocol())
@@ -400,6 +406,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      *
      * @return true if processed, false elsewhere
      */
+    @WithSpan
     private boolean processConfirming(ContractNegotiation negotiation) {
         var retrievedAgreement = negotiation.getContractAgreement();
 
