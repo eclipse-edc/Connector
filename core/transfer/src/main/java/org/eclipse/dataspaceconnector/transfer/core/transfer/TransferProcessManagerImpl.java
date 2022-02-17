@@ -491,6 +491,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     private void transitionToError(String id, Throwable throwable, String message) {
         var transferProcess = transferProcessStore.find(id);
+        if (transferProcess == null) {
+            monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", id));
+            return;
+        }
+
         monitor.severe(message, throwable);
         transferProcess.transitionError(format("%s: %s", message, throwable.getLocalizedMessage()));
         transferProcessStore.update(transferProcess);
@@ -542,7 +547,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                 .whenComplete((o, throwable) -> {
                     if (o != null) {
                         monitor.info("Object received: " + o);
-                        transitionToInProgress(transferProcessStore.find(process.getId()));
+                        TransferProcess transferProcess = transferProcessStore.find(process.getId());
+                        if (transferProcess == null) {
+                            monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", process.getId()));
+                            return;
+                        }
+                        transitionToInProgress(transferProcess);
                     }
                 });
     }
