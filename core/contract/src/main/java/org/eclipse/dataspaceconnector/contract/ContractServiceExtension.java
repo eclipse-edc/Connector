@@ -59,6 +59,7 @@ public class ContractServiceExtension implements ServiceExtension {
     private Monitor monitor;
     private ConsumerContractNegotiationManagerImpl consumerNegotiationManager;
     private ProviderContractNegotiationManagerImpl providerNegotiationManager;
+
     @Inject
     private AssetIndex assetIndex;
     @Inject

@@ -100,7 +100,7 @@ class JettyConfigurationTest {
         var result = JettyConfiguration.createFromConfig(null, null,
                 ConfigFactory.fromMap(Map.of("web.http.this.is.longer.port", "8888")));
 
-        assertThat(result.getPortMappings()).allSatisfy(p -> assertThat(p).usingRecursiveComparison().isEqualTo(new PortMapping()));
+        assertThat(result.getPortMappings()).allSatisfy(p -> assertThat(p).usingRecursiveComparison().isEqualTo(PortMapping.getDefault()));
 
     }
 
