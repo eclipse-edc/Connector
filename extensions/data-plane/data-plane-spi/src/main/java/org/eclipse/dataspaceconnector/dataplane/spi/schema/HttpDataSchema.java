@@ -11,7 +11,7 @@
  *       Microsoft Corporation - initial API and implementation
  *
  */
-package org.eclipse.dataspaceconnector.dataplane.http.schema;
+package org.eclipse.dataspaceconnector.dataplane.spi.schema;
 
 /**
  * Defines the data address attributes used by the HTTP data plane extension.

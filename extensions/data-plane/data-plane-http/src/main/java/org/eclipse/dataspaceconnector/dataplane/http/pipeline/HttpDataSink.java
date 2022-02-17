@@ -54,10 +54,11 @@ public class HttpDataSink implements DataSink {
             return futures.stream()
                     .collect(asyncAllOf())
                     .thenApply(results -> {
-                        if (results.stream().anyMatch(AbstractResult::failed)) {
-                            return TransferResult.failure(ERROR_RETRY, "Error transferring data");
-                        }
-                        return TransferResult.success();
+                        return results.stream()
+                                .filter(AbstractResult::failed)
+                                .findFirst()
+                                .map(r -> TransferResult.failure(ERROR_RETRY, String.join(",", r.getFailureMessages())))
+                                .orElse(TransferResult.success());
                     })
                     .exceptionally(throwable -> TransferResult.failure(ERROR_RETRY, "Unhandled exception raised when transferring data: " + throwable.getMessage()));
         } catch (Exception e) {
