@@ -115,6 +115,8 @@ include(":extensions:data-plane:data-plane-validation-facade:data-plane-validati
 include(":extensions:data-plane:data-plane-http-proxy:data-plane-http-proxy-provider")
 include(":extensions:data-plane:data-plane-http-proxy:data-plane-http-proxy-consumer")
 include(":extensions:data-plane:data-plane-http-proxy:data-plane-http-proxy-core")
+include(":extensions:sql:common")
+include(":extensions:sql:pool:apache-commons-pool")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
