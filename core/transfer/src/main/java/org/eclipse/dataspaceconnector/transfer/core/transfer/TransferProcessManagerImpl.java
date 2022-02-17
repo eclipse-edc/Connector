@@ -417,7 +417,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     @WithSpan
     private boolean processAckRequested(TransferProcess process) {
         if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
-            transitionToInProgress(process);
+            process.transitionInProgressOrStreaming();
+            transferProcessStore.update(process);
+            observable.invokeForEach(l -> l.inProgress(process));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             return true;
         } else {
@@ -516,7 +518,9 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
     private void processProviderRequest(TransferProcess process, DataRequest dataRequest) {
         var response = dataFlowManager.initiate(dataRequest);
         if (response.succeeded()) {
-            transitionToInProgress(process);
+            process.transitionInProgressOrStreaming();
+            transferProcessStore.update(process);
+            observable.invokeForEach(l -> l.inProgress(process));
         } else {
             if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
                 monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
@@ -552,20 +556,12 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
                             monitor.severe(format("TransferProcessManager: no TransferProcess found with id %s", process.getId()));
                             return;
                         }
-                        transitionToInProgress(transferProcess);
+
+                        transferProcess.transitionInProgressOrStreaming();
+                        transferProcessStore.update(transferProcess);
+                        observable.invokeForEach(l -> l.inProgress(transferProcess));
                     }
                 });
-    }
-
-    private void transitionToInProgress(TransferProcess process) {
-        var dataRequest = process.getDataRequest();
-        if (dataRequest.getTransferType().isFinite()) {
-            process.transitionInProgress();
-        } else {
-            process.transitionStreaming();
-        }
-        transferProcessStore.update(process);
-        observable.invokeForEach(l -> l.inProgress(process));
     }
 
     public static class Builder {
