@@ -19,9 +19,6 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.AssetEntryDto;
-import org.eclipse.dataspaceconnector.api.datamanagement.asset.model.DataAddressDto;
 import org.eclipse.dataspaceconnector.common.testfixtures.TestUtils;
 import org.eclipse.dataspaceconnector.extension.jersey.CorsFilterConfiguration;
 import org.eclipse.dataspaceconnector.extension.jersey.JerseyRestService;
@@ -36,15 +33,16 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.eclipse.dataspaceconnector.api.datamanagement.asset.TestFunctions.createAssetEntryDto;
+import static org.eclipse.dataspaceconnector.api.datamanagement.asset.TestFunctions.createAssetEntryDto_emptyAttributes;
 import static org.mockito.Mockito.mock;
 
 public class AssetControllerIntegrationTest {
 
     private static int port;
-    ObjectMapper objectMapper;
+    private ObjectMapper objectMapper;
     private OkHttpClient client;
 
     @BeforeAll
@@ -92,11 +90,7 @@ public class AssetControllerIntegrationTest {
 
     @Test
     void postAsset() throws IOException {
-        var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-1", "An Asset")).build();
-        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
-        var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
-        var str = objectMapper.writeValueAsString(assetEntryDto);
-
+        var str = objectMapper.writeValueAsString(createAssetEntryDto());
         RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
 
         try (var response = post(basePath(), requestBody)) {
@@ -106,10 +100,7 @@ public class AssetControllerIntegrationTest {
 
     @Test
     void postAssetId_alreadyExists() throws IOException {
-        var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-Existent", "An Asset")).build();
-        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
-        var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
-        var str = objectMapper.writeValueAsString(assetEntryDto);
+        var str = objectMapper.writeValueAsString(createAssetEntryDto());
 
         RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
 
@@ -119,11 +110,8 @@ public class AssetControllerIntegrationTest {
     }
 
     @Test
-    void postAssetIsEmpty() throws IOException {
-        var assetDto = AssetDto.Builder.newInstance().properties(Collections.singletonMap("Asset-empty", "")).build();
-        var dataAddress = DataAddressDto.Builder.newInstance().properties(Collections.singletonMap("asset-1", "/localhost")).build();
-        var assetEntryDto = AssetEntryDto.Builder.newInstance().assetDto(assetDto).dataAddress(dataAddress).build();
-        var str = objectMapper.writeValueAsString(assetEntryDto);
+    void postAsset_emptyAttributes() throws IOException {
+        var str = objectMapper.writeValueAsString(createAssetEntryDto_emptyAttributes());
 
         RequestBody requestBody = RequestBody.create(str, MediaType.parse("application/json"));
 

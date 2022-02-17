@@ -25,11 +25,6 @@ public class AssetControllerServiceExtension implements ServiceExtension {
     private WebService webService;
 
     @Override
-    public String name() {
-        return "EDC Control API";
-    }
-
-    @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
         Monitor monitor = serviceExtensionContext.getMonitor();
         //avoid jetty throwing exceptions down the road
