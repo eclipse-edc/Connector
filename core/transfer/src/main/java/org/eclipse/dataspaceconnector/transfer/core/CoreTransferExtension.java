@@ -14,12 +14,9 @@
 
 package org.eclipse.dataspaceconnector.transfer.core;
 
-import org.eclipse.dataspaceconnector.spi.EdcException;
-import org.eclipse.dataspaceconnector.spi.EdcSetting;
 import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
-import org.eclipse.dataspaceconnector.spi.iam.TokenGenerationService;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
 import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandlerRegistry;
@@ -46,7 +43,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.edr.DefaultEndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.transfer.core.edr.EndpointDataReferenceReceiverRegistryImpl;
-import org.eclipse.dataspaceconnector.transfer.core.edr.ProxyEndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.transfer.core.flow.DataFlowManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.inline.DataOperatorRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
@@ -67,20 +63,12 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessMana
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
-    @EdcSetting
-    public static final String DATAPLANE_PUBLIC_ENDPOINT = "edc.dataplane.public-endpoint";
-
-    @EdcSetting
-    public static final String DATAPLANE_CONSUMER_PROXY_ENABLED = "edc.dataplane.consumer-proxy.enabled";
-
     @Inject
     private TransferProcessStore transferProcessStore;
     @Inject
     private CommandHandlerRegistry registry;
     @Inject
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
-    @Inject(required = false)
-    private TokenGenerationService tokenGenerationService;
 
     private TransferProcessManagerImpl processManager;
 
@@ -121,7 +109,9 @@ public class CoreTransferExtension implements ServiceExtension {
         var endpointDataReferenceReceiverRegistry = new EndpointDataReferenceReceiverRegistryImpl();
         context.registerService(EndpointDataReferenceReceiverRegistry.class, endpointDataReferenceReceiverRegistry);
 
-        registerEndpointDataReferenceTransformer(context);
+        // Register a default EndpointDataReferenceTransformer that can be overridden in extensions.
+        var endpointDataReferenceTransformer = new DefaultEndpointDataReferenceTransformer();
+        context.registerService(EndpointDataReferenceTransformer.class, endpointDataReferenceTransformer);
 
         var dataProxyManager = new DataProxyManagerImpl();
         context.registerService(DataProxyManager.class, dataProxyManager);
@@ -170,21 +160,5 @@ public class CoreTransferExtension implements ServiceExtension {
 
     private void registerTypes(TypeManager typeManager) {
         typeManager.registerTypes(DataRequest.class);
-    }
-
-    private void registerEndpointDataReferenceTransformer(ServiceExtensionContext context) {
-        EndpointDataReferenceTransformer transformer;
-        boolean consumerProxyEnabled = Boolean.parseBoolean(context.getSetting(DATAPLANE_CONSUMER_PROXY_ENABLED, Boolean.FALSE.toString()));
-        if (consumerProxyEnabled) {
-            if (tokenGenerationService != null) {
-                var dataPlanePublicEndpoint = context.getSetting(DATAPLANE_PUBLIC_ENDPOINT, "/api/public/transfer");
-                transformer = new ProxyEndpointDataReferenceTransformer(tokenGenerationService, dataPlanePublicEndpoint, context.getTypeManager());
-            } else {
-                throw new EdcException("Missing mandatory TokenGenerationService");
-            }
-        } else {
-            transformer = new DefaultEndpointDataReferenceTransformer();
-        }
-        context.registerService(EndpointDataReferenceTransformer.class, transformer);
     }
 }
