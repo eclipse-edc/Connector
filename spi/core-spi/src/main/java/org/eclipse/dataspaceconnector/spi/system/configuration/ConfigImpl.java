@@ -46,7 +46,9 @@ public class ConfigImpl implements Config {
         Objects.requireNonNull(rootPath, "rootPath");
 
         // convert upper snake case to Java Property format: SOME_KEY=value will become some.key=value
-        this.entries = entries.entrySet().stream().collect(Collectors.toMap(e -> e.getKey().toLowerCase().replace("_", "."), Map.Entry::getValue, (o, o2) -> o2));
+        this.entries = entries.entrySet().stream()
+                .collect(Collectors.toMap(e -> e.getKey().toLowerCase().replace("_", "."),
+                        Map.Entry::getValue, (o, o2) -> o2));
         this.rootPath = rootPath.toLowerCase().replace("_", ".");
     }
 
@@ -88,7 +90,9 @@ public class ConfigImpl implements Config {
     @Override
     public Config getConfig(String path) {
         String absolutePath = absolutePathOf(path);
-        var filteredEntries = entries.entrySet().stream().filter(entry -> entry.getKey().startsWith(absolutePath)).collect(TO_MAP);
+        var filteredEntries = entries.entrySet().stream()
+                .filter(entry -> entry.getKey().startsWith(absolutePath))
+                .collect(TO_MAP);
 
         return new ConfigImpl(absolutePath, filteredEntries);
     }
@@ -114,7 +118,8 @@ public class ConfigImpl implements Config {
 
     @Override
     public Map<String, String> getRelativeEntries() {
-        return getEntries().entrySet().stream().map(entry -> Map.entry(removePrefix(entry.getKey(), rootPath), entry.getValue())).collect(TO_MAP);
+        return getEntries().entrySet().stream().map(entry -> Map.entry(removePrefix(entry.getKey(), rootPath), entry.getValue()))
+                .collect(TO_MAP);
     }
 
     @Override
