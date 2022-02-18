@@ -85,8 +85,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
     private ConsumerContractNegotiationManagerImpl() { }
 
-    public void start(ContractNegotiationStore store) {
-        negotiationStore = store;
+    public void start() {
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -617,6 +616,11 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             return this;
         }
 
+        public Builder store(ContractNegotiationStore store) {
+            manager.negotiationStore = store;
+            return this;
+        }
+
         public ConsumerContractNegotiationManagerImpl build() {
             Objects.requireNonNull(manager.validationService, "contractValidationService");
             Objects.requireNonNull(manager.monitor, "monitor");
@@ -625,6 +629,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
             Objects.requireNonNull(manager.commandRunner, "commandRunner");
             Objects.requireNonNull(manager.observable, "observable");
             Objects.requireNonNull(manager.telemetry, "telemetry");
+            Objects.requireNonNull(manager.negotiationStore, "store");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;

@@ -116,8 +116,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
 
     private TransferProcessManagerImpl() { }
 
-    public void start(TransferProcessStore processStore) {
-        transferProcessStore = processStore;
+    public void start() {
         active.set(true);
         executor = Executors.newSingleThreadExecutor();
         executor.submit(this::run);
@@ -656,6 +655,11 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             return this;
         }
 
+        public Builder store(TransferProcessStore transferProcessStore) {
+            manager.transferProcessStore = transferProcessStore;
+            return this;
+        }
+
         public TransferProcessManagerImpl build() {
             Objects.requireNonNull(manager.manifestGenerator, "manifestGenerator");
             Objects.requireNonNull(manager.provisionManager, "provisionManager");
@@ -669,6 +673,7 @@ public class TransferProcessManagerImpl implements TransferProcessManager {
             Objects.requireNonNull(manager.proxyEntryHandlers, "ProxyEntryHandlerRegistry cannot be null!");
             Objects.requireNonNull(manager.observable, "Observable cannot be null");
             Objects.requireNonNull(manager.telemetry, "Telemetry cannot be null");
+            Objects.requireNonNull(manager.transferProcessStore, "Store cannot be null");
             manager.commandProcessor = new CommandProcessor<>(manager.commandQueue, manager.commandRunner, manager.monitor);
 
             return manager;

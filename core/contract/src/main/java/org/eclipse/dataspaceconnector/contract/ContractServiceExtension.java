@@ -86,8 +86,8 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        consumerNegotiationManager.start(store);
-        providerNegotiationManager.start(store);
+        consumerNegotiationManager.start();
+        providerNegotiationManager.start();
     }
 
     @Override
@@ -140,6 +140,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .commandRunner(commandRunner)
                 .observable(observable)
                 .telemetry(telemetry)
+                .store(store)
                 .build();
 
         providerNegotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
@@ -151,6 +152,7 @@ public class ContractServiceExtension implements ServiceExtension {
                 .commandRunner(commandRunner)
                 .observable(observable)
                 .telemetry(telemetry)
+                .store(store)
                 .build();
 
         context.registerService(ConsumerContractNegotiationManager.class, consumerNegotiationManager);
