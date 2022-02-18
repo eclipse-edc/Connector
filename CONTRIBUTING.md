@@ -50,13 +50,17 @@ otherwise [create a new issue](#create-an-issue).
 
 If you have identified a bug or just want to share an idea to further enhance the project, feel free 
 to create a new issue at our project's corresponding
-[Github Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/new).
+[GitHub Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/new).
 
 Before doing so, please consider searching for potentially suitable
 [existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen).
 
-We also use [Github's default label set](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels)
+We also use [GitHub's default label set](https://docs.github.com/en/issues/using-labels-and-milestones-to-track-work/managing-labels)
 extended by custom ones to classify issues and improve findability.
+
+Please note that if an issue covers a topic or the response to a question that may be interesting 
+for other developers or contributors, or for further discussions, it should be converted to a 
+discussion and not be closed.
 
 ### Adhere to coding style guide
 
@@ -129,33 +133,28 @@ The group of committers chooses issues based on customer needs and contributions
 
 ### Projects
 
-The [Github Projects page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects)
-provides a general overview of the project's working items. Every new issue needs to be assigned to
-the ["Dataspace Connector" project](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1).
-There, an issue passes five stages:
-* `Open`: All assigned issues will automatically have this status.
-* `Backlog`: An open issue does not automatically imply that it is going to be addressed in upcoming
-  milestones and releases - maybe someone opened it to report a bug or ask a question. An issue that 
-  will be resolved must be put to this column.
-* `In progress`: Reopened issues and pull requests or new pull requests will be added to this column
-  automatically if they previously have been assigned to the project.
-* `Review in progress`: This covers pull requests that are no longer marked as draft and have 
-  pending approvals.
-* `Done`: All resolved or closed issues and pull requests will remain here.
+The [GitHub Projects page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects)
+provides a general overview of the project's working items. Every new issue must not but can be 
+assigned to the ["Dataspace Connector" project](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/projects/1),
+or any other project that is provided.
 
-If an issue covers a topic or the response to a question that may be interesting for other 
-developers or contributors, it should be converted to a discussion and not be closed!
+There, an issue passes four stages: `Backlog`, `In progress`, `Review in progress`, and `Done`,
+independent of their association to a specific milestone.
+
+Issues that are not already assigned to a project can be filtered in the 
+[GitHub Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues)
+using `is:issue is:open no:project`.
 
 ### Milestones
 
 Milestones are organized at the 
-[Github Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
+[GitHub Milestones page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/milestones).
 They are numbered in ascending order.
 
-The due date of a milestone does not imply any guarantee that all linked issued will be resolved by then.
-The milestone `Milestone Scoping` is a permanent milestone without a due date. Issues that should be 
-considered for future milestones but already need to be targeted for the current one will be 
-assigned here. This way, contributors, users, and adopters can track the progress.
+The due date of a milestone does not imply any guarantee that all linked issued will be resolved by 
+then. The milestone `Milestone Scoping` is a permanent milestone without a due date. Issues that 
+should be considered for future milestones but already need to be targeted for the current one will 
+be assigned here. This way, contributors, users, and adopters can track the progress.
 
 When closing the current milestone, issues assigned to `Milestone Scoping` can stay there, be moved 
 to the next milestone, or get removed from all milestones. In general, issues that were not resolved 
