@@ -33,6 +33,19 @@ class InMemoryDataPlaneStoreTest {
         assertThat(store.getState("1")).isEqualTo(COMPLETED);
     }
 
+    @Test
+    void verifyResetState() {
+        store.completed("1");
+        store.received("1");
+        assertThat(store.getState("1")).isEqualTo(RECEIVED);
+    }
+
+    @Test
+    void verifyNonReceivedProcess() {
+        store.completed("1");
+        assertThat(store.getState("1")).isEqualTo(COMPLETED);
+    }
+
     @BeforeEach
     void setUp() {
         store = new InMemoryDataPlaneStore(2);
