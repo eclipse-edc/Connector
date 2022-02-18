@@ -60,11 +60,11 @@ class ProviderContractNegotiationManagerImplTest {
     private final String correlationId = "correlationId";
 
     @BeforeEach
-    void setUp() throws Exception {
+    void setUp() {
         negotiations.clear();
 
         // Mock contract negotiation store -> persist negotiations in map
-        ContractNegotiationStore negotiationStore = mock(ContractNegotiationStore.class);
+        var negotiationStore = mock(ContractNegotiationStore.class);
 
         doAnswer(invocation -> {
             var negotiation = invocation.getArgument(0, ContractNegotiation.class);
@@ -88,32 +88,19 @@ class ProviderContractNegotiationManagerImplTest {
         // Create contract validation service mock, method mocking has to be done in test methods
         validationService = mock(ContractValidationService.class);
 
-        // Create dispatcher registry mock in order to create manager, not used in unit tests
-        RemoteMessageDispatcherRegistry dispatcherRegistry = mock(RemoteMessageDispatcherRegistry.class);
-
-        // Create monitor mock
-        Monitor monitor = mock(Monitor.class);
-        
         // Create CommandQueue mock
-        CommandQueue<ContractNegotiationCommand> queue = (CommandQueue<ContractNegotiationCommand>) mock(CommandQueue.class);
+        CommandQueue<ContractNegotiationCommand> queue = mock(CommandQueue.class);
         when(queue.dequeue(anyInt())).thenReturn(new ArrayList<>());
-        
-        // Create CommandRunner mock
-        CommandRunner<ContractNegotiationCommand> runner = (CommandRunner<ContractNegotiationCommand>) mock(CommandRunner.class);
 
         negotiationManager = ProviderContractNegotiationManagerImpl.Builder.newInstance()
                 .validationService(validationService)
-                .dispatcherRegistry(dispatcherRegistry)
-                .monitor(monitor)
+                .dispatcherRegistry(mock(RemoteMessageDispatcherRegistry.class))
+                .monitor(mock(Monitor.class))
                 .commandQueue(queue)
-                .commandRunner(runner)
+                .commandRunner(mock(CommandRunner.class))
                 .observable(mock(ContractNegotiationObservable.class))
+                .store(negotiationStore)
                 .build();
-
-        //TODO hand over store in start method, but run method should not be executed
-        var negotiationStoreField = ProviderContractNegotiationManagerImpl.class.getDeclaredField("negotiationStore");
-        negotiationStoreField.setAccessible(true);
-        negotiationStoreField.set(negotiationManager, negotiationStore);
     }
 
     @Test

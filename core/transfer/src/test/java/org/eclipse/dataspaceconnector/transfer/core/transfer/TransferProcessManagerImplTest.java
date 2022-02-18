@@ -107,13 +107,14 @@ class TransferProcessManagerImplTest {
                 .dispatcherRegistry(dispatcherRegistry)
                 .manifestGenerator(manifestGenerator)
                 .monitor(mock(Monitor.class))
-                .commandQueue((CommandQueue<TransferProcessCommand>) mock(CommandQueue.class))
-                .commandRunner((CommandRunner<TransferProcessCommand>) mock(CommandRunner.class))
+                .commandQueue(mock(CommandQueue.class))
+                .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
                 .statusCheckerRegistry(statusCheckerRegistry)
                 .dataProxyManager(dataProxyManager)
                 .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
                 .observable(mock(TransferProcessObservable.class))
+                .store(store)
                 .build();
     }
 
@@ -125,7 +126,7 @@ class TransferProcessManagerImplTest {
         when(store.processIdForTransferId("1")).thenReturn(null, "2");
         DataRequest dataRequest = DataRequest.Builder.newInstance().id("1").destinationType("test").build();
 
-        manager.start(store);
+        manager.start();
         manager.initiateProviderRequest(dataRequest);
         manager.initiateProviderRequest(dataRequest); // repeat request
         manager.stop();
@@ -149,7 +150,7 @@ class TransferProcessManagerImplTest {
         store.update(process);
         doNothing().when(store).update(process);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be PROVISIONING").isEqualTo(TransferProcessStates.PROVISIONING.code());
@@ -172,7 +173,7 @@ class TransferProcessManagerImplTest {
         when(store.nextForState(eq(PROVISIONED.code()), anyInt())).thenReturn(List.of(process));
         doNothing().when(store).update(process);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be REQUESTED").isEqualTo(TransferProcessStates.REQUESTED.code());
@@ -197,7 +198,7 @@ class TransferProcessManagerImplTest {
             return null;
         }).when(store).update(process);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
@@ -223,7 +224,7 @@ class TransferProcessManagerImplTest {
             return null;
         }).when(store).update(process);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be STREAMING").isEqualTo(TransferProcessStates.STREAMING.code());
@@ -249,7 +250,7 @@ class TransferProcessManagerImplTest {
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(store).update(process);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be REQUESTED_ACK").isEqualTo(REQUESTED_ACK.code());
@@ -275,7 +276,7 @@ class TransferProcessManagerImplTest {
 
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((i, l) -> true);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
@@ -303,7 +304,7 @@ class TransferProcessManagerImplTest {
 
         when(statusCheckerRegistry.resolve(anyString())).thenReturn((i, l) -> true);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
@@ -329,7 +330,7 @@ class TransferProcessManagerImplTest {
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(store).update(process);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
@@ -354,7 +355,7 @@ class TransferProcessManagerImplTest {
         doThrow(new AssertionError("update() should not be called as process was not updated"))
                 .when(store).update(process);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be IN_PROGRESS").isEqualTo(IN_PROGRESS.code());
@@ -379,7 +380,7 @@ class TransferProcessManagerImplTest {
 
         when(statusCheckerRegistry.resolve(anyString())).thenReturn(null);
 
-        manager.start(store);
+        manager.start();
 
         assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         assertThat(process.getState()).describedAs("State should be COMPLETED").isEqualTo(TransferProcessStates.COMPLETED.code());
@@ -395,7 +396,7 @@ class TransferProcessManagerImplTest {
         when(store.find(anyString())).thenAnswer(i -> tpCapture.getValue()); //short-wire it
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(createObjectWithPayload()));
         var request = createSyncRequest();
-        manager.start(store);
+        manager.start();
 
         var result = manager.initiateConsumerRequest(request);
 
@@ -411,7 +412,7 @@ class TransferProcessManagerImplTest {
         doNothing().when(store).create(tpCapture.capture());
         when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
         DataRequest request = createSyncRequest();
-        manager.start(store);
+        manager.start();
 
         var result = manager.initiateConsumerRequest(request);
 
@@ -427,7 +428,7 @@ class TransferProcessManagerImplTest {
         var tpCapture = ArgumentCaptor.forClass(TransferProcess.class);
         doNothing().when(store).create(tpCapture.capture());
         when(dataProxyManager.getProxy(request.getDestinationType())).thenReturn(rq -> Result.success(createProxyEntry()));
-        manager.start(store);
+        manager.start();
 
         var result = manager.initiateProviderRequest(request);
 
@@ -443,7 +444,7 @@ class TransferProcessManagerImplTest {
         doNothing().when(store).create(tpCapture.capture());
         var request = createSyncRequest();
         when(dataProxyManager.getProxy(request.getDestinationType())).thenReturn(null);
-        manager.start(store);
+        manager.start();
 
         var result = manager.initiateProviderRequest(request);
 

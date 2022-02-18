@@ -100,8 +100,9 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
                 .observable(observable)
+                .store(store)
                 .build();
-        negotiationManager.start(store);
+        negotiationManager.start();
 
         // Enqueue command
         negotiationManager.enqueueCommand(command);
@@ -130,8 +131,9 @@ class ContractNegotiationCommandQueueIntegrationTest {
                 .commandQueue(commandQueue)
                 .commandRunner(commandRunner)
                 .observable(observable)
+                .store(store)
                 .build();
-        negotiationManager.start(store);
+        negotiationManager.start();
 
         // Enqueue command
         negotiationManager.enqueueCommand(command);

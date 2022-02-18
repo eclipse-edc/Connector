@@ -149,6 +149,7 @@ public class CoreTransferExtension implements ServiceExtension {
                 .dataProxyManager(dataProxyManager)
                 .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
                 .observable(observable)
+                .store(transferProcessStore)
                 .build();
 
 
@@ -157,7 +158,7 @@ public class CoreTransferExtension implements ServiceExtension {
 
     @Override
     public void start() {
-        processManager.start(transferProcessStore);
+        processManager.start();
     }
 
     @Override

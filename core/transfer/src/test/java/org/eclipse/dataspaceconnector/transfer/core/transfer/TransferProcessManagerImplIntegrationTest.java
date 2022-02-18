@@ -71,9 +71,10 @@ class TransferProcessManagerImplIntegrationTest {
                 .dataProxyManager(mock(DataProxyManager.class))
                 .proxyEntryHandlerRegistry(new ProxyEntryHandlerRegistryImpl())
                 .observable(mock(TransferProcessObservable.class))
+                .store(store)
                 .build();
 
-        transferProcessManager.start(store);
+        transferProcessManager.start();
     }
 
     @Test
