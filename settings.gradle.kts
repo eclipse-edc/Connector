@@ -116,6 +116,8 @@ include(":extensions:data-plane:data-plane-validation-facade")
 include(":extensions:sql:common")
 include(":extensions:sql:pool:apache-commons-pool")
 
+include(":extensions:mindsphere:mindsphere-http")
+
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
 include(":launchers:junit")
@@ -136,6 +138,8 @@ include(":samples:other:run-from-junit")
 include(":samples:other:streaming")
 include(":samples:other:custom-runtime")
 
+include(":samples:other:file-transfer-http-to-http")
+include(":samples:other:file-transfer-http-to-http:api")
 
 // extension points for a connector
 include(":spi")
