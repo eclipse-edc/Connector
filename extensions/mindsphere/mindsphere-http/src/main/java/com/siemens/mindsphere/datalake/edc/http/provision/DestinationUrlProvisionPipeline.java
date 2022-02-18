@@ -22,7 +22,10 @@ public class DestinationUrlProvisionPipeline {
 
     public CompletableFuture<DestinationUrlProvisionResponse> provision(DestinationUrlResourceDefinition resourceDefinition) {
         monitor.info("Provisioning destination HTTP url for path: " + resourceDefinition.getPath());
-        return Failsafe.with(retryPolicy).getStageAsync(() -> CompletableFuture.supplyAsync(() -> dataLakeClient.getUploadUrl(resourceDefinition.getPath())).thenApply(url -> new DestinationUrlProvisionResponse(resourceDefinition.getPath(), url.toString())));
+        return Failsafe.with(retryPolicy)
+                .getStageAsync(() -> CompletableFuture.supplyAsync(() -> dataLakeClient.getUploadUrl(resourceDefinition.getPath()))
+                        .thenApply(url -> new DestinationUrlProvisionResponse(resourceDefinition.getPath(),
+                                url.toString())));
     }
 
     static class Builder {
