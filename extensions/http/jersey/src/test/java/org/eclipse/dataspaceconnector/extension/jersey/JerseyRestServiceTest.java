@@ -41,6 +41,7 @@ import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.eclipse.dataspaceconnector.common.testfixtures.TestUtils.getFreePort;
 import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
@@ -51,7 +52,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
 public class JerseyRestServiceTest {
-    private final int httpPort = 8181;
+    private final int httpPort = getFreePort();
     private JerseyRestService jerseyRestService;
     private JettyService jettyService;
     private Monitor monitorMock;
@@ -64,10 +65,9 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that a resource is available under the default path")
     void verifyDefaultContextPath() throws IOException {
-        startJetty(new PortMapping());
+        startJetty(PortMapping.getDefault(httpPort));
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
-
 
         var response = executeRequest("http://localhost:" + httpPort + "/api/test/resource");
 
@@ -80,14 +80,17 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that a second resource is available under a specific path and port")
     void verifyAnotherContextPath() throws IOException {
-        startJetty(new PortMapping(),
-                new PortMapping("path", 8998, "/path"));
+        var anotherPort = getFreePort();
+        startJetty(
+                PortMapping.getDefault(httpPort),
+                new PortMapping("path", anotherPort, "/path")
+        );
         jerseyRestService.registerResource("path", new TestController());
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.start();
 
 
-        var response = executeRequest("http://localhost:" + 8998 + "/path/test/resource");
+        var response = executeRequest("http://localhost:" + anotherPort + "/path/test/resource");
 
         assertThat(response.code()).isEqualTo(200);
         var body = response.body();
@@ -106,8 +109,10 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that registering two port mappings under the same path throws an exception")
     void verifyIdenticalContextPats_throwsException() {
-        startJetty(new PortMapping("path1", 1234, "/path"),
-                new PortMapping("path2", 8998, "/path"));
+        var port1 = getFreePort();
+        var port2 = getFreePort();
+        startJetty(new PortMapping("path1", port1, "/path"),
+                new PortMapping("path2", port2, "/path"));
 
         jerseyRestService.registerResource("path1", new TestController());
         jerseyRestService.registerResource("path2", new TestController());
@@ -117,9 +122,12 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that a request filter only fires for the desired path/context")
     void verifyFilterForOneContextPath() throws IOException {
+        var anotherPort = getFreePort();
         var filterMock = mock(ContainerRequestFilter.class);
-        startJetty(new PortMapping(),
-                new PortMapping("path", 8998, "/path"));
+        startJetty(
+                PortMapping.getDefault(httpPort),
+                new PortMapping("path", anotherPort, "/path")
+        );
 
         jerseyRestService.registerResource(new TestController());
         jerseyRestService.registerResource("path", new TestController());
@@ -127,7 +135,7 @@ public class JerseyRestServiceTest {
         jerseyRestService.start();
 
         //verify that the first request hits the filter
-        var response = executeRequest("http://localhost:" + 8998 + "/path/test/resource");
+        var response = executeRequest("http://localhost:" + anotherPort + "/path/test/resource");
 
         assertThat(response.code()).isEqualTo(200);
         verify(filterMock).filter(any(ContainerRequestContext.class));
@@ -145,9 +153,13 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that different filters fire for different paths")
     void verifySeparateFilters() {
-        startJetty(new PortMapping(),
-                new PortMapping("foo", 1234, "/foo"),
-                new PortMapping("bar", 8998, "/bar"));
+        var port1 = getFreePort();
+        var port2 = getFreePort();
+        startJetty(
+                PortMapping.getDefault(httpPort),
+                new PortMapping("foo", port1, "/foo"),
+                new PortMapping("bar", port2, "/bar")
+        );
         // mocking the ContextRequestFilter doesn't work here, Mockito apparently re-uses mocks for the same target class
         var barFilter = mock(BarRequestFilter.class);
         var fooRequestFilter = mock(FooRequestFilter.class);
@@ -158,7 +170,7 @@ public class JerseyRestServiceTest {
         jerseyRestService.start();
 
         //verify that the first request hits only the bar filter
-        var response = executeRequest("http://localhost:" + 8998 + "/bar/test/resource");
+        var response = executeRequest("http://localhost:" + port2 + "/bar/test/resource");
 
         assertThat(response.code()).isEqualTo(200);
         verify(fooRequestFilter, never()).filter(any(ContainerRequestContext.class));
@@ -168,7 +180,7 @@ public class JerseyRestServiceTest {
         reset(barFilter, fooRequestFilter);
 
         //  verify that the second request only hits the foo filter
-        var response2 = executeRequest("http://localhost:" + 1234 + "/foo/test/resource");
+        var response2 = executeRequest("http://localhost:" + port1 + "/foo/test/resource");
         assertThat(response2.code()).isEqualTo(200);
         verify(barFilter, never()).filter(any());
         verify(fooRequestFilter).filter(any());
@@ -178,9 +190,13 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that registering two identical paths raises an exception")
     void verifyIdenticalPathsRaiseException() {
-        startJetty(new PortMapping(),
-                new PortMapping("another", 1234, "/foo"),
-                new PortMapping("yet-another", 4321, "/foo"));
+        var port1 = getFreePort();
+        var port2 = getFreePort();
+        startJetty(
+                PortMapping.getDefault(httpPort),
+                new PortMapping("another", port1, "/foo"),
+                new PortMapping("yet-another", port2, "/foo")
+        );
 
         jerseyRestService.registerResource("another", new TestController());
         jerseyRestService.registerResource("yet-another", new TestController());
@@ -191,8 +207,11 @@ public class JerseyRestServiceTest {
     @Test
     @DisplayName("Verifies that registering a non-existing context alias raises an exception")
     void verifyInvalidContextAlias_shouldThrowException() {
-        startJetty(new PortMapping(),
-                new PortMapping("another", 1234, "/foo"));
+        var anotherPort = getFreePort();
+        startJetty(
+                PortMapping.getDefault(httpPort),
+                new PortMapping("another", anotherPort, "/foo")
+        );
 
         jerseyRestService.registerResource("not-exists", new TestController());
         assertThatThrownBy(() -> jerseyRestService.start()).isInstanceOf(EdcException.class)
@@ -217,18 +236,12 @@ public class JerseyRestServiceTest {
 
         try {
             var client = new OkHttpClient.Builder().build();
-            var rq = new Request.Builder().url(url).build();
-            Response response = null;
-            response = client.newCall(rq).execute();
-            return response;
+            var request = new Request.Builder().url(url).build();
+            return client.newCall(request).execute();
         } catch (IOException e) {
             fail(e);
         }
         return null;
-    }
-
-    private int randomPort() {
-        return 1000 + new Random().nextInt(9000);
     }
 
     //needs to be public, otherwise it won't get picked up

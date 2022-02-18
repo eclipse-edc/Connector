@@ -185,6 +185,15 @@ public class TransferProcess implements TraceCarrier {
         transition(TransferProcessStates.REQUESTED_ACK, TransferProcessStates.REQUESTED);
     }
 
+    public void transitionInProgressOrStreaming() {
+        var dataRequest = getDataRequest();
+        if (dataRequest.getTransferType().isFinite()) {
+            transitionInProgress();
+        } else {
+            transitionStreaming();
+        }
+    }
+
     public void transitionInProgress() {
         if (type == Type.CONSUMER) {
             // the consumer must first transition to the request/ack states before in progress

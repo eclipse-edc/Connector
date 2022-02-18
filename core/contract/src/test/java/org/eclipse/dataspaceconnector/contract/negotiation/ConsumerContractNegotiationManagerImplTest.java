@@ -80,7 +80,7 @@ class ConsumerContractNegotiationManagerImplTest {
                 .observable(mock(ContractNegotiationObservable.class))
                 .build();
 
-        //TODO hand over store in start method, but run method should not be executed
+        //TODO hand over store in start method:, but run method should not be executed
         var negotiationStoreField = ConsumerContractNegotiationManagerImpl.class.getDeclaredField("negotiationStore");
         negotiationStoreField.setAccessible(true);
         negotiationStoreField.set(negotiationManager, store);
