@@ -44,13 +44,19 @@ to GitHub.
 
 If you feel there is a bug or an issue, contribute to the discussions in
 [existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen),
-otherwise [create a new issue](#create-an-issue).
+otherwise [create a new issue](#create-an-issue). If you want to share an idea to further enhance 
+the project or discuss potential use cases, please feel free to create a discussion at the
+[GitHub Dssues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions).
 
 ### Create an Issue
 
-If you have identified a bug or just want to share an idea to further enhance the project, feel free 
-to create a new issue at our project's corresponding
+If you have identified a bug or want to formulate a working item that you want to concentrate on, 
+feel free to create a new issue at our project's corresponding
 [GitHub Issues page](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/new).
+If an issue appears to cover changes that will have a (huge) impact on the code base and needs to 
+first be discussed, or if you just have a question regarding the usage of the software, please 
+create a [discussion](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/discussions) 
+before raising an issue. 
 
 Before doing so, please consider searching for potentially suitable
 [existing issues](https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues?q=is%3Aissue+is%3Aopen).
