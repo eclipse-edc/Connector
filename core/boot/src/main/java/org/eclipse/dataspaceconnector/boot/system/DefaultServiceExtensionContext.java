@@ -99,11 +99,6 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
     }
 
     @Override
-    public Config getConfig(String path) {
-        return this.config.getConfig(path);
-    }
-
-    @Override
     public <T> boolean hasService(Class<T> type) {
         return services.containsKey(type);
     }
@@ -160,8 +155,18 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
             ext.initialize(monitor);
             monitor.info("Initialized " + ext.name());
         });
-        this.config = loadConfig();
+        config = loadConfig();
         connectorId = getSetting("edc.connector.name", "edc-" + UUID.randomUUID());
+    }
+
+    @Override
+    public Config getConfig(String path) {
+        return config.getConfig(path);
+    }
+
+    // this method exists so that getting env vars can be mocked during testing
+    protected Map<String, String> getEnvironmentVariables() {
+        return System.getenv();
     }
 
     private List<InjectionContainer<ServiceExtension>> sortExtensions(List<ServiceExtension> loadedExtensions) {
@@ -251,7 +256,7 @@ public class DefaultServiceExtensionContext implements ServiceExtensionContext {
                 .reduce(Config::merge)
                 .orElse(ConfigFactory.empty());
 
-        var environmentConfig = ConfigFactory.fromMap(System.getenv());
+        var environmentConfig = ConfigFactory.fromMap(getEnvironmentVariables());
         var systemPropertyConfig = ConfigFactory.fromProperties(System.getProperties());
 
         return config.merge(environmentConfig).merge(systemPropertyConfig);
