@@ -1,5 +1,5 @@
 /*
- *  Copyright (c) 2020, 2021 Microsoft Corporation
+ *  Copyright (c) 2022 Amadeus
  *
  *  This program and the accompanying materials are made available under the
  *  terms of the Apache License, Version 2.0 which is available at
@@ -29,12 +29,12 @@ import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceRece
 import org.eclipse.dataspaceconnector.spi.transfer.edr.EndpointDataReferenceTransformer;
 import org.eclipse.dataspaceconnector.spi.types.TypeManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReference;
-import org.eclipse.dataspaceconnector.transfer.core.edr.EndpointDataReferenceReceiverRegistryImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
@@ -56,7 +56,7 @@ class EndpointDataReferenceHandlerTest {
     public void setUp() {
         var monitor = mock(Monitor.class);
         var connectorId = UUID.randomUUID().toString();
-        receiverRegistry = new EndpointDataReferenceReceiverRegistryImpl();
+        receiverRegistry = mock(EndpointDataReferenceReceiverRegistry.class);
         transformer = mock(EndpointDataReferenceTransformer.class);
         var typeManager = new TypeManager();
         handler = new EndpointDataReferenceHandler(monitor, connectorId, receiverRegistry, transformer, typeManager);
@@ -85,7 +85,7 @@ class EndpointDataReferenceHandlerTest {
         when(transformer.execute(edrCapture.capture())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.success()));
-        receiverRegistry.addReceiver(receiver);
+        when(receiverRegistry.getAll()).thenReturn(Arrays.asList(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
@@ -123,7 +123,7 @@ class EndpointDataReferenceHandlerTest {
         when(transformer.execute(any())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.completedFuture(Result.failure("error")));
-        receiverRegistry.addReceiver(receiver);
+        when(receiverRegistry.getAll()).thenReturn(Arrays.asList(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
@@ -140,7 +140,7 @@ class EndpointDataReferenceHandlerTest {
         when(transformer.execute(any())).thenReturn(Result.success(edr));
         var receiver = mock(EndpointDataReferenceReceiver.class);
         when(receiver.send(edr)).thenReturn(CompletableFuture.failedFuture(new RuntimeException("error")));
-        receiverRegistry.addReceiver(receiver);
+        when(receiverRegistry.getAll()).thenReturn(Arrays.asList(receiver));
 
         var response = handler.handleRequest(request, createSuccessClaimToken());
 
