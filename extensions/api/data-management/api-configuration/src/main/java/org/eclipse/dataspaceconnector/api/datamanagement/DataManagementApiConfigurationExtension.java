@@ -23,8 +23,10 @@ import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
+import static java.lang.String.format;
+
 @Provides(DataManagementApiConfiguration.class)
-public class DataManagementApiExtension implements ServiceExtension {
+public class DataManagementApiConfigurationExtension implements ServiceExtension {
 
     public static final String WEB_DATA_CONFIG = "web.http.data";
     private static final String DEFAULT_DATAMANAGEMENT_ALIAS = "default";
@@ -40,12 +42,26 @@ public class DataManagementApiExtension implements ServiceExtension {
         var contextAlias = DEFAULT_DATAMANAGEMENT_ALIAS;
 
         // if no dedicated web.http.data.[port|path] config exists, we'll expose it under the default mapping
-        if (context.getConfig().hasKey(WEB_DATA_CONFIG)) {
+        var monitor = context.getMonitor();
+        var port = 8181;
+        var path = "/api";
+        var config = context.getConfig(WEB_DATA_CONFIG);
+        if (config.getEntries().isEmpty()) {
+            monitor.warning("No [web.http.data.port] or [web.http.data.path] configuration has been provided, therefor the default will be used. " +
+                    "This means that the AuthenticationRequestFilter and the EdcApiExceptionMapper " + "will also be registered for the default context and fire for EVERY request on that context!");
+        } else {
             contextAlias = "data";
+            port = config.getInteger("port", port);
+            path = config.getString("path", path);
+
         }
 
+        monitor.info(format("The DataManagementApi will be available under port=%s, path=%s", port, path));
+
+        // the DataManagementApiConfiguration tells all DataManagementApi controllers under which context alias
+        // they need to register their resources: either `default` or `data`
         context.registerService(DataManagementApiConfiguration.class, new DataManagementApiConfiguration(contextAlias));
-        webService.registerResource(DEFAULT_DATAMANAGEMENT_ALIAS, new AuthenticationRequestFilter(service));
-        webService.registerResource(DEFAULT_DATAMANAGEMENT_ALIAS, new EdcApiExceptionMapper());
+        webService.registerResource(contextAlias, new AuthenticationRequestFilter(service));
+        webService.registerResource(contextAlias, new EdcApiExceptionMapper());
     }
 }
