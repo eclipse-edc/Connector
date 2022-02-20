@@ -18,8 +18,6 @@ import org.eclipse.dataspaceconnector.spi.command.BoundedCommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
-import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
-import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandlerRegistry;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.CoreExtension;
@@ -48,8 +46,6 @@ import org.eclipse.dataspaceconnector.transfer.core.inline.DataOperatorRegistryI
 import org.eclipse.dataspaceconnector.transfer.core.observe.TransferProcessObservableImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ProvisionManagerImpl;
 import org.eclipse.dataspaceconnector.transfer.core.provision.ResourceManifestGeneratorImpl;
-import org.eclipse.dataspaceconnector.transfer.core.synchronous.DataProxyManagerImpl;
-import org.eclipse.dataspaceconnector.transfer.core.transfer.ProxyEntryHandlerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.StatusCheckerRegistryImpl;
 import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessManagerImpl;
 
@@ -58,8 +54,7 @@ import org.eclipse.dataspaceconnector.transfer.core.transfer.TransferProcessMana
  */
 @CoreExtension
 @Provides({StatusCheckerRegistry.class, ResourceManifestGenerator.class, TransferProcessManager.class, TransferProcessObservable.class,
-        DataProxyManager.class, ProxyEntryHandlerRegistry.class, DataOperatorRegistry.class, DataFlowManager.class,
-        EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
+        DataOperatorRegistry.class, DataFlowManager.class, EndpointDataReferenceReceiverRegistry.class, EndpointDataReferenceTransformer.class})
 public class CoreTransferExtension implements ServiceExtension {
     private static final long DEFAULT_ITERATION_WAIT = 5000; // millis
 
@@ -113,12 +108,6 @@ public class CoreTransferExtension implements ServiceExtension {
         var endpointDataReferenceTransformer = new DefaultEndpointDataReferenceTransformer();
         context.registerService(EndpointDataReferenceTransformer.class, endpointDataReferenceTransformer);
 
-        var dataProxyManager = new DataProxyManagerImpl();
-        context.registerService(DataProxyManager.class, dataProxyManager);
-
-        var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
-        context.registerService(ProxyEntryHandlerRegistry.class, proxyEntryHandlerRegistry);
-
         var commandQueue = new BoundedCommandQueue<TransferProcessCommand>(10);
         var observable = new TransferProcessObservableImpl();
         context.registerService(TransferProcessObservable.class, observable);
@@ -136,12 +125,9 @@ public class CoreTransferExtension implements ServiceExtension {
                 .typeManager(typeManager)
                 .commandQueue(commandQueue)
                 .commandRunner(new CommandRunner<>(registry, monitor))
-                .dataProxyManager(dataProxyManager)
-                .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
                 .observable(observable)
                 .store(transferProcessStore)
                 .build();
-
 
         context.registerService(TransferProcessManager.class, processManager);
     }

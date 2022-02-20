@@ -14,18 +14,10 @@
 
 package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.command.CommandQueue;
 import org.eclipse.dataspaceconnector.spi.command.CommandRunner;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.proxy.DataProxyManager;
-import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntry;
-import org.eclipse.dataspaceconnector.spi.proxy.ProxyEntryHandler;
-import org.eclipse.dataspaceconnector.spi.response.ResponseFailure;
-import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.retry.ExponentialWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.observe.TransferProcessObservable;
@@ -41,14 +33,11 @@ import org.eclipse.dataspaceconnector.spi.types.domain.transfer.StatusCheckerReg
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferType;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.command.TransferProcessCommand;
 import org.eclipse.dataspaceconnector.transfer.core.TestProvisionedDataDestinationResource;
 import org.eclipse.dataspaceconnector.transfer.core.TestResourceDefinition;
-import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 
 import java.util.List;
 import java.util.UUID;
@@ -56,10 +45,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static java.util.Collections.emptyList;
-import static java.util.concurrent.CompletableFuture.completedFuture;
-import static java.util.concurrent.CompletableFuture.failedFuture;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.FATAL_ERROR;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.INITIAL;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.IN_PROGRESS;
 import static org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcessStates.PROVISIONED;
@@ -88,16 +74,12 @@ class TransferProcessManagerImplTest {
     private final StatusCheckerRegistry statusCheckerRegistry = mock(StatusCheckerRegistry.class);
     private final ResourceManifestGenerator manifestGenerator = mock(ResourceManifestGenerator.class);
     private final TransferProcessStore store = mock(TransferProcessStore.class);
-    private final DataProxyManager dataProxyManager = mock(DataProxyManager.class);
     private TransferProcessManagerImpl manager;
 
     @BeforeEach
     void setup() {
         var resourceManifest = ResourceManifest.Builder.newInstance().definitions(List.of(new TestResourceDefinition())).build();
         when(manifestGenerator.generateResourceManifest(any(TransferProcess.class))).thenReturn(resourceManifest);
-
-        var proxyEntryHandlerRegistry = new ProxyEntryHandlerRegistryImpl();
-        proxyEntryHandlerRegistry.put(DESTINATION_TYPE, mock(ProxyEntryHandler.class));
 
         manager = TransferProcessManagerImpl.Builder.newInstance()
                 .provisionManager(provisionManager)
@@ -111,8 +93,6 @@ class TransferProcessManagerImplTest {
                 .commandRunner(mock(CommandRunner.class))
                 .typeManager(new TypeManager())
                 .statusCheckerRegistry(statusCheckerRegistry)
-                .dataProxyManager(dataProxyManager)
-                .proxyEntryHandlerRegistry(proxyEntryHandlerRegistry)
                 .observable(mock(TransferProcessObservable.class))
                 .store(store)
                 .build();
@@ -387,96 +367,6 @@ class TransferProcessManagerImplTest {
         verify(statusCheckerRegistry, atLeastOnce()).resolve(any());
         verify(store, atLeastOnce()).nextForState(anyInt(), anyInt());
         verify(store, atLeastOnce()).update(process);
-    }
-
-    @Test
-    void syncConsumerRequestShouldCreateAlreadyCompletedTransferProcess() {
-        var tpCapture = ArgumentCaptor.forClass(TransferProcess.class);
-        doNothing().when(store).create(tpCapture.capture());
-        when(store.find(anyString())).thenAnswer(i -> tpCapture.getValue()); //short-wire it
-        when(dispatcherRegistry.send(any(), any(), any())).thenReturn(completedFuture(createObjectWithPayload()));
-        var request = createSyncRequest();
-        manager.start();
-
-        var result = manager.initiateConsumerRequest(request);
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(tpCapture.getValue().getState()).isEqualTo(TransferProcessStates.COMPLETED.code());
-        assertThat(tpCapture.getValue().getErrorDetail()).isNull();
-        verify(dispatcherRegistry).send(any(), any(), any());
-    }
-
-    @Test
-    void syncConsumerRequestShouldReturnErrorIfDispatcherFails() {
-        var tpCapture = ArgumentCaptor.forClass(TransferProcess.class);
-        doNothing().when(store).create(tpCapture.capture());
-        when(dispatcherRegistry.send(any(), any(), any())).thenReturn(failedFuture(new EdcException("error")));
-        DataRequest request = createSyncRequest();
-        manager.start();
-
-        var result = manager.initiateConsumerRequest(request);
-
-        assertThat(result.failed()).isTrue();
-        assertThat(result.getFailure()).isNotNull().extracting(ResponseFailure::status)
-                .isEqualTo(FATAL_ERROR);
-        verify(store).create(tpCapture.capture());
-    }
-
-    @Test
-    void syncProviderRequestShouldCreateAlreadyCompletedTransferProcess() {
-        var request = createSyncRequest();
-        var tpCapture = ArgumentCaptor.forClass(TransferProcess.class);
-        doNothing().when(store).create(tpCapture.capture());
-        when(dataProxyManager.getProxy(request.getDestinationType())).thenReturn(rq -> Result.success(createProxyEntry()));
-        manager.start();
-
-        var result = manager.initiateProviderRequest(request);
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getData()).isInstanceOf(ProxyEntry.class).extracting("type").isEqualTo(DESTINATION_TYPE);
-        verify(store).create(tpCapture.capture());
-        verify(dataProxyManager).getProxy(request.getDestinationType());
-    }
-
-    @Test
-    void syncProviderRequestShouldReturnErrorIfProxyDoesNotExist() {
-        var tpCapture = ArgumentCaptor.forClass(TransferProcess.class);
-        doNothing().when(store).create(tpCapture.capture());
-        var request = createSyncRequest();
-        when(dataProxyManager.getProxy(request.getDestinationType())).thenReturn(null);
-        manager.start();
-
-        var result = manager.initiateProviderRequest(request);
-
-        assertThat(result.getFailure())
-                .isNotNull()
-                .extracting(ResponseFailure::status)
-                .isEqualTo(FATAL_ERROR);
-        verify(store).create(tpCapture.capture());
-        verify(dataProxyManager).getProxy(request.getDestinationType());
-    }
-
-    private Object createObjectWithPayload() {
-        try {
-            return new Object() {
-                private final String payload = new ObjectMapper().writeValueAsString(createProxyEntry());
-            };
-        } catch (JsonProcessingException ex) {
-            throw new EdcException(ex);
-        }
-    }
-
-    private DataRequest createSyncRequest() {
-        return DataRequest.Builder.newInstance()
-                .id("test-datarequest-id")
-                .destinationType(DESTINATION_TYPE)
-                .isSync(true)
-                .build();
-    }
-
-    @NotNull
-    private ProxyEntry createProxyEntry() {
-        return ProxyEntry.Builder.newInstance().type(DESTINATION_TYPE).build();
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {

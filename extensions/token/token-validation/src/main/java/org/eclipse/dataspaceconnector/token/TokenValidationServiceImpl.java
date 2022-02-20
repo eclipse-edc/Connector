@@ -15,8 +15,9 @@
 package org.eclipse.dataspaceconnector.token;
 
 import com.nimbusds.jose.JOSEException;
+import com.nimbusds.jose.JWSHeader;
+import com.nimbusds.jose.JWSVerifier;
 import com.nimbusds.jose.crypto.factories.DefaultJWSVerifierFactory;
-import com.nimbusds.jwt.JWTClaimsSet;
 import com.nimbusds.jwt.SignedJWT;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.PublicKeyResolver;
@@ -44,42 +45,53 @@ public class TokenValidationServiceImpl implements TokenValidationService {
 
     @Override
     public Result<ClaimToken> validate(@NotNull String token) {
-        JWTClaimsSet claimsSet;
         try {
-            var jwt = SignedJWT.parse(token);
-            var publicKey = publicKeyResolver.resolveKey(jwt.getHeader().getKeyID());
-            if (publicKey == null) {
-                return Result.failure("Failed to resolve public key with id: " + jwt.getHeader().getKeyID());
+            var signedJwt = SignedJWT.parse(token);
+            var publicKeyId = signedJwt.getHeader().getKeyID();
+            var verifierCreationResult = createVerifier(signedJwt.getHeader(), publicKeyId);
+            if (verifierCreationResult.failed()) {
+                return Result.failure(verifierCreationResult.getFailureMessages());
             }
-            var verifier = new DefaultJWSVerifierFactory().createJWSVerifier(jwt.getHeader(), publicKey);
-            if (!jwt.verify(verifier)) {
+
+            if (!signedJwt.verify(verifierCreationResult.getContent())) {
                 return Result.failure("Token verification failed");
             }
 
-            claimsSet = jwt.getJWTClaimsSet();
+            var claimsSet = signedJwt.getJWTClaimsSet();
+            var errors = validationRules.stream()
+                    .map(r -> r.checkRule(claimsSet))
+                    .filter(Result::failed)
+                    .map(Result::getFailureMessages)
+                    .flatMap(Collection::stream)
+                    .collect(Collectors.toList());
+
+            if (!errors.isEmpty()) {
+                return Result.failure(errors);
+            }
+
+            var tokenBuilder = ClaimToken.Builder.newInstance();
+            claimsSet.getClaims().entrySet().stream()
+                    .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
+                    .filter(entry -> entry.getValue() != null)
+                    .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
+
+            return Result.success(tokenBuilder.build());
         } catch (JOSEException e) {
             return Result.failure(e.getMessage());
         } catch (ParseException e) {
             return Result.failure("Failed to decode token");
         }
+    }
 
-        var errors = validationRules.stream()
-                .map(r -> r.checkRule(claimsSet))
-                .filter(Result::failed)
-                .map(Result::getFailureMessages)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
-
-        if (!errors.isEmpty()) {
-            return Result.failure(errors);
+    private Result<JWSVerifier> createVerifier(JWSHeader header, String publicKeyId) {
+        var publicKey = publicKeyResolver.resolveKey(publicKeyId);
+        if (publicKey == null) {
+            return Result.failure("Failed to resolve public key with id: " + publicKeyId);
         }
-
-        var tokenBuilder = ClaimToken.Builder.newInstance();
-        claimsSet.getClaims().entrySet().stream()
-                .map(entry -> Map.entry(entry.getKey(), Objects.toString(entry.getValue())))
-                .filter(entry -> entry.getValue() != null)
-                .forEach(entry -> tokenBuilder.claim(entry.getKey(), entry.getValue()));
-
-        return Result.success(tokenBuilder.build());
+        try {
+            return Result.success(new DefaultJWSVerifierFactory().createJWSVerifier(header, publicKey));
+        } catch (JOSEException e) {
+            return Result.failure("Failed to create verifier");
+        }
     }
 }
