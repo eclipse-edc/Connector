@@ -12,7 +12,7 @@
  *
  */
 
-package org.eclipse.dataspaceconnector.api.datamanagement;
+package org.eclipse.dataspaceconnector.api.datamanagement.configuration;
 
 public class DataManagementApiConfiguration {
     private final String contextAlias;

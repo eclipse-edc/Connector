@@ -24,8 +24,8 @@ dependencies {
 
 publishing {
     publications {
-        create<MavenPublication>("data-management-api") {
-            artifactId = "data-management-api"
+        create<MavenPublication>("api-configuration") {
+            artifactId = "api-configuration"
             from(components["java"])
         }
     }
