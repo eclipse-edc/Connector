@@ -13,7 +13,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
-import org.eclipse.dataspaceconnector.api.datamanagement.DataManagementApiConfiguration;
+import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
