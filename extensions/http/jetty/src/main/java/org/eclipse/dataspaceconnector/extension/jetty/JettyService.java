@@ -128,10 +128,6 @@ public class JettyService {
         return handlers.get(path);
     }
 
-    public void registerHandler(ServletContextHandler handler) {
-        handlers.put(handler.getContextPath(), handler);
-    }
-
     @NotNull
     private ServletContextHandler createHandler(PortMapping mapping) {
         var handler = new ServletContextHandler(null, mapping.getPath(), NO_SESSIONS);

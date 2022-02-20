@@ -42,7 +42,6 @@ public class ContractNegotiationController {
     }
 
     @GET
-    @Path("/")
     public List<ContractNegotiationDto> getNegotiations(@QueryParam("offset") Integer offset,
                                                         @QueryParam("limit") Integer limit,
                                                         @QueryParam("filter") String filterExpression,

@@ -40,6 +40,7 @@ include(":extensions:ion:ion-client")
 // modules for technology- or cloud-provider extensions
 include(":extensions:aws")
 include(":extensions:api:control")
+include(":extensions:api:data-management:api-configuration")
 include(":extensions:api:data-management:asset")
 include(":extensions:api:api-core")
 include(":extensions:api:auth-spi")

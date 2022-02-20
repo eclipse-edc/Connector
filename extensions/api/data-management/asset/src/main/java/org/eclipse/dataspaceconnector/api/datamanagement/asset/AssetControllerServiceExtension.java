@@ -13,6 +13,7 @@
 
 package org.eclipse.dataspaceconnector.api.datamanagement.asset;
 
+import org.eclipse.dataspaceconnector.api.datamanagement.configuration.DataManagementApiConfiguration;
 import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
@@ -24,16 +25,12 @@ public class AssetControllerServiceExtension implements ServiceExtension {
     @Inject
     private WebService webService;
 
+    @Inject
+    private DataManagementApiConfiguration config;
+
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
         Monitor monitor = serviceExtensionContext.getMonitor();
-        //avoid jetty throwing exceptions down the road
-        if (!serviceExtensionContext.getConfig().hasKey("web.http.data.port")) {
-            monitor.severe("No port mapping entry for context 'data' ('web.http.data.port=...') found in configuration. The Data Management API will not be available!");
-        } else {
-            // todo: also register the Authorization filter, once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/pull/598 is finished:
-            // webService.registerResource("data", new AuthorizationRequestFilter());
-            webService.registerResource("data", new AssetController(monitor));
-        }
+        webService.registerResource(config.getContextAlias(), new AssetController(monitor));
     }
 }
