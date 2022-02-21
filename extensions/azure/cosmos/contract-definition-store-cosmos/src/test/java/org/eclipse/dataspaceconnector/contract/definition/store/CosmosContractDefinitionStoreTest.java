@@ -2,7 +2,6 @@ package org.eclipse.dataspaceconnector.contract.definition.store;
 
 import com.azure.cosmos.models.SqlQuerySpec;
 import net.jodah.failsafe.RetryPolicy;
-import org.eclipse.dataspaceconnector.common.matchers.PredicateMatcher;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDocument;
@@ -25,12 +24,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.ArgumentMatchers.isA;
 import static org.mockito.ArgumentMatchers.notNull;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 class CosmosContractDefinitionStoreTest {
@@ -122,44 +121,44 @@ class CosmosContractDefinitionStoreTest {
     @Test
     void findAll_noQuerySpec() {
 
-        when(cosmosDbApiMock.queryItems(isA(SqlQuerySpec.class))).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).collect(Collectors.toList()));
 
         var all = store.findAll(QuerySpec.Builder.newInstance().build());
         assertThat(all).hasSize(10);
+        verify(cosmosDbApiMock).queryAllItems();
+        verifyNoMoreInteractions(cosmosDbApiMock);
     }
 
     @Test
     void findAll_verifyPaging() {
-
-        when(cosmosDbApiMock.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().equals("SELECT * FROM ContractDefinitionDocument OFFSET 3 LIMIT 4"))))).thenReturn(IntStream.range(0, 4).mapToObj(i -> generateDocument()));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 4).mapToObj(i -> generateDocument()).collect(Collectors.toList()));
 
         // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4);
-
-
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(1);
+        verify(cosmosDbApiMock).queryAllItems();
+        verifyNoMoreInteractions(cosmosDbApiMock);
     }
 
     @Test
     void findAll_verifyPaging_tooLarge() {
-
-        when(cosmosDbApiMock.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().equals("SELECT * FROM ContractDefinitionDocument OFFSET 5 LIMIT 100"))))).thenReturn(IntStream.range(0, 5).mapToObj(i -> generateDocument()));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 15).mapToObj(i -> generateDocument()).collect(Collectors.toList()));
 
         // page size too large
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(5);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(5).limit(100).build())).hasSize(10);
 
-        verify(cosmosDbApiMock).queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().equals("SELECT * FROM ContractDefinitionDocument OFFSET 5 LIMIT 100"))));
+        verify(cosmosDbApiMock).queryAllItems();
+        verifyNoMoreInteractions(cosmosDbApiMock);
     }
 
     @Test
     void findAll_verifyFiltering() {
         var doc = generateDocument();
-        when(cosmosDbApiMock.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().startsWith("SELECT * FROM ContractDefinitionDocument WHERE ContractDefinitionDocument.wrappedInstance.id = @id")))))
-                .thenReturn(Stream.of(doc));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(List.of(doc));
 
-
-        var all = store.findAll(QuerySpec.Builder.newInstance().filter("id=foobar").build());
+        var all = store.findAll(QuerySpec.Builder.newInstance().filter("id=" + doc.getId()).build());
         assertThat(all).hasSize(1).extracting(ContractDefinition::getId).containsOnly(doc.getId());
-        verify(cosmosDbApiMock).queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().startsWith("SELECT * FROM ContractDefinitionDocument WHERE ContractDefinitionDocument.wrappedInstance.id = @id"))));
+        verify(cosmosDbApiMock).queryAllItems();
+        verifyNoMoreInteractions(cosmosDbApiMock);
     }
 
     @Test
@@ -169,26 +168,25 @@ class CosmosContractDefinitionStoreTest {
 
     @Test
     void findAll_verifySorting_asc() {
-        when(cosmosDbApiMock.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().contains("SELECT * FROM ContractDefinitionDocument ORDER BY ContractDefinitionDocument.wrappedInstance.id DESC")))))
-                .thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).sorted(Comparator.comparing(ContractDefinitionDocument::getId).reversed()).map(c -> c));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).sorted(Comparator.comparing(ContractDefinitionDocument::getId).reversed()).collect(Collectors.toList()));
 
         var all = store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.DESC).build()).collect(Collectors.toList());
         assertThat(all).hasSize(10).isSortedAccordingTo((c1, c2) -> c2.getId().compareTo(c1.getId()));
 
-        verify(cosmosDbApiMock).queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().contains("SELECT * FROM ContractDefinitionDocument ORDER BY ContractDefinitionDocument.wrappedInstance.id DESC"))));
+        verify(cosmosDbApiMock).queryAllItems();
+        verifyNoMoreInteractions(cosmosDbApiMock);
     }
 
     @Test
     void findAll_verifySorting_desc() {
-        when(cosmosDbApiMock.queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().contains("SELECT * FROM ContractDefinitionDocument ORDER BY ContractDefinitionDocument.wrappedInstance.id ASC")))))
-                .thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).sorted(Comparator.comparing(ContractDefinitionDocument::getId)).map(c -> c));
+        when(cosmosDbApiMock.queryAllItems()).thenReturn(IntStream.range(0, 10).mapToObj(i -> generateDocument()).sorted(Comparator.comparing(ContractDefinitionDocument::getId)).collect(Collectors.toList()));
 
 
         var all = store.findAll(QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build()).collect(Collectors.toList());
         assertThat(all).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getId));
-
-
-        verify(cosmosDbApiMock).queryItems(argThat(new PredicateMatcher<SqlQuerySpec>(qs -> qs.getQueryText().contains("SELECT * FROM ContractDefinitionDocument ORDER BY ContractDefinitionDocument.wrappedInstance.id ASC"))));
+        
+        verify(cosmosDbApiMock).queryAllItems();
+        verifyNoMoreInteractions(cosmosDbApiMock);
     }
 
     @Test

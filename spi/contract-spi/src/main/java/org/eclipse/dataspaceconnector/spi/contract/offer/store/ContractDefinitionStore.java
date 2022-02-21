@@ -36,7 +36,10 @@ public interface ContractDefinitionStore {
     Collection<ContractDefinition> findAll();
 
     /**
-     * Returns all the definitions in the store.
+     * Returns all the definitions in the store that are covered by a given {@link QuerySpec}.
+     * <p>
+     * Note: supplying a sort field that does not exist on the {@link ContractDefinition} may cause some implementations
+     * to return an empty Stream, others will return an unsorted Stream, depending on the backing storage implementation.
      */
     @NotNull
     Stream<ContractDefinition> findAll(QuerySpec spec);
