@@ -40,7 +40,7 @@ public class BlobStoreWriter implements DataWriter {
         } catch (Exception e) {
             var message = "Cannot interpret temporary secret as valid AzureSasToken!";
             monitor.severe(message);
-            Result.failure(message);
+            return Result.failure(message);
         }
 
 

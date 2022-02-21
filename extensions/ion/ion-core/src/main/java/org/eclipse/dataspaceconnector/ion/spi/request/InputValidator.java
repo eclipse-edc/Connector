@@ -9,10 +9,6 @@ import java.util.Set;
 
 public class InputValidator {
     public static void validateEs256kOperationKey(JWK key, String visibility) {
-        var allowedProperties = new HashSet<>(Set.of("kty", "crv", "x", "y"));
-        if (visibility.equals("private")) {
-            allowedProperties.add("d");
-        }
 
         if (!(key instanceof ECKey)) {
             throw new IonCryptoException("Can only support EC keys for now, but an object of type " + key.getClass() + "was found!");
