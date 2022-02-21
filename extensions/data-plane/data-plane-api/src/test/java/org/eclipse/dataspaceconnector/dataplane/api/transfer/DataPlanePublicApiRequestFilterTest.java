@@ -42,13 +42,13 @@ import org.mockito.ArgumentCaptor;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -76,7 +76,7 @@ class DataPlanePublicApiRequestFilterTest {
     @Test
     void verifyDataFlowRequest() throws IOException {
         var claims = createClaimToken();
-        var context = createContext(testQueryParams());
+        var context = createDefaultContext(testQueryParams());
         var data = "bar".getBytes();
         var dataSource = new InputStreamDataSource("foo", new ByteArrayInputStream(data));
 
@@ -84,18 +84,16 @@ class DataPlanePublicApiRequestFilterTest {
 
         var validationCapture = ArgumentCaptor.forClass(DataFlowRequest.class);
         var transferCapture = ArgumentCaptor.forClass(DataFlowRequest.class);
-        var responseCapture = ArgumentCaptor.forClass(Response.class);
 
         when(dataPlaneManager.validate(validationCapture.capture())).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(OutputStreamDataSink.class), transferCapture.capture()))
                 .then(invocation -> ((OutputStreamDataSink) invocation.getArguments()[0]).transfer(dataSource))
                 .thenReturn(CompletableFuture.completedFuture(TransferResult.success()));
-        doNothing().when(context).abortWith(responseCapture.capture());
 
         filter.filter(context);
 
-        verify(context, times(1)).abortWith(any(Response.class));
-
+        var responseCapture = ArgumentCaptor.forClass(Response.class);
+        verify(context, times(1)).abortWith(responseCapture.capture());
         assertThat(responseCapture.getValue())
                 .isNotNull()
                 .satisfies(response -> {
@@ -117,27 +115,46 @@ class DataPlanePublicApiRequestFilterTest {
     }
 
     /**
-     * Check that response with code 401 (not authorized) is returned in case of token validation error.
+     * Check that response with code 401 (not authorized) is returned in case no token is provided.
      */
     @Test
-    void verifyDataFlowRequest_tokenValidationFailure() throws IOException {
-        var context = createContext(testQueryParams());
-        when(tokenValidationService.validate(anyString())).thenReturn(Result.failure("token validation error"));
-        var responseCapture = ArgumentCaptor.forClass(Response.class);
-
-        doNothing().when(context).abortWith(responseCapture.capture());
+    void verifyDataFlowRequest_missingTokenInRequest() throws IOException {
+        var context = mock(ContainerRequestContext.class);
+        when(context.getHeaderString("Authorization")).thenReturn(null);
 
         filter.filter(context);
 
-        verify(context, times(1)).abortWith(any(Response.class));
-
+        var responseCapture = ArgumentCaptor.forClass(Response.class);
+        verify(context, times(1)).abortWith(responseCapture.capture());
         assertThat(responseCapture.getValue())
                 .isNotNull()
                 .satisfies(response -> {
                     assertThat(response.getStatus()).isEqualTo(401);
                     assertThat(response.getEntity())
                             .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", Arrays.asList("token validation error")));
+                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("Missing bearer token")));
+                });
+    }
+
+    /**
+     * Check that response with code 401 (not authorized) is returned in case token validation fails.
+     */
+    @Test
+    void verifyDataFlowRequest_tokenValidationFailure() throws IOException {
+        var context = createDefaultContext(testQueryParams());
+        when(tokenValidationService.validate(anyString())).thenReturn(Result.failure("token validation error"));
+
+        filter.filter(context);
+
+        var responseCapture = ArgumentCaptor.forClass(Response.class);
+        verify(context, times(1)).abortWith(responseCapture.capture());
+        assertThat(responseCapture.getValue())
+                .isNotNull()
+                .satisfies(response -> {
+                    assertThat(response.getStatus()).isEqualTo(401);
+                    assertThat(response.getEntity())
+                            .isInstanceOf(Map.class)
+                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("token validation error")));
                 });
     }
 
@@ -147,27 +164,23 @@ class DataPlanePublicApiRequestFilterTest {
     @Test
     void verifyDataFlowRequest_requestValidationFailure() throws IOException {
         var claims = createClaimToken();
-        var context = createContext(testQueryParams());
+        var context = createDefaultContext(testQueryParams());
 
         when(tokenValidationService.validate(anyString())).thenReturn(Result.success(claims));
 
-        var responseCapture = ArgumentCaptor.forClass(Response.class);
-
         when(dataPlaneManager.validate(any(DataFlowRequest.class))).thenReturn(Result.failure("request validation error"));
-
-        doNothing().when(context).abortWith(responseCapture.capture());
 
         filter.filter(context);
 
-        verify(context, times(1)).abortWith(any(Response.class));
-
+        var responseCapture = ArgumentCaptor.forClass(Response.class);
+        verify(context, times(1)).abortWith(responseCapture.capture());
         assertThat(responseCapture.getValue())
                 .isNotNull()
                 .satisfies(response -> {
                     assertThat(response.getStatus()).isEqualTo(400);
                     assertThat(response.getEntity())
                             .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", Arrays.asList("request validation error")));
+                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("request validation error")));
                 });
     }
 
@@ -177,28 +190,25 @@ class DataPlanePublicApiRequestFilterTest {
     @Test
     void verifyDataFlowRequest_transferFailure() throws IOException {
         var claims = createClaimToken();
-        var context = createContext(testQueryParams());
+        var context = createDefaultContext(testQueryParams());
 
         when(tokenValidationService.validate(anyString())).thenReturn(Result.success(claims));
-
-        var responseCapture = ArgumentCaptor.forClass(Response.class);
 
         when(dataPlaneManager.validate(any(DataFlowRequest.class))).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any(DataFlowRequest.class)))
                 .thenReturn(CompletableFuture.completedFuture(TransferResult.failure(ResponseStatus.FATAL_ERROR, "transfer error")));
-        doNothing().when(context).abortWith(responseCapture.capture());
 
         filter.filter(context);
 
-        verify(context, times(1)).abortWith(any(Response.class));
-
+        var responseCapture = ArgumentCaptor.forClass(Response.class);
+        verify(context, times(1)).abortWith(responseCapture.capture());
         assertThat(responseCapture.getValue())
                 .isNotNull()
                 .satisfies(response -> {
                     assertThat(response.getStatus()).isEqualTo(500);
                     assertThat(response.getEntity())
                             .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", Arrays.asList("transfer error")));
+                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("transfer error")));
                 });
     }
 
@@ -208,39 +218,36 @@ class DataPlanePublicApiRequestFilterTest {
     @Test
     void verifyDataFlowRequest_transferErrorUnhandledException() throws IOException {
         var claims = createClaimToken();
-        var context = createContext(testQueryParams());
+        var context = createDefaultContext(testQueryParams());
 
         when(tokenValidationService.validate(anyString())).thenReturn(Result.success(claims));
-
-        var responseCapture = ArgumentCaptor.forClass(Response.class);
 
         when(dataPlaneManager.validate(any(DataFlowRequest.class))).thenReturn(Result.success(true));
         when(dataPlaneManager.transfer(any(DataSink.class), any(DataFlowRequest.class)))
                 .thenReturn(CompletableFuture.failedFuture(new RuntimeException("transfer exception")));
-        doNothing().when(context).abortWith(responseCapture.capture());
 
         filter.filter(context);
 
-        verify(context, times(1)).abortWith(any(Response.class));
-
+        var responseCapture = ArgumentCaptor.forClass(Response.class);
+        verify(context, times(1)).abortWith(responseCapture.capture());
         assertThat(responseCapture.getValue())
                 .isNotNull()
                 .satisfies(response -> {
                     assertThat(response.getStatus()).isEqualTo(500);
                     assertThat(response.getEntity())
                             .isInstanceOf(Map.class)
-                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", Arrays.asList("Unhandled exception: transfer exception")));
+                            .satisfies(o -> assertThat((Map) o).containsEntry("errors", List.of("Unhandled exception: transfer exception")));
                 });
     }
 
     private MultivaluedMap<String, String> testQueryParams() {
         var queryParams = new MultivaluedHashMap<String, String>();
         queryParams.put("foo", Arrays.asList("bar", "hey"));
-        queryParams.put("hello", Arrays.asList("world"));
+        queryParams.put("hello", List.of("world"));
         return queryParams;
     }
 
-    private ContainerRequestContext createContext(MultivaluedMap<String, String> queryParams) {
+    private ContainerRequestContext createDefaultContext(MultivaluedMap<String, String> queryParams) {
         var uriInfo = mock(UriInfo.class);
         when(uriInfo.getQueryParameters()).thenReturn(queryParams);
 

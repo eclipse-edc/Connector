@@ -49,7 +49,9 @@ import static org.eclipse.dataspaceconnector.dataplane.spi.schema.DataFlowReques
 import static org.eclipse.dataspaceconnector.spi.types.domain.edr.EndpointDataReferenceClaimsSchema.DATA_ADDRESS_CLAIM;
 
 /**
- * Filter that intercepts call to public API of the data plane.
+ * Filter that intercepts call to public API of the data plane. Note that a request filter is preferred over a Controller here
+ * as public API of the data plane is supposed to support any verb (GET,PUT,POST...), while this verb is just forwarded to the data source.
+ * Thus, this approach allows to have one single implementation that will process all requests, regardless of the verb, instead of having one endpoint dedicated to each verb.
  */
 public class DataPlanePublicApiRequestFilter implements ContainerRequestFilter {
 
@@ -74,6 +76,10 @@ public class DataPlanePublicApiRequestFilter implements ContainerRequestFilter {
     @Override
     public void filter(ContainerRequestContext requestContext) throws IOException {
         var bearerToken = requestContext.getHeaderString(AUTHORIZATION_HEADER);
+        if (bearerToken == null) {
+            requestContext.abortWith(notAuthorizedErrors(List.of("Missing bearer token")));
+            return;
+        }
 
         // validate and decode input token
         var tokenValidationResult = tokenValidationService.validate(bearerToken);

@@ -36,6 +36,7 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Objects;
+import java.util.UUID;
 
 import static org.eclipse.dataspaceconnector.ids.spi.IdsConstants.IDS_WEBHOOK_ADDRESS_PROPERTY;
 
@@ -99,7 +100,8 @@ public class MultipartArtifactRequestSender extends IdsMultipartSender<DataReque
         var artifactId = artifactTransformationResult.getContent();
         var contractId = contractTransformationResult.getContent();
 
-        var message = new ArtifactRequestMessageBuilder()
+        var artifactRequestId = request.getId() != null ? request.getId() : UUID.randomUUID().toString();
+        var message = new ArtifactRequestMessageBuilder(URI.create(artifactRequestId))
                 ._modelVersion_(IdsProtocol.INFORMATION_MODEL_VERSION)
                 //._issued_(gregorianNow()) TODO once https://github.com/eclipse-dataspaceconnector/DataSpaceConnector/issues/236 is done
                 ._securityToken_(token)
