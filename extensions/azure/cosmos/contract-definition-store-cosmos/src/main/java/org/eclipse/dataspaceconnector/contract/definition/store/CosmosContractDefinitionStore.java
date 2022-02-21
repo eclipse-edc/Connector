@@ -69,6 +69,10 @@ public class CosmosContractDefinitionStore implements ContractDefinitionStore {
             var sortField = spec.getSortField();
 
             if (sortField != null) {
+                // if the sortfield doesn't exist on the object -> return empty
+                if (ReflectionUtil.getFieldRecursive(ContractDefinition.class, sortField) == null) {
+                    return Stream.empty();
+                }
                 var comparator = propertyComparator(spec.getSortOrder() == SortOrder.ASC, sortField);
                 stream = stream.sorted(comparator);
             }

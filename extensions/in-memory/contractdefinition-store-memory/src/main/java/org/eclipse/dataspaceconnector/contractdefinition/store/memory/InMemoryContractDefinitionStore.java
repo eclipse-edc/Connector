@@ -55,6 +55,9 @@ public class InMemoryContractDefinitionStore implements ContractDefinitionStore 
         var sortField = spec.getSortField();
 
         if (sortField != null) {
+            if (ReflectionUtil.getFieldRecursive(ContractDefinition.class, sortField) == null) {
+                return Stream.empty();
+            }
             var comparator = propertyComparator(spec.getSortOrder() == SortOrder.ASC, sortField);
             stream = stream.sorted(comparator);
         }

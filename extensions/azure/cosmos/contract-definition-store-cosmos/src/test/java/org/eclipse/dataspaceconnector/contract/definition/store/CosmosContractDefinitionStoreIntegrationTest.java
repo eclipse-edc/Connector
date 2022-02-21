@@ -9,9 +9,12 @@ import com.azure.cosmos.models.CosmosContainerResponse;
 import com.azure.cosmos.models.CosmosDatabaseResponse;
 import com.azure.cosmos.models.PartitionKey;
 import net.jodah.failsafe.RetryPolicy;
+import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
 import org.eclipse.dataspaceconnector.contract.definition.store.model.ContractDefinitionDocument;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApi;
 import org.eclipse.dataspaceconnector.cosmos.azure.CosmosDbApiImpl;
+import org.eclipse.dataspaceconnector.policy.model.Policy;
+import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.query.Criterion;
 import org.eclipse.dataspaceconnector.spi.query.QuerySpec;
 import org.eclipse.dataspaceconnector.spi.query.SortOrder;
@@ -37,7 +40,7 @@ import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationF
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDefinition;
 import static org.eclipse.dataspaceconnector.contract.definition.store.TestFunctions.generateDocument;
 
-//@IntegrationTest
+@IntegrationTest
 public class CosmosContractDefinitionStoreIntegrationTest {
     public static final String REGION = "westeurope";
     private static final String TEST_ID = UUID.randomUUID().toString();
@@ -51,14 +54,9 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     @BeforeAll
     static void prepareCosmosClient() {
-        var key = propOrEnv("COSMOS_KEY", "RYNecVDtJq2WKAcIoONBLzuTBys06kUcP8Rw9Yz5zOzsOQFVGaP8oGuI5qgF5ONQY4VukjkpQ4x7a2jwVvo7SQ==");
+        var key = propOrEnv("COSMOS_KEY", null);
         if (key != null) {
-            var client = new CosmosClientBuilder()
-                    .key(key)
-                    .preferredRegions(Collections.singletonList(REGION))
-                    .consistencyLevel(ConsistencyLevel.SESSION)
-                    .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
-                    .buildClient();
+            var client = new CosmosClientBuilder().key(key).preferredRegions(Collections.singletonList(REGION)).consistencyLevel(ConsistencyLevel.SESSION).endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/").buildClient();
 
             CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
             database = client.getDatabase(response.getProperties().getId());
@@ -171,12 +169,11 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
         var updatedDefinition = convert(container.readItem(doc1.getId(), new PartitionKey(doc1.getPartitionKey()), Object.class).getItem());
         assertThat(updatedDefinition.getId()).isEqualTo(definition.getId());
-        assertThat(updatedDefinition.getSelectorExpression().getCriteria()).hasSize(2)
-                .anySatisfy(criterion -> {
-                    assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherKey");
-                    assertThat(criterion.getOperator()).isNotEqualTo("NOT EQUAL");
-                    assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherValue");
-                }); //we modified that earlier
+        assertThat(updatedDefinition.getSelectorExpression().getCriteria()).hasSize(2).anySatisfy(criterion -> {
+            assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherKey");
+            assertThat(criterion.getOperator()).isNotEqualTo("NOT EQUAL");
+            assertThat(criterion.getOperandLeft()).isNotEqualTo("anotherValue");
+        }); //we modified that earlier
     }
 
     @Test
@@ -203,9 +200,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     @Test
     void delete_notExist() {
-        assertThatThrownBy(() -> store.delete("not-exist-id"))
-                .isInstanceOf(NotFoundException.class)
-                .hasMessageContaining("An object with the ID not-exist-id could not be found!");
+        assertThatThrownBy(() -> store.delete("not-exist-id")).isInstanceOf(NotFoundException.class).hasMessageContaining("An object with the ID not-exist-id could not be found!");
     }
 
     @Test
@@ -227,35 +222,25 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     @Test
     void findAll_verifyPaging() {
 
-        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument())
-                .peek(d -> container.createItem(d))
-                .map(ContractDefinitionDocument::getId)
-                .collect(Collectors.toList());
+        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument()).peek(d -> container.createItem(d)).map(ContractDefinitionDocument::getId).collect(Collectors.toList());
 
         // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4)
-                .extracting(ContractDefinition::getId).isSubsetOf(all);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(4).build())).hasSize(4).extracting(ContractDefinition::getId).isSubsetOf(all);
 
     }
 
     @Test
     void findAll_verifyPaging_pageSizeLargerThanCollection() {
 
-        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument())
-                .peek(d -> container.createItem(d))
-                .map(ContractDefinitionDocument::getId)
-                .collect(Collectors.toList());
+        var all = IntStream.range(0, 10).mapToObj(i -> generateDocument()).peek(d -> container.createItem(d)).map(ContractDefinitionDocument::getId).collect(Collectors.toList());
 
         // page size fits
-        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7)
-                .extracting(ContractDefinition::getId).isSubsetOf(all);
+        assertThat(store.findAll(QuerySpec.Builder.newInstance().offset(3).limit(40).build())).hasSize(7).extracting(ContractDefinition::getId).isSubsetOf(all);
     }
 
     @Test
     void findAll_verifyFiltering() {
-        var documents = IntStream.range(0, 10).mapToObj(i -> generateDocument())
-                .peek(d -> container.createItem(d))
-                .collect(Collectors.toList());
+        var documents = IntStream.range(0, 10).mapToObj(i -> generateDocument()).peek(d -> container.createItem(d)).collect(Collectors.toList());
 
         var expectedId = documents.get(3).getId();
 
@@ -265,18 +250,17 @@ public class CosmosContractDefinitionStoreIntegrationTest {
 
     @Test
     void findAll_verifyFiltering_invalidFilterExpression() {
-        IntStream.range(0, 10).mapToObj(i -> generateDocument())
-                .forEach(d -> container.createItem(d));
+        IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
         var query = QuerySpec.Builder.newInstance().filter("something contains other").build();
 
-        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Cannot build SqlParameter for operator: contains");
+        // message is coming from the predicate converter rather than the SQL statement translation layer
+        assertThatThrownBy(() -> store.findAll(query)).isInstanceOfAny(IllegalArgumentException.class).hasMessage("Operator [contains] is not supported by this converter!");
     }
 
     @Test
     void findAll_verifyFiltering_unsuccessfulFilterExpression() {
-        IntStream.range(0, 10).mapToObj(i -> generateDocument())
-                .forEach(d -> container.createItem(d));
+        IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
         var query = QuerySpec.Builder.newInstance().filter("something = other").build();
 
@@ -286,8 +270,7 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     @Test
     void findAll_verifySorting() {
 
-        IntStream.range(0, 10).mapToObj(i -> generateDocument())
-                .forEach(d -> container.createItem(d));
+        IntStream.range(0, 10).mapToObj(i -> generateDocument()).forEach(d -> container.createItem(d));
 
         var ascendingQuery = QuerySpec.Builder.newInstance().sortField("id").sortOrder(SortOrder.ASC).build();
         assertThat(store.findAll(ascendingQuery)).hasSize(10).isSortedAccordingTo(Comparator.comparing(ContractDefinition::getId));
@@ -298,16 +281,35 @@ public class CosmosContractDefinitionStoreIntegrationTest {
     @Test
     void findAll_sorting_nonExistentProperty() {
 
-        var allIds = IntStream.range(0, 10).mapToObj(i -> generateDocument())
-                .peek(d -> container.createItem(d))
-                .map(ContractDefinitionDocument::getId)
-                .collect(Collectors.toList());
+        var ids = IntStream.range(0, 10).mapToObj(i -> generateDocument()).peek(d -> container.createItem(d)).map(ContractDefinitionDocument::getId).collect(Collectors.toList());
 
 
         var query = QuerySpec.Builder.newInstance().sortField("notexist").sortOrder(SortOrder.DESC).build();
 
         var all = store.findAll(query).collect(Collectors.toList());
         assertThat(all).isEmpty();
+    }
+
+    @Test
+    void verify_readWriteFindAll() {
+        // add an object
+        var def = generateDefinition();
+        store.save(def);
+        assertThat(store.findAll()).containsExactly(def);
+
+        // modify the object
+        var modifiedDef = ContractDefinition.Builder.newInstance().id(def.getId())
+                .contractPolicy(Policy.Builder.newInstance().id("test-cp-id-new").build())
+                .accessPolicy(Policy.Builder.newInstance().id("test-ap-id-new").build())
+                .selectorExpression(AssetSelectorExpression.Builder.newInstance().whenEquals("somekey", "someval").build())
+                .build();
+
+        store.update(modifiedDef);
+
+        // re-read
+        var all = store.findAll(QuerySpec.Builder.newInstance().filter("contractPolicy.uid=test-cp-id-new").build()).collect(Collectors.toList());
+        assertThat(all).hasSize(1).containsExactly(modifiedDef);
+
     }
 
 

@@ -14,12 +14,16 @@
 
 package org.eclipse.dataspaceconnector.common.reflection;
 
-public class ReflectionException extends RuntimeException {
-    public ReflectionException(Throwable root) {
-        super(root);
+public class TestObjectSubSubclass extends TestObjectSubclass {
+    private final String description;
+
+    public TestObjectSubSubclass(String description, int priority, String testProperty) {
+        super(description, priority, testProperty);
+        this.description = "Sub_" + description;
     }
 
-    public ReflectionException(String propertyName) {
-        super("Error during reflective access: " + propertyName);
+    @Override
+    public String getDescription() {
+        return description;
     }
 }
